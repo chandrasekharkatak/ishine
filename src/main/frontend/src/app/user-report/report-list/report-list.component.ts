@@ -325,7 +325,7 @@ export class ReportListComponent implements OnInit {
     this.employeeReportObj.poProjectType = box;
     this.employeeReportObj.category = tab;
     this.employeeReportObj.flag = null;
-    this.employeeReportObj.billiableType = null;
+    this.employeeReportObj.billableType = null;
     if (this.employeeReportObj.category === 'Project') {
       this.employeeReportObj.report = 'P';
     } else if (this.employeeReportObj.category === 'Employee' && this.changeTable === true) {
@@ -350,7 +350,7 @@ export class ReportListComponent implements OnInit {
     this.employeeReportObj.poProjectType = box;
     this.employeeReportObj.category = this.selectedTab[box];
     this.employeeReportObj.flag = flag;
-    this.employeeReportObj.billiableType = null;
+    this.employeeReportObj.billableType = null;
 
     this.getEmployeeReportData();
   }
@@ -366,7 +366,7 @@ export class ReportListComponent implements OnInit {
     this.employeeReportObj.poProjectType = box;
     this.employeeReportObj.category = this.selectedTab[box];
     this.employeeReportObj.flag = this.selectedFlag[box];
-    this.employeeReportObj.billiableType = type;
+    this.employeeReportObj.billableType = [type];
 
     this.getEmployeeReportData();
   }
@@ -455,7 +455,7 @@ export class ReportListComponent implements OnInit {
         poProjectType: null,
         category: 'Employee',
         flag: null,
-        billiableType: null,
+        billableType: null,
         report: 'EC'
 
       };

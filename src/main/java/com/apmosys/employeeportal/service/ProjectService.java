@@ -1668,7 +1668,7 @@ public class ProjectService {
         String poProjectType = dto.getPoProjectType();
         String flag = dto.getFlag();
         List<String> billableType = dto.getBillableType();
-        List<Long> deptIds = dto.getDeptIds();
+        List<Long> deptIds = dto.getDeptId();
 
         StringBuilder query = new StringBuilder();
 
@@ -1726,7 +1726,7 @@ public class ProjectService {
                  .append(buildInnerWhereClause(poProjectType, flag))
                  .append("    GROUP BY etm.emp_id ")
                  .append(") emp_proj_client ON emp_proj_client.emp_id = e.emp_id ")
-                 .append("WHERE e.employmentstatus != 'InActive' ")
+                 .append("WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL ")
                  .append(buildOuterWhereClause(billableType, deptIds));  // Filters for outer query
 
         } else if ("E".equalsIgnoreCase(dto.getReport())) {
@@ -1748,7 +1748,7 @@ public class ProjectService {
                  .append("INNER JOIN client_locations cl ON cl.client_id = p.client_id ")
                  .append("INNER JOIN clients c ON c.client_id = p.client_id ")
                  .append("LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id ")
-                 .append("WHERE e.employmentstatus != 'InActive' AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ")
+                 .append("WHERE e.employmentstatus != 'InActive' AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' AND p.project_id IS NOT NULL ")
 	             .append(buildInnerWhereClause(poProjectType, flag))
 	             .append(buildOuterWhereClause(billableType, deptIds));
         } else {
@@ -1819,7 +1819,7 @@ public class ProjectService {
 
 	    if (isFiltered && dto != null) {
 	        query.append(buildInnerWhereClause(dto.getPoProjectType(), dto.getFlag()))
-	             .append(buildOuterWhereClause(dto.getBillableType(), dto.getDeptIds()));
+	             .append(buildOuterWhereClause(dto.getBillableType(), dto.getDeptId()));
 	    }
 
 	    query.append("GROUP BY po_project_type, e.billable_type ")
@@ -1839,7 +1839,7 @@ public class ProjectService {
 
 	    if (isFiltered && dto != null) {
 	        query.append(buildInnerWhereClause(dto.getPoProjectType(), dto.getFlag()))
-	             .append(buildOuterWhereClause(dto.getBillableType(), dto.getDeptIds()));
+	             .append(buildOuterWhereClause(dto.getBillableType(), dto.getDeptId()));
 	    }
 
 	    query.append("GROUP BY po_project_type ")
@@ -1852,27 +1852,10 @@ public class ProjectService {
 	public Map<String, Map<String, Object>> getProjectSummary(GetEmployeeProjectReportPayloadDTO dto) {
 	    
 		List<String> allBillableTypes = Arrays.asList("Bench", "Fixed Cost", "InternalRNDProducts", "Shadow", "TNM");
-		 
-	    String query1 = buildProjectSummaryQuery(null, false); 
-	    List<Object[]> baseResults = entityManager.createNativeQuery(query1).getResultList();
 
 	    Map<String, EmployeeProjectSummaryDTO> summaryMap = new HashMap<>();
-	    for (Object[] row : baseResults) {
-	        String poType = row[0] != null ? row[0].toString() : "Internal";
-	        String billableType = row[1] != null ? row[1].toString() : null;
-	        Long totalEmp = row[2] != null ? Long.parseLong(row[2].toString()) : 0L;
-	        Long totalPerPoType = row[3] != null ? Long.parseLong(row[3].toString()) : 0L;
-
-	        EmployeeProjectSummaryDTO dtoObj = new EmployeeProjectSummaryDTO();
-	        dtoObj.setPoProjectType(poType);
-	        dtoObj.setBillableType(billableType);
-	        dtoObj.setTotalEmp(totalEmp);
-	        dtoObj.setTotalEmpPerProjectType(totalPerPoType);
-
-	        summaryMap.put(poType + "|" + billableType, dtoObj);
-	    }
-
-	    String query2 = buildProjectSummaryQuery(dto, true);
+		
+		String query2 = buildProjectSummaryQuery(dto, true);
 	    Query nativeQuery = entityManager.createNativeQuery(query2);
 
 	    List<Object[]> overrideResults = nativeQuery.getResultList();
@@ -1885,12 +1868,32 @@ public class ProjectService {
 
 	        if (totalEmp > 0) {
 	            String key = poType + "|" + billableType;
-	            EmployeeProjectSummaryDTO existing = summaryMap.getOrDefault(key, new EmployeeProjectSummaryDTO());
-	            existing.setPoProjectType(poType);
-	            existing.setBillableType(billableType);
-	            existing.setTotalEmp(totalEmp);
-	            existing.setTotalEmpPerProjectType(totalPerPoType);
-	            summaryMap.put(key, existing);
+	            EmployeeProjectSummaryDTO dtoObj = new EmployeeProjectSummaryDTO();
+	            dtoObj.setPoProjectType(poType);
+	            dtoObj.setBillableType(billableType);
+	            dtoObj.setTotalEmp(totalEmp);
+	            dtoObj.setTotalEmpPerProjectType(totalPerPoType);
+	            summaryMap.put(key, dtoObj);
+	        }
+	    }
+		 
+	    String query1 = buildProjectSummaryQuery(null, false); 
+	    List<Object[]> baseResults = entityManager.createNativeQuery(query1).getResultList();
+
+	    for (Object[] row : baseResults) {
+	        String poType = row[0] != null ? row[0].toString() : "Internal";
+	        String billableType = row[1] != null ? row[1].toString() : null;
+	        Long totalEmp = row[2] != null ? Long.parseLong(row[2].toString()) : 0L;
+	        Long totalPerPoType = row[3] != null ? Long.parseLong(row[3].toString()) : 0L;
+
+	        String key = poType + "|" + billableType;
+	        if (!summaryMap.containsKey(key)) {
+	            EmployeeProjectSummaryDTO dtoObj = new EmployeeProjectSummaryDTO();
+	            dtoObj.setPoProjectType(poType);
+	            dtoObj.setBillableType(billableType);
+	            dtoObj.setTotalEmp(totalEmp);
+	            dtoObj.setTotalEmpPerProjectType(totalPerPoType);
+	            summaryMap.put(key, dtoObj);
 	        }
 	    }
 

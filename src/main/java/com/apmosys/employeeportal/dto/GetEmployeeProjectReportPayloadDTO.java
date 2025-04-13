@@ -16,7 +16,7 @@ public class GetEmployeeProjectReportPayloadDTO {
 	private String category;
 	private String flag;
 	private List<String> billableType;
-	private List<Long> deptIds;
+	private List<Long> deptId;
 	
 
 }

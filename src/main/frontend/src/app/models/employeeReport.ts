@@ -3,6 +3,6 @@ export class employeeReport{
     poProjectType:any;
     category:any;
     flag:any;
-    billiableType:any;
+    billableType:any;
     report:any;
 }
