@@ -1761,9 +1761,13 @@ public class ProjectService {
 	
 	public String buildInnerWhereClause(String poProjectType, String flag) {
 	    StringBuilder innerWhere = new StringBuilder();
-
+	    
 	    if (poProjectType != null && !poProjectType.isEmpty()) {
-	        innerWhere.append(" AND po_project_type = '").append(poProjectType).append("' ");
+	        if ("Internal".equalsIgnoreCase(poProjectType)) {
+	            innerWhere.append(" AND po_project_type IS NULL ");
+	        } else {
+	            innerWhere.append(" AND po_project_type = '").append(poProjectType).append("' ");
+	        }
 	    }
 
 	    if (flag != null && !flag.isEmpty()) {
