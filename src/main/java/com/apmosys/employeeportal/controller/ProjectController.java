@@ -103,8 +103,8 @@ public class ProjectController {
 	}
 	
 	@GetMapping(value = "/poprojectclone")
-	public ResponseEntity<List<ProjectPoPortalDTO>> poprojectclone() {
-		return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
+	public ResponseEntity<ServiceResponse> poprojectclone() {
+	    return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
 	}
 	
 	@PostMapping(value = "/poProjectTimesheetSync")

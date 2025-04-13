@@ -1522,62 +1522,128 @@ public class ProjectService {
 	}
 	
 	@Transactional
-	public List<ProjectPoPortalDTO> getProjectCloneFromPoPortal() {
+	public ServiceResponse getProjectCloneFromPoPortal() {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("getProjectCloneFromPoPortal");
 	    apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
 	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
 
 	    List<ProjectPoPortalDTO> list = new ArrayList<>();
-	    
+
 	    try {
 	        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
-	        
 	        list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
-	        System.out.println("Total Projects Fetched = " + list.size());
-
+	        logBuilder.append("Total Projects Fetched = ").append(list.size()).append("\n");
 	    } catch (RestClientException e) {
-	        System.err.println("Error fetching projects from PoPortal API: " + e.getMessage());
-	        return list; 
+	        logBuilder.append("Error fetching projects from Shankh Portal API: ").append(e.getMessage()).append("\n");
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Error fetching projects: " + e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiRequest(logBuilder.toString());
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+	        return response;
 	    }
 
 	    if (!list.isEmpty()) {
 	        for (ProjectPoPortalDTO dto : list) {
 	            try {
-	                Project project = projectRepository.findByPoProjectId(dto.getId());
 	                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-	                
-	                if (project != null) {
-//	                    project.setPoStartDate(dto.getStartDate());
-//	                    project.setPoEndDate(dto.getEndDate());
-	                	Timestamp startDate = dto.getStartDate();
-	                    String formattedStartDate = dateFormat.format(startDate);
-	                    project.setPoStartDate(formattedStartDate);
+	                Project project = projectRepository.findByPoProjectId(dto.getId());
 
-	                    // Convert dto's end date to yyyy-MM-dd format
-	                    Timestamp endDate = dto.getEndDate();
-	                    String formattedEndDate = dateFormat.format(endDate);
-	                    project.setPoEndDate(formattedEndDate);
-	                    project.setPoNo(dto.getPoNo());
+	                if (project != null) {
+	                    project.setProjectName(dto.getName());
 	                    project.setPoProjectType(dto.getProjectType());
+	                    project.setPoStartDate(dateFormat.format(dto.getStartDate()));
+	                    project.setPoEndDate(dateFormat.format(dto.getEndDate()));
+	                    project.setStatus(dto.getStatus());
+
+	                    // Department Mapping
+	                    List<String> departmentList = dto.getDepartment();
+	                    List<String> deptIds = new ArrayList<>();
+	                    if (!departmentList.isEmpty()) {
+	                        for (String dept : departmentList) {
+	                            Department deptEntity = departmentRepository.findByName(dept);
+	                            if (deptEntity != null) {
+	                                deptIds.add(deptEntity.getDeptId().toString());
+	                            } else {
+	                                logBuilder.append("No Dept Id fetched for dept: ").append(dept).append("\n");
+	                            }
+	                        }
+	                        if (!deptIds.isEmpty()) {
+	                            project.setDeptId(String.join(", ", deptIds));
+	                        }
+	                    }
+
+	                    // Client Mapping — Using explicit loop
+	                    Integer clientId = null;
+	                    Optional<Client> clientOpt = clientsRepository.findByClientName(dto.getClientName());
+	                    if (clientOpt.isPresent()) {
+	                        clientId = clientOpt.get().getClientId();
+	                    } else {
+	                        Client newClient = new Client();
+	                        newClient.setClientName(dto.getClientName());
+	                        Client savedClient = clientsRepository.save(newClient);
+
+	                        if (savedClient != null) {
+	                            clientId = savedClient.getClientId();
+	                            List<ClientLocation> locations = new ArrayList<>();
+
+	                            for (String location : dto.getClientLocation()) {
+	                                ClientLocation cl = new ClientLocation();
+	                                cl.setClientId(clientId);
+	                                cl.setClientLocation(location);
+	                                locations.add(cl);
+	                            }
+
+	                            if (!dto.getClientLocation().contains("WFH")) {
+	                                ClientLocation wfh = new ClientLocation();
+	                                wfh.setClientId(clientId);
+	                                wfh.setClientLocation("WFH");
+	                                locations.add(wfh);
+	                            }
+
+	                            clientLocationRepository.saveAll(locations);
+	                            logBuilder.append("Client and locations stored for: ").append(dto.getClientName()).append("\n");
+	                        }
+	                    }
+
+	                    project.setClientId(clientId);
+	                    project.setPoNo(dto.getPoNo());
+	                    project.setApmosysRM(dto.getApmosysRM());
+	                    project.setIsRenewable(dto.getIsRenewable());
+	                    project.setClientRM(dto.getClientRM());
 
 	                    projectRepository.save(project);
 
-	                    System.out.println("Updated Project: ID=" + dto.getId() + ", PoNo=" + dto.getPoNo());
+	                    logBuilder.append("Updated Project: ID=").append(dto.getId())
+	                              .append(", PoNo=").append(dto.getPoNo()).append("\n");
 	                } else {
-	                    System.err.println("Project table does not contain PoProjectId: " + dto.getId());
+	                    logBuilder.append("Project not found for PoProjectId: ").append(dto.getId()).append("\n");
 	                }
 
 	            } catch (Exception ex) {
-	                System.err.println("Error updating project ID: " + dto.getId() + " - " + ex.getMessage());
+	                ex.printStackTrace();
+	                logBuilder.append("Error updating project ID: ").append(dto.getId())
+	                          .append(" - ").append(ex.getMessage()).append("\n");
 	            }
 	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Successfully synced project details from Shankh Portal.");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        apiLogInfo.setApiResponse("Successfully updated projects from PoPortal.");
 	    } else {
-	        System.out.println("No projects found from PoPortal API.");
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("No projects found from Shank Portal API.");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("No projects returned from PoPortal API.");
 	    }
 
-	    return list;
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
 	
 	public ServiceResponse poProjectTimesheetSync(Set<Long> poProjectIdList) {
