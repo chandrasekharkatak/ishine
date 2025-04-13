@@ -19,6 +19,6 @@ public class GetEmployeeProjectReportDTO {
 	
     private List<GetEmployeeProjectReportForEmployeeDTO> getEmployeeProjectReportForEmployeeDTO;
 	private List<GetProjectToEmployeeReportForProjectDTO> getProjectToEmployeeReportForProjectDTO;
-	private Map<String, Map<String, Object>> projectSummary;
+	private Map<String, Map<String, Map<String, Object>>> projectSummary;
     
 }

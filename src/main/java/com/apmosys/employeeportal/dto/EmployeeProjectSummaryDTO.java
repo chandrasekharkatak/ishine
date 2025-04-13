@@ -16,5 +16,7 @@ public class EmployeeProjectSummaryDTO {
     private String billableType;
     private Long totalEmp;
     private Long totalEmpPerProjectType;
+    private Long total_projects;
+    private Long total_projects_per_po_project;
     
 }
