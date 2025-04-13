@@ -399,6 +399,7 @@ export class ReportListComponent implements OnInit {
   projectList: any[] = [];
   projectSummary: any = {};
   getEmployeeReportData() {
+    this.page = 1;
     this.employeeList = [];
     this.projectList = [];
     this.projectSummary = {};
