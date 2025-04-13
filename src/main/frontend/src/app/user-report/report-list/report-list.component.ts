@@ -45,6 +45,10 @@ export class ReportListComponent implements OnInit {
   @ViewChild("alert_message")
   alertModal: TemplateRef<any>;
 
+  @ViewChild("alert_message_sync")
+  alertModalSync: TemplateRef<any>;
+
+
   feature = 'Reports';
   currentUser: User;
   userMapping: any = {};
@@ -382,10 +386,7 @@ export class ReportListComponent implements OnInit {
   poProjectSync(template: TemplateRef<any>){
     this.employeeService.getPoProjectSync().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
-        this.openAlertMod(this.alertModal,response.serviceResponse);
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000); 
+        this.openAlertMod(this.alertModalSync,response.serviceResponse);
       }
     });
   }

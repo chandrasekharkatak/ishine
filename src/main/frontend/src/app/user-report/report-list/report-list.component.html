@@ -393,7 +393,7 @@
     </div> -->
 
     <div class="d-flex justify-content-end ">
-      <button class="btn btn-outline-primary btn-sm" (click)="poProjectSync(alert_message)">
+      <button class="btn btn-outline-primary btn-sm" (click)="poProjectSync(alert_message_sync)">
         <i class="fa fa-sync-alt me-1"></i> Sync PO 
       </button>
     </div>
@@ -1592,5 +1592,12 @@
   <div class="modal-body text-center">
     <p>{{alertMessage}}</p>
     <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>
+  </div>
+</ng-template>
+
+<ng-template #alert_message_sync>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest();getEmployeeReportData()">OK</button>
   </div>
 </ng-template>
