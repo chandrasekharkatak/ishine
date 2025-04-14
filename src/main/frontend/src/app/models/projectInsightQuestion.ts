@@ -28,4 +28,5 @@ export class ProjectInsight {
     updatedBy: any;
     toTagEmployeeList:any[]=[];
     toAssignEmployeeList:any[]=[];
+    isQuestionCollapsed:boolean = false;
 }
