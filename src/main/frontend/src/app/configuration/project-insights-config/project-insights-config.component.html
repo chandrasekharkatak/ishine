@@ -15,7 +15,7 @@
 
 
 <!------------------------------------ start :: Search  -------------------------->
-<div class="row justify-content-center" *ngIf="searchTabClick">
+<div class="col-md-12 row justify-content-center" *ngIf="searchTabClick">
     <div class="col-md-10 mt-5">
       <div class="search-container">
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -32,12 +32,13 @@
       </div>
     </div>
 
-    <div class="col-md-12 mt-4" *ngIf="searchResults?.length > 0">
+    <div class="col-md-12 mt-4" *ngIf="searchResults?.length > 0 && !isSearchPreviewClicked">
+        <h1 style="font-size: 20px;">Results({{searchResults.length}})</h1>
         <div class="search-content">
             <div class="search-result" *ngFor="let project of searchResults"  (click)="onProjectClick(project)">
-                <div class="d-flex align-items-start">
+                <div class="d-flex align-items-start" style="cursor: pointer;">
                     <i class="fa-solid fa-folder-open text-primary fs-4 me-3 mt-1"></i>
-                    <div>
+                    <div style="line-height: 1rem;">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="result-title mb-1">
                               {{ project.projectName }} <span class="text-muted">| Manager: {{ project.projectManagerName || 'N/A' }}</span>
@@ -55,6 +56,10 @@
                         <p class="mb-1" *ngIf="project.departmentList?.length">
                             <strong>Departments:</strong> {{ project.departmentList.join(', ') }}
                         </p>
+
+                        <p class="mb-1">
+                            {{ project.createdOn |  }}
+                        </p>
     
                         <div class="tags-line mt-1" *ngIf="project.tagList?.length">
                             <span class="tag" (click)="searchTagTerm(tag)" *ngFor="let tag of project.tagList">
@@ -70,6 +75,240 @@
     <!-- No Results -->
     <div class="col-md-10 mt-3" *ngIf="searchResults?.length === 0 && searchTerm">
         <p class="text-center text-muted">No results found for "{{ searchTerm }}"</p>
+    </div>
+
+    <!----------------------- On preview search content ------------------------------------------>
+    <div class="col-md-12 mt-3 search-preview-content" *ngIf="isSearchPreviewClicked">
+        <button class="btn btn-link back-button" (click)="goBack()">
+            <i class="fas fa-arrow-left">Go Back</i>
+        </button>  
+        <div class="container-fluid">
+            <!-- Project Insight Section -->
+            <div class="response-project-section mb-4" *ngIf="projectInsight">
+              <div class="milestone-container">
+                <div class="header-container btn btn-outline-primary" (click)="projectInsight.isCollapsed = !projectInsight.isCollapsed">
+                  <div class="header-title">
+                    <h3 class="mb-0">{{projectInsight.projectName || 'Project Insight'}}</h3>
+                  </div>
+                  <div class="header-actions">
+                    <i class="fa collapse-icon" [ngClass]="projectInsight.isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+                  </div>
+                </div>
+                
+                <div *ngIf="projectInsight.description" class="px-3 py-2 border-bottom">
+                  <p class="mb-0">{{projectInsight.description || ''}}</p>
+                </div>
+                
+                <!-- Tag for help section -->
+                <div *ngIf="!isFinalResponseSubmitted" class="px-3 py-2 border-bottom">
+                  <div class="form-group mb-0">
+                    <label>Tag For Help</label>
+                    <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" 
+                               [displayMember]="'name'" [valueMember]="'empId'" 
+                               [source]="employeeList" [useInfiniteScroll]="true" 
+                               [multiple]="true" [(ngModel)]="projectInsight.taggedToUserId">
+                      <mat-option [value]="employee.empId" *ngFor="let employee of projectInsight.toTagEmployeeList">
+                        {{employee.name}}
+                      </mat-option>
+                    </mat-select>
+                  </div>
+                </div>
+                
+                <!-- Assigned to section -->
+                <div class="user-info px-3 py-2 border-bottom">
+                  <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                  <span>Assigned To: {{projectInsight.assignedToUserNames || ''}}</span>
+                </div>
+                
+                <!-- Project Insight Content -->
+                <div class="content-container" [ngClass]="{'d-none': projectInsight.isCollapsed}">
+                  <ng-container *ngIf="projectInsight.questionList?.length > 0">
+                    <div class="header-container btn btn-outline-primary" (click)="projectInsight.isQuestionCollapsed = !projectInsight.isQuestionCollapsed">
+                      <div class="header-title">
+                        <h5 class="mb-0">Questions</h5>
+                      </div>
+                      <div class="header-actions">
+                        <i class="fa collapse-icon" 
+                           [ngClass]="projectInsight.isQuestionCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+                      </div>
+                    </div>
+                    <div class="content-container" [ngClass]="{'d-none': projectInsight.isQuestionCollapsed}">
+                     <ng-container *ngFor="let question of projectInsight.questionList; let qIndex = index">
+                      <ng-container [ngTemplateOutlet]="questionTemplate" [ngTemplateOutletContext]="{ 
+                                    question: question, 
+                                    qIndex: qIndex, 
+                                    uniqueQuestionId : 'Project-{{projectInsight.projectId}}-Question-{{question.questionId}}'
+                                  }">
+                      </ng-container>
+                    </ng-container>
+                  </div>
+                  </ng-container>
+      
+                </div>
+              </div>
+            </div>
+          
+            <!-- Milestones Section -->
+            <div *ngIf="projectInsightResponseList && projectInsightResponseList.length > 0">
+              <div *ngFor="let milestone of projectInsightResponseList; let mileIndex = index" class="milestone-container">
+                <!-- Milestone Header -->
+                <div class="header-container btn btn-outline-primary" (click)="milestone.isCollapsed = !milestone.isCollapsed">
+                  <div class="header-title">
+                    <h3 class="mb-0">
+                      Milestone {{mileIndex + 1}}: {{milestone.milestone || 'Unnamed Milestone'}}
+                      <span class="badge badge-secondary ml-2">Phase {{mileIndex + 1}}</span>
+                    </h3>
+                  </div>
+                  <div class="header-actions">
+                    <i class="fa collapse-icon" [ngClass]="milestone.isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+                  </div>
+                </div>
+                
+                <div *ngIf="milestone.description" class="px-3 py-2 border-bottom">
+                  <p class="mb-0">{{milestone.description || ''}}</p>
+                </div>
+                
+                <!-- Tag for help section -->
+                <div *ngIf="!isFinalResponseSubmitted" class="px-3 py-2 border-bottom">
+                  <div class="form-group mb-0">
+                    <label>Tag For Help</label>
+                    <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" 
+                               [displayMember]="'name'" [valueMember]="'empId'" 
+                               [source]="employeeList" [useInfiniteScroll]="true" 
+                               [multiple]="true" [(ngModel)]="milestone.taggedToUserId">
+                      <mat-option [value]="employee.empId" *ngFor="let employee of milestone.toTagEmployeeList">
+                        {{employee.name}}
+                      </mat-option>
+                    </mat-select>
+                  </div>
+                </div>
+                
+                <!-- Assigned to section -->
+                <div class="user-info px-3 py-2 border-bottom">
+                  <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                  <span>Assigned To: {{milestone.assignedToUserNames || ''}}</span>
+                </div>
+                
+                <!-- Milestone Content -->
+                <div class="content-container" [ngClass]="{'d-none': milestone.isCollapsed}">
+                  <!-- Milestone Questions -->
+                  <ng-container *ngIf="milestone.questionList?.length > 0">
+                    <div class="header-container btn btn-outline-primary" (click)="milestone.isQuestionCollapsed = !milestone.isQuestionCollapsed">
+                      <div class="header-title">
+                        <h5 class="mb-0">Questions</h5>
+                      </div>
+                      <div class="header-actions">
+                        <i class="fa collapse-icon" 
+                           [ngClass]="milestone.isQuestionCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+                      </div>
+                    </div>
+                    <div class="content-container" [ngClass]="{'d-none': milestone.isQuestionCollapsed}">
+                     <ng-container *ngFor="let question of milestone.questionList; let qIndex = index">
+                      <ng-container [ngTemplateOutlet]="questionTemplate" [ngTemplateOutletContext]="{ 
+                                    question: question, 
+                                    qIndex: qIndex, 
+                                    uniqueQuestionId : 'Milestone-{{milestoneId}}-Question-{{question.questionId}}'
+                                  }">
+                      </ng-container>
+                    </ng-container>
+                  </div>
+                  </ng-container>
+      
+                  <!-- Modules Section -->
+                  <div *ngFor="let module of milestone.moduleList; let modIndex = index" class="module-container">
+                    <!-- Module Header -->
+                    <div class="header-container btn btn-outline-primary" (click)="module.isCollapsed = !module.isCollapsed">
+                      <div class="header-title">
+                        <h4 class="mb-0">
+                          Module {{modIndex + 1}}: {{module.module || 'Unnamed Module'}}
+                        </h4>
+                      </div>
+                      <div class="header-actions">
+                        <i class="fa collapse-icon" [ngClass]="module.isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+                      </div>
+                    </div>
+                    
+                    <!-- Tag for help section -->
+                    <div *ngIf="!isFinalResponseSubmitted" class="px-3 py-2 border-bottom">
+                      <div class="form-group mb-0">
+                        <label>Tag For Help</label>
+                        <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" 
+                                   [displayMember]="'name'" [valueMember]="'empId'" 
+                                   [source]="employeeList" [useInfiniteScroll]="true" 
+                                   [multiple]="true" [(ngModel)]="module.taggedToUserId">
+                          <mat-option [value]="employee.empId" *ngFor="let employee of module.toTagEmployeeList">
+                            {{employee.name}}
+                          </mat-option>
+                        </mat-select>
+                      </div>
+                    </div>
+                    
+                    <!-- Assigned to section -->
+                    <div class="user-info px-3 py-2 border-bottom">
+                      <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                      </svg>
+                      <span>Assigned To: {{module.assignedToUserNames || ''}}</span>
+                    </div>
+                    
+                    <!-- Module Content -->
+                    <div class="content-container" [ngClass]="{'d-none': module.isCollapsed}">
+                      <!-- Module Questions -->
+                      <ng-container *ngIf="module.questionList?.length > 0">
+                        <div class="header-container btn btn-outline-primary" (click)="module.isQuestionCollapsed = !module.isQuestionCollapsed">
+                          <div class="header-title">
+                            <h5 class="mb-0">Questions</h5>
+                          </div>
+                          <div class="header-actions">
+                            <i class="fa collapse-icon" 
+                               [ngClass]="module.isQuestionCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+                          </div>
+                        </div>
+                        <div class="content-container" [ngClass]="{'d-none': module.isQuestionCollapsed}">
+                         <ng-container *ngFor="let question of module.questionList; let qIndex = index">
+                          <ng-container [ngTemplateOutlet]="questionTemplate" [ngTemplateOutletContext]="{ 
+                                        question: question, 
+                                        qIndex: qIndex, 
+                                        uniqueQuestionId : 'Milestone-{{milestoneId}}-Module-{{moduleId}}-Question-{{question.questionId}}'
+                                      }">
+                          </ng-container>
+                        </ng-container>
+                      </div>
+                      </ng-container>
+                      
+                      <!-- SubModule List -->
+                      <div class="submodules-section mt-4">
+                        <h5 class="mb-3 font-weight-bold">Sub Modules</h5>
+                        <ng-container *ngFor="let subModule of module.subModuleList; let subModIndex = index">
+                          <ng-container [ngTemplateOutlet]="subModuleResponseTemplate"
+                                       [ngTemplateOutletContext]="{ 
+                                         module: module, 
+                                         subModule: subModule, 
+                                         level: 1, 
+                                         milestoneId: milestone.milestoneId, 
+                                         moduleId: module.moduleId, 
+                                         subModIndex: subModIndex, 
+                                         childSubModIndex: null 
+                                       }">
+                          </ng-container>
+                        </ng-container>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- No data message -->
+            <div class="text-center p-4 rounded" *ngIf="!projectInsightResponseList || projectInsightResponseList.length === 0">
+              <strong class="text-muted">No Details to display...</strong>
+            </div>
+            
+          </div>
     </div>
 </div>  
 <!------------------------------------ end :: Search  -------------------------->

@@ -1872,7 +1872,7 @@ public class ProjectInsightService {
 	                dto.setState(project.getState());
 	                dto.setTagList(tagMasterList.stream().map(TagMaster::getTag).limit(8).collect(Collectors.toList()));
 	                dto.setCreatedOn(project.getCreatedOn());
-	                dto.setUpdatedOn(project.getUpdatedOn().toString());
+	                dto.setUpdatedOn(project.getUpdatedOn() != null ? project.getUpdatedOn().toString():null);
 	                
 	                response.add(dto);
 	            }

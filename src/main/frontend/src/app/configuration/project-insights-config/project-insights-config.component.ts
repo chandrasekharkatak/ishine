@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -35,6 +35,8 @@ import { ProjectMilestone } from 'src/app/models/projectMilestone';
 })
 
 export class ProjectInsightsConfigComponent implements OnInit {
+  @ViewChild('alert_message') alertMessageTempalte:TemplateRef<any>;
+  @ViewChild('insight_response_template') insightResponseTemplate:TemplateRef<any>;
 
   feature = "Survey Config";
   currentUser: User;
@@ -46,6 +48,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   //search
   searchTerm: string = '';
+  backupsearchTerm: string = '';
   searchResults:any[] = [];
 
   // tab clicked
@@ -53,6 +56,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   prospectiveProjectTabClick: boolean = false;
   searchTabClick: boolean = false;
   dashboardTabClick: boolean = false;
+  isSearchPreviewClicked: boolean = false;
 
   //modal
   alertMessage: any;
@@ -154,6 +158,14 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   // --------------------------------- Search :: start-----------------------------
 
+  goBack(){
+    this.isSearchPreviewClicked = false;
+    if(this.searchTerm == undefined || this.searchTerm == null){
+      this.searchTerm = this.backupsearchTerm;
+    }
+    this.onSearchTerm();
+  }
+
   onSearchTerm() {
     this.searchResults = [];
     this.projectInsightService.onSearchTerm(this.searchTerm).pipe(first()).subscribe(
@@ -176,7 +188,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   onProjectClick(projectObj:any){
-    
+    this.isSearchPreviewClicked = true;
+    this.backupsearchTerm = this.searchTerm;
+    this.getAllProjectInsightResponsesByProjectId(projectObj,this.alertMessageTempalte,this.insightResponseTemplate,true,'search');
   }
 
 // --------------------------------- Search :: end-----------------------------
@@ -1065,7 +1079,7 @@ private createQuestionsSection(questions: any[], entityType: string): string {
   }
 
 
-  getAllProjectInsightResponsesByProjectId(projectObj: any, alertTemplate: TemplateRef<any>, insightResponseTemplate: TemplateRef<any>, isPreview: any) {
+  getAllProjectInsightResponsesByProjectId(projectObj: any, alertTemplate: TemplateRef<any>, insightResponseTemplate: TemplateRef<any>, isPreview: any, type?:any) {
     this.isResponsePreview = isPreview;
     this.projectInsightResponseList = [];
     this.isFinalResponseSubmitted = true;
@@ -1253,7 +1267,9 @@ private createQuestionsSection(questions: any[], entityType: string): string {
             });
           }
         });
-        this.openProjectInsightResponeMod(insightResponseTemplate);
+         if(type == undefined || type == null){
+          this.openProjectInsightResponeMod(insightResponseTemplate);
+         }
       } else {
         this.openAlertMod(alertTemplate, response.serviceResponse);
       }
