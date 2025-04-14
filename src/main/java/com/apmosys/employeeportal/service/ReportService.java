@@ -486,5 +486,27 @@ public class ReportService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	
+	public ServiceResponse updateBillableType(EmployeeDTO dto) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        int result = employeeRepository.updateBillableInfo(dto.getEmpId(), dto.getBillableType(), dto.getBillable());
+	        if (result > 0) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Updated successfully");
+	        } else {
+	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            response.setServiceResponse("Update failed");
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceError(e.getMessage());
+	        response.setServiceResponse("Something went wrong");
+	    }
+	    return response;
+	}
+
 
 }

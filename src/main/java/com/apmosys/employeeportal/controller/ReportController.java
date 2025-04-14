@@ -94,4 +94,10 @@ public class ReportController {
 			ServiceResponse response = reportService.getPoProjectDetailsBOthPOAndInternal();
 			return response;
 		}
+		
+		@RequestMapping(value ="/updateEmployeeReportBillableType", method = RequestMethod.POST)
+		public ServiceResponse updateBillableType(@RequestBody EmployeeDTO employeeDTO) {
+			ServiceResponse response = reportService.updateBillableType(employeeDTO);
+			return response;
+		}
 }

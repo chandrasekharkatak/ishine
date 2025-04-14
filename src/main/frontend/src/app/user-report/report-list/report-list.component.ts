@@ -423,8 +423,25 @@ export class ReportListComponent implements OnInit {
     });
   }
 
+  editIndex: number = -1;
+  billableTypes: string[] = ['Bench', 'Fixed Cost', 'Shadow', 'InternalRNDProducts', 'TNM'];
 
+  updateBillableType(employee:any,template: TemplateRef<any>){
+    const updatedBillable = employee.billableType === 'TNM' ? 'Yes' : 'No';
 
+    const payload = {
+      empId: employee.empId, 
+      billableType: employee.billableType,
+      billable: updatedBillable
+    };
+
+    this.employeeService.updateEmployeeReportBillableType(payload).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.openAlertMod(this.alertModalSync,response.serviceResponse);
+      }
+    });
+
+  }
 
 
   employeeList: any[] = [];
@@ -445,6 +462,7 @@ export class ReportListComponent implements OnInit {
         console.log("employeeList", this.employeeList);
         console.log("projectList", this.projectList);
         this.flattenProjectList();
+        this.editIndex = -1
       } else {
         console.error("API Error: ", response.serviceError || "Unknown error");
       }
@@ -593,7 +611,6 @@ export class ReportListComponent implements OnInit {
       this.fixedCostPoExpiredCountList = [];
       this.fixedCostPoValidCountList = [];
       this.internalCountList = [];
-      this.getPoProjectDetailsBOthPOAndInternal();
       // this.employeeService.getAllEmployeesReportByProjectTypeInConsolidated().pipe(first()).subscribe((response: any) => {
       //   if (response.serviceStatus == "Success") {
       //     this.allEmployee = response.serviceResponse;
@@ -643,62 +660,6 @@ export class ReportListComponent implements OnInit {
     }
 
   }
-
-
-
-  getPoProjectDetailsBOthPOAndInternal() {
-    this.tnmProjectCount = 0;
-    this.fixedCostProjectCount = 0;
-    this.tnmPoProjectExpiredCount = 0;
-    this.fixedCostPoProjectExpiredCount = 0;
-    this.tnmPOProjectActiveCount = 0;
-    this.fixedCostPoProjectActiveCount = 0;
-    this.internalProjectCount = 0;
-
-
-    this.employeeService.getPoProjectDetailsBOthPOAndInternal().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allProjectPOInternal = response.serviceResponse;
-        this.allProjectPOInternal.forEach((emp: any) => {
-          // INTERNAL project (id is null or undefined)
-          if (!emp.id) {
-            this.internalProjectCount++;
-            // this.internalCountList.push(emp);
-            return;
-          }
-
-          const projectType = emp.projectType?.toLowerCase()?.trim();
-          if (projectType === 'tnm') {
-            this.tnmProjectCount++;
-          } else if (projectType === 'fixed cost') {
-            this.fixedCostProjectCount++;
-          }
-
-          const currentDate = new Date();
-          const poEndDate = new Date(emp.endDate);
-
-          if (poEndDate < currentDate) {
-            if (projectType === 'tnm') {
-              this.tnmPoProjectExpiredCount++;
-              // this.tnmPoExpiredCountList.push(emp);
-            } else if (projectType === 'fixed cost') {
-              this.fixedCostPoProjectExpiredCount++;
-              // this.fixedCostPoExpiredCountList.push(emp);
-            }
-          } else {
-            if (projectType === 'tnm') {
-              this.tnmPOProjectActiveCount++;
-              // this.tnmPOValidCountList.push(emp);
-            } else if (projectType === 'fixed cost') {
-              this.fixedCostPoProjectActiveCount++;
-              // this.fixedCostPoValidCountList.push(emp);
-            }
-          }
-        });
-      }
-    });
-  }
-
 
   onMouseOver(box: string): void {
 

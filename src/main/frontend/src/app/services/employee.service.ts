@@ -369,4 +369,8 @@ updateDefaultProject(newemployeeObj : any){
   return this.http.get(`${this.baseUrl}` + `api/poprojectclone`);
  }
 
+ updateEmployeeReportBillableType(employee:any){
+  return this.http.post(`${this.baseUrl}` + `api/updateEmployeeReportBillableType`,employee);
+ }
+
 }

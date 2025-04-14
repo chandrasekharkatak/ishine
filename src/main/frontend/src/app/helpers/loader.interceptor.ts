@@ -253,7 +253,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/sendEmailNotificationToBDTeam`,
     `${this.baseUrl}` + `api/currentStatusForPerformanceTableView`,
     `${this.baseUrl}` + `api/poprojectclone`,
-    `${this.baseUrl}` + `api/getEmployeeProjectReport`
+    `${this.baseUrl}` + `api/getEmployeeProjectReport`,
+    `${this.baseUrl}` + `api/updateEmployeeReportBillableType`
   ]
 
   constructor(private loaderService: LoaderService) { }
