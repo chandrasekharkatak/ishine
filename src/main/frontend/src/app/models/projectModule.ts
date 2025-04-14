@@ -12,7 +12,8 @@ export class ProjectModule {
     taggedToUserNames: any;
     questionList: ProjectQuestion[] = [];
     subModuleList: ProjectSubModule[] = [];
-    isCollapsed: any = false;
+    isCollapsed: any = true;
     toTagEmployeeList: any[] = [];
     toAssignEmployeeList: any[] = [];
+    isQuestionCollapsed:boolean = true;
 }

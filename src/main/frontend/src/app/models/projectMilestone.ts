@@ -15,7 +15,7 @@ export class ProjectMilestone {
     taggedToUserNames: any;
     questionList: ProjectQuestion[] = [new ProjectQuestion()];
     moduleList: ProjectModule[] = [new ProjectModule()];
-    isCollapsed: any = false;
+    isCollapsed: any = true;
     performanceTabName: any;
     createdOn: any;
     createdBy: any;
@@ -23,5 +23,6 @@ export class ProjectMilestone {
     updatedBy: any;
     toTagEmployeeList:any[]=[];
     toAssignEmployeeList:any[]=[];
+    isQuestionCollapsed:boolean = true;
 }
 
