@@ -304,96 +304,181 @@ public class TravelDeskService {
 	}
 	
 	
-public ServiceResponse uploadFile(MultipartFile file, String displayName, Long uploadedBy) {
-		
-		ServiceResponse response = new ServiceResponse();
-		
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Upload Newsletter");
-		apiLogInfo.setApiUrl("/api/newsletters/uploadNewsletter");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("Newsletter : " +displayName+ "uploadedBy : " +uploadedBy);
-		List<File> savedFiles = new ArrayList<File>();
-		String errorMsg = "";
-		
-		try {
-			System.out.println("uploadedBy : " + uploadedBy);
-			Optional<Employee> employeeObject = employeeRepository.findById(uploadedBy);
-			
-			if (employeeObject.isPresent()) {
-				if (file != null) {
+//public ServiceResponse uploadFile(MultipartFile file, String displayName, Long uploadedBy) {
+//		
+//		ServiceResponse response = new ServiceResponse();
+//		
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("Upload Newsletter");
+//		apiLogInfo.setApiUrl("/api/uploadFile");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("Newsletter : " +displayName+ "uploadedBy : " +uploadedBy);
+//		List<File> savedFiles = new ArrayList<File>();
+//		String errorMsg = "";
+//		
+//		try {
+//			System.out.println("uploadedBy : " + uploadedBy);
+//			Optional<Employee> employeeObject = employeeRepository.findById(uploadedBy);
+//			
+//			if (employeeObject.isPresent()) {
+//				if (file != null) {
+//
+//					byte[] bytes = file.getBytes();
+//
+//					Path path = Paths.get(traveldeskFileLocation + File.separator + file.getOriginalFilename());
+//					File checkExistingFile = new File(path.toString());
+//					//if (!checkExistingFile.exists()) {
+//						Files.write(path, bytes);
+//						File savedFile = new File(path.toString());
+//
+//						if (savedFile.exists()) {
+//							Newsletter newsletter = new Newsletter();
+//							newsletter.setDisplayName(displayName);
+//							newsletter.setFileName(file.getOriginalFilename());
+//							newsletter.setType("TRAVEL ALLOWANCE");
+//							newsletter.setReadEnabled("true");
+//							newsletter.setCreatedBy(Integer.parseInt(uploadedBy.toString()));
+//
+//							newsletterRepository.save(newsletter);
+//
+//							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//							response.setServiceResponse("Travel Document uploaded successfully.");
+//
+//							apiLogInfo.setApiResponse("Travel Document uploaded successfully");
+//							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//						} else {
+//							response.setServiceResponse("Failed to upload Travel Document.");
+//							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//
+//							apiLogInfo.setApiResponse("Failed to upload Travel Document.");
+//							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//						}
+//				//	} else {
+//						response.setServiceResponse(
+//								"Travel Document named " + file.getOriginalFilename() + " already exist.");
+//						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//
+//						apiLogInfo.setApiResponse("Travel Document named " + file.getOriginalFilename() + " already exist.");
+//						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//					//}
+//
+//				} else {
+//					response.setServiceResponse("Uploaded Travel Document Not Found !!");
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//
+//					apiLogInfo.setApiResponse("Uploaded Travel Document Not Found !!");
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				}
+//
+//			} else {
+//				response.setServiceResponse("User Not Found !!");
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//
+//				apiLogInfo.setApiResponse("User Not Found !!");
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}
+//
+//			
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//			
+//			
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		return response;
+//		
+//	}
+//
+	
+	public ServiceResponse uploadFile(MultipartFile file, String displayName, Long uploadedBy) {
 
-					byte[] bytes = file.getBytes();
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Upload Newsletter");
+	    apiLogInfo.setApiUrl("/api/newsletters/uploadNewsletter");
+	    apiLogInfo.setLogLevel("INFO");
 
-					Path path = Paths.get(traveldeskFileLocation + File.separator + file.getOriginalFilename());
-					File checkExistingFile = new File(path.toString());
-					//if (!checkExistingFile.exists()) {
-						Files.write(path, bytes);
-						File savedFile = new File(path.toString());
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Newsletter: ").append(displayName)
+	              .append(", uploadedBy: ").append(uploadedBy);
 
-						if (savedFile.exists()) {
-							Newsletter newsletter = new Newsletter();
-							newsletter.setDisplayName(displayName);
-							newsletter.setFileName(file.getOriginalFilename());
-							newsletter.setType("TRAVEL ALLOWANCE");
-							newsletter.setReadEnabled("true");
-							newsletter.setCreatedBy(Integer.parseInt(uploadedBy.toString()));
+	    try {
+	        System.out.println("uploadedBy: " + uploadedBy);
+	        Optional<Employee> employeeObject = employeeRepository.findById(uploadedBy);
 
-							newsletterRepository.save(newsletter);
+	        if (employeeObject.isEmpty()) {
+	            response.setServiceResponse("User Not Found !!");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("User Not Found !!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	            return response;
+	        }
 
-							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							response.setServiceResponse("Travel Document uploaded successfully.");
+	        if (file == null || file.isEmpty()) {
+	            response.setServiceResponse("Uploaded Travel Document Not Found !!");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("Uploaded Travel Document Not Found !!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	            return response;
+	        }
 
-							apiLogInfo.setApiResponse("Travel Document uploaded successfully");
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-						} else {
-							response.setServiceResponse("Failed to upload Travel Document.");
-							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        // Prepare the file path
+	        Path directory = Paths.get(traveldeskFileLocation);
+	        if (!Files.exists(directory)) {
+	            Files.createDirectories(directory);  // Ensure directory exists
+	        }
 
-							apiLogInfo.setApiResponse("Failed to upload Travel Document.");
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-						}
-				//	} else {
-						response.setServiceResponse(
-								"Travel Document named " + file.getOriginalFilename() + " already exist.");
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        // Use a timestamp to avoid filename conflicts
+	        String newFileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+	        Path path = directory.resolve(newFileName);
+	        System.out.println("Saving file to: " + path.toString());
 
-						apiLogInfo.setApiResponse("Travel Document named " + file.getOriginalFilename() + " already exist.");
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					//}
+	        // Save file to disk
+	        byte[] bytes = file.getBytes();
+	        Files.write(path, bytes);
 
-				} else {
-					response.setServiceResponse("Uploaded Travel Document Not Found !!");
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        // Confirm file existence
+	        File savedFile = path.toFile();
+	        if (savedFile.exists()) {
+	            Newsletter newsletter = new Newsletter();
+	            newsletter.setDisplayName(displayName);
+	            newsletter.setFileName(newFileName); // Save actual saved name
+	            newsletter.setType("TRAVEL ALLOWANCE");
+	            newsletter.setReadEnabled("true");
+	            newsletter.setCreatedBy(Integer.parseInt(uploadedBy.toString()));
+	            newsletterRepository.save(newsletter);
 
-					apiLogInfo.setApiResponse("Uploaded Travel Document Not Found !!");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Travel Document uploaded successfully.");
+	            apiLogInfo.setApiResponse("Travel Document uploaded successfully");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceResponse("Failed to upload Travel Document.");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("File did not exist after write operation.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
 
-			} else {
-				response.setServiceResponse("User Not Found !!");
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
 
-				apiLogInfo.setApiResponse("User Not Found !!");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			
-			
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		return response;
-		
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    return response;
 	}
 
 

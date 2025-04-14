@@ -325,6 +325,7 @@ async submitForm(template: TemplateRef<any>) {
 
       if (saveResponse.serviceStatus === "Success") {
         this.openAlertMod(template, "Success! Your request was processed successfully!");
+        location.reload();
       } else {
         this.openAlertMod(template, saveResponse.serviceResponse || "Failed to save travel data.");
       }
