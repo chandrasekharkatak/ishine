@@ -153,11 +153,12 @@ public class ProjectInsightService {
 	        // Save new tags if any remain
 	        if (!extractedTags.isEmpty()) {
 	            List<TagMaster> newTags = extractedTags.stream()
+	            	.filter(tag -> tag != null)
 	                .map(tag -> {
-	                    TagMaster tm = new TagMaster();
-	                    tm.setProjectId(projectId);
-	                    tm.setTag(tag);
-	                    return tm;
+	                	TagMaster tm = new TagMaster();
+ 	                    tm.setProjectId(projectId);
+ 	                    tm.setTag(tag);
+ 	                    return tm;
 	                })
 	                .collect(Collectors.toList());
 
@@ -198,7 +199,7 @@ public class ProjectInsightService {
 				return response;
 			}
 			
-			combinedText.append(projectInsightDTO.getProjectName()).append(" ");
+			combinedText.append(projectInsightDTO.getProjectName()).append(" ").append(projectInsightDTO.getProjectManagerName()).append(" ");
 			
 			// Add Application Question
 			if (!projectInsightDTO.getQuestionList().isEmpty()) {
@@ -713,7 +714,7 @@ public class ProjectInsightService {
 				throw new RuntimeException("Project Not Found!!");
 			}
 			
-			combinedText.append(project.getProjectName()).append(" ");
+			combinedText.append(project.getProjectName()).append(" ").append(projectInsightDTO.getProjectManagerName()).append(" ");
 			
 			// Add/Update Project question
 			if (!projectInsightDTO.getQuestionList().isEmpty()) {
