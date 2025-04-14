@@ -5763,7 +5763,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 		                if (project != null) {
 
-		                    project.setProjectName(dto.getName());
+//		                    project.setProjectName(dto.getName());
 		                    project.setPoProjectType(dto.getProjectType());
 		                    Date startDate = dto.getStartDate();
 		                    String formattedStartDate = dateFormat.format(startDate);
