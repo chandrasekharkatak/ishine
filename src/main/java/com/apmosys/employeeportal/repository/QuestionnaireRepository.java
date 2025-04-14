@@ -19,6 +19,9 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, Lo
 	List<Questionnaire> findByDepartmentName(String departmentName);
 
 	List<Questionnaire> findByDepartmentAndQuarterId(Long departmentID, Long quarterId);
+	
+	@Query("SELECT q FROM Questionnaire q WHERE q.departmentId =:departmentId")
+	List<Questionnaire> findbyDepartmentId(@Param("departmentId") Long departmentId);
     
 }
 

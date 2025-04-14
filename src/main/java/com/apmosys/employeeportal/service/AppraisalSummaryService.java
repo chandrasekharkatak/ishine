@@ -12,6 +12,7 @@ import com.apmosys.employeeportal.model.ReviewTable;
 import com.apmosys.employeeportal.repository.AppraisalSummaryRepository;
 import com.apmosys.employeeportal.repository.EmployeeGoalRepository;
 import com.apmosys.employeeportal.repository.KpiResponseRepository;
+import com.apmosys.employeeportal.repository.KresponseRepository;
 import com.apmosys.employeeportal.repository.QresponseRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.repository.QuestionnaireRepository;
@@ -48,6 +49,9 @@ public class AppraisalSummaryService {
     @Autowired
     private QresponseRepository qresponseRespository;
     
+    @Autowired
+    private KresponseRepository kresponseRepository;
+    
     public ServiceResponse createAppraisalSummary(AppraisalSummaryDto appraisalSummaryDto) {
         ServiceResponse response = new ServiceResponse();
         try {
@@ -81,32 +85,30 @@ public class AppraisalSummaryService {
 
             List<Qresponse> responses = qresponseRespository.findByEmpId(employeeId);
             List<ReviewTable> response1 = reviewRepo.findByEmployeeId(employeeId);
-            if (responses == null || responses.size() != 4) {
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceMessage("Incomplete data: Exactly 4 questionnaire responses are required");
-                return response;
-            }
-            if (response1 == null || response1.size() != 4) {
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceMessage("Incomplete data: Exactly 4 questionnaire responses are required");
-                return response;
-            }
+//            if (responses == null || responses.size() != 4) {
+//                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//                response.setServiceMessage("Incomplete data: Exactly 4 questionnaire responses are required");
+//                return response;
+//            }
+//            if (response1 == null || response1.size() != 4) {
+//                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//                response.setServiceMessage("Incomplete data: Exactly 4 questionnaire responses are required");
+//                return response;
+//            }
             
-            float score = qresponseRespository.calculateByEmpIdAndQuarterId(employeeId, quarterId);
+            float qscore = qresponseRespository.calculateByEmpIdAndQuarterId(employeeId, quarterId);
+            float kscore = kresponseRepository.calculateByEmpIdAndQuarterId(employeeId, quarterId);
+            float totalqScore = (float) qscore;
+            float totalkScore = (float) kscore;
             
-            float totalScore = (float) score;
-            float totalScore1 = (float) response1.stream()
-            	    .mapToDouble(resp -> resp.getKpiScore() != null ? resp.getKpiScore() : 0.0f)
-            	    .sum();
-            
-            float averageScore = score;
+            float averageScore = (kscore + qscore)/2;
            
             Integer finalRating = calculateFinalRating(averageScore);
             AppraisalSummaryDto appraisalSummaryDto = new AppraisalSummaryDto();
             appraisalSummaryDto.setEmployeeId(employeeId);
             appraisalSummaryDto.setAppraisalScore(averageScore);
             appraisalSummaryDto.setAppraisalPercentage(String.format("%.2f%%", averageScore));
-            appraisalSummaryDto.setFinalRating(averageScore);
+            appraisalSummaryDto.setFinalRating((float)finalRating);
             appraisalSummaryDto.setFinalRemarks(generateRemarks(finalRating));
 
    

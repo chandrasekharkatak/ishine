@@ -24,7 +24,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public Employee findByEmail(String email);
 
 	@Query(nativeQuery = true)
-	
 	public List<Object[]> getEmployeeByEmpId(Long empId);
 
 	 @Cacheable(value = "Employee")
@@ -534,5 +533,12 @@ List<Object[]> findEmployeesInSameDepartmentAsCurrentUser(Long hodId);
 	                                                  @Param("quarterId") Long quarterId);
 		
 
+@Query(value = "SELECT e.empId, e.name, e.email, jr.name as jobrolename, e.mobileNo, em.name as manager, e.employeementId, \n"
+		+ "e.invalidAccessAttempt, e.isTimesheetLockCheckEnable, e.employmentstatus, e.dateOfRelieving, e.pipFlag,p.pipId,e.isConsultant,e.isApprenticeship from Employee e \n"
+		+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
+		+ "LEFT JOIN PIP p ON p.pipId=e.pipId \n"
+		+ "INNER JOIN Employee em ON em.empId =:empId \n"
+		+ "WHERE e.employmentstatus not like 'InActive' AND ((e.managerId =:empId AND (e.approvalsTo = 'Manager' OR e.approvalsTo IS NULL)) OR (e.reportingManagerId =:empId AND e.approvalsTo = 'Reporting Manager'))")
+List<Object> findexample(@Param("empId") Long empId);
 
 }

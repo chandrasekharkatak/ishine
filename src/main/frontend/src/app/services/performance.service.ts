@@ -113,8 +113,8 @@ export class PerformanceService {
     return this.http.get(`${this.baseUrl}/questionnaire`, { params: { empId, quarter }, });
   }
 
-  getAppraisalSummary(empId: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}api/appraisal-summaries/employee/${empId}`);
+  getAppraisalSummary(empId: number,quarterId:number): Observable<any> {
+    return this.http.get(`${this.baseUrl}api/appraisal-summaries/calculate/${empId}/${quarterId}`);
   }
 
   submitReview(payload: any): Observable<any> {
@@ -126,8 +126,8 @@ export class PerformanceService {
     return this.http.get<any>(`${this.baseUrl}api/questionnaires/department/${departmentId}/quarter/${quarterId}`);
   }
 
-  getKraKpi(departmentId: number, quarterId: number) {
-    return this.http.get<any>(`${this.baseUrl}api/kpi/getKpisByQuarter/${quarterId}/Department/${departmentId}`);
+  getKraKpi(departmentId: number, quarterId: number, employeeRole: string) {
+    return this.http.get<any>(`${this.baseUrl}api/kpi/getKpisByQuarter/${quarterId}/Department/${departmentId}/EmployeeRole/${employeeRole}`);
   }
 
   submitQuestionnaireResponses(response: any, empId: number, quarterId: number) {
@@ -150,8 +150,8 @@ export class PerformanceService {
     return this.http.get(`${this.baseUrl}` + `api/questionnaires/department/${departmentId}/quarter/${quarterId}`)
   }
 
-  loadKpiList(quarterId: any, departmentId:any){
-    return this.http.get(`${this.baseUrl}` +  `api/kpi/getKpisByQuarter/${quarterId}/Department/${departmentId}`)
+  loadKpiList(quarterId: any, departmentId:any, employeeRole: String){
+    return this.http.get(`${this.baseUrl}` +  `api/kpi/getKpisByQuarter/${quarterId}/Department/${departmentId}/EmployeeRole/${employeeRole}`)
   }
 
 
@@ -160,4 +160,8 @@ export class PerformanceService {
   checkUserHaveTeam(userObj: any){
     return this.http.post(`${this.baseUrl}` + `api/checkUserHaveTeam`, userObj);
   }
+  getawards(empId:number):Observable<any> {
+    return this.http.get(`${this.baseUrl}api/getEmployeeRewardByOnlyEmpId/empId/${empId}`);
+  }
 }
+

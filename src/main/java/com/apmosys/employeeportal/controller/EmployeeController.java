@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,6 +37,11 @@ public class EmployeeController {
 
 		ServiceResponse response = employeeService.createEmployee(employeedto);
 		employeeService.clearEmployeeCache();
+		return response;
+	}
+	@GetMapping("/example/{empId}")
+	public List<Object> example(@PathVariable Long empId) {
+		List<Object> response = employeeService.example(empId);
 		return response;
 	}
 

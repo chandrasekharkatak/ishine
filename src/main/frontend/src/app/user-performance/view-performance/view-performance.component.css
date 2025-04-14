@@ -1,100 +1,141 @@
 body {
-    background-color: #f5f5f5;
-  }
+  background-color: #f5f5f5;
+}
+
+.nav-link.active{
+  color: var(--raisin-black);
+  font-weight: bold;
+  border-bottom: 5px solid var(--dark-cornflower-blue);
+}
+
+.nav-link{
+  color: #555;
+}
+
+
+.card {
+  border: none;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-box {
+  background: #e3e9f7;
+  color: black;
+ 
+  border-radius: 8px;
+}
+
+
+
+.graph-placeholder {
+  background: #eef2ff;
+  border-radius: 8px;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  color: #555;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+}
+
+.goals-list {
+  background: #eef2ff;
+  border-radius: 8px;
+  height: 300px;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
   
-  .nav-link.active{
-    color: var(--raisin-black);
-    font-weight: bold;
-    border-bottom: 5px solid var(--dark-cornflower-blue);
-  }
+}
+
+.info {
+  height: 200px;
+  min-height: 120px;
   
-  .nav-link{
-    color: #555;
-  }
+}
+.table-header{
+  width: 100%;
+  height: 50px;
+  background: var(--ghost-white);
+  margin-bottom: 1em;
   
+}
+
+.profile{
+  border-left-style:groove;
+  border-left-color: #193d8a;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
   
-  .card {
-    border: none;
-    border-radius: 12px;
-    background: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
+}
+
+.profileLable{
+  font-weight: 600;
+  color: var(--middle-grey);
+}
+
+.table-header-title{
+  font-size: 2rem;
+  padding: .2em;
+  margin-bottom: 0;
+  color: var(--raisin-black);
+}
+
+.review-section {
+  background: #eef2ff;
+  border-radius: 12px;
+}
+
+.btn-outline-primary {
+  border-color: #193d8a;
+  color: #193d8a;
+}
+
+.btn-outline-primary:hover, .btn-outline-primary.active {
+  background: #193d8a;
+  color: white;
+}
+
+.form-control {
+  border-radius: 6px;
+}
+
+.award-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+
+}
+
+.award-list li {
+  margin-bottom: 3px;
+  padding:3px;
+  border-bottom: 1px solid #ddd;
+}
+
+.award-name {
+  font-weight: bold;
+  align-items: start;
+  font-size: 14px;
+}
+
+.award-remark {
+  font-size: 13px;
+  color: #666;
+  align-items: end;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: top;
+}
+
   
-  .stat-box {
-    background: #e3e9f7;
-    color: black;
-   
-    border-radius: 8px;
-  }
-  
-  
-  .graph-placeholder {
-    background: #eef2ff;
-    border-radius: 8px;
-    min-height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2em;
-    color: #555;
-    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-  }
-  
-  .goals-list {
-    background: #eef2ff;
-    border-radius: 8px;
-    height: 300px;
-    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-    
-  }
-  
-  .box {
-    height: 200px;
-    border-radius: 12px;
-    min-height: 120px;
-    
-  }
-  
-  .table-header{
-    width: 100%;
-    height: 50px;
-    background: var(--ghost-white);
-    margin-bottom: 1em;
-    
-  }
-  
-  .profile{
-    border-left-style:groove;
-    border-left-color: #193d8a;
-    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
-    
-  }
-  
-  .table-header-title{
-    font-size: 2rem;
-    padding: .2em;
-    margin-bottom: 0;
-    color: var(--raisin-black);
-  }
-  
-  .review-section {
-    background: #eef2ff;
-    border-radius: 12px;
-  }
-  
-  .btn-outline-primary {
-    border-color: #193d8a;
-    color: #193d8a;
-  }
-  
-  .btn-outline-primary:hover, .btn-outline-primary.active {
-    background: #193d8a;
-    color: white;
-  }
-  
-  .form-control {
-    border-radius: 6px;
-  }
-  
-  
-  
+
+
+
+
+
+

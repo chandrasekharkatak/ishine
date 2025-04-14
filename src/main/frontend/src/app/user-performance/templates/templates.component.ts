@@ -57,6 +57,7 @@ selectedQuarter: any;
 quarter: any;
 alertMessage: any;
 modalRef?: BsModalRef;
+jobRoleObj: any;
 // jobRoleObj: any;
 
 
@@ -97,8 +98,8 @@ modalRef?: BsModalRef;
       createdBy: [null],
       quarterId: [null, Validators.required],
       kpis: this.fb.array([this.kpiField()]),
-      departmentId:[null , Validators.required]
-
+      departmentId:[null , Validators.required],
+      employee_role: [null , Validators.required]
     });
   }
 
@@ -296,7 +297,7 @@ modalRef?: BsModalRef;
 
   createKraKpiTemplate(formData: KpiTemplate, template: TemplateRef<any>) {
     // console.log('Sending KPI template data:', formData);
-    this.kraKpiService.createKpiTemplate(formData,formData.quarterId,formData.departmentId)
+    this.kraKpiService.createKpiTemplate(formData,formData.quarterId,formData.departmentId,formData.employee_role)
       .pipe(first())
       .subscribe({
         next: (response: any) => {
@@ -674,7 +675,9 @@ modalRef?: BsModalRef;
         createdBy: formData.createdBy,
         quarterId: formData.quarterId,
         kpis: kpiDTOs,
-        departmentId: formData.departmentId
+        departmentId: formData.departmentId,
+        employee_role: formData.employee_role
+
       };
   
       console.log('KRA-KPI Form Data:', kpiTemplate);

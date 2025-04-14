@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface QresponseRepository extends JpaRepository<Qresponse, Long> {
 	
-	@Query(nativeQuery=true,value = "select  sum(response)/count(response) from qresponse where emp_id = :empId and quarter_id = :quarterId;")
+	@Query(nativeQuery=true,value = "select  sum(response)/count(response) from qresponse where emp_id = :empId and quarter_id = :quarterId")
 	public float calculateByEmpIdAndQuarterId(Long empId,Long quarterId);
 	
 	@Query(nativeQuery = true, value = "select distinct(emp_id) from kresponse where emp_id = :empId and quarter_id = :quarterId")

@@ -139,7 +139,9 @@ public class QuestionnaireService {
 	public List<Questionnaire> getQuestionnairesByDepartmentAndQuarter(Long departmentId, Long quarterId) {
 		return questionnaireRepository.findByQuarterAndDepartment(departmentId , quarterId);
 	}
-    
+	public List<Questionnaire> getQuestionnairesByDepartmentId(Long departmentId) {
+		return questionnaireRepository.findbyDepartmentId(departmentId);
+	}
 	
 	
 }

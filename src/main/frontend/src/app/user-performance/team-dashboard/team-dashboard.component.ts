@@ -386,6 +386,7 @@ export class TeamDashboardComponent implements OnInit {
     if (
       !this.selectedGoalTemplate ||
       !this.expectedCompletionDate ||
+
       this.selectedEmployees.length === 0 ||
       !this.selectedQuarter
     ) {
@@ -464,7 +465,7 @@ export class TeamDashboardComponent implements OnInit {
     
     const assignmentPromises = this.selectedGoalData.map(goal => {
       const requestBody = {
-        empId: this.selectedEmployee.id,
+        empId: this.selectedEmployee.empId,
         templateId: Number(goal.templateId),
         expectedCompletionDate: this.datePipe.transform(goal.expectedCompletionDate, 'yyyy-MM-dd'),
         quarterId: Number(this.selectedQuarter) 

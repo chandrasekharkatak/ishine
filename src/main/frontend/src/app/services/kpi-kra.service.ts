@@ -35,8 +35,8 @@ export class KraKpiService {
     return this.http.get(`${this.apiUrl}api/kpi/getKpisByQuarter/${quarterId}`);
    
   }
-  createKpiTemplate(kpiTemplate: KpiTemplate , quarterId: number , departmentId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}api/kpi/createKpiTemplate/quarter/${quarterId}/department/${departmentId}`, kpiTemplate);
+  createKpiTemplate(kpiTemplate: KpiTemplate , quarterId: number , departmentId: number,employeeRole:String): Observable<any> {
+    return this.http.post(`${this.apiUrl}api/kpi/createKpiTemplate/quarter/${quarterId}/department/${departmentId}/employeeRole/${employeeRole}`, kpiTemplate);
   }
 
 

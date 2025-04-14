@@ -1,4 +1,4 @@
-package com.apmosys.employeeportal.service;
+ package com.apmosys.employeeportal.service;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -3043,6 +3043,12 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	public List<Object> example(Long empId)
+	{
+		return employeeRepository.findexample(empId);
+	}
+	
 	
 	public ServiceResponse getAllEmployeesForPerformance() {
 		ServiceResponse response = new ServiceResponse();
@@ -6603,5 +6609,6 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	return response;
 }
+	
 	
 }

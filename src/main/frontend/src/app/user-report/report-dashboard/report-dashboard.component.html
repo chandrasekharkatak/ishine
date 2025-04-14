@@ -537,7 +537,7 @@
                     </tr>
                 </tbody>
             </table>
-            <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
+            <pagination-controls class="my-pagination" f[hidden]="modalSummaryList.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls>
             <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
                 [hidden]="modalSummaryList.length == 0" (click)="exportToExcelEmployeeSummary()"><em

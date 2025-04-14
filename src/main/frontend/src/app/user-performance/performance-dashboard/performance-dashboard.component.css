@@ -100,6 +100,39 @@ body {
   border-radius: 6px;
 }
 
+.award-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+
+}
+
+.award-list li {
+  margin-bottom: 3px;
+  padding:3px;
+  border-bottom: 1px solid #ddd;
+}
+
+.award-name {
+  font-weight: bold;
+  align-items: start;
+  font-size: 14px;
+}
+
+.award-remark {
+  font-size: 13px;
+  color: #666;
+  align-items: end;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: top;
+}
+
+
 
 
 

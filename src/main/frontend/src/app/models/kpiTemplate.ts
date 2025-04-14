@@ -9,4 +9,5 @@ export interface KpiTemplate {
     id?: number;
     description: string;
   }[];
+  employee_role: string;
 }

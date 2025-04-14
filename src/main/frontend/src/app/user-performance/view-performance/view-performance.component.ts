@@ -14,6 +14,10 @@ import { LogService } from 'src/app/services/log.service';
 import { Log } from 'src/app/models/log';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { first } from 'rxjs/operators';
+import * as Highcharts from 'highcharts';
+// import { Domain } from 'domain';
+import { DomainService } from 'src/app/services/domain.service';
+import { Domain } from 'src/app/models/domain';
 
 
 interface Goal {
@@ -50,6 +54,11 @@ interface kpiList{
   id:number;
   description: string;
 }
+interface awards{
+  id: number;
+  reward_type_name: string;
+  remark: string;
+}
 
 @Component({
   selector: 'app-view-performance',
@@ -70,6 +79,7 @@ export class ViewPerformanceComponent implements OnInit {
   kraKpiMetrics: any[] = [];
   questionnaireQuestions: any[] = [];
   currentQuestionnaireId: any;
+  awards: awards[] = [];
 
   kraKpiReviewForm: FormGroup;
   questionnaireReviewForm: FormGroup;
@@ -80,6 +90,7 @@ export class ViewPerformanceComponent implements OnInit {
     kraKpiScore: '',
     questionnaireScore: '',
   };
+  
 
   goals: Goal[] = [];
   summary?: AppraisalSummary;
@@ -93,6 +104,10 @@ export class ViewPerformanceComponent implements OnInit {
   alertMessage: any;
 
   viewPerformanceEmpId: any;
+  isLoading = false;
+  error: string | null = null;
+  // domainService: any;
+  domainSpecializationList: any;
 
   constructor(
     private router: Router,
@@ -105,6 +120,7 @@ export class ViewPerformanceComponent implements OnInit {
     private goalService:GoalService,
     private logService:LogService,
     private route: ActivatedRoute,
+    private domainService:DomainService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -117,13 +133,136 @@ export class ViewPerformanceComponent implements OnInit {
     });
 
     this.onGetEmployeeInfo();
+    this.fetchGoals();
+    this.loadPerformanceStats();
+
     this.setActiveTab('kra-kpi');
+    this.loadAwards();
+    
 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
   }
+  
+  setChart():void{
+    // let goalsCompleted = 0;
+    // let goalsRemaining = 0;
+
+    // this.goals.forEach((goal:Goal) => {
+    //   if (goal.goalStatus == 'Completed') {
+    //     goalsCompleted++;
+    //   } else {
+    //     goalsRemaining++;
+    //   }
+    // });
+    this.renderPieSummaryChart("Goal Progress", "goalChart", this.stats.goalsCompleted, this.stats.goalsRemaining, "Goals", (name) => console.log(`Clicked on ${name}`));
+  }
+  loadAwards(): void {
+    this.isLoading = true;
+    this.error = null;
+    
+    this.performanceService.getawards(this.currentUser.empId).subscribe({
+      next: (data) => {
+        this.awards = data;
+        // this.isLoading = false;
+        console.log('Awards:', this.awards);
+      },
+      error: (err) => {
+        console.error('Error fetching awards:', err);
+        this.error = 'Failed to load awards. Please try again.';
+        // this.isLoading = false;
+      }
+    });
+  }
+  renderPieSummaryChart(chartName: any, chartId: any, goalsCompleted: number, goalsRemaining: number, labelName: any, openMod: any) {
+      let colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
+    
+      if (chartId === 'goalChart') {
+        colors = ['#DDDF00', '#64E572'];
+      }
+    
+      const chartData = [
+        { name: 'Goals Completed', y: goalsCompleted },
+        { name: 'Goals Remaining', y: goalsRemaining }
+      ];
+    
+      Highcharts.chart(chartId, {
+        credits: {
+          enabled: false
+        },
+        chart: {
+          plotBackgroundColor: null,
+          plotBorderWidth: null,
+          plotShadow: false,
+          type: 'pie'
+        },
+        title: {
+          text: chartName,
+          style: {
+            fontWeight: 'bold',
+            color: '#000000'
+          }
+        },
+        tooltip: {
+          pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+        },
+        accessibility: {
+          point: {
+            valueSuffix: '%'
+          }
+        },
+        exporting: {
+          enabled: true,
+          buttons: {
+            contextButton: {
+              menuItems: [
+                "viewFullscreen",
+                "downloadPNG",
+                "downloadJPEG",
+                "downloadCSV",
+                "downloadXLS",
+                "downloadPDFDocument"
+              ]
+            }
+          }
+        },
+        plotOptions: {
+          pie: {
+            borderWidth: 0,
+            allowPointSelect: true,
+            cursor: 'pointer',
+            events: {
+              click(event) {
+                if (chartId === 'goalChart') {
+                  openMod(event.point.name);
+                }
+              }
+            },
+            dataLabels: {
+              enabled: true,
+              format: '<b>{point.name}</b>: {point.y:.1f}'
+            },
+            showInLegend: true
+          }
+        },
+        legend: {
+          enabled: true,
+          labelFormatter() {
+            const point = this as any;
+            return this.name + ` : ${point.y}`;
+          }
+        },
+        series: [{
+          name: labelName,
+          colorByPoint: true,
+          type: undefined,
+          data: chartData
+        }],
+        colors
+      });
+    }
 
   fetchQuarters(): void {
     this.performanceService.getAllQuarterCycles().subscribe({
@@ -150,6 +289,7 @@ export class ViewPerformanceComponent implements OnInit {
 
     this.loadPerformanceStats();
     this.fetchGoals();
+    this.loadAppraisalSummary();
   }
 
   onQuarterChange1(): void{
@@ -161,13 +301,16 @@ export class ViewPerformanceComponent implements OnInit {
 
 
 
-  loadAppraisalSummary(): void {
+  loadAppraisalSummary(): void { 
     const empId = this.currentEmployeeInfo.empId;
-    if (!empId ) return;
+    const quarterId = this.selectedQuarter
+    console.log('emp id: ',this.currentEmployeeInfo.empId);
+    if (!empId) return;
 
-    this.performanceService.getAppraisalSummary(empId).subscribe({
-      next: (data) => {
-        this.summary = data;
+    this.performanceService.getAppraisalSummary(empId,quarterId).subscribe({
+      next: (response:any) => {
+        this.summary = response.serviceResponse;
+        // console.log('appraisal summary:', this.summary);
       },
       error: (err) => {
         console.error('Error fetching Appraisal Summary:', err);
@@ -207,6 +350,7 @@ export class ViewPerformanceComponent implements OnInit {
     this.performanceService.getPerformanceStats(empId, quarter).subscribe({
       next: (response: any) => {
         this.stats = response.serviceResponse;
+        this.setChart();
         console.log('STATS::: ',this.stats);
       },
       error: (err) => {
@@ -228,6 +372,28 @@ export class ViewPerformanceComponent implements OnInit {
     } else {
       console.error(response.serviceResponse);
     }
+
+    let domainObj = new Domain();
+            domainObj.empId = this.currentUser.empId;
+            const domainResponse:any = await this.domainService.getDomainSpecializationByEmpId(domainObj).toPromise();
+              if (domainResponse.serviceStatus == "Success") {
+                this.domainSpecializationList = domainResponse.serviceResponse;
+        
+                this.domainSpecializationList.forEach((object:Domain) =>{
+        
+                  var letters = 'BCDEF'.split('');
+                  var color = '#';
+                  for (var i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * letters.length)];
+                  }
+        
+                  object.colorCode = color;
+                });
+        
+                //console.log(this.domainSpecializationList, " : this.domainSpecializationList");
+              } else {
+                console.error(domainResponse.serviceResponse);
+              }
   }
 
 
@@ -303,12 +469,13 @@ export class ViewPerformanceComponent implements OnInit {
   loadKpiList(): void {
     const quarterId = this.selectedQuarter1;
     const departmentId = this.currentEmployeeInfo.departmentId;
+    const employeeRole = this.currentUser.employeeRole;
 
     this.kpiList = [];
 
     
     if (!quarterId || !departmentId) return;
-    this.performanceService.loadKpiList(quarterId, departmentId).subscribe({
+    this.performanceService.loadKpiList(quarterId, departmentId,employeeRole).subscribe({
         next: (response: any) => {
           if (response.serviceStatus === 'Success') {
             this.kpiList = response.serviceResponse[0].kpis;
@@ -355,7 +522,7 @@ export class ViewPerformanceComponent implements OnInit {
       managerRemark: this.selectedGoal.managerRemark,
     };
   
-    this.goalService.updateGoal(this.selectedGoal.goalId, payload).subscribe(
+    this.goalService.updateGoal(this.selectedGoal.goalId, this.currentUser.empId,payload).subscribe(
       (response) => {
         if (response.serviceStatus === 'Success') {
           this.alertMessage = "Updates saved successfully!"

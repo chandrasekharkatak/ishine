@@ -37,6 +37,8 @@ public class EmployeeGoalService {
     
     public EmployeeGoalDTO assignGoalToEmployee(Long empId, Long templateId, LocalDate expectedCompletionDate, Long quarterId) {
         Long tid = employeeGoalRepository.findByTemplateId(templateId,empId);
+        
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++"+empId);
         if(templateId.equals(tid) || tid == null ) {
         
         Optional<GoalTemplates> vopt = goalTemplateRepo.findById(templateId);
@@ -76,13 +78,14 @@ public class EmployeeGoalService {
         if (employeeGoalDTO.getQuarter() == null) {
             employeeGoalDTO.setQuarter("Unknown Quarter");
         }
+        Long iniprogress = (long) 0;
         
         employeeGoalDTO.setEmpId(empId);
         employeeGoalDTO.setTemplateId(templateId);
         employeeGoalDTO.setAssignedBy(template.getCreatedBy());
         employeeGoalDTO.setDescription(template.getDescription());
         employeeGoalDTO.setGoalTitle(template.getTitle());
-        employeeGoalDTO.setGoalProgress(null); // Default status
+        employeeGoalDTO.setGoalProgress(iniprogress); // Default status
         employeeGoalDTO.setGoalStatus("Pending"); // Default review status
         employeeGoalDTO.setExpectedCompletionDate(expectedCompletionDate);
         employeeGoalDTO.setCreatedDate(LocalDate.now());
@@ -141,11 +144,12 @@ public class EmployeeGoalService {
             if (employeeGoalDTO.getQuarter() == null) {
                 employeeGoalDTO.setQuarter("Unknown Quarter");
             }
+            Long iniprogress = (long) 0;
             employeeGoalDTO.setEmpId(empId);
             employeeGoalDTO.setTemplateId(templateId);
             employeeGoalDTO.setAssignedBy(template.getCreatedBy());
             employeeGoalDTO.setGoalTitle(template.getTitle());
-            employeeGoalDTO.setGoalProgress(null); 
+            employeeGoalDTO.setGoalProgress(iniprogress); 
             employeeGoalDTO.setGoalStatus("Pending"); 
             employeeGoalDTO.setExpectedCompletionDate(expectedCompletionDate);
             employeeGoalDTO.setCreatedDate(LocalDate.now());

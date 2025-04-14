@@ -13,8 +13,8 @@ export class GoalService {
 
   constructor(private http: HttpClient) { }
 
-  updateGoal(goalId: number, payload: any): Observable<any> {
-    return this.http.put(`${this.baseUrl}`+`/api/goals/${goalId}`, payload);
+  updateGoal(goalId: number,empId : number, payload: any): Observable<any> {
+    return this.http.put(`${this.baseUrl}`+`api/EmployeeGoals/save/${goalId}/employee/${empId}`, payload);
   }
   
 

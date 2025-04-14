@@ -79,7 +79,9 @@
     
     <div class="row mt-4">
       <div class="col-md-6">
-        <div class="graph-placeholder p-4 border rounded text-center">[Graphs Here]</div>
+        <div class="col-md-9">
+          <div id="goalChart" style="height: 400px; width:450px;"></div>
+      </div>
       </div>
 
       <div class="col-md-6">
@@ -122,15 +124,15 @@
           <div class="card-body">
             <p class="card-text px-1">
               <strong>Final Rating:</strong> 
-              <!-- <span > {{ summary.finalRating }}/10</span> -->
+              <span > {{ summary.finalRating }}/10</span>
             </p>
             <p class="card-text px-1">
               <strong>Appraisal Score:</strong> 
-              <!-- <span > {{ summary.appraisalScore }}%</span> -->
+              <span > {{ summary.appraisalScore }}%</span>
             </p>
             <p class="card-text px-1">
               <strong>Final Remarks:</strong>
-              <!-- <span class="text-muted d-block mt-1"> {{ summary.finalRemarks }}</span> -->
+              <span class="text-muted d-block mt-1"> {{ summary.finalRemarks }}</span>
             </p>
           </div>
           
@@ -143,20 +145,48 @@
             <h5 class="card-title mb-0 text-center">Skills</h5>
           </div>
           <div class="card-body">
-            
+            <div class="row">
+              <div class="col-md-12">
+                  <div class="d-flex">
+                      <p class="user-card__profile-info__label">Domain : &nbsp;</p>
+                      <div *ngFor="let cat of domainSpecializationList">
+                          <h6 class="badge badge-pill" [ngStyle]="{'background-color': cat.colorCode}">{{ cat.domainName }}</h6> &nbsp;
+                      </div>
+                  </div>
+              </div>
+          </div> 
+          <div class="row">
+              <div class="col-md-12">
+                  <div class="d-flex">
+                      <p class="user-card__profile-info__label">Specialization : &nbsp;</p>
+                      <h6 *ngFor="let cat of domainSpecializationList; let i=index">
+                          <span class="badge badge-pill" *ngFor="let sub of cat.allSpecializationList" [ngStyle]="{'background-color': cat.colorCode}">{{ sub.specializationName}} &nbsp;</span>  &nbsp;
+                      </h6>
+                  </div>
+              </div>
+          </div>  
           </div>
         </div>
       </div>
       <div class="col-md-4">
         <div class="card shadow border-0 info">
-          <div class="card-header ">
+          <div class="card-header">
             <h5 class="card-title mb-0 text-center">Awards</h5>
           </div>
-          <div class="card-body">
-            
+          <div class="card-body px-3 py-0">
+            <ul class="award-list">
+              <li *ngFor="let award of awards">
+                <span class="award-name">{{ award[0] }} :  </span>
+                <span class="award-remark">{{ award[1] }}   </span>
+              </li>
+            </ul>
+            <div *ngIf="awards.length === 0" class="text-center text-muted">
+              No awards found
+            </div>
           </div>
         </div>
       </div>
+      
     </div>
     
     <div class="container py-4 m-0 px-0">
@@ -351,7 +381,6 @@
             </div>
     
           </div>
-    
         </div>
       </div>
     </div>
@@ -363,7 +392,7 @@
   <div class="modal-content rounded-lg shadow-lg">
     <div class="modal-header ">
       <h5 class="modal-title fw-bold align-items-center">{{ selectedGoal?.goalTitle }}</h5>
-      <button type="button" class="close " aria-label="Close" (click)="modalRef.hide()"><i class="fa-solid fa-xmark"></i></button>
+      <button type="button" class="close " aria-label="Close" (click)="this.modalRef.hide()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <div class="modal-body p-4">
@@ -374,7 +403,7 @@
         </div>
         <div class="col-md-6">
           <p><strong>Progress:</strong></p>
-          <span class="badge" >{{ selectedGoal?.goalProgress }}</span>
+          <span  >{{ selectedGoal?.goalProgress }}</span>
         </div>
       </div>
 
@@ -397,7 +426,7 @@
       </div>
 
 
-      <div class="mb-2 mx-0 col ">
+      <div class="mb-2 mx-0 col " *ngIf="selectedGoal?.goalProgress<100">
           <div class="row">
             <label class="form-label mr-2 font-weight-bold">Update Progress: </label>
             <p>{{selectedgoalProgress}}%</p>
@@ -438,7 +467,7 @@
     </div>
 
     <div class="modal-footer d-flex justify-content-between">
-      <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+      <button type="button" class="btn btn-secondary" (click)="this.modalRef.hide()">Close</button>
       <button type="button" class="btn btn-primary" (click)="saveUpdates(alert_message)">Save Changes</button>
     </div>
   </div>
