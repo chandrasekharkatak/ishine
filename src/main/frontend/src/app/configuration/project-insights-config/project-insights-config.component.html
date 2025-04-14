@@ -605,104 +605,28 @@
       <!-- Sub-module Content -->
       <div class="content-container" [ngClass]="{'d-none': subModule.isCollapsed}">
         <!-- Questions Section -->
-        <div *ngFor="let question of subModule.questionList; let qIndex = index" class="question-container">
-          <div class="question-header">
-            <span class="question-index">{{qIndex + 1}}</span>
-            <div>
-              <h5 class="mb-1">{{question.question}}</h5>
-              <div *ngIf="question.description" class="small text-muted">{{question.description}}</div>
+        <ng-container *ngIf="subModule.questionList?.length > 0">
+          <div class="header-container btn btn-outline-primary" (click)="subModule.isQuestionCollapsed = !subModule.isQuestionCollapsed">
+            <div class="header-title">
+              <h5 class="mb-0">Questions</h5>
+            </div>
+            <div class="header-actions">
+              <i class="fa collapse-icon" 
+                 [ngClass]="subModule.isQuestionCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
             </div>
           </div>
-  
-          <!-- Tag for help for question -->
-          <div *ngIf="!isFinalResponseSubmitted" class="mb-3">
-            <div class="form-group mb-0">
-              <label class="small font-weight-bold">Tag For Help</label>
-              <mat-select ngxMatSelect class="form-control form-control-sm" 
-                         #approvalSelect="ngxMatSelect" 
-                         [displayMember]="'name'" 
-                         [valueMember]="'empId'" 
-                         [source]="employeeList"
-                         [useInfiniteScroll]="true" 
-                         [multiple]="true" 
-                         [(ngModel)]="question.taggedToUserId">
-                <mat-option [value]="employee.empId" *ngFor="let employee of question.toTagEmployeeList">
-                  {{employee.name}}
-                </mat-option>
-              </mat-select>
-            </div>
-          </div>
-  
-          <!-- Responses Section -->
-          <div class="responses-section">
-            <div *ngFor="let response of question.projectResponseList; let responseIndex = index" class="response-container">
-              <!-- Response By -->
-              <div class="user-info">
-                <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
-                <span class="small font-weight-bold">Response By: {{''}}</span>
-              </div>
-  
-              <!-- Text Response -->
-              <div *ngIf="question.optionType == 'text'" class="mt-2">
-                <input type="text" class="form-control" 
-                      autocomplete="none" 
-                      placeholder="Enter Answer here..." 
-                      [disabled]="response.isDraft == 'N'" 
-                      >
-              </div>
-  
-              <!-- Checkbox Response -->
-              <div *ngIf="question.optionType == 'checkbox'" class="mt-2">
-                <div *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index" class="custom-control custom-checkbox">
-                  <input type="checkbox" class="custom-control-input"
-                        [id]="'Milestone-' + milestoneId + 'Module-' + moduleId + 'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex"
-                        [(ngModel)]="option.isChecked"
-                        (change)="onCheckboxChange($event, option.optionValue, question, option, response)"
-                        [disabled]="response.isDraft == 'N'">
-                  <label class="custom-control-label"
-                        [for]="'Milestone-' + milestoneId + 'Module-' + moduleId + 'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex">
-                    {{option.optionValue}}
-                  </label>
-                </div>
-              </div>
-  
-              <!-- Radio Response -->
-              <div *ngIf="question.optionType == 'radio'" class="mt-2">
-                <div *ngFor="let option of response.optionsList; let optIndex = index" class="custom-control custom-radio">
-                  <input type="radio" class="custom-control-input"
-                        [id]="'Milestone-' + milestoneId + 'Module-' + moduleId + 'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'radio' + optIndex + '-response-' + responseIndex"
-                        name="Milestone-{{milestoneId}}-Module-{{moduleId}}-SubModule-{{subModule.subModuleId}}-Question{{question.questionId}}radio{{optIndex}}-response-{{responseIndex}}"
-                        [disabled]="response.isDraft == 'N'" 
-                        [value]="option.optionValue"
-                        >
-                  <label class="custom-control-label"
-                        [for]="'Milestone-' + milestoneId + 'Module-' + moduleId + 'SubModule-' + subModule.subModuleId + '-Question' + question.questionId + 'radio' + optIndex + '-response-' + responseIndex">
-                    {{option.optionValue}}
-                  </label>
-                </div>
-              </div>
-  
-              <!-- File Upload -->
-              <div *ngIf="response.showDocDiv" class="mt-3">
-                <div class="d-flex align-items-center">
-                  <label class="btn btn-sm btn-outline-secondary mr-2 mb-0"
-                        for="Milestone-{{milestoneId}}-Module-{{moduleId}}-SubModule-{{subModule.subModuleId}}-Question-{{question.questionId}}-file-{{qIndex}}">
-                    <span *ngIf="response.isDraft == 'Y'">Upload File</span>
-                    <input id="Milestone-{{milestoneId}}-Module-{{moduleId}}-SubModule-{{subModule.subModuleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
-                          name="Milestone-{{milestoneId}}-Module-{{moduleId}}-SubModule-{{subModule.subModuleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
-                          type="file" 
-                          class="d-none"
-                          (change)="onQuestionFileChange($event, question, alert_message, 'document-preview-container', document_preview_template, response)"
-                          [disabled]="response.isDraft == 'N'">
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
+          <div class="content-container" [ngClass]="{'d-none': subModule.isQuestionCollapsed}">
+           <ng-container *ngFor="let question of subModule.questionList; let qIndex = index">
+            <ng-container [ngTemplateOutlet]="questionTemplate" [ngTemplateOutletContext]="{ 
+                          question: question, 
+                          qIndex: qIndex, 
+                          uniqueQuestionId : 'Milestone-{{milestoneId}}-Module-{{moduleId}}-SubModule-{{subModule.subModuleId}}-Question-{{question.questionId}}'
+                        }">
+            </ng-container>
+          </ng-container>
         </div>
-  
+        </ng-container>
+
         <!-- Recursive rendering of sub-sub-modules -->
         <ng-container *ngIf="subModule.subSubModuleList?.length > 0">
           <div class="sub-sub-modules-container mt-4">
@@ -779,96 +703,28 @@
           
           <!-- Project Insight Content -->
           <div class="content-container" [ngClass]="{'d-none': projectInsight.isCollapsed}">
-            <div *ngFor="let question of projectInsight.questionList; let qIndex = index" class="question-container">
-              <div class="question-header">
-                <span class="question-index">{{qIndex + 1}}</span>
-                <div>
-                  <h5 class="mb-1">{{question.question}}</h5>
-                  <div *ngIf="question.description" class="small text-muted">{{question.description}}</div>
+            <ng-container *ngIf="projectInsight.questionList?.length > 0">
+              <div class="header-container btn btn-outline-primary" (click)="projectInsight.isQuestionCollapsed = !projectInsight.isQuestionCollapsed">
+                <div class="header-title">
+                  <h5 class="mb-0">Questions</h5>
+                </div>
+                <div class="header-actions">
+                  <i class="fa collapse-icon" 
+                     [ngClass]="projectInsight.isQuestionCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
                 </div>
               </div>
-              
-              <!-- Tag for help for question -->
-              <div *ngIf="!isFinalResponseSubmitted" class="mb-3">
-                <div class="form-group mb-0">
-                  <label>Tag For Help</label>
-                  <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" 
-                             [displayMember]="'name'" [valueMember]="'empId'" 
-                             [source]="employeeList" [useInfiniteScroll]="true" 
-                             [multiple]="true" [(ngModel)]="question.taggedToUserId">
-                    <mat-option [value]="employee.empId" *ngFor="let employee of question.toTagEmployeeList">
-                      {{employee.name}}
-                    </mat-option>
-                  </mat-select>
-                </div>
-              </div>
-              
-              <!-- Responses Section -->
-              <div class="responses-section">
-                <div *ngFor="let response of question.projectResponseList; let responseIndex = index" class="response-container">
-                  <!-- Response By -->
-                  <div class="user-info">
-                    <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                    <span>Response By: {{''}}</span>
-                  </div>
-                  
-                  <!-- Response content based on type -->
-                  <!-- Text Response -->
-                  <div *ngIf="question.optionType == 'text'" class="mt-2">
-                    <input type="text" class="form-control" autocomplete="none" 
-                          placeholder="Enter Answer here..." [disabled]="response.isDraft == 'N'" 
-                          >
-                  </div>
-                  
-                  <!-- Checkbox Response -->
-                  <div *ngIf="question.optionType == 'checkbox'" class="mt-2">
-                    <div *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index" class="custom-control custom-checkbox">
-                      <input type="checkbox" class="custom-control-input"
-                            [id]="'Application-' + projectInsight.projectId +'-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex"
-                            [(ngModel)]="option.isChecked"
-                            (change)="onCheckboxChange($event, option.optionValue, question, option, response)"
-                            [disabled]="response.isDraft == 'N'">
-                      <label class="custom-control-label"
-                            [for]="'Application-' + projectInsight.projectId +'-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex">
-                        {{option.optionValue}}
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <!-- Radio Response -->
-                  <div *ngIf="question.optionType == 'radio'" class="mt-2">
-                    <div *ngFor="let option of response.optionsList; let optIndex = index" class="custom-control custom-radio">
-                      <input type="radio" class="custom-control-input"
-                            [id]="'Application-' + projectInsight.projectId +'-Question' + question.questionId + 'radio' + optIndex + '-response-' + responseIndex"
-                            name="Application-{{projectInsight.projectId}}-Question{{question.questionId}}radio{{optIndex}}-response-{{responseIndex}}"
-                            [disabled]="response.isDraft == 'N'" [value]="option.optionValue"
-                            >
-                      <label class="custom-control-label"
-                            [for]="'Application-' + projectInsight.projectId +'-Question' + question.questionId + 'radio' + optIndex + '-response-' + responseIndex">
-                        {{option.optionValue}}
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <!-- File Upload -->
-                  <div *ngIf="response.showDocDiv" class="mt-3">
-                    <div class="d-flex align-items-center">
-                      <label class="btn btn-sm btn-outline-secondary mr-2 mb-0"
-                            for="Application-{{projectInsight.projectId}}-Question-{{question.questionId}}-file-{{qIndex}}">
-                        <span *ngIf="response.isDraft == 'Y'">Upload File</span>
-                        <input id="Application-{{projectInsight.projectId}}-Question-{{question.questionId}}-file-{{qIndex}}"
-                              name="Application-{{projectInsight.projectId}}-Question-{{question.questionId}}-file-{{qIndex}}"
-                              type="file" class="d-none"
-                              (change)="onQuestionFileChange($event, question, alert_message, 'document-preview-container', document_preview_template, response)"
-                              [disabled]="response.isDraft == 'N'">
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <div class="content-container" [ngClass]="{'d-none': projectInsight.isQuestionCollapsed}">
+               <ng-container *ngFor="let question of projectInsight.questionList; let qIndex = index">
+                <ng-container [ngTemplateOutlet]="questionTemplate" [ngTemplateOutletContext]="{ 
+                              question: question, 
+                              qIndex: qIndex, 
+                              uniqueQuestionId : 'Project-{{projectInsight.projectId}}-Question-{{question.questionId}}'
+                            }">
+                </ng-container>
+              </ng-container>
             </div>
+            </ng-container>
+
           </div>
         </div>
       </div>
@@ -919,97 +775,28 @@
           <!-- Milestone Content -->
           <div class="content-container" [ngClass]="{'d-none': milestone.isCollapsed}">
             <!-- Milestone Questions -->
-            <div *ngFor="let question of milestone.questionList; let qIndex = index" class="question-container">
-              <div class="question-header">
-                <span class="question-index">{{qIndex + 1}}</span>
-                <div>
-                  <h5 class="mb-1">{{question.question}}</h5>
-                  <div *ngIf="question.description" class="small text-muted">{{question.description}}</div>
+            <ng-container *ngIf="milestone.questionList?.length > 0">
+              <div class="header-container btn btn-outline-primary" (click)="milestone.isQuestionCollapsed = !milestone.isQuestionCollapsed">
+                <div class="header-title">
+                  <h5 class="mb-0">Questions</h5>
+                </div>
+                <div class="header-actions">
+                  <i class="fa collapse-icon" 
+                     [ngClass]="milestone.isQuestionCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
                 </div>
               </div>
-              
-              <!-- Tag for help for question -->
-              <div *ngIf="!isFinalResponseSubmitted" class="mb-3">
-                <div class="form-group mb-0">
-                  <label>Tag For Help</label>
-                  <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" 
-                             [displayMember]="'name'" [valueMember]="'empId'" 
-                             [source]="employeeList" [useInfiniteScroll]="true" 
-                             [multiple]="true" [(ngModel)]="question.taggedToUserId">
-                    <mat-option [value]="employee.empId" *ngFor="let employee of question.toTagEmployeeList">
-                      {{employee.name}}
-                    </mat-option>
-                  </mat-select>
-                </div>
-              </div>
-              
-              <!-- Responses Section -->
-              <div class="responses-section">
-                <div *ngFor="let response of question.projectResponseList; let responseIndex = index" class="response-container">
-                  <!-- Response By -->
-                  <div class="user-info">
-                    <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                    <span>Response By: {{''}}</span>
-                  </div>
-                  
-                  <!-- Response content based on type -->
-                  <!-- Text Response -->
-                  <div *ngIf="question.optionType == 'text'" class="mt-2">
-                    <input type="text" class="form-control" autocomplete="none" 
-                          placeholder="Enter Answer here..." [disabled]="response.isDraft == 'N'" 
-                          >
-                  </div>
-                  
-                  <!-- Checkbox Response -->
-                  <div *ngIf="question.optionType == 'checkbox'" class="mt-2">
-                    <div *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index" class="custom-control custom-checkbox">
-                      <input type="checkbox" class="custom-control-input"
-                            [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex"
-                            [(ngModel)]="option.isChecked"
-                            (change)="onCheckboxChange($event, option.optionValue, question, option, response)"
-                            [disabled]="response.isDraft == 'N'">
-                      <label class="custom-control-label"
-                            [for]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex">
-                        {{option.optionValue}}
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <!-- Radio Response -->
-                  <div *ngIf="question.optionType == 'radio'" class="mt-2">
-                    <div *ngFor="let option of response.optionsList; let optIndex = index" class="custom-control custom-radio">
-                      <input type="radio" class="custom-control-input"
-                            [id]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + optIndex + '-response-' + responseIndex"
-                            name="Milestone-{{milestone.milestoneId}}-Question{{question.questionId}}radio{{optIndex}}-response-{{responseIndex}}"
-                            [disabled]="response.isDraft == 'N'" [value]="option.optionValue"
-                            >
-                      <label class="custom-control-label"
-                            [for]="'Milestone-' + milestone.milestoneId + '-Question' + question.questionId + 'radio' + optIndex + '-response-' + responseIndex">
-                        {{option.optionValue}}
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <!-- File Upload -->
-                  <div *ngIf="response.showDocDiv" class="mt-3">
-                    <div class="d-flex align-items-center">
-                      <label class="btn btn-sm btn-outline-secondary mr-2 mb-0"
-                            for="Milestone-{{milestone.milestoneId}}-Question-{{question.questionId}}-file-{{qIndex}}">
-                        <span *ngIf="response.isDraft == 'Y'">Upload File</span>
-                        <input id="Milestone-{{milestone.milestoneId}}-Question-{{question.questionId}}-file-{{qIndex}}"
-                              name="Milestone-{{milestone.milestoneId}}-Question-{{question.questionId}}-file-{{qIndex}}"
-                              type="file" class="d-none"
-                              (change)="onQuestionFileChange($event, question, alert_message, 'document-preview-container', document_preview_template, response)"
-                              [disabled]="response.isDraft == 'N'">
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <div class="content-container" [ngClass]="{'d-none': milestone.isQuestionCollapsed}">
+               <ng-container *ngFor="let question of milestone.questionList; let qIndex = index">
+                <ng-container [ngTemplateOutlet]="questionTemplate" [ngTemplateOutletContext]="{ 
+                              question: question, 
+                              qIndex: qIndex, 
+                              uniqueQuestionId : 'Milestone-{{milestoneId}}-Question-{{question.questionId}}'
+                            }">
+                </ng-container>
+              </ng-container>
             </div>
-            
+            </ng-container>
+
             <!-- Modules Section -->
             <div *ngFor="let module of milestone.moduleList; let modIndex = index" class="module-container">
               <!-- Module Header -->
@@ -1050,96 +837,27 @@
               <!-- Module Content -->
               <div class="content-container" [ngClass]="{'d-none': module.isCollapsed}">
                 <!-- Module Questions -->
-                <div *ngFor="let question of module.questionList; let qIndex = index" class="question-container">
-                  <div class="question-header">
-                    <span class="question-index">{{qIndex + 1}}</span>
-                    <div>
-                      <h5 class="mb-1">{{question.question}}</h5>
-                      <div *ngIf="question.description" class="small text-muted">{{question.description}}</div>
+                <ng-container *ngIf="module.questionList?.length > 0">
+                  <div class="header-container btn btn-outline-primary" (click)="module.isQuestionCollapsed = !module.isQuestionCollapsed">
+                    <div class="header-title">
+                      <h5 class="mb-0">Questions</h5>
+                    </div>
+                    <div class="header-actions">
+                      <i class="fa collapse-icon" 
+                         [ngClass]="module.isQuestionCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
                     </div>
                   </div>
-                  
-                  <!-- Tag for help for question -->
-                  <div *ngIf="!isFinalResponseSubmitted" class="mb-3">
-                    <div class="form-group mb-0">
-                      <label>Tag For Help</label>
-                      <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" 
-                                 [displayMember]="'name'" [valueMember]="'empId'" 
-                                 [source]="employeeList" [useInfiniteScroll]="true" 
-                                 [multiple]="true" [(ngModel)]="question.taggedToUserId">
-                        <mat-option [value]="employee.empId" *ngFor="let employee of question.toTagEmployeeList">
-                          {{employee.name}}
-                        </mat-option>
-                      </mat-select>
-                    </div>
-                  </div>
-                  
-                  <!-- Responses Section -->
-                  <div class="responses-section">
-                    <div *ngFor="let response of question.projectResponseList; let responseIndex = index" class="response-container">
-                      <!-- Response By -->
-                      <div class="user-info">
-                        <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                        </svg>
-                        <span>Response By: {{''}}</span>
-                      </div>
-                      
-                      <!-- Response content based on type -->
-                      <!-- Text Response -->
-                      <div *ngIf="question.optionType == 'text'" class="mt-2">
-                        <input type="text" class="form-control" autocomplete="none" 
-                              placeholder="Enter Answer here..." [disabled]="response.isDraft == 'N'" 
-                              >
-                      </div>
-                      
-                      <!-- Checkbox Response -->
-                      <div *ngIf="question.optionType == 'checkbox'" class="mt-2">
-                        <div *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index" class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input"
-                                [id]="'Milestone-' + milestone.milestoneId + 'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex"
-                                [(ngModel)]="option.isChecked"
-                                (change)="onCheckboxChange($event, option.optionValue, question, option, response)"
-                                [disabled]="response.isDraft == 'N'">
-                          <label class="custom-control-label"
-                                [for]="'Milestone-' + milestone.milestoneId + 'Module-' + module.moduleId + '-Question' + question.questionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex">
-                            {{option.optionValue}}
-                          </label>
-                        </div>
-                      </div>
-                      
-                      <!-- Radio Response -->
-                      <div *ngIf="question.optionType == 'radio'" class="mt-2">
-                        <div *ngFor="let option of response.optionsList; let optIndex = index" class="custom-control custom-radio">
-                          <input type="radio" class="custom-control-input"
-                                [id]="'Milestone-' + milestone.milestoneId + 'Module-' + module.moduleId + '-Question' + question.questionId + 'radio' + optIndex + '-response-' + responseIndex"
-                                name="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-Question{{question.questionId}}radio{{optIndex}}-response-{{responseIndex}}"
-                                [disabled]="response.isDraft == 'N'" [value]="option.optionValue"
-                                >
-                          <label class="custom-control-label"
-                                [for]="'Milestone-' + milestone.milestoneId + 'Module-' + module.moduleId + '-Question' + question.questionId + 'radio' + optIndex + '-response-' + responseIndex">
-                            {{option.optionValue}}
-                          </label>
-                        </div>
-                      </div>
-                      
-                      <!-- File Upload -->
-                      <div *ngIf="response.showDocDiv" class="mt-3">
-                        <div class="d-flex align-items-center">
-                          <label class="btn btn-sm btn-outline-secondary mr-2 mb-0"
-                                for="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-Question-{{question.questionId}}-file-{{qIndex}}">
-                            <span *ngIf="response.isDraft == 'Y'">Upload File</span>
-                            <input id="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
-                                  name="Milestone-{{milestone.milestoneId}}-Module-{{module.moduleId}}-Question-{{question.questionId}}-file-{{qIndex}}"
-                                  type="file" class="d-none"
-                                  (change)="onQuestionFileChange($event, question, alert_message, 'document-preview-container', document_preview_template, response)"
-                                  [disabled]="response.isDraft == 'N'">
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <div class="content-container" [ngClass]="{'d-none': module.isQuestionCollapsed}">
+                   <ng-container *ngFor="let question of module.questionList; let qIndex = index">
+                    <ng-container [ngTemplateOutlet]="questionTemplate" [ngTemplateOutletContext]="{ 
+                                  question: question, 
+                                  qIndex: qIndex, 
+                                  uniqueQuestionId : 'Milestone-{{milestoneId}}-Module-{{moduleId}}-Question-{{question.questionId}}'
+                                }">
+                    </ng-container>
+                  </ng-container>
                 </div>
+                </ng-container>
                 
                 <!-- SubModule List -->
                 <div class="submodules-section mt-4">
@@ -1180,3 +898,100 @@
   </div>
   </ng-template>
   
+  <ng-template #questionTemplate let-question="question" let-qIndex="qIndex" let-uniqueQuestionId="uniqueQuestionId">
+    <div class="question-header">
+      <span class="question-index">{{qIndex + 1}}</span>
+      <div>
+        <h5 class="mb-1">{{question.question}}</h5>
+        <div *ngIf="question.description" class="small text-muted">{{question.description}}</div>
+      </div>
+    </div>
+
+    <!-- Tag for help for question -->
+    <div *ngIf="!isFinalResponseSubmitted" class="mb-3">
+      <div class="form-group mb-0">
+        <label class="small font-weight-bold">Tag For Help</label>
+        <mat-select ngxMatSelect class="form-control form-control-sm" 
+                   #approvalSelect="ngxMatSelect" 
+                   [displayMember]="'name'" 
+                   [valueMember]="'empId'" 
+                   [source]="employeeList"
+                   [useInfiniteScroll]="true" 
+                   [multiple]="true" 
+                   [(ngModel)]="question.taggedToUserId">
+          <mat-option [value]="employee.empId" *ngFor="let employee of question.toTagEmployeeList">
+            {{employee.name}}
+          </mat-option>
+        </mat-select>
+      </div>
+    </div>
+
+    <!-- Responses Section -->
+    <div class="responses-section">
+      <div *ngFor="let response of question.projectResponseList; let responseIndex = index" class="response-container">
+        <!-- Response By -->
+        <div class="user-info">
+          <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+          </svg>
+          <span class="small font-weight-bold">Response By: {{''}}</span>
+        </div>
+
+        <!-- Text Response -->
+        <div *ngIf="question.optionType == 'text'" class="mt-2">
+          <input type="text" class="form-control" 
+                autocomplete="none" 
+                placeholder="Enter Answer here..." 
+                [disabled]="response.isDraft == 'N'" 
+                >
+        </div>
+
+        <!-- Checkbox Response -->
+        <div *ngIf="question.optionType == 'checkbox'" class="mt-2">
+          <div *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index" class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input"
+                  [id]="uniqueQuestionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex"
+                  [(ngModel)]="option.isChecked"
+                  (change)="onCheckboxChange($event, option.optionValue, question, option, response)"
+                  [disabled]="response.isDraft == 'N'">
+            <label class="custom-control-label"
+                  [for]="uniqueQuestionId + 'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex">
+              {{option.optionValue}}
+            </label>
+          </div>
+        </div>
+
+        <!-- Radio Response -->
+        <div *ngIf="question.optionType == 'radio'" class="mt-2">
+          <div *ngFor="let option of response.optionsList; let optIndex = index" class="custom-control custom-radio">
+            <input type="radio" class="custom-control-input"
+                  [id]="uniqueQuestionId + 'radio' + optIndex + '-response-' + responseIndex"
+                  name="{{uniqueQuestionId}}-radio{{optIndex}}-response-{{responseIndex}}"
+                  [disabled]="response.isDraft == 'N'" 
+                  [value]="option.optionValue"
+                  >
+            <label class="custom-control-label"
+                  [for]="uniqueQuestionId + 'radio' + optIndex + '-response-' + responseIndex">
+              {{option.optionValue}}
+            </label>
+          </div>
+        </div>
+
+        <!-- File Upload -->
+        <div *ngIf="response.showDocDiv" class="mt-3">
+          <div class="d-flex align-items-center">
+            <label class="btn btn-sm btn-outline-secondary mr-2 mb-0"
+                  for="{{uniqueQuestionId}}-file-{{qIndex}}">
+              <span *ngIf="response.isDraft == 'Y'">Upload File</span>
+              <input id="{{uniqueQuestionId}}-file-{{qIndex}}"
+                    name="{{uniqueQuestionId}}-file-{{qIndex}}"
+                    type="file" 
+                    class="d-none"
+                    (change)="onQuestionFileChange($event, question, alert_message, 'document-preview-container', document_preview_template, response)"
+                    [disabled]="response.isDraft == 'N'">
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
