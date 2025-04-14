@@ -162,4 +162,9 @@ public class PerformanceController {
 	    return response;
 	}
 	
+	@RequestMapping(value = "/currentStatusForPerformanceTableView", method = RequestMethod.GET)
+	public ServiceResponse currentStatusForPerformanceTableView() {
+	    ServiceResponse response = performanceService.currentStatusForPerformanceTableView();
+	    return response;
+	}
 }

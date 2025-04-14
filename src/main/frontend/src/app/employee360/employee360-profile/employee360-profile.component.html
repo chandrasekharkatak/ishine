@@ -4,7 +4,9 @@
                     
 
         href="#details" role="tab" aria-controls="home" style="font-size: 27px;
-    color: #231e8d;" aria-selected="true">Employee Details</a>
+    color: #231e8d;" aria-selected="true">Employee Details
+   
+</a>
 
         <button *ngIf="!isUpdation && userMapping.update_profile " type="submit" class="btn btn-primary btn-sm ml-auto" (click)="showUpdateForm(currentEmployeeInfo)">Update Profile</button>
         <!-- <button *ngIf="!isUpdation && userMapping.update_profile" type="submit" class="btn btn-primary btn-sm ml-auto" (click)="showUpdateProfile()">Update Profile</button> -->

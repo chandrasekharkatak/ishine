@@ -110,9 +110,9 @@ export class ResourceManagementComponent implements OnInit {
   copyDepartment : any = [];
   currentBreadcrumbList: any[] = [];
   // employeesFor360: any[] = [];
-  allEmployeeList360: any[] = [];
   poProjectListFromIshine: any[] = [];
   flagDialogueBox: boolean = false;
+  tableName: string;
 
   constructor(
     private departmentService: DepartmentService,
@@ -158,11 +158,7 @@ export class ResourceManagementComponent implements OnInit {
     //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
     // });
     // console.log('userMapping',this.userMapping);
-    try {
-      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
   }
    
 
@@ -342,10 +338,10 @@ export class ResourceManagementComponent implements OnInit {
             // added in single list  
 
             this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
+            console.log(this.allProject_Po_Internal);
             for(let y of this.allProject_Po_Internal){
-              let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === y.projectManager);
-                  // console.log('matches++',matchingEmployee);
-                  y.emp360 = matchingEmployee ? matchingEmployee : {};
+                   // console.log('matches++',matchingEmployee);
+                  y.emp360 = y.empId;
                 }
 
 
@@ -419,7 +415,9 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   // Team
-
+  getSubstring(str: string): string {
+    return str.substring(0, 5); // or any logic you want
+  }
   getAllEmployeesByRole(departmentList: any) {
     this.teamLeadsList = [];
     let employeeList = [];
@@ -701,7 +699,6 @@ export class ResourceManagementComponent implements OnInit {
         //console.log(this.projectObj.teamList, " this.projectObj.teamList");
         this.projectObj.teamList.forEach((obj) => {
           obj.departmentList = obj.departmentList?.map(x => +x);
-          console.log(" obj.departmentList     ",obj.departmentList);
           this.copyDepartment = obj.departmentList;
 
           // obj.teamMemberList.forEach((member) => {
@@ -714,9 +711,7 @@ export class ResourceManagementComponent implements OnInit {
               if (member) { // Check if member is not null
                 // Format the startDate if it exists, otherwise set it to null
                 member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
-                let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === member.empId);
-                console.log('matches++',matchingEmployee);
-                member.emp360 = matchingEmployee ? matchingEmployee : {};
+                member.emp360 = member.empId;
               }
             });
           } else {
@@ -851,6 +846,7 @@ export class ResourceManagementComponent implements OnInit {
     const managerFound = this.managerList.find(x => x.employeementId == projectObj.projectManager);
     if (managerFound) {
       this.selectedProjectManager = managerFound.name;
+      //this.empId=managerFound.empId;
     }
   }
 
@@ -1197,29 +1193,36 @@ export class ResourceManagementComponent implements OnInit {
 
   // Excel Export
 
-  exportToExcel() {
-    this.excelName = 'Projects.xlsx';
+//   exportToExcel(id:any) {
+//     this.excelName = 'Projects.xlsx';
 
-    const onlySpecificDataArr = this.allProjectList.map(
-      x => ({
-        "Project Name": x.name,
-        "PO Number": x.poNo,
-        "Project Manager": x.projectManagerName,
-        "Client Name": x.clientName,
-        "Client State": x.clientState,
-        "Apmosys RM": x.apmosysRM,
-        "Client RM": x.clientRM,
-        "Start Date": x.startDate ? x.startDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.startDate,
-"End Date": x.endDate ? x.endDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.endDate,
-        // "Start Date": x.startDate,
-        // "End Date": x.endDate,
-        "Created On": x.createdOn,
-        "Approval Status": x.isDraftProject,
-        "Project Status": x.status,
-      })
-    )
-    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
-  }
+//     const onlySpecificDataArr = this.allProjectList.map(
+//       x => ({
+//         "Project Name": x.name,
+//         "PO Number": x.poNo,
+//         "Project Manager": x.projectManagerName,
+//         "Client Name": x.clientName,
+//         "Client State": x.clientState,
+//         "Apmosys RM": x.apmosysRM,
+//         "Client RM": x.clientRM,
+//         "Start Date": x.startDate ? x.startDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.startDate,
+// "End Date": x.endDate ? x.endDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.endDate,
+//         // "Start Date": x.startDate,
+//         // "End Date": x.endDate,
+//         "Created On": x.createdOn,
+//         "Approval Status": x.isDraftProject,
+//         "Project Status": x.status,
+//       })
+//     )
+//     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+//   }
+exportToExcel(id:any): void {
+  const tableId = id; // Replace with your actual table ID
+  this.excelName = "TeamMemberSheet.xlsx";
+  this.tableName= 'Team Members';
+
+  this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+}
 
 
   // check resource template
@@ -1268,6 +1271,7 @@ export class ResourceManagementComponent implements OnInit {
       );
     });
   }
+  
 
   deleteResourceFromProject(template: TemplateRef<any>) {
 
@@ -1305,6 +1309,7 @@ export class ResourceManagementComponent implements OnInit {
       console.error("Error fetching project details:", error);
     });
   }
+  
 
 
 changeDepartment(event: any): void {

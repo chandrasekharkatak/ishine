@@ -153,7 +153,6 @@ export class Employee360LeaveComponent implements OnInit {
 
   //Dropdown filter
   year:any;
-  allEmployeeList360: any[] = [];
    
   constructor(
     private authenticationService: AuthenticationService,
@@ -183,14 +182,9 @@ export class Employee360LeaveComponent implements OnInit {
    }
 
    async ngOnInit(): Promise<void> { 
-    try {
-      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
-      //console.log("Priyadarshini ", this.allEmployeeList360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
   
-    const storedData = localStorage.getItem('employee360Data');
+    const storedData = sessionStorage.getItem('employee360Data');
     const parsedData = storedData ? JSON.parse(storedData) : null;
       if(parsedData != null || parsedData != undefined ){
         this.employeeData =  parsedData;
@@ -375,44 +369,17 @@ export class Employee360LeaveComponent implements OnInit {
               this.teamViewLeaveHistoryList.forEach((leaveApplication) => {
                 this.leaveObj2.leaveId = leaveApplication.leaveId;
                 this.leaveObj2.currentUserEmpId = this.currentUser.empId;
+                 leaveApplication.emp360createdBy = leaveApplication.createdBy;
+                leaveApplication.emp360AppLev1 = leaveApplication.approverId;
+          leaveApplication.emp360AppLev2 = leaveApplication.level2ApproverId;
+               leaveApplication.emp360AppLev3 = leaveApplication.level3ApproverId;
+         leaveApplication.emp360Mng = leaveApplication.managerId;
+               leaveApplication.emp360leaveStatusUpdatedBy =  leaveApplication.leaveStatusUpdatedBy;
 
-                let matchingcreatedBy = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.createdBy);
-                //console.log("matchingEmployeeAppLev1 ",matchingEmployeeAppLev1);
-                leaveApplication.emp360createdBy = matchingcreatedBy ? matchingcreatedBy : {};
-
-                //console.log("leaveApplication.approverId ",leaveApplication.approverId);
-                let matchingEmployeeAppLev1 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.approverId);
-                //console.log("matchingEmployeeAppLev1 ",matchingEmployeeAppLev1);
-                leaveApplication.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
-
-                //console.log("leaveApplication.level2ApproverId ",leaveApplication.level2ApproverId);
-                let matchingEmployeeAppLev2 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level2ApproverId);
-                //console.log("matchingEmployeeAppLev2 ",matchingEmployeeAppLev2);
-                leaveApplication.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
-                
-                //console.log("leaveApplication.level3ApproverId ",leaveApplication.level3ApproverId);
-                let matchingEmployeeAppLev3 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level3ApproverId);
-                //console.log("matchingEmployeeAppLev3 ",matchingEmployeeAppLev3);
-                leaveApplication.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
-
-                //console.log("leaveApplication.managerId ",leaveApplication.managerId);
-                let matchingEmployeeMng = this.allEmployeeList360.find(emp => emp.empId === leaveApplication.managerId);
-                //console.log("matchingEmployeeMng ",matchingEmployeeMng);
-                leaveApplication.emp360Mng = matchingEmployeeMng ? matchingEmployeeMng : {};
-
-                //console.log("leaveApplication.leaveStatusUpdatedBy ",leaveApplication.leaveStatusUpdatedBy);
-                let matchingleaveStatusUpdatedBy = this.allEmployeeList360.find(emp => emp.empId === leaveApplication.leaveStatusUpdatedBy);
-                //console.log("matchingleaveStatusUpdatedBy ",matchingleaveStatusUpdatedBy);
-                leaveApplication.emp360leaveStatusUpdatedBy = matchingleaveStatusUpdatedBy ? matchingleaveStatusUpdatedBy : {};
-
-                //console.log("leaveApplication.empId ",leaveApplication.empId);
-                let matchingCreatedBy = this.allEmployeeList360.find(emp => emp.empId === leaveApplication.empId);
-                //console.log("matchingCreatedBy ",matchingCreatedBy);
-                leaveApplication.emp360CreatedBy = matchingCreatedBy ? matchingCreatedBy : {};
+                leaveApplication.emp360CreatedBy = leaveApplication.empId;
                 
                 leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
-                //console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover);
-                this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {
+                 this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {
                   if (response.serviceStatus === "Success") {
                     leaveApplication.isManagerFlag = response.serviceResponse;
                   } else {
@@ -529,13 +496,9 @@ export class Employee360LeaveComponent implements OnInit {
           this.CompOffData.push(compOffApp)});
       }else{this.CompOffData=[];}
       this.CompOffData.forEach(app=>{
-        let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === app.empId);
-        let matchingEmployeeLev1 = this.allEmployeeList360.find(emp => emp.empId === app.managerId);
-        let matchingEmployeeLev2 = this.allEmployeeList360.find(emp => emp.empId === app.level2ApproverId);
-
-        app.emp360 = matchingEmployee ? matchingEmployee : {};
-        app.emp360Lev1 = matchingEmployeeLev1 ? matchingEmployeeLev1 : {};
-        app.emp360Lev2 = matchingEmployeeLev2 ? matchingEmployeeLev2 : {};
+        app.emp360 = app.empId;
+        app.emp360Lev1 =app.managerId;
+        app.emp360Lev2 = app.level2ApproverId;
 
       });
 
@@ -579,9 +542,7 @@ export class Employee360LeaveComponent implements OnInit {
                 leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
                 leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
                 leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-                let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId == leave.empId);
-                //console.log("matchingEmployeeAppLev1 ",matchingEmployeeAppLev1);
-                leave.emp360 = matchingEmployee ? matchingEmployee : {};
+                leave.emp360 = leave.empId;
 
               });
               // console.log('reporteeLeaveRevokeApplicationList -- ',this.reporteeLeaveRevokeApplicationList);
@@ -598,9 +559,7 @@ export class Employee360LeaveComponent implements OnInit {
                 leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
                 leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
                 leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-                let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId == leave.empId);
-                //console.log("matchingEmployeeAppLev1 ",matchingEmployeeAppLev1);
-                leave.emp360 = matchingEmployee ? matchingEmployee : {};
+               leave.emp360 = leave.empId;
 
               });
 

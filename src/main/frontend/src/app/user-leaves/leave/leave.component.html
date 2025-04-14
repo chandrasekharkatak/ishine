@@ -239,7 +239,7 @@
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveHistoryInfo'" [tableTHeadId]="'leaveHistoryInfoTHead'"
                 [tableTHeadTrId]="'leaveHistoryInfoTHeadTr'">
-                    <table class="table table-responsive" id="leaveHistoryInfo" matSort (matSortChange)="sortData($event)">	
+                    <table class="table" id="leaveHistoryInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="leaveHistoryInfoTHead">	
                         <tr id="leaveHistoryInfoTHeadTr">	
                             <th scope="col" class="info-label">Sr No.</th>
@@ -393,6 +393,10 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveLogList.length == 0"
+                    (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
                     [tableTHeadTrId]="'holidayInfoTHeadTr'">
                     <table class="table" id="log-table" matSort (matSortChange)="sortData($event)">	
@@ -423,7 +427,8 @@
                       </table>
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="leaveLogList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveLogList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>  -->
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveLogList.length == 0"
+                    (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
             </div>
         </div>
     </div>    
@@ -456,10 +461,15 @@
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
+                </div> 
+                <div class="export-button  mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="revokeLeaveApplicationList.length == 0" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
                     [tableTHeadTrId]="'holidayInfoTHeadTr'">
-                    <table class="table table-responsive" id="revoke-history-table" matSort (matSortChange)="sortData($event)">	
+                    <table class="table" id="revoke-history-table" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light">	
                           <tr>
                             <th scope="col" class="info-label" >Sr. No</th>
@@ -500,8 +510,10 @@
                       </table>  
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="revokeLeaveApplicationList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="revokeLeaveApplicationList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-            </div>
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="revokeLeaveApplicationList.length == 0" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button> -->
+                </div>
         </div>
     </div>  
 </div>
@@ -558,6 +570,11 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="overLappingTeamMemberList.length == 0" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'overlapsedInfo'" [tableTHeadId]="'overlapsedInfoTHead'"
                     [tableTHeadTrId]="'overlapsedInfoTHeadTr'">
                     <table class="table" id="overlapsedInfo" matSort (matSortChange)="sortData($event)">	
@@ -584,8 +601,10 @@
                       </table>
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="overLappingTeamMemberList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="overLappingTeamMemberList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-            </div>
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="overLappingTeamMemberList.length == 0" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button> -->
+                </div>
         </div>
     </div>
 </ng-template>

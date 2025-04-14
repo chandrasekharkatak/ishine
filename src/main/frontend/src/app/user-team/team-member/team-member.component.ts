@@ -15,6 +15,9 @@ import { AppComponent } from 'src/app/app.component';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+
 
 @Component({
   selector: 'app-team-member',
@@ -62,6 +65,7 @@ export class TeamMemberComponent implements OnInit {
   isTable: boolean = false;
   // employeesFor360: any[] = [];
   allEmployeeList360: any[] = [];
+  tableName: String;
 
 
 
@@ -88,11 +92,7 @@ export class TeamMemberComponent implements OnInit {
     
     this.getAllTeamMemberView();
     this.preventBackButton();
-    try {
-      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -110,15 +110,7 @@ export class TeamMemberComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.viewTeamMemberList = response.serviceResponse;
         for(let x of this.viewTeamMemberList){
-          // if(x.isConsultant == 'true'){
-          //   x.employeementId="A-CS-".concat(x.employeementId)
-          // }else{
-          //   x.employeementId="A-".concat(x.employeementId)
-          // }
-          x.employeementId="A-".concat(x.employeementId)
-          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === x.employeementId);
-          console.log('matches++',matchingEmployee);
-          x.emp360 = matchingEmployee ? matchingEmployee : {};
+         x.emp360 = x.empId;
         }
         //console.log("viewTeamMemberList : ", this.viewTeamMemberList);
       } else {
@@ -130,6 +122,13 @@ export class TeamMemberComponent implements OnInit {
 
   //excel
 
+  // exportToExcel(id:any): void {
+  //   const tableId = id; // Replace with your actual table ID
+  //   this.excelName = "TeamMemberSheet.xlsx";
+  //   this.tableName= 'Team Members';
+
+  //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  // }
   exportToExcel(): void {
 
     this.excelName = "TeamMemberSheet.xlsx";
@@ -338,3 +337,5 @@ export class TeamMemberComponent implements OnInit {
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }
+
+

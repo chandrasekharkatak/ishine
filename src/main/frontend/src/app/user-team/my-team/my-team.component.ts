@@ -138,6 +138,7 @@ export class MyTeamComponent implements OnInit {
   isApprover: boolean = false;
   allEmployeeList360: any[] = [];
   // employeesFor360: any[] = [];
+  tableName: String;
   
   selectedNode: HierarchyUser | null = null;
 
@@ -195,15 +196,6 @@ export class MyTeamComponent implements OnInit {
     });
   
     this.preventBackButton();
-  
-    // Wait for employees to be fetched before moving to sectionViewInit()
-    // await this.getAllEmployeeFor360View();
-    try {
-      this.allEmployeeList360 = await this.utilityService.getEmployeeDetailsFor360View();
-      //console.log("Priyadarshini ", this.allEmployeeList360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
   
     this.sectionViewInit();
   }
@@ -498,13 +490,9 @@ export class MyTeamComponent implements OnInit {
           y.isHierarchy = false;
           let temp = this.managerList.find(manager => manager.managerId == y.empId);
           if(temp != undefined) y.isHierarchy = true;  
-          console.log("allEmployeeList360 ",this.allEmployeeList360)
-          let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === y.employeementId);
-          //console.log('matches++',matchingEmployee);
-          y.emp360 = matchingEmployee ? matchingEmployee : {};
-          let matchingEmployeeMng = this.allEmployeeList360.find(emp => emp.empId === this.currentUser.empId);
-          //console.log('matches++',matchingEmployeeMng);
-          y.emp360Mng = matchingEmployeeMng ? matchingEmployeeMng : {};
+         //console.log('matches++',matchingEmployee);
+           y.emp360 = y.empId;
+           y.emp360Mng = this.currentUser.empId;
         }
         // console.log("teamViewList : ", this.teamViewList);         
 
@@ -580,17 +568,12 @@ export class MyTeamComponent implements OnInit {
             // leaveHistory.emp360 = matchingEmployee ? matchingEmployee : {};
           });
           this.teamViewLeaveHistoryList.forEach(leaveHistory => {
-            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === leaveHistory.employeementId);
-            //console.log('matches++))',matchingEmployee);
-            leaveHistory.emp360 = matchingEmployee ? matchingEmployee : {};
-            let matchingEmployeeAppLev1 = this.allEmployeeList360.find(emp => emp.empId == this.currentUser.empId);
-            let matchingEmployeeAppLev2 = this.allEmployeeList360.find(emp => emp.empId == leaveHistory.level2ApproverId);
-            let matchingEmployeeAppLev3 = this.allEmployeeList360.find(emp => emp.empId == leaveHistory.level3ApproverId);
-            leaveHistory.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
-            leaveHistory.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
-            leaveHistory.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
-            let matchingleaveStatusUpdatedBy = this.allEmployeeList360.find(emp => emp.empId === leaveHistory.leaveStatusUpdatedBy);
-            leaveHistory.emp360leaveStatusUpdatedBy = matchingleaveStatusUpdatedBy ? matchingleaveStatusUpdatedBy : {};
+          //console.log('matches++))',matchingEmployee);
+            leaveHistory.emp360 =leaveHistory.empId;
+            leaveHistory.emp360AppLev1 = this.currentUser.empId;
+            leaveHistory.emp360AppLev2 = leaveHistory.level2ApproverId;
+            leaveHistory.emp360AppLev3 = leaveHistory.level3ApproverId;
+            leaveHistory.emp360leaveStatusUpdatedBy = leaveHistory.leaveStatusUpdatedBy;
 
             //leaveStatusUpdatedBy
           });
@@ -640,11 +623,8 @@ export class MyTeamComponent implements OnInit {
             compOffHistory.fromDate = (compOffHistory.fromDate)? moment(compOffHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
             compOffHistory.toDate = (compOffHistory.toDate)? moment(compOffHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
             compOffHistory.createdOn = (compOffHistory.createdOn)? moment(compOffHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
-            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + compOffHistory.employeementId));
-            //console.log('matches++',matchingEmployee);
-            compOffHistory.emp360 = matchingEmployee ? matchingEmployee : {};
-            let matchingEmployeeApproverdBy = this.allEmployeeList360.find(emp => emp.empId === compOffHistory.leaveStatusUpdatedBy);
-            compOffHistory.emp360ApprovedBy = matchingEmployeeApproverdBy ? matchingEmployeeApproverdBy : {};
+            compOffHistory.emp360 = compOffHistory.empId;
+            compOffHistory.emp360ApprovedBy = compOffHistory.leaveStatusUpdatedBy;
 
           });
         } else {
@@ -661,11 +641,8 @@ export class MyTeamComponent implements OnInit {
             compOffHistory.fromDate = (compOffHistory.fromDate)? moment(compOffHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
             compOffHistory.toDate = (compOffHistory.toDate)? moment(compOffHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
             compOffHistory.createdOn = (compOffHistory.createdOn)? moment(compOffHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
-            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + compOffHistory.employeementId));
-            //console.log('matches++',matchingEmployee);
-            compOffHistory.emp360 = matchingEmployee ? matchingEmployee : {};
-            let matchingEmployeeApproverdBy = this.allEmployeeList360.find(emp => emp.empId === compOffHistory.leaveStatusUpdatedBy);
-            compOffHistory.emp360ApprovedBy = matchingEmployeeApproverdBy ? matchingEmployeeApproverdBy : {};
+            compOffHistory.emp360 = compOffHistory.empId;
+            compOffHistory.emp360ApprovedBy = compOffHistory.leaveStatusUpdatedBy;
           });
         } else {
           console.error(response.serviceResponse);
@@ -771,16 +748,10 @@ export class MyTeamComponent implements OnInit {
                         this.leaveObj2.leaveId = leaveApplication.leaveId;
                         this.leaveObj2.currentUserEmpId = this.currentUser.empId
                         leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
-                        console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover);
-                        let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + leaveApplication.employeementId));
-                        //console.log('matches++',matchingEmployee);
-                        leaveApplication.emp360 = matchingEmployee ? matchingEmployee : {};
-                        let matchingEmployeeAppLev1 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level1ApproverId);
-                        let matchingEmployeeAppLev2 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level2ApproverId);
-                        let matchingEmployeeAppLev3 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level3ApproverId);
-                        leaveApplication.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
-                        leaveApplication.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
-                        leaveApplication.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
+                       leaveApplication.emp360 = leaveApplication.empId;
+                       leaveApplication.emp360AppLev1 = leaveApplication.level1ApproverId;
+                        leaveApplication.emp360AppLev2 = leaveApplication.level2ApproverId;
+                        leaveApplication.emp360AppLev3 = leaveApplication.level3ApproverId;
     
 
                         this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {
@@ -813,13 +784,10 @@ export class MyTeamComponent implements OnInit {
                         this.leaveObj2.currentUserEmpId = this.currentUser.empId
                         let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + leaveApplication.employeementId));
                         //console.log('matches++',matchingEmployee);
-                        leaveApplication.emp360 = matchingEmployee ? matchingEmployee : {};
-                        let matchingEmployeeAppLev1 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level1ApproverId);
-                        let matchingEmployeeAppLev2 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level2ApproverId);
-                        let matchingEmployeeAppLev3 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level3ApproverId);
-                        leaveApplication.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
-                        leaveApplication.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
-                        leaveApplication.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
+                        leaveApplication.emp360 = leaveApplication.empId;
+                        leaveApplication.emp360AppLev1 = leaveApplication.level1ApproverId;
+                        leaveApplication.emp360AppLev2 = leaveApplication.level2ApproverId;
+                        leaveApplication.emp360AppLev3 = leaveApplication.level3ApproverId;
     
                         leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
                         //console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover);
@@ -862,26 +830,14 @@ export class MyTeamComponent implements OnInit {
                             let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + leaveApplication.employeementId));
                             //console.log('matches++',matchingEmployee);
                             leaveApplication.emp360 = matchingEmployee ? matchingEmployee : {};
-                            let matchingEmpCreateBy = this.allEmployeeList360.find(emp => emp.empId === leaveApplication.empId);
-                            leaveApplication.emp360CreateBy = matchingEmpCreateBy ? matchingEmpCreateBy : {};
-
-                            let matchingEmployeeAppLev1 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level1ApproverId);
-                            let matchingEmployeeAppLev2 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level2ApproverId);
-                            let matchingEmployeeAppLev3 = this.allEmployeeList360.find(emp => emp.empId == leaveApplication.level3ApproverId);
-                            leaveApplication.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
-                            leaveApplication.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
-                            leaveApplication.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
+                            leaveApplication.emp360CreateBy = leaveApplication.empId;
+                             leaveApplication.emp360AppLev1 = leaveApplication.level1ApproverId;
+                            leaveApplication.emp360AppLev2 = leaveApplication.level2ApproverId;
+                            leaveApplication.emp360AppLev3 = leaveApplication.level3ApproverId;
     
                             leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
                             console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover,"PRI",leaveApplication.managerId," ",this.currentUser.empId," ",leaveApplication.managerApprovalStatus);
-                            // this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {
-                            //   if (response.serviceStatus === "Success") {
-                            //     leaveApplication.isManagerFlag = response.serviceResponse;
-                            //   } else {
-                            //     console.error("Error in isManager API:", response.serviceResponse);
-                            //     leaveApplication.isManagerFlag = false; 
-                            //   }
-                            // });
+                            
                           });
                         } else {
                           console.error("Error in isManager API:", response.serviceResponse);
@@ -945,9 +901,7 @@ export class MyTeamComponent implements OnInit {
           this.allCompOffApplications.forEach(compOffApp => {
             compOffApp.fromDate = (compOffApp.fromDate)? moment(compOffApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
             compOffApp.toDate = (compOffApp.toDate)? moment(compOffApp.toDate).format(AppComponent.DATE_FORMAT) : null
-            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + compOffApp.employeementId));
-            console.log('matches++',matchingEmployee);
-            compOffApp.emp360 = matchingEmployee ? matchingEmployee : {};
+            compOffApp.emp360 = compOffApp.empId;
           });
           //console.log("allCompOffApplications : ", this.allCompOffApplications);
         } else {
@@ -967,9 +921,7 @@ export class MyTeamComponent implements OnInit {
           this.allCompOffApplications.forEach(compOffApp => {
             compOffApp.fromDate = (compOffApp.fromDate)? moment(compOffApp.fromDate).format(AppComponent.DATE_FORMAT) : null,
             compOffApp.toDate = (compOffApp.toDate)? moment(compOffApp.toDate).format(AppComponent.DATE_FORMAT) : null
-            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + compOffApp.employeementId));
-            console.log('matches++',matchingEmployee);
-            compOffApp.emp360 = matchingEmployee ? matchingEmployee : {};
+            compOffApp.emp360 = compOffApp.empId;
           });
           //console.log("allCompOffApplications : ", this.allCompOffApplications);
         } else {
@@ -1017,9 +969,7 @@ export class MyTeamComponent implements OnInit {
             leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
             leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
             leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + leave.employeementId));
-            console.log('matches++',matchingEmployee);
-            leave.emp360 = matchingEmployee ? matchingEmployee : {};
+            leave.emp360 = leave.empId;
           });
           //console.log(this.reporteeLeaveRevokeApplicationList, " : reporteeLeaveRevokeApplicationList");
         } else {
@@ -1035,9 +985,7 @@ export class MyTeamComponent implements OnInit {
             leave.fromDate = (leave.fromDate)? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
             leave.toDate = (leave.toDate)? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
             leave.createdOn = (leave.createdOn)? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + leave.employeementId));
-            console.log('matches++',matchingEmployee);
-            leave.emp360 = matchingEmployee ? matchingEmployee : {};
+           leave.emp360 = leave.empId;
           });
           //console.log(this.reporteeLeaveRevokeApplicationList, " : reporteeLeaveRevokeApplicationList");
         } else {
@@ -1093,119 +1041,164 @@ export class MyTeamComponent implements OnInit {
   }
 
 
-  // download excel
+  // // download excel
+  // exportToExcel(id:any): void {
+  //   const tableId = id; 
+  //   this.tableName= 'My Team';
+  //     if (this.isViewTeam == true) {
+  //     this.excelName = 'MyTeam.xlsx';
+  //     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  //   }
+
+  //     if (this.isLeaveHistory == true) {
+  //     this.excelName = 'MyTeamLeaveHistory.xlsx';
+
+  //     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+
+
+  //   }
+
+  //     if (this.isCompOffHistory == true) {
+  //     this.excelName = 'MyTeamCompOffHistory.xlsx';
+
+  //     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+
+      
+  //   }
+
+  //   if (this.isLeaveRequest == true) {
+  //       this.excelName = 'MyTeamLeaveRequests.xlsx';
+  
+  //       this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+
+  //     }
+
+  //     if (this.isCompOffRequest == true) {
+  //         this.excelName = 'MyTeamCompOffRequests.xlsx';
+    
+  //         this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+
+  //       }
+
+  //       if(this.isLeaveRevokeRequest == true){
+  //         this.excelName = 'ReporteeLeaveApplication.xlsx';
+    
+  //         this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+
+  //       }
+  // }
   exportToExcel(): void {
 
-      if (this.isViewTeam == true) {
-      this.excelName = 'MyTeam.xlsx';
+    if (this.isViewTeam == true) {
+    this.excelName = 'MyTeam.xlsx';
 
-      const onlySpecificDataArr = this.teamViewList.map(
-        x => ({
-          "Employee Id": x.employeementId,
-          "Name": x.name,
-          "Email": x.email,
-          "Job Role": x.jobRoleName,
-          "Mobile No": x.mobileNo,
-          "Reports To": x.managerName
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    const onlySpecificDataArr = this.teamViewList.map(
+      x => ({
+        "Employee Id": x.employeementId,
+        "Name": x.name,
+        "Email": x.email,
+        "Job Role": x.jobRoleName,
+        "Mobile No": x.mobileNo,
+        "Reports To": x.managerName
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+  }
+
+    if (this.isLeaveHistory == true) {
+    this.excelName = 'MyTeamLeaveHistory.xlsx';
+
+    const onlySpecificDataArr = this.teamViewLeaveHistoryList.map(
+      x => ({
+        "Employee": x.createdByName,
+        "From": x.fromDate,
+        "To": x.toDate,
+        "Apply Date": x.createdOn,
+        "Duration": x.noOfDays,
+        "Status": x.status,
+        "Approved/Rejected By":x.leaveStatusUpdatedByName,
+        "Leave Reason": x.reason,
+        "Type": x.leaveType,
+        "Remarks":x.remark
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+
+  }
+
+    if (this.isCompOffHistory == true) {
+    this.excelName = 'MyTeamCompOffHistory.xlsx';
+
+    const onlySpecificDataArr = this.teamViewCompOffHistoryList.map(
+      x => ({
+        "Employee": x.createdByName,
+        "From": x.fromDate,
+        "To": x.toDate,
+        "Apply Date": x.createdOn,
+        "Duration": x.noOfDays,
+        "Status": x.status,
+        "Approved/Rejected By":x.leaveStatusUpdatedByName,
+        "Comp-Off Reason": x.reason
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    
+  }
+
+  if (this.isLeaveRequest == true) {
+      this.excelName = 'MyTeamLeaveRequests.xlsx';
+
+        const onlySpecificDataArr = this.leaveApplicationList.map(
+          x => ({
+            "Name":x.employeeName,
+            "Leave Type": x.leaveType,
+            "From Date": x.fromDate,
+            "To Date": x.toDate,
+            "Duration": x.noOfDays,
+            "Status": x.status,
+            "Applied By": x.createdByName,
+            "Applied On": x.createdOn,
+            "Reason": x.reason
+          })
+        )
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     }
 
-      if (this.isLeaveHistory == true) {
-      this.excelName = 'MyTeamLeaveHistory.xlsx';
-
-      const onlySpecificDataArr = this.teamViewLeaveHistoryList.map(
-        x => ({
-          "Employee": x.createdByName,
-          "From": x.fromDate,
-          "To": x.toDate,
-          "Apply Date": x.createdOn,
-          "Duration": x.noOfDays,
-          "Status": x.status,
-          "Approved/Rejected By":x.leaveStatusUpdatedByName,
-          "Leave Reason": x.reason,
-          "Type": x.leaveType,
-          "Remarks":x.remark
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-
-    }
-
-      if (this.isCompOffHistory == true) {
-      this.excelName = 'MyTeamCompOffHistory.xlsx';
-
-      const onlySpecificDataArr = this.teamViewCompOffHistoryList.map(
-        x => ({
-          "Employee": x.createdByName,
-          "From": x.fromDate,
-          "To": x.toDate,
-          "Apply Date": x.createdOn,
-          "Duration": x.noOfDays,
-          "Status": x.status,
-          "Approved/Rejected By":x.leaveStatusUpdatedByName,
-          "Comp-Off Reason": x.reason
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-      
-    }
-
-    if (this.isLeaveRequest == true) {
-        this.excelName = 'MyTeamLeaveRequests.xlsx';
+    if (this.isCompOffRequest == true) {
+        this.excelName = 'MyTeamCompOffRequests.xlsx';
   
-          const onlySpecificDataArr = this.leaveApplicationList.map(
-            x => ({
-              "Name":x.employeeName,
-              "Leave Type": x.leaveType,
-              "From Date": x.fromDate,
-              "To Date": x.toDate,
-              "Duration": x.noOfDays,
-              "Status": x.status,
-              "Applied By": x.createdByName,
-              "Applied On": x.createdOn,
-              "Reason": x.reason
-            })
-          )
-          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+        const onlySpecificDataArr = this.allCompOffApplications.map(
+          x => ({
+            "Applied By": x.createdByName,
+            "Applied For": x.compOffReasons,
+            "From Date": x.fromDate,
+            "To Date": x.toDate,
+            "Duration": x.noOfDays,
+            "Description": x.description,
+            "Status": x.status
+          })
+        )
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
       }
 
-      if (this.isCompOffRequest == true) {
-          this.excelName = 'MyTeamCompOffRequests.xlsx';
-    
-          const onlySpecificDataArr = this.allCompOffApplications.map(
-            x => ({
-              "Applied By": x.createdByName,
-              "Applied For": x.compOffReasons,
-              "From Date": x.fromDate,
-              "To Date": x.toDate,
-              "Duration": x.noOfDays,
-              "Description": x.description,
-              "Status": x.status
-            })
-          )
-          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-        }
-
-        if(this.isLeaveRevokeRequest == true){
-          this.excelName = 'ReporteeLeaveApplication.xlsx';
-    
-          const onlySpecificDataArr: Partial<Leave>[] = this.reporteeLeaveRevokeApplicationList.map(	
-            x => ({	
-              "leave Type": x.leaveType,	
-              "From Date": (x.fromDate)? x.fromDate : null,	
-              "To Date": (x.toDate)? x.toDate : null,	
-              "No Of Days": x.noOfDays,	
-              "status": x.status,	
-              "Created By Name": x.createdByName,	
-              "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,	
-              "Reason": x.reason	
-            })	
-          )	
-          this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
-        }
-  }
+      if(this.isLeaveRevokeRequest == true){
+        this.excelName = 'ReporteeLeaveApplication.xlsx';
+  
+        const onlySpecificDataArr: Partial<Leave>[] = this.reporteeLeaveRevokeApplicationList.map(	
+          x => ({	
+            "leave Type": x.leaveType,	
+            "From Date": (x.fromDate)? x.fromDate : null,	
+            "To Date": (x.toDate)? x.toDate : null,	
+            "No Of Days": x.noOfDays,	
+            "status": x.status,	
+            "Created By Name": x.createdByName,	
+            "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,	
+            "Reason": x.reason	
+          })	
+        )	
+        this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
+      }
+}
 
   hierarchyBreadCrumb(index){	
     this.breadCrumbs.splice(index + 1);
@@ -1389,24 +1382,16 @@ export class MyTeamComponent implements OnInit {
           this.departmentLeaveHistoryList = response.serviceResponse;
           this.teamViewLeaveHistoryList = response.serviceResponse;
           for(let y of this.teamViewLeaveHistoryList){
-            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + y.employeementId));
-
-            console.log('matches++',matchingEmployee);
-            y.emp360 = matchingEmployee ? matchingEmployee : {};
+           y.emp360 = y.empId;
           }
           for(let y of this.departmentLeaveHistoryList){
             let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + y.employeementId));
             console.log('matches++',matchingEmployee);
             y.emp360 = matchingEmployee ? matchingEmployee : {};
-            
-            let matchingEmployeeAppLev1 = this.allEmployeeList360.find(emp => emp.empId == y.approverId);
-            let matchingEmployeeAppLev2 = this.allEmployeeList360.find(emp => emp.empId == y.level2ApproverId);
-            let matchingEmployeeAppLev3 = this.allEmployeeList360.find(emp => emp.empId == y.level3ApproverId);
-            y.emp360AppLev1 = matchingEmployeeAppLev1 ? matchingEmployeeAppLev1 : {};
-            y.emp360AppLev2 = matchingEmployeeAppLev2 ? matchingEmployeeAppLev2 : {};
-            y.emp360AppLev3 = matchingEmployeeAppLev3 ? matchingEmployeeAppLev3 : {};
-            let matchingleaveStatusUpdatedBy = this.allEmployeeList360.find(emp => emp.empId === y.leaveStatusUpdatedBy);
-            y.emp360leaveStatusUpdatedBy = matchingleaveStatusUpdatedBy ? matchingleaveStatusUpdatedBy : {};
+            y.emp360AppLev1 =  y.approverId;
+            y.emp360AppLev2 = y.level2ApproverId;
+            y.emp360AppLev3 = y.level3ApproverId;
+            y.emp360leaveStatusUpdatedBy = y.leaveStatusUpdatedBy;
           }          
         } else {
           console.error(response.serviceResponse);

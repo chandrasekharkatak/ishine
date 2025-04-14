@@ -138,14 +138,6 @@
         <h1 class="table-header-title">Timesheet Report</h1>
       </div>
     </div>
-   
-    <!-- <div class="col-md-3 col-sm-6 custom-control custom-switch">
-      <input type="checkbox" class="custom-control-input" id="hierarchy-switch-1" (change)="toggleViewTimesheet()">
-      <label class="custom-control-label" for="hierarchy-switch-1">Show Department Wise Timesheet Report</label>
-    </div>
-      <label class="custom-control-label" for="hierarchy-switch-1">Show Detailed Timesheet Report</label>
-    </div> -->
-    
 
     <!-- <div class="col-md-3 col-sm-6 custom-control custom-switch">
       <input type="checkbox" class="custom-control-input" id="hierarchy-switch-1" (change)="toggleViewTimesheet()">
@@ -374,7 +366,7 @@
 
     <!-- sandy -->
     <div class="col-md-3 col-sm-6 custom-control custom-switch">
-      <input type="checkbox" class="custom-control-input" id="hierarchy-switch-1" (change)="toggleView()">
+      <input type="checkbox" class="custom-control-input" id="hierarchy-switch-1" [checked]="showDetails" (change)="toggleView()">
       <label class="custom-control-label" for="hierarchy-switch-1">Show Detailed Project View</label>
     </div>
 
@@ -406,12 +398,12 @@
     </div>
     <div class="container mt-5" *ngIf="showDetails">
       <div class="row justify-content-center">
-        <!-- First Box (TNM) -->
+      
         <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
-            <!-- TNM with Project Count -->
-            <!-- <h4>TNM ({{tnmProjectCount}})</h4> -->
+           
             <h4>TNM</h4>
+        
             <!-- Active PO and Expired PO Summary -->
             <!-- <div class="mb-2">
               <strong>Active PO:</strong>{{tnmPOProjectActiveCount}}&nbsp;&nbsp;&nbsp;
@@ -436,7 +428,7 @@
                 <div
                   class="branch bg-success text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
                   <h5>Active PO</h5>
-                  <p>{{ tnmPOValidCount }}</p>
+                  <p>{{ tnmPOValidCount }}</p> 
                 </div>
               </div>
         
@@ -458,7 +450,6 @@
         <!-- Second Box (Fixed Cost) -->
         <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
-            <!-- <h4>Fixed Cost ({{fixedCostProjectCount}})</h4> -->
             <h4>Fixed Cost</h4>
             <!-- <div class="mb-2">
               <strong>Active PO:</strong>{{fixedCostPoProjectActiveCount}}&nbsp;&nbsp;&nbsp;
@@ -497,7 +488,6 @@
         <!-- Third Box (Internal) -->
         <div class="col-md-4">
           <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
-            <!-- <h4>Internal ({{internalProjectCount}})</h4> -->
             <h4>Internal</h4>
         
             <!-- Employees mapped to -->
@@ -645,16 +635,16 @@
             <thead class="thead-light">
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" style="min-width: 100px;" mat-sort-header="employeementId|empId">Emp Id</th>
-                <th scope="col" class="info-label md-wide-col" mat-sort-header="name|string">Full Name</th>
+                <th scope="col" style="min-width: 85px;" mat-sort-header="employeementId|empId">Emp Id</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Full Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department</th>
-                <th scope="col" class="info-label md-wide-col" mat-sort-header="jobRole|string">Job Role</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="jobRole|string">Job Role</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager</th>
                 <th scope="col" class="info-label " mat-sort-header="mobileNo|number">Mobile Number</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="email|string">Email Id</th>
-                <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Employment Status</th>
-                <th scope="col" class="info-label" mat-sort-header="billable|string">Billable</th>
-                <th scope="col" class="info-label" mat-sort-header="billableType|string">Billable Type</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Employment Status</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="billable|string">Billable</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="teamName|string">Team Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="projectName|string">Project Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="poNo|string">Po No</th>
@@ -691,7 +681,14 @@
                 <td>{{ employee.jobRole }}</td>
                 <td>{{ employee.managerName }}</td>
                 <td>{{ employee.mobileNo }}</td>
-                <td>{{ employee.email }}</td>
+                <td>
+                  <ng-container *ngIf="employee.email">
+                    {{ (show === i) ? employee.email : (employee.email | slice: 0:20) }}
+                    <a *ngIf="employee.email.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                </td>
                 <td>{{ employee.employmentstatus }}</td>
                 <td>{{ employee.billable }}</td>
                 <td>{{ employee.billableType }}</td>
@@ -784,16 +781,39 @@
                   </ng-container>
                 </td>
                 <td>{{ employee.totalExperience }}</td>
-                <td *ngIf="changeTable">{{ employee.primaryProjectName || 'Not Assigned' }}</td>
                 <td *ngIf="changeTable">
-                  <select class="form-control" [(ngModel)]="employee.selectedProject">
-                    <option *ngFor="let project of (employee.projectName && employee.projectName.trim() ? employee.projectName.split(',') : [])">
-                      {{ project.trim() }}
-                    </option>
-                  </select>
-                  <button type="button" class="btn btn-sm btn-outline-primary ml-2 " style="float: right; margin-top: 1px;" (click)="updateDefaultProject(employee)">
-                    Submit
-                  </button>
+                  <ng-container *ngIf="employee.primaryProjectName">
+                    {{ (show === i) ? employee.primaryProjectName : (employee.primaryProjectName | slice: 0:20) }}
+                    <a *ngIf="employee.primaryProjectName.length > 20" (click)="show = (show === i ? -1 : i)" style="cursor: pointer">
+                      ..{{ (show === i) ? '▲' : '▼' }}
+                    </a>
+                  </ng-container>
+                  <ng-container *ngIf="!employee.primaryProjectName">
+                    Not Assigned
+                  </ng-container>
+                </td>
+                <td *ngIf="changeTable">
+                  <div class="col d-flex align-items-center m-0 p-0">
+                    <ng-container *ngIf="employee.projectName">
+                    <div>
+                      <select class="form-control form-control-sm mt-0 py-0" [(ngModel)]="employee.selectedProject">
+                        <option
+                          *ngFor="let project of (employee.projectName && employee.projectName.trim() ? employee.projectName.split(',') : [])">
+                          {{ project.trim() }}
+                        </option>
+                      </select>
+                    </div>
+                    <div>
+                      <button type="button" class="btn btn-sm btn-outline-primary ml-2 "
+                        style="float: right; margin-top: 1px;" (click)="updateDefaultProject(employee)">
+                        Submit
+                      </button>
+                    </div>
+                  </ng-container>
+                    <ng-container *ngIf="!employee.projectName">
+                      <p>No projects available</p>
+                    </ng-container>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -825,10 +845,10 @@
             <thead class="thead-light" id="employeeReportInfoTHead">
               <tr>
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" style="min-width: 100px;" mat-sort-header="employeementId|empId">Emp Id</th>
+                <th scope="col" style="min-width: 85px;" mat-sort-header="employeementId|empId">Emp Id</th>
                 <th scope="col" class="info-label" mat-sort-header="employeeType|empId">Employee Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Full Name</th>
-                <th scope="col" class="info-label " mat-sort-header="departmentName|string">Department</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="jobRoleName|string">Job Role</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="managerName|string">Manager</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="mobileNo|number">Mobile Number</th>

@@ -1355,11 +1355,12 @@ public class ResourceManagementService {
 //			            apiLogInfo.setApiResponse("Project & Team created successfully, but unable to sync with PoPortal");
 //			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 //			        }
-//			    } else {
-			    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			        response.setServiceResponse("Project updated successfully");
-			        apiLogInfo.setApiResponse("Project updated successfully");
-			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			    //} 
+//		    else {
+//			    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			        response.setServiceResponse("Project updated successfully");
+//			        apiLogInfo.setApiResponse("Project updated successfully");
+//			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 //			    }
 			} else {
 				Integer clientId = null;
@@ -1500,7 +1501,6 @@ public class ResourceManagementService {
 			                // Add team member in the team
 			                for (TeamMemberDTO teamMember : teamObj.getTeamMemberList()) {
 			                    EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
-
 			                    // TeamLead
 			                    if ((teamMember.getIsTeamLead() != null) && (teamMember.getIsTeamLead().equals("true"))) {
 			                        newEmpTeamMap.setEmpId(teamMember.getEmpId());
@@ -2595,7 +2595,7 @@ public class ResourceManagementService {
 					projectDTO.setStatus(object[11] != null ? object[11].toString() : null);
 					projectDTO.setIsActive(object[12] != null ? Long.parseLong(object[12].toString()) :null);
 					//projectDTO.setIsActive(2l);
-					
+					projectDTO.setEmpId(object[13] != null ? Long.parseLong(object[13].toString()) :null);
 					//Find ClientName
 					Integer clientId = object[7] != null ? Integer.parseInt(object[7].toString()) : null;
 					if(clientId != null) {
