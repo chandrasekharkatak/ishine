@@ -57,8 +57,8 @@
                             <strong>Departments:</strong> {{ project.departmentList.join(', ') }}
                         </p>
 
-                        <p class="mb-1">
-                            {{ project.createdOn |  }}
+                        <p class="mb-1" style="font-size: 0.9rem; color: grey;">
+                            {{ project.createdOn |  date: 'yyyy-MM-dd hh:mm:ss'}}
                         </p>
     
                         <div class="tags-line mt-1" *ngIf="project.tagList?.length">
