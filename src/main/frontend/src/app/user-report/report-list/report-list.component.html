@@ -746,6 +746,7 @@
                 </td>
                 <td *ngIf="changeTable">
                   <div class="col d-flex align-items-center m-0 p-0">
+                    <ng-container *ngIf="employee.projectName">
                     <div>
                       <select class="form-control form-control-sm mt-0 py-0" [(ngModel)]="employee.selectedProject">
                         <option
@@ -760,6 +761,10 @@
                         Submit
                       </button>
                     </div>
+                  </ng-container>
+                    <ng-container *ngIf="!employee.projectName">
+                      <p>No projects available</p>
+                    </ng-container>
                   </div>
                 </td>
               </tr>
