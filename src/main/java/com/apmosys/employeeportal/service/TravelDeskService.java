@@ -1,19 +1,30 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.naming.factory.SendMailFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TravelDeskDTO;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.TravelDesk;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.TravelDeskRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -29,8 +40,14 @@ public class TravelDeskService {
 	@Autowired
 	private EmployeeRepository employeeRepository;
 	
+	@Autowired
+	private NewsletterRepository newsletterRepository;
+	
 	@Value("${level2Approver}")
 	public String level2Approver;
+	
+	@Value("${file.location.documents.travelDesk}")
+	private String traveldeskFileLocation;
 	
 	
 	@SuppressWarnings("unused")
@@ -287,5 +304,98 @@ public class TravelDeskService {
 	}
 	
 	
+public ServiceResponse uploadFile(MultipartFile file, String displayName, Long uploadedBy) {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Upload Newsletter");
+		apiLogInfo.setApiUrl("/api/newsletters/uploadNewsletter");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Newsletter : " +displayName+ "uploadedBy : " +uploadedBy);
+		List<File> savedFiles = new ArrayList<File>();
+		String errorMsg = "";
+		
+		try {
+			System.out.println("uploadedBy : " + uploadedBy);
+			Optional<Employee> employeeObject = employeeRepository.findById(uploadedBy);
+			
+			if (employeeObject.isPresent()) {
+				if (file != null) {
+
+					byte[] bytes = file.getBytes();
+
+					Path path = Paths.get(traveldeskFileLocation + File.separator + file.getOriginalFilename());
+					File checkExistingFile = new File(path.toString());
+					//if (!checkExistingFile.exists()) {
+						Files.write(path, bytes);
+						File savedFile = new File(path.toString());
+
+						if (savedFile.exists()) {
+							Newsletter newsletter = new Newsletter();
+							newsletter.setDisplayName(displayName);
+							newsletter.setFileName(file.getOriginalFilename());
+							newsletter.setType("TRAVEL ALLOWANCE");
+							newsletter.setReadEnabled("true");
+							newsletter.setCreatedBy(Integer.parseInt(uploadedBy.toString()));
+
+							newsletterRepository.save(newsletter);
+
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Travel Document uploaded successfully.");
+
+							apiLogInfo.setApiResponse("Travel Document uploaded successfully");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						} else {
+							response.setServiceResponse("Failed to upload Travel Document.");
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+
+							apiLogInfo.setApiResponse("Failed to upload Travel Document.");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						}
+				//	} else {
+						response.setServiceResponse(
+								"Travel Document named " + file.getOriginalFilename() + " already exist.");
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+
+						apiLogInfo.setApiResponse("Travel Document named " + file.getOriginalFilename() + " already exist.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					//}
+
+				} else {
+					response.setServiceResponse("Uploaded Travel Document Not Found !!");
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+
+					apiLogInfo.setApiResponse("Uploaded Travel Document Not Found !!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+
+			} else {
+				response.setServiceResponse("User Not Found !!");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+
+				apiLogInfo.setApiResponse("User Not Found !!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			
+			
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		return response;
+		
+	}
+
+
 
 }

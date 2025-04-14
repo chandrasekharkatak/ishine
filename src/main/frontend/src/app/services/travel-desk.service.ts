@@ -23,6 +23,10 @@ export class TravelDeskService {
     return this.http.post(`${this.baseUrl}` + `api/saveTravelData`, travelDeskObj);
   }
 
+  uploadFile(formData:FormData){
+    return this.http.post(`${this.baseUrl}`+`api/uploadFile`,formData);
+  }
+
   updateTravelData(travelDeskObj: MyTravelDesk) {
     return this.http.post(`${this.baseUrl}` + `api/updateTravelData`, travelDeskObj);
   }

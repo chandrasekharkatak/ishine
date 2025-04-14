@@ -1,10 +1,15 @@
 package com.apmosys.employeeportal.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.TravelDeskDTO;
 import com.apmosys.employeeportal.service.TravelDeskService;
@@ -46,5 +51,14 @@ public class TravelDeskController {
 	public ServiceResponse approveOrRejectTravel(@RequestBody TravelDeskDTO travelData) {
 		return travelDeskService.approveRejectTravel(travelData);
 		
+	}
+	
+	@RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
+	public ServiceResponse uploadFile(HttpServletRequest request,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("displayName") String displayName,
+			@RequestParam("uploadedBy") Long uploadedBy) {
+		ServiceResponse serviceResponse = travelDeskService.uploadFile(file, displayName, uploadedBy);
+		return serviceResponse;
 	}
 }

@@ -9,6 +9,8 @@ import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@ang
 import { DomSanitizer } from '@angular/platform-browser';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
 import { MyTravelDesk } from 'src/app/models/travelDesk';
+import { first } from 'rxjs/internal/operators/first';
+import { DomainService } from 'src/app/services/domain.service';
 
 
 @Component({
@@ -26,8 +28,8 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
   travelDeskInfo:MyTravelDesk = new MyTravelDesk();
   currentUser:any;
   currentEmployeeInfo:Employee = new Employee();
-
-
+  file:any;
+  fileName :any;
   feature="Profile";
   userMapping:any = {};
 
@@ -71,6 +73,7 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
     private employeeService : EmployeeService,
     private sanitizer: DomSanitizer,
     private travelDesk : TravelDeskService,
+    private domainService:DomainService,
     
     
   ) {
@@ -141,99 +144,197 @@ import { MyTravelDesk } from 'src/app/models/travelDesk';
     this.modalRef.hide();
   }
 
-  async submitForm(template: TemplateRef<any>) {
-    if (this.isValidForm()) {
+//   async submitForm(template: TemplateRef<any>) {
+//     if (this.isValidForm()) {
 
-      console.log('1st ::::::::::::::::::::::',this.travelDeskObj.associatedTravelRequest);
+//       console.log('1st ::::::::::::::::::::::',this.travelDeskObj.associatedTravelRequest);
 
 
-        if (!this.travelDeskObj.associatedTravelRequest) {
-            this.alertMessage = `Please select an Associated Travel Request.`;
-            this.openAlertMod(template, this.alertMessage);
-            return;
-        }
+//         if (!this.travelDeskObj.associatedTravelRequest) {
+//             this.alertMessage = `Please select an Associated Travel Request.`;
+//             this.openAlertMod(template, this.alertMessage);
+//             return;
+//         }
 
-        if (!this.travelDeskObj.travelMode) {
+//         if (!this.travelDeskObj.travelMode) {
             
-            this.alertMessage = `Please select a Travel Mode.`;
-            this.openAlertMod(template, this.alertMessage);
-            return;
-        }
+//             this.alertMessage = `Please select a Travel Mode.`;
+//             this.openAlertMod(template, this.alertMessage);
+//             return;
+//         }
 
-        if (!this.travelDeskObj.travelClass) {
-          this.alertMessage = `Please select a Travel Class.`;
-          this.openAlertMod(template, this.alertMessage);
-          return;
-        }
+//         if (!this.travelDeskObj.travelClass) {
+//           this.alertMessage = `Please select a Travel Class.`;
+//           this.openAlertMod(template, this.alertMessage);
+//           return;
+//         }
 
-        if (!this.travelDeskObj.fromLocation) {
-          this.alertMessage = `Please Enter from location.`;
-          this.openAlertMod(template, this.alertMessage);
-          return;
-        }
+//         if (!this.travelDeskObj.fromLocation) {
+//           this.alertMessage = `Please Enter from location.`;
+//           this.openAlertMod(template, this.alertMessage);
+//           return;
+//         }
 
-        if (!this.travelDeskObj.toLocation) {
-          this.alertMessage = `Please Enter to location.`;
-          this.openAlertMod(template, this.alertMessage);
-          return;
-        }
+//         if (!this.travelDeskObj.toLocation) {
+//           this.alertMessage = `Please Enter to location.`;
+//           this.openAlertMod(template, this.alertMessage);
+//           return;
+//         }
 
-        if (!this.travelDeskObj.fromDate) {
-          this.alertMessage = `Please Select from date.`;
-          this.openAlertMod(template, this.alertMessage);
-          return;
-        }
+//         if (!this.travelDeskObj.fromDate) {
+//           this.alertMessage = `Please Select from date.`;
+//           this.openAlertMod(template, this.alertMessage);
+//           return;
+//         }
 
-        if (!this.travelDeskObj.toDate) {
-          this.alertMessage = `Please Select to date.`;
-          this.openAlertMod(template, this.alertMessage);
-          return;
-        }
+//         if (!this.travelDeskObj.toDate) {
+//           this.alertMessage = `Please Select to date.`;
+//           this.openAlertMod(template, this.alertMessage);
+//           return;
+//         }
 
-        if (!this.travelDeskObj.purposeOfTravel) {
-            this.alertMessage = `Please enter the Purpose of Travel.`;
-          this.openAlertMod(template, this.alertMessage);
-          return;
-        }
+//         if (!this.travelDeskObj.purposeOfTravel) {
+//             this.alertMessage = `Please enter the Purpose of Travel.`;
+//           this.openAlertMod(template, this.alertMessage);
+//           return;
+//         }
 
-        this.travelDeskInfo = new MyTravelDesk();
-        let travelData = new MyTravelDesk();
-        travelData.employeeId = this.currentEmployeeInfo.empId;
-        travelData.fullName = this.currentEmployeeInfo.name;
-        travelData.email = this.currentEmployeeInfo.email;
-        travelData.departmentName = this.currentEmployeeInfo.departmentName;
-        travelData.designationName = this.currentEmployeeInfo.designationName;
-        travelData.mobileNo = this.currentEmployeeInfo.mobileNo;
-        travelData.managerName = this.currentUser.hodName;
-        travelData.associatedTravelRequest = this.travelDeskObj.associatedTravelRequest;
-        travelData.travelMode = this.travelDeskObj.travelMode;
-        travelData.travelClass = this.travelDeskObj.travelClass;
-        travelData.fromDate = this.travelDeskObj.fromDate;
-        travelData.toDate = this.travelDeskObj.toDate;
-        travelData.fromLocation = this.travelDeskObj.fromLocation;
-        travelData.toLocation = this.travelDeskObj.toLocation;
-        travelData.purposeOfTravel = this.travelDeskObj.purposeOfTravel;
-        travelData.supportingDocument = this.travelDeskObj.supportingDocument;
-        travelData.levelOneApprover = this.currentUser.hodId;
-        travelData.hodName = this.currentUser.hodName;
+//         this.travelDeskInfo = new MyTravelDesk();
+//         let travelData = new MyTravelDesk();
+//         travelData.employeeId = this.currentEmployeeInfo.empId;
+//         travelData.fullName = this.currentEmployeeInfo.name;
+//         travelData.email = this.currentEmployeeInfo.email;
+//         travelData.departmentName = this.currentEmployeeInfo.departmentName;
+//         travelData.designationName = this.currentEmployeeInfo.designationName;
+//         travelData.mobileNo = this.currentEmployeeInfo.mobileNo;
+//         travelData.managerName = this.currentUser.hodName;
+//         travelData.associatedTravelRequest = this.travelDeskObj.associatedTravelRequest;
+//         travelData.travelMode = this.travelDeskObj.travelMode;
+//         travelData.travelClass = this.travelDeskObj.travelClass;
+//         travelData.fromDate = this.travelDeskObj.fromDate;
+//         travelData.toDate = this.travelDeskObj.toDate;
+//         travelData.fromLocation = this.travelDeskObj.fromLocation;
+//         travelData.toLocation = this.travelDeskObj.toLocation;
+//         travelData.purposeOfTravel = this.travelDeskObj.purposeOfTravel;
+//         travelData.supportingDocument = this.travelDeskObj.supportingDocument;
+//         travelData.levelOneApprover = this.currentUser.hodId;
+//         travelData.hodName = this.currentUser.hodName;
 
-        console.log('Form Data:', travelData);
+//         console.log('Form Data:', travelData);
 
-        try {
-            this.onGetEmployeeInfo();
+//         try {
+//             this.onGetEmployeeInfo();
 
-            const response: any = await this.travelDesk.saveTravelData(travelData).toPromise();
-            if (response.serviceStatus == "Success") {
-                this.alertMessage = `Success! Your request was processed successfully!`;
-                this.openAlertMod(template, this.alertMessage);
-            } else {
-                console.error(response.serviceResponse);
-            }
-        } catch (error) {
-            console.error('Error submitting form:', error);
-        }
+//             const response: any = await this.travelDesk.saveTravelData(travelData).toPromise();
+//             if (response.serviceStatus == "Success") {
+//                 this.alertMessage = `Success! Your request was processed successfully!`;
+//                 this.openAlertMod(template, this.alertMessage);
+//             } else {
+//                 console.error(response.serviceResponse);
+//             }
+//         } catch (error) {
+//             console.error('Error submitting form:', error);
+//         }
+//     }
+// }
+
+
+async submitForm(template: TemplateRef<any>) {
+  if (this.isValidForm()) {
+    // All validations
+    if (!this.travelDeskObj.associatedTravelRequest) {
+      this.openAlertMod(template, "Please select an Associated Travel Request.");
+      return;
     }
+    if (!this.travelDeskObj.travelMode) {
+      this.openAlertMod(template, "Please select a Travel Mode.");
+      return;
+    }
+    if (!this.travelDeskObj.travelClass) {
+      this.openAlertMod(template, "Please select a Travel Class.");
+      return;
+    }
+    if (!this.travelDeskObj.fromLocation) {
+      this.openAlertMod(template, "Please Enter from location.");
+      return;
+    }
+    if (!this.travelDeskObj.toLocation) {
+      this.openAlertMod(template, "Please Enter to location.");
+      return;
+    }
+    if (!this.travelDeskObj.fromDate) {
+      this.openAlertMod(template, "Please Select from date.");
+      return;
+    }
+    if (!this.travelDeskObj.toDate) {
+      this.openAlertMod(template, "Please Select to date.");
+      return;
+    }
+    if (!this.travelDeskObj.purposeOfTravel) {
+      this.openAlertMod(template, "Please enter the Purpose of Travel.");
+      return;
+    }
+    if (!this.travelDeskObj.supportingDocument) {
+      this.openAlertMod(template, "Please upload a file before submitting.");
+      return;
+    }
+
+    // First upload the file
+    const fileFormData = new FormData();
+    fileFormData.append('file', this.travelDeskObj.supportingDocument);
+    fileFormData.append("displayName", this.travelDeskObj.supportingDocument.name);
+    fileFormData.append("uploadedBy", this.currentEmployeeInfo.empId);
+
+    try {
+      const uploadResponse: any = await this.travelDesk.uploadFile(fileFormData).pipe(first()).toPromise();
+
+      if (uploadResponse.serviceStatus === "Fail") {
+        this.openAlertMod(template, `Error found: ${uploadResponse.serviceResponse}`);
+        return;
+      } else if (uploadResponse.serviceStatus !== "Success") {
+        this.openAlertMod(template, uploadResponse.serviceResponse || "Unexpected file upload response.");
+        return;
+      }
+
+      // If file uploaded successfully, proceed with travel form data
+      const travelData: any = {
+        employeeId: this.currentEmployeeInfo.empId,
+        fullName: this.currentEmployeeInfo.name,
+        email: this.currentEmployeeInfo.email,
+        departmentName: this.currentEmployeeInfo.departmentName,
+        designationName: this.currentEmployeeInfo.designationName,
+        mobileNo: this.currentEmployeeInfo.mobileNo,
+        managerName: this.currentUser.hodName,
+        associatedTravelRequest: this.travelDeskObj.associatedTravelRequest,
+        travelMode: this.travelDeskObj.travelMode,
+        travelClass: this.travelDeskObj.travelClass,
+        fromDate: this.travelDeskObj.fromDate,
+        toDate: this.travelDeskObj.toDate,
+        fromLocation: this.travelDeskObj.fromLocation,
+        toLocation: this.travelDeskObj.toLocation,
+        purposeOfTravel: this.travelDeskObj.purposeOfTravel,
+        levelOneApprover: this.currentUser.hodId,
+        hodName: this.currentUser.hodName
+      };
+
+      const formData = new FormData();
+      formData.append('file', this.travelDeskObj.supportingDocument);
+      formData.append('travelData', new Blob([JSON.stringify(travelData)], { type: "application/json" }));
+
+      const saveResponse: any = await this.travelDesk.saveTravelData(travelData).toPromise();
+
+      if (saveResponse.serviceStatus === "Success") {
+        this.openAlertMod(template, "Success! Your request was processed successfully!");
+      } else {
+        this.openAlertMod(template, saveResponse.serviceResponse || "Failed to save travel data.");
+      }
+    } catch (error) {
+      console.error("Error during submit:", error);
+      this.openAlertMod(template, "An unexpected error occurred while submitting the request.");
+    }
+  }
 }
+
 
    // Modals
    openAlertMod(template: TemplateRef<any>, message: any) {
@@ -276,15 +377,45 @@ isValidForm() {
 return true;
 }
 
-onFileChange(event: any) {
-  const file = event.target.files[0];
-  if (file) {
-    this.travelDeskObj.supportingDocument = file;
-  }
-}
+// onFileChange(event: any, template: TemplateRef<any>) {
+//   const file = event.target.files[0];
+//   if (file) {
+//     this.travelDeskObj.supportingDocument = file;
+//   }
+//     if (!this.travelDeskObj.supportingDocument) {
+//       this.openAlertMod(template, "Please upload a file.");
+//       return;
+//     }
+  
+//     const formData = new FormData();
+//     formData.append('file', this.travelDeskObj.supportingDocument);
+  
+//     this.domainService.employeeBulkUpload(formData).pipe(first()).subscribe(
+//       (response: any) => {
+//         if (response.serviceStatus === "Success") {
+//           this.openAlertMod(template, response.serviceResponse);
+//         } else if (response.serviceStatus === "Fail") {
+//           this.openAlertMod(template, `Error found: ${response.serviceResponse}`);
+//           event.target.value = '';  
+//         } else {
+//           this.openAlertMod(template, response.serviceResponse);
+//         }
+//       },
+//       (error) => {
+//         this.openAlertMod(template, "An error occurred while processing the upload.");
+//         console.error(error);
+//       }
+//     );
+// }
  
   //pagination
-
+  onFileChange(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.travelDeskObj.supportingDocument = file;
+    }
+  }
+  
   page = 1;
   handlePageChange(event) {
     this.page = event;
