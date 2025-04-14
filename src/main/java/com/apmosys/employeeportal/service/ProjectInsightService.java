@@ -1871,6 +1871,8 @@ public class ProjectInsightService {
 	                dto.setProjectManagerName(empObject != null ? empObject.getName() : null);
 	                dto.setState(project.getState());
 	                dto.setTagList(tagMasterList.stream().map(TagMaster::getTag).limit(8).collect(Collectors.toList()));
+	                dto.setCreatedOn(project.getCreatedOn());
+	                dto.setUpdatedOn(project.getUpdatedOn().toString());
 	                
 	                response.add(dto);
 	            }
