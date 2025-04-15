@@ -248,7 +248,12 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'appreciationInfo'"
+                <div class="export-button">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                     [hidden]="allAppreciationEvent.length == 0"  (click)="exportToAppreciationEventHistoryExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
+                <div class="table-container" bassHorizontalScroll [tableId]="'appreciationInfo'"
                     [tableTHeadId]="'appreciationInfoTHead'" [tableTHeadTrId]="'appreciationInfoTHeadTr'">
                     <table class="table view-appreciation-table" id="view-appreciation-table appreciationInfo" matSort
                         (matSortChange)="sortData($event) ">
@@ -353,9 +358,7 @@
             <pagination-controls class="my-pagination" [hidden]="allAppreciationEvent.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
 
           
-            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-            [hidden]="allAppreciationEvent.length == 0"  (click)="exportToAppreciationEventHistoryExcel()"><em
-                        class="fa fa-file-arrow-down fa-2x"></em></button>
+            
         </div>
         
 </div>

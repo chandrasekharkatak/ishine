@@ -73,7 +73,7 @@
           <div class="tab-pane active show fade timesheet__tab-container" id="weekly-tabpanel" role="tabpanel"
               aria-labelledby="weekly-tabpanel">
               <div class="row col-md-12 p-0 m-0">
-                  <table class="table table-sm timesheet-table">
+                  <table class="table table-sm timesheet-table" id="timesheet">
                       <thead>
                         <tr>
                           <th scope="col">Sr.No</th>
@@ -99,6 +99,9 @@
                         </tr>
                       </tbody>
                     </table>
+                    <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    (click)="exportToExcel('timesheet')"><em
+                        class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>  
               </div>
           </div>
           <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
@@ -115,7 +118,7 @@
   
   <!-- for pending , approved  and rejected  -->
 
-  <div class="row">
+  <div class="row" *ngIf="activeButton != 'Calendar'">
     <div class="col-md-12">
         <div class="selector-toggle" >
             <a href="javascript:void(0)" (click)="toggleSearch()">
@@ -123,14 +126,14 @@
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheet360Info'" [tableTHeadId]="'timesheet360InfoTHead'"
+        <div class="table-container" bassHorizontalScroll [tableId]="'timesheet360Info'" [tableTHeadId]="'timesheet360InfoTHead'"
             [tableTHeadTrId]="'timesheet360InfoTHeadTr'">
-            <table class="table table-responsive" id="timesheet360Info" matSort (matSortChange)="sortData($event)">
+            <table class="table fixed-header-table" id="timesheet360Info" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light" id="timesheet360InfoTHead">
                   <tr id="timesheet360InfoTHeadTr">
                     <!-- <th scope="col" class="info-label"></th> -->
                     <th scope="col" class="info-label">Sr No.</th>
-                    <th scope="col" class="info-label wide-col" mat-sort-header="employmentId|string">EmploymentId</th>
+                    <th scope="col" class="info-label wide-col" mat-sort-header="employmentId|string">Employmee Id</th>
                     <th scope="col" class="info-label" mat-sort-header="name|string">Employee Name</th>
                     <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
                     <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
@@ -168,7 +171,7 @@
                     <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" id="clickablefor360" [navigateToProjectView]="item.projectId" style="cursor: pointer;" title="Click to view Project Details">
                       {{item.projectName ? item.projectName : '-'}} </td>
       
-                    <td *ngIf="item.showProject&& !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByTeam(item.teamName)" style="cursor: pointer; color: #043870;">{{item.teamName?item.teamName:'-'}}</td>
+                    <td *ngIf="item.showProject&& !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" (click)="findByTeam(item.teamName,item.teamId)" style="cursor: pointer; color: #043870;">{{item.teamName?item.teamName:'-'}}</td>
                     <td *ngIf="item.showProject&& isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount" id="clickablefor360" [navigateToProjectView]="item.projectId" style="cursor: pointer;" title="Click to view Project Details">{{item.teamName?item.teamName:'-'}}</td>
                     <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount">{{item.completionTime}} hrs</td>
                     <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount">{{item.activity}} </td>   
@@ -193,6 +196,10 @@
               </table>
         </div>
           <pagination-controls class="my-pagination" [hidden]="result.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+           
+          <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+          (click)="exportToExcel('timesheet360Info')"><em
+              class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>  
     </div>
 </div>
 

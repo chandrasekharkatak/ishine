@@ -59,10 +59,16 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'attendanceIDReport'"
-          [tableTHeadId]="'attendanceIDTHead'" [tableTHeadTrId]="'attendanceIDHeadTr'">
+        <div class="export-button">
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+          [hidden]="attendanceReconciliationList.length == 0" (click)="exportToExcel()"><em
+            class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
+        <!-- bassHorizontalScroll [tableId]="'attendanceIDReport'" -->
+          <!-- [tableTHeadId]="'attendanceIDTHead'" [tableTHeadTrId]="'attendanceIDHeadTr'" -->
+        <div class="table-container" >
 
-          <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="attendanceIDReport">
+          <table class="table " matSort (matSortChange)="sortData($event)" id="attendanceIDReport">
             <thead class="thead-light" id="attendanceIDTHead">
               <tr id="attendanceIDHeadTr">
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeeCode|string">Emp Id</th>
@@ -132,9 +138,7 @@
         </div>
         <pagination-controls class="my-pagination" [hidden]="attendanceReconciliationList.length == 0"
           (pageChange)="handlePageChange($event)"></pagination-controls>
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-          [hidden]="attendanceReconciliationList.length == 0" (click)="exportToExcel()"><em
-            class="fa fa-file-arrow-down fa-2x"></em></button>
+        
       </div>
     </div>
   </div>
@@ -182,9 +186,10 @@
     <div class="row">
       <div class="col-md-12">
         <div class="row">
-          <div class="overflow-auto" bassHorizontalScroll [tableId]="'ViewMoreID'" [tableTHeadId]="'viewmoreIDTHead'"
-            [tableTHeadTrId]="'viewMoreIDHeadTr'" style="padding-left: 300px;">
-            <table class="table table-responsive" matSort (matSortChange)="sortData($event)" id="ViewMoreID">
+          <!-- bassHorizontalScroll [tableId]="'ViewMoreID'" [tableTHeadId]="'viewmoreIDTHead'" -->
+            <!-- [tableTHeadTrId]="'viewMoreIDHeadTr'"  -->
+          <div class="table-container" style="padding-left: 300px;">
+            <table class="table " matSort (matSortChange)="sortData($event)" id="ViewMoreID">
               <thead class="thead-light" id="viewmoreIDTHead">
                 <tr id="viewMoreIDHeadTr">
                   <th scope="col" class="info-label wide-col">Full Name</th>

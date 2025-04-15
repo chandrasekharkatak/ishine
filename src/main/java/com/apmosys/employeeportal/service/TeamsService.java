@@ -1201,7 +1201,8 @@ public class TeamsService {
 				
 				// Get Filled EOD Count for Team Members
 				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerId(firstOfMonth, end, employeedto.getEmpId());
-
+				System.err.println(timesheetList.size());
+				
 				list.forEach((object) -> {
 					EmployeeDTO dto = new EmployeeDTO();
 					dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()): null);
@@ -1226,7 +1227,7 @@ public class TeamsService {
 						dto.setIsDateOfRelievingToday("false");
 					}
 					
-					
+					 dto.setTimesheetStatus("Defaulter");
 					timesheetList.forEach((timesheet) -> {
 
 						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
@@ -1240,11 +1241,10 @@ public class TeamsService {
 								dto.setTimesheetStatus("Defaulter");
 							}else if (pendingEodCount > 0 && pendingEodCount < 3) {
 								dto.setTimesheetStatus("Pending Timesheets : "+ pendingEodCount);
-							}else {
-								dto.setTimesheetStatus("Timesheets upto date");
 							}
 						}
 					});
+					
 					
 					dtoList.add(dto);
 				});
@@ -1462,6 +1462,7 @@ public class TeamsService {
 					dto.setLeaveType(object[8] != null ? object[8].toString() : null);
 					dto.setLeaveStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
 					dto.setLeaveStatusUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					System.out.println("object[10]"+object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dtoList.add(dto);					
 					});
 

@@ -1,0 +1,15 @@
+.table-container {
+    width: 100%;
+    max-height: 60vh; 
+    position: relative;
+  }
+  
+  .fixed-header-table thead th {
+    position: sticky;
+    top: 0; 
+    z-index: 2; 
+  }
+  #BassScrollBar {
+    overflow: hidden !important; 
+    position: relative; 
+  }

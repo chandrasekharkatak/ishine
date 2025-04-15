@@ -67,63 +67,6 @@
 
 
 
-<!-- First Div: Both conditions are true -->
-<div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage != null"
-    style="display: flex; justify-content: space-between; width: 100%;">
-
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(55vw - 4px);   overflow: hidden; display: inline-block;">
-        <span>
-            "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
-        </span>
-    </marquee>
-
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="right" onmouseover="this.stop()"
-        onmouseout="this.start()"
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(50vw - 255px);  overflow: hidden; display: inline-block;">
-        <span>
-            {{consentNotificationMessage}}
-        </span>
-        <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
-            style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
-            I Agree
-        </button>
-
-    </marquee>
-
-</div>
-
-<!-- Second Div: Only lines.billableType === 'Bench' && lines.dayOnbench != null is true -->
-<div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage == null"
-    style="display: flex; justify-content: space-between; width: 100%; position: relative;">
-
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;  overflow: hidden; display: inline-block;">
-        <span>
-            "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
-        </span>
-    </marquee>
-
-</div>
-
-<!-- Third Div: Only consentNotificationMessage != null is true -->
-<div *ngIf="consentNotificationMessage != null && (lines.billableType !== 'Bench' || lines.dayOnbench == null)"
-    style="display: flex; justify-content: space-between; width: 100%; position: relative;">
-
-    <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left" onmouseover="this.stop()"
-        onmouseout="this.start()"
-        style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;   overflow: hidden; display: inline-block;">
-        <span>
-            {{consentNotificationMessage}}
-        </span>
-        <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
-            style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
-            I Agree
-        </button>
-    </marquee>
-
-
-</div>
 
 
 <!-- style="font-family: Calibri, sans-serif; color: #FFFFFF;  background-color: #193d8a; scrolldelay: 50; behavior: loop; "> -->
@@ -204,6 +147,13 @@
 
 
         <ul class="navbar-nav">
+            <li  *ngIf="currentUser.employeeRole === 'RMG'"
+            class="nav-item" style="margin-left: 10px; ">
+                <a class="nav-link nav-text notification_icon" (click)="openPoExpiredMod()">
+                    <i class="fas fa-bell" ></i>
+                    EXP PO
+                </a>
+            </li>
             <li class="nav-item pt-1 mr-2">
                 <small class="nav-text">Profile Completed</small>
                 <div class="progress profileCompleted">
@@ -226,7 +176,8 @@
                     </a>
                     <div class="dropdown-menu dropdown-menu-right user-menu" aria-labelledby="user-dropdown">
                         <!-- <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a> -->
-
+                        <!-- <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a> -->
+                     
                         <a class="dropdown-item" (click)="openChangePassword(change_password)"><i
                                 class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
                         <a class="dropdown-item" (click)="userLogout()"><i
@@ -341,7 +292,119 @@
 
         </div>
     </div>
-    <div *ngIf="userMapping.view_birthday_list" class="birthday-list card mb-2">
+    <!-- BirthdayCard -->
+
+    <div *ngIf="userMapping.view_birthday_list || userMapping.view_work_anniversary_list" class="birthday-list card mb-2">
+        <ul class="nav nav-tabs" id="birthdayWorkTab" role="tablist">
+            <li class="nav-item " 
+            [class.active]="selectedTab === 'birthday'"
+            [ngStyle]="{'font-weight': selectedTab === 'birthday' ? 'bold' : 'normal'} " (click)="switchTab('birthday')">
+                <a class="nav-link active" id="birthday-tab" data-toggle="tab" role="tab"
+                    href="#birthday-tabpanel" aria-controls="birthday" aria-selected="true">
+                    Birthday
+                </a>
+            </li>
+            <li class="nav-item" 
+            [class.active]="selectedTab === 'workAnniversary'"
+            [ngStyle]="{'font-weight': selectedTab === 'workAnniversary' ? 'bold' : 'normal'}" (click)="switchTab('workAnniversary')">
+                <a class="nav-link" id="workAnniversary-tab" data-toggle="tab" role="tab"
+                    href="#workAnniversary-tabpanel" aria-controls="workAnniversary" aria-selected="false">
+                    Work Anniversary
+                </a>
+            </li>
+        </ul>
+    
+        <!-- Tab Content -->
+        <div class="tab-content" id="birthdayWorkTabContent">
+            <!-- Birthday Tab -->
+            <div class="tab-pane active show fade" id="birthday-tabpanel" role="tabpanel" aria-labelledby="birthday-tab">
+                <div class="card-title px-1 pt-2">
+                    <p class="section-heading m-0 pl-2">Today's Birthdays</p>
+                </div>
+                <div class="card-body p-0">
+                    <div *ngIf="birthdayList.length == 0" class="container-fluid placeholder">
+                        <img class="placeholder-img" style="width: 50px;" src="assets/Images/birthday-cake-icon.svg"
+                            alt="Birthday Icon">
+                        <h1 class="placeholder-text">No Birthdays Today</h1>
+                    </div>
+                    <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="250"
+                        onmouseover="this.stop();" onmouseout="this.start();">
+                        <mat-list class="p-0">
+                            <mat-list-item *ngFor="let employee of birthdayList">
+                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360" 
+                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" 
+                                    title="Click to view Employee 360">
+                                    {{ employee.name }}
+                                </h1>
+                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
+                                <p matLine>{{ employee.departmentName }}</p>
+                            </mat-list-item>
+                        </mat-list>
+                    </marquee>
+                </div>
+            </div>
+    
+            <!-- Work Anniversary Tab -->
+            <div class="tab-pane active show fade" id="workAnniversary-tabpanel" role="tabpanel" aria-labelledby="workAnniversary-tab">
+                <div class="card-title px-1 pt-2">
+                    <p class="section-heading m-0 pl-2">Today's Work Anniversary</p>
+                </div>
+                <div class="card-body p-0">
+                    <div *ngIf="workAnniversaryList.length == 0" class="container-fluid placeholder">
+                        <img class="placeholder-img" style="width: 50px;" src="assets/Images/birthday-cake-icon.svg"
+                            alt="Birthday Icon">
+                        <h1 class="placeholder-text">No Work Anniversary Today</h1>
+                    </div>
+                    <marquee *ngIf="workAnniversaryList.length != 0" direction="up" scrolldelay="250"
+                        onmouseover="this.stop();" onmouseout="this.start();">
+                        <mat-list class="p-0">
+                            <mat-list-item *ngFor="let employee of workAnniversaryList">
+                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360" 
+                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" 
+                                    title="Click to view Employee 360">
+                                    {{ employee.name }}
+                                </h1>
+                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
+                                <p matLine>{{ employee.departmentName }}</p>
+                            </mat-list-item>
+                        </mat-list>
+                    </marquee>
+                </div>
+            </div>
+            <!-- <div class="tab-pane fade" id="workAnniversary-tabpanel" role="tabpanel" aria-labelledby="workAnniversary-tab">
+                <div class="card-title px-1 pt-2">
+                    <p class="section-heading m-0 pl-2">Today's Work Anniversaries</p>
+                </div>
+                <div class="card-body p-0">
+                    <div *ngIf="workAnniversaryList.length == 0" class="container-fluid placeholder">
+                        <img class="placeholder-img" style="width: 50px;" src="assets/Images/work-anniversary-icon.svg"
+                            alt="Work Anniversary Icon">
+                        <h1 class="placeholder-text">No Work Anniversaries Today</h1>
+                    </div>
+                    <marquee *ngIf="workAnniversaryList.length != 0" direction="up" scrolldelay="250"
+                        onmouseover="this.stop();" onmouseout="this.start();">
+                        <mat-list class="p-0">
+                            <mat-list-item *ngFor="let employee of workAnniversaryList">
+                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360"
+                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" 
+                                    title="Click to view Employee 360">
+                                    {{ employee.name }}
+                                </h1>
+                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
+                                <p matLine>{{ employee.departmentName }}</p>
+                            </mat-list-item>
+                        </mat-list>
+                    </marquee>
+                </div>
+            </div> -->
+        </div>
+    </div>
+    
+
+    <!-- <div *ngIf="userMapping.view_birthday_list" class="birthday-list card mb-2">
         <div class="card-title px-1 pt-2">
             <p class="section-heading m-0 pl-2">Today's Birthdays</p>
         </div>
@@ -363,7 +426,7 @@
                 </mat-list>
             </marquee>
         </div>
-    </div>
+    </div> -->
     <!-- Quick Links -->
     <div *ngIf="userMapping.view_quick_links" class="quick-links card mb-2">
         <div class="text-center quick-link" (click)="showApplyLeaveForm()">
@@ -449,140 +512,105 @@
         </div>
     </div>
 
-    <!-- <div *ngIf="userMapping.view_timesheet_display" class="timesheet-graph card mb-2">
-        <div class="card-title px-1 pt-2">
-            <p class="section-heading m-0 pl-2" id="timesheet-title">Total Timesheet Time</p>
-        </div>
-        <div class="card-body p-0">
-            <div class="row col">
-                <div id="totalEODChart" style="width:100%; height:15.625rem;"></div>
-            </div>
-        </div>
-    </div> -->
-
-    <!-- <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
-
-        <div class="card-title px-1 pt-2">
-            <p class="section-heading m-0 pl-2 p-3">Rewards Events</p>
-        </div>
-        <div class="row col reward-content-container" style=>
-            <div *ngIf="rewardsList.length == 0" class="container-fluid placeholder">
-                
-                <img class="placeholder-img" style="width: 50px;" src="assets/Images/reward2.png" alt="Rewards Icon">
-                <h1 class="placeholder-text">No Rewards Today</h1>
-            </div>
-            <marquee *ngIf="rewardsList.length != 0" direction="up" scrolldelay="250" onmouseover="this.stop();" onmouseout="this.start();">
-                <mat-list class="p-0 reward-content">
-                    <mat-list-item *ngFor="let rewards of rewardsList">
-                        
-                        <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
-                        <h1 matLine>{{rewards.rewardedToByName}} || Reward Name : {{rewards.rewardTypeName}}</h1>
-                        <p matLine>{{rewards.department}}</p>
-                    </mat-list-item>
-                </mat-list>
-            </marquee>
-            <div class="card-title px-1 pt-2">
-                <p class="section-heading m-0 pl-2 p-3">dfghj</p>
-            </div>
-        </div>
-    </div> -->
-
-    <!-- <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
-        <div class="card-title px-1 pt-2">
-            <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
-             <p class="text-muted pl-3"><b>MONTHLY : <span class="current-month-year">{{ currentMonthYearDisplay }}</span></b></p> 
-        </div>
-        
-        <div class="reward-content-container">
-            <div *ngIf="rewardsList.length == 0" class="container-fluid placeholder">
-                <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
-                <h1 class="placeholder-text">No Rewards Today</h1>
-            </div>
-            
-            <marquee *ngIf="rewardsList.length != 0" direction="up" scrolldelay="250" onmouseover="this.stop();" onmouseout="this.start();">
-                <mat-list class="reward-content">
-                    <mat-list-item *ngFor="let rewards of rewardsList">
-                        <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
-                        <h1 matLine style="font-size: smaller;">{{rewards.rewardedToByName}} || {{rewards.rewardTypeName}}</h1>
-                        <p matLine style="font-size: smaller;">{{rewards.department}}</p>
-                    </mat-list-item>
-                </mat-list>
-            </marquee>
-            <br>
-            <div class="card-title px-1 pt-2 additional-title">
-                <p class="section-heading m-0 pl-2 p-3"></p>
-            </div>
-        </div>
-
-    </div>
-    
-</div> -->
-
-    <!-- <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
-        <div class="card-title px-1 pt-2">
-            <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
-            
-        </div>
-
-        <div class="reward-content-container">
-            <div *ngIf="rewardsList.length === 0" class="container-fluid placeholder">
-              <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
-              <h1 class="placeholder-text">No Rewards Today</h1>
-            </div>
-          
-            <ng-container *ngFor="let group of rewardsList">
-              <h3>{{ group.ofMonthYear }}</h3>
-              <marquee direction="up" scrolldelay="250" onmouseover="this.stop();" onmouseout="this.start();">
-                <mat-list class="reward-content">
-                  <mat-list-item *ngFor="let reward of group.rewards">
-                    <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
-                    <h1 matLine style="font-size: smaller;">{{ reward.rewardedToByName }} || {{ reward.rewardTypeName }}</h1>
-                    <p matLine style="font-size: smaller;">{{ reward.department }}</p>
-                  </mat-list-item>
-                </mat-list>
-              </marquee>
-            </ng-container>
-          </div>
-        </div>
-    </div> -->
 
     <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
         <div class="card-title px-1 pt-2">
-            <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
-            <p *ngIf="rewardsList.length !== 0" class="text-muted pl-3">
-                <b>MONTHLY: <span>{{ monthKeys[currentMonthIndex] | date: 'MMMM yyyy' }}</span></b>
-            </p>
+          <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
+         
+          <div class="tabs">
+            <ul class="nav nav-pills">
+              <li class="nav-item pl-2" *ngFor="let category of rewardCategoryList">
+                <a class="nav-link" [class.active]="selectedCategoryId === category.rewardCategoryId" 
+                   (click)="onCategoryTabClick(category)">
+                  {{ category.categoryName }}
+                </a>
+              </li>
+            </ul>
+          </div>
+          
+          <p *ngIf="rewardsList.length !== 0" class="text-muted p-2">
+            <b>{{ selectedCategoryName }}: <span>{{ selectedMonth | date: 'MMMM yyyy' }}</span></b>
+          </p>
         </div>
-
+      
         <div class="reward-content-container d-flex flex-column" style="max-height: 200px;">
-            <div *ngIf="rewardsList.length === 0" class="container-fluid text-center p-3">
-                <img class="placeholder-img" src="assets/Images/reward2.png" alt="Rewards Icon">
-                <h1 class="placeholder-text">No Rewards Today</h1>
-            </div>
-
-            <marquee *ngIf="rewardsList.length !== 0" direction="up" scrolldelay="250" onmouseover="this.stop();"
-                onmouseout="this.start();" class="h-100">
-                <mat-list class="reward-content">
-                    <mat-list-item *ngFor="let rewards of currentRewards">
-                        <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
-                        <h1 *ngIf="userMapping.employee360_view_home" matLine class="small">
-                            <span id="clickablefor360" [navigateToEmployee360]="rewards.emp360" style="cursor: pointer;" title="Click to view Employee 360">
-                              {{ rewards.rewardedToByName }}
-                            </span>
-                            || {{ rewards.rewardTypeName }}
-                        </h1>
-                        <h1 *ngIf="!userMapping.employee360_view_home" matLine class="small">{{ rewards.rewardedToByName }} || {{ rewards.rewardTypeName }}</h1>
-                        <p matLine class="small">{{ rewards.department }}</p>
-                    </mat-list-item>
-                </mat-list>
-            </marquee>
+          <div *ngIf="showEmptyMessage" class="container-fluid text-center p-3">
+            <img class="placeholder-img" style="width: 100px;" src="assets/Images/reward2.png" alt="Rewards Icon">
+            <h1 class="placeholder-text">No Rewards Today</h1>
+          </div>
+          <marquee *ngIf="rewardsList.length !== 0" direction="up" scrolldelay="250" 
+                   onmouseover="this.stop();" onmouseout="this.start();" class="h-100">
+            <mat-list class="reward-content">
+              <mat-list-item *ngFor="let rewards of currentRewards">
+                <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
+                <h1 *ngIf="userMapping.employee360_view_home" matLine class="small">
+                  <span id="clickablefor360" [navigateToEmployee360]="rewards.emp360" style="cursor: pointer;" 
+                        title="Click to view Employee 360">
+                    {{ rewards.rewardedToByName }}
+                  </span>
+                  || {{ rewards.rewardTypeName }}
+                </h1>
+                <h1 *ngIf="!userMapping.employee360_view_home" matLine class="small">
+                  {{ rewards.rewardedToByName }} || {{ rewards.rewardTypeName }}
+                </h1>
+                <p matLine class="small">{{ rewards.department }}</p>
+              </mat-list-item>
+            </mat-list>
+          </marquee>
         </div>
     </div>
 
 
+    <!-- <div *ngIf="userMapping.view_employee_rewards" class="reward card mb-2">
+        <div class="card-title px-1 pt-2" >
+            <p class="section-heading m-0 pl-2">Apmosys Wall Of Fame</p>
+    
+            <div class="tabs pt-2">
+                <ul class="nav nav-pills">
+                    <li class="nav-item pl-2 " *ngFor="let category of rewardCategoryList">
+                        <a class="nav-link" [class.active]="selectedCategoryId === category.rewardCategoryId" 
+                           (click)="onCategoryTabClick(category)">
+                            {{ category.categoryName }}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+    
+            <p *ngIf="rewardsList.length !== 0" class="text-muted p-2">
+                <b>{{ selectedCategoryName }}: <span>{{ selectedMonth | date: 'MMMM yyyy' }}</span></b>
+            </p>
+        </div>
+    
+        <div class="card-body p-0">
+            <div *ngIf="showEmptyMessage" class="container-fluid placeholder">
+                <img class="placeholder-img" style="width: 50px;" src="assets/Images/reward2.png" alt="Rewards Icon">
+                <h1 class="placeholder-text">No Rewards Today</h1>
+            </div>
+    
+            <marquee *ngIf="rewardsList.length !== 0" direction="up" scrolldelay="250" 
+                     onmouseover="this.stop();" onmouseout="this.start();">
+                <mat-list class="p-0">
+                    <mat-list-item *ngFor="let rewards of currentRewards">
+                        <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
+                        <h1 *ngIf="userMapping.employee360_view_home" matLine class="small">
+                            <span id="clickablefor360" [navigateToEmployee360]="rewards.emp360" style="cursor: pointer;" 
+                                  title="Click to view Employee 360">
+                              {{ rewards.rewardedToByName }}
+                            </span>
+                            || {{ rewards.rewardTypeName }}
+                          </h1>
+                          <h1 *ngIf="!userMapping.employee360_view_home" matLine class="small">
+                            {{ rewards.rewardedToByName }} || {{ rewards.rewardTypeName }}
+                          </h1>
+                        <p matLine>{{ rewards.department }}</p>
+                    </mat-list-item>
+                </mat-list>
+            </marquee>
+        </div>
+    </div> -->
 
-
-
+    
+      
     <!-- Modals templates -->
     <ng-template #alert_message>
         <div class="modal-body text-center">
@@ -772,9 +800,9 @@
                 </a>
 
             </div>
-            <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveApplication'"
+            <div class="table-container" bassHorizontalScroll [tableId]="'leaveApplication'"
                 [tableTHeadId]="'leaveApplicationTHead'" [tableTHeadTrId]="'leaveApplicationTHeadTr'">
-                <table class="table leaveApplication-table" matSort (matSortChange)="sortData($event)"
+                <table class="table leaveApplication-table scrollable-table" matSort (matSortChange)="sortData($event)"
                     id="leaveApplication">
                     <thead class="thead-light text-center" id="leaveApplicationTHead">
                         <tr id="leaveApplicationTHeadTr">
@@ -783,6 +811,8 @@
                             <th scope="col" class="info-label">Sr No.</th>
                             <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
                             <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
+                            <th scope="col" class="info-label" mat-sort-header="teamName|string">Team Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="clientName|string">Client Name</th>
                             <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
                             <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
                             <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>
@@ -824,6 +854,22 @@
                             <td id="clickablefor360"*ngIf="userMapping.home_employee_360" (click)="cancelRequest()" [navigateToEmployee360]="leaveApplication.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.employeeName}}</td>
                             <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.employeeName}}</td>
                             <td>{{leaveApplication.leaveType}}</td>
+                            <td>
+                                <ng-container *ngIf="leaveApplication.clientName">
+                                  {{ (show === i) ? leaveApplication.clientName : (leaveApplication.clientName | slice: 0:20) }}
+                                  <a *ngIf="leaveApplication.clientName.length > 20" (click)="show = (show === i ? -1 : i)" >
+                                    ..{{ (show === i) ? '▲' : '▼' }}
+                                  </a>
+                                </ng-container>
+                            </td>
+                            <td>
+                                <ng-container *ngIf="leaveApplication.teamName">
+                                  {{ (show === i) ? leaveApplication.teamName : (leaveApplication.teamName | slice: 0:20) }}
+                                  <a *ngIf="leaveApplication.teamName.length > 20" (click)="show = (show === i ? -1 : i)" >
+                                    ..{{ (show === i) ? '▲' : '▼' }}
+                                  </a>
+                                </ng-container>
+                            </td>
                             <td>{{leaveApplication.fromDate}} &nbsp;<em class="fa fa-eye eye-img"
                                     (click)="onUpdateLeave(leave_success_method,leaveApplication)"></em></td>
                             <td>{{leaveApplication.toDate }} &nbsp;<em class="fa fa-eye eye-img"
@@ -906,9 +952,9 @@
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
-            <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffApplication'"
+            <div class="table-container" bassHorizontalScroll [tableId]="'compOffApplication'"
                 [tableTHeadId]="'compOffApplicationTHead'" [tableTHeadTrId]="'compOffApplicationTHeadTr'">
-                <table class="table compOffApplication-table" matSort (matSortChange)="sortData($event)"
+                <table class="table compOffApplication-table scrollable-table" matSort (matSortChange)="sortData($event)"
                     id="compOffApplication">
                     <thead class="thead-light" id="compOffApplicationTHead">
                         <tr id="compOffApplicationTHeadTr">
@@ -981,7 +1027,7 @@
                                     title="Approve"><em class="fa-solid fa-check"></em></button>&nbsp;
                                 <button *ngIf="userMapping.update_request_status"
                                     class="btn btn-sm btn-outline-danger mb2" type="submit"
-                                    (click)="onUpdateCompOffStatus(alert_message, compOffApplication, 3)"
+                                    (click)="openRevokeLeaveRejectModalCompOff(reject_revoke_leave_Comp_off, compOffApplication)"
                                     title="Reject"><em class="fa-solid fa-xmark"></em></button>
                             </td>
                         </tr>
@@ -1037,9 +1083,9 @@
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
-            <div class="overflow-auto" bassHorizontalScroll [tableId]="'timesheetRequest'"
+            <div class="table-container" bassHorizontalScroll [tableId]="'timesheetRequest'"
                 [tableTHeadId]="'timesheetRequestTHead'" [tableTHeadTrId]="'timesheetRequestTHeadTr'">
-                <table class="table teams-request-table" matSort (matSortChange)="sortData($event)"
+                <table class="table teams-request-table scrollable-table" matSort (matSortChange)="sortData($event)"
                     id="timesheetRequest">
                     <thead class="thead-light" id="timesheetRequestTHead">
                         <tr id="timesheetRequestTHeadTr">
@@ -1343,3 +1389,114 @@
         </div> -->
         </div>
     </ng-template>
+
+     <!-- poexpire_template Modal fixed after login-->
+     <ng-template #poexpire_template_fixed *ngIf="currentUser.employeeRole === 'RMG' ">
+        <div>
+            <div class="modal-header">
+                <b>Expired Projects/POs</b>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center" style="overflow: scroll;">
+                <app-expied-po-and-project [employee]="expiredList" (emailEvent)="handleEmailRequest($event)"></app-expied-po-and-project>
+            </div>
+        </div>
+    </ng-template>
+
+    <!-- <ng-template #poexpire_template>
+        <div class="modal-header">
+            <b>Expired Projects/POs</b>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body text-center" style="overflow: scroll;">
+            <app-expied-po-and-project></app-expied-po-and-project>
+        </div>
+        
+    </ng-template> -->
+
+    <ng-template #mailSentPopUp>
+        <div class="modal-body text-center">
+            <div>
+                <b>{{alertMessage}}</b>
+            </div>
+            <div class="text-center">
+                <button type="button" class="btn btn-primary" style="margin: 3px" (click)="cancelRequest()">Ok</button>
+                <button type="button" class="btn btn-primary" style="margin: 3px"(click)="openPoExpiredMod()">Go Back To Expared Tab</button>
+            </div>
+        </div>
+    </ng-template>
+
+
+    <ng-template #reject_revoke_leave_Comp_off>
+        <div class="modal-body text-center">
+            <p>Kindly provide reason(s) for rejecting application.</p>
+            <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+            <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="onUpdateCompOffStatus(alert_message,leaveObj,3);cancelRequest()">Reject</button>&nbsp;
+            <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+        </div>
+      </ng-template>
+
+
+
+
+      <!-- First Div: Both conditions are true -->
+<!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage != null"
+style="display: flex; justify-content: space-between; width: 100%;">
+
+<marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
+    style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(55vw - 4px);   overflow: hidden; display: inline-block;">
+    <span>
+        "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
+    </span>
+</marquee>
+
+<marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="right" onmouseover="this.stop()"
+    onmouseout="this.start()"
+    style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop; width: calc(50vw - 255px);  overflow: hidden; display: inline-block;">
+    <span>
+        {{consentNotificationMessage}}
+    </span>
+    <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
+        style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
+        I Agree
+    </button>
+
+</marquee>
+
+</div> -->
+
+<!-- Second Div: Only lines.billableType === 'Bench' && lines.dayOnbench != null is true -->
+<!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage == null"
+style="display: flex; justify-content: space-between; width: 100%; position: relative;">
+
+<marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
+    style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;  overflow: hidden; display: inline-block;">
+    <span>
+        "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
+    </span>
+</marquee>
+
+</div> -->
+
+<!-- Third Div: Only consentNotificationMessage != null is true -->
+<!-- <div *ngIf="consentNotificationMessage != null && (lines.billableType !== 'Bench' || lines.dayOnbench == null)"
+style="display: flex; justify-content: space-between; width: 100%; position: relative;">
+
+<marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left" onmouseover="this.stop()"
+    onmouseout="this.start()"
+    style="font-family: Calibri, sans-serif; color: #FFFFFF; background-color: #193d8a; scrolldelay: 50; behavior: loop;   overflow: hidden; display: inline-block;">
+    <span>
+        {{consentNotificationMessage}}
+    </span>
+    <button class="btn btn-sm btn-outline-success" (click)="submitNotificationConsent()"
+        style="margin-left: 8px; height: 30px; width: 120px; font-size: 12px;">
+        I Agree
+    </button>
+</marquee>
+
+
+</div> -->

@@ -88,4 +88,24 @@ public class ReportController {
 			   return response;
 		   }
 
+		@RequestMapping(value="/getAllEmployeesReportByProjectType" , method = RequestMethod.GET)
+		public ServiceResponse getAllEmployeesReportByProjectType() {		
+			
+			ServiceResponse response =	reportService.getAllEmployeesReportByProjectType();
+			return response;
+		}
+		
+		@RequestMapping(value="/getAllEmployeesReportByProjectTypeInConsolidated" , method = RequestMethod.GET)
+		public ServiceResponse getAllEmployeesReportByProjectTypeInConsolidated() {		
+			
+			ServiceResponse response =	reportService.getAllEmployeesReportByProjectTypeInConsolidated();
+			return response;
+		}
+		
+		@RequestMapping(value = "/getPoProjectDetailsBOthPOAndInternal", method = RequestMethod.GET)
+		public ServiceResponse getPoProjectDetailsForPoProjects() {
+			
+			ServiceResponse response = reportService.getPoProjectDetailsBOthPOAndInternal();
+			return response;
+		}
 }

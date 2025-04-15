@@ -91,9 +91,16 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
+
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                        [hidden]="allDeptList.length == 0" (click)="exportToExcel()"><em
+                            class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
+
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'departmentInfo'" [tableTHeadId]="'departmentInfoTHead'"
                     [tableTHeadTrId]="'departmentInfoTHeadTr'">
-                    <table class="table table-responsive" id="departmentInfo" matSort
+                    <table class="table" id="departmentInfo" matSort
                         (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="departmentInfoTHead">
                             <tr id="departmentInfoTHeadTr">
@@ -123,7 +130,8 @@
                                 <td *ngIf="!userMapping.employee360_view_department_config" >{{dept.createdByName}}</td>
                                 <td>{{dept.createdOn}}</td>
                                 <td>{{dept.updatedOn}}</td>
-                                <td *ngIf="userMapping.employee360_view_department_config" id="clickablefor360" [navigateToEmployee360]="dept.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{dept.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_department_config && dept.updatedByName" id="clickablefor360" [navigateToEmployee360]="dept.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{dept.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_department_config && !dept.updatedByName">{{dept.updatedByName}}</td>
                                 <td *ngIf="!userMapping.employee360_view_department_config">{{dept.updatedByName}}</td>
                                 <td *ngIf="userMapping.update_department || userMapping.delete_department">
                                     <button *ngIf="userMapping.update_department" class="btn btn-sm btn-outline-primary"
@@ -138,9 +146,9 @@
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="allDeptList.length == 0"
                     (pageChange)="handlePageChange($event)"></pagination-controls>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="allDeptList.length == 0" (click)="exportToExcel()"><em
-                        class="fa fa-file-arrow-down fa-2x"></em></button>
+                        class="fa fa-file-arrow-down fa-2x"></em></button> -->
             </div>
         </div>
     </div>

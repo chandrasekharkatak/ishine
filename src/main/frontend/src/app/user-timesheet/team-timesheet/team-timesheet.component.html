@@ -45,9 +45,13 @@
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
           </div>
-          <div class="overflow-auto" bassHorizontalScroll [tableId]="'allTimesheetInfo'"
-          [tableTHeadId]="'allTimesheetInfoTHead'" [tableTHeadTrId]="'allTimesheetInfoTHeadTr'">
-          <table class="table table-responsive" id="allTimesheetInfo" matSort (matSortChange)="sortData($event)">	
+          <div class="export-button">
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allTeamTimesheets.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+          </div>
+          <!-- bassHorizontalScroll [tableId]="'allTimesheetInfo'" -->
+          <!-- [tableTHeadId]="'allTimesheetInfoTHead'" [tableTHeadTrId]="'allTimesheetInfoTHeadTr'" -->
+          <div class="overflow-auto" >
+          <table class="table" id="allTimesheetInfo" matSort (matSortChange)="sortData($event)">	
             <thead class="thead-light" id="allTimesheetInfoTHead">	
               <tr id="allTimesheetInfoTHeadTr">	
                 <th scope="col" class="info-label">Sr No.</th>	
@@ -97,7 +101,6 @@
               </table>
           </div>
           <pagination-controls class="my-pagination" [hidden]="allTeamTimesheets.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allTeamTimesheets.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
       </div> 
   </div>
@@ -145,9 +148,15 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
         </a>
       </div>
-      <div class="overflow-auto" bassHorizontalScroll [tableId]="'myTimesheetInfo'"
-        [tableTHeadId]="'myTimesheetInfoTHead'" [tableTHeadTrId]="'myTimesheetInfoTHeadTr'">
-        <table class="table table-responsive" id="teams-request-table" matSort
+      <div class="export-button">
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+      [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcel()"><em
+        class="fa fa-file-arrow-down fa-2x"></em></button>
+      </div>
+      <!-- bassHorizontalScroll [tableId]="'myTimesheetInfo'" -->
+        <!-- [tableTHeadId]="'myTimesheetInfoTHead'" [tableTHeadTrId]="'myTimesheetInfoTHeadTr'" -->
+      <div class="table-container">
+        <table class="table " id="teams-request-table" matSort
           (matSortChange)="sortData($event)">
           <thead class="thead-light">
             <tr>
@@ -207,12 +216,11 @@
             </tr>
           </tbody>
         </table>
+        
       </div>
       <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0"
       (pageChange)="handlePageChange($event)"></pagination-controls>
-    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-      [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcel()"><em
-        class="fa fa-file-arrow-down fa-2x"></em></button>
+    
     </div>
   </div>
 </div>

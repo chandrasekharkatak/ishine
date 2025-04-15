@@ -88,3 +88,32 @@
 .custom-width{
     width: 50px;
 }
+
+.table-container {
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: auto;
+    position: relative;
+    margin-top: 20px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+thead {
+    position: sticky;
+    top: 0.7;
+    z-index: 100;
+}
+.export-button {
+    position: absolute;
+   right: 0%;
+   top: -25px;
+}

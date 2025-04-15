@@ -1345,6 +1345,10 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					dto.setMaternityLeaveDays(object[27] != null ? Long.parseLong(object[27].toString()) : null);
 					
 					dto.setEmployeeName(object[28] != null ? object[28].toString() : null);
+					dto.setEmpId(object[29] != null ? Long.parseLong(object[29].toString()) : null);
+					dto.setApproverEmpId(object[30] != null ? Long.parseLong(object[30].toString()) : null);			
+					
+					
 					
 					dtoList.add(dto);
 				});
@@ -1426,6 +1430,8 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					dto.setFinalApprovalLevel(object[27] != null ? Integer.parseInt(object[27].toString()) : null);
 					dto.setLeaveEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
 					dto.setManagerId(object[29] != null ? Integer.parseInt(object[29].toString()) : null);
+					dto.setClientName(object[30] != null ? object[30].toString() : null);
+					dto.setTeamName(object[31] != null ? object[31].toString() : null);
 					
 					dtoList.add(dto);
 				});

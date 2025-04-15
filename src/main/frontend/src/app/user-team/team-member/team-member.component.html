@@ -19,8 +19,13 @@
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
+            
+            <div class="export-button">
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="viewTeamMemberList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+
+            </div>
           </div>
-          <div class="overflow-auto" bassHorizontalScroll [tableId]="'teamMemberInfo'" [tableTHeadId]="'teamMemberInfoTHead'"
+          <div class="table-container" bassHorizontalScroll [tableId]="'teamMemberInfo'" [tableTHeadId]="'teamMemberInfoTHead'"
           [tableTHeadTrId]="'teamMemberInfoTHeadTr'">
             <table class="table team-table" id="team-table" matSort (matSortChange)="sortData($event)">	
               <thead class="thead-light">	
@@ -62,7 +67,6 @@
               </table>
           </div>
           <pagination-controls class="my-pagination" [hidden]="viewTeamMemberList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="viewTeamMemberList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
       </div>
   </div>
@@ -87,9 +91,9 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
+                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                           [tableTHeadTrId]="'auditInfoTHeadTr'">
-                          <table class="table table-responsive" id="auditInfo" matSort (matSortChange)="sortData($event)">
+                          <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
                                       <th scope="col">Sr No.</th>
@@ -134,9 +138,9 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
+                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                           [tableTHeadTrId]="'auditInfoTHeadTr'">
-                          <table class="table table-responsive" id="auditInfo" matSort (matSortChange)="sortData($event)">
+                          <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
                                       <th scope="col">Sr No.</th>
@@ -186,9 +190,9 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
+                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                           [tableTHeadTrId]="'auditInfoTHeadTr'">
-                          <table class="table table-responsive" id="auditInfo" matSort (matSortChange)="sortData($event)">
+                          <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
                                       <th scope="col">Sr No.</th>
@@ -238,9 +242,9 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
+                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                           [tableTHeadTrId]="'auditInfoTHeadTr'">
-                          <table class="table table-responsive" id="auditInfo" matSort (matSortChange)="sortData($event)">
+                          <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
                                       <th scope="col">Sr No.</th>
@@ -290,9 +294,9 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
+                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
                           [tableTHeadTrId]="'auditInfoTHeadTr'">
-                          <table class="table table-responsive" id="auditInfo" matSort (matSortChange)="sortData($event)">
+                          <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
                                       <th scope="col">Sr No.</th>

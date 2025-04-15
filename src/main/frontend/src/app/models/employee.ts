@@ -3,7 +3,7 @@ export class Employee{
     empId:any;
 	draftEmpId:any;
 	employeementId:any;
-	//name:any;
+	// name:any;
 	managerId:any;
 	dateOfJoining:any;
 	dateOfBirth:any;
@@ -201,5 +201,7 @@ export class Employee{
 	referedName:any;
 	employeeConfirmationDate:any;
 	emp360:any;
+
+	selectedProjectId :any;
 
 }

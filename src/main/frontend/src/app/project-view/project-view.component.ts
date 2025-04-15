@@ -32,7 +32,6 @@ export class ProjectViewComponent implements OnInit {
   projectList: any[] = [];
   projectObj: Project = new Project();
   teamMemberList: any[] = [];
-  employeesFor360: any[] = [];
   selectedProjectId: any;
 
   alertMessage: any;
@@ -71,42 +70,9 @@ export class ProjectViewComponent implements OnInit {
         this.selectedProjectId = history.state.data;
     }
 
-    this.getAllEmployeeFor360View();
+   
   }
 
-  getAllEmployeeFor360View(): void {
-    this.employeesFor360 = [];
-    this.employeeService.getAllEmployeesFor360View().subscribe({
-        next: (response: any) => {
-            if (response.serviceStatus == "Success") {
-                this.employeesFor360 = response.serviceResponse;
-
-                this.employeesFor360.forEach(employeeObj => {
-                    employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-                    employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-                    employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-                    employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-                    employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-
-                    if (employeeObj.isConsultant == 'true')
-                        employeeObj.employeeType = 'Consultant';
-                    else if (employeeObj.isApprenticeship == 'true')
-                        employeeObj.employeeType = 'Apprentice';
-                    else
-                        employeeObj.employeeType = 'Regular';
-                });
-
-                this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-                this.getProjectInfo(); 
-            } else {
-                alert(response.serviceResponse);
-            }
-        },
-        error: (error) => {
-            console.error("Error fetching employees:", error);
-        }
-    });
-}
 
 
 handlePageChange(event) {
@@ -171,10 +137,7 @@ handlePageChange(event) {
 
                 this.teamMemberList.forEach((team) => {
                     team.employees.forEach((employee) => {
-                        // console.log("employee.empId ", employee.empId);
-                        let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
-                        // console.log("matchingEmployee ", matchingEmployee);
-                        employee.emp360 = matchingEmployee ? matchingEmployee : {};
+                        employee.emp360 =employee.empId;
                     });
                 });
                 // console.log("Formatted Team Data: ", this.teamMemberList);

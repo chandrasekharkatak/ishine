@@ -14,6 +14,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { RewardsServiceService } from 'src/app/services/rewards-service.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { ValidationService } from 'src/app/services/validation.service';
 
 class Operator{
   name:string;
@@ -77,7 +78,7 @@ export class RewardsConfigComponent implements OnInit {
   isEditMode: boolean = false;  // Flag to determine create or edit mode
   rewardIdToEdit: number;  
   rewardTeams: number = 0;
-  employeesFor360: any[] = []; 
+  
 
   @Input() data: any;
   @Output() filterSubmitted:EventEmitter<any> =  new EventEmitter<any>(); 
@@ -90,17 +91,13 @@ export class RewardsConfigComponent implements OnInit {
     private modalService: BsModalService,
     private exportExcelService: ExportExcelService,
     private utilityService: UtilityService,
+    private validationService:ValidationService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
 
    async ngOnInit(): Promise<void> {
-    try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
     this.fetchAllRewards();
     this.showRewardSub();
     this.columnList = this.employeeColumns;
@@ -143,12 +140,18 @@ export class RewardsConfigComponent implements OnInit {
     })
   }
 
-  addRewardType() {
-    if (this.rewardType) {
-      this.rewardTypes.push(this.rewardType);
-      this.rewardType = '';
+  addRewardType(template: TemplateRef<any>) {
+
+    if(this.rewardTypes.some(type => type.toLowerCase() === this.rewardType.toLowerCase())){
+      this.openAlertMod(template, "Dublicate review Type");
     }
-  }
+    if (this.rewardType && !this.rewardTypes.some(type => type.toLowerCase() === this.rewardType.toLowerCase())) {
+        this.rewardTypes.push(this.rewardType);
+        this.rewardType = '';
+    }
+}
+
+
 
   removeRewardType(index: number) {
     this.rewardTypes.splice(index, 1);
@@ -296,11 +299,64 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
     this.queryList = rewardObj.customFilterDTOList || [];
   }
   
+
+    validateActivityObj(activityObj:Rewards, template: TemplateRef<any>) {
+  
+      if (!this.validationService.validateNullUndefinedEmptyString(activityObj.categoryId)) {
+        this.alertMessage = "Please select Category !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+  
+     
+      
+     
+      if (!this.validationService.validateNullUndefinedEmptyString(activityObj.rewardName)) {
+        this.alertMessage = "Please enter reward Sub Category !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+     
+  
+      
+  
+      // if (!activityObj.customFilterDTOList || activityObj.customFilterDTOList.length === 0) {
+      //   this.alertMessage = "Please add values in custom Filter !!";
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // }
+
+      
+     
+  
+      // if (!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)) {
+      //   this.alertMessage = "Please enter Activity ETA (Hours)!!"
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // } else if (activityObj.eta < 0 || activityObj.eta > 999) {
+      //   this.alertMessage = "Please enter Valid Activity ETA (Hours) between 0-999 Hours!!"
+      //   this.openAlertMod(template, this.alertMessage);
+      //   return false;
+      // }
+  
+      return true;
+    }
   onSubmit(template: TemplateRef<any>) {
+    let inputValidated: boolean = this.validateActivityObj(this.rewardsObj, template)
+    if (!inputValidated) return;
+
+   
+  
     if (this.validateData()) {
       this.rewardsObj.categoryId = parseInt(this.rewardsObj.categoryId, 10);
       this.rewardsObj.rewardName = (<HTMLInputElement>document.querySelector('input[placeholder="Enter Sub Category name"]')).value;
       this.rewardsObj.rewardTypes = this.rewardTypes;
+      if (this.rewardsObj.rewardTypes.length == 0) {
+        this.alertMessage = "Please add reward Type !!"
+        this.openAlertMod(template, this.alertMessage);
+        return;
+      }
+     
       // this.rewardsObj.createdBy = this.currentUser.empId;
       this.rewardsObj.customFilterDTOList = this.queryList.map(filter => {
         return {
@@ -310,6 +366,38 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
           customQuery: filter.customQuery || ""   
         };
       });
+    // Check if customFilterDTOList is null, undefined, or empty
+if (!this.rewardsObj.customFilterDTOList || this.rewardsObj.customFilterDTOList.length === 0) {
+  this.alertMessage = "Please add filters to the custom Filter list!";
+  this.openAlertMod(template, this.alertMessage);
+  return;
+}
+
+// Validate each filter object in the customFilterDTOList
+for (const filter of this.rewardsObj.customFilterDTOList) {
+  
+  // Check if 'value' is undefined, null, or empty
+  if (filter.value === undefined || filter.value === null || filter.value.trim() === "") {
+    this.alertMessage = "Each filter must have a valid value.";
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+
+
+  // Check if 'customQuery' is invalid (null or undefined)
+  if (filter.customQuery === undefined || filter.customQuery === null) {
+    this.alertMessage = "Custom Query cannot be null or undefined.";
+    this.openAlertMod(template, this.alertMessage);
+    return;
+  }
+}
+
+// If validation passes, you can proceed with further processing
+console.log("Validation passed for customFilterDTOList");
+
+// Continue with your logic for further processing
+
+    
       console.log("Submit Button : ", this.rewardsObj);
 
       this.rewardsObj.isTeam=this.rewardTeams ;
@@ -340,6 +428,9 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
             this.fetchAllRewards();
             this.resetForm();
           }
+          else if(response.serviceStatus === 'Fail'){
+            this.openAlertMod(template, "Reward Sub Category Already Exits");
+          }
         });
       }
     }
@@ -367,14 +458,8 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
       if (response.serviceStatus === "Success") {
         this.rewardsList = response.serviceResponse;
         this.rewardsList.forEach((employee) => {
-          // console.log("employee.createdBy ", employee.createdBy);
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-          // console.log("createdby ", matchingEmployee3);
-          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-          // console.log("employee.updatedBy ", employee.updatedBy);
-          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
-          // console.log("updatedBy ", matchingEmployee4);
-          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+          employee.emp360CreatedBy = employee.createdBy;
+          employee.emp360UpdatedBy = employee.updatedBy;
         });
       } else {
         console.error("Error fetching rewards: ", response.serviceError);
@@ -476,6 +561,35 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
     this.rewardTeams = 0;
     this.isEditMode = false;
   }
+
+
+  
+
+   restrictInput(event) {
+    const inputField = event.target;
+    const value = inputField.value;
+
+   
+    if (value.length === 0 && (event.key === ' ' || event.key === '-')) {
+        event.preventDefault();
+    }
+
+    
+    if (value.length === 0 && event.key >= '0' && event.key <= '9') {
+        event.preventDefault();
+    }
+
+    
+    if (value.length >= 20) {
+        event.preventDefault();
+    }
+
+    
+    if (!event.key.match(/[0-9a-zA-Z\s-]/)) {
+        event.preventDefault();
+    }
+}
+
 
 
   confirmResult: boolean = false;

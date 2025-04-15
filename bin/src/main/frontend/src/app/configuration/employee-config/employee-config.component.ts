@@ -33,6 +33,7 @@ import { SortPipe } from 'src/app/sort.pipe';
 
 import { Subscription } from 'rxjs';
 import { SharedService } from 'src/app/services/shared.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
 class FilterData {
   title: any;
   columns: any;
@@ -226,6 +227,7 @@ export class EmployeeConfigComponent implements OnInit {
   departmentName: any;
   private subscription: Subscription = new Subscription();
   referedTypeStatus: boolean = false;
+  employeesFor360: any[] = [];
 
   constructor(
 
@@ -245,24 +247,22 @@ export class EmployeeConfigComponent implements OnInit {
     private domainService: DomainService,
     private destinationService: DestinationService,
     private leaveService: LeaveService,
-    private sharedService: SharedService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.currDate = this.datePipe.transform(new Date(), 'YYYY-MM-dd');
     this.getAllJobRoleList();
-    // Dynamic Subfeature Flags
+  
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log(this.feature, this.userMapping);
-
+    // console.log(this.feature, this.userMapping);
+  
     this.sectionViewInit();
-
-    //Deafult values for dropdown
+  
     this.employeeObj.gender = '';
     this.employeeObj.maritalStatus = '';
     this.employeeObj.reportingManagerId = '';
@@ -270,6 +270,14 @@ export class EmployeeConfigComponent implements OnInit {
     this.setYearOfPassingList();
     this.preventBackButton();
     this.getAllEmployeeList();
+  
+    try {
+      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      // console.log("Priyadarshini ", this.employeesFor360);
+    } catch (error) {
+      console.error("Error fetching employee details for 360 view", error);
+    }
+    //console.log('user -- ', this.userMapping);
   }
 
   preventBackButton() {
@@ -277,6 +285,39 @@ export class EmployeeConfigComponent implements OnInit {
     this.locationStrategy.onPopState(() => {
       history.pushState(null, null, location.href);
     })
+  }
+  validateBirthDate(template: TemplateRef<any>) {
+    let birthdate = new Date(this.employeeObj.dateOfBirth);
+    let dtCurrent = new Date();
+    let flag = true;
+    let dobInput: any = document.getElementById('DOB');
+
+   if (dtCurrent.getFullYear() - birthdate.getFullYear() < 18) {
+      this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
+      flag = false;
+    }
+    else if (dtCurrent.getFullYear() - birthdate.getFullYear() == 18) {
+
+      //CD: 11/06/2018 and DB: 15/07/2000. Will turned 18 on 15/07/2018.
+      if (dtCurrent.getMonth() < birthdate.getMonth()) {
+        this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
+        flag = false;
+      }
+
+      if (dtCurrent.getMonth() == birthdate.getMonth()) {
+        //CD: 11/06/2018 and DB: 15/06/2000. Will turned 18 on 15/06/2018.
+        if (dtCurrent.getDate() < birthdate.getDate()) {
+          this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
+          flag = false;
+        }
+      }
+    }
+    if (!flag) {
+      setTimeout(() => {
+        dobInput.value = '';
+        this.employeeObj.dateOfBirth = '';
+      }, 10)
+    }
   }
 
   ngOnDestroy() {
@@ -648,6 +689,7 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   showUpdateForm(employee: Employee) {
+    
     this.isForm = true;
     this.referedTypeStatus = true;
     this.isTable = false;
@@ -657,6 +699,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraftTable = false;
     this.isDeletion = false;
 
+    
     this.getManagerList(employee);
     this.getAllDepartmentList();
     this.getAllDomain();
@@ -672,7 +715,7 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
 
         this.employeeObj = Object.assign({}, response.serviceResponse);
-
+        this.employeeObj.reportiesFlag = 'No';
         if (this.employeeObj.domainList != null) {
           this.getDomainSpecialization();
         }
@@ -701,6 +744,7 @@ export class EmployeeConfigComponent implements OnInit {
       } else {
         console.error(response.serviceResponse)
       }
+     
     });
 
     setTimeout(this.setCalenderMaxDate, 1000);
@@ -1756,14 +1800,13 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
-  clearAfterChange(field, fieldname) {
-    let element: any = document.getElementById(field);
-    if (element) element.value = '';
-
-    console.log("value : ", element.value);
-
-    this.employeeObj[fieldname] = '';
-  }
+  // clearAfterChange(field, fieldname) {
+  //   let element: any = document.getElementById(field);
+  //   if (this.employeeObj.experience === 'Fresher') {
+  //     if (element) element.value = '';
+  //     this.employeeObj[fieldname] = '';
+  // }
+  // }
 
   onUpdateEmployee(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
@@ -1949,6 +1992,25 @@ export class EmployeeConfigComponent implements OnInit {
         // Default Sorting
         this.allEmployeeList = new SortPipe().transform(this.allEmployeeList, ['name', 'string', 'asc']);
         // this.createEmployeeList(this.allEmployeeList)
+        this.allEmployeeList.forEach((employee) => {
+          // console.log("employee.empId ", employee.empId);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+          // console.log("employee ", matchingEmployee);
+          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+          // console.log("employee.managerId ", employee.managerId);
+          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
+          // console.log("manager ", matchingEmployee2);
+          employee.emp360Mng = matchingEmployee2 ? matchingEmployee2 : {};
+          // console.log("employee.createdBy ", employee.createdBy);
+          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
+          // console.log("createdby ", matchingEmployee3);
+          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+          // console.log("employee.updatedBy ", employee.updatedBy);
+          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
+          // console.log("updatedBy ", matchingEmployee4);
+          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+        });
+
         sessionStorage.setItem('AllEmployees', JSON.stringify(this.allEmployeeList));
       } else {
         alert(response.serviceResponse);
@@ -2273,7 +2335,22 @@ export class EmployeeConfigComponent implements OnInit {
           // x.employeementId = (x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId;
           x.dateOfJoining = (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           x.dateOfRelieving = (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+          if (x.isConsultant == 'true')
+            x.employeeType = 'Consultant';
+          else if (x.isApprenticeship == 'true')
+            x.employeeType = 'Apprentice';
+          else
+            x.employeeType = 'Regular';
         }
+        this.allEmployeeList.forEach(draftemp => {
+          let matchingEmployee = this.employeesFor360.find(emp =>emp.employeementId === draftemp.employeementId);
+          let matchingEmployeeMng = this.employeesFor360.find(emp =>emp.empId === draftemp.managerId);
+          //console.log('matches++',matchingEmployeeMng);
+          draftemp.emp360 = matchingEmployee ? matchingEmployee : {};
+          draftemp.emp360Mng = matchingEmployeeMng ? matchingEmployeeMng : {};
+
+          
+        });
         console.log("allDraftEmployeeList : ", this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
@@ -2328,43 +2405,6 @@ export class EmployeeConfigComponent implements OnInit {
     jobRoleId ? this.employeeObj.jobRoleId = jobRoleId : this.employeeObj.jobRoleId = '';
   }
 
-  validateBirthDate(template: TemplateRef<any>) {
-    let birthdate = new Date(this.employeeObj.dateOfBirth);
-    let dtCurrent = new Date();
-    let flag = true;
-    let dobInput: any = document.getElementById('DOB');
-
-    if (dtCurrent.getFullYear() - birthdate.getFullYear() > 60) {
-      this.openAlertMod(template, 'Employee age cannot be more than 60 years.');
-      flag = false;
-    }
-    else if (dtCurrent.getFullYear() - birthdate.getFullYear() < 18) {
-      this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
-      flag = false;
-    }
-    else if (dtCurrent.getFullYear() - birthdate.getFullYear() == 18) {
-
-      //CD: 11/06/2018 and DB: 15/07/2000. Will turned 18 on 15/07/2018.
-      if (dtCurrent.getMonth() < birthdate.getMonth()) {
-        this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
-        flag = false;
-      }
-
-      if (dtCurrent.getMonth() == birthdate.getMonth()) {
-        //CD: 11/06/2018 and DB: 15/06/2000. Will turned 18 on 15/06/2018.
-        if (dtCurrent.getDate() < birthdate.getDate()) {
-          this.openAlertMod(template, 'Employee age cannot be less than 18 years.');
-          flag = false;
-        }
-      }
-    }
-    if (!flag) {
-      setTimeout(() => {
-        dobInput.value = '';
-        this.employeeObj.dateOfBirth = '';
-      }, 10)
-    }
-  }
 
   rejectDraftEmployeeApplication(template: TemplateRef<any>) {
     if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.remarks)) {
@@ -2897,11 +2937,12 @@ export class EmployeeConfigComponent implements OnInit {
                 "bucketName": obj["bucketName"],
                 "updatedByName": obj["updatedByName"] ? obj["updatedByName"] : null,
                 "createdByName": obj["createdByName"] ? obj["createdByName"] : null,
-                "color": '#FFFFFF'
+                "color": '#FFFFFF',
+                "updatedBy": obj["updatedBy"] ? obj["updatedBy"] : null
               };
 
               if (newObj.field !== 'bucketName' && newObj.field !== 'designationId' && newObj.field !== 'jobRoleId'
-                && newObj.field !== 'createdBy' && newObj.field !== 'updatedBy' && newObj.field !== 'departmentId'
+                && newObj.field !== 'createdBy' && newObj.field !== 'departmentId'
                 && newObj.field !== 'updatedByName' && newObj.field !== 'createdOn' && newObj.field !== 'createdByName'
                 && newObj.field !== 'updatedOn' && newObj.field !== 'empId' && newObj.field !== 'teamId' && newObj.field !== 'employeeTeamMapId'
                 && newObj.field !== 'teamLeadId' && newObj.field !== 'reportingManagerId' && newObj.field !== 'managerId') {
@@ -2958,6 +2999,13 @@ export class EmployeeConfigComponent implements OnInit {
               updateField.field = 'End Date';
             }
           }
+        });
+
+        this.filteredEmployeeAuditHistory.forEach(employee => {
+          console.log('employee.updatedBy++',employee.updatedBy);
+          let matchingEmployee = this.employeesFor360.find(emp => emp.empId ===  employee.updatedBy);
+          console.log('matches++',matchingEmployee);
+          employee.emp360updatedBy = matchingEmployee ? matchingEmployee : {};
         });
 
         this.lifeCycleChangeList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'Lifecycle Changes');

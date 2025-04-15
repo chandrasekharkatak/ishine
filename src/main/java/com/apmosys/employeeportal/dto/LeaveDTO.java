@@ -112,6 +112,7 @@ public class LeaveDTO {
 	private Float toDateDayType;
 	
 	private Long deptId;
+	private Long approverEmpId;
 	private String approverName;
 	private String approverEmail;
 	private String name;
@@ -170,4 +171,6 @@ public class LeaveDTO {
 	private Long currentUserEmpId;
 	private Long differenceInDays;
 	private Long approverId;
+	private String clientName;
+	
 }

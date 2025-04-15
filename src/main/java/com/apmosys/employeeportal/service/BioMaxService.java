@@ -9,15 +9,20 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -35,8 +40,16 @@ import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.BioMax360;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.BiomaxRequest;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.Holiday;
+import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.PortalConfig;
+import com.apmosys.employeeportal.repository.BiomaxRequestRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.HolidayRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.PortalConfigRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -45,9 +58,25 @@ public class BioMaxService {
 	TimesheetService TimesheetService;
 	@Value("${BioDbIp}")
 	public String DBIp;
+	@Value("${biomaxleavedeductForEmployee}")
+	private String biomaxleavedeductForEmployee;
+	@Value("${biomaxleavedeductForDepartment}")
+	private String biomaxleavedeductForDepartment;
+	
+	@Autowired
+	private BiomaxRequestRepository biomaxRequestRepository;
+	
+	@Autowired
+	private HolidayRepository holidayRepository;
+	
 	Connection con = null;
     PreparedStatement statement = null;
     ResultSet resultSet = null;
+	
+	@Autowired
+	PortalConfigRepository portalConfigRepository;
+	@Autowired
+	private JobRoleRepository jobRoleRepository;
 	
 //	@Value("${BioDbPort}")
 	//public String DBPort;
@@ -834,15 +863,124 @@ public class BioMaxService {
 		}
 	 
 	 
+	 public List<BioMaTO> getBiomaxDataForLeaveDeduct() {
+		 
+		 String depart="";
+			String employee="";
+			  List<BioMaTO> finalEmpBioData = new ArrayList<>();
+			List<Holiday>  holiday= holidayRepository.currentDayHoliday();
+			 if(holiday.size()==0) {
+					
+		    try {
+		        String Query = "SELECT \n"
+		        		+ "    e.EmployeeCode,  \n"
+		        		+ "    al.AttendanceDate, \n"
+		        		+ "    al.InTime, \n"
+		        		+ "    al.OutTime, \n"
+		        		+ "    al.TotalDuration, \n"
+		        		+ "    s.ShiftName, \n"
+		        		+ "    s.BeginTime, \n"
+		        		+ "    s.EndTime,\n"
+		        		+ "    CASE \n"
+		        		+ "        WHEN al.TotalDuration < 540 AND al.InTime > DATEADD(MINUTE, 30, CAST(s.BeginTime AS DATETIME)) THEN 1\n"
+		        		+ "        WHEN al.TotalDuration < 540 THEN 0.5\n"
+		        		+ "        WHEN al.InTime > DATEADD(MINUTE, 30, CAST(s.BeginTime AS DATETIME)) THEN 0.5\n"
+		        		+ "        ELSE 0\n"
+		        		+ "    END AS Deduct\n"
+		        		+ "FROM \n"
+		        		+ "    [SmartOfficedb].[dbo].[AttendanceLogs] al\n"
+		        		+ "INNER JOIN \n"
+		        		+ "    [SmartOfficedb].[dbo].[Employees] e ON al.EmployeeId = e.EmployeeId\n"
+		        		+ "INNER JOIN \n"
+		        		+ "    [SmartOfficedb].[dbo].[Shifts] s ON s.ShiftId = al.ShiftId\n"
+		        		+ "WHERE \n"
+		        		+ "    al.AttendanceDateStr = ? \n"
+		        		+ "    and s.ShiftName != 'NoShift' \n"
+		        		+ "ORDER BY \n"
+		        		+ "    al.AttendanceDateStr DESC;";
+//		    
+		        
+		        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 
+				 Connection con = getConnection();
+
+		        PreparedStatement statement = con.prepareStatement(Query);
+		        LocalDate currentDate = LocalDate.now();
+		        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
+		        String currentDateString = currentDate.format(formatter);
+		       
+		        // Set the date parameters
+		        statement.setString(1, currentDateString);
+
+		        ResultSet resultSet = statement.executeQuery();
+		        
+		        if (!resultSet.next()) {
+		            System.out.println("No results found.");
+		        } else {
+		        	 while (resultSet.next()){
+		        		 BioMaTO bioMaTO = new BioMaTO();
+			             Long employmentId = Long.parseLong(resultSet.getString("EmployeeCode").replaceAll("\\D", ""));
+			             Employee employee1=employeeRepository.findByEmployeementId(employmentId);
+						 if(employee1!=null) {
+						bioMaTO.setEmployementId(employmentId);
+					
+		               	if (employee1.getJobRoleId() != null) {
+		               	    JobRole departmentjon = jobRoleRepository.findByjobRoleId(employee1.getJobRoleId());
+		               	    bioMaTO.setDepartmentId(departmentjon.getDeptId());
+		               	} else {
+		               	    throw new NullPointerException("JobRoleId is null, cannot proceed with the operation.");
+		               	}
+
+						bioMaTO.setEmployeeCode(resultSet.getString("EmployeeCode"));
+		                bioMaTO.setAttendanceDate(resultSet.getString("AttendanceDate"));
+		                bioMaTO.setInTime(resultSet.getString("InTime"));
+		                bioMaTO.setOutTime(resultSet.getString("OutTime"));
+		                bioMaTO.setTotalDuration(resultSet.getString("TotalDuration"));
+		                bioMaTO.setShiftName(resultSet.getString("ShiftName"));
+		                bioMaTO.setBeginTime(resultSet.getString("BeginTime"));
+		                bioMaTO.setEndTime(resultSet.getString("EndTime"));
+		                bioMaTO.setDeduct(resultSet.getString("Deduct"));
+		             
+		                finalEmpBioData.add(bioMaTO);
+							}
+		            }
+		            
+		        }
+		        
+		        
+		    } catch (Exception e) {
+		        e.printStackTrace(); // Log the exception message
+		    }
+			 }
+			 
+			 return finalEmpBioData;
+		}
 	 
-	
-	   
-	   
-	   
 	 
-		
-	
+	 public List<BioMaTO> listFilter(List<BioMaTO> list1, List<Long> removedId) {
+		    // Handle null inputs
+		 System.out.println("List Size"+list1.size());
+		    if (list1 == null || removedId == null) {
+		        return new ArrayList<>(); // Return an empty list if inputs are null
+		    }
 
-
+		    // Convert removedId to a Set for faster lookups
+		  //  Set<Long> removedIdSet = new HashSet<>(removedId);
+		    
+		    Set<Long> removedIdSet = removedId.stream()
+		    	    .filter(Objects::nonNull) // Remove null values
+		    	    .collect(Collectors.toSet());
+		    // Filter the list
+		    List<BioMaTO> newList = new ArrayList<>();
+		    for (BioMaTO item : list1) {
+		    	System.out.println("EmpId="+item.getEmpId());
+		        if (item != null && !removedIdSet.contains(item.getEmployementId().toString())) {
+		            newList.add(item);
+		        }
+		    	
+		    }
+		    System.out.println("newList Size"+newList.size());
+			
+		    return newList;
+		}
 } 

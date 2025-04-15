@@ -71,7 +71,6 @@ export class NewsletterComponent implements OnInit {
     class : 'modal-xl'
   }
 
-  employeesFor360: any[] = [];
   userMapping: any = {};
   
   constructor(
@@ -85,12 +84,7 @@ export class NewsletterComponent implements OnInit {
    }
 
    async ngOnInit(): Promise<void> {
-    try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
     // this.getAllNewsletters();
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
           featureMap.subFeatures?.forEach(sub => {
@@ -156,9 +150,7 @@ export class NewsletterComponent implements OnInit {
         this.newsletters =  response.serviceResponse;
         this.newsletters.forEach(doc => {
           doc.createdOn = (doc.createdOn)? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === doc.createdBy);
-          // console.log("createdby ", matchingEmployee3);
-          doc.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
+         doc.emp360CreatedBy = doc.createdBy;
         });
         //console.log("Newsletters List : ", this.newsletters);
         this.getAllReadNewsletter();
@@ -328,7 +320,7 @@ openFilterModal(template: TemplateRef<any> , colums : any[], title: any){
   
 
   this.queryList = [
-    { column: "Document Name" , operator: "!=" , value: "", conjunction: "" }
+    { column: "Document Name" , operator: "" , value: "", conjunction: "" }
   ];
   this. storedDataList.forEach((data) => {
     if(data.filterName == title){

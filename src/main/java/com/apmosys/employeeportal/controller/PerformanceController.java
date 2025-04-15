@@ -6,10 +6,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.apmosys.employeeportal.dto.NotificationDTO;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.PerformanceDTO;
 import com.apmosys.employeeportal.dto.QuarterCycleDTO;
 import com.apmosys.employeeportal.dto.ReviewTypeDTO;
@@ -145,9 +144,9 @@ public class PerformanceController {
 
 	
 
-	@RequestMapping(value = "/getAllDepartmentbyEmployeecont", method = RequestMethod.GET)
-	public ServiceResponse DepartmentbyEmployeecont() {
-	    ServiceResponse response = performanceService.DepartmentbyEmployeecont();
+	@RequestMapping(value = "/getAllDepartmentbyEmployeecont", method = RequestMethod.POST)
+	public ServiceResponse DepartmentbyEmployeecont(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance ) {
+	    ServiceResponse response = performanceService.DepartmentbyEmployeecont(hrHodHrViewPerformance);
 	    return response;
 	}
 	
@@ -157,4 +156,15 @@ public class PerformanceController {
 	    return response;
 	}
 	
+	@RequestMapping(value = "/exportExcelForHodAndManger", method = RequestMethod.POST)
+	public ServiceResponse exportExcelForHodAndManger(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance) {
+	    ServiceResponse response = performanceService.exportExcelForHodAndManger(hrHodHrViewPerformance);
+	    return response;
+	}
+	
+	@RequestMapping(value = "/currentStatusForPerformanceTableView", method = RequestMethod.GET)
+	public ServiceResponse currentStatusForPerformanceTableView() {
+	    ServiceResponse response = performanceService.currentStatusForPerformanceTableView();
+	    return response;
+	}
 }

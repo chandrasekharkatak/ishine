@@ -6,7 +6,9 @@ import java.time.chrono.ChronoLocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.mail.event.StoreListener;
 import javax.servlet.http.HttpServletRequest;
@@ -23,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 
 import com.apmosys.employeeportal.dto.DepartmentDTO;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.model.Asset;
@@ -42,6 +45,7 @@ import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class DepartmentService {
+	private final Map<String, List<DepartmentDTO>> DepartmentDTOCache = new ConcurrentHashMap<>();
 
 	@Autowired
 	DepartmentRepository departmentRepository;

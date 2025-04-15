@@ -39,4 +39,6 @@ public interface HolidayRepository extends JpaRepository<Holiday, Short> {
 	@Query(nativeQuery = true,value="SELECT YEAR(date_of_holiday) from holiday where occasion = :occasion")
 	Integer findYearOfOccassion(@Param("occasion") String occasion);
 
+	@Query(value="SELECT * FROM holiday where date_of_holiday=current_date()", nativeQuery=true)
+	List<Holiday> currentDayHoliday();
 }

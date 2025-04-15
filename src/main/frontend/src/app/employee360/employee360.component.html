@@ -1,99 +1,164 @@
-<div class="mt-5">
-  <app-breadcrumb></app-breadcrumb>
+<style>
+  body {
+    background-color: #f8f9fa;
+  }
+
+  .profile-card {
+    border-radius: 15px;
+    background: white;
+    padding: 20px;
+    margin-left: 9px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+
+
+  .profile-header {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    padding: 20px;
+    border-radius: 15px 15px 0 0;
+    text-align: center;
+  }
+
+  .profile-picture img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 3px solid white;
+  }
+
+  .profile-details {
+    text-align: left;
+
+  }
+
+  .profile-info {
+    display: flex;
+    align-items: center;
+
+  }
+</style>
+<div class="col-md-12 profile-section">
+  <div class="profile-card">
+
+    <div class="profile-info">
+      <!-- Profile Picture -->
+      <div class="profile-picture">
+        <img src="assets/Images/default-user-image.jpeg" alt="Profile Picture"  id="user-avatar" class="user-card__profile-avatar__img" alt="Avatar" />
+      </div>
+      <!-- Name and Designation -->
+      <div style="text-align: left;margin-left: 1%;">
+        <h3 class="profile-name">{{employeeData.name}}</h3>
+        <p class="textValue">{{employeeData.designationName}}</p>
+        <p class="textValue">Employee ID: {{employeeData.employeementId}}</p>
+
+      </div>
+      <div style="text-align: left;" class="textviewdata">
+        <p class="profile-email1 textValue">Email ID<br>{{employeeData.email}}</p>
+        <p class="profile-email1 textValue">Mobile Number <br>{{employeeData.mobileNo}}</p>
+
+      </div>
+      <div style="text-align: left;" class="textviewdata" style="text-align: right;
+    margin-left: 20%;">
+        <p class="textValue">Department <br>{{employeeData.departmentName}}</p>
+        <p class="textValue"> Manager Name <br> {{employeeData.managerName}}</p>
+
+      </div>
+    </div>
+
+
+    <!-- Employee Details -->
+    <div class="profile-details">
+      <p class="profile-email1 textValue"><strong>Office:</strong> {{employeeData.workLocation}}</p>
+      <p class="profile-email1 textValue"><strong>Total Experience:</strong> {{employeeData.totalExperience}}</p>
+      <p class="profile-email1 textValue"><strong>Appreciation Count:</strong> {{appreciationCount}}</p>
+      <p class="profile-email1 textValue"><strong>Total Rewards Count:</strong> {{rewardsCount}}</p>
+    </div>
+    <!-- <div class="profile-details">
+      <p class="profile-email1 textValue"><strong>Total Leave Count:</strong> 0</p>
+      <p class="profile-email1 textValue"><strong>Total OverTime:</strong> 0</p>
+      <p class="profile-email1 textValue"><strong>Total Under Time:</strong> 0</p>
+      <p class="profile-email1 textValue"><strong>Status Confirmed:</strong> {{employeeData.employmentstatus ==
+        'Confirmed' ? 'Yes' : 'No'}}</p>
+    </div> -->
+    <div class="profile-details">
+      <p class="profile-email1 textValue"><strong>Status Confirmed:</strong> {{employeeData.employmentstatus ==
+        'Confirmed' ? 'Yes' : 'No'}}</p>
+      <p class="profile-email1 textValue"><strong>Billable Type:</strong> {{employeeData.billableType}}</p>
+      <p class="profile-email1 textValue"><strong>Employee Since:</strong> {{employeeData.dateOfJoining}}</p>
+
+    </div>
+  </div>
 </div>
 
-<div class="container-fluid">
-    <div class="row">
-      
-      <div class="col-md-9">
-        <div class="card employee-card">
-    
-          <div class="employee-header">
-            <h3>EMPLOYEE <span class="highlight-text">360 VIEW</span></h3>
-          </div>
-   <ul class="nav nav-tabs config__tabs" id="Employee360Tab" role="tablist">
-            
-              <li  class="nav-item report__tab-item">
-                <a class="nav-link report__tab-item__link" id="profile-tab" data-toggle="tab" routerLink="profile" role="tab" (click)="removeActiveTab()"  routerLinkActive="active"
-                   aria-controls="profile" aria-selected="false">Profile</a>
-             </li>
+
+<div class="col-md-12">
+  <div class="card employee-card">
+    <div class="mt-5">
+      <app-breadcrumb></app-breadcrumb>
+    </div>
+
+    <ul class="nav nav-tabs config__tabs" id="Employee360Tab" role="tablist">
+
+      <li class="nav-item report__tab-item">
+        <a class="nav-link report__tab-item__link" id="profile-tab" data-toggle="tab" routerLink="profile" role="tab"
+          (click)="removeActiveTab()" routerLinkActive="active" aria-controls="profile"
+          aria-selected="false">Profile</a>
+      </li>
 
 
-            <li  class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="leave-tab" data-toggle="tab" routerLink="leave" role="tab" (click)="removeActiveTab()"   routerLinkActive="active"
-                aria-controls="leave" aria-selected="false">Leave</a>
-            </li>
-            
-           <li  class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="projects-tab" data-toggle="tab" routerLink="project" role="tab" (click)="removeActiveTab()"  routerLinkActive="active"
-                aria-controls="projects" aria-selected="false">Project</a>
-           </li>
-            <li  class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="timesheet-tab" data-toggle="tab" routerLink="timesheet" role="tab" (click)="removeActiveTab()"  routerLinkActive="active"
-                aria-controls="timesheet" aria-selected="false">Timesheet</a>
-            </li>
-            <li  class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="biomax-tab" data-toggle="tab" routerLink="biomax" role="tab" (click)="removeActiveTab()"  routerLinkActive="active"
-                aria-controls="biomax" aria-selected="false">Biomax</a>
-            </li>
+      <li class="nav-item report__tab-item">
+        <a class="nav-link report__tab-item__link" id="leave-tab" data-toggle="tab" routerLink="leave" role="tab"
+          (click)="removeActiveTab()" routerLinkActive="active" aria-controls="leave" aria-selected="false">Leave</a>
+      </li>
 
-            <li  class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="rewards-tab"  data-toggle="tab" routerLink="rewards" role="tab" (click)="removeActiveTab()"  routerLinkActive="active"
-                aria-controls="reward" aria-selected="false">Rewards</a>
-            </li>
+      <li class="nav-item report__tab-item">
+        <a class="nav-link report__tab-item__link" id="projects-tab" data-toggle="tab" routerLink="project" role="tab"
+          (click)="removeActiveTab()" routerLinkActive="active" aria-controls="projects"
+          aria-selected="false">Project</a>
+      </li>
+      <li class="nav-item report__tab-item">
+        <a class="nav-link report__tab-item__link" id="timesheet-tab" data-toggle="tab" routerLink="timesheet"
+          role="tab" (click)="removeActiveTab()" routerLinkActive="active" aria-controls="timesheet"
+          aria-selected="false">Timesheet</a>
+      </li>
+      <li class="nav-item report__tab-item">
+        <a class="nav-link report__tab-item__link" id="biomax-tab" data-toggle="tab" routerLink="biomax" role="tab"
+          (click)="removeActiveTab()" routerLinkActive="active" aria-controls="biomax" aria-selected="false">Biomax</a>
+      </li>
 
-            <li  class="nav-item report__tab-item">
-              <a class="nav-link report__tab-item__link" id="appreciation-tab" data-toggle="tab" routerLink="appreciation" role="tab"  (click)="removeActiveTab()"  routerLinkActive="active"
-                aria-controls="appreciation" aria-selected="false">Appreciation</a>
-            </li>
+      <li class="nav-item report__tab-item">
+        <a class="nav-link report__tab-item__link" id="rewards-tab" data-toggle="tab" routerLink="rewards" role="tab"
+          (click)="removeActiveTab()" routerLinkActive="active" aria-controls="reward" aria-selected="false">Rewards</a>
+      </li>
 
-          </ul>
-  
-          <div class="tab-content" id="reportTabContent">
-        
-            <div class="config__tab-container">
-              <router-outlet class="tab-pane fade" role="tabpanel"></router-outlet>
-            </div>
+      <li class="nav-item report__tab-item">
+        <a class="nav-link report__tab-item__link" id="appreciation-tab" data-toggle="tab" routerLink="appreciation"
+          role="tab" (click)="removeActiveTab()" routerLinkActive="active" aria-controls="appreciation"
+          aria-selected="false">Appreciation</a>
+      </li>
+      <li style="display: none;" class="nav-item report__tab-item">
+        <a class="nav-link report__tab-item__link" id="lms-tab" data-toggle="tab" routerLink="lms" role="tab"
+          (click)="removeActiveTab()" routerLinkActive="active" aria-controls="lms" aria-selected="false">LMS</a>
+      </li>
+    </ul>
 
-               </div>
-        </div>
+    <div class="tab-content" id="reportTabContent">
+
+      <div class="config__tab-container">
+        <router-outlet class="tab-pane fade" role="tabpanel"></router-outlet>
       </div>
-      <!-- <div class="tab-pane fade show active report__tab-container" id="projects" role="tabpanel" *ngIf="currentab===leave">
+
+    </div>
+  </div>
+</div>
+<!-- <div class="tab-pane fade show active report__tab-container" id="projects" role="tabpanel" *ngIf="currentab===leave">
         <h4 class="project-heading">Projects</h4>
         <app-leave360></app-leave360>
         </div>
     </div> -->
 
-  
-     
-     <!-- Sidebar Profile Section (Moved to Right) -->
-<div class="col-md-3 profile-section">
-  <div class="profile-card">
-    <!-- Profile Picture -->
-    <div class="profile-picture">
-      <img src="assets/Images/default-user-image.jpeg" alt="Profile Picture" />
-    </div>
-    <!-- Name and Email -->
-    <h3 class="profile-name">{{employeeData.name}}</h3>
-    <p class="profile-email">{{employeeData.email}}</p>
-    <p class="profile-phone">{{employeeData.mobileNo}}</p>
 
-    <!-- Employee Details -->
-    <div class="profile-details">
-      <p><strong>Employee ID:</strong> {{employeeData.employeementId}}</p>
-      <p><strong>Job Title:</strong> {{employeeData.designationName}}</p>
-      <p><strong>Department:</strong> {{employeeData.departmentName}}</p>
-      <p><strong>Office:</strong> {{employeeData.workLocation}}</p>
-      <p><strong>Employee Since:</strong> {{employeeData.dateOfJoining}}</p>
-      <p><strong>Manager Name:</strong> {{employeeData.managerName}}</p>
-      <p><strong>Total OverTime:</strong> {{responseOvertime?.totalOverTime}}</p>
-      <p><strong>Total UnderTime:</strong> {{responseOvertime?.totalOverTimeE}}</p>
-      <p><strong>Billable Type:</strong> {{employeeData.billableType}}</p>
-      <p><strong>Status:</strong> {{employeeData.employmentstatus}}</p>
-      <p><strong>Total Experience:</strong> {{employeeData.totalExperience}}</p>
-    </div>
-  </div>
-</div>
 
- </div>
-
+<!-- Sidebar Profile Section (Moved to Right) -->

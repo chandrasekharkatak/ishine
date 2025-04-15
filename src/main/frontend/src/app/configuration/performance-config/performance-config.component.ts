@@ -72,9 +72,10 @@ export class PerformanceConfigComponent implements OnInit {
   quarterCycleUpdate = new QuarterCycle();
 
   quarterCycleColumns: any[] = ['blank', 'financialYear', 'quarterCycle', 'createdByName', 'createdOn', 'updatedByName', 'updatedOn'];
-  employeesFor360: any[] = [];
+ 
   log:Log;
   tabName:any = 'Configurations';
+  excelName: string;
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -90,12 +91,7 @@ export class PerformanceConfigComponent implements OnInit {
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   async ngOnInit(): Promise<void> {
-    try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
 
     this.showQuaterTable();
     this.getAllDepartmentList();
@@ -160,20 +156,19 @@ export class PerformanceConfigComponent implements OnInit {
   setFinancialYear() {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1; // Months are 0-based in JS
+    const currentMonth = currentDate.getMonth() + 1;
 
     if (currentMonth >= 4) {
-      this.quarterCycle.fromYear = currentYear;
-      this.quarterCycle.toYear = currentYear + 1;
-
-
-    } else {
+      // If it's April 2025 or later, set to previous financial year (2024-2025)
       this.quarterCycle.fromYear = currentYear - 1;
       this.quarterCycle.toYear = currentYear;
-
-
+    } else {
+      // If it's Jan, Feb, or March 2025, financial year is still 2023-2024
+      this.quarterCycle.fromYear = currentYear - 2;
+      this.quarterCycle.toYear = currentYear - 1;
     }
-  }
+}
+
 
   showReviewTable() {
     this.isQuaterTable = false;
@@ -255,17 +250,11 @@ export class PerformanceConfigComponent implements OnInit {
         this.quarterCyclesList.forEach(quarterCycleObj => {
           quarterCycleObj.updatedOn = (quarterCycleObj.updatedOn) ? moment(quarterCycleObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           quarterCycleObj.createdOn = (quarterCycleObj.createdOn) ? moment(quarterCycleObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          quarterCycleObj.emp360CreatedBy = quarterCycleObj.createdBy;
+          quarterCycleObj.emp360CreatedBy = quarterCycleObj.updatedBy;
+        
         });
-        this.quarterCyclesList.forEach((employee) => {
-          // console.log("employee.createdBy ", employee.createdBy);
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-          // console.log("createdby ", matchingEmployee3);
-          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-          // console.log("employee.updatedBy ", employee.updatedBy);
-          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
-          // console.log("updatedBy ", matchingEmployee4);
-          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
-        });
+     
       } else {
         alert(response.serviceResponse);
       }
@@ -281,7 +270,7 @@ export class PerformanceConfigComponent implements OnInit {
       const onlySpecificDataArr = this.quarterCycleDataForExcel.map(
         x => ({
           "Financial Year": x.financialYear,
-          "Quarter Cycle": x.quarterCycle,
+          "Cycle": x.quarterCycle,
           "Created By": x.createdByName,
           "Created on": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
           "Updated By": x.updatedByName,
@@ -291,6 +280,16 @@ export class PerformanceConfigComponent implements OnInit {
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
     });
   }
+
+  // exportToExcel(id:any): void {
+  //   const tableId = id; // Replace with your actual table ID
+  //   this.excelName = "QuarterCycle.xlsx";
+  //   this.tabName= 'Quarter Cycle Table';
+  
+  //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tabName);
+  // }
+
+  
 
 
 
@@ -302,7 +301,26 @@ export class PerformanceConfigComponent implements OnInit {
     };
     return monthIndex[monthShort] || 0;
   }
+  isAllSelected = false;  // Track if all departments are selected
 
+// Toggle Select/Deselect All
+toggleSelectAll() {
+  if (this.isAllSelected) {
+    // Deselect all if already selected
+    this.reviewObj.deptId = [];
+    this.isAllSelected = false;
+  } else {
+    // Select all departments
+    this.reviewObj.deptId = this.allDeptList.map(dept => dept.deptId);
+    this.isAllSelected = true;
+  }
+}
+
+// Handle selection change
+// onDepartmentChange() {
+//   const selectedDepartments = this.reviewObj.deptId;
+//   this.isAllSelected = selectedDepartments.length === this.allDeptList.length;
+// }
   checkMonthExistence(template: TemplateRef<any>) {
     if (!this.quarterCycle.fromMonth) return;
 
@@ -325,7 +343,7 @@ export class PerformanceConfigComponent implements OnInit {
 
     if (isOverlap) {
       this.quarterCycle.fromMonth = '';
-      this.openAlertMod(template, `The selected month ${this.quarterCycle.fromMonth} already exists in a quarter cycle ${existingQuarter}.`);
+      this.openAlertMod(template, `The selected month ${this.quarterCycle.fromMonth} already exists in a cycle ${existingQuarter}.`);
 
     }
   }
@@ -447,7 +465,7 @@ export class PerformanceConfigComponent implements OnInit {
     obj.quarterId = quarterId;
     this.performanceService.isEnable(obj).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, 'Quarter Cycle Enabled');
+        this.openAlertMod(template, 'Cycle Enabled');
         this.showQuaterTable();
       }
     });
@@ -468,7 +486,7 @@ export class PerformanceConfigComponent implements OnInit {
 
     this.performanceService.deleteQuarterCycle(obj).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, 'Quarter Cycle Deleted');
+        this.openAlertMod(template, 'Cycle Deleted');
         this.showQuaterTable();
       }
     });
@@ -515,7 +533,7 @@ export class PerformanceConfigComponent implements OnInit {
 
     this.performanceService.isEnable(obj).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, 'Quarter Cycle Disabled');
+        this.openAlertMod(template, 'Cycle Disabled');
         this.showQuaterTable();
       }
     });
@@ -613,7 +631,7 @@ export class PerformanceConfigComponent implements OnInit {
   validateReviewTypes(template: TemplateRef<any>,reviewObj:review,allSpecializationList:any[] ){
 
     if(!this.validationService.validateNullUndefinedEmptyString(reviewObj.quarterId)){
-      this.alertMessage = "Please select Quarter Cycle !!"
+      this.alertMessage = "Please select Cycle !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -772,14 +790,8 @@ export class PerformanceConfigComponent implements OnInit {
           return new Date(b.createdOn).getTime() - new Date(a.createdOn).getTime();
         });
         this.reviewTypelist.forEach((employee) => {
-          // console.log("employee.createdBy ", employee.createdBy);
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-          // console.log("createdby ", matchingEmployee3);
-          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-          // console.log("employee.updatedBy ", employee.updatedBy);
-          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
-          // console.log("updatedBy ", matchingEmployee4);
-          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
+          employee.emp360CreatedBy = employee.createdBy;
+         employee.emp360UpdatedBy = employee.updatedBy;
         });
       } else {
         console.error("API Response", response.serviceResponse);
@@ -824,14 +836,26 @@ export class PerformanceConfigComponent implements OnInit {
   }
 
   fieldRestrictNumber(event) {
-    const k = event.charCode;
-    if ((k >= 65 && k <= 90) || (k >= 97 && k <= 122) || (k === 32)) {
-      return true;
+    const k = event.charCode; 
+    const inputValue = event.target.value; 
+    if ((k >= 65 && k <= 90) || (k >= 97 && k <= 122)) {
+        return true; 
     }
+    if (k === 32 && inputValue.length > 0) { 
+        return true; 
+    }
+    return false; 
+}
+
+  // fieldRestrictNumber(event) {
+  //   const k = event.charCode;
+  //   if ((k >= 65 && k <= 90) || (k >= 97 && k <= 122) || (k === 32)) {
+  //     return true;
+  //   }
     
 
-    return false;
-  }
+  //   return false;
+  // }
 
 
 

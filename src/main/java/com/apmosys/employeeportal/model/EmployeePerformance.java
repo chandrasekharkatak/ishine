@@ -3,11 +3,13 @@ package com.apmosys.employeeportal.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -37,6 +39,15 @@ public class EmployeePerformance {
 	private LocalDateTime hr_review_date;
 	private String hr_review_status;
 	private String hr_remarks;
+	@Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean rejectStatus = false;
+	
+	 @PrePersist
+	    public void prePersist() {
+	        if (rejectStatus == null) {
+	            rejectStatus = false;  
+	        }
+	    }
 	
 	
 //	@OneToMany
