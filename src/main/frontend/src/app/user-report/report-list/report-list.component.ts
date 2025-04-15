@@ -257,6 +257,7 @@ export class ReportListComponent implements OnInit {
 
   isAllSelected = false;
   toggleSelectAll() {
+    // this.employeeReportObj.deptId = [];
     if (this.isAllSelected) {
       // Deselect all if already selected
       this.employeeReportObj.deptId = [];
@@ -265,10 +266,20 @@ export class ReportListComponent implements OnInit {
       // Select all departments
       this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
       this.isAllSelected = true;
+      this.getEmployeeReportData();
     }
     // this.getEmployeeReportData();
 
   }
+
+  allOptionValue = 'ALL'; // special marker
+
+onDepartmentSelectionChange() {
+  if (!this.isAllSelected && this.employeeReportObj.deptId.length > 0) {
+    this.getEmployeeReportData();
+  }
+}
+
 
   flattenProjectList() {
     this.flatProjectList = [];
@@ -589,11 +600,11 @@ export class ReportListComponent implements OnInit {
       this.changeTable = true;
       this.selectedDepartment = 'all';
 
-      this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
+      // this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
       // alert("toggle on" + this.departments.length);
-
+  
       this.employeeReportObj = {
-        deptId: this.employeeReportObj.deptId,
+        deptId:  this.departments.map(dept => dept.deptId),
         poProjectType: null,
         category: 'Employee',
         flag: null,
@@ -660,11 +671,13 @@ export class ReportListComponent implements OnInit {
   }
 
   departmentChange() {
+    this.getEmployeeReportData();
+    
     // this.employeeReportObj.deptId = [];
     // console.log(this.employeeReportObj.deptId.length,":this.employeeReportObj.deptId.length");
-    if (this.isAllSelected == false) {
-      this.getEmployeeReportData();
-    }
+    // if (this.isAllSelected == false) {
+    //   this.getEmployeeReportData();
+    // }
 
   }
 
