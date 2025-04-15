@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -15,6 +16,8 @@ import java.util.stream.Collectors;
 import org.apache.naming.factory.SendMailFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -113,7 +116,18 @@ public class TravelDeskService {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(savedTravelDesk);
 			serviceResponse.setServiceMessage("Saved Successfully..!!");
+			
+			this.getTemplateFile(Long.parseLong(travelDesk.getDocId())); 
+			//Resource resource = getTemplateFile(documentId);
 			File file = null;
+			try {
+			    Resource resource = getTemplateFile(Long.parseLong(travelDesk.getDocId()));
+			    if (resource != null && resource.exists()) {
+			        file = resource.getFile(); 
+			    }
+			} catch (IOException e) {
+			    e.printStackTrace();
+			}
             Employee emp = employeeRepository.findByEmpId(Long.valueOf(travelDesk.getEmpId().toString()));
             if(savedTravelDesk.getRequestType().equalsIgnoreCase("HOTEL")) {
             	mailService.sendMailWithAttachment(travelDesk.getLevel1ApproverEmail(),travelDesk.getEmail(),
@@ -514,6 +528,29 @@ public class TravelDeskService {
 	    apiLogInfo.setApiRequest(logBuilder.toString());
 	    return response;
 	}
+	
+	public Resource getTemplateFile(Long documentId) throws FileNotFoundException {
+		Resource resource=null;
+		String filename=null;
+		try {
+		List<Object[]> object = newsletterRepository.findByDocumentId(documentId);
+		for (Object[] objectlist : object) {
+		     filename= (String)objectlist[1];
+		    System.out.println("filename" +filename);
+		}
+		
+		String Location = traveldeskFileLocation + File.separator + filename;
+		File file = new File(Location);
+		if (file.exists()) {
+			resource = new FileSystemResource(Location);
+		}
+		} catch (Exception e) {
+			e.printStackTrace();
+		// throw new FileNotFoundException("File not found ");
+		}
+		return resource;
+
+	} 
 
 
 
