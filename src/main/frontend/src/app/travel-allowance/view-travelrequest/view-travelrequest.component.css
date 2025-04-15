@@ -79,3 +79,15 @@
     /* visibility: visible !important; */
   }
   
+
+  .text-danger {
+    color: red;
+  }
+  
+  .text-success {
+    color: green;
+  }
+  
+  .text-warning {
+    color: yellow;
+  }

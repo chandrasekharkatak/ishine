@@ -30,5 +30,10 @@ public class TravelDeskDTO {
 	    private String level1approverRemarks;
 	    private String level2approverRemarks;
 	    private String level1approveremail;
+	    private String level2Approver;
+	    private String hotelCategory;
+	    private String cityCategory;
+	    private String docId;
+	
 	    
 }

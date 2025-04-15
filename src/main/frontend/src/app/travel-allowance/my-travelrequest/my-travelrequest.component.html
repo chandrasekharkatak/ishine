@@ -64,10 +64,32 @@
                         <option value="Attend Client Interview">Attend Client Interview</option>
                         <option value="Client Visit">Client Visit</option>
                         <option value="Office Tour">Office Tour</option>
+                        <option value="Hotel">Hotel and Lodging</option>
                     </select>
                 </div>
 
-                <div class="col-md-3 mb-0">
+
+
+                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest === 'Hotel'">
+                    <label class="info-label"><span class="text-danger">*</span>Hotel Booking Category</label>
+                    <select class="form-control" [(ngModel)]="travelDeskObj.hotelCategory" name="hotelCategory" required>
+                        <option value="" disabled>Select Category</option>
+                        <option value="Above TL">Above TL</option>
+                        <option value="TL">TL & Below</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.hotelCategory === 'TL' || travelDeskObj.hotelCategory === 'Above TL'">
+                    <label class="info-label"><span class="text-danger">*</span>Sub Category</label>
+                    <select class="form-control" [(ngModel)]="travelDeskObj.tlSubCategory" name="tlSubCategory" required>
+                      <option value="" disabled>Select Sub Category</option>
+                      <option value="Metros">Metros</option>
+                      <option value="Category A">Category A</option>
+                      <option value="Category B">Category B</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel'">
                     <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
                     <select class="form-control" [(ngModel)]="travelDeskObj.travelMode" name="travelMode" required>
                         <option value="" disabled>Select</option>
@@ -78,7 +100,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-3 mb-0">
+                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel'">
                     <label class="info-label"><span class="text-danger">*</span>Travel Class</label>
                     <select class="form-control" [(ngModel)]="travelDeskObj.travelClass" name="travelClass" required>
                         <option value="" disabled>Select</option>
@@ -89,14 +111,14 @@
                     </select>
                 </div>
 
-                <div class="col-md-3 mb-0">
+                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel'">
                     <label class="info-label">
                         <span class="text-danger">*</span>From Location
                     </label>
                     <input type="text" class="form-control" [(ngModel)]="travelDeskObj.fromLocation" name="fromLocation"  required />
                 </div>
 
-                <div class="col-md-3 mb-0">
+                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel'">
                     <label class="info-label">
                         <span class="text-danger">*</span>To Location
                     </label>

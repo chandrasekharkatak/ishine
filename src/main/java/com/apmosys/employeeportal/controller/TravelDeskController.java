@@ -53,7 +53,7 @@ public class TravelDeskController {
 		
 	}
 	
-	@RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
+	@PostMapping("/uploadFile")
 	public ServiceResponse uploadFile(HttpServletRequest request,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam("displayName") String displayName,

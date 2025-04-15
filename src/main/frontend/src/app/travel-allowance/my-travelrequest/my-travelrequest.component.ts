@@ -59,6 +59,9 @@ import { DomainService } from 'src/app/services/domain.service';
     fromLocation:'',
     toLocation:'',
     supportingDocument: null, // File
+    hotelCategory:'',
+    tlSubCategory:'',
+
   };
   locationStrategy: any;
   domainSpecializationList: any[];
@@ -142,6 +145,7 @@ import { DomainService } from 'src/app/services/domain.service';
 
   cancelRequest() {
     this.modalRef.hide();
+    location.reload();
   }
 
 //   async submitForm(template: TemplateRef<any>) {
@@ -246,6 +250,7 @@ async submitForm(template: TemplateRef<any>) {
       this.openAlertMod(template, "Please select an Associated Travel Request.");
       return;
     }
+    if (this.travelDeskObj.associatedTravelRequest !== 'Hotel') {
     if (!this.travelDeskObj.travelMode) {
       this.openAlertMod(template, "Please select a Travel Mode.");
       return;
@@ -262,6 +267,7 @@ async submitForm(template: TemplateRef<any>) {
       this.openAlertMod(template, "Please Enter to location.");
       return;
     }
+  }
     if (!this.travelDeskObj.fromDate) {
       this.openAlertMod(template, "Please Select from date.");
       return;
@@ -314,9 +320,13 @@ async submitForm(template: TemplateRef<any>) {
         toLocation: this.travelDeskObj.toLocation,
         purposeOfTravel: this.travelDeskObj.purposeOfTravel,
         levelOneApprover: this.currentUser.hodId,
-        hodName: this.currentUser.hodName
+        hodName: this.currentUser.hodName,
+        hotelCategory:this.travelDeskObj.hotelCategory,
+        cityCategory:this.travelDeskObj.tlSubCategory,
+        docId: uploadResponse.serviceResponse.documentId
       };
 
+      console.log('travel data         :::::::::::::',travelData);
       const formData = new FormData();
       formData.append('file', this.travelDeskObj.supportingDocument);
       formData.append('travelData', new Blob([JSON.stringify(travelData)], { type: "application/json" }));
@@ -325,7 +335,7 @@ async submitForm(template: TemplateRef<any>) {
 
       if (saveResponse.serviceStatus === "Success") {
         this.openAlertMod(template, "Success! Your request was processed successfully!");
-        location.reload();
+        //location.reload();
       } else {
         this.openAlertMod(template, saveResponse.serviceResponse || "Failed to save travel data.");
       }

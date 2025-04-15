@@ -110,7 +110,7 @@ export class ViewTravelrequestComponent implements OnInit {
 
   
 
-  async updateTravelRequest() {
+  async updateTravelRequest(template: TemplateRef<any>) {
 
       this.travelDeskInfo = new MyTravelDesk();
       let travelData = new MyTravelDesk();
@@ -133,7 +133,11 @@ export class ViewTravelrequestComponent implements OnInit {
       newtravelData.fromLocation = this.selectedTravelRequest.fromLocation;
       newtravelData.toLocation =this.selectedTravelRequest.toLocation;
       newtravelData.purposeOfTravel = this.selectedTravelRequest.purpose;
+      newtravelData.levelOneApprover = this.selectedTravelRequest.approver1;
+      newtravelData.level2Approver = this.selectedTravelRequest.approver2;
       newtravelData.supportingDocument = this.selectedTravelRequest.supportingDocument;
+      newtravelData.hotelCategory = this.selectedTravelRequest.hotelCategory;
+      newtravelData.cityCategory = this.selectedTravelRequest.cityCategory;
 
 
       console.log('selectedTravelRequest Data ::::::::::::::::', this.selectedTravelRequest);
@@ -147,16 +151,20 @@ export class ViewTravelrequestComponent implements OnInit {
         const response: any = await this.travelDesk.updateTravelData(newtravelData).toPromise();
   
         if (response.serviceStatus === "Success") {
-          alert("Success! Your data was updated successfully.");
-          console.log('Updated Travel Request:', this.selectedTravelRequest);
           this.modalRef.hide();
+
+          this.openAlertMod(template, "Success! Your data was updated successfully. !!");
+
+         // alert("Success! Your data was updated successfully.");
+          console.log('Updated Travel Request:', this.selectedTravelRequest);
+          
         } else {
           console.error('Error updating travel request:', response.serviceResponse);
-          alert('There was an issue updating the data.');
+          this.openAlertMod(template, "There was an issue updating the data. !!");
         }
       } catch (error) {
         console.error('Error during API call:', error);
-        alert('An error occurred while updating the data. Please try again later.');
+        this.openAlertMod(template, "An error occurred while updating the data. Please try again later.");
       }
  
     }
@@ -179,6 +187,7 @@ export class ViewTravelrequestComponent implements OnInit {
       const response: any = await this.travelDesk.revokeTravel(travelData).toPromise();
       
       if (response.serviceStatus === "Success") {
+        //this.openAlertMod( "Success! Your Data is deleted successfully. !!");
         alert("Success! Your Data is deleted successfully.");
         this.onGetTravelInfo();
         
@@ -187,7 +196,9 @@ export class ViewTravelrequestComponent implements OnInit {
       }
     }
   }
-
+  cancelRequest() {
+    this.modalRef.hide();
+  }
 
 
  async onGetEmployeeInfo(){

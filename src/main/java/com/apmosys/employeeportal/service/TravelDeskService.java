@@ -54,6 +54,8 @@ public class TravelDeskService {
 	public ServiceResponse saveTravelData(TravelDeskDTO travelData) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
+
+			
 		TravelDesk travelDesk = new TravelDesk();
 		TravelDesk savedTravelDesk = new TravelDesk();
 		
@@ -69,6 +71,8 @@ public class TravelDeskService {
 		travelDesk.setName(travelData.getFullName());
 		travelDesk.setHodName(travelData.getHodName());
 		travelDesk.setRequestType(travelData.getAssociatedTravelRequest());
+		travelDesk.setHotelCategory(travelData.getHotelCategory());
+		travelDesk.setCityCategory(travelData.getCityCategory());
 		travelDesk.setTravelMode(travelData.getTravelMode());
 		travelDesk.setTravelClass(travelData.getTravelClass());
 		travelDesk.setPurpose(travelData.getPurposeOfTravel());
@@ -76,6 +80,7 @@ public class TravelDeskService {
 		travelDesk.setFromDate(travelData.getFromDate());
 		travelDesk.setToLocation(travelData.getToLocation());
 		travelDesk.setToDate(travelData.getToDate());
+		travelDesk.setDocId(travelData.getDocId());
 		Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
 		currentTimestamp.setNanos(currentTimestamp.getNanos() / 1000 * 1000);
 		System.out.println(currentTimestamp);
@@ -83,10 +88,17 @@ public class TravelDeskService {
 		travelDesk.setStatus("Pending");
 		BigInteger approver1 = BigInteger.valueOf(travelData.getLevelOneApprover());
 		travelDesk.setApprover1(approver1);
+		Employee level1 = employeeRepository.findByEmpId(Long.valueOf(travelData.getLevelOneApprover()));
+        travelDesk.setLevel1ApproverEmail(level1.getEmail());
+		
 		BigInteger approver2 = new BigInteger(level2Approver);
 		travelDesk.setApprover2(approver2);
 		travelDesk.setLevel(1);
 		travelDesk.setIsActive(1);
+		travelDesk.setLevel2approverStatus("Pending");
+		Employee level2 = employeeRepository.findByEmpId(Long.valueOf(travelDesk.getApprover2().toString()));
+		travelDesk.setLevel2ApproverEmail(level2.getEmail());
+		travelDesk.setLevel2approverName(level2.getName());
 		System.out.println(travelDesk);
 		savedTravelDesk=tavelDeskRepository.save(travelDesk);
 		
@@ -100,12 +112,13 @@ public class TravelDeskService {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(savedTravelDesk);
 			serviceResponse.setServiceMessage("Saved Successfully..!!");
+			File file = null;
             Employee emp = employeeRepository.findByEmpId(Long.valueOf(travelDesk.getEmpId().toString()));
-			mailService.sendMailforTravel(travelDesk.getLevel1ApproverEmail(),
+			mailService.sendMailWithAttachment(travelDesk.getLevel1ApproverEmail(),travelDesk.getEmail(),
 	        		"Travel request approval required",
 	        		"Dear"+travelDesk.getHodName()+", <br><br>" + "A travel request is applied by "+ emp.getName()+"<br> for the purpose of : "+
 	        		travelDesk.getPurpose()+".<br>From date:"+travelDesk.getFromDate().toGMTString()+" and will return on : "+travelDesk.getToDate().toGMTString()+
-	        		".<br> For this the mode of travel will be : "+travelDesk.getTravelMode()+" and travel class is:"+travelDesk.getTravelClass()+" .<br>Kindly take action on this application .");
+	        		".<br> For this the mode of travel will be : "+travelDesk.getTravelMode()+" and travel class is:"+travelDesk.getTravelClass()+" .<br>Kindly take action on this application .",file);
 
 			return serviceResponse;
 		}
@@ -163,6 +176,8 @@ public class TravelDeskService {
 				existingTravelDesk.setDepartment(travelData.getDepartmentName());
 				existingTravelDesk.setName(travelData.getFullName());
 				existingTravelDesk.setRequestType(travelData.getAssociatedTravelRequest());
+				existingTravelDesk.setHotelCategory(travelData.getHotelCategory());
+				existingTravelDesk.setCityCategory(travelData.getCityCategory());
 				existingTravelDesk.setTravelMode(travelData.getTravelMode());
 				existingTravelDesk.setTravelClass(travelData.getTravelClass());
 				existingTravelDesk.setPurpose(travelData.getPurposeOfTravel());
@@ -179,10 +194,16 @@ public class TravelDeskService {
 //				BigInteger bigInteger = new BigInteger(numberString);
 				BigInteger approver = BigInteger.valueOf(travelData.getLevelOneApprover());
 				existingTravelDesk.setApprover1(approver);
+				Employee level1 = employeeRepository.findByEmpId(Long.valueOf(travelData.getLevelOneApprover()));
+				existingTravelDesk.setLevel1ApproverEmail(level1.getEmail());
 				existingTravelDesk.setLevel(1);
 				BigInteger approver2 = new BigInteger(level2Approver);
 				existingTravelDesk.setApprover2(approver2);
 				existingTravelDesk.setIsActive(1);
+				existingTravelDesk.setLevel2approverStatus("Pending");
+				Employee level2 = employeeRepository.findByEmpId(Long.valueOf(travelData.getLevel2Approver().toString()));
+				existingTravelDesk.setLevel2ApproverEmail(level2.getEmail());
+				existingTravelDesk.setLevel2approverName(level2.getName());
 				TravelDesk savedTravelDesk = tavelDeskRepository.save(existingTravelDesk);
 				if(savedTravelDesk == null) {
 					serviceResponse.setServiceError("Unable to update...!!");
@@ -455,10 +476,11 @@ public class TravelDeskService {
 	            newsletter.setType("TRAVEL ALLOWANCE");
 	            newsletter.setReadEnabled("true");
 	            newsletter.setCreatedBy(Integer.parseInt(uploadedBy.toString()));
-	            newsletterRepository.save(newsletter);
+	            Newsletter travelDocDetails = newsletterRepository.save(newsletter);
 
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            response.setServiceResponse("Travel Document uploaded successfully.");
+	            response.setServiceResponse(travelDocDetails);
+	            response.setServiceMessage("Travel Document uploaded successfully.");
 	            apiLogInfo.setApiResponse("Travel Document uploaded successfully");
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        } else {

@@ -102,6 +102,13 @@ public class TravelDesk {
 	@Column(name = "level2_approver_Remarks")
 	private String level2approverRemarks;
 	
+	@Column(name = "level2_approver_name")
+	private String level2approverName;
+	
+	@Column(name = "level2_approver_status")
+	private String level2approverStatus;
+	
+	
 	@Column(name = "docPath")
 	private String docPath;
 	
@@ -110,6 +117,16 @@ public class TravelDesk {
 	
 	@Column(name = "hod_name")
 	private String hodName;
+	
+	@Column(name = "hotel_category")
+	private String hotelCategory;
+	
+	@Column(name = "city_category")
+	private String cityCategory;
+	
+	@Column(name = "doc_id")
+	private String docId;
+	
 	
 
 

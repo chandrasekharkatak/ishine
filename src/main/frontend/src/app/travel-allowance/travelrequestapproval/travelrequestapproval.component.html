@@ -84,13 +84,17 @@
                   <th scope="col" class="info-label">To Date</th>
                   <th scope="col" class="info-label">From Location</th>
                   <th scope="col" class="info-label">To Location</th>
-                  <th scope="col" class="info-label">Status</th>
+                  <th scope="col" class="info-label">Hotel Category</th>
+                  <th scope="col" class="info-label">City Category</th>
+                  <!-- <th scope="col" class="info-label">Status</th> -->
                   <th scope="col" class="info-label">Applied By</th>
                   <th scope="col" class="info-label">Applied On</th>
                   <th scope="col" class="wide-col">Purpose Of Travel</th>
                   <th scope="col" class="info-label">Current Approval Level</th>
                   <th scope="col" class="info-label">Level 1 Approver Name</th>
                   <th scope="col" class="info-label">Level 1 Approver Status</th>
+                  <th scope="col" class="info-label">Level 2 Approver Name</th>
+                  <th scope="col" class="info-label">Level 2 Approver Status</th>
                   <th scope="col" class="info-label">Action</th>
                 </tr>
               </thead>
@@ -102,15 +106,37 @@
                   <td>{{ row.requestType }}</td>
                   <td>{{ row.fromDate | date }}</td>
                   <td>{{ row.toDate | date }}</td>
-                  <td>{{ row.fromLocation }}</td>
-                  <td>{{ row.toLocation }}</td>
-                  <td>{{ row.status }}</td>
-                  <td>{{ row.appliedBy }}</td>
+                  <td>{{ row.hotelCategory || 'NA' }}</td>
+                  <td>{{ row.cityCategory || 'NA' }}</td>
+                  <td>{{ row.fromLocation || 'NA' }}</td>
+                  <td>{{ row.toLocation || 'NA' }}</td>
+                  <!-- <td [ngClass]="{
+                    'text-danger': row.status === 'Rejected',
+                    'text-success': row.status === 'Approved',
+                    'text-warning': row.status === 'Pending'
+                                }">
+                    {{ row.status }}
+                  </td> -->
+                  <td>{{ row.empId }}</td>
                   <td>{{ row.appliedOn | date }}</td>
                   <td>{{ row.purpose }}</td>
                   <td>{{ row.level }}</td>
                   <td>{{ row.hodName }}</td>
-                  <td>{{ row.status }}</td>
+                  <td [ngClass]="{
+                    'text-danger': row.status === 'Rejected',
+                    'text-success': row.status === 'Approved',
+                    'text-warning': row.status === 'Pending'
+                                }">
+                    {{ row.status }}
+                  </td>
+                  <td>{{ row.level2approverName }}</td>
+                  <td [ngClass]="{
+                    'text-danger': row.status === 'Rejected',
+                    'text-success': row.status === 'Approved',
+                    'text-warning': row.status === 'Pending'
+                                }"> 
+                    {{ row.level2approverStatus }}
+                  </td>
                   <td>
                     
                     <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button" class="btn btn-success btn-sm btn-action button" (click)="openEditModal(approveRequest,row)">

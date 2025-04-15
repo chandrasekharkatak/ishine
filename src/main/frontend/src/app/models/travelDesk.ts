@@ -23,4 +23,9 @@ export class MyTravelDesk{
     level2approverRemarks : any;
     hodId : any;
     hodName : any ;
+    level2Approver :any;
+    level2ApproverEmail :any;
+    cityCategory : any;
+    hotelCategory :any;
+    docId: any;
 }

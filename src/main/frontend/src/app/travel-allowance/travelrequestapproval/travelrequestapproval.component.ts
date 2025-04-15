@@ -204,9 +204,11 @@ export class TravelrequestapprovalComponent implements OnInit {
       if (response.serviceStatus === "Success") {
 
         if(response.serviceResponse.status === "Rejected"){
+          this.modalRef.hide();
           this.alertMessage = `Success! Your request was Rejected successfully ..!!!!`;
           this.openAlertMod(template, this.alertMessage);
         }else{
+          this.modalRef.hide();
         this.alertMessage = `Success! Your request was approved successfully ..!!!!`;
         this.openAlertMod(template, this.alertMessage);
         console.log('Updated Travel Request:', this.selectedTravelRequest);
