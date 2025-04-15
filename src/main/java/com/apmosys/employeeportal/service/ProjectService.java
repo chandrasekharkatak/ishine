@@ -11,9 +11,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
@@ -144,9 +146,6 @@ public class ProjectService {
 	
 	@Value("${poPortal.api.allProjects}")
 	private String allPoPortalProjects;
-	
-	@Value("${poPortal.api.poProjectSyncApi}")
-	private String poProjectSyncApi;
 	
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
@@ -1868,94 +1867,166 @@ public class ProjectService {
 	    return outerWhere.toString();
 	}
 	
-	public String buildProjectSummaryQuery(GetEmployeeProjectReportPayloadDTO dto, boolean isFiltered) {
+	public String buildProjectSummaryQuery(GetEmployeeProjectReportPayloadDTO dto, List<Long> deptId) {
 	    StringBuilder query = new StringBuilder();
 
-	    query.append("SELECT ")
-	         .append("main.po_project_type, ")
-	         .append("main.billable_type, ")
-	         .append("main.total_emp, ")
-	         .append("sub.total_emp_per_project_type, ")
-	         .append("main.total_projects,  ")
-	         .append("sub.total_projects_per_po_project ")
-	         .append("FROM ( ")
-	         .append("SELECT ")
-	         .append("CASE WHEN po_project_type IS NULL THEN 'Internal' ELSE po_project_type END AS po_project_type, ")
-	         .append("e.billable_type, COUNT(DISTINCT e.emp_id) AS total_emp, COUNT(DISTINCT p.po_project_id) AS total_projects ")
-	         .append("FROM projects p ")
-	         .append("INNER JOIN teams t ON t.project_id = p.project_id ")
-	         .append("INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id ")
-	         .append("INNER JOIN employee e ON etm.emp_id = e.emp_id ")
-	         .append("INNER JOIN job_role j ON e.job_role_id = j.job_role_id ")
-	         .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
-	         .append("INNER JOIN employee ep ON p.project_manager_id = ep.emp_id ")
-	         .append("WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ");
+	    query.append("WITH AllPoProjectTypes AS (\n"
+	    		+ "    SELECT 'Internal' AS po_project_type\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'TNM'\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'Fixed Cost'\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'Monitoring' \n"
+	    		+ "),\n"
+	    		+ "AllBillableTypes AS (\n"
+	    		+ "    SELECT 'Bench' AS billable_type\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'Shadow'\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'TNM'\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'Fixed Cost'\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'InternalRNDProducts'\n"
+	    		+ "),\n"
+	    		+ "AllCombinations AS (\n"
+	    		+ "    SELECT \n"
+	    		+ "        apt.po_project_type, \n"
+	    		+ "        abt.billable_type\n"
+	    		+ "    FROM AllPoProjectTypes apt\n"
+	    		+ "    CROSS JOIN AllBillableTypes abt\n"
+	    		+ "),\n"
+	    		+ "MainAgg AS (\n"
+	    		+ "    SELECT \n"
+	    		+ "        CASE WHEN po_project_type IS NULL THEN 'Internal' ELSE po_project_type END AS po_project_type,\n"
+	    		+ "        e.billable_type, COUNT(DISTINCT e.emp_id) AS total_emp, \n"
+	    		+ "        COUNT(DISTINCT p.po_project_id) AS total_projects\n"
+	    		+ "    FROM projects p\n"
+	    		+ "    INNER JOIN teams t ON t.project_id = p.project_id \n"
+	    		+ "    INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+	    		+ "    INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+	    		+ "    INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
+	    		+ "    INNER JOIN department d ON d.dept_id = j.dept_id \n"
+	    		+ "    INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+	    		+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ");
 
-	    if (isFiltered && dto != null) {
+	    if (dto != null) {
 	        query.append(buildInnerWhereClause(dto.getPoProjectType(), dto.getFlag()))
-	             .append(buildOuterWhereClause(dto.getBillableType(), dto.getDeptId()));
+	             .append(buildOuterWhereClause(dto.getBillableType(), deptId));
+	    } else {
+	        query.append(buildInnerWhereClause(null, null))
+	             .append(buildOuterWhereClause(null, deptId));
 	    }
 
-	    query.append("GROUP BY po_project_type, e.billable_type ")
-	         .append(") main ")
-	         .append("LEFT JOIN ( ")
-	         .append("SELECT ")
-	         .append("CASE WHEN po_project_type IS NULL THEN 'Internal' ELSE po_project_type END AS po_project_type, ")
-	         .append("COUNT(DISTINCT e.emp_id) AS total_emp_per_project_type, COUNT(DISTINCT p.po_project_id) AS total_projects_per_po_project ")
-	         .append("FROM projects p ")
-	         .append("INNER JOIN teams t ON t.project_id = p.project_id ")
-	         .append("INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id ")
-	         .append("INNER JOIN employee e ON etm.emp_id = e.emp_id ")
-	         .append("INNER JOIN job_role j ON e.job_role_id = j.job_role_id ")
-	         .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
-	         .append("INNER JOIN employee ep ON p.project_manager_id = ep.emp_id ")
-	         .append("WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ");
+	    query.append("GROUP BY\n"
+	    		+ "        CASE WHEN po_project_type IS NULL THEN 'Internal' ELSE po_project_type END, e.billable_type\n"
+	    		+ "),\n"
+	    		+ "SubAgg AS (\n"
+	    		+ "    SELECT \n"
+	    		+ "        CASE WHEN po_project_type IS NULL THEN 'Internal' ELSE po_project_type END AS po_project_type,\n"
+	    		+ "        COUNT(DISTINCT e.emp_id) AS total_emp_per_project_type, \n"
+	    		+ "        COUNT(DISTINCT p.po_project_id) AS total_projects_per_po_project\n"
+	    		+ "    FROM projects p\n"
+	    		+ "    INNER JOIN teams t ON t.project_id = p.project_id \n"
+	    		+ "    INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+	    		+ "    INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+	    		+ "    INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
+	    		+ "    INNER JOIN department d ON d.dept_id = j.dept_id \n"
+	    		+ "    INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+	    		+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ");
 
-	    if (isFiltered && dto != null) {
+	    if (dto != null) {
 	        query.append(buildInnerWhereClause(dto.getPoProjectType(), dto.getFlag()))
-	             .append(buildOuterWhereClause(dto.getBillableType(), dto.getDeptId()));
+	             .append(buildOuterWhereClause(dto.getBillableType(), deptId));
+	    }else {
+	        query.append(buildInnerWhereClause(null, null))
+            .append(buildOuterWhereClause(null, deptId));
 	    }
 
-	    query.append("GROUP BY po_project_type ")
-	         .append(") sub ON main.po_project_type = sub.po_project_type");
+	    query.append("GROUP BY \n"
+	    		+ "        CASE WHEN po_project_type IS NULL THEN 'Internal' ELSE po_project_type END\n"
+	    		+ ")\n"
+	    		+ "SELECT \n"
+	    		+ "    ac.po_project_type, \n"
+	    		+ "    ac.billable_type,\n"
+	    		+ "    COALESCE(ma.total_emp, 0) AS total_emp,\n"
+	    		+ "    COALESCE(sa.total_emp_per_project_type, 0) AS total_emp_per_project_type, \n"
+	    		+ "    COALESCE(ma.total_projects, 0) AS total_projects,\n"
+	    		+ "    COALESCE(sa.total_projects_per_po_project, 0) AS total_projects_per_po_project\n"
+	    		+ "FROM AllCombinations ac\n"
+	    		+ "LEFT JOIN MainAgg ma \n"
+	    		+ "    ON ac.po_project_type = ma.po_project_type \n"
+	    		+ "    AND ac.billable_type = ma.billable_type\n"
+	    		+ "LEFT JOIN SubAgg sa \n"
+	    		+ "    ON ac.po_project_type = sa.po_project_type\n"
+	    		+ "ORDER BY ac.po_project_type, ac.billable_type ");
 
 	    return query.toString();
 	}
 
 	public Map<String, Map<String, Map<String, Object>>> getProjectSummary(GetEmployeeProjectReportPayloadDTO dto) {
-
 	    List<String> allBillableTypes = Arrays.asList("Bench", "Fixed Cost", "InternalRNDProducts", "Shadow", "TNM");
 
 	    Map<String, Map<String, EmployeeProjectSummaryDTO>> summaryMap = new HashMap<>();
 
-	    // First, get filtered data
-	    String filteredQuery = buildProjectSummaryQuery(dto, true);
-	    List<Object[]> filteredResults = entityManager.createNativeQuery(filteredQuery).getResultList();
+	    if (dto.getPoProjectType() != null) {
+	        String filteredQuery = buildProjectSummaryQuery(dto, dto.getDeptId());
+	        List<Object[]> filteredResults = entityManager.createNativeQuery(filteredQuery).getResultList();
 
-	    for (Object[] row : filteredResults) {
-	        String poType = row[0] != null ? row[0].toString() : "Internal";
-	        String billableType = row[1] != null ? row[1].toString() : null;
-	        Long totalEmp = row[2] != null ? Long.parseLong(row[2].toString()) : 0L;
-	        Long totalEmpPerPoType = row[3] != null ? Long.parseLong(row[3].toString()) : 0L;
-	        Long totalProjects = row[4] != null ? Long.parseLong(row[4].toString()) : 0L;
-	        Long totalProjectsPerPoType = row[5] != null ? Long.parseLong(row[5].toString()) : 0L;
+	        for (Object[] row : filteredResults) {
+	            String poType = row[0] != null ? row[0].toString() : "Internal";
+	            String billableType = row[1] != null ? row[1].toString() : null;
+	            Long totalEmp = row[2] != null ? Long.parseLong(row[2].toString()) : 0L;
+	            Long totalEmpPerPoType = row[3] != null ? Long.parseLong(row[3].toString()) : 0L;
+	            Long totalProjects = row[4] != null ? Long.parseLong(row[4].toString()) : 0L;
+	            Long totalProjectsPerPoType = row[5] != null ? Long.parseLong(row[5].toString()) : 0L;
 
-	        String key = poType + "|" + billableType;
+	            summaryMap.putIfAbsent(poType, new HashMap<>());
+	            Map<String, EmployeeProjectSummaryDTO> innerMap = summaryMap.get(poType);
 
-	        summaryMap.putIfAbsent(poType, new HashMap<>());
-	        EmployeeProjectSummaryDTO dtoObj = new EmployeeProjectSummaryDTO();
-	        dtoObj.setPoProjectType(poType);
-	        dtoObj.setBillableType(billableType);
-	        dtoObj.setTotalEmp(totalEmp);
-	        dtoObj.setTotalEmpPerProjectType(totalEmpPerPoType);
-	        dtoObj.setTotal_projects(totalProjects);
-	        dtoObj.setTotal_projects_per_po_project(totalProjectsPerPoType);
+	            EmployeeProjectSummaryDTO dtoObj = new EmployeeProjectSummaryDTO();
+	            dtoObj.setPoProjectType(poType);
+	            dtoObj.setBillableType(billableType);
+	            dtoObj.setTotalEmp(totalEmp);
+	            dtoObj.setTotalEmpPerProjectType(totalEmpPerPoType);
+	            dtoObj.setTotal_projects(totalProjects);
+	            dtoObj.setTotal_projects_per_po_project(totalProjectsPerPoType);
 
-	        summaryMap.get(poType).put(billableType, dtoObj);
+	            innerMap.put(billableType, dtoObj);
+	        }
+
+	        for (String poType : summaryMap.keySet()) {
+	            Map<String, EmployeeProjectSummaryDTO> innerMap = summaryMap.get(poType);
+	            for (String billableType : allBillableTypes) {
+	                if (!innerMap.containsKey(billableType)) {
+	                    EmployeeProjectSummaryDTO emptyDto = new EmployeeProjectSummaryDTO();
+	                    emptyDto.setPoProjectType(poType);
+	                    emptyDto.setBillableType(billableType);
+	                    emptyDto.setTotalEmp(0L);
+	                    emptyDto.setTotal_projects(0L);
+	                    emptyDto.setTotalEmpPerProjectType(0L);
+	                    emptyDto.setTotal_projects_per_po_project(0L);
+	                    innerMap.put(billableType, emptyDto);
+	                }
+	            }
+	        }
 	    }
 
-	    // Second, get base data (unfiltered)
-	    String baseQuery = buildProjectSummaryQuery(null, false);
+	    Set<String> poTypesNeedingBaseData = new HashSet<>();
+	    for (Map.Entry<String, Map<String, EmployeeProjectSummaryDTO>> entry : summaryMap.entrySet()) {
+	        String poType = entry.getKey();
+	        Map<String, EmployeeProjectSummaryDTO> billableMap = entry.getValue();
+
+	        EmployeeProjectSummaryDTO anyDto = billableMap.values().stream().findFirst().orElse(null);
+	        if (anyDto != null &&
+	            (anyDto.getTotalEmpPerProjectType() == null || anyDto.getTotalEmpPerProjectType() == 0L) &&
+	            (anyDto.getTotal_projects_per_po_project() == null || anyDto.getTotal_projects_per_po_project() == 0L)) {
+	            poTypesNeedingBaseData.add(poType);
+	        }
+	    }
+
+	    String baseQuery = buildProjectSummaryQuery(null, dto.getDeptId());
 	    List<Object[]> baseResults = entityManager.createNativeQuery(baseQuery).getResultList();
 
 	    for (Object[] row : baseResults) {
@@ -1969,56 +2040,156 @@ public class ProjectService {
 	        summaryMap.putIfAbsent(poType, new HashMap<>());
 	        Map<String, EmployeeProjectSummaryDTO> innerMap = summaryMap.get(poType);
 
-	        if (!innerMap.containsKey(billableType)) {
-	            EmployeeProjectSummaryDTO dtoObj = new EmployeeProjectSummaryDTO();
-	            dtoObj.setPoProjectType(poType);
-	            dtoObj.setBillableType(billableType);
-	            dtoObj.setTotalEmp(totalEmp);
-	            dtoObj.setTotalEmpPerProjectType(totalEmpPerPoType);
-	            dtoObj.setTotal_projects(totalProjects);
-	            dtoObj.setTotal_projects_per_po_project(totalProjectsPerPoType);
-	            innerMap.put(billableType, dtoObj);
+	        EmployeeProjectSummaryDTO summaryDto = innerMap.getOrDefault(billableType, new EmployeeProjectSummaryDTO());
+	        summaryDto.setPoProjectType(poType);
+	        summaryDto.setBillableType(billableType);
+
+	        boolean shouldFillAll = poTypesNeedingBaseData.contains(poType);
+	        if (shouldFillAll) {
+	            summaryDto.setTotalEmp(totalEmp);
+	            summaryDto.setTotal_projects(totalProjects);
+	        } else {
+	            if (summaryDto.getTotalEmp() == null || summaryDto.getTotalEmp() == 0L) {
+	                summaryDto.setTotalEmp(totalEmp);
+	            }
+	            if (summaryDto.getTotal_projects() == null || summaryDto.getTotal_projects() == 0L) {
+	                summaryDto.setTotal_projects(totalProjects);
+	            }
 	        }
+
+	        if ((summaryDto.getTotalEmpPerProjectType() == null || summaryDto.getTotalEmpPerProjectType() == 0L) && totalEmpPerPoType > 0) {
+	            summaryDto.setTotalEmpPerProjectType(totalEmpPerPoType);
+	        }
+
+	        if ((summaryDto.getTotal_projects_per_po_project() == null || summaryDto.getTotal_projects_per_po_project() == 0L)
+	                && totalProjectsPerPoType > 0) {
+	            summaryDto.setTotal_projects_per_po_project(totalProjectsPerPoType);
+	        }
+
+	        innerMap.put(billableType, summaryDto);
 	    }
 
-	    // Final nested result
 	    Map<String, Map<String, Map<String, Object>>> finalMap = new LinkedHashMap<>();
+	    List<String> fixedPoTypes = Arrays.asList("Active", "Inactive", "Default");
 
 	    for (String poType : summaryMap.keySet()) {
 	        Map<String, EmployeeProjectSummaryDTO> billableMap = summaryMap.get(poType);
 
+	        // Initialize empty buckets
+	        for (String bucket : fixedPoTypes) {
+	            Map<String, Object> empBucketMap = new LinkedHashMap<>();
+	            Map<String, Object> projectBucketMap = new LinkedHashMap<>();
+
+	            for (String billableType : allBillableTypes) {
+	                empBucketMap.put(billableType, 0L);
+	                projectBucketMap.put(billableType, 0L);
+	            }
+
+	            empBucketMap.put("totalEmpPerProjectType", 0L);
+	            projectBucketMap.put("total_projects_per_po_project", 0L);
+
+	            Map<String, Map<String, Object>> poTypeMap = new LinkedHashMap<>();
+	            poTypeMap.put("Employee", empBucketMap);
+	            poTypeMap.put("Project", projectBucketMap);
+
+	            finalMap.put(poType + "." + bucket, poTypeMap);
+	        }
+
+	        // Determine flag and populate accordingly
+	        String flag = dto.getFlag(); 
 	        Map<String, Object> empMap = new LinkedHashMap<>();
 	        Map<String, Object> projectMap = new LinkedHashMap<>();
 
-	        for (String type : allBillableTypes) {
-	            Long empCount = 0L;
-	            Long projectCount = 0L;
-
-	            for (Map.Entry<String, EmployeeProjectSummaryDTO> entry : billableMap.entrySet()) {
-	                EmployeeProjectSummaryDTO dtoObj = entry.getValue();
-	                if (type.equals(dtoObj.getBillableType())) {
-	                    empCount = dtoObj.getTotalEmp();
-	                    projectCount = dtoObj.getTotal_projects();
-	                    break;
-	                }
+	        if ("Active".equals(flag)) {
+	            for (String billableType : allBillableTypes) {
+	                EmployeeProjectSummaryDTO dtoObj = billableMap.getOrDefault(billableType, new EmployeeProjectSummaryDTO());
+	                empMap.put(billableType, dtoObj.getTotalEmp() != null ? dtoObj.getTotalEmp() : 0L);
+	                projectMap.put(billableType, dtoObj.getTotal_projects() != null ? dtoObj.getTotal_projects() : 0L);
 	            }
 
-	            empMap.put(type, empCount);
-	            projectMap.put(type, projectCount);
+	            empMap.put("totalEmpPerProjectType", billableMap.values().stream()
+	                    .map(EmployeeProjectSummaryDTO::getTotalEmpPerProjectType)
+	                    .filter(Objects::nonNull)
+	                    .findFirst().orElse(0L));
+	            projectMap.put("total_projects_per_po_project", billableMap.values().stream()
+	                    .map(EmployeeProjectSummaryDTO::getTotal_projects_per_po_project)
+	                    .filter(Objects::nonNull)
+	                    .findFirst().orElse(0L));
+
+	            finalMap.put(poType + ".Active", Map.of(
+	                    "Employee", empMap,
+	                    "Project", projectMap
+	            ));
+
+	            finalMap.put(poType + ".Inactive", Map.of(
+	                    "Employee", new HashMap<String, Object>(),
+	                    "Project", new HashMap<String, Object>()
+	            ));
+	            finalMap.put(poType + ".Default", Map.of(
+	                    "Employee", new HashMap<String, Object>(),
+	                    "Project", new HashMap<String, Object>()
+	            ));
+
+	        } else if ("Inactive".equals(flag)) {
+	            for (String billableType : allBillableTypes) {
+	                EmployeeProjectSummaryDTO dtoObj = billableMap.getOrDefault(billableType, new EmployeeProjectSummaryDTO());
+	                empMap.put(billableType, dtoObj.getTotalEmp() != null ? dtoObj.getTotalEmp() : 0L);
+	                projectMap.put(billableType, dtoObj.getTotal_projects() != null ? dtoObj.getTotal_projects() : 0L);
+	            }
+
+	            empMap.put("totalEmpPerProjectType", billableMap.values().stream()
+	                    .map(EmployeeProjectSummaryDTO::getTotalEmpPerProjectType)
+	                    .filter(Objects::nonNull)
+	                    .findFirst().orElse(0L));
+	            projectMap.put("total_projects_per_po_project", billableMap.values().stream()
+	                    .map(EmployeeProjectSummaryDTO::getTotal_projects_per_po_project)
+	                    .filter(Objects::nonNull)
+	                    .findFirst().orElse(0L));
+
+	            finalMap.put(poType + ".Inactive", Map.of(
+	                    "Employee", empMap,
+	                    "Project", projectMap
+	            ));
+
+	            finalMap.put(poType + ".Active", Map.of(
+	                    "Employee", new HashMap<String, Object>(),
+	                    "Project", new HashMap<String, Object>()
+	            ));
+	            finalMap.put(poType + ".Default", Map.of(
+	                    "Employee", new HashMap<String, Object>(),
+	                    "Project", new HashMap<String, Object>()
+	            ));
+
+	        } else {
+	            for (String billableType : allBillableTypes) {
+	                EmployeeProjectSummaryDTO dtoObj = billableMap.getOrDefault(billableType, new EmployeeProjectSummaryDTO());
+	                empMap.put(billableType, dtoObj.getTotalEmp() != null ? dtoObj.getTotalEmp() : 0L);
+	                projectMap.put(billableType, dtoObj.getTotal_projects() != null ? dtoObj.getTotal_projects() : 0L);
+	            }
+
+	            empMap.put("totalEmpPerProjectType", billableMap.values().stream()
+	                    .map(EmployeeProjectSummaryDTO::getTotalEmpPerProjectType)
+	                    .filter(Objects::nonNull)
+	                    .findFirst().orElse(0L));
+	            projectMap.put("total_projects_per_po_project", billableMap.values().stream()
+	                    .map(EmployeeProjectSummaryDTO::getTotal_projects_per_po_project)
+	                    .filter(Objects::nonNull)
+	                    .findFirst().orElse(0L));
+
+	            finalMap.put(poType + ".Default", Map.of(
+	                    "Employee", empMap,
+	                    "Project", projectMap
+	            ));
+
+	            finalMap.put(poType + ".Active", Map.of(
+	                    "Employee", new HashMap<String, Object>(),
+	                    "Project", new HashMap<String, Object>()
+	            ));
+	            finalMap.put(poType + ".Inactive", Map.of(
+	                    "Employee", new HashMap<String, Object>(),
+	                    "Project", new HashMap<String, Object>()
+	            ));
 	        }
-
-	        // Add totals (only from one of the DTOs as it's grouped per po_type)
-	        if (!billableMap.isEmpty()) {
-	            EmployeeProjectSummaryDTO anyDto = billableMap.values().iterator().next();
-	            empMap.put("totalEmpPerProjectType", anyDto.getTotalEmpPerProjectType());
-	            projectMap.put("total_projects_per_po_project", anyDto.getTotal_projects_per_po_project());
-	        }
-
-	        Map<String, Map<String, Object>> poTypeMap = new LinkedHashMap<>();
-	        poTypeMap.put("Employee", empMap);
-	        poTypeMap.put("Project", projectMap);
-
-	        finalMap.put(poType, poTypeMap);
 	    }
 
 	    return finalMap;
@@ -2184,7 +2355,7 @@ public class ProjectService {
 
 		            teamMap.get(teamKey).getMappedEmployeeDetails().add(empDTO);
 		        }
-
+		        
 		        return new GetEmployeeProjectReportDTO(null, new ArrayList<>(projectMap.values()), null);
 
 		    } catch (Exception e) {

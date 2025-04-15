@@ -597,7 +597,7 @@ export class ReportListComponent implements OnInit {
 
       this.isAllSelected = true;
       // this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
-      ['TNM', 'Fixed cost', 'Monitoring', 'Internal'].forEach(box => {
+      ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
         this.selectedTab[box] = 'Employee';
         this.selectedFlag[box] = null;
         this.selectedBillable[box] = null;

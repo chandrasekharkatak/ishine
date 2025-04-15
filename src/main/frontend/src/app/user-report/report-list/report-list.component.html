@@ -499,8 +499,8 @@
 
 
 
-      <div class="dashboard-container row align-items-center">
-        <div class="card " *ngFor="let box of ['TNM', 'Fixed cost', 'Monitoring', 'Internal']"
+      <div class="dashboard-container">
+        <div class="card" *ngFor="let box of ['TNM', 'Fixed Cost', 'Monitoring', 'Internal']"
           [ngClass]="{ 'active-box': activeBox === box }">
           <div class="card-header">
             {{ box }}
