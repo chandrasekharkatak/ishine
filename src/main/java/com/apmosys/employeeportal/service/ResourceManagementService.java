@@ -2893,7 +2893,7 @@ public class ResourceManagementService {
 
 		    if (project != null) {
 
-                project.setProjectName(dto.getName());
+//                project.setProjectName(dto.getName());
                 project.setPoProjectType(dto.getProjectType());
 //                String formattedStartDate = dateFormat.format(dto.getStartDate());
 //                project.setPoStartDate(formattedStartDate);
