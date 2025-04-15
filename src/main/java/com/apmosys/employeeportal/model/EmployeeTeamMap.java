@@ -45,7 +45,7 @@ public class EmployeeTeamMap {
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	
-
+    private Long updatedBy;
 	//added by rahul singh
 	
 }
