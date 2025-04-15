@@ -19,4 +19,12 @@ public class TagSpecifications {
             return cb.or(predicates.toArray(new Predicate[0]));
         };
     }
+    
+    public static Specification<TagMaster> tagNameLikeAny(String keywords) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.like(cb.lower(root.get("tag")), "%" + keywords.toLowerCase() + "%"));
+            return cb.or(predicates.toArray(new Predicate[0]));
+        };
+    }
 }

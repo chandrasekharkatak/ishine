@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Entity;
 
@@ -84,5 +85,10 @@ public class ProjectInsightController {
 	@RequestMapping(value = "/onSearchTerm", method = RequestMethod.GET)
 	public ResponseEntity<ProjectInsightDTO> onSearchTerm(@RequestParam String search) {
 		return projectInsightService.onSearchTerm(search);
+	}
+	
+	@RequestMapping(value = "/suggestSearchOption", method = RequestMethod.GET)
+	public ResponseEntity<Set<String>> suggestSearchOption(@RequestParam String search) {
+		return projectInsightService.suggestSearchOption(search);
 	}
 }

@@ -50,6 +50,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   searchTerm: string = '';
   backupsearchTerm: string = '';
   searchResults:any[] = [];
+  searchOptionList:any[] = [];
 
   // tab clicked
   projectInsightTabClick: boolean = false;
@@ -163,6 +164,24 @@ export class ProjectInsightsConfigComponent implements OnInit {
     if(this.searchTerm == undefined || this.searchTerm == null){
       this.searchTerm = this.backupsearchTerm;
     }
+    this.onSearchTerm();
+  }
+
+  suggestSearchOption(event:any){
+    this.searchOptionList = [];
+    this.projectInsightService.suggestSearchOption(this.searchTerm).pipe(first()).subscribe(
+      (response: any) => {
+        this.searchOptionList = response;
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
+  }
+
+  selectSuggestion(suggestedTerm: any){
+    this.searchTerm = suggestedTerm;
+    this.searchOptionList = [];
     this.onSearchTerm();
   }
 

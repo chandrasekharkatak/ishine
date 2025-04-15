@@ -344,39 +344,111 @@ font-weight: normal;
 }
 
 .search-container {
-position: relative;
-display: flex;
-align-items: center;
-border: 2px solid #1d2344;
-border-radius: 50px;
-padding: 0 15px;
-height: 50px;
-background-color: #fff;
-}
-
-.search-icon {
-font-size: 18px;
-color: #1d2344;
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .search-input {
-border: none;
-outline: none;
-flex: 1;
-padding: 0 10px;
-font-size: 16px;
-color: #000;
-background-color: transparent;
+  width: 100%;
+  padding: 12px 40px 12px 40px;
+  border: 1px solid #ddd;
+  border-radius: 24px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.search-input:focus {
+  border-color: #4285f4;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #5f6368;
+  font-size: 14px;
 }
 
 .clear-btn {
-background: #e3e5f3;
-border: none;
-border-radius: 50%;
-width: 24px;
-height: 24px;
-display: flex;
-align-items: center;
-justify-content: center;
-cursor: pointer;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #5f6368;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.clear-btn:hover {
+  color: #1a73e8;
+}
+
+.suggestion-dropdown {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(32, 33, 36, 0.28);
+  border: 1px solid #dfe1e5;
+}
+
+.suggestion-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #3c4043;
+  font-size: 14px;
+}
+
+.suggestion-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* Custom scrollbar for the dropdown */
+.suggestion-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.suggestion-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.suggestion-dropdown::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.suggestion-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Optional: Add a subtle animation for the dropdown */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.suggestion-dropdown {
+  animation: fadeIn 0.2s ease-out;
 }

@@ -25,10 +25,20 @@
           placeholder="Search"
           [(ngModel)]="searchTerm"
           (keyup.enter)="onSearchTerm()"
+          (ngModelChange)="suggestSearchOption($event)"
         />
         <button *ngIf="searchTerm" class="clear-btn" (click)="clearSearch()">
-          <i class="fa-solid fa-xmark"></i>
+          <i class="fa-solid fa-xmark" style="color: black;"></i>
         </button>
+
+        <div class="suggestion-dropdown" *ngIf="searchTerm && searchOptionList.length > 0">
+          <div 
+            class="suggestion-item" 
+            *ngFor="let suggestion of searchOptionList"
+            (click)="selectSuggestion(suggestion)">
+            {{ suggestion }}
+          </div>
+        </div>
       </div>
     </div>
 

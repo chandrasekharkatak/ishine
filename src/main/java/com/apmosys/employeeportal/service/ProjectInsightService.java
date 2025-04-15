@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -1883,6 +1884,17 @@ public class ProjectInsightService {
 	        throw e;
 	    }
 	    return response;
+	}
+
+	public ResponseEntity<Set<String>> suggestSearchOption(String search) {
+		Set<String> response = new HashSet<>();
+		try {
+			List<TagMaster> matchedTags = tagMasterRepository.findAll(TagSpecifications.tagNameLikeAny(search));
+			response = matchedTags.stream().map(TagMaster::getTag).collect(Collectors.toSet());
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return ResponseEntity.ok(response);
 	}
 	
 }

@@ -166,7 +166,7 @@ public class ProjectService {
 					projectDto.setClientName(object[5] != null ? object[5].toString() : null);
 					projectDto.setClientLocation(object[6] != null ? object[6].toString() : null);
 					projectDto.setCreatedByName(object[9] != null ? object[9].toString() : null);
-					projectDto.setCreatedOn(Timestamp.valueOf(object[10] != null ? object[10].toString() : null));
+					projectDto.setCreatedOn(object[10] != null ? Timestamp.valueOf(object[10].toString()) : null);
 					projectDto.setUpdatedOn(object[11] != null ? object[11].toString() : null);
 					projectDto.setUpdatedByName(object[12] != null ? object[12].toString() : null);
 					projectDto.setEmpId(object[13] != null ? Long.parseLong(object[13].toString()) : null);

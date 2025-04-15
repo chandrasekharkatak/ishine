@@ -29,6 +29,7 @@ public class ProjectInsightDTO {
     private List<ResponseMarksDTO> empMarkList;
     private String projectInsightQuestionTemplate;
     private List<PoProjectSyncDTO> projectList;
+    private List<String> optionList;
     
     //For tags
     private StringBuilder projectText; 

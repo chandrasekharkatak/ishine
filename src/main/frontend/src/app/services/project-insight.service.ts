@@ -55,5 +55,10 @@ export class ProjectInsightService {
     const params = new HttpParams().set('search', searchTerm);
     return this.http.get(`${this.baseUrl}` + `api/onSearchTerm`, { params });
   }
+
+  suggestSearchOption(searchTerm: string){
+    const params = new HttpParams().set('search', searchTerm);
+    return this.http.get(`${this.baseUrl}` + `api/suggestSearchOption`, { params });
+  }
   
 }
