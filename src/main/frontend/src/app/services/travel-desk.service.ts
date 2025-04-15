@@ -19,6 +19,10 @@ export class TravelDeskService {
     return this.http.post(`${this.baseUrl}` + `api/fetchTravelData`, travelDeskObj);
   }
 
+  fetchTravelDataForApproval(travelDeskObj: MyTravelDesk) {
+    return this.http.post(`${this.baseUrl}` + `api/fetchTravelDataForApproval`, travelDeskObj);
+  }
+
   saveTravelData(travelDeskObj: MyTravelDesk) {
     return this.http.post(`${this.baseUrl}` + `api/saveTravelData`, travelDeskObj);
   }

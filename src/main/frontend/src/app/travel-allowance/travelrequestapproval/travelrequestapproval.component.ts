@@ -46,7 +46,7 @@ export class TravelrequestapprovalComponent implements OnInit {
 
       console.log('Form Data:', travelData);
 
-      const response: any = await this.travelDesk.fetchTravelData(travelData).toPromise();
+      const response: any = await this.travelDesk.fetchTravelDataForApproval(travelData).toPromise();
       
       if (response.serviceStatus === "Success") {
         this.travelRequests = response.serviceResponse;  
@@ -187,7 +187,14 @@ export class TravelrequestapprovalComponent implements OnInit {
     newtravelData.requestId=this.selectedTravelRequest.requestId;
     newtravelData.employeeId = this.selectedTravelRequest.empId;
     newtravelData.status = this.selectedTravelRequest.approverStatus;
-    newtravelData.level1approverRemarks = this.selectedTravelRequest.approverRemarks;
+    if(this.selectedTravelRequest.level == 1){
+      newtravelData.level1approverRemarks = this.selectedTravelRequest.approverRemarks;
+
+    }
+    else{
+      newtravelData.level2approverRemarks = this.selectedTravelRequest.approverRemarks;
+
+    }
 
 
     console.log('Approver Status ', newtravelData.approverStatus);
@@ -219,11 +226,12 @@ export class TravelrequestapprovalComponent implements OnInit {
         alert('There was an issue updating the data.');
       }
       this.modalRef.hide();
+      this.onGetTravelInfo();
     } catch (error) {
       console.error('Error during API call:', error);
       alert('An error occurred while updating the data. Please try again later.');
     }
-
+  
 
 
 

@@ -130,6 +130,9 @@ public class TravelDesk {
 	@Column(name = "city")
 	private String city;
 	
+	@Column(name = "final_status")
+	private String finalStatus;
+	
 	
 
 

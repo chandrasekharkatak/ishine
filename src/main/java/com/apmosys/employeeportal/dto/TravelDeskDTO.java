@@ -35,6 +35,7 @@ public class TravelDeskDTO {
 	    private String cityCategory;
 	    private String docId;
 	    private String city;
+	    private String finalStatus;
 		
 	
 	    

@@ -9,7 +9,11 @@ import com.apmosys.employeeportal.model.TravelDesk;
 
 public interface TravelDeskRepository extends JpaRepository<TravelDesk, BigInteger>{
 
-	List<TravelDesk> findByEmpId(BigInteger empId );
+	List<TravelDesk> findByEmpId(BigInteger empId);
 	
 	TravelDesk findByRequestId(BigInteger requestId);
+	
+	List<TravelDesk> findByApprover1(BigInteger empId);
+	
+	List<TravelDesk> findByApprover2(BigInteger empId);
 }

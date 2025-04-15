@@ -100,6 +100,7 @@ public class TravelDeskService {
 		travelDesk.setLevel(1);
 		travelDesk.setIsActive(1);
 		travelDesk.setLevel2approverStatus("Pending");
+		travelDesk.setFinalStatus("Pending");
 		Employee level2 = employeeRepository.findByEmpId(Long.valueOf(travelDesk.getApprover2().toString()));
 		travelDesk.setLevel2ApproverEmail(level2.getEmail());
 		travelDesk.setLevel2approverName(level2.getName());
@@ -166,7 +167,12 @@ public class TravelDeskService {
 			  List<TravelDesk> activeTravelDesk = travelDesk.stream()
 			            .filter(t -> t.getIsActive() != 0)  
 			            .collect(Collectors.toList());
-			  
+//			  List<TravelDesk> activeTravelDeskL1 = activeTravelDesk.stream()
+//			            .filter(t -> t.getApprover1() == empId && t.getStatus().equalsIgnoreCase("Pending")&& t.getIsActive() != 0)  
+//			            .collect(Collectors.toList());
+//			  List<TravelDesk> activeTravelDeskL2 = activeTravelDesk.stream()
+//			            .filter(t -> t.getApprover2() == empId && t.getLevel2approverStatus().equalsIgnoreCase("Pending") && t.getIsActive() != 0)  
+//			            .collect(Collectors.toList());
 			if(activeTravelDesk.isEmpty()) {
 				serviceResponse.setServiceError("Data Not Found...!!");
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -184,6 +190,54 @@ public class TravelDeskService {
 			return serviceResponse;
 		}
 	}
+	
+	public ServiceResponse fetchUserTravelForApproval(BigInteger empId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			 List<TravelDesk> activeTravelDesk = new ArrayList<>() ;
+			System.out.println(empId);
+			List<TravelDesk> travelDeskL1 = tavelDeskRepository.findByApprover1(empId);
+			System.out.println(travelDeskL1);
+			List<TravelDesk> travelDeskL2 = tavelDeskRepository.findByApprover2(empId);
+			System.out.println(travelDeskL2);
+			if(!travelDeskL1.isEmpty()) {
+				List<TravelDesk> activeTravelDeskL1 = travelDeskL1.stream()
+			            .filter(t -> t.getStatus().equalsIgnoreCase("Pending")&& t.getIsActive() == 1 && t.getLevel() == 1)  
+			            .collect(Collectors.toList());
+			  System.out.println(activeTravelDeskL1);
+			  activeTravelDesk.addAll(activeTravelDeskL1);
+			  System.out.println(activeTravelDesk);
+			}
+			if(!travelDeskL2.isEmpty()) {
+				List<TravelDesk> activeTravelDeskL2 = travelDeskL2.stream()
+						  .filter(t -> t.getLevel2approverStatus().equalsIgnoreCase("Pending")&& t.getIsActive() == 1&& t.getLevel() == 2)  
+				            .collect(Collectors.toList());
+				  System.out.println(activeTravelDeskL2);
+				  activeTravelDesk.addAll(activeTravelDeskL2);
+				  System.out.println(activeTravelDesk);
+			}
+			 
+			if(activeTravelDesk.isEmpty()) {
+				serviceResponse.setServiceError("Data Not Found...!!");
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				return serviceResponse;
+			}
+			else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(activeTravelDesk);
+				return serviceResponse;
+			}
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			serviceResponse.setServiceError(e.getMessage());
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			return serviceResponse;
+		}
+	}
+	
+	
+	
 	
 	@SuppressWarnings("unused")
 	public ServiceResponse updateTravelData(TravelDeskDTO travelData) {
@@ -227,6 +281,7 @@ public class TravelDeskService {
 				existingTravelDesk.setApprover2(approver2);
 				existingTravelDesk.setIsActive(1);
 				existingTravelDesk.setLevel2approverStatus("Pending");
+				existingTravelDesk.setFinalStatus("Pending");
 				Employee level2 = employeeRepository.findByEmpId(Long.valueOf(travelData.getLevel2Approver().toString()));
 				existingTravelDesk.setLevel2ApproverEmail(level2.getEmail());
 				existingTravelDesk.setLevel2approverName(level2.getName());
@@ -335,6 +390,7 @@ public class TravelDeskService {
 	private void updateApprovalLevel(TravelDesk travelDesk, Timestamp currentTimestamp, TravelDeskDTO travelData) {
 		if (travelData.getStatus().equals("Rejected")) {
 			travelDesk.setStatus(travelData.getStatus());
+			travelDesk.setFinalStatus(travelData.getStatus());
 			travelDesk.setLevel1approverRemarks(travelData.getLevel1approverRemarks());
 		}else {
 	    if (travelDesk.getLevel() == 1) {
@@ -344,7 +400,8 @@ public class TravelDeskService {
 	        travelDesk.setLevel1approverRemarks(travelData.getLevel1approverRemarks());
 	    } else if (travelDesk.getLevel() == 2) {
 	        travelDesk.setLevel2ApproveOn(currentTimestamp);
-	        travelDesk.setStatus(travelData.getStatus());
+	        travelDesk.setLevel2approverStatus(travelData.getStatus());
+	        travelDesk.setFinalStatus(travelData.getStatus());
 	        travelDesk.setLevel2approverRemarks(travelData.getLevel2approverRemarks());
 	    }
 	}

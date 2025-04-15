@@ -67,7 +67,7 @@
     <div class="col-md-12">
       <div class="row">
         <div class="col-md-12 table-header">
-          <h1 class="table-header-title">Pending TravelRequest </h1>
+          <h1 class="table-header-title">Pending Travel Request </h1>
         </div>
       </div>
       <div class="row">
@@ -102,7 +102,7 @@
               <tbody>
                 <!-- Loop over travelRequests and render each row -->
                 <tr *ngFor="let row of travelRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                  <td>{{ row.requestId }}</td>
+                  <td>{{ i + 1}}</td>
                   <td>{{ row.name }}</td>
                   <td>{{ row.requestType }}</td>
                   <td>{{ row.fromDate | date }}</td>
@@ -133,15 +133,15 @@
                   </td>
                   <td>{{ row.level2approverName }}</td>
                   <td [ngClass]="{
-                    'text-danger': row.status === 'Rejected',
-                    'text-success': row.status === 'Approved',
-                    'text-warning': row.status === 'Pending'
+                    'text-danger': row.level2approverStatus === 'Rejected',
+                    'text-success': row.level2approverStatus === 'Approved',
+                    'text-warning': row.level2approverStatus === 'Pending'
                                 }"> 
                     {{ row.level2approverStatus }}
                   </td>
                   <td>
                     
-                    <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button" class="btn btn-success btn-sm btn-action button" (click)="openEditModal(approveRequest,row)">
+                    <button *ngIf="row.level2approverStatus === 'Pending'" type="button" class="btn btn-success btn-sm btn-action button" (click)="openEditModal(approveRequest,row)">
                       <em class="fa fa-edit"></em> Take Action
                     </button>
                   </td>

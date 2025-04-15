@@ -29,6 +29,15 @@ public class TravelDeskController {
 		 
 	}
 	
+	@PostMapping("/fetchTravelDataForApproval")
+	public ServiceResponse fetchTravelDataForApproval(@RequestBody TravelDeskDTO travelData) {
+		
+		return travelDeskService.fetchUserTravelForApproval(travelData.getEmployeeId());
+		 
+	}
+	
+	
+	
 	@PostMapping("/saveTravelData")
 	public ServiceResponse saveTravelData(@RequestBody TravelDeskDTO travelData) {
 		return travelDeskService.saveTravelData(travelData);
