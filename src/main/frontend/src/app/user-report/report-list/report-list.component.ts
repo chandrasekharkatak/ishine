@@ -522,29 +522,36 @@ export class ReportListComponent implements OnInit {
   // }
 
 
-
   getTotalCount(box: string): number {
-    const category = this.selectedTab[box];
-
-
-    if (category === 'Project') {
-      return this.projectSummary[box]?.Project?.total_projects_per_po_project || 0;
+    const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
+    const key = `${box}.${selectedMainFlag}`;
+    const isActiveBox = box === this.activeBox;
+    const category = this.selectedTab[this.activeBox]; // Current active tab
+  
+    if (category === 'Project' && isActiveBox) {
+      return this.projectSummary[key]?.Project?.total_projects_per_po_project || 0;
     }
-
-
-    return this.projectSummary[box]?.Employee?.totalEmpPerProjectType || 0;
+  
+    return this.projectSummary[key]?.Employee?.totalEmpPerProjectType || 0;
   }
-
+  
+  
+  
   getCount(box: string, billableType: string): number {
-    const category = this.selectedTab[box];
-
-    if (category === 'Project') {
-      return this.projectSummary[box]?.Project?.[billableType] || 0;
+    const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
+    const key = `${box}.${selectedMainFlag}`;
+    const isActiveBox = box === this.activeBox;
+    const category = this.selectedTab[this.activeBox];
+  
+    if (category === 'Project' && isActiveBox) {
+      return this.projectSummary[key]?.Project?.[billableType] || 0;
     }
-
-
-    return this.projectSummary[box]?.Employee?.[billableType] || 0;
+  
+    return this.projectSummary[key]?.Employee?.[billableType] || 0;
   }
+  
+  
+  
 
 
   getAllOrDeptWiseEmployeeTimesheetReport() {
