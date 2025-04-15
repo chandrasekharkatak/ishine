@@ -28,4 +28,5 @@ export class MyTravelDesk{
     cityCategory : any;
     hotelCategory :any;
     docId: any;
+    city: any;
 }

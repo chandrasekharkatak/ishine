@@ -34,6 +34,8 @@ public class TravelDeskDTO {
 	    private String hotelCategory;
 	    private String cityCategory;
 	    private String docId;
+	    private String city;
+		
 	
 	    
 }

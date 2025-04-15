@@ -73,6 +73,7 @@ public class TravelDeskService {
 		travelDesk.setRequestType(travelData.getAssociatedTravelRequest());
 		travelDesk.setHotelCategory(travelData.getHotelCategory());
 		travelDesk.setCityCategory(travelData.getCityCategory());
+		travelDesk.setCity(travelData.getCity());
 		travelDesk.setTravelMode(travelData.getTravelMode());
 		travelDesk.setTravelClass(travelData.getTravelClass());
 		travelDesk.setPurpose(travelData.getPurposeOfTravel());
@@ -114,12 +115,23 @@ public class TravelDeskService {
 			serviceResponse.setServiceMessage("Saved Successfully..!!");
 			File file = null;
             Employee emp = employeeRepository.findByEmpId(Long.valueOf(travelDesk.getEmpId().toString()));
-			mailService.sendMailWithAttachment(travelDesk.getLevel1ApproverEmail(),travelDesk.getEmail(),
-	        		"Travel request approval required",
-	        		"Dear"+travelDesk.getHodName()+", <br><br>" + "A travel request is applied by "+ emp.getName()+"<br> for the purpose of : "+
-	        		travelDesk.getPurpose()+".<br>From date:"+travelDesk.getFromDate().toGMTString()+" and will return on : "+travelDesk.getToDate().toGMTString()+
-	        		".<br> For this the mode of travel will be : "+travelDesk.getTravelMode()+" and travel class is:"+travelDesk.getTravelClass()+" .<br>Kindly take action on this application .",file);
+            if(savedTravelDesk.getRequestType().equalsIgnoreCase("HOTEL")) {
+            	mailService.sendMailWithAttachment(travelDesk.getLevel1ApproverEmail(),travelDesk.getEmail(),
+    	        		"Travel request approval required",
+    	        		"Dear"+travelDesk.getHodName()+", <br><br>" + "A request is applied by "+ emp.getName()+"<br> for the purpose of : "+
+    	        		travelDesk.getPurpose()+".<br>From date:"+travelDesk.getFromDate().toGMTString()+" and will return on : "+travelDesk.getToDate().toGMTString()+
+    	        		".<br> For this he/she requires a stay at: "+travelDesk.getCity()+".<br>Kindly take action on this application .",file);
 
+            }else {
+            	
+            	mailService.sendMailWithAttachment(travelDesk.getLevel1ApproverEmail(),travelDesk.getEmail(),
+    	        		"Travel request approval required",
+    	        		"Dear"+travelDesk.getHodName()+", <br><br>" + "A request is applied by "+ emp.getName()+"<br> for the purpose of : "+
+    	        		travelDesk.getPurpose()+".<br>From date:"+travelDesk.getFromDate().toGMTString()+" and will return on : "+travelDesk.getToDate().toGMTString()+
+    	        		".<br> For this he requires a stay in : "+travelDesk.getTravelMode()+" and travel class is:"+travelDesk.getTravelClass()+" .<br>Kindly take action on this application .",file);
+
+            }
+			
 			return serviceResponse;
 		}
 	}

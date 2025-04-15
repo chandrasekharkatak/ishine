@@ -127,6 +127,9 @@ public class TravelDesk {
 	@Column(name = "doc_id")
 	private String docId;
 	
+	@Column(name = "city")
+	private String city;
+	
 	
 
 

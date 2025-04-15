@@ -32,6 +32,7 @@ import { DomainService } from 'src/app/services/domain.service';
   fileName :any;
   feature="Profile";
   userMapping:any = {};
+  cityOptions: string[] = [];
 
   //modal 
   alertMessage:any;
@@ -97,6 +98,8 @@ import { DomainService } from 'src/app/services/domain.service';
     });
     
     this.preventBackButton();
+
+    //this.updateCityOptions(cityCategory);
 
   }
   preventBackButton() {
@@ -323,6 +326,7 @@ async submitForm(template: TemplateRef<any>) {
         hodName: this.currentUser.hodName,
         hotelCategory:this.travelDeskObj.hotelCategory,
         cityCategory:this.travelDeskObj.tlSubCategory,
+        city : this.travelDeskObj.selectedCity,
         docId: uploadResponse.serviceResponse.documentId
       };
 
@@ -386,6 +390,34 @@ async submitForm(template: TemplateRef<any>) {
 
 isValidForm() {
 return true;
+}
+
+onSubCategoryChange(subCategory: string) {
+  switch (subCategory) {
+    case 'Metros':
+      this.cityOptions = [
+        'Mumbai', 'Delhi', 'Chennai', 'Kolkata', 'Bengaluru', 'Hyderabad'
+      ];
+      break;
+    case 'Category A':
+      this.cityOptions = [
+        'Ahmedabad', 'Baroda', 'Indore', 'Pune', 'Nagpur', 'Jaipur',
+        'Srinagar', 'Amritsar', 'Chandigarh', 'Guwahati', 'Patna', 'Lucknow',
+        'Bhubaneswar', 'Panaji', 'Trivendrum', 'Kochi', 'Gangtok',
+        'Udaipur', 'Agra', 'Coimbatore'
+      ];
+      break;
+    case 'Category B':
+      this.cityOptions = [
+        'Surat', 'Rajkot', 'Bhopal', 'Nasik', 'Ludhiana', 'Jammu',
+        'Varanasi', 'Ghaziabad', 'Kanpur', 'Ranchi', 'Jamshedpur',
+        'Siliguri', 'Cuttack', 'Vizag', 'Vijaywada', 'Madurai',
+        'Mangalore', 'Jodhpur', 'Mohali'
+      ];
+      break;
+    default:
+      this.cityOptions = [];
+  }
 }
 
 // onFileChange(event: any, template: TemplateRef<any>) {

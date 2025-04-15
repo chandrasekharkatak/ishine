@@ -79,13 +79,22 @@
                     </select>
                 </div>
 
-                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.hotelCategory === 'TL' || travelDeskObj.hotelCategory === 'Above TL'">
+                  <div class="col-md-3 mb-0" *ngIf="travelDeskObj.hotelCategory === 'TL' || travelDeskObj.hotelCategory === 'Above TL'">
                     <label class="info-label"><span class="text-danger">*</span>Sub Category</label>
-                    <select class="form-control" [(ngModel)]="travelDeskObj.tlSubCategory" name="tlSubCategory" required>
+                    <!-- <select class="form-control" [(ngModel)]="travelDeskObj.tlSubCategory" name="tlSubCategory" required> -->
+                    <select class="form-control" [(ngModel)]="travelDeskObj.tlSubCategory" name="tlSubCategory" required (ngModelChange)="onSubCategoryChange($event)">    
                       <option value="" disabled>Select Sub Category</option>
                       <option value="Metros">Metros</option>
                       <option value="Category A">Category A</option>
                       <option value="Category B">Category B</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-3 mb-0" *ngIf="travelDeskObj.tlSubCategory">
+                    <label class="info-label"><span class="text-danger">*</span>Select City</label>
+                    <select class="form-control" [(ngModel)]="travelDeskObj.selectedCity" name="selectedCity" required>
+                      <option value="" disabled>Select City</option>
+                      <option *ngFor="let city of cityOptions" [value]="city">{{ city }}</option>
                     </select>
                   </div>
 
