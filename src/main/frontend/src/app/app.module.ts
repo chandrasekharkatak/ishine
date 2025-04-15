@@ -122,6 +122,8 @@ import { EmployeeInfoComponent } from './user-update-info/employee-info/employee
 import { EmployeeUpdateListComponent } from './user-update-info/employee-update-list/employee-update-list.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
+import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
+import { ExpiedPoAndProjectComponent } from './home/expied-po-and-project/expied-po-and-project.component';
 import { NavigateToProjectViewDirective } from './navigate-to-project-view.directive';
 import { ProjectViewComponent } from './project-view/project-view.component';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
@@ -136,10 +138,12 @@ import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapp
 import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
 import { TravelrequestapprovalComponent } from './travel-allowance/travelrequestapproval/travelrequestapproval.component';
 import { ViewTravelrequestComponent } from './travel-allowance/view-travelrequest/view-travelrequest.component';
+import { LMSComponent } from './employee360/lms/lms.component';
 registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 // 
 
+import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -241,6 +245,8 @@ registerLocaleData(localeGb);
 
     Employee360BiomaxComponent,
      AppreciationComponent,
+     QrCodeGeneratorComponent,
+     ExpiedPoAndProjectComponent,
      NavigateToProjectViewDirective,
      ProjectViewComponent,
      PerformanceConfigComponent,
@@ -253,6 +259,8 @@ registerLocaleData(localeGb);
      TravelrequestapprovalComponent,
      ViewTravelrequestComponent,
   
+     LMSComponent,
+     BiomaxApprovalComponent,
 
     //TestComponent
   ],

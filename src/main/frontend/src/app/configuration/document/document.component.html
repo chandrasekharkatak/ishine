@@ -36,6 +36,7 @@
               </div>
             </div>
             </div>
+            <div class="overflow-auto">
         <table class="table type-table" matSort (matSortChange)="sortData($event)"  style="table-layout: fixed;">
             <thead class="thead-light">
                 <tr>
@@ -74,6 +75,7 @@
             (pageChange)="handlePageChange($event)"></pagination-controls>
         </table>
     </div>
+    </div>
 
 
     <div class="col-md-12" *ngIf="document">
@@ -85,7 +87,7 @@
                 </a>
             </div>
            </div>
-        
+           <div class="overflow-auto">
         <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
                 <tr>
@@ -129,6 +131,7 @@
         </table>
         <pagination-controls class="my-pagination" [hidden]="documents.length == 0"
             (pageChange)="handlePageChange($event)"></pagination-controls>
+    </div>
     </div>
     
 

@@ -182,7 +182,10 @@ public class Employee360Service {
 		return response;
 	}
 		
-	public ServiceResponse get360TimesheetDetails(String status,long empId,long projectId,long teamName,long managerId, String startDate, String endDate) {
+//	public ServiceResponse get360TimesheetDetails(String status,long empId,long projectId,long teamName,long managerId, String startDate, String endDate) {
+	public ServiceResponse get360TimesheetDetails(String status,long empId,long projectId,long teamName, String startDate, String endDate) {
+//		long managerId = 0;
+		
 		ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("get360TimesheetDetails");
@@ -213,7 +216,8 @@ public class Employee360Service {
 	        System.out.println("localStartDate: " + localStartDate + " (Type: " + ((localStartDate != null) ? localStartDate.getClass().getSimpleName() : "null") + ")");
 	        System.out.println("localEndDate: " + localEndDate + " (Type: " + ((localEndDate != null) ? localEndDate.getClass().getSimpleName() : "null") + ")");
 
-	        List<Object[]> timesheetData=employeeRepository.getTimesheetData(status,empId,managerId, localStartDate, localEndDate,projectId,teamName);
+//	        List<Object[]> timesheetData=employeeRepository.getTimesheetData(status,empId,managerId, localStartDate, localEndDate,projectId,teamName);
+	        List<Object[]> timesheetData=employeeRepository.getTimesheetData(status,empId, localStartDate, localEndDate,projectId,teamName);
 	        if(!timesheetData.isEmpty()) {
 	        	for(Object[] sheet : timesheetData) {
 				        Employee360DTO dto = new Employee360DTO();
@@ -388,9 +392,12 @@ public class Employee360Service {
 				dto.setLevel3ApproverEmail(object[23] != null ? object[23].toString() : null);
 				dto.setCurrentApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
 				dto.setFinalApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
+				dto.setCreatedBy(object[32] != null ?  Long.parseLong(object[32].toString()) : null);		
+				
 				dto.setCreatedByName(object[26] != null ? object[26].toString() : null);
-				dto.setLeaveTypeMasterId(object[27] != null ? Short.parseShort(object[27].toString()) : null);
-				dto.setManagerId(object[28] != null ? Integer.parseInt(object[28].toString()) : null);
+				dto.setLeaveEmpId(object[27] != null ? Long.parseLong(object[27].toString()) : null);
+				dto.setEmployeementId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
+				dto.setLeaveTypeMasterId(object[29] != null ? Short.parseShort(object[29].toString()) : null);
 				
 				dtoList.add(dto);	
 				});

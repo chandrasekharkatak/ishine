@@ -1,0 +1,163 @@
+<div class="row" style="margin:2%">
+  <div class="col-lg-4 col-md-4 col-sm-4">
+    <div class="card"  (click)="display('Courses')">
+      <div class="card-body">
+        <div class="card-header-text">
+          <i class="fa-brands fa-discourse"></i> Enrolled Courses
+        </div> <br>
+        <div class="count-text">{{lmsList.Courses.length}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4 col-md-4 col-sm-4">
+    <div class="card" (click)="display('Quizzes')">
+      <div class="card-body">
+        <div class="card-header-text">
+          <i class="fa-solid fa-question"></i> Enrolled Quiz
+        </div> <br>
+        <div class="count-text">{{lmsList.Quizzes.length}}</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4 col-md-4 col-sm-4">
+    <div class="card" (click)="display('Surveys')">
+      <div class="card-body">
+        <div class="card-header-text">
+          <i class="fa-solid fa-square-poll-vertical"></i> Enrolled Surveys
+        </div><br>
+        <div class="count-text">{{lmsList.Surveys.length}}</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row" style="margin:4%;">
+
+  <div class="col-lg-12" *ngIf="CoursesStatus">
+    <div class="selector-toggle" (click)="toggleSearch()">
+      <a href="javascript:void(0)">
+        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+      </a>
+    </div>
+    <div>
+      <table  class="table table-responsive" id="departmentInfo" matSort
+        (matSortChange)="sortData($event)">
+        <thead class="thead-light" id="departmentInfoTHead">
+          <tr id="departmentInfoTHeadTr">
+            <th scope="col" class="info-label">Sr</th>
+            <th scope="col" class="info-label">Name</th>
+            <th scope="col" class="info-label">Completion Progress</th>
+          </tr>
+          <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="courseColumns"
+            (onSearch)="onSearch($event);page=1"></tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="lmsList.Courses.length==0">
+            <th colspan="8" class="text-center info-label">No details to display...</th>
+          </tr>
+          <!-- Iterate over the courses in lmsList.Courses -->
+          <tr
+            *ngFor="let course of lmsList.Courses | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+            <td>{{17*(page-1)+i+1}}</td> <!-- Display Sr (index + 1) -->
+            <td>{{ course.Name }}</td> <!-- Display Name -->
+            <td>
+                <div class="progress-container">
+                    <div class="progress-bar" [ngStyle]="{ width: course.Completion_Progress }">
+                      <span class="progress-text">{{ course.Completion_Progress  }}</span>
+                    </div>
+                  </div>
+                    
+            </td> <!-- Display Department -->
+          </tr>
+        </tbody>
+      </table>
+      <pagination-controls class="my-pagination" [hidden]="lmsList.Courses.length==0"
+      (pageChange)="handlePageChange($event)"></pagination-controls>
+  
+    </div>
+    </div>
+    <div class="col-lg-12" *ngIf="QuizzesStatus">
+        <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+        <div>
+    
+
+
+
+    <table *ngIf="QuizzesStatus" class="table table-responsive" id="departmentInfo" matSort
+      (matSortChange)="sortData($event)">
+      <thead class="thead-light" id="departmentInfoTHead">
+        <tr id="departmentInfoTHeadTr">
+          <th scope="col" class="info-label">Sr</th>
+          <th scope="col" class="info-label">Name</th>
+          <th scope="col" class="info-label">Attempts Count</th>
+          <th scope="col" class="info-label">Score</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="lmsList.Quizzes.length==0">
+          <th colspan="8" class="text-center info-label">No details to display...</th>
+        </tr>
+        <!-- Iterate over the courses in lmsList.Courses -->
+        <tr *ngFor="let quizzes of lmsList.Quizzes | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+          <td>{{ i + 1 }}</td> <!-- Display Sr (index + 1) -->
+          <td>{{ quizzes.Name }}</td> <!-- Display Name -->
+          <td>{{ quizzes.No_Of_Attempts }}</td> <!-- Display Department -->
+          <td><div class="progress-container">
+            <div class="progress-bar" [ngStyle]="{ width: quizzes.Score  }">
+              <span class="progress-text">{{ quizzes.Score  }}</span>
+            </div>
+          </div>
+            
+        </tr>
+      </tbody>
+    </table>
+    <pagination-controls class="my-pagination" [hidden]="lmsList.Quizzes.length==0"
+      (pageChange)="handlePageChange($event)"></pagination-controls>
+
+
+</div>
+</div>
+    <div class="col-lg-12" *ngIf="SurveysStatus">
+        <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+        <div>
+   
+
+    <table *ngIf="SurveysStatus" class="table table-responsive" id="departmentInfo" matSort
+      (matSortChange)="sortData($event)">
+      <thead class="thead-light" id="departmentInfoTHead">
+        <tr id="departmentInfoTHeadTr">
+          <th scope="col" class="info-label">Sr</th>
+          <th scope="col" class="info-label">Name</th>
+          <th scope="col" class="info-label">Submitted</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="lmsList.Surveys.length==0">
+          <th colspan="8" class="text-center info-label">No details to display...</th>
+        </tr>
+        <!-- Iterate over the courses in lmsList.Courses -->
+        <tr *ngFor="let surveys of lmsList.Surveys | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+          <td>{{ i + 1 }}</td> <!-- Display Sr (index + 1) -->
+          <td>{{ surveys.Name }}</td> <!-- Display Name -->
+          <td>{{ surveys.Status }}</td> <!-- Display Department -->
+        </tr>
+      </tbody>
+    </table>
+    <pagination-controls class="my-pagination" [hidden]="lmsList.Surveys.length==0"
+    (pageChange)="handlePageChange($event)"></pagination-controls>
+
+  </div>
+</div>

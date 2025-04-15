@@ -85,7 +85,9 @@ export class UserLeavesComponent implements OnInit,OnDestroy,AfterViewInit{
           const tab = document.getElementById('compOff-tab').querySelector('.nav-link');
           tab.classList.add('active');
           activeRouteLink = tab.getAttribute('routerLink');
-        }else {
+        }
+       
+        else {
           const tab = document.getElementById('leaveTab').querySelector('.nav-link');
           tab.classList.add('active');
           activeRouteLink = tab.getAttribute('routerLink');

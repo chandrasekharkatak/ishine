@@ -93,7 +93,8 @@ public interface AppreciationRepository extends JpaRepository<Appreciation, Long
             "JOIN employee eb ON a.appreciation_by = eb.employeement_id " +
             "JOIN employee et ON a.appreciation_to = et.employeement_id " +
             "WHERE a.appreciation_to = :employeementId " +
-            "AND DATE(a.appreciation_date) BETWEEN :startDate AND :endDate", 
+            "AND (COALESCE(:startDate, '') = '' OR COALESCE(:endDate, '') = '' OR DATE(a.appreciation_date) BETWEEN :startDate AND :endDate)"+
+            "ORDER BY a.appreciation_date DESC",
     nativeQuery = true)
 List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate, 
                                    @Param("endDate") String endDate, 
@@ -126,7 +127,8 @@ List<Object[]> getMyAppreciationDetails(@Param("startDate") String startDate,
 		+ "        ) \r\n"
 		+ "    ) \r\n"
 		+ ") \r\n"
-		+ "AND DATE(a.appreciation_date) BETWEEN :startDate AND :endDate",nativeQuery = true)
+		+ "AND (COALESCE(:startDate, '') = '' OR COALESCE(:endDate, '') = '' OR DATE(a.appreciation_date) BETWEEN :startDate AND :endDate)"+
+           "ORDER BY a.appreciation_date DESC",nativeQuery = true)
 	List<Object[]> getTeamAppreciationDetails(@Param("startDate") String startDate, 
 	                                          @Param("endDate") String endDate, 
 	                                          @Param("currentUserEmpId") Long currentUserEmpId);

@@ -77,6 +77,11 @@ import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapp
 import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
 import { ViewTravelrequestComponent } from './travel-allowance/view-travelrequest/view-travelrequest.component';
 import { TravelrequestapprovalComponent } from './travel-allowance/travelrequestapproval/travelrequestapproval.component';
+import { LMSComponent } from './employee360/lms/lms.component';
+import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
+
+import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
+import { Employee360Resolver } from './employee360/Employee360Resolver';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -122,6 +127,8 @@ const routes: Routes = [
     children: [
       { path: 'my-timesheet', component: MyTimesheetComponent, },
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
+      { path: 'biomax-request', component: BiomaxApprovalComponent, },
+    
     ]
   },
   {path:'user-leaves/:tabName', component: UserLeavesComponent, canActivate: [AuthGuard],
@@ -129,12 +136,14 @@ const routes: Routes = [
       { path: 'leave', component: LeaveComponent, },
       { path: 'holiday', component: HolidaysComponent, },
       { path: 'compOff', component: CompOffComponent, },
+     
     ]
   },
   {path:'user-timesheet/:tabName', component: UserTimesheetComponent, canActivate: [AuthGuard],
     children: [
       { path: 'my-timesheet', component: MyTimesheetComponent, },
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
+      { path: 'biomax-request', component: BiomaxApprovalComponent, },
     ]
   },
   {path:'user-team', component: UserTeamComponent, canActivate: [AuthGuard],
@@ -162,17 +171,35 @@ const routes: Routes = [
   },
   {path:'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard]},
   
-  {path:'employee-360', component: Employee360Component,
-     children: [
-      { path: 'profile', component: Employee360ProfileComponent, },
-      { path:'leave', component: Employee360LeaveComponent, },
-      { path: 'project', component: Employee360ProjectComponent, },
-      { path: 'timesheet', component: Employee360TimesheetComponent, },
-      { path: 'biomax', component: Employee360BiomaxComponent, },
-      { path: 'rewards', component: Employee360RewardsComponent, },
-      { path: 'appreciation', component: Employee360AppreciationComponent, },
-    ]
+  // {path:'employee-360', component: Employee360Component,
+  //    children: [
+  //     { path: 'profile', component: Employee360ProfileComponent, },
+  //     { path:'leave', component: Employee360LeaveComponent, },
+  //     { path: 'project', component: Employee360ProjectComponent, },
+  //     { path: 'timesheet', component: Employee360TimesheetComponent, },
+  //     { path: 'biomax', component: Employee360BiomaxComponent, },
+  //     { path: 'rewards', component: Employee360RewardsComponent, },
+  //     { path: 'appreciation', component: Employee360AppreciationComponent, },
+  //     { path: 'lms', component: LMSComponent, },
+  //   ]
+  // },
+  { 
+    path: 'employee-360/:id', 
+    component: Employee360Component,
+    resolve: { employeeData: Employee360Resolver },
+    children: [
+      { path: 'profile', component: Employee360ProfileComponent },
+      { path: 'leave', component: Employee360LeaveComponent },
+      { path: 'project', component: Employee360ProjectComponent },
+      { path: 'timesheet', component: Employee360TimesheetComponent },
+      { path: 'biomax', component: Employee360BiomaxComponent },
+      { path: 'rewards', component: Employee360RewardsComponent },
+      { path: 'appreciation', component: Employee360AppreciationComponent },
+      { path: 'lms', component: LMSComponent },
+    ],
+   
   },
+  
   {path:'project-view', component: ProjectViewComponent},
   {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
@@ -212,6 +239,7 @@ const routes: Routes = [
       
     ]
   },
+  {path:'qr-code', component: QrCodeGeneratorComponent, canActivate: [AuthGuard]},
   {path:'**', redirectTo:'home', pathMatch:'full'},
 ];
 

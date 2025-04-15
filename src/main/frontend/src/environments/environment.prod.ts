@@ -1,4 +1,7 @@
 export const environment = {
   production: true,
-  baseUrl: "./"
+  baseUrl: "./",
+  lmsbaseurl :"./",
+  qrCodebaseUrl: "./",
+  baseUrl360:"./"
 };

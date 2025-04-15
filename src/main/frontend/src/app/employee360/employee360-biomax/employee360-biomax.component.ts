@@ -9,7 +9,8 @@ import { Team } from 'src/app/models/team';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
 
-
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-employee360-biomax',
@@ -88,7 +89,7 @@ ngOnInit(): void {
 
   this.filter1.officeendTimePicker=this.filter.officeendTimePicker;
   this.filter1.officestartTimePicker=this.filter.officestartTimePicker;
-  const storedData = localStorage.getItem('employee360Data');
+  const storedData = sessionStorage.getItem('employee360Data');
   const parsedData = storedData ? JSON.parse(storedData) : null;
   if(parsedData != null || parsedData != undefined ){
     this.employeeData =  parsedData;
@@ -193,6 +194,23 @@ searchBioMax(){
   this.getBiomatrixFilter();
 }
 
+exportToExcel(id:any): void {
+ let exportToExcelTeamfile=id+".xlsx";
+  const table = document.getElementById(''+id); // Get table by ID
+  if (!table) {
+    console.error('Table not found');
+    return;
+  }
+
+  const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table); // Convert table to worksheet
+  const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Project Data');
+
+  const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+
+  saveAs(data, exportToExcelTeamfile);
+}
 async getBiomatrixFilter() {
   let workinghours2 = 0;
   let lessthenworkinghours = 0;
@@ -284,7 +302,6 @@ teamData(id:any){
             }
   this.defaultview=false;
  this.team.teamId=id;
- alert(this.team.teamId);
 this.getTeamFromEmployeeMapping();
 //this.getBiomatrixFilter();
 

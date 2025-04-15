@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild ,ElementRef} from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -31,6 +31,11 @@ export class RewardsAndRecognisationComponent implements OnInit {
   items = 10;
 
   currentUser: User;
+
+  @ViewChild('fileInput') fileInput!: ElementRef; 
+  file: File | null = null;
+
+
   userMapping: any = {};
   rewardsCategories: Rewards[] = [];
   rewards: Rewards[] = [];
@@ -75,7 +80,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   teamSearchText: any = '';
   ofmonthyear: any;
   editRewardssss: Rewards = new Rewards();
-  allEmployeeList360: any[] = [];
+ 
   feature = "Rewards";
   annuallyreward: Date;
 
@@ -101,7 +106,6 @@ export class RewardsAndRecognisationComponent implements OnInit {
     this.preventBackButton();
     this.getRewardsCategories(this.alertMessageTemplate);
     this.fetchRewardHistory();
-    this.getAllEmployeeFor360View();
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     console.log("feature Name ", featureMap);
     featureMap.subFeatures?.forEach(sub => {
@@ -111,32 +115,6 @@ export class RewardsAndRecognisationComponent implements OnInit {
     console.log('usermapping -- ', this.userMapping);
   }
 
-  getAllEmployeeFor360View() {
-    this.allEmployeeList360 = [];
-    this.employeeService.getAllEmployeesFor360View().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allEmployeeList360 = response.serviceResponse;
-        console.log("allEmployeeListFor360 : ", this.allEmployeeList360)
-        this.allEmployeeList360.forEach(employeeObj => {
-          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-          employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-          employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          if (employeeObj.isConsultant == 'true')
-            employeeObj.employeeType = 'Consultant';
-          else if (employeeObj.isApprenticeship == 'true')
-            employeeObj.employeeType = 'Apprentice';
-          else
-            employeeObj.employeeType = 'Regular';
-        });
-        this.allEmployeeList360 = this.allEmployeeList360;
-        this.allEmployeeList360 = new SortPipe().transform(this.allEmployeeList360, ['name', 'string', 'asc']);
-      } else {
-        alert(response.serviceResponse);
-      }
-    });
-  }
 
 
   preventBackButton() {
@@ -300,6 +278,9 @@ export class RewardsAndRecognisationComponent implements OnInit {
     this.sumbitRewards.rewardCategoryId = this.activeCategoryId;
     this.sumbitRewards.ofmonthyear = this.ofmonthyear;
 
+
+   
+
     if (!this.validateRewardsWhileSubmit(template)) {
       return; // Stop execution if validation fails
     }
@@ -363,11 +344,11 @@ export class RewardsAndRecognisationComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(this.sumbitRewards.remark)) {
-      this.alertMessage = "Please enter a Remark !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(this.sumbitRewards.remark)) {
+    //   this.alertMessage = "Please enter a Remark !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     return true;
   }
@@ -461,17 +442,37 @@ export class RewardsAndRecognisationComponent implements OnInit {
     }
   }
 
-
   wallOfFameMonths: string[] = [''];
-  addMonthYear() {
-    this.wallOfFameMonths.push(''); // Add an empty month-year value.
+  addMonthYear(template: TemplateRef<any>) {
+    const lastMonthYear = this.wallOfFameMonths[this.wallOfFameMonths.length - 1];
+    if (lastMonthYear.trim() === '') {
+    this.openAlertMod(template,'Please select a Month-Year before adding a new one.');
+    return;
+    }
+    this.wallOfFameMonths.push('');
   }
 
-  removeMonthYear(index: number) {
+  removeMonthYear(index: number,template: TemplateRef<any>) {
     if (this.wallOfFameMonths.length > 1) {
-      this.wallOfFameMonths.splice(index, 1); // Remove the selected month-year.
+      this.wallOfFameMonths.splice(index, 1); 
     } else {
-      alert('At least one month-year must be selected.');
+      this.openAlertMod(template,'At least one month-year must be selected.');
+    }
+  }
+
+  checkDuplicateMonthYear(index: number) {
+    const selectedMonthYear = this.wallOfFameMonths[index];
+
+    if (!selectedMonthYear) return; // If no value is selected, do nothing.
+
+    // Check if the selected month-year already exists (excluding the current index)
+    const duplicateExists = this.wallOfFameMonths.some((month, i) => i !== index && month === selectedMonthYear);
+
+    if (duplicateExists) {
+        alert('Duplicate Month-Year! Please select a different one.');
+        setTimeout(() => {
+            this.wallOfFameMonths[index] = ''; // Reset the duplicate entry
+        }, 100); // Small delay to avoid UI flicker
     }
   }
 
@@ -486,7 +487,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
     this.editRewardssss.updatedBy = this.currentUser.empId;
     this.editRewardssss.managerId = this.sumbitRewards.managerId || this.selectedReward.managerId;
 
-    console.log("updateddddddddddddd--", this.editRewardssss);
+    //console.log("updateddddddddddddd--", this.editRewardssss);
     this.rewardsService.updateRewardForEmployee(this.editRewardssss).subscribe(
       (response: any) => {
         if (response.serviceStatus === 'Success') {
@@ -496,7 +497,11 @@ export class RewardsAndRecognisationComponent implements OnInit {
           this.isRewards = false;
           this.isRewardshitory = true;
           this.fetchRewardHistory();
-
+          this.selectedReward = null;
+          this.ofmonthyear=null;
+          this.remarks=null;
+          this.sumbitRewards=null;
+          // this.editRewardssss=null;
         } else {
           this.openAlertMod(template, 'No reward categories available at the moment.');
         }
@@ -527,7 +532,49 @@ export class RewardsAndRecognisationComponent implements OnInit {
     );
   }
 
+  get isFormValid(): boolean {
+   
+    const hasEmpty = this.wallOfFameMonths.some(monthYear => !monthYear.trim());
+
+   
+    const hasDuplicates = this.wallOfFameMonths.some((month, index) =>
+        this.wallOfFameMonths.indexOf(month) !== index && month !== ''
+    );
+
+    return !hasEmpty && !hasDuplicates; // Form is valid only if no empty fields & no duplicates
+}
+
+  checkDuplicateMonthYearr(index: number, template: TemplateRef<any>) {
+    const selectedMonthYear = this.wallOfFameMonths[index];
+
+    if (!selectedMonthYear) return; // If no value is selected, do nothing.
+
+    // Check if the selected month-year already exists (excluding the current index)
+    const duplicateExists = this.wallOfFameMonths.some((month, i) => i !== index && month === selectedMonthYear);
+
+    if (duplicateExists) {
+        this.openAlertMod(template, 'Duplicate Month-Year! Please select a different one.');
+        setTimeout(() => {
+            this.wallOfFameMonths[index] = ''; // Reset the duplicate entry
+        }, 100); // Small delay to avoid UI flicker
+    }
+}
+
   bulkEnable(template: TemplateRef<any>) {
+
+   
+
+    const isAnyEmpty = this.wallOfFameMonths.some(monthYear => !monthYear.trim());
+
+    if (this.wallOfFameMonths.length === 0 || isAnyEmpty) {
+      this.openAlertMod(template, 'Please select at least one Month-Year before proceeding.');
+      return; 
+  }
+
+  if (!this.isFormValid) {
+    this.openAlertMod(template,'Please ensure all Month-Years are selected and unique before proceeding.');
+      return;
+  }
 
     this.rewardsService.bulkEnableMonthYear(this.wallOfFameMonths).subscribe(
       (response: any) => {
@@ -614,15 +661,10 @@ export class RewardsAndRecognisationComponent implements OnInit {
           this.rewardHistoryList.forEach(rewards => {
             rewards.createdOn = (rewards.createdOn) ? moment(rewards.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             rewards.updatedOn = (rewards.updatedOn) ? moment(rewards.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-            let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === rewards.empId);
-            let matchingEmployeeRewardBy = this.allEmployeeList360.find(emp => emp.empId === rewards.createdBy);
-            let matchingEmployeeManager = this.allEmployeeList360.find(emp => emp.empId === rewards.managerId);
-            let matchingEmployeeUpdatedBy = this.allEmployeeList360.find(emp => emp.empId === rewards.updatedBy);
-
-            rewards.emp360 = matchingEmployee ? matchingEmployee : {};
-            rewards.emp360RewardBy = matchingEmployeeRewardBy ? matchingEmployeeRewardBy : {};
-            rewards.emp360Manager = matchingEmployeeManager ? matchingEmployeeManager : {};
-            rewards.emp360UpdatedBy = matchingEmployeeUpdatedBy ? matchingEmployeeUpdatedBy : {};
+            rewards.emp360 = rewards.empId;
+            rewards.emp360RewardBy = rewards.createdBy;
+            rewards.emp360Manager = rewards.managerId;
+            rewards.emp360UpdatedBy = rewards.updatedBy;
 
 
           });
@@ -648,7 +690,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
 
     const headers = [
       ['Employee Id', 'Employee Name', 'Reward Category', 'Reward Type Name', 'Of Month-Year', 'Remarks'],
-      ['e.g. 240017', 'e.g. Prarthana Lenka', 'e.g. Monthly/HalfYearly/Annual', 'e.g. Gem Of The Month', 'e.g. January 2025', 'e.g. Did their best in their respective fields']
+      ['e.g. 240017', 'e.g. Prarthana Lenka', 'e.g. Monthly/Half Yearly/Annual', 'e.g. Gem Of The Month', 'e.g. January 2025', 'e.g. Did their best in their respective fields']
     ];
 
 
@@ -680,10 +722,14 @@ export class RewardsAndRecognisationComponent implements OnInit {
     return JSON.stringify(uploadedHeaders) === JSON.stringify(this.expectedHeaders);
   }
 
+  clearFileInput() {
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = ''; 
+    }
+  }
 
 
-
-  file: any;
+  
   onRewardFileSelect(event: any, template: TemplateRef<any>) {
     
     const uploadedFiles = event.target.files;
@@ -696,11 +742,18 @@ export class RewardsAndRecognisationComponent implements OnInit {
         (response: any) => {
           if (response.serviceStatus === "Success") {
             this.openAlertMod(template, response.serviceResponse);
+            this.isRewardshitory = true;
+            this.fetchRewardHistory();
+            this.isRewards = false;
+            this.iswalloffame = false;
+            this.isRewardsExcel = false;
           } else if (response.serviceStatus === "Fail") {
             this.openAlertMod(template, `Error found: ${response.serviceResponse}`);
           } else {
             this.openAlertMod(template, response.serviceResponse);
           }
+
+          this.clearFileInput();
         });
     }
   

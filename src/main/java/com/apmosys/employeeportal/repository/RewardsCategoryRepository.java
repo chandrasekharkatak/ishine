@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Designation;
 import com.apmosys.employeeportal.model.RewardsCategory;
 import com.apmosys.employeeportal.model.TypeDocument;
@@ -18,7 +19,9 @@ public interface RewardsCategoryRepository extends JpaRepository<RewardsCategory
 	public List<Object[]> findAllRewardsCategory();
 	
 	
-	@Query("SELECT rc FROM RewardsCategory rc WHERE LOWER(rc.categoryName) = :rewardCategoryName")
+	@Query(value ="SELECT * FROM rewards_category WHERE LOWER(category_name) LIKE LOWER(:rewardCategoryName)",nativeQuery= true)
 	RewardsCategory findByCategoryNameIgnoreCase(@Param("rewardCategoryName") String rewardCategoryName);
 
+
+	public List<RewardsCategory> findByRewardCategoryId(Long rewardCategoryId);
 }

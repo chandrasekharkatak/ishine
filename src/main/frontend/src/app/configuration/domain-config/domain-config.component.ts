@@ -65,9 +65,11 @@ export class DomainConfigComponent implements OnInit {
 
   //excel
   domainDataForExcel: any[];
-  name = 'Domain.xlsx';
+ 
 
   employeesFor360: any[] = [];
+  excelName: string;
+  tableName: string;
 
   constructor(
     private domainService:DomainService,
@@ -79,12 +81,7 @@ export class DomainConfigComponent implements OnInit {
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x);}
 
   async ngOnInit(): Promise<void> {
-    try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
      // Dynamic Subfeature Flags
      let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
      featureMap.subFeatures?.forEach(sub => {
@@ -340,18 +337,13 @@ downloadConfirmationDateUpload(): void {
 
         this.allDomainList.forEach((domain) => {
           domain.createdOn = (domain.createdOn)? moment(domain.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          domain.emp360CreatedBy = domain.createdBy;
+          domain.emp360UpdatedBy = domain.updatedBy;
+      
+        
         });
 
-        this.allDomainList.forEach((employee) => {
-          // console.log("employee.createdBy ", employee.createdBy);
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-          // console.log("createdby ", matchingEmployee3);
-          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-          // console.log("employee.updatedBy ", employee.updatedBy);
-          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
-          // console.log("updatedBy ", matchingEmployee4);
-          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
-        });
+     
 
         // console.log(this.allDomainList, " : this.allDomainList");
       } else {
@@ -509,7 +501,7 @@ downloadConfirmationDateUpload(): void {
     this.page = event;
   }
 
-  //Export -- download excel
+ name = 'Domain.xlsx';
   exportToExcel(): void {
   this.domainService.getAllDomain().pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
@@ -525,6 +517,17 @@ downloadConfirmationDateUpload(): void {
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
   });
 }
+
+
+//Export -- download excel
+
+// exportToExcel(id:any): void {
+//   const tableId = id; // Replace with your actual table ID
+//   this.excelName = "DomainInfo.xlsx";
+//   this.tableName= 'Domain Table';
+
+//   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+// }
 
 
 

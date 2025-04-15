@@ -1,5 +1,13 @@
 <div class="container-fluid">
-    <div class="row justify-content-between mb-3">
+    <div class="row justify-content-between mb-3" style="    margin-top: 2%;">
+        <a class="nav-link user-info__tab-item__link active" id="details-tab" data-toggle="tab"
+                    
+
+        href="#details" role="tab" aria-controls="home" style="font-size: 27px;
+    color: #231e8d;" aria-selected="true">Employee Details
+   
+</a>
+
         <button *ngIf="!isUpdation && userMapping.update_profile " type="submit" class="btn btn-primary btn-sm ml-auto" (click)="showUpdateForm(currentEmployeeInfo)">Update Profile</button>
         <!-- <button *ngIf="!isUpdation && userMapping.update_profile" type="submit" class="btn btn-primary btn-sm ml-auto" (click)="showUpdateProfile()">Update Profile</button> -->
         <button *ngIf="isUpdation && userMapping.view_profile" type="submit" class="btn btn-primary btn-sm ml-auto" (click)="showViewProfile()">View Profile</button>
@@ -9,15 +17,11 @@
         <div *ngIf="!isUpdation && userMapping.view_profile" class="card">
          
 
-            <ul class="nav nav-tabs user-info__tabs" id="userTab" role="tablist">
-                <li class="nav-item user-info__tab-item">
-                   
-                    <a class="nav-link user-info__tab-item__link active" id="details-tab" data-toggle="tab"
-                    
-
-                        href="#details" role="tab" aria-controls="home" aria-selected="true">Employee Details</a>
-
-                </li>
+            <ul >
+                <!-- <li class="nav-item user-info__tab-item">
+                    -->
+                  
+                <!-- </li> -->
                 <!-- <li class="nav-item user-info__tab-item">
                     <a class="nav-link user-info__tab-item__link" id="timeline-tab" data-toggle="tab" href="#timeline"
                         role="tab" aria-controls="profile" aria-selected="false">Timeline</a>
@@ -46,6 +50,7 @@
                     aria-labelledby="details-tab">
                     <app-accordion>
                         <app-accordion-item class="acc-content" title="Basic Information">
+                            
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">

@@ -83,13 +83,13 @@ isActive(rewards: Rewards){
 }
 
 
-fetchEmployeesForHomepage(){
-  return this.http.get(`${this.baseUrl}`+`api/fetchEmployeesForHomepage`);
+fetchEmployeesForHomepageByCategoryId(rewardCategoryObj : any){
+  return this.http.post(`${this.baseUrl}`+`api/fetchEmployeesForHomepageByCategoryId`, rewardCategoryObj);
 }
 
-// fetchEmployeesHomepagecurrentmonth(currentMonthYearApi:any){
-//   return this.http.get(`${this.baseUrl}`+`api/fetchEmployeesHomepagecurrentmonth/`+currentMonthYearApi);
-// }
+fetchRewardCategoryForHomePage(){
+  return this.http.get(`${this.baseUrl}`+`api/fetchRewardCategoryForHomePage`);
+}
 
 getAllActiveTeams(rewards: any){
   return this.http.post(`${this.baseUrl}`+`api/getAllActiveTeams`, rewards);

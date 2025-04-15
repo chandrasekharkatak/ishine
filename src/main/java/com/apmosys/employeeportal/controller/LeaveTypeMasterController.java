@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.service.LeaveTypeMasterService;
+import com.apmosys.employeeportal.serviceInterface.BioMaxRequestService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
@@ -17,6 +18,9 @@ public class LeaveTypeMasterController {
 	
 	@Autowired
 	LeaveTypeMasterService leaveTypeMasterService;
+	
+	@Autowired
+	BioMaxRequestService bioMaxRequestService;
 	
 	@RequestMapping(value = "/getAllLeaveTypes" ,method = RequestMethod.GET)
 	public ServiceResponse getAllLeaveTypes(LeaveDTO leaveDto) {

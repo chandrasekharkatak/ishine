@@ -1,6 +1,7 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
+import { saveAs } from 'file-saver';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -12,12 +13,11 @@ import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
-import { UtilityService } from 'src/app/services/utility.service';
-import { SortPipe } from 'src/app/sort.pipe';
 import { ResourceManagementComponent } from 'src/app/user-team/resource-management/resource-management.component';
-
+import * as XLSX from 'xlsx';
 @Component({
   selector: 'app-employee360-project',
   templateUrl: './employee360-project.component.html',
@@ -40,7 +40,7 @@ isProjectTeamMemberVisible:boolean=false;
   getBillableType: any;
   newMemberInProject: any;
   lastDate: any;
-
+  page = 1;
   copyDepartment : any = [];
   currentBreadcrumbList: any[] = [];
   allProjectList: any[] = [];
@@ -56,7 +56,7 @@ isProjectTeamMemberVisible:boolean=false;
   filters:any = {};
   isSearchEnabled:boolean = false;
   projectColumns:any[] = ['blank','projectName' ,'teamName' , 'clientName', 'billableType', 'startDate', 'updatedOn'];
-
+  employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   newteamMember: TeamMember = new TeamMember();
@@ -69,17 +69,17 @@ isProjectTeamMemberVisible:boolean=false;
   sortColumnType:any;
   abbreviationError: string = '';
   @ViewChild(ResourceManagementComponent) resourceManagementComponent: ResourceManagementComponent;
-  employeesFor360:any[] = [];
+ 
 
   constructor(
     private breadcrumbService: BreadcrumbService,
     private projectService: ProjectService,
     private modalService: BsModalService,
     private router:Router,
+    private exportExcelService: ExportExcelService,
     private departmentService: DepartmentService,
     private resourceManagementService: ResourceManagementService,
     private employeeService: EmployeeService,
-    private utilityService: UtilityService,
     private emp360Service:Employee360Service
   ) {
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
@@ -89,7 +89,7 @@ isProjectTeamMemberVisible:boolean=false;
 
   ngOnInit(): void {
 
-    const storedData = localStorage.getItem('employee360Data');
+    const storedData = sessionStorage.getItem('employee360Data');
       const parsedData = storedData ? JSON.parse(storedData) : null;
       if(parsedData != null || parsedData != undefined ){
         this.employeeData =  parsedData;
@@ -107,10 +107,7 @@ isProjectTeamMemberVisible:boolean=false;
       breadcrumbObject.url = "/employee-360/project";
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
-
-    this.getAllEmployeeFor360View();
-    //get Project by Employee
-    this.getExistingProjectsByUser();
+     this.getExistingProjectsByUser();
   }
   clearBreadcrumbs(){
     // this.breadcrumbService.setBreadcrumbSubject(null);
@@ -121,10 +118,11 @@ backfromvisibility(type:any){
   this.isProjectVisible=false;
   this.isProjectTeamVisible=false;
   this.isProjectTeamMemberVisible=false;
-  
+  this.getExistingProjectsByUser();
   if(type=="ProjectVisible" && this.flag == true){
     this.isProjectVisible=true;
     this.flag = false;
+    this.filterProjectByProjectId = [];
    
   }
   else if(type=="ProjectTeamVisible"){
@@ -137,6 +135,7 @@ backfromvisibility(type:any){
     this.isProjectTeamVisible=true;
     this.isProjectVisible=false;
   }
+
 }
 redirecttoProjectTeam(id:any){
   this.isProjectVisible=false;
@@ -162,12 +161,52 @@ getTeamByProjectId(projectId:any){
  
   this.projectteamInfo.projectId = projectId;
 
-  this.emp360Service.getTeamInfo(this.projectteamInfo).pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.filterProjectByProjectId = response.serviceResponse;
-  
-    }
-  });
+  this.emp360Service.getTeamInfo(this.projectteamInfo).subscribe({
+    next: (response: any) => {
+    if (response.serviceStatus === "Success") {
+                    this.filterProjectByProjectId = response.serviceResponse;
+                    // console.log("getTeamInfo ", this.teamMemberList);
+    
+                    const groupedData = {};
+    
+                    this.filterProjectByProjectId.forEach((member) => {
+                        const teamKey = member.teamId;
+    
+                        if (!groupedData[teamKey]) {
+                            groupedData[teamKey] = {
+                                teamId: member.teamId,
+                                teamName: member.teamName,
+                                employees: [],
+                                projectId: member.projectId,
+                                projectName: member.projectName
+                            };
+                        }
+    
+                        groupedData[teamKey].employees.push({
+                            empId: member.empId,
+                            employeeName: member.employeeName,
+                            employeeRole: member.employeeRole ? member.employeeRole.split(',').filter(role => role.trim() !== '').join(', ') : "",
+                            startDate: member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null,
+                            billableType: member.billableType,
+                            active: member.active,
+                            emp360: {}
+                        });
+    
+                        groupedData[teamKey].employees = groupedData[teamKey].employees || [];
+                    });
+    
+                    this.filterProjectByProjectId = Object.values(groupedData);
+    
+                    this.filterProjectByProjectId.forEach((team) => {
+                        team.employees.forEach((employee) => {
+                            employee.emp360 = employee.empId;
+                        });
+                    });
+                    // console.log("Formatted Team Data: ", this.teamMemberList);
+                } else {
+                    console.warn("Failed to fetch team info");
+                }
+}});
 }
 filterProjects(id) {
   this.getTeamByProjectId(id);
@@ -178,6 +217,24 @@ filterTeamMemberProjects(id) {
     project.projectId==id
   );
 }
+
+exportToExcel(id:any): void {
+ let exportToExcelTeamfile=id+".xlsx";
+  const table = document.getElementById(''+id); // Get table by ID
+  if (!table) {
+    console.error('Table not found');
+    return;
+  }
+
+  const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table); // Convert table to worksheet
+  const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Project Data');
+
+  const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+
+  saveAs(data, exportToExcelTeamfile);
+}
 async getTeamEmployeeByTeamId(teamId: any) {
   try {
     const response: any = await this.projectService.getTeamMemberByTeamId(teamId).pipe(first()).toPromise();
@@ -186,12 +243,8 @@ async getTeamEmployeeByTeamId(teamId: any) {
       this.filterTeamfromTeamId = response.serviceResponse;
       
       this.filterTeamfromTeamId.forEach((employee) => {
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId == employee.empId);
-          console.log("matchingEmployee ", matchingEmployee);
-          employee.emp360 = matchingEmployee ? matchingEmployee : {};
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId == employee.teamLeadId);
-          console.log("matchingEmployee2 ", matchingEmployee2);
-          employee.emp360teamLeadId = matchingEmployee2 ? matchingEmployee2 : {};
+          employee.emp360 = employee.empId;
+          employee.emp360teamLeadId = employee.teamLeadId;
       });
       // console.log('filterTeamfromTeamId = ',this.filterTeamfromTeamId);
      
@@ -249,10 +302,27 @@ async getTeamEmployeeByTeamId(teamId: any) {
   }
 
   deleteResourceModal(template: TemplateRef<any>, projObj) {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); 
+    const yyyy = today.getFullYear();
+    this.lastDate = `${yyyy}-${mm}-${dd}`;
     // let projectObj = Object.assign({},this.projectObj); for copy object
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.projectObj = projObj;
   }
+  deleteResourceModal1(template: TemplateRef<any>, projObj,member){
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); 
+    const yyyy = today.getFullYear();
+    this.lastDate = `${yyyy}-${mm}-${dd}`;
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.projectObj = projObj;
+    this.projectObj.empId = member.empId;
+  }
+
+  
 
   deleteResourceFromProject(template: TemplateRef<any>) {
     this.cancelRequest();
@@ -261,12 +331,17 @@ async getTeamEmployeeByTeamId(teamId: any) {
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
     projectObj.endDate = this.lastDate;
-
+    
+    
     console.log("team details ", projectObj)
     this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
+        this.lastDate='';
+        this.lastDate='';
         this.getExistingProjectsByUser();
+        this.getTeamByProjectId(this.projectObj.projectId);
+        this.getTeamByProjectId(this.projectObj.projectId);
       }
     })
   }
@@ -278,6 +353,10 @@ async getTeamEmployeeByTeamId(teamId: any) {
     breadcrumbObject.object = projectObj;
     this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     this.router.navigate([breadcrumbObject.url], { queryParams: { }});
+   
+    this.resourceManagementComponent.showEditProjectForm(projectObj);
+    
+    
    
     this.resourceManagementComponent.showEditProjectForm(projectObj);
     
@@ -387,7 +466,7 @@ async getTeamEmployeeByTeamId(teamId: any) {
     //console.log("Updated Filter : ", this.filters);
   }
 
-  page = 1;
+  
   handlePageChange(event) {
     this.page = event;
   }
@@ -396,39 +475,5 @@ async getTeamEmployeeByTeamId(teamId: any) {
     this.modalRef.hide();
   }
 
-  async getAllEmployeeFor360View(): Promise<void> {
-    this.employeesFor360 = [];
-    
-    try {
-        const response: any = await this.employeeService.getAllEmployeesFor360View().toPromise();
-        
-        if (response.serviceStatus === "Success") {
-            this.employeesFor360 = response.serviceResponse;
-
-            this.employeesFor360.forEach(employeeObj => {
-                employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
-                employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-                employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-                employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-                employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-
-                if (employeeObj.isConsultant === 'true') {
-                    employeeObj.employeeType = 'Consultant';
-                } else if (employeeObj.isApprenticeship === 'true') {
-                    employeeObj.employeeType = 'Apprentice';
-                } else {
-                    employeeObj.employeeType = 'Regular';
-                }
-            });
-
-            // Sort the employees
-            this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
-        } else {
-            alert(response.serviceResponse);
-        }
-    } catch (error) {
-        console.error("Error fetching employees:", error);
-    }
-}
 
 }

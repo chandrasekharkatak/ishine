@@ -1,10 +1,10 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, Subject, throwError } from 'rxjs';
-import { Employee } from '../models/employee';
-import { User } from '../models/user';
-import { Query } from '../models/query';
+import { Observable, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { Employee } from '../models/employee';
+import { Query } from '../models/query';
+import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -102,6 +102,10 @@ export class EmployeeService {
 
   getAllEmployeesBirthDayToday() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesBirthDayToday`);
+  }
+
+  getAllEmployeesWorkAnniversaryToday() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesWorkAnniversaryToday`);
   }
 
   getHierarchyByEmpId(employeeObj: Employee) {
@@ -330,5 +334,30 @@ getReporteesListByReportingManagerId(empObj: Employee){
 setReportingManagerToNewManager(employee : any){
   return this.http.post(`${this.baseUrl}`+`api/setReportingManagerToNewManager`,employee);
 }
+
+getAllEmployeesReportByProjectTypeInConsolidated():Observable<any[]>{
+  return this.http.get<any[]>(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectTypeInConsolidated`);
+}
+
+getPoProjectDetailsBOthPOAndInternal(){
+  return this.http.get(`${this.baseUrl}`+`api/getPoProjectDetailsBOthPOAndInternal`);
+}
+
+getAllEmployeesReportByProjectType(){
+  return this.http.get(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectType`);
+}
+
+//Update Default ProjectName for employee
+updateDefaultProject(newemployeeObj : any){
+  return this.http.post(`${this.baseUrl}` + `api/updateDefaultProject`, newemployeeObj);
+ }
+
+ getExpiredPo(){
+  return this.http.get(`${this.baseUrl}` + `api/getExpiredPo`);
+ }
+
+ sendExpiredPoEmail(employeeDTO:any){
+  return this.http.post(`${this.baseUrl}` + `api/sendExpiredPoEmail`,employeeDTO);
+ }
 
 }

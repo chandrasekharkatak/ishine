@@ -1,19 +1,23 @@
 
 
-import { AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, Subscription } from 'rxjs';
+import { first, takeUntil } from 'rxjs/operators';
+import { DeptConfigComponent } from '../configuration/dept-config/dept-config.component';
+import { EmployeeConfigComponent } from '../configuration/employee-config/employee-config.component';
+import { LeaveConfigComponent } from '../configuration/leave-config/leave-config.component';
+import { RoleConfigComponent } from '../configuration/role-config/role-config.component';
+import { AppreciationAndRewardsCount } from '../models/appreciationAndRewardCount';
+import { Employee } from '../models/employee';
 import { Feature } from '../models/feature';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
-import { EmployeeConfigComponent } from '../configuration/employee-config/employee-config.component';
-import { DeptConfigComponent } from '../configuration/dept-config/dept-config.component';
-import { LeaveConfigComponent } from '../configuration/leave-config/leave-config.component';
-import { RoleConfigComponent } from '../configuration/role-config/role-config.component';
-import { Subject, Subscription } from 'rxjs';
-import { Employee360Service } from '../services/employee360.service';
 import { BreadcrumbService } from '../services/breadcrumb.service';
-import { Employee } from '../models/employee';
-import { takeUntil } from 'rxjs/operators';
+import { Employee360Service } from '../services/employee360.service';
+import { UtilityService } from '../services/utility.service';
+import { DomSanitizer } from '@angular/platform-browser';
 
 
 @Component({
@@ -25,18 +29,21 @@ export class Employee360Component implements OnInit {
 
   private unsubscribe$ = new Subject<void>();
 
+  appreciationAndRewardsCount:AppreciationAndRewardsCount = new AppreciationAndRewardsCount();
   employeeData: any;
   emplId:any;
   employeeConfig: EmployeeConfigComponent;
   departmentConfig: DeptConfigComponent;
   roleConfig: RoleConfigComponent;
   leaveConfig: LeaveConfigComponent;
-  
+  private hasLoadedData = false;
   tabName:any = 'Configurations';
   currentUser:User;
   userMapping:any = {};
   breadcrumbUrl:any[] = [];
-  
+  breadcrumbUrl1:any[] = [];
+  breadcrumbs: any[] = [];
+
   private navigationSubscription: Subscription;
 
   constructor(
@@ -45,6 +52,9 @@ export class Employee360Component implements OnInit {
     private route: ActivatedRoute,
     private employee360Service: Employee360Service,
     private breadcrumbService: BreadcrumbService,
+    private utillity:UtilityService,
+   private sanitizer: DomSanitizer
+  
     
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -56,22 +66,30 @@ export class Employee360Component implements OnInit {
   currentab:String;
   leave:String;
   othertab:any;
-
+  employeeId:any;
   ngOnInit(): void {
+   
+    setTimeout(() => {
+      this.route.data.subscribe(data => {
+        sessionStorage.setItem("employee360Data", JSON.stringify(data.employeeData));
+      });
+    }, 1000);
     this.navigationSubscription = this.employee360Service.getNavigationEvent().subscribe(() => {
       this.removeActiveTab();
       this.setActiveTab();
     });
-
-    const storedData = localStorage.getItem('employee360Data');
-    const parsedData = storedData ? JSON.parse(storedData) : null;
-  
-    if(parsedData != null || parsedData != undefined ){
-      this.employeeData =  parsedData;
-    }else{
-      this.employeeData = history.state.data;
-    }
     
+   
+   
+    const storedData = sessionStorage.getItem('employee360Data');
+    const parsedData = storedData ? JSON.parse(storedData) : null;
+    this.employeeData = parsedData
+    if (parsedData !== null && parsedData !== undefined) {
+      this.employeeData = parsedData;
+    } else {
+      this.employeeData = history.state?.data ?? {};
+    }
+   
     let findBreadcrumbObject = this.breadcrumbUrl.findIndex(x => x.title === "Employee-360-Profile");
     if (findBreadcrumbObject >= 0) {
       this.breadcrumbUrl.splice(findBreadcrumbObject + 1);
@@ -81,7 +99,7 @@ export class Employee360Component implements OnInit {
    this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
-    console.log("employeeData   ",this.employeeData);
+   
 
     this.getBioOverTimeandState();
 
@@ -104,11 +122,49 @@ export class Employee360Component implements OnInit {
     this.breadcrumbService.currentMessage.pipe(takeUntil(this.unsubscribe$)).subscribe(message =>  {
       this.setActiveTab();
     });
+
+    this.getCountOfRewardsAndAppreciation();
   }
+   
+     loadProfileImage(imageByte: any) {
+       let imageElement = document.getElementById('user-avatar');
+       if (imageByte) {
+         let objectURL = 'data:image/*;base64,' + imageByte;
+         let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+         imageElement.setAttribute("src", src);
+       } else {
+         imageElement.setAttribute("src", "assets/Images/default-user-image.jpeg");
+       }
+     }
+  async loadEmployee360Data() {
+    return new Promise((resolve) => {
+      this.utillity.getAllEmployeesFor360Viewnew(this.employeeId).subscribe((response: any) => {
+        const employee360Data = JSON.stringify(response.serviceResponse[0]);
+         localStorage.setItem("employee360Data", employee360Data);
 
+        // Add a 5-second delay before resolving
+        setTimeout(() => {
+          resolve(true); // Proceed after 5 seconds
+          // this.refreshData(); // Uncomment if you want to refresh after delay
+        }, 5000);
+      });
+    });
+  }
+  
 
-
-
+  refreshData() {
+    // Your logic to refresh the view/data
+    console.log("Data refreshed!");
+  }
+  backhistory(){
+    window.history.back();
+   
+  
+  }
+  backhistory1() {
+    const breadcrumbData = sessionStorage.getItem("breadcrumb");
+    return breadcrumbData ? JSON.parse(breadcrumbData) : [];
+  }
 
   ngAfterViewInit(): void {
     this.setActiveTab();
@@ -212,6 +268,25 @@ export class Employee360Component implements OnInit {
           console.log(this.currentab);
   }
 
+
+
+  rewardsCount:any;
+  appreciationCount:any;
+  getCountOfRewardsAndAppreciation(){
+    this.appreciationCount='';
+    this.rewardsCount='';
+    console.log("this.projectDetails ", this.rewardsCount);
+    this.appreciationAndRewardsCount.empId=this.employeeData.empId;
+    this.employee360Service.getRewardsAndAppreciationCount(this.appreciationAndRewardsCount).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.rewardsCount = response.serviceResponse[0].rewardsCount;
+            this.appreciationCount = response.serviceResponse[0].appreciationCount;
+
+            console.log("this.projectDetails ",  this.appreciationCount);
+
+          }
+        });
+  }
 
 
    

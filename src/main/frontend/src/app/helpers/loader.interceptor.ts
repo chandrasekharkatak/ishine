@@ -108,6 +108,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/setSurveyResponseByEmpId`,
     `${this.baseUrl}` + `api/getAnsweredSurveysByEmpId`,
     `${this.baseUrl}` + `api/empdetails`,
+    `${this.baseUrl}` + `api/getSurveyAllResponsesBySurveyId`,
 
     `${this.baseUrl}` + `api/generatePerviousMonthDSR`,
     `${this.baseUrl}` + `api/getAllDocument`,
@@ -182,6 +183,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/newsletters/download/`,
     `${this.baseUrl}`+`api/newsletters/setNewsletterReadResponseByEmpId`,
     `${this.baseUrl}`+`api/newsletters/getAllReadNewslettersByEmpId`,
+    `${this.baseUrl}`+`api/getEmployeeAuditInfo`,
+
     `${this.baseUrl}`+`api/approveDraftEmployeeApplication`,
     `${this.baseUrl}`+`api/uploadHelpDocument`,
     `${this.baseUrl}`+`api/uploadPolicies`,
@@ -234,10 +237,21 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `getExistingProjectsAndTeamsByEmployee`,
     `${this.baseUrl}` + `api/getAllEmployeesFor360View`,
     `${this.baseUrl}` + `api/getAll360LeaveApplicationsByEmpId`,
-     `${this.baseUrl}` + `api/biomax`,
-     `${this.baseUrl}` + `api/saveExcelDataForReward`
-  
-    
+    `${this.baseUrl}` + `api/biomax`,
+    `${this.baseUrl}` + `api/saveExcelDataForReward`,
+    `${this.baseUrl}` + `api/fetchEmployeesForHomepageByCategoryId`,
+    `${this.baseUrl}` + `api/getAllTeamView`, 
+    `${this.baseUrl}`+`api/submitRewardForEmployee`,
+    `${this.baseUrl}` + `api/showAllEmployeeRewards`,
+    `${this.baseUrl}` + `api/getAllEmployeesReportByProjectTypeInConsolidated`,
+    `${this.baseUrl}`+`api/getAllEmployeesReportByProjectType`,
+     `${this.baseUrl}`+`api/saveAppreciation`,
+    `${this.baseUrl}` + `api/deleteCompOff`,
+    `${this.baseUrl}` + `api/getAllOrDeptWiseEmployeeTimesheetReport`,
+    `${this.baseUrl}` + `api/getAllEmployeesForPerformance`,
+    `${this.baseUrl}` + `api/syncPoProjectDetailsByProjectId`,
+    `${this.baseUrl}` + `api/sendEmailNotificationToBDTeam`,
+    `${this.baseUrl}` + `api/currentStatusForPerformanceTableView`
   ]
 
   constructor(private loaderService: LoaderService) { }
