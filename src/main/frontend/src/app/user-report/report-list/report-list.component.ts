@@ -1478,7 +1478,8 @@ export class ReportListComponent implements OnInit {
     this.jobRoleService.getDefaultMapping().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.defaultMappingList = response.serviceResponse;
-
+        
+        console.log( this.defaultMappingList , " :  this.defaultMappingList ");
         this.defaultMappingList.forEach((object) => {
           const formattedPermissions = object.permissionList.reduce((permissions, permission) => {
 
@@ -1495,7 +1496,8 @@ export class ReportListComponent implements OnInit {
         });
 
         this.processData();
-        //console.log( this.defaultMappingList , " :  this.defaultMappingList ");
+        console.log("test");
+        console.log( this.defaultMappingList , " :  this.defaultMappingList 1 ");
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -1536,8 +1538,18 @@ export class ReportListComponent implements OnInit {
     const featureSeen = {};
 
     this.defaultMappingListFilter = this.defaultMappingList.sort((a, b) => {
-      const tabComp = a.tabName.localeCompare(b.tabName);
-      return tabComp ? tabComp : a.featureName.localeCompare(b.featureName);
+      const aTabName = a.tabName || ''; 
+      const bTabName = b.tabName || '';
+      
+      const tabComp = aTabName.localeCompare(bTabName);
+      
+      if (tabComp === 0) {
+        const aFeatureName = a.featureName || '';
+        const bFeatureName = b.featureName || '';
+        return aFeatureName.localeCompare(bFeatureName);
+      }
+      
+      return tabComp;
     }).map(x => {
       const tabSpan = tabSeen[x.tabName] ? 0 :
         this.defaultMappingList.filter(y => y.tabName === x.tabName).length;

@@ -74,7 +74,6 @@
 .thead-light {
     position: sticky;
     top: -0.7px;
-    top: 0;
     z-index: 10;
     background: var(--ghost-white);
 }
@@ -261,7 +260,7 @@ th {
 
 thead {
     position: sticky;
-    top: 1;
+    top: -5px;
     z-index: 1;
 }
 

@@ -1135,12 +1135,7 @@
     <input type="checkbox" class="custom-control-input" id="access-control-switch" (change)="toggleAccessList($event)">
     <label class="custom-control-label" for="access-control-switch">View Default Role Access</label>
   </div>
-  <div class="export-button">
-    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2 excel-button"
-            (click)="exportToExcel()">
-            <em class="fa fa-file-arrow-down fa-2x"></em>
-          </button>
-  </div>
+  
   <div class="col-md-12" *ngIf="isAccessFeatureMapping">
     <div class="col-md-12 ml-auto d-flex flex-column flex-md-row  align-items-center">
       <div class="col-md-8 mb-2 mb-md-0">
@@ -1174,11 +1169,18 @@
           <option *ngFor="let show of showColumnList" [value]="show.header">{{show.header}}</option>
         </select>
       </div> -->
+      <div class="export-button">
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2 excel-button"
+                (click)="exportToExcel()">
+                <em class="fa fa-file-arrow-down fa-2x"></em>
+              </button>
+      </div>
+      
     </div>
 
     <div class="col-md-12">
       <div class="overflow-auto" bassHorizontalScroll [tableId]="'aclReportInfo'" [tableTHeadId]="'aclReportInfoTHead'"
-        [tableTHeadTrId]="'aclReportInfoTHeadTr'" style="max-height: 65vh;">
+        [tableTHeadTrId]="'aclReportInfoTHeadTr'" style="max-height: 75vh;">
         <table class="table table-bordered table-hover table-sticky acl-table" id="aclReportInfo">
           <thead class="acl-header" id="aclReportInfoTHead">
             <tr id="aclReportInfoTHeadTr" cdkDropList cdkDropListOrientation="horizontal"
@@ -1293,12 +1295,12 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="tabName|string">Tab Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="featureName|string">Feature</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="subFeatureName|string">Sub Feature</th>
-                <th scope="col" class="info-label wide-col">Employee</th>
-                <th scope="col" class="info-label wide-col">Team Lead</th>
-                <th scope="col" class="info-label wide-col">Manager</th>
-                <th scope="col" class="info-label wide-col">RMG</th>
-                <th scope="col" class="info-label wide-col">HoD</th>
-                <th scope="col" class="info-label wide-col">Super Admin</th>
+                <th scope="col" class="info-label ">Employee</th>
+                <th scope="col" class="info-label ">Team Lead</th>
+                <th scope="col" class="info-label ">Manager</th>
+                <th scope="col" class="info-label ">RMG</th>
+                <th scope="col" class="info-label ">HoD</th>
+                <th scope="col" class="info-label ">Super Admin</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isDefaultFeatureMapping && isSearchEnabled"
                 [columnList]="defaultMappingColumns" (onSearch)="onSearch($event);page=1"></tr>
