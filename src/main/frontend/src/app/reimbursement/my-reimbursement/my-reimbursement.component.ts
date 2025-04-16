@@ -32,17 +32,21 @@ expenditureType:any;
 reimbursementObj: any = {
   currencyType:'',
   currentUser:'',
-  amount:'',
+  amount:0,
   distance:'',
   travelMode: '',
   travelClass: '',
   expenditureType:'',
   fromDate: null,
   toDate: null,
+  dateOfFood: null,
   purpose: '',
   fromLocation:'',
   toLocation:'',
-  supportingDocument: null, // File
+  supportingDocument: null,
+  kilometers: null,
+  foodAllowanceType:null
+   // File
 };
 
 
@@ -92,6 +96,17 @@ reimbursementObj: any = {
   
       
      
+    }
+
+    onKilometersChange() {
+      if (this.reimbursementObj.vehicleType === 'Car' && this.reimbursementObj.distance > 0) {
+        this.reimbursementObj.amount = this.reimbursementObj.distance * 12;
+      } else if (this.reimbursementObj.vehicleType === 'Bike' && this.reimbursementObj.distance > 0){
+        this.reimbursementObj.amount = this.reimbursementObj.distance * 6;
+        
+      }else{
+        this.reimbursementObj.amount = 0;
+      }
     }
 
    async submitForm() {

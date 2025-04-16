@@ -57,12 +57,14 @@
                             <option selected="selected" value="" disabled>Select</option>
                             <option value="Travel">Travel</option>
                             <option value="Food">Food</option>
+                            <option value="Business Meetings">Business Meetings</option>
+                            <option value="Project Allowance">Project Allowance</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>
                 </div>
                
-                <div class="col-md-2 mb-0">
+                <!-- <div class="col-md-2 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span> Currency
                     </label>
@@ -75,33 +77,75 @@
                         <option value="Australian Dollar">Australian Dollar</option>
                         <option value="Yen">Yen</option>
                     </select>
-                </div>
-                <div class="col-md-3 mb-0">
-                    <label class="info-label">
-                        <span class="text-danger">*</span> Amount
-                    </label>
-                    <input type="number" class="form-control" name="fullName" [(ngModel)]="reimbursementObj.amount" required />
-                </div>
-           
+                </div> -->
+             
+           <!-- Travel related fields -->
                 <div class="col-md-3 mb-0" *ngIf="isTravel">
                     <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
                     <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="reimbursementObj.travelMode">
                         <option selected="selected" value="" disabled>Select</option>
                         <option value="Flight">Flight</option>
                         <option value="Train">Train</option>
+                        <option value="Local Train/Metro">Local Train/Metro</option>
                         <option value="Bus">Bus</option>
                         <option value="CAB">CAB</option>
-                        <option value="CAB">Rickshaw</option>
+                        <option value="Rickshaw">Rickshaw</option>
+                        <option value="Personal Vehicle">Personal Vehicle</option>
                     </select>
                 </div>
-                <div class="col-md-3 mb-0" *ngIf="isTravel">
+
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.travelMode === 'Personal Vehicle' && isTravel">
+                    <label class="info-label"><span class="text-danger">*</span>Vehicle Type</label>
+                    <select class="form-control" [(ngModel)]="reimbursementObj.vehicleType">
+                      <option value="" disabled selected>Select Vehicle</option>
+                      <option value="Car">Car</option>
+                      <option value="Bike">Bike</option>
+                    </select>
+                  </div>
+                  
+
+                <div class="col-md-3 mb-0" *ngIf="isTravel && reimbursementObj.travelMode === 'Personal Vehicle'">
                     <label class="info-label">
                         <span class="text-danger">*</span> Distance (In KM)
                     </label>
-                    <input type="number" class="form-control" name="fullName" [(ngModel)]="reimbursementObj.distance" required />
+                    <!-- <input type="number" class="form-control" name="fullName" [(ngModel)]="reimbursementObj.distance" required /> -->
+                    <input type="number" class="form-control"
+                    [(ngModel)]="reimbursementObj.distance"
+                    (ngModelChange)="onKilometersChange()"
+                    name="distance" min="1" [disabled]="!reimbursementObj.vehicleType"/>
+                </div>
+                <!-- Travel related fields end -->
+
+                <!-- Food related fields -->
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Food' ">
+                    <label class="info-label"><span class="text-danger">*</span>Food Allowance Type</label>
+                    <select class="form-control" [(ngModel)]="reimbursementObj.foodAllowanceType">
+                      <option value="" disabled [selected]="!reimbursementObj.foodAllowanceType">Select Type</option>
+                      <option value="Out Station Travel">On Out Station Travel</option>
+                      <option value="Extra Time">On Extra Time</option>
+                      <option value="Team Dinner/Lunch">Team Dinner/Lunch</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Food'">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Fooding Date</label>
+                            <input class="form-control" [(ngModel)]="reimbursementObj.dateOfFood" id="toDate" type="date" [min]="todayDate" placeholder="Choose to date" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+                <!-- Food related fields end -->
+                <!-- Common fields  -->
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span> Total Amount
+                    </label>
+                    <input type="number" class="form-control" name="fullName" [(ngModel)]="reimbursementObj.amount" required [disabled]="reimbursementObj.travelMode === 'Personal Vehicle'"/>
                 </div>
 
-                <div class="col-md-3 mb-0">
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType != 'Food'">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
@@ -111,7 +155,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 mb-0">
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType != 'Food'">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
@@ -119,9 +163,7 @@
                         </div>
                     </div>
                 </div>
-
-               
-               
+                              
                     <div class="col-md-4 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
@@ -142,7 +184,7 @@
                 
 
 
-
+                    <!-- Common fields  end-->
 
 
                 <!-- </div> -->

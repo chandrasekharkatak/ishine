@@ -152,6 +152,12 @@ import { DomainService } from 'src/app/services/domain.service';
     location.reload();
   }
 
+  cancelRequest1() {
+    this.modalRef.hide();
+  }
+
+
+
 //   async submitForm(template: TemplateRef<any>) {
 //     if (this.isValidForm()) {
 
