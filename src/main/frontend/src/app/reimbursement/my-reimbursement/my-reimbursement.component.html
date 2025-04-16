@@ -64,20 +64,7 @@
                     </div>
                 </div>
                
-                <!-- <div class="col-md-2 mb-0">
-                    <label class="info-label">
-                        <span class="text-danger">*</span> Currency
-                    </label>
-                    <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="reimbursementObj.currencyType">
-                        <option selected="selected" value="" disabled>Select</option>
-                        <option value="Rupees">Rupees</option>
-                        <option value="Dollar">Dollar</option>
-                        <option value="Euro">Euro</option>
-                        <option value="Dhiram">Dhiram</option>
-                        <option value="Australian Dollar">Australian Dollar</option>
-                        <option value="Yen">Yen</option>
-                    </select>
-                </div> -->
+                
              
            <!-- Travel related fields -->
                 <div class="col-md-3 mb-0" *ngIf="isTravel">
@@ -120,7 +107,7 @@
                 <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Food' ">
                     <label class="info-label"><span class="text-danger">*</span>Food Allowance Type</label>
                     <select class="form-control" [(ngModel)]="reimbursementObj.foodAllowanceType">
-                      <option value="" disabled [selected]="!reimbursementObj.foodAllowanceType">Select Type</option>
+                      <option value="" disabled selected>Select Type</option>
                       <option value="Out Station Travel">On Out Station Travel</option>
                       <option value="Extra Time">On Extra Time</option>
                       <option value="Team Dinner/Lunch">Team Dinner/Lunch</option>
@@ -132,12 +119,26 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Fooding Date</label>
-                            <input class="form-control" [(ngModel)]="reimbursementObj.dateOfFood" id="toDate" type="date" [min]="todayDate" placeholder="Choose to date" autocomplete="off">
+                            <input class="form-control" [(ngModel)]="reimbursementObj.dateOfFood" id="toDate" type="date" [min]="fromDate" [max]="toDate" placeholder="Choose to date" autocomplete="off">
                         </div>
                     </div>
                 </div>
                 <!-- Food related fields end -->
                 <!-- Common fields  -->
+                 <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span> Currency
+                    </label>
+                    <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="reimbursementObj.currencyType">
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option value="Rupees">Rupees</option>
+                        <option value="Dollar">Dollar</option>
+                        <option value="Euro">Euro</option>
+                        <option value="Dhiram">Dhiram</option>
+                        <option value="Australian Dollar">Australian Dollar</option>
+                        <option value="Yen">Yen</option>
+                    </select>
+                </div>
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span> Total Amount
@@ -150,7 +151,7 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <input class="form-control" [(ngModel)]="reimbursementObj.fromDate" id="fromDate" type="date" 
-                                [min]="todayDate" placeholder="Choose from date" autocomplete="off">
+                                [min]="fromDate" [max]="toDate" placeholder="Choose from date" autocomplete="off">
                         </div>
                     </div>
                 </div>
@@ -159,7 +160,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                            <input class="form-control" [(ngModel)]="reimbursementObj.toDate" id="toDate" type="date" [min]="fromDateInput" placeholder="Choose to date" autocomplete="off">
+                            <input class="form-control" [(ngModel)]="reimbursementObj.toDate" id="toDate" type="date" [min]="reimbursementObj.fromDate" [max]="toDate" placeholder="Choose to date" autocomplete="off">
                         </div>
                     </div>
                 </div>
@@ -194,7 +195,7 @@
             <div class="row mb-3">
                 <div class="col-md-12 px-0 text-center">
                     <!-- Reset and Submit buttons -->
-                    <button type="button" class="btn btn-secondary btn-lg mx-1">Reset</button>
+                    <button type="button" class="btn btn-secondary btn-lg mx-1" (click)="resetForm()">Reset</button>
                     <button type="submit" class="btn btn-primary btn-lg mx-1" (click)="submitForm()">Submit</button>
                 </div>
             </div>

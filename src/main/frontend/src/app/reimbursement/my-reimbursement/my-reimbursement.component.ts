@@ -17,7 +17,8 @@ isTravel:boolean = false;
  reimbursementInfo:MyReimbursement = new MyReimbursement();
 
 currentEmployeeInfo:Employee = new Employee();
-todayDate: string;
+fromDate: string;
+toDate: string;
 currencyType:any;
 currentUser:any;
 amount:any;
@@ -46,7 +47,6 @@ reimbursementObj: any = {
   supportingDocument: null,
   kilometers: null,
   foodAllowanceType:null
-   // File
 };
 
 
@@ -60,7 +60,9 @@ reimbursementObj: any = {
 
   ngOnInit(): void {
     const today = new Date();
-    this.todayDate = today.toISOString().split('T')[0];
+    this.toDate = today.toISOString().split('T')[0];
+    today.setDate(today.getDate() - 60);
+    this.fromDate = today.toISOString().split('T')[0];
     this.onGetEmployeeInfo();
   }
 
@@ -107,6 +109,27 @@ reimbursementObj: any = {
       }else{
         this.reimbursementObj.amount = 0;
       }
+    }
+
+    async resetForm() {
+      this.reimbursementObj = {
+        currencyType:'',
+        currentUser:'',
+        amount:0,
+        distance:'',
+        travelMode: '',
+        travelClass: '',
+        expenditureType:'',
+        fromDate: null,
+        toDate: null,
+        dateOfFood: null,
+        purpose: '',
+        fromLocation:'',
+        toLocation:'',
+        supportingDocument: null,
+        kilometers: null,
+        foodAllowanceType:null
+      };
     }
 
    async submitForm() {
