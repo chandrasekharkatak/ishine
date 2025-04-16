@@ -256,6 +256,7 @@ export class ReportListComponent implements OnInit {
 
 
   isAllSelected = false;
+  showSearchInput = true;
   toggleSelectAll() {
     // this.employeeReportObj.deptId = [];
     if (this.isAllSelected) {
@@ -264,7 +265,7 @@ export class ReportListComponent implements OnInit {
       this.isAllSelected = false;
     } else {
       // Select all departments
-      this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
+      this.employeeReportObj.deptId = this.filteredDepartments.map(dept => dept.deptId);
       this.isAllSelected = true;
       this.getEmployeeReportData();
     }
@@ -272,7 +273,38 @@ export class ReportListComponent implements OnInit {
 
   }
 
-  allOptionValue = 'ALL'; // special marker
+  searchText: any;
+  filteredDepartments: any[] = [];
+  filterDepartments() {
+    const lowerText = this.searchText.toLowerCase();
+    this.filteredDepartments = this.departments.filter(dept =>
+      dept.name.toLowerCase().includes(lowerText)
+    );
+  }
+
+
+  clearSelection(event: Event) {
+    event.stopPropagation(); // prevent dropdown from closing
+    this.employeeReportObj.deptId = [];
+    this.isAllSelected = false;
+    // Optionally: refresh data
+  }
+  
+//   onDepartmentDropdownClosed() {
+//     this.showSearchInput = false;
+//     this.searchText = '';
+//     this.filteredDepartments = [...this.departments];
+//   }
+
+//   showSearchBar = false;
+
+// toggleSearchBar() {
+//   this.showSearchBar = !this.showSearchBar;
+// }
+  
+  
+
+ 
 
 onDepartmentSelectionChange() {
   if (!this.isAllSelected && this.employeeReportObj.deptId.length > 0) {
@@ -1024,6 +1056,7 @@ onDepartmentSelectionChange() {
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             this.departments = response.serviceResponse;
+            this.filteredDepartments = this.departments;
             resolve(response.serviceResponse);
           } else {
             reject("Failed to fetch departments");

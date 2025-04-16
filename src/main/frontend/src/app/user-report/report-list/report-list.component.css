@@ -407,4 +407,12 @@ td {
   .full-width {
     grid-column: span 2;
   }
+
+  /* ::ng-deep .mat-option.non-selectable {
+    pointer-events: none;
+  } */
+  
+  ::ng-deep .mat-option.non-selectable .mat-pseudo-checkbox {
+    display: none;
+  }
  
