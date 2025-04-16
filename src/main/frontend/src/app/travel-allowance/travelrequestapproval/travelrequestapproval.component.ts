@@ -140,6 +140,7 @@ export class TravelrequestapprovalComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+    this.onGetTravelInfo();
   }
 
   closeModal() {
@@ -226,7 +227,7 @@ export class TravelrequestapprovalComponent implements OnInit {
         alert('There was an issue updating the data.');
       }
       this.modalRef.hide();
-      this.onGetTravelInfo();
+      
     } catch (error) {
       console.error('Error during API call:', error);
       alert('An error occurred while updating the data. Please try again later.');

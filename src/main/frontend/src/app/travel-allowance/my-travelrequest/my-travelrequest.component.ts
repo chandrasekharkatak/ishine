@@ -87,6 +87,7 @@ import { DomainService } from 'src/app/services/domain.service';
   ngOnInit(): void {
 
     const today = new Date();
+    today.setDate(today.getDate() + 7);
     this.todayDate = today.toISOString().split('T')[0];
 
     this.onGetEmployeeInfo();

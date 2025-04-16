@@ -33,6 +33,7 @@
                   <th scope="col" class="info-label">Level 2 Approver Name</th>
                   <th scope="col" class="info-label">Level 2 Approver Status</th>
                   <th scope="col" class="info-label">Level 2 Approver Remarks</th>
+                  <th scope="col" class="info-label">Final Status</th>
                   <th scope="col" class="info-label">Action</th>
                 </tr>
               </thead>
@@ -65,8 +66,22 @@
                   </td>
                   <td>{{ row.level1approverRemarks || 'NA' }}</td>
                   <td>{{ 'ADMIN' }}</td>
-                  <td>{{ row.level2approverStatus }}</td>
+                  <!-- <td>{{ row.level2approverStatus }}</td> -->
+                  <td [ngClass]="{
+                    'text-danger': row.level2approverStatus === 'Rejected',
+                    'text-success': row.level2approverStatus === 'Approved',
+                    'text-warning': row.level2approverStatus === 'Pending'
+                                }">
+                    {{ row.level2approverStatus }}
+                  </td>
                   <td>{{ row.level2approverRemarks || 'NA' }}</td>
+                  <td [ngClass]="{
+                    'text-danger': row.finalStatus === 'Rejected',
+                    'text-success': row.finalStatus === 'Approved',
+                    'text-warning': row.finalStatus === 'Pending'
+                                }">
+                    {{ row.finalStatus || 'NA'}}
+                  </td>
                   <td>
                     <!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" >
                       <em class="fa fa-edit"></em> Edit
