@@ -742,7 +742,7 @@ public class ProjectInsightService {
 							if (milestoneUpdateDbResponse != null) {
 								// Add/Update Milestone question
 								if (milestone.getQuestionList() != null && !milestone.getQuestionList().isEmpty()) {
-									addUpdateQuestion(milestone.getQuestionList(), null, "Milestone", combinedText);
+									addUpdateQuestion(milestone.getQuestionList(), milestoneUpdateDbResponse.getMilestoneId() , "Milestone", combinedText);
 								}
 
 								// Milestone Assign to
@@ -763,7 +763,7 @@ public class ProjectInsightService {
 											// Add/Update Module question
 											if (module.getQuestionList() != null
 													&& !module.getQuestionList().isEmpty()) {
-												addUpdateQuestion(module.getQuestionList(), null, "Module", combinedText);
+												addUpdateQuestion(module.getQuestionList(), moduleId, "Module", combinedText);
 											}
 
 											// --> SubModule
