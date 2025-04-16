@@ -206,6 +206,10 @@ public class ProjectInsightService {
 			if (!projectInsightDTO.getQuestionList().isEmpty()) {
 				ServiceResponse applicationQuestionResponse = addUpdateQuestion(projectInsightDTO.getQuestionList(), projectInsightDTO.getProjectId(), "Project", combinedText);
 				isSuccess.set("Success".equals(applicationQuestionResponse.getServiceStatus()));
+				response.setServiceResponse("Project Insight created successfully.");
+				apiLogInfo.setApiResponse("Project Insight Successfully");
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 			// Add Milestone
@@ -574,7 +578,7 @@ public class ProjectInsightService {
 			responseObject.setProjectId(projectInsightDTO.getProjectId());
 			responseObject.setProjectName(project.getProjectName());
 			responseObject.setProjectManagerId(project.getProjectManagerId());
-			responseObject.setProjectManagerName(projectInsightDTO.getProjectManagerName());
+			responseObject.setProjectManagerName(getProjectManagerName(project.getProjectManagerId()));
 			responseObject.setCreatedBy(project.getCreatedBy());
 			responseObject.setQuestionList(getQuestion(projectInsightDTO.getProjectId(), "Project"));
 			
@@ -615,6 +619,19 @@ public class ProjectInsightService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+
+	private String getProjectManagerName(Long projectManagerId) {
+		try {
+			 Optional<Employee> employee= employeeRepository.findById(projectManagerId);
+			 if(employee.isPresent())
+			 return employee.get().getName();
+			 else 
+				 return "";
+		} catch(Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 	private ProjectInsightMilestoneDTO mapMilestone(ProjectInsightMilestone mileStone) {
@@ -1001,6 +1018,7 @@ public class ProjectInsightService {
 				projectInsightDTODbObject.setTaggedToUserId(getAllTaggedUserId(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId()));
 				projectInsightDTODbObject.setProjectId(projectInsightDTO.getProjectId());
 				projectInsightDTODbObject.setProjectManagerId(project.getProjectManagerId());
+				projectInsightDTODbObject.setProjectManagerName(getProjectManagerName(project.getProjectManagerId()));
 				projectInsightDTODbObject.setProjectName(project.getProjectName());
 				response.setServiceResponse(projectInsightDTODbObject);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

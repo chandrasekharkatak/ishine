@@ -15,5 +15,11 @@ export class ProjectModule {
     isCollapsed: any = true;
     toTagEmployeeList: any[] = [];
     toAssignEmployeeList: any[] = [];
-    isQuestionCollapsed:boolean = true;
+    isQuestionCollapsed: boolean = true;
+    badgePathList = [
+        { name: 'Details' },
+        { name: 'Questions' },
+        { name: 'SubModules' },
+    ];
+    currentActiveBadgeLevel = 'Details';
 }

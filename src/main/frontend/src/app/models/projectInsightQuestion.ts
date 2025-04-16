@@ -17,8 +17,8 @@ export class ProjectInsight {
     assignedToUserNames: any;
     taggedToUserId: any[] = [];
     taggedToUserNames: any;
-    questionList: ProjectQuestion[] = [new ProjectQuestion()];
-    projectInsightMilestoneList: ProjectMilestone[] = [new ProjectMilestone()];
+    questionList: ProjectQuestion[] = [];
+    projectInsightMilestoneList: ProjectMilestone[] = [];
     isCollapsed: any = false;
     performanceTabName: any;
     projectInsightQuestionTemplate: any;
@@ -26,7 +26,13 @@ export class ProjectInsight {
     createdBy: any;
     updatedOn: any;
     updatedBy: any;
-    toTagEmployeeList:any[]=[];
-    toAssignEmployeeList:any[]=[];
-    isQuestionCollapsed:boolean = false;
+    toTagEmployeeList: any[] = [];
+    toAssignEmployeeList: any[] = [];
+    isQuestionCollapsed: boolean = false;
+    badgePathList = [
+        { name: 'Details' },
+        { name: 'Questions' },
+        { name: 'Milestones' },
+    ];
+    currentActiveBadgeLevel = 'Details';
 }
