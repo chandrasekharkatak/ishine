@@ -20,5 +20,18 @@ export class MyReimbursement{
         purpose: any ;        
         fileData: any ;
         selectedReason: any ;    
-        selectedCurrency: any ;            
+        selectedCurrency: any ;   
+        vehicleType : any;
+        foodAllowanceType : any;
+        dateOfFood : any ;
+        level1approverRemarks : any;
+        level2approverRemarks : any;
+        level3approverRemarks : any;
+        level1approverStatus : any;
+        level2approverStatus : any;
+        level3approverStatus : any;
+        approver1 : any ;
+        approver2 : any;
+        approver3 : any;
+
 }

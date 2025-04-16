@@ -1,1 +1,139 @@
-<p>reimbursementapproval works!</p>
+<div class="row">
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-12 table-header">
+          <h1 class="table-header-title">My Reimbursement Request History</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="overflow-auto" bassHorizontalScroll>
+            <table class="table table-responsive">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label">Sr No.</th>                     
+                  <th scope="col" class="info-label">Name</th>
+                  <!-- <th scope="col" class="info-label">Request Type</th> -->
+                  <th scope="col" class="info-label">From Date</th>
+                  <th scope="col" class="info-label">To Date</th>
+                  <!-- <th scope="col" class="info-label">From Location</th>
+                  <th scope="col" class="info-label">To Location</th> -->
+                  <th scope="col" class="info-label">Expenditure Type</th>
+                  <th scope="col" class="info-label">Travel Mode</th>
+                  <th scope="col" class="info-label">Distance</th>
+                  <th scope="col" class="info-label">Currency</th>
+                  <th scope="col" class="info-label">Food Allowance Type</th>
+                  <th scope="col" class="info-label">Fooding Date</th>
+                  <th scope="col" class="info-label">Currency</th>
+                  <th scope="col" class="info-label">Amount</th>
+                  <th scope="col" class="info-label">Applied By</th>
+                  <th scope="col" class="info-label">Applied On</th>
+                  <th scope="col" class="wide-col">Purpose Of Travel</th>
+                  <th scope="col" class="info-label">Status</th>
+                  <th scope="col" class="info-label">Current Approval Level</th>
+                  <th scope="col" class="info-label">Level 1 Approver Status</th>
+                  <th scope="col" class="info-label">Level 1 Approver Name</th>
+                  <th scope="col" class="info-label">Level 1 Approver Remarks</th>
+                  <th scope="col" class="info-label">Level 2 Approver Name</th>
+                  <th scope="col" class="info-label">Level 2 Approver Remarks</th>
+                  <th scope="col" class="info-label">Level 3 Approver Name</th>
+                  <th scope="col" class="info-label">Level 3 Approver Remarks</th>
+                  <th scope="col" class="info-label">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                
+                <tr *ngFor="let row of reimbursementRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                  <td>{{ row.requestId }}</td>
+                  <td>{{ row.fullName }}</td>
+                  <!-- <td>{{ row.requestType }}</td> -->
+                  <td>{{ row.fromDate | date }}</td>
+                  <td>{{ row.toDate | date }}</td>
+                  <!-- <td>{{ row.fromLocation }}</td>
+                  <td>{{ row.toLocation }}</td> -->
+                  <td>{{ row.expenditureType }}</td>
+                  <td>{{ row.travelMode }}</td>
+                  <td>{{ row.distance }}</td>
+                  <td>{{ row.currency }}</td>
+                  <td>{{ row.foodAllowanceType }}</td>
+                  <td>{{ row.dateOfFood }}</td>
+                  <td>{{ row.amount }}</td>
+                  <td>{{ row.appliedBy }}</td>
+                  <td>{{ row.appliedOn | date }}</td>
+                  <td>{{ row.purpose }}</td>
+                  <td>{{ row.status }}</td>
+                  <td>{{ row.level }}</td>
+                  <td>{{ row.hodName }}</td>
+                  <td>{{ row.status }}</td>
+                  <td>{{ row.level1approverRemarks }}</td>
+                  <td>{{ 'HR' }}</td>
+                  <td>{{ row.level2approverRemarks }}</td>
+                  <td>{{ 'HR Head' }}</td>
+                  <td>{{ row.level3approverRemarks }}</td>
+                  <td>
+                 
+                    <div class="d-inline-flex">
+                        <button *ngIf="row.level2approverStatus === 'Pending'" type="button" class="btn btn-success btn-sm btn-action button" (click)="openEditModal(approveRequest,row)">
+                            <em class="fa fa-edit"></em> Take Action
+                          </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <pagination-controls class="my-pagination" [hidden]="reimbursementRequests.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+        </div>
+      </div>
+    </div>
+  </div> 
+
+  <ng-template #approveRequest>
+    <div class="modal-body text-center">
+      <div class="modal-dialog modal-lg" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="approveRequestModalLabel">Approve Travel Request</h5>
+              <button type="button" class="close" (click)="closeModal()" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form #approveForm="ngForm">
+                <div class="form-group">
+                  <label for="requestId">Requester Name</label>
+                  <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedReimbursementRequest.name" name="requestId" readonly />
+                </div>
+                <div class="form-group">
+                  <label for="approverRemarks">Approver Remarks</label>
+                  <textarea class="form-control" id="approverRemarks" [(ngModel)]="selectedReimbursementRequest.approverRemarks" name="approverRemarks" rows="4" placeholder="Enter your remarks..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="status">Approve Status</label>
+                  <select class="form-control" id="status" [(ngModel)]="selectedReimbursementRequest.approverStatus" name="approverStatus">
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+
+                <button type="button" class="btn btn-primary" (click)="actionRequest(alert_message)">Submit Response</button>
+                <!-- <button type="button" class="btn btn-primary" (click)="approveRequest()">Approve</button>
+                <button type="button" class="btn btn-danger" (click)="closeModal()">Cancel</button> -->
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+  

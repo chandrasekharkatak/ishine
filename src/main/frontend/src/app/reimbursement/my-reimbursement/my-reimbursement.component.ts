@@ -4,6 +4,11 @@ import { MyReimbursement } from 'src/app/models/reimbursement';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
+import { SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/internal/operators/first';
+
+
 
 @Component({
   selector: 'app-my-reimbursement',
@@ -11,8 +16,12 @@ import { ReimbursementService } from 'src/app/services/reimbursement.service';
   styleUrls: ['./my-reimbursement.component.css']
 })
 export class MyReimbursementComponent implements OnInit {
+  @ViewChild("alert_message")
+  alertTemplate: TemplateRef<any>;
 selectedReason:any;
 isTravel:boolean = false;
+alertMessage:any;
+modalRef: BsModalRef = new BsModalRef();
 
  reimbursementInfo:MyReimbursement = new MyReimbursement();
 
@@ -54,11 +63,13 @@ reimbursementObj: any = {
   constructor(private empService : EmployeeService, 
     private authenticationService: AuthenticationService,
     private reimbursementService : ReimbursementService,
+    private modalService: BsModalService,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
+
     const today = new Date();
     this.toDate = today.toISOString().split('T')[0];
     today.setDate(today.getDate() - 60);
@@ -132,10 +143,28 @@ reimbursementObj: any = {
       };
     }
 
-   async submitForm() {
+   async submitForm(template: TemplateRef<any>) {
  
      // Logic to handle form submission
       if (this.isValidForm()) {
+
+         // First upload the file
+    const fileFormData = new FormData();
+    fileFormData.append('file', this.reimbursementObj.supportingDocument);
+    fileFormData.append("displayName", this.reimbursementObj.supportingDocument.name);
+    fileFormData.append("uploadedBy", this.currentEmployeeInfo.empId);
+
+    try {
+      const uploadResponse: any = await this.reimbursementObj.uploadFile(fileFormData).pipe(first()).toPromise();
+
+      if (uploadResponse.serviceStatus === "Fail") {
+        this.openAlertMod(template, `Error found: ${uploadResponse.serviceResponse}`);
+        return;
+      } else if (uploadResponse.serviceStatus !== "Success") {
+        this.openAlertMod(template, uploadResponse.serviceResponse || "Unexpected file upload response.");
+        return;
+      }
+
  
      this.reimbursementInfo = new MyReimbursement();
      let reimbursementData = new MyReimbursement();
@@ -156,8 +185,11 @@ reimbursementObj: any = {
      reimbursementData.fileData =this.reimbursementObj.fileData; 
      reimbursementData.selectedCurrency =this.reimbursementObj.currencyType;
      reimbursementData.expenditureType = this.reimbursementObj.expenditureType;
- 
-     console.log('reimbursementData Data::::::::::::::::::::::::::::', reimbursementData);
+     reimbursementData.vehicleType = this.reimbursementObj.vehicleType;
+     reimbursementData.foodAllowanceType = this.reimbursementObj.foodAllowanceType;
+     reimbursementData.dateOfFood = this.reimbursementObj.dateOfFood ; 
+
+    console.log('reimbursementData Data::::::::::::::::::::::::::::', reimbursementData);
  
        this.onGetEmployeeInfo();
      
@@ -169,13 +201,44 @@ reimbursementObj: any = {
        } else {
          console.error(response.serviceResponse);
        }
+
+      }catch (error) {
+        console.error("Error during submit:", error);
+        this.openAlertMod(template, "An unexpected error occurred while submitting the request.");
+      }
+    }
+  }
+
+       isValidForm() {
+        return true; 
+      }
+      
+      openAlertMod(template: TemplateRef<any>, message: any) {
+        this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+        this.alertMessage = message;
+      }
+      
+      cancelRequest() {
+        this.modalRef.hide();
+      }
+
+
+
+
+
+
+
+
+
+
+
+
      }
- }
-
-
- isValidForm() {
-  return true; 
-}
  
 
-}
+
+
+
+ 
+
+

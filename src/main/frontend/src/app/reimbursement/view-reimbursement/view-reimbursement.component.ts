@@ -143,6 +143,9 @@ export class ViewReimbursementComponent implements OnInit {
        newreimbursementData.toDate = this.selectedReimbursementRequest.toDate;
        newreimbursementData.purpose = this.selectedReimbursementRequest.purpose;
        newreimbursementData.status= this.selectedReimbursementRequest.status ;
+       newreimbursementData.vehicleType = this.selectedReimbursementRequest.vehicleType;
+       newreimbursementData.foodAllowanceType = this.selectedReimbursementRequest.foodAllowanceType;
+       newreimbursementData.dateOfFood = this.selectedReimbursementRequest.dateOfFood;
       //  newreimbursementData.supportingDocument = this.selectedReimbursementRequest.supportingDocument;
  
  
@@ -237,6 +240,10 @@ export class ViewReimbursementComponent implements OnInit {
    closeModal() {
      this.modalRef.hide();
    }
+
+   cancelRequest() {
+    this.modalRef.hide();
+  }
  
 
 }
