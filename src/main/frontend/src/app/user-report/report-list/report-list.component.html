@@ -428,41 +428,27 @@
       <div class="col-md-3">
         <div class="form-group">
           <label class="info-label"><span class="text-danger">*</span>Department</label>
-    
-          <mat-select
-            class="form-control"
-            multiple
-            [(ngModel)]="employeeReportObj.deptId"
-            (selectionChange)="onDepartmentSelectionChange()"
-          >
+
+          <mat-select class="form-control" multiple [(ngModel)]="employeeReportObj.deptId"
+            (selectionChange)="onDepartmentSelectionChange()">
             <!-- Search Input (non-selectable) -->
             <mat-option class="non-selectable" disabled>
               <div style="display: flex; align-items: center;">
-                <input
-                  type="text"
-                  placeholder="Search Department"
-                  [(ngModel)]="searchText"
-                  (ngModelChange)="filterDepartments()"
-                  class="form-control"
-                  style="width: 100%; padding: 5px;"
-                />
-                <!-- Clear button shown only if any dept is selected -->
-                <button
-                  *ngIf="employeeReportObj.deptId?.length > 0"
-                  (click)="clearSelection($event)"
-                  style="margin-left: 5px; background: none; border: none; cursor: pointer;"
-                  title="Clear Selection"
-                >
+                <input type="text" placeholder="Search Department" [(ngModel)]="searchText"
+                  (ngModelChange)="filterDepartments()" class="form-control" style="width: 100%; padding: 5px;" />
+
+                <button *ngIf="employeeReportObj.deptId?.length > 0" (click)="clearSelection($event)"
+                  style="margin-left: 5px; background: none; border: none; cursor: pointer;" title="Clear Selection">
                   Clear
                 </button>
               </div>
             </mat-option>
-    
+
             <!-- Select All/Deselect All -->
             <mat-option (click)="toggleSelectAll()" [disabled]="departments.length === 0">
               {{ isAllSelected ? 'Deselect All' : 'Select All' }}
             </mat-option>
-    
+
             <!-- Department options -->
             <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
               {{ dept.name }}
@@ -471,7 +457,7 @@
         </div>
       </div>
     </div>
-    
+
 
 
     <div *ngIf="showDetails">
