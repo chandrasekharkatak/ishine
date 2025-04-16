@@ -105,7 +105,7 @@
                         <option value="Flight">Flight</option>
                         <option value="Train">Train</option>
                         <option value="Bus">Bus</option>
-                        <option value="CAB">CAB</option>
+                        <option value="Cab">Cab</option>
                     </select>
                 </div>
 
@@ -113,10 +113,13 @@
                     <label class="info-label"><span class="text-danger">*</span>Travel Class</label>
                     <select class="form-control" [(ngModel)]="travelDeskObj.travelClass" name="travelClass" required>
                         <option value="" disabled>Select</option>
-                        <option value="First Class">First Class</option>
-                        <option value="Second Class">Second Class</option>
-                        <option value="Third Class">Third Class</option>
-                        <option value="Business Class">Business Class</option>
+                        <option value="First Class" *ngIf="travelDeskObj.travelMode === 'Train' ">First Class</option>
+                        <option value="Second Class" *ngIf="travelDeskObj.travelMode === 'Train' ">Second Class</option>
+                        <option value="Third Class" *ngIf="travelDeskObj.travelMode === 'Train' ">Third Class</option>
+                        <option value="Business Class" *ngIf="travelDeskObj.travelMode == 'Flight'">Business Class</option>
+                        <option value="Economy Class" *ngIf="travelDeskObj.travelMode == 'Flight'">Economy Class</option>
+                        <option value="Air Conditioned Car/Bus" *ngIf="travelDeskObj.travelMode == 'Cab' || travelDeskObj.travelMode == 'Bus'">Air Conditioned Car/Bus</option>
+                        <option value="Non-Air Conditioned Car/Bus" *ngIf="travelDeskObj.travelMode == 'Cab' || travelDeskObj.travelMode == 'Bus'">Non-Air Conditioned Car/Bus</option>
                     </select>
                 </div>
 
@@ -166,7 +169,7 @@
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label for="fileUpload" class="info-label">Supporting Document</label>
+                            <label for="fileUpload" class="info-label"><span class="text-danger">*</span>Supporting Document</label>
                             <input type="file" id="fileUpload" class="form-control" (change)="onFileChange($event)" />
                         </div>
                     </div>
