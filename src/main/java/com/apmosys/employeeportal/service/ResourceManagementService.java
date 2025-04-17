@@ -137,14 +137,14 @@ public class ResourceManagementService {
 
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-        apiLogInfo.setSubFeatureName("createDraftProjectInfo");
-        apiLogInfo.setApiUrl("/api/createDraftProjectInfo");
-        apiLogInfo.setLogLevel("INFO");
-        StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("ProjectType : " + resourceManagementDTO.getProjectType() + " ,ProjectId :" + resourceManagementDTO.getProjectId()
-        + " ,ProjectName :" + resourceManagementDTO.getName() + " ,Department :" + resourceManagementDTO.getDeptName() + " ,State:" + 
-        resourceManagementDTO.getClientState());
+       LogDTO apiLogInfo = new LogDTO();
+       apiLogInfo.setSubFeatureName("createDraftProjectInfo");
+       apiLogInfo.setApiUrl("/api/createDraftProjectInfo");
+       apiLogInfo.setLogLevel("INFO");
+       StringBuilder logBuilder = new StringBuilder();
+       logBuilder.append("ProjectType : " + resourceManagementDTO.getProjectType() + " ,ProjectId :" + resourceManagementDTO.getProjectId()
+       + " ,ProjectName :" + resourceManagementDTO.getName() + " ,Department :" + resourceManagementDTO.getDeptName() + " ,State:" + 
+       resourceManagementDTO.getClientState());
 
 		try {
 			Project projObj = null;
@@ -186,16 +186,6 @@ public class ResourceManagementService {
 
 		        projectObj.setProjectName(resourceManagementDTO.getName());
 		        projectObj.setProjectManagerId(projManagerId);
-		        
-		        projectObj.setPoNo(resourceManagementDTO.getPoNo());
-		        projectObj.setPoStartDate(resourceManagementDTO.getStartDate());
-		        projectObj.setPoEndDate(resourceManagementDTO.getEndDate());
-		        projectObj.setPoProjectType(resourceManagementDTO.getProjectType());
-
-		        projectObj.setApmosysRM(resourceManagementDTO.getApmosysRM());	
-		        projectObj.setIsRenewable(resourceManagementDTO.getIsRenewable());
-		        projectObj.setClientRM(resourceManagementDTO.getClientRM());
-		        
 		        Project projectDbResponse = projectRepository.save(projectObj);
 				
 				resourceManagementDTO.getTeamList().forEach((teamObj) -> {
@@ -307,6 +297,7 @@ public class ResourceManagementService {
 					                    		newAddedMember.setActive(2L);
 					                    	
 					                    	  System.out.println(" newTeamMember   "+newAddedMember);
+//					                    	// Add default activity for the new team member
 //						                    	// Add default activity for the new team member
 						                    	  if (newAddedMember.getEmpId() != null) {
 						                    	      // Fetch the employee's job role and department ID
@@ -370,12 +361,10 @@ public class ResourceManagementService {
 						                    	      }
 						                    	  }
 
+
 //					                    	  find added employee's email
 					                    	  Employee  findEmp = employeeRepository.findByEmpId(newAddedMember.getEmpId());
 					                    	  Employee managerEmail = employeeRepository.findByEmpId(findEmp.getManagerId());
-					                    	  String hodMail = employeeRepository.findHodMail(newAddedMember.getEmpId());
-					                    	  
-					                    	  String ccMail = hodMail + "," + managerEmail.getEmail().toString() + "," + rmgMail + "," + adminMail;
 					                    	  
 					                    	  Project projectFind = null;
 					              		    if (resourceManagementDTO.getProjectType().equals("Internal")) {
@@ -385,7 +374,7 @@ public class ResourceManagementService {
 					              		    }
 					                    	  
 					                    	  try {
-												mailService.sendMailWithCC(findEmp.getEmail().toString(), ccMail, "Regarding resource mapping to new project", "Dear "
+												mailService.sendMailWithCC("tmp@gmail.com", rmgMail, "Regarding Resource mapped to new Project", "Dear "
 														+ findEmp.getName()+"<br>"
 														+ "You have been mapped to client name - "+resourceManagementDTO.getClientName()+" under the project "+projectFind.getProjectName()+"<br>"
 																+ "<br><br>"
@@ -429,16 +418,9 @@ public class ResourceManagementService {
 					                    inActiveMember.add(member);
 					                    
 //					                    mail for inactive employee
-
-				                    	Employee  findEmp = employeeRepository.findByEmpId(member.getEmpId());
-			                    	    Employee managerEmail = employeeRepository.findByEmpId(findEmp.getManagerId());
-			                    	    String hodMail = employeeRepository.findHodMail(member.getEmpId());
-			                    	  
-			                    	    String ccMail = hodMail + "," + managerEmail.getEmail().toString() + "," + rmgMail + "," + adminMail;
-				                    	  
 					                    
 					                    try {
-											mailService.sendMailWithCC(findEmp.getEmail().toString(),ccMail,"Regarding Resource removed from Project ", "Dear "
+											mailService.sendMail(rmgMail,"Regarding Resource removed from Project ", "Dear "
 													+ emp.getName()+"<br>"
 													+ "You have been removed from project "+findProject.getProjectName()+ "under the team - "+findTeam.getTeamName()+"<br>"
 															+ "<br><br>"
@@ -481,8 +463,6 @@ public class ResourceManagementService {
 
 					            for (TeamMemberDTO teamMember : teamObj.getTeamMemberList()) {
 					                EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
-					                
-					                
 
 					                // TeamLead
 					                if ((teamMember.getIsTeamLead() != null) && (teamMember.getIsTeamLead().equals("true"))) {
@@ -693,14 +673,6 @@ public class ResourceManagementService {
 			    newProject.setPoProjectId(resourceManagementDTO.getId());
 			    newProject.setActive("true");
 			    newProject.setSyncProject("true");
-			    newProject.setPoProjectType(resourceManagementDTO.getProjectType());
-			    newProject.setPoNo(resourceManagementDTO.getPoNo());
-			    newProject.setPoStartDate(resourceManagementDTO.getStartDate());
-			    newProject.setPoEndDate(resourceManagementDTO.getEndDate());
-
-			    newProject.setApmosysRM(resourceManagementDTO.getApmosysRM());	
-			    newProject.setIsRenewable(resourceManagementDTO.getIsRenewable());
-			    newProject.setClientRM(resourceManagementDTO.getClientRM());
 				
 				  	if (resourceManagementDTO.getIsHOD().equals("true")) {
 				 	newProject.setIsDraftProject("false"); 
@@ -748,6 +720,7 @@ public class ResourceManagementService {
 			                    teamLeadName = teamMember.getName();
 			                }
 			            }
+
 						
 			            Team newTeamObj = new Team();
 			            newTeamObj.setIsActive("Y");
@@ -759,34 +732,13 @@ public class ResourceManagementService {
 						newTeamObj.setDeptIds(deptList.toString());
 			            newTeamObj.getCommonProperty().setCreatedBy(resourceManagementDTO.getCreatedBy());
 			            Team teamDbResponse = teamRepository.save(newTeamObj);
-			            
-			            StringBuilder emailBody = new StringBuilder();
-			            emailBody.append("<html><body>") // Wrap email content inside HTML tags
-			                     .append("Dear RMG,<br><br>")
-			                     .append("The Team has been created with the team name - <b>").append(teamDbResponse.getTeamName()).append("</b><br><br>")
-			                     .append("<table border='1' style='border-collapse: collapse; width: 100%;'>")
-			                     .append("<tr>")
-			                     .append("<th style='padding: 8px; text-align: left;'>Employment ID</th>")
-			                     .append("<th style='padding: 8px; text-align: left;'>Employee Name</th>")
-			                     .append("<th style='padding: 8px; text-align: left;'>Job Role</th>")
-			                     .append("<th style='padding: 8px; text-align: left;'>Department</th>")
-			                     .append("<th style='padding: 8px; text-align: left;'>Start Date</th>")
-//			                     .append("<th style='padding: 8px; text-align: left;'>Employee Role</th>")
-			                     .append("</tr>");
 
 			            if (teamDbResponse != null) {
 			                List<EmployeeTeamMap> mapList = new ArrayList<EmployeeTeamMap>();
-			                String ccMail = adminMail;
+
 			                // Add team member in the team
 			                for (TeamMemberDTO teamMember : teamObj.getTeamMemberList()) {
 			                    EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
-			                    //it is returning multiple resuts................///////////////////
-				                EmployeeDetailsForTeamMemberDTO employeeDetails = employeeRepository.getEmployeeDetailsForTeam(teamMember.getEmpId());
-				                //it is returning multiple resuts................///////////////////
-				                String hodMail = employeeRepository.findHodMail(teamMember.getEmpId());
-		                    	
-	                    	    ccMail = ccMail + "," + hodMail;
-		                    	 
 			                    // TeamLead
 			                    if ((teamMember.getIsTeamLead() != null) && (teamMember.getIsTeamLead().equals("true"))) {
 			                        newEmpTeamMap.setEmpId(teamMember.getEmpId());
@@ -806,40 +758,26 @@ public class ResourceManagementService {
 			                        newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
 			                        mapList.add(newEmpTeamMap);
 			                    }
-			                    
-			                    if (employeeDetails != null) {
-			                        String employmentId = "A-" + employeeDetails.getEmployeementId();
-			                        if ("true".equalsIgnoreCase(employeeDetails.getIsConsultant())) {
-			                            employmentId = "CS-" + employeeDetails.getEmployeementId();
-			                        }
-
-			                        String employeeRole = teamMember.getIsTeamLead() != null && teamMember.getIsTeamLead().equalsIgnoreCase("true")
-			                                            ? "TeamLead"
-			                                            : String.join(",", teamMember.getEmployeeRole());
-
-			                        emailBody.append("<tr>")
-			                        .append("<td style='padding: 8px;'>").append(employmentId).append("</td>")
-			                        .append("<td style='padding: 8px;'>").append(employeeDetails.getEmployeeName()).append("</td>")
-			                        .append("<td style='padding: 8px;'>").append(employeeDetails.getJobRoleName()).append("</td>")
-			                        .append("<td style='padding: 8px;'>").append(employeeDetails.getDeptName()).append("</td>")
-			                        .append("<td style='padding: 8px;'>").append(employeeDetails.getStartDate()).append("</td>")
-//			                        .append("<td style='padding: 8px;'>").append(employeeRole).append("</td>")
-			                        .append("</tr>");
-			                    }
 			                }
 			                List<EmployeeTeamMap> teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
-
-			                emailBody.append("</table><br><br>")
-			                .append("Sincerely,<br>")
-			                .append("<b>Team RMG - ApMoSys Technologies</b>")
-			                .append("</body></html>");
-
+			                
+//			                after create team
+			                
 			                try {
-			                    mailService.sendMailWithCC(ccMail,rmgMail, "Regarding Team Creation", emailBody.toString());
-			                } catch ( MessagingException e) {
-			                    e.printStackTrace();
-			                }
-			               
+								mailService.sendMail(rmgMail,"Regarding Team Create", "Dear "
+										+ "RMG ,"+"<br>"
+										+ "The Team has been created with the team name - "+teamDbResponse.getTeamName()+"<br>"
+												+ "<br><br>"
+												+ "Sincerely,"+"<br>"
+												+ "Team RMG - ApMoSys Technologies"
+										);
+							} catch (AddressException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (MessagingException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 
 			                // Add default activity
 			                Activity newActivityCreated = null;
@@ -880,10 +818,42 @@ public class ResourceManagementService {
 			                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			            }
 			        });
+			   
+
+			        // Send mail to RMG: if HOD/SuperAdmin has created project/Team
+//			        if (resourceManagementDTO.getIsHOD().equals("true") && !resourceManagementDTO.getProjectType().equals("Internal")) {
+//			            try {
+//			                mailService.sendMailWithCC("demo@gmail.com","sakti.das@apmosys.com",
+//			                        "Regarding Resource management",
+//			                        "Dear RMG Team ," + "<br>"
+//			                                + "<br>"
+//			                                + employeeObj.getName() + " dusra wala call kiya hai team create pr project update ka line no 729 has created a project:  -> " + resourceManagementDTO.getName()+"under this team hai "+resourceManagementDTO.getTeamList().get(0).getTeamName());                                      
+//			            } catch (Exception e) {
+//			                e.printStackTrace();
+//			            }
+//			        }
+
+			        // Send Project/Team detail JSON to PoPortal
+//			        if (!resourceManagementDTO.getProjectType().equals("Internal")) {
+//			            ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+//
+//			            if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+//			                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			                response.setServiceResponse("Project updated successfully");
+//			                apiLogInfo.setApiResponse("Project updated successfully");
+//			                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			            } else {
+//			                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			                response.setServiceResponse("Project & Team created successfully, but unable to sync with PoPortal : " + poPortalResponse.getServiceResponse());
+//			                apiLogInfo.setApiResponse("Project & Team created successfully, but unable to sync with PoPortal");
+//			                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			            }
+//			        } else {
 			            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			            response.setServiceResponse("Project updated successfully");
 			            apiLogInfo.setApiResponse("Project updated successfully");
 			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			        }
 			    }
 			}
 			}catch(Exception e) {
@@ -891,13 +861,14 @@ public class ResourceManagementService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-            apiLogInfo.setLogLevel("ERROR");
+           apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+           apiLogInfo.setLogLevel("ERROR");
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
 	
 //	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 //		ServiceResponse response = new ServiceResponse();
@@ -2893,7 +2864,7 @@ public class ResourceManagementService {
 
 		    if (project != null) {
 
-                project.setProjectName(dto.getName());
+//                project.setProjectName(dto.getName());
                 project.setPoProjectType(dto.getProjectType());
 //                String formattedStartDate = dateFormat.format(dto.getStartDate());
 //                project.setPoStartDate(formattedStartDate);

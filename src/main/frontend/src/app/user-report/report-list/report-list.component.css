@@ -272,3 +272,146 @@ thead {
 td {
     padding: 8px;
 }
+
+.dashboard-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5.79px;
+    padding: 1rem;
+  }
+  
+  .card {
+    width: 50vh;
+    padding: 1rem;
+    background-color: #e1e1e6;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    transition: box-shadow 0.3s ease;
+    height: 420px;
+  }
+  
+  .card-header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    position: relative;
+    background-color: #c6c6cb;
+  }
+  
+  .count-badge {
+    position: absolute;
+    right: 0;
+    top: 0;
+    background: #21295c;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-top: 10px;
+  }
+  
+  .toggle-buttons,
+  .status-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+  }
+  
+  .toggle-btn,
+  .status-btn {
+    width: 48%;
+    background-color: #e0e0e0;
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .toggle-btn {
+    width: 48%;
+    background-color: #888b8e; 
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    color: white;
+    transition: 0.2s ease-in-out;
+  }
+  
+  .toggle-btn.active-btn {
+    background-color: #1d2d44; 
+    color: white;
+    box-shadow:  0px 3px 8px rgb(0 0 0 / 90%);
+  }
+
+  .status-btn {
+    width: 48%;
+    background-color: #aeb1b5; 
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    color: white;
+    transition: 0.2s ease-in-out;
+  }
+  
+  .status-btn.active-btn {
+    background-color: #3e5c76; 
+    color: white;
+    box-shadow:  0px 3px 8px rgb(0 0 0 / 90%);
+  }
+  .status-btn.active-flag {
+    background-color: #218380;
+    color: white;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.5);
+  }
+  
+  .status-btn.inactive-flag {
+    background-color: #772f1a;
+    color: white;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.5);
+  }
+  
+  
+  .count-boxes {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .count-box {
+    background-color: #fff;
+    border-radius: 6px;
+    padding: 8px;
+    text-align: center;
+    font-size: 14px;
+    box-shadow: 0 0 0 transparent;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .count-box.active-btn {
+    background-color: #7371fc;
+    color: white;
+    box-shadow: 0px 3px 8px rgba(0, 123, 255, 0.4);
+  }
+  
+  .active-box {
+    /* box-shadow: 0px 4px 12px rgba(0, 6, 12, 0.6); */
+    border: 2px solid black;
+  }
+  .full-width {
+    grid-column: span 2;
+  }
+
+  /* ::ng-deep .mat-option.non-selectable {
+    pointer-events: none;
+  } */
+  
+  ::ng-deep .mat-option.non-selectable .mat-pseudo-checkbox {
+    display: none;
+  }
+ 

@@ -30,11 +30,6 @@ public class BioMaxRequestController {
 	@Autowired
 	private ProjectService projectService;
 	
-	@GetMapping(value = "/poprojectclone")
-	public ResponseEntity<List<ProjectPoPortalDTO>> poprojectclone() {
-		return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
-	}
-	
 	@PostMapping(value = "/create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ServiceResponse> createBioMaxRequest(@RequestBody BioMaxRequestDTO biomaxRequestDTO) {
 		return ResponseEntity.ok(bioMaxRequestService.createBioMaxRequest(biomaxRequestDTO));
