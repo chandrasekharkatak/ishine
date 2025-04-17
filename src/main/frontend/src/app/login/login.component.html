@@ -1,105 +1,163 @@
 <main class="auth">
-        <div class="row align-items-center auth__container">
-            <div class="col-md-6 offset-md-3 d-flex justify-content-center">
-                <div class="card d-flex flex-column auth__form">
-                    <div class="auth__logo">
-                        <!-- <h4 class="auth__logo__text">ApMoSys</h4> -->
-                        <img src="assets/Images/ishine_logo.jpeg" alt="">
+    <div class="row auth__container">
+        <div class="col-md-6 d-flex justify-content-center align-items-center">
+            <div class="card d-flex flex-column auth__form">
+                <div class="auth__logo">
+                    <!-- <h4 class="auth__logo__text">ApMoSys</h4> -->
+                    <img src="assets/Images/ishine_logo.jpeg" alt="">
+                </div>
+                <div *ngIf="isError" class="auth__error text-center">
+                    <p class="form-text text-danger auth__error__msg">{{errorMsg}}</p>
+                </div>
+                <!-- LOGIN FORM -->
+                <div *ngIf="isLoginForm" class="login__form">
+                    <div class="form-group">
+                        <label for="userName" class="sr-only">Username</label>
+                        <input class="form-control" type="text" id="username" placeholder="Enter Username"
+                            [(ngModel)]="userName" name="userName" autocomplete="off">
                     </div>
-                    <div *ngIf="isError" class="auth__error text-center">
-                        <p class="form-text text-danger auth__error__msg">{{errorMsg}}</p>
-                    </div>
-                    <!-- LOGIN FORM -->
-                    <div *ngIf="isLoginForm" class="login__form">
-                        <div class="form-group">
-                            <label for="userName" class="sr-only">Username</label>
-                            <input class="form-control" type="text" id="username" placeholder="Enter Username" [(ngModel)]="userName" name="userName" autocomplete="off">
+                    <div class="form-group">
+                        <label for="userPassword" class="sr-only">Password</label>
+                        <div class="d-flex">
+                            <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="userPassword"
+                                placeholder="Enter Password" [(ngModel)]="password" autocomplete="off"
+                                (keyup.enter)="onLogin()" />
+                            <span class="btn" style="margin-left: -50px;" id="passwordEye"
+                                (click)="toggleFieldTextType()">
+                                <em class="fa"
+                                    [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
+                            </span>
                         </div>
-                        <div class="form-group" >
-                            <label for="userPassword" class="sr-only">Password</label>
-                            <div class="d-flex">
-                                <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="userPassword"
-                                placeholder="Enter Password" [(ngModel)]="password" autocomplete="off" (keyup.enter)="onLogin()" />
-                                <span class="btn" style="margin-left: -50px;" id="passwordEye" (click)="toggleFieldTextType()">
-                                    <em class="fa"  [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
-                                </span>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block login__btn" (click)="onLogin()">SIGN IN</button>
                     </div>
-                    <!-- OTP FORM -->
-                    <div *ngIf="isOtpForm" class="otp__form">
-                        <div class="form-group">
-                            <label for="userOtp" class="sr-only">OTP</label>
-                            <div class="d-flex">
-                                <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="userOtp"
-                                placeholder="Enter OTP" [(ngModel)]="userOTP" autocomplete="off" (keyup.enter)="onConfirmLoginOTP()" />
-                                <span class="btn" style="margin-left: -50px;" id="passwordEye" (click)="toggleFieldTextType()">
-                                    <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
-                                </span>
-                            </div>
-                            <!-- <span style="color:red; display: flex; justify-content: flex-end"> -->
-                                <p style="color:red; display: flex; justify-content: flex-end">00:{{timeLeft}}</p>
-                            <!-- </span> -->
+                    <button type="submit" class="btn btn-primary btn-block login__btn" (click)="onLogin()">SIGN
+                        IN</button>
+                </div>
+                <!-- OTP FORM -->
+                <div *ngIf="isOtpForm" class="otp__form">
+                    <div class="form-group">
+                        <label for="userOtp" class="sr-only">OTP</label>
+                        <div class="d-flex">
+                            <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="userOtp"
+                                placeholder="Enter OTP" [(ngModel)]="userOTP" autocomplete="off"
+                                (keyup.enter)="onConfirmLoginOTP()" />
+                            <span class="btn" style="margin-left: -50px;" id="passwordEye"
+                                (click)="toggleFieldTextType()">
+                                <em class="fa"
+                                    [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
+                            </span>
+                        </div>
+                        <!-- <span style="color:red; display: flex; justify-content: flex-end"> -->
+                        <p style="color:red; display: flex; justify-content: flex-end">00:{{timeLeft}}</p>
+                        <!-- </span> -->
 
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block otp__btn" (click)="onConfirmLoginOTP()">Confirm</button>
                     </div>
-                    <!-- FORGOT PASSWORD FORM -->
-                    <div *ngIf="isForgotPassForm" class="forgor-pass__form">
-                        <div class="form-group">
-                            <label for="emailID" class="sr-only">emailID</label>
-                            <input class="form-control" type="text" id="emailID" placeholder="Enter email id" [(ngModel)]="userEmailId" autocomplete="off">
-                        </div>
-                        <button type="submit" class="btn btn-primary float-left sendOtp__btn" (click)="onSendOTP()">Send OTP</button>
-                        <!-- <button type="submit" class="btn btn-outline-primary float-right sendOtp__btn" (click)="onSendOTP()">Resend OTP</button>   -->
+                    <button type="submit" class="btn btn-primary btn-block otp__btn"
+                        (click)="onConfirmLoginOTP()">Confirm</button>
+                </div>
+                <!-- FORGOT PASSWORD FORM -->
+                <div *ngIf="isForgotPassForm" class="forgor-pass__form">
+                    <div class="form-group">
+                        <label for="emailID" class="sr-only">emailID</label>
+                        <input class="form-control" type="text" id="emailID" placeholder="Enter email id"
+                            [(ngModel)]="userEmailId" autocomplete="off">
                     </div>
-                    <!-- Forgot Password OTP FORM-->
-                    <div *ngIf="isForgotPassOtpForm" class="otp__form">
-                        <div class="form-group">
-                            <label for="userOtp" class="sr-only">OTP</label>
-                            <div class="d-flex">
-                                <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="userOtp"
-                                placeholder="Enter OTP" [(ngModel)]="userOTP" autocomplete="off" (keyup.enter)="onConfirmForgotPassOTP()" />
-                                <span class="btn" style="margin-left: -50px;" id="passwordEye" (click)="toggleFieldTextType()">
-                                    <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
-                                </span>
-                            </div>
+                    <button type="submit" class="btn btn-primary float-left sendOtp__btn" (click)="onSendOTP()">Send
+                        OTP</button>
+                    <!-- <button type="submit" class="btn btn-outline-primary float-right sendOtp__btn" (click)="onSendOTP()">Resend OTP</button>   -->
+                </div>
+                <!-- Forgot Password OTP FORM-->
+                <div *ngIf="isForgotPassOtpForm" class="otp__form">
+                    <div class="form-group">
+                        <label for="userOtp" class="sr-only">OTP</label>
+                        <div class="d-flex">
+                            <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="userOtp"
+                                placeholder="Enter OTP" [(ngModel)]="userOTP" autocomplete="off"
+                                (keyup.enter)="onConfirmForgotPassOTP()" />
+                            <span class="btn" style="margin-left: -50px;" id="passwordEye"
+                                (click)="toggleFieldTextType()">
+                                <em class="fa"
+                                    [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
+                            </span>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block otp__btn" (click)="onConfirmForgotPassOTP()">Confirm</button>
                     </div>
-                    <!-- CHANGE PASSWORD FORM -->
-                    <div *ngIf="isChangePassForm" class="change-pass__form">
-                        <div class="form-group">
-                            <label for="newPass" class="sr-only">New Password</label>
-                            <div class="d-flex">
-                                <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="newPass"
-                                placeholder="Enter New Password" [(ngModel)]="userNewPass" autocomplete="off"/>
-                                <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
-                                    <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
-                                </span>
-                            </div>
+                    <button type="submit" class="btn btn-primary btn-block otp__btn"
+                        (click)="onConfirmForgotPassOTP()">Confirm</button>
+                </div>
+                <!-- CHANGE PASSWORD FORM -->
+                <div *ngIf="isChangePassForm" class="change-pass__form">
+                    <div class="form-group">
+                        <label for="newPass" class="sr-only">New Password</label>
+                        <div class="d-flex">
+                            <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="newPass"
+                                placeholder="Enter New Password" [(ngModel)]="userNewPass" autocomplete="off" />
+                            <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
+                                <em class="fa"
+                                    [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
+                            </span>
                         </div>
-                        <div class="form-group">
-                            <label for="confirmPass" class="sr-only">Confirm New Password</label>
-                            <div class="d-flex">
-                                <input class="form-control" [type]="fieldTextTypePassword ? 'text' : 'password'" id="confirmPass"
-                                placeholder="Confirm New Password" [(ngModel)]="userConfirmNewPass" autocomplete="off"/>
-                                <span class="btn" id="passwordEye" (click)="toggleFieldChangePassword()">
-                                    <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextTypePassword,'fa-eye': fieldTextTypePassword}"></em>
-                                </span>
-                            </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPass" class="sr-only">Confirm New Password</label>
+                        <div class="d-flex">
+                            <input class="form-control" [type]="fieldTextTypePassword ? 'text' : 'password'"
+                                id="confirmPass" placeholder="Confirm New Password" [(ngModel)]="userConfirmNewPass"
+                                autocomplete="off" />
+                            <span class="btn" id="passwordEye" (click)="toggleFieldChangePassword()">
+                                <em class="fa"
+                                    [ngClass]="{'fa-eye-slash': !fieldTextTypePassword,'fa-eye': fieldTextTypePassword}"></em>
+                            </span>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block otp__btn" (click)="onChangePassword(alert_message)">Change Password</button>
                     </div>
-                    <div class="auth__cta d-flex justify-content-between mt-3">
-                        <a *ngIf="isLoginForm" class="auth__link" (click)="showForgotPassForm()">Forgot Password?</a>
-                        <a *ngIf="!isLoginForm" class="auth__link" (click)="showLoginForm()">SIGN IN</a>
-                        <a *ngIf="isOtpForm || isForgotPassOtpForm" class="auth__link" (click)="resendOTP();resetTimer();startTimer()">Resend OTP</a>
-                    </div>
+                    <button type="submit" class="btn btn-primary btn-block otp__btn"
+                        (click)="onChangePassword(alert_message)">Change Password</button>
+                </div>
+                <div class="auth__cta d-flex justify-content-between mt-3">
+                    <a *ngIf="isLoginForm" class="auth__link" (click)="showForgotPassForm()">Forgot Password?</a>
+                    <a *ngIf="!isLoginForm" class="auth__link" (click)="showLoginForm()">SIGN IN</a>
+                    <a *ngIf="isOtpForm || isForgotPassOtpForm" class="auth__link"
+                        (click)="resendOTP();resetTimer();startTimer()">Resend OTP</a>
                 </div>
             </div>
         </div>
+        <!-- <div class="col-md-6 d-flex justify-content-center align-items-start text__section" >
+            <div (mouseenter)="pauseSlider()" (mouseleave)="resumeSlider()" class="text-white px-4 py-3 w-100 slide-content animate__animated" [ngClass]="animationClass">
+                <h2 class="main-heading mb-4 text-center">WELCOME TO &nbsp;<span class="text-highlight">iShine</span>
+                </h2>
+
+                <h3 class="mb-3 text-center">{{ currentSection.header }}</h3>
+                <div [innerHTML]="currentSection.content"></div>
+            </div>
+        </div> -->
+        <!-- Welcome Section -->
+<div class="col-md-6 d-flex justify-content-center align-items-start text__section position-relative">
+    <div class="text-white px-4 py-3 w-100 slide-container">
+  
+      <h2 class="main-heading mb-4 text-center fixed-top-header">
+        WELCOME TO &nbsp;<span class="text-highlight">iShine</span>
+      </h2>
+      <h6 class="text-center fixed-top-header">Powered By ApMoSys Technologies PVT. LTD.</h6>
+  
+      <!-- Custom Tabs (No Bootstrap JS) -->
+      <div class="d-flex justify-content-center mb-3">
+        <button 
+          *ngFor="let section of sections; let i = index"
+          class="btn btn-outline-light mx-2"
+          [class.active]="i === activeTab"
+          (click)="selectTab(i)">
+          {{ section.title }}
+        </button>
+      </div>
+  
+      <!-- Tab Content -->
+      <div class="tab-content border p-4 bg-light text-dark rounded shadow">
+        <h4 class="text-center mb-3">{{ sections[activeTab]?.title }}</h4>
+        <div [innerHTML]="sections[activeTab]?.content"></div>
+      </div>
+    </div>
+  </div>
+     
+
+    </div>
 </main>
 
 <!-- Modals Template -->

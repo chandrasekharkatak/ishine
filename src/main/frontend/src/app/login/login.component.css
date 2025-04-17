@@ -1,8 +1,43 @@
-.auth{
-    background: var(--ghost-white);
-    width: 100%;
-    height: 100%;
+
+@import 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
+
+.slide-content {
+  transition: all 0.5s ease-in-out;
+  transform: translateY(0);
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+
 }
+.slide-content.slide-up {
+    transform: translateY(-100%);
+  }
+
+.auth{
+    /* background: var(--ghost-white); */
+  /* background-image: url('src/assets/VMV Background.png'); */
+  /* background-color: #cfd6e4; */
+  background-color: var(--ghost-white);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+    /* width: 100%;
+    height: 100%; */
+}
+.auth::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    /* background-color: rgba(255, 255, 255, 0.3); You can tweak this value */
+    z-index: 1;
+    pointer-events: none; /* So it doesn't block interaction */
+  }
 .auth__container{
     width: 100%;
     height: 100%;
@@ -56,3 +91,43 @@
 .form-control{
     width: 100%;
 }
+
+.text__section {
+    color: #fff;
+    padding: 2rem;
+    height: 100vh;
+    background: rgba(9, 47, 122, 0.4) /* Optional overlay for text readability */
+}
+
+.text__section h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.text__section p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+.main-heading {
+    font-size: 2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.text-highlight {
+    color: #ffc107; /* Yellow or you can choose your brand color */
+}
+
+.text__section h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+  .btn.active {
+    background-color: #ffffff !important;
+    color: #000 !important;
+    border: 2px solid #fff;
+    font-weight: bold;
+  }
