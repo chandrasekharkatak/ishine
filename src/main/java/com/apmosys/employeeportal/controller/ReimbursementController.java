@@ -52,7 +52,7 @@ public class ReimbursementController {
 		
 	}
 	
-	@PostMapping("/uploadFile")
+	@PostMapping("/uploadFileReimbursement")
 	public ServiceResponse uploadFile(HttpServletRequest request,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam("displayName") String displayName,
