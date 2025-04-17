@@ -33,7 +33,7 @@ export class ReimbursementService {
     return this.http.post(`${this.baseUrl}` + `api/approveOrRejectReimbursement`, reimbursementObj);
   }
 
-  uploadFile(formData:FormData){
-    return this.http.post(`${this.baseUrl}`+`api/uploadFile`,formData);
+  uploadFileReimbursement(formData:FormData){
+    return this.http.post(`${this.baseUrl}`+`api/uploadFileReimbursement`,formData);
   }
 }
