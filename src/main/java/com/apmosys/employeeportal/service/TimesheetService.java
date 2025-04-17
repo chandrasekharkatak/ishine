@@ -143,9 +143,9 @@ public class TimesheetService {
 	                        
 	                        LocalDate poEndDate = LocalDate.parse(poEndDateStr); 
 	                        LocalDate currentDate = LocalDate.now();
-	                        if (poEndDate.isBefore(currentDate)) {
-	                            continue; // skip if poEndDate is in the past
-	                        }
+//	                        if (poEndDate.isBefore(currentDate)) {
+//	                            continue; // skip if poEndDate is in the past
+//	                        }
 	                    }
 	                }
 	                

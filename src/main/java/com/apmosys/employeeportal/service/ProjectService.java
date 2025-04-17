@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -8,22 +9,37 @@ import java.time.ZoneId;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
+import javax.persistence.Query;
+//import org.hibernate.Query;
+//import org.hibernate.Session;
+
+import org.hibernate.Session;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.transform.Transformers;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
@@ -31,6 +47,13 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.ClientsDTO;
+import com.apmosys.employeeportal.dto.EmployeeProjectSummaryDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeProjectReportDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeProjectReportForEmployeeDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
+import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForEmployeeDTO;
+import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
+import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForTeamDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoEmployeeTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
@@ -72,6 +95,9 @@ import okhttp3.Response;
 
 @Service
 public class ProjectService {
+	
+	@PersistenceContext
+	private EntityManager entityManager;
 
 	@Autowired
 	ProjectRepository projectRepository;
@@ -121,16 +147,8 @@ public class ProjectService {
 	@Value("${poPortal.api.allProjects}")
 	private String allPoPortalProjects;
 	
-	@Value("${poPortal.api.poProjectSyncApi}")
-	private String poProjectSyncApi;
-	
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
-	
-	
-	public RestTemplate getRestTemplate() {
-		return restTemplate;
-	}
 
 	
 	public ServiceResponse getAllClients() {
@@ -1503,62 +1521,128 @@ public class ProjectService {
 	}
 	
 	@Transactional
-	public List<ProjectPoPortalDTO> getProjectCloneFromPoPortal() {
+	public ServiceResponse getProjectCloneFromPoPortal() {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("getProjectCloneFromPoPortal");
 	    apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
 	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
 
 	    List<ProjectPoPortalDTO> list = new ArrayList<>();
-	    
+
 	    try {
 	        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
-	        
 	        list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
-	        System.out.println("Total Projects Fetched = " + list.size());
-
+	        logBuilder.append("Total Projects Fetched = ").append(list.size()).append("\n");
 	    } catch (RestClientException e) {
-	        System.err.println("Error fetching projects from PoPortal API: " + e.getMessage());
-	        return list; 
+	        logBuilder.append("Error fetching projects from Shankh Portal API: ").append(e.getMessage()).append("\n");
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Error fetching projects: " + e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiRequest(logBuilder.toString());
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+	        return response;
 	    }
 
 	    if (!list.isEmpty()) {
 	        for (ProjectPoPortalDTO dto : list) {
 	            try {
-	                Project project = projectRepository.findByPoProjectId(dto.getId());
 	                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-	                
-	                if (project != null) {
-//	                    project.setPoStartDate(dto.getStartDate());
-//	                    project.setPoEndDate(dto.getEndDate());
-	                	Timestamp startDate = dto.getStartDate();
-	                    String formattedStartDate = dateFormat.format(startDate);
-	                    project.setPoStartDate(formattedStartDate);
+	                Project project = projectRepository.findByPoProjectId(dto.getId());
 
-	                    // Convert dto's end date to yyyy-MM-dd format
-	                    Timestamp endDate = dto.getEndDate();
-	                    String formattedEndDate = dateFormat.format(endDate);
-	                    project.setPoEndDate(formattedEndDate);
-	                    project.setPoNo(dto.getPoNo());
+	                if (project != null) {
+	                    project.setProjectName(dto.getName());
 	                    project.setPoProjectType(dto.getProjectType());
+	                    project.setPoStartDate(dateFormat.format(dto.getStartDate()));
+	                    project.setPoEndDate(dateFormat.format(dto.getEndDate()));
+	                    project.setStatus(dto.getStatus());
+
+	                    // Department Mapping
+	                    List<String> departmentList = dto.getDepartment();
+	                    List<String> deptIds = new ArrayList<>();
+	                    if (!departmentList.isEmpty()) {
+	                        for (String dept : departmentList) {
+	                            Department deptEntity = departmentRepository.findByName(dept);
+	                            if (deptEntity != null) {
+	                                deptIds.add(deptEntity.getDeptId().toString());
+	                            } else {
+	                                logBuilder.append("No Dept Id fetched for dept: ").append(dept).append("\n");
+	                            }
+	                        }
+	                        if (!deptIds.isEmpty()) {
+	                            project.setDeptId(String.join(", ", deptIds));
+	                        }
+	                    }
+
+	                    // Client Mapping — Using explicit loop
+	                    Integer clientId = null;
+	                    Optional<Client> clientOpt = clientsRepository.findByClientName(dto.getClientName());
+	                    if (clientOpt.isPresent()) {
+	                        clientId = clientOpt.get().getClientId();
+	                    } else {
+	                        Client newClient = new Client();
+	                        newClient.setClientName(dto.getClientName());
+	                        Client savedClient = clientsRepository.save(newClient);
+
+	                        if (savedClient != null) {
+	                            clientId = savedClient.getClientId();
+	                            List<ClientLocation> locations = new ArrayList<>();
+
+	                            for (String location : dto.getClientLocation()) {
+	                                ClientLocation cl = new ClientLocation();
+	                                cl.setClientId(clientId);
+	                                cl.setClientLocation(location);
+	                                locations.add(cl);
+	                            }
+
+	                            if (!dto.getClientLocation().contains("WFH")) {
+	                                ClientLocation wfh = new ClientLocation();
+	                                wfh.setClientId(clientId);
+	                                wfh.setClientLocation("WFH");
+	                                locations.add(wfh);
+	                            }
+
+	                            clientLocationRepository.saveAll(locations);
+	                            logBuilder.append("Client and locations stored for: ").append(dto.getClientName()).append("\n");
+	                        }
+	                    }
+
+	                    project.setClientId(clientId);
+	                    project.setPoNo(dto.getPoNo());
+	                    project.setApmosysRM(dto.getApmosysRM());
+	                    project.setIsRenewable(dto.getIsRenewable());
+	                    project.setClientRM(dto.getClientRM());
 
 	                    projectRepository.save(project);
 
-	                    System.out.println("Updated Project: ID=" + dto.getId() + ", PoNo=" + dto.getPoNo());
+	                    logBuilder.append("Updated Project: ID=").append(dto.getId())
+	                              .append(", PoNo=").append(dto.getPoNo()).append("\n");
 	                } else {
-	                    System.err.println("Project table does not contain PoProjectId: " + dto.getId());
+	                    logBuilder.append("Project not found for PoProjectId: ").append(dto.getId()).append("\n");
 	                }
 
 	            } catch (Exception ex) {
-	                System.err.println("Error updating project ID: " + dto.getId() + " - " + ex.getMessage());
+	                ex.printStackTrace();
+	                logBuilder.append("Error updating project ID: ").append(dto.getId())
+	                          .append(" - ").append(ex.getMessage()).append("\n");
 	            }
 	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Successfully synced project details from Shankh Portal.");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        apiLogInfo.setApiResponse("Successfully updated projects from PoPortal.");
 	    } else {
-	        System.out.println("No projects found from PoPortal API.");
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("No projects found from Shank Portal API.");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("No projects returned from PoPortal API.");
 	    }
 
-	    return list;
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
 	
 	public ServiceResponse poProjectTimesheetSync(Set<Long> poProjectIdList) {
@@ -1644,112 +1728,639 @@ public class ProjectService {
 	    return response;
 	}
 	
-//	public ServiceResponse syncPoProjectTimesheetWithPoPortal(List<Integer> poProjectIdList) {
-//	    ServiceResponse response = new ServiceResponse();
-//	    LogDTO apiLogInfo = new LogDTO();
-//	    apiLogInfo.setApiUrl("/api/syncPoProjectTimesheetWithPoPortal");
-//	    apiLogInfo.setLogLevel("INFO");
-//	    StringBuilder logBuilder = new StringBuilder();
-//
-//	    try {
-//	        List<Object[]> projectInfo = projectRepository.poProjectTimesheetSync(poProjectIdList);
-//
-//	        if (projectInfo.isEmpty()) {
-//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//	            response.setServiceResponse("Project Info not found.");
-//	            apiLogInfo.setApiResponse("Project Info not found");
-//	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-//	        } else {
-//	            Map<Long, PoProjectTimesheetSyncDTO> projectMap = new HashMap<>();
-//
-//	            for (Object[] object : projectInfo) {
-//	                try {
-//	                    Long poProjectId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
-//
-//	                    PoProjectTimesheetSyncDTO projectDTO = projectMap.computeIfAbsent(poProjectId, id -> {
-//	                        PoProjectTimesheetSyncDTO dto = new PoProjectTimesheetSyncDTO();
-//	                        dto.setPoProjectId(poProjectId);
-//	                        dto.setIshineStoredProjectName(object[1] != null ? object[1].toString() : null);
-//	                        dto.setIshineStoredPoNo(object[2] != null ? object[2].toString() : null);
-//	                        dto.setTeamDetails(new ArrayList<>());
-//	                        return dto;
-//	                    });
-//
-//	                    if (object[3] != null) {
-//	                        Long teamId = Long.parseLong(object[3].toString());
-//
-//	                        PoTeamTimesheetSyncDTO teamDTO = projectDTO.getTeamDetails().stream()
-//	                            .filter(t -> t.getTeamId().equals(teamId))
-//	                            .findFirst()
-//	                            .orElseGet(() -> {
-//	                                PoTeamTimesheetSyncDTO poTeamDTO = new PoTeamTimesheetSyncDTO();
-//	                                poTeamDTO.setTeamId(teamId);
-//	                                poTeamDTO.setTeamName(object[4] != null ? object[4].toString() : null);
-//	                                poTeamDTO.setEmployeesMapped(new ArrayList<>());
-//	                                projectDTO.getTeamDetails().add(poTeamDTO);
-//	                                return poTeamDTO;
-//	                            });
-//
-//	                        if (object[5] != null) {
-//	                            PoEmployeeTimesheetSyncDTO employeeDTO = new PoEmployeeTimesheetSyncDTO();
-//	                            employeeDTO.setEmployeementId(Long.parseLong(object[5].toString()));
-//	                            employeeDTO.setEmployeeName(object[6] != null ? object[6].toString() : null);
-//	                            employeeDTO.setCurrentStatus(object[7] != null ? object[7].toString() : null);
-//	                            employeeDTO.setStartDate(object[8] != null ? (Timestamp) object[8] : null);
-//	                            employeeDTO.setEndDate(object[9] != null ? (Timestamp) object[9] : null);
-//	                            employeeDTO.setLastTimesheetFilledPoProjectId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
-//	                            employeeDTO.setLastTimesheetFilledProjectName(object[11] != null ? object[11].toString() : null);
-//	                            employeeDTO.setIsInternal(object[10] != null);
-//
-//	                            teamDTO.getEmployeesMapped().add(employeeDTO);
-//	                        }
-//	                    }
-//
-//	                } catch (Exception e) {
-//	                    logBuilder.append("Error processing record: ").append(Arrays.toString(object)).append("\n");
-//	                    logBuilder.append("Exception: ").append(e.getMessage()).append("\n");
-//	                }
-//	            }
-//
-//	            try {
-//	                final String syncUrl = poProjectSyncApi;
-//	                RestTemplate restTemplate = new RestTemplate();
-//	                String syncResponse = restTemplate.postForObject(syncUrl, new ArrayList<>(projectMap.values()), String.class);
-//
-//	                JSONObject json = new JSONObject(syncResponse);
-//
-//	                if (json.getInt("httpStatusCode") == 200) {
-//	                    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//	                    response.setServiceResponse("Project Info synced successfully.");
-//	                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-//	                    apiLogInfo.setApiResponse("Synced Projects Count: " + projectMap.size());
-//	                } else {
-//	                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//	                    response.setServiceResponse("Sync failed: " + json.get("message"));
-//	                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-//	                }
-//
-//	            } catch (HttpClientErrorException | InternalServerError e) {
-//	                JSONObject json = new JSONObject(e.getResponseBodyAsString());
-//	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//	                response.setServiceResponse("Sync API error: " + json.get("message"));
-//	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-//	                apiLogInfo.setLogLevel("ERROR");
-//	            }
-//	        }
-//
-//	    } catch (Exception e) {
-//	        e.printStackTrace();
-//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-//	        response.setServiceResponse("Something Went Wrong.");
-//	        response.setServiceError(e.getMessage());
-//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-//	        apiLogInfo.setLogLevel("ERROR");
-//	    }
-//
-//	    apiLogInfo.setApiRequest(logBuilder.toString());
-//	    logService.logMyInfo(httpRequest, apiLogInfo);
-//	    return response;
-//	}
+	public String buildDynamicQuery(GetEmployeeProjectReportPayloadDTO dto) {
+        String category = dto.getCategory();
+        String poProjectType = dto.getPoProjectType();
+        String flag = dto.getFlag();
+        List<String> billableType = dto.getBillableType();
+        List<Long> deptIds = dto.getDeptId();
 
+        StringBuilder query = new StringBuilder();
+
+        if ("P".equalsIgnoreCase(dto.getReport())) {
+            // === Project Query ===
+            query.append("SELECT p.project_id, p.po_project_id, p.project_name, p.project_manager_id, ep.name as projManager, ")
+                 .append("p.po_no, p.po_project_type, p.po_start_date, p.po_end_date, p.clientrm, p.apmosysrm, ")
+                 .append("t.team_id, team_name, etm.emp_id, e.name, etm.start_date, j.name as jobRole, d.name as deptName, e.billable_type, ")
+                 .append("e.billable, e.mobile_no, e.email ")
+                 .append("FROM projects p ")
+                 .append("INNER JOIN teams t ON t.project_id = p.project_id ")
+                 .append("INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id ")
+                 .append("INNER JOIN employee e ON etm.emp_id = e.emp_id ")
+                 .append("INNER JOIN job_role j ON e.job_role_id = j.job_role_id ")
+                 .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
+                 .append("INNER JOIN employee ep ON p.project_manager_id = ep.emp_id ")
+                 .append("WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ")
+                 .append(buildInnerWhereClause(poProjectType, flag))
+                 .append(buildOuterWhereClause(billableType, deptIds));;
+            
+        } else if ("EC".equalsIgnoreCase(dto.getReport())) {
+            // === Employee Consolidated Query ===
+            query.append("SELECT e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, ")
+                 .append("e.manager_id, m.name as ManagerName, e.employmentstatus, e.billable, e.billable_type, ")
+                 .append("emp_proj_client.team_id, emp_proj_client.team_name, emp_proj_client.project_id, ")
+                 .append("emp_proj_client.project_name, emp_proj_client.po_start_date, emp_proj_client.po_end_date, ")
+                 .append("emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location, e.work_location, ")
+                 .append("e.total_experience, d.dept_id, d.name as departmentName, emp_proj_client.po_project_type, j.name as jobrole, ")
+                 .append("emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id, emp_proj_client.clientrm, ")
+                 .append("emp_proj_client.apmosysrm, emp_proj_client.effective_start_date, emp_proj_client.effective_end_date FROM employee e ")
+                 .append("INNER JOIN job_role j ON j.job_role_id = e.job_role_id ")
+                 .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
+                 .append("INNER JOIN employee m ON e.manager_id = m.emp_id ")
+                 .append("LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id ")
+                 .append("LEFT JOIN ( ")
+                 .append("    SELECT etm.emp_id, GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.po_start_date ORDER BY p.project_id) AS po_start_date, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.po_end_date ORDER BY p.project_id) AS po_end_date, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.po_no ORDER BY p.project_id) AS po_no, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type, ")
+                 .append("           GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name, ")
+                 .append("           GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location, ")
+                 .append("           GROUP_CONCAT(DISTINCT t.team_name ORDER BY p.project_id) AS team_name, ")
+                 .append("           GROUP_CONCAT(DISTINCT t.team_id ORDER BY p.project_id) AS team_id, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.po_project_id ORDER BY p.project_id) AS po_project_id, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.clientrm ORDER BY p.project_id) AS clientrm, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.apmosysrm ORDER BY p.project_id) AS apmosysrm, ")
+                 .append("           GROUP_CONCAT(DISTINCT etm.start_date ORDER BY p.project_id) AS effective_start_date, ")
+                 .append("           GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date ")
+                 .append("    FROM employee_team_mapping etm ")
+                 .append("    LEFT JOIN teams t ON t.team_id = etm.team_id ")
+                 .append("    LEFT JOIN projects p ON p.project_id = t.project_id ")
+                 .append("    LEFT JOIN clients c ON c.client_id = p.client_id ")
+                 .append("    LEFT JOIN client_locations cl ON cl.client_id = p.client_id ")
+                 .append("    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ")
+                 .append(buildInnerWhereClause(poProjectType, flag))
+                 .append("    GROUP BY etm.emp_id ")
+                 .append(") emp_proj_client ON emp_proj_client.emp_id = e.emp_id ")
+                 .append("WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL ")
+                 .append(buildOuterWhereClause(billableType, deptIds));  
+
+        } else if ("E".equalsIgnoreCase(dto.getReport())) {
+            // === Employee Query ===
+            query.append("SELECT e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, ")
+	             .append("e.manager_id, m.name as ManagerName, e.employmentstatus, e.billable, e.billable_type, ")
+	             .append("t.team_id, t.team_name, p.project_id, ")
+	             .append("p.project_name, p.po_start_date, p.po_end_date, ")
+	             .append("p.po_no, c.client_name, cl.client_location, e.work_location, ")
+	             .append("e.total_experience, d.dept_id, d.name as departmentName, p.po_project_type, j.name as jobrole, ")
+	             .append("p.po_project_id, eppm.primary_project_name, eppm.primary_project_id, p.clientrm, ")
+	             .append("p.apmosysrm, etm.start_date as effective_start_date, etm.end_date as effective_end_date FROM employee e ")
+                 .append("INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id ")
+                 .append("LEFT JOIN teams t ON t.team_id = etm.team_id ")
+                 .append("LEFT JOIN projects p ON p.project_id = t.project_id ")
+                 .append("INNER JOIN job_role j ON j.job_role_id = e.job_role_id ")
+                 .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
+                 .append("INNER JOIN employee m ON m.emp_id = e.manager_id ")
+                 .append("INNER JOIN client_locations cl ON cl.client_id = p.client_id ")
+                 .append("INNER JOIN clients c ON c.client_id = p.client_id ")
+                 .append("LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id ")
+                 .append("WHERE e.employmentstatus != 'InActive' AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' AND p.project_id IS NOT NULL ")
+	             .append(buildInnerWhereClause(poProjectType, flag))
+	             .append(buildOuterWhereClause(billableType, deptIds));
+        } else {
+        	System.out.println("query not generated!");
+        }
+        
+        System.out.println("query.toString() "+query.toString());
+        return query.toString();
+    }
+	
+	public String buildInnerWhereClause(String poProjectType, String flag) {
+	    StringBuilder innerWhere = new StringBuilder();
+	    
+	    if (poProjectType != null && !poProjectType.isEmpty()) {
+	        if ("Internal".equalsIgnoreCase(poProjectType)) {
+	            innerWhere.append(" AND po_project_type IS NULL ");
+	        } else {
+	            innerWhere.append(" AND po_project_type = '").append(poProjectType).append("' ");
+	        }
+	    }
+
+	    if (flag != null && !flag.isEmpty()) {
+	        if ("Active".equalsIgnoreCase(flag)) {
+	            innerWhere.append(" AND p.po_end_date >= CURRENT_DATE ");
+	        } else if ("Inactive".equalsIgnoreCase(flag)) {
+	            innerWhere.append(" AND p.po_end_date < CURRENT_DATE ");
+	        } else {
+	            innerWhere.append(" AND flag = '").append(flag).append("' "); // Default case if flag is not Active/Inactive
+	        }
+	    }
+
+	    return innerWhere.toString();
+	}
+
+	public String buildOuterWhereClause(List<String> billableType, List<Long> deptIds) {
+	    StringBuilder outerWhere = new StringBuilder();
+
+	    if (billableType != null && !billableType.isEmpty()) {
+	        outerWhere.append(" AND e.billable_type IN ('")
+	                  .append(String.join("','", billableType)).append("') ");
+	    }
+
+	    if (deptIds != null && !deptIds.isEmpty()) {
+	        outerWhere.append(" AND d.dept_id IN (")
+	            	  .append(String.join(",", deptIds.stream().map(String::valueOf).collect(Collectors.toList())))
+	                  .append(") ");
+	    }
+
+	    return outerWhere.toString();
+	}
+	
+	public String buildProjectSummaryQuery(GetEmployeeProjectReportPayloadDTO dto, List<Long> deptId) {
+	    StringBuilder query = new StringBuilder();
+
+	    query.append("WITH AllPoProjectTypes AS (\n"
+	    		+ "    SELECT 'Internal' AS po_project_type\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'TNM'\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'Fixed Cost'\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'Monitoring' \n"
+	    		+ "),\n"
+	    		+ "AllBillableTypes AS (\n"
+	    		+ "    SELECT 'Bench' AS billable_type\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'Shadow'\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'TNM'\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'Fixed Cost'\n"
+	    		+ "    UNION ALL\n"
+	    		+ "    SELECT 'InternalRNDProducts'\n"
+	    		+ "),\n"
+	    		+ "AllCombinations AS (\n"
+	    		+ "    SELECT \n"
+	    		+ "        apt.po_project_type, \n"
+	    		+ "        abt.billable_type\n"
+	    		+ "    FROM AllPoProjectTypes apt\n"
+	    		+ "    CROSS JOIN AllBillableTypes abt\n"
+	    		+ "),\n"
+	    		+ "MainAgg AS (\n"
+	    		+ "    SELECT \n"
+	    		+ "        CASE WHEN po_project_type IS NULL THEN 'Internal' ELSE po_project_type END AS po_project_type,\n"
+	    		+ "        e.billable_type, COUNT(DISTINCT e.emp_id) AS total_emp, \n"
+	    		+ "        COUNT(DISTINCT p.po_project_id) AS total_projects\n"
+	    		+ "    FROM projects p\n"
+	    		+ "    INNER JOIN teams t ON t.project_id = p.project_id \n"
+	    		+ "    INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+	    		+ "    INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+	    		+ "    INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
+	    		+ "    INNER JOIN department d ON d.dept_id = j.dept_id \n"
+	    		+ "    INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+	    		+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ");
+
+	    if (dto != null) {
+	        query.append(buildInnerWhereClause(dto.getPoProjectType(), dto.getFlag()))
+	             .append(buildOuterWhereClause(dto.getBillableType(), deptId));
+	    } else {
+	        query.append(buildInnerWhereClause(null, null))
+	             .append(buildOuterWhereClause(null, deptId));
+	    }
+
+	    query.append("GROUP BY\n"
+	    		+ "        CASE WHEN po_project_type IS NULL THEN 'Internal' ELSE po_project_type END, e.billable_type\n"
+	    		+ "),\n"
+	    		+ "SubAgg AS (\n"
+	    		+ "    SELECT \n"
+	    		+ "        CASE WHEN po_project_type IS NULL THEN 'Internal' ELSE po_project_type END AS po_project_type,\n"
+	    		+ "        COUNT(DISTINCT e.emp_id) AS total_emp_per_project_type, \n"
+	    		+ "        COUNT(DISTINCT p.po_project_id) AS total_projects_per_po_project\n"
+	    		+ "    FROM projects p\n"
+	    		+ "    INNER JOIN teams t ON t.project_id = p.project_id \n"
+	    		+ "    INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+	    		+ "    INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+	    		+ "    INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
+	    		+ "    INNER JOIN department d ON d.dept_id = j.dept_id \n"
+	    		+ "    INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+	    		+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ");
+
+	    if (dto != null) {
+	        query.append(buildInnerWhereClause(dto.getPoProjectType(), dto.getFlag()))
+	             .append(buildOuterWhereClause(dto.getBillableType(), deptId));
+	    }else {
+	        query.append(buildInnerWhereClause(null, null))
+            .append(buildOuterWhereClause(null, deptId));
+	    }
+
+	    query.append("GROUP BY \n"
+	    		+ "        CASE WHEN po_project_type IS NULL THEN 'Internal' ELSE po_project_type END\n"
+	    		+ ")\n"
+	    		+ "SELECT \n"
+	    		+ "    ac.po_project_type, \n"
+	    		+ "    ac.billable_type,\n"
+	    		+ "    COALESCE(ma.total_emp, 0) AS total_emp,\n"
+	    		+ "    COALESCE(sa.total_emp_per_project_type, 0) AS total_emp_per_project_type, \n"
+	    		+ "    COALESCE(ma.total_projects, 0) AS total_projects,\n"
+	    		+ "    COALESCE(sa.total_projects_per_po_project, 0) AS total_projects_per_po_project\n"
+	    		+ "FROM AllCombinations ac\n"
+	    		+ "LEFT JOIN MainAgg ma \n"
+	    		+ "    ON ac.po_project_type = ma.po_project_type \n"
+	    		+ "    AND ac.billable_type = ma.billable_type\n"
+	    		+ "LEFT JOIN SubAgg sa \n"
+	    		+ "    ON ac.po_project_type = sa.po_project_type\n"
+	    		+ "ORDER BY ac.po_project_type, ac.billable_type ");
+
+	    return query.toString();
+	}
+
+	public Map<String, Map<String, Map<String, Object>>> getProjectSummary(GetEmployeeProjectReportPayloadDTO dto) {
+	    List<String> allBillableTypes = Arrays.asList("Bench", "Fixed Cost", "InternalRNDProducts", "Shadow", "TNM");
+
+	    Map<String, Map<String, EmployeeProjectSummaryDTO>> summaryMap = new HashMap<>();
+
+	    if (dto.getPoProjectType() != null) {
+	        String filteredQuery = buildProjectSummaryQuery(dto, dto.getDeptId());
+	        List<Object[]> filteredResults = entityManager.createNativeQuery(filteredQuery).getResultList();
+
+	        for (Object[] row : filteredResults) {
+	            String poType = row[0] != null ? row[0].toString() : "Internal";
+	            String billableType = row[1] != null ? row[1].toString() : null;
+	            Long totalEmp = row[2] != null ? Long.parseLong(row[2].toString()) : 0L;
+	            Long totalEmpPerPoType = row[3] != null ? Long.parseLong(row[3].toString()) : 0L;
+	            Long totalProjects = row[4] != null ? Long.parseLong(row[4].toString()) : 0L;
+	            Long totalProjectsPerPoType = row[5] != null ? Long.parseLong(row[5].toString()) : 0L;
+
+	            summaryMap.putIfAbsent(poType, new HashMap<>());
+	            Map<String, EmployeeProjectSummaryDTO> innerMap = summaryMap.get(poType);
+
+	            EmployeeProjectSummaryDTO dtoObj = new EmployeeProjectSummaryDTO();
+	            dtoObj.setPoProjectType(poType);
+	            dtoObj.setBillableType(billableType);
+	            dtoObj.setTotalEmp(totalEmp);
+	            dtoObj.setTotalEmpPerProjectType(totalEmpPerPoType);
+	            dtoObj.setTotal_projects(totalProjects);
+	            dtoObj.setTotal_projects_per_po_project(totalProjectsPerPoType);
+
+	            innerMap.put(billableType, dtoObj);
+	        }
+
+	        for (String poType : summaryMap.keySet()) {
+	            Map<String, EmployeeProjectSummaryDTO> innerMap = summaryMap.get(poType);
+	            for (String billableType : allBillableTypes) {
+	                if (!innerMap.containsKey(billableType)) {
+	                    EmployeeProjectSummaryDTO emptyDto = new EmployeeProjectSummaryDTO();
+	                    emptyDto.setPoProjectType(poType);
+	                    emptyDto.setBillableType(billableType);
+	                    emptyDto.setTotalEmp(0L);
+	                    emptyDto.setTotal_projects(0L);
+	                    emptyDto.setTotalEmpPerProjectType(0L);
+	                    emptyDto.setTotal_projects_per_po_project(0L);
+	                    innerMap.put(billableType, emptyDto);
+	                }
+	            }
+	        }
+	    }
+
+	    Set<String> poTypesNeedingBaseData = new HashSet<>();
+	    for (Map.Entry<String, Map<String, EmployeeProjectSummaryDTO>> entry : summaryMap.entrySet()) {
+	        String poType = entry.getKey();
+	        Map<String, EmployeeProjectSummaryDTO> billableMap = entry.getValue();
+
+	        EmployeeProjectSummaryDTO anyDto = billableMap.values().stream().findFirst().orElse(null);
+	        if (anyDto != null &&
+	            (anyDto.getTotalEmpPerProjectType() == null || anyDto.getTotalEmpPerProjectType() == 0L) &&
+	            (anyDto.getTotal_projects_per_po_project() == null || anyDto.getTotal_projects_per_po_project() == 0L)) {
+	            poTypesNeedingBaseData.add(poType);
+	        }
+	    }
+
+	    String baseQuery = buildProjectSummaryQuery(null, dto.getDeptId());
+	    List<Object[]> baseResults = entityManager.createNativeQuery(baseQuery).getResultList();
+
+	    for (Object[] row : baseResults) {
+	        String poType = row[0] != null ? row[0].toString() : "Internal";
+	        String billableType = row[1] != null ? row[1].toString() : null;
+	        Long totalEmp = row[2] != null ? Long.parseLong(row[2].toString()) : 0L;
+	        Long totalEmpPerPoType = row[3] != null ? Long.parseLong(row[3].toString()) : 0L;
+	        Long totalProjects = row[4] != null ? Long.parseLong(row[4].toString()) : 0L;
+	        Long totalProjectsPerPoType = row[5] != null ? Long.parseLong(row[5].toString()) : 0L;
+
+	        summaryMap.putIfAbsent(poType, new HashMap<>());
+	        Map<String, EmployeeProjectSummaryDTO> innerMap = summaryMap.get(poType);
+
+	        EmployeeProjectSummaryDTO summaryDto = innerMap.getOrDefault(billableType, new EmployeeProjectSummaryDTO());
+	        summaryDto.setPoProjectType(poType);
+	        summaryDto.setBillableType(billableType);
+
+	        boolean shouldFillAll = poTypesNeedingBaseData.contains(poType);
+	        if (shouldFillAll) {
+	            summaryDto.setTotalEmp(totalEmp);
+	            summaryDto.setTotal_projects(totalProjects);
+	        } else {
+	            if (summaryDto.getTotalEmp() == null || summaryDto.getTotalEmp() == 0L) {
+	                summaryDto.setTotalEmp(totalEmp);
+	            }
+	            if (summaryDto.getTotal_projects() == null || summaryDto.getTotal_projects() == 0L) {
+	                summaryDto.setTotal_projects(totalProjects);
+	            }
+	        }
+
+	        if ((summaryDto.getTotalEmpPerProjectType() == null || summaryDto.getTotalEmpPerProjectType() == 0L) && totalEmpPerPoType > 0) {
+	            summaryDto.setTotalEmpPerProjectType(totalEmpPerPoType);
+	        }
+
+	        if ((summaryDto.getTotal_projects_per_po_project() == null || summaryDto.getTotal_projects_per_po_project() == 0L)
+	                && totalProjectsPerPoType > 0) {
+	            summaryDto.setTotal_projects_per_po_project(totalProjectsPerPoType);
+	        }
+
+	        innerMap.put(billableType, summaryDto);
+	    }
+
+	    Map<String, Map<String, Map<String, Object>>> finalMap = new LinkedHashMap<>();
+	    List<String> fixedPoTypes = Arrays.asList("Active", "Inactive", "Default");
+
+	    for (String poType : summaryMap.keySet()) {
+	        Map<String, EmployeeProjectSummaryDTO> billableMap = summaryMap.get(poType);
+
+	        // Initialize empty buckets
+	        for (String bucket : fixedPoTypes) {
+	            Map<String, Object> empBucketMap = new LinkedHashMap<>();
+	            Map<String, Object> projectBucketMap = new LinkedHashMap<>();
+
+	            for (String billableType : allBillableTypes) {
+	                empBucketMap.put(billableType, 0L);
+	                projectBucketMap.put(billableType, 0L);
+	            }
+
+	            empBucketMap.put("totalEmpPerProjectType", 0L);
+	            projectBucketMap.put("total_projects_per_po_project", 0L);
+
+	            Map<String, Map<String, Object>> poTypeMap = new LinkedHashMap<>();
+	            poTypeMap.put("Employee", empBucketMap);
+	            poTypeMap.put("Project", projectBucketMap);
+
+	            finalMap.put(poType + "." + bucket, poTypeMap);
+	        }
+
+	        // Determine flag and populate accordingly
+	        String flag = dto.getFlag(); 
+	        Map<String, Object> empMap = new LinkedHashMap<>();
+	        Map<String, Object> projectMap = new LinkedHashMap<>();
+
+	        if ("Active".equals(flag)) {
+	            for (String billableType : allBillableTypes) {
+	                EmployeeProjectSummaryDTO dtoObj = billableMap.getOrDefault(billableType, new EmployeeProjectSummaryDTO());
+	                empMap.put(billableType, dtoObj.getTotalEmp() != null ? dtoObj.getTotalEmp() : 0L);
+	                projectMap.put(billableType, dtoObj.getTotal_projects() != null ? dtoObj.getTotal_projects() : 0L);
+	            }
+
+	            empMap.put("totalEmpPerProjectType", billableMap.values().stream()
+	                    .map(EmployeeProjectSummaryDTO::getTotalEmpPerProjectType)
+	                    .filter(Objects::nonNull)
+	                    .findFirst().orElse(0L));
+	            projectMap.put("total_projects_per_po_project", billableMap.values().stream()
+	                    .map(EmployeeProjectSummaryDTO::getTotal_projects_per_po_project)
+	                    .filter(Objects::nonNull)
+	                    .findFirst().orElse(0L));
+
+	            finalMap.put(poType + ".Active", Map.of(
+	                    "Employee", empMap,
+	                    "Project", projectMap
+	            ));
+
+	            finalMap.put(poType + ".Inactive", Map.of(
+	                    "Employee", new HashMap<String, Object>(),
+	                    "Project", new HashMap<String, Object>()
+	            ));
+	            finalMap.put(poType + ".Default", Map.of(
+	                    "Employee", new HashMap<String, Object>(),
+	                    "Project", new HashMap<String, Object>()
+	            ));
+
+	        } else if ("Inactive".equals(flag)) {
+	            for (String billableType : allBillableTypes) {
+	                EmployeeProjectSummaryDTO dtoObj = billableMap.getOrDefault(billableType, new EmployeeProjectSummaryDTO());
+	                empMap.put(billableType, dtoObj.getTotalEmp() != null ? dtoObj.getTotalEmp() : 0L);
+	                projectMap.put(billableType, dtoObj.getTotal_projects() != null ? dtoObj.getTotal_projects() : 0L);
+	            }
+
+	            empMap.put("totalEmpPerProjectType", billableMap.values().stream()
+	                    .map(EmployeeProjectSummaryDTO::getTotalEmpPerProjectType)
+	                    .filter(Objects::nonNull)
+	                    .findFirst().orElse(0L));
+	            projectMap.put("total_projects_per_po_project", billableMap.values().stream()
+	                    .map(EmployeeProjectSummaryDTO::getTotal_projects_per_po_project)
+	                    .filter(Objects::nonNull)
+	                    .findFirst().orElse(0L));
+
+	            finalMap.put(poType + ".Inactive", Map.of(
+	                    "Employee", empMap,
+	                    "Project", projectMap
+	            ));
+
+	            finalMap.put(poType + ".Active", Map.of(
+	                    "Employee", new HashMap<String, Object>(),
+	                    "Project", new HashMap<String, Object>()
+	            ));
+	            finalMap.put(poType + ".Default", Map.of(
+	                    "Employee", new HashMap<String, Object>(),
+	                    "Project", new HashMap<String, Object>()
+	            ));
+
+	        } else {
+	            for (String billableType : allBillableTypes) {
+	                EmployeeProjectSummaryDTO dtoObj = billableMap.getOrDefault(billableType, new EmployeeProjectSummaryDTO());
+	                empMap.put(billableType, dtoObj.getTotalEmp() != null ? dtoObj.getTotalEmp() : 0L);
+	                projectMap.put(billableType, dtoObj.getTotal_projects() != null ? dtoObj.getTotal_projects() : 0L);
+	            }
+
+	            empMap.put("totalEmpPerProjectType", billableMap.values().stream()
+	                    .map(EmployeeProjectSummaryDTO::getTotalEmpPerProjectType)
+	                    .filter(Objects::nonNull)
+	                    .findFirst().orElse(0L));
+	            projectMap.put("total_projects_per_po_project", billableMap.values().stream()
+	                    .map(EmployeeProjectSummaryDTO::getTotal_projects_per_po_project)
+	                    .filter(Objects::nonNull)
+	                    .findFirst().orElse(0L));
+
+	            finalMap.put(poType + ".Default", Map.of(
+	                    "Employee", empMap,
+	                    "Project", projectMap
+	            ));
+
+	            finalMap.put(poType + ".Active", Map.of(
+	                    "Employee", new HashMap<String, Object>(),
+	                    "Project", new HashMap<String, Object>()
+	            ));
+	            finalMap.put(poType + ".Inactive", Map.of(
+	                    "Employee", new HashMap<String, Object>(),
+	                    "Project", new HashMap<String, Object>()
+	            ));
+	        }
+	    }
+
+	    return finalMap;
+	}
+	
+	public ServiceResponse getEmployeeProjectReport(GetEmployeeProjectReportPayloadDTO dto) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Employee Report");
+	    apiLogInfo.setApiUrl("/api/getEmployeeProjectReport");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Category: ").append(dto.getCategory()).append(", ");
+	    logBuilder.append("Report Type: ").append(dto.getReport());
+
+	    try {
+	        String reportType = dto.getReport();
+	        GetEmployeeProjectReportDTO reportDTO;
+
+	        switch (reportType) {
+	            case "E":
+	            case "EC":
+	                reportDTO = getEmployeeReport(dto);
+	                break;
+	            case "P":
+	                reportDTO = getProjectReport(dto);
+	                break;
+	            default:
+	                throw new IllegalArgumentException("Invalid report type: " + reportType);
+	        }
+	        
+	        Map<String, Map<String, Map<String, Object>>> summary = getProjectSummary(dto);
+	        reportDTO.setProjectSummary(summary);
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(reportDTO);
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+	 
+	public GetEmployeeProjectReportDTO getEmployeeReport(GetEmployeeProjectReportPayloadDTO dto) {
+	    try {
+	    	Session session = entityManager.unwrap(Session.class);
+	        String queryStr = buildDynamicQuery(dto);
+	        Query query = session.createSQLQuery(queryStr);
+	        List<Object[]> resultList = entityManager.createNativeQuery(queryStr).getResultList();
+
+	        if (resultList.isEmpty()) 
+	            return new GetEmployeeProjectReportDTO(null, null, null);
+
+	        List<GetEmployeeProjectReportForEmployeeDTO> employeeDTOs = resultList.stream().map(record -> {
+	            GetEmployeeProjectReportForEmployeeDTO dtoObj = new GetEmployeeProjectReportForEmployeeDTO();
+
+	            dtoObj.setEmpId(record[0] != null ? Long.parseLong(record[0].toString()) : null);
+	            dtoObj.setEmployeementId(record[1] != null ? record[1].toString() : null);
+	            dtoObj.setName(record[2] != null ? record[2].toString() : null);
+	            dtoObj.setEmail(record[3] != null ? record[3].toString() : null);
+	            dtoObj.setMobileNo(record[4] != null ? Long.parseLong(record[4].toString()) : null);
+	            dtoObj.setManagerId(record[5] != null ? Long.parseLong(record[5].toString()) : null);
+	            dtoObj.setManagerName(record[6] != null ? record[6].toString() : null);
+	            dtoObj.setEmploymentstatus(record[7] != null ? record[7].toString() : null);
+	            dtoObj.setBillable(record[8] != null ? record[8].toString() : null);
+	            dtoObj.setBillableType(record[9] != null ? record[9].toString() : null);
+	            dtoObj.setTeamIds(record[10] != null ? record[10].toString() : null);
+	            dtoObj.setTeamName(record[11] != null ? record[11].toString() : null);
+	            dtoObj.setProjectIds(record[12] != null ? record[12].toString() : null);
+	            dtoObj.setProjectName(record[13] != null ? record[13].toString() : null);
+	            dtoObj.setPoStartDate(record[14] != null ? record[14].toString() : null);
+	            dtoObj.setPoEndDate(record[15] != null ? record[15].toString() : null);
+	            dtoObj.setPoNo(record[16] != null ? record[16].toString() : null);
+	            dtoObj.setClientName(record[17] != null ? record[17].toString() : null);
+	            dtoObj.setClientLocation(record[18] != null ? record[18].toString() : null);
+	            dtoObj.setWorkLocation(record[19] != null ? record[19].toString() : null);
+	            dtoObj.setTotalExperience(record[20] != null ? Float.parseFloat(record[20].toString()) : null);
+	            dtoObj.setDepartmentId(record[21] != null ? Long.parseLong(record[21].toString()) : null);
+	            dtoObj.setDepartmentName(record[22] != null ? record[22].toString() : null);
+	            dtoObj.setPoProjectType(record[23] != null ? record[23].toString() : null);
+	            dtoObj.setJobRole(record[24] != null ? record[24].toString() : null);
+	            dtoObj.setPoProjectId(record[25] != null ? record[25].toString() : null);
+	            dtoObj.setPrimaryProjectName(record[26] != null ? record[26].toString() : null);
+	            dtoObj.setPrimaryProjectId(record[27] != null ? record[27].toString() : null);
+	            dtoObj.setClientRM(record[28] != null ? record[28].toString() : null);
+	            dtoObj.setApmosysRM(record[29] != null ? record[29].toString() : null);
+	            dtoObj.setEffectiveStartDate(record[30] != null ? record[30].toString() : null);
+	            dtoObj.setEffectiveEndDate(record[31] != null ? record[31].toString() : null);
+
+	            return dtoObj;
+	        }).collect(Collectors.toList());
+
+	        return new GetEmployeeProjectReportDTO(employeeDTOs, null, null);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return new GetEmployeeProjectReportDTO(null, null, null);
+	    }
+	}
+
+	 public GetEmployeeProjectReportDTO getProjectReport(GetEmployeeProjectReportPayloadDTO dto) {
+		    try {
+		        String queryStr = buildDynamicQuery(dto);
+
+		        List<Object[]> resultList = entityManager.createNativeQuery(queryStr).getResultList();
+
+		        if (resultList.isEmpty())
+		            return new GetEmployeeProjectReportDTO(null, Collections.emptyList(), null);
+
+		        Map<Long, GetProjectToEmployeeReportForProjectDTO> projectMap = new HashMap<>();
+		        Map<String, GetProjectToEmployeeReportForTeamDTO> teamMap = new HashMap<>();
+
+		        for (Object[] record : resultList) {
+
+		            Long projectId = record[0] != null ? Long.parseLong(record[0].toString()) : null;
+		            String teamKey = projectId + "-" + (record[11] != null ? Long.parseLong(record[11].toString()) : null);
+
+		            if (!projectMap.containsKey(projectId)) {
+		                GetProjectToEmployeeReportForProjectDTO projectDTO = new GetProjectToEmployeeReportForProjectDTO();
+		                projectDTO.setProjectId(projectId);
+		                projectDTO.setPoProjectId(record[1] != null ? Long.parseLong(record[1].toString()) : null);
+		                projectDTO.setProjectName(record[2] != null ? record[2].toString() : null);
+		                projectDTO.setProjectManagerId(record[3] != null ? Long.parseLong(record[3].toString()) : null);
+		                projectDTO.setProjectManager(record[4] != null ? record[4].toString() : null);
+		                projectDTO.setPoNo(record[5] != null ? record[5].toString() : null);
+		                projectDTO.setPoProjectType(record[6] != null ? record[6].toString() : null);
+		                projectDTO.setPoStartDate(record[7] != null ? record[7].toString() : null);
+		                projectDTO.setPoEndDate(record[8] != null ? record[8].toString() : null);
+		                projectDTO.setClientRM(record[9] != null ? record[9].toString() : null);
+		                projectDTO.setApmosysRM(record[10] != null ? record[10].toString() : null);
+		                projectDTO.setTeamDetails(new ArrayList<>());
+		                projectMap.put(projectId, projectDTO);
+		            }
+
+		            if (!teamMap.containsKey(teamKey)) {
+		                GetProjectToEmployeeReportForTeamDTO teamDTO = new GetProjectToEmployeeReportForTeamDTO();
+		                teamDTO.setTeamId(record[11] != null ? Long.parseLong(record[11].toString()) : null);
+		                teamDTO.setTeamName(record[12] != null ? record[12].toString() : null);
+		                teamDTO.setMappedEmployeeDetails(new ArrayList<>());
+		                projectMap.get(projectId).getTeamDetails().add(teamDTO);
+		                teamMap.put(teamKey, teamDTO);
+		            }
+
+		            GetProjectToEmployeeReportForEmployeeDTO empDTO = new GetProjectToEmployeeReportForEmployeeDTO();
+		            empDTO.setEmpId(record[13] != null ? Long.parseLong(record[13].toString()) : null);
+		            empDTO.setEmployeeName(record[14] != null ? record[14].toString() : null);
+		            empDTO.setEffectiveStartDate(record[15] != null ? record[15].toString() : null);
+		            empDTO.setJobRole(record[16] != null ? record[16].toString() : null);
+		            empDTO.setDeptName(record[17] != null ? record[17].toString() : null);
+		            empDTO.setBillableType(record[18] != null ? record[18].toString() : null);
+		            empDTO.setBillable(record[19] != null ? record[19].toString() : null);
+		            empDTO.setMobileNo(record[20] != null ? Long.parseLong(record[20].toString()) : null);
+		            empDTO.setEmail(record[21] != null ? record[21].toString() : null);
+
+		            teamMap.get(teamKey).getMappedEmployeeDetails().add(empDTO);
+		        }
+		        
+		        return new GetEmployeeProjectReportDTO(null, new ArrayList<>(projectMap.values()), null);
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        return new GetEmployeeProjectReportDTO(null, null, null);
+		    }
+		}
 }
