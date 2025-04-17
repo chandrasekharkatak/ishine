@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
@@ -255,8 +257,8 @@ public class ResourceManagementService {
 			    newProject.setPoNo(resourceManagementDTO.getPoNo());
 			    newProject.setPoStartDate(resourceManagementDTO.getStartDate());
 			    newProject.setPoEndDate(resourceManagementDTO.getEndDate());
-
-			    newProject.setApmosysRM(resourceManagementDTO.getApmosysRM());	
+                newProject.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+                newProject.setApmosysRM(resourceManagementDTO.getApmosysRM());	
 			    newProject.setIsRenewable(resourceManagementDTO.getIsRenewable());
 			    newProject.setClientRM(resourceManagementDTO.getClientRM());
 				
@@ -317,7 +319,8 @@ public class ResourceManagementService {
     			            newTeamObj.setTeamLeadName(teamLeadName);
     						newTeamObj.setDeptIds(deptList.toString());
     						newTeamObj.setDeptIds(deptList.toString());
-    			            newTeamObj.getCommonProperty().setCreatedBy(resourceManagementDTO.getCreatedBy());
+    			            newTeamObj.setCreatedBy(resourceManagementDTO.getCreatedBy());
+    			            newTeamObj.setCreatedOn(new Timestamp(System.currentTimeMillis()));   			            
     			            Team teamDbResponse = teamRepository.save(newTeamObj);
     			            
     			            StringBuilder emailBody = new StringBuilder();
@@ -553,8 +556,8 @@ public class ResourceManagementService {
 						        teamPresent.setTeamName(teamObj.getTeamName());
 						        teamPresent.setTeamLeadName(teamLeadName);
 						        teamPresent.setDeptIds(deptList.toString());
-						        teamPresent.getCommonProperty().setUpdatedBy(resourceManagementDTO.getCreatedBy());
-						        teamPresent.getCommonProperty().setUpdatedOn(LocalDateTime.now());
+						        teamPresent.setUpdatedBy(resourceManagementDTO.getCreatedBy());
+						        teamPresent.setUpdatedOn(LocalDateTime.now());
 
 						        Team teamDbResponse = teamRepository.save(teamPresent);
 
@@ -672,7 +675,8 @@ public class ResourceManagementService {
 						        newTeamObj.setTeamName(teamObj.getTeamName());
 						        newTeamObj.setTeamLeadName(teamLeadName);
 						        newTeamObj.setDeptIds(deptList.toString());
-						        newTeamObj.getCommonProperty().setCreatedBy(resourceManagementDTO.getCreatedBy());
+						        newTeamObj.setCreatedBy(resourceManagementDTO.getCreatedBy());
+						        newTeamObj.setCreatedOn(new Timestamp(System.currentTimeMillis()));  
 						        Team teamDbResponse = teamRepository.save(newTeamObj);
 
 						        if (teamDbResponse != null) {
@@ -765,8 +769,8 @@ public class ResourceManagementService {
 
 			        alreadyExistTeam.forEach((team) -> {
 			            team.setIsActive("N");
-			            team.getCommonProperty().setUpdatedBy(resourceManagementDTO.getCreatedBy());
-			            team.getCommonProperty().setUpdatedOn(LocalDateTime.now());
+			            team.setUpdatedBy(resourceManagementDTO.getCreatedBy());
+			            team.setUpdatedOn(LocalDateTime.now());
 			            teamToBeRemoved.add(team);			            
 			            
 			        });
@@ -2443,18 +2447,18 @@ public class ResourceManagementService {
 						poTeamDTO.setIshineTeamId(team.getTeamId());
 						poTeamDTO.setTeamName(team.getTeamName());
 						
-						if(team.getCommonProperty().getCreatedBy() != null) {
-							String createdBy = getEmploymentId(team.getCommonProperty().getCreatedBy());
+						if(team.getCreatedBy() != null) {
+							String createdBy = getEmploymentId(team.getCreatedBy());
 							poTeamDTO.setCreatedBy(createdBy);
 						}
 						
-						if(team.getCommonProperty().getUpdatedBy() != null) {
-							String updatedBy = getEmploymentId(team.getCommonProperty().getCreatedBy());
+						if(team.getUpdatedBy() != null) {
+							String updatedBy = getEmploymentId(team.getCreatedBy());
 							poTeamDTO.setUpdatedBy(updatedBy);
 						}
 						
-						if(team.getCommonProperty().getUpdatedOn() != null) {
-							poTeamDTO.setUpdatedOn(team.getCommonProperty().getUpdatedOn().toString());
+						if(team.getUpdatedOn() != null) {
+							poTeamDTO.setUpdatedOn(team.getUpdatedOn().toString());
 						}
 						
 						if(team.getTeamLeadId() != null) {
