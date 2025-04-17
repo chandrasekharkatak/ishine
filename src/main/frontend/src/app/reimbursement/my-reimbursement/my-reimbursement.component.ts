@@ -155,7 +155,7 @@ reimbursementObj: any = {
     fileFormData.append("uploadedBy", this.currentEmployeeInfo.empId);
 
     try {
-      const uploadResponse: any = await this.reimbursementObj.uploadFile(fileFormData).pipe(first()).toPromise();
+      const uploadResponse: any = await this.reimbursementService.uploadFile(fileFormData).pipe(first()).toPromise();
 
       if (uploadResponse.serviceStatus === "Fail") {
         this.openAlertMod(template, `Error found: ${uploadResponse.serviceResponse}`);

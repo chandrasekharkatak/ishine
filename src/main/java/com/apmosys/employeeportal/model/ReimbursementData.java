@@ -101,6 +101,9 @@ public class ReimbursementData {
 	@Column(name = "level2_approve_on")
 	private Timestamp level2ApproveOn;
 	
+	@Column(name = "level3_approve_on")
+	private Timestamp level3ApproveOn;
+	
 	
 	@Column(name = "level")
 	private Integer level;
@@ -113,6 +116,22 @@ public class ReimbursementData {
 	
 	@Column(name = "hod_name")
 	private String hodName;
+	
+	@Column(name = "final_status")
+	private String finalStatus;
+
+	
+	@Column(name = "level2_approver_name")
+	private String level2approverName;
+	
+	@Column(name = "level2_approver_status")
+	private String level2approverStatus;
+	
+	@Column(name = "level3_approver_status")
+	private String level3approverStatus;
+	
+	@Column(name = "level3_approver_Remarks")
+	private String level3approverRemarks;
 	
 }
 

@@ -32,4 +32,8 @@ export class ReimbursementService {
   approveOrRejectReimbursement(reimbursementObj: MyReimbursement) {
     return this.http.post(`${this.baseUrl}` + `api/approveOrRejectReimbursement`, reimbursementObj);
   }
+
+  uploadFile(formData:FormData){
+    return this.http.post(`${this.baseUrl}`+`api/uploadFile`,formData);
+  }
 }

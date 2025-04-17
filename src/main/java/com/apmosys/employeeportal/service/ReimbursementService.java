@@ -1,17 +1,29 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.sql.Timestamp;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ReimbursementDTO;
+import com.apmosys.employeeportal.dto.TravelDeskDTO;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.ReimbursementData;
 import com.apmosys.employeeportal.model.TravelDesk;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.ReimbursementDataRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -23,6 +35,15 @@ public class ReimbursementService {
 	
 	@Autowired
 	private EmployeeRepository employeeRepository;
+	
+	@Autowired
+	private MailService mailService;
+	
+	@Autowired
+	private NewsletterRepository newsletterRepository;
+	
+	@Value("${file.location.documents.reimbursement}")
+	private String reimbursementFileLocation;
 	
 	
 	public ServiceResponse fetchReimbursementData(BigInteger empId) {
@@ -199,6 +220,174 @@ public class ReimbursementService {
 		
 		
 	}
+	
+	
+	public ServiceResponse uploadFile(MultipartFile file, String displayName, Long uploadedBy) {
+
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Upload Newsletter");
+	    apiLogInfo.setApiUrl("/api/newsletters/uploadNewsletter");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Newsletter: ").append(displayName)
+	              .append(", uploadedBy: ").append(uploadedBy);
+
+	    try {
+	        System.out.println("uploadedBy: " + uploadedBy);
+	        Optional<Employee> employeeObject = employeeRepository.findById(uploadedBy);
+
+	        if (employeeObject.isEmpty()) {
+	            response.setServiceResponse("User Not Found !!");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("User Not Found !!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	            return response;
+	        }
+
+	        if (file == null || file.isEmpty()) {
+	            response.setServiceResponse("Uploaded Travel Document Not Found !!");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("Uploaded Travel Document Not Found !!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	            return response;
+	        }
+
+	        // Prepare the file path
+	        Path directory = Paths.get(reimbursementFileLocation);
+	        if (!Files.exists(directory)) {
+	            Files.createDirectories(directory);  // Ensure directory exists
+	        }
+
+	        // Use a timestamp to avoid filename conflicts
+	        String newFileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+	        Path path = directory.resolve(newFileName);
+	        System.out.println("Saving file to: " + path.toString());
+
+	        // Save file to disk
+	        byte[] bytes = file.getBytes();
+	        Files.write(path, bytes);
+
+	        // Confirm file existence
+	        File savedFile = path.toFile();
+	        if (savedFile.exists()) {
+	            Newsletter newsletter = new Newsletter();
+	            newsletter.setDisplayName(displayName);
+	            newsletter.setFileName(newFileName); // Save actual saved name
+	            newsletter.setType("TRAVEL ALLOWANCE");
+	            newsletter.setReadEnabled("true");
+	            newsletter.setCreatedBy(Integer.parseInt(uploadedBy.toString()));
+	            Newsletter travelDocDetails = newsletterRepository.save(newsletter);
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(travelDocDetails);
+	            response.setServiceMessage("Travel Document uploaded successfully.");
+	            apiLogInfo.setApiResponse("Travel Document uploaded successfully");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceResponse("Failed to upload Travel Document.");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("File did not exist after write operation.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    return response;
+	}
+	
+	@SuppressWarnings("deprecation")
+	public ServiceResponse approveOrRejectReimbursement(ReimbursementDTO reimbursementObj) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+
+	    try {
+			ReimbursementData existingReimbursementData = reimbursementDataRepository.findByRequestId(reimbursementObj.getRequestId());
+	        
+	        if (existingReimbursementData == null) {
+	            serviceResponse.setServiceError("Request Data Not Found...!!");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            return serviceResponse;
+	        }
+
+	        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+	        currentTimestamp.setNanos(currentTimestamp.getNanos() / 1000 * 1000);
+            Employee emp = employeeRepository.findByEmpId(Long.valueOf(existingReimbursementData.getEmpId().toString()));
+	        if (existingReimbursementData.getLevel() == 1) {
+	            updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
+	            if(existingReimbursementData.getLevel1ApproveOn() != null && existingReimbursementData.getStatus() == "Approved") {
+		            mailService.sendMailforTravel(existingReimbursementData.getLevel1ApproverEmail(),
+			        		"Travel request approval required",
+			        		"Dear"+existingReimbursementData.getHodName()+", <br><br>" + "A travel request is applied by"+ emp.getName()+"<br> for the purpose of:"+
+			        				existingReimbursementData.getPurpose()+".<br>From date:"+existingReimbursementData.getFromDate().toGMTString()+"and will return on:"+existingReimbursementData.getToDate().toGMTString()+
+			        		".<br> For this the mode of travel will be:"+existingReimbursementData.getTravelMode()+".<>"+"<br>Kindly take action on this application");
+		            }
+	        } else if (existingReimbursementData.getLevel() == 2) {
+	            updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
+	            
+	        }
+
+	        ReimbursementData updatedReimbursementData = reimbursementDataRepository.save(existingReimbursementData);
+	        	        
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        serviceResponse.setServiceResponse(updatedReimbursementData);
+	        serviceResponse.setServiceMessage("Updated Successfully..!!");
+
+	    } catch (Exception e) {
+	        serviceResponse.setServiceError(e.getMessage());
+	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        // Consider logging the error here for better debugging
+	    }
+
+	    return serviceResponse;
+	}
+
+	private void updateApprovalLevel(ReimbursementData reimbursementData, Timestamp currentTimestamp, ReimbursementDTO reimbursementObj) {
+		if (reimbursementObj.getStatus().equalsIgnoreCase("Rejected")) {
+			if (reimbursementData.getLevel() == 1) {
+				reimbursementData.setLevel1ApproveOn(currentTimestamp);
+				reimbursementData.setStatus(reimbursementObj.getStatus());
+				reimbursementData.setFinalStatus(reimbursementObj.getStatus());
+			}else if (reimbursementData.getLevel() == 2){
+				reimbursementData.setLevel2ApproveOn(currentTimestamp);
+				reimbursementData.setLevel2approverStatus(reimbursementObj.getStatus());
+				reimbursementData.setFinalStatus(reimbursementObj.getStatus());
+			}else if (reimbursementData.getLevel() == 3){
+				reimbursementData.setLevel3ApproveOn(currentTimestamp);
+				reimbursementData.setLevel3approverStatus(reimbursementObj.getStatus());
+				reimbursementData.setFinalStatus(reimbursementObj.getStatus());
+			}
+			reimbursementData.setLevel1approverRemarks(reimbursementObj.getLevel1approverRemarks());
+		}else {
+	    if (reimbursementData.getLevel() == 1) {
+	    	reimbursementData.setLevel1ApproveOn(currentTimestamp);
+	    	reimbursementData.setLevel(reimbursementData.getLevel()+1);
+	    	reimbursementData.setStatus(reimbursementObj.getStatus());
+	    	reimbursementData.setLevel1approverRemarks(reimbursementObj.getLevel1approverRemarks());
+	    } else if (reimbursementData.getLevel() == 2) {
+	    	reimbursementData.setLevel2ApproveOn(currentTimestamp);
+	    	reimbursementData.setLevel2approverStatus(reimbursementObj.getStatus());
+	        reimbursementData.setFinalStatus(reimbursementObj.getStatus());
+	        reimbursementData.setLevel2approverRemarks(reimbursementObj.getLevel2approverRemarks());
+	    }else if (reimbursementData.getLevel() == 3) {
+	    	reimbursementData.setLevel3ApproveOn(currentTimestamp);
+	    	reimbursementData.setLevel3approverStatus(reimbursementObj.getStatus());
+	        reimbursementData.setFinalStatus(reimbursementObj.getStatus());
+	        reimbursementData.setLevel3approverRemarks(reimbursementObj.getLevel3approverRemarks());
+	    }
+	}
+	}
+
 	
 	
 }
