@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 import org.springframework.web.client.RestTemplate;
 
@@ -2518,6 +2519,7 @@ public class ResourceManagementService {
 					
 					final String syncUrl = syncProjectApi;
 					RestTemplate restTemplate = new RestTemplate();
+					
 					String syncResponse = restTemplate.postForObject(syncUrl, projectInfo, String.class);
 					
 					JSONObject json = new JSONObject(syncResponse);
@@ -2553,7 +2555,12 @@ public class ResourceManagementService {
 					
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse(json.get("message"));
-				}
+				}catch(HttpServerErrorException e) {
+	                    JSONObject json = new JSONObject(e.getResponseBodyAsString());
+						
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse(json.get("message"));
+					}
 			}
 		}
 			
