@@ -1447,11 +1447,7 @@
     <input type="checkbox" class="custom-control-input" id="access-control-switch" (change)="toggleAccessList($event)">
     <label class="custom-control-label" for="access-control-switch">View Default Role Access</label>
   </div>
-  <div class="export-button">
-    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2 excel-button" (click)="exportToExcel()">
-      <em class="fa fa-file-arrow-down fa-2x"></em>
-    </button>
-  </div>
+  
   <div class="col-md-12" *ngIf="isAccessFeatureMapping">
     <div class="col-md-12 ml-auto d-flex flex-column flex-md-row  align-items-center">
       <div class="col-md-8 mb-2 mb-md-0">
