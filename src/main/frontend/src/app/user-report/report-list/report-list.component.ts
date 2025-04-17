@@ -397,6 +397,7 @@ onDepartmentSelectionChange() {
         this.selectedBillable[key] = null;
       }
     });
+  
     this.selectedTab[box] = tab;
     this.selectedFlag[box] = null;
     this.selectedBillable[box] = null;
@@ -419,11 +420,20 @@ onDepartmentSelectionChange() {
   }
 
   selectFlag(box: string, flag: string, template: TemplateRef<any>) {
+    this.activeBox = box;
     const category = this.selectedTab[box];
     if (!category) {
       this.openAlertMod(this.alertModal, "Please select a category (Employee / Project) before selecting Flag.");
       return;
     }
+
+    Object.keys(this.selectedTab).forEach(key => {
+      if (key !== box) {
+        this.selectedTab[key] = null;
+        this.selectedFlag[key] = null;
+        this.selectedBillable[key] = null;
+      }
+    });
     this.selectedFlag[box] = flag;
     this.selectedBillable[box] = null;
 
@@ -436,11 +446,19 @@ onDepartmentSelectionChange() {
   }
 
   selectBillable(box: string, type: string, template: TemplateRef<any>) {
+    this.activeBox = box;
     const category = this.selectedTab[box];
     if (!category) {
       this.openAlertMod(this.alertModal, "Please select a category (Employee / Project) before selecting billable type.");
       return;
     }
+    Object.keys(this.selectedTab).forEach(key => {
+      if (key !== box) {
+        this.selectedTab[key] = null;
+        this.selectedFlag[key] = null;
+        this.selectedBillable[key] = null;
+      }
+    });
     this.selectedBillable[box] = type;
 
     this.employeeReportObj.poProjectType = box;

@@ -569,11 +569,11 @@
           <div *ngIf="box !== 'Internal'" class="status-buttons">
             <button class="status-btn" [ngClass]="{ 'active-flag': selectedFlag[box] === 'Active' }"
               (click)="selectFlag(box, 'Active',alert_message)">
-              Active
+              Active PO
             </button>
             <button class="status-btn" [ngClass]="{ 'inactive-flag': selectedFlag[box] === 'Inactive' }"
               (click)="selectFlag(box, 'Inactive',alert_message)">
-              Inactive
+              Inactive PO
             </button>
           </div>
 
@@ -1479,11 +1479,11 @@
       </div> -->
       <div class="export-button">
         <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2 excel-button"
-                (click)="exportToExcel()">
-                <em class="fa fa-file-arrow-down fa-2x"></em>
-              </button>
+          (click)="exportToExcel()">
+          <em class="fa fa-file-arrow-down fa-2x"></em>
+        </button>
       </div>
-      
+
     </div>
 
     <div class="col-md-12">
