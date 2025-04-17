@@ -515,7 +515,7 @@
 
     <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
         <div class="card-title px-1 pt-2">
-          <p class="section-heading m-0 pl-2 p-3">Apmosys Wall Of Fame</p>
+          <p class="section-heading m-0 pl-2 p-3">ApMoSys Wall Of Fame</p>
          
           <div class="tabs">
             <ul class="nav nav-pills">
@@ -536,7 +536,7 @@
         <div class="reward-content-container d-flex flex-column" style="max-height: 200px;">
           <div *ngIf="showEmptyMessage" class="container-fluid text-center p-3">
             <img class="placeholder-img" style="width: 100px;" src="assets/Images/reward2.png" alt="Rewards Icon">
-            <h1 class="placeholder-text">No Rewards Today</h1>
+            <h1 class="placeholder-text">No Rewards</h1>
           </div>
           <marquee *ngIf="rewardsList.length !== 0" direction="up" scrolldelay="250" 
                    onmouseover="this.stop();" onmouseout="this.start();" class="h-100">

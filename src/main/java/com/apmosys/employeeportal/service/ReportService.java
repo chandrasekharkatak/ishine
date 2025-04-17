@@ -17,7 +17,6 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
-import com.apmosys.employeeportal.dto.getAllEmployeesReportByProjectTypeInConsolidatedDTO;
 import com.apmosys.employeeportal.model.EmployeeRole;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -440,164 +439,6 @@ public class ReportService {
 		return response;
 	}
 	
-	public ServiceResponse getAllEmployeesReportByProjectType() {
-		ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-        apiLogInfo.setSubFeatureName("Report List Toggle For Reports Based On Project Type");
-        apiLogInfo.setApiUrl("/api/getAllEmployeesReportByProjectType");
-        apiLogInfo.setLogLevel("INFO");
-        StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("EmployeeByProjectTypeReport:" + employeeRepository.getAllEmployeesReportByProjectType().size());
-		try {
-			List<Object[]> allEmployeeReport = employeeRepository.getAllEmployeesReportByProjectType();
-			List<getAllEmployeesReportByProjectTypeInConsolidatedDTO> dtoList = new ArrayList<getAllEmployeesReportByProjectTypeInConsolidatedDTO>();
-			
-			if(allEmployeeReport == null){
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Report list is empty.");
-                apiLogInfo.setApiResponse("Report list is empty.");			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}else{
-				allEmployeeReport.forEach((object) -> {
-					getAllEmployeesReportByProjectTypeInConsolidatedDTO employeeDTO = new getAllEmployeesReportByProjectTypeInConsolidatedDTO();
-					
-					employeeDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					employeeDTO.setEmployeementId(object[1] != null ? object[1].toString() : null);
-					employeeDTO.setName(object[2] != null ? object[2].toString() : null);
-					employeeDTO.setEmail(object[3] != null ? object[3].toString() : null);
-					employeeDTO.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()) : null);
-					employeeDTO.setManagerId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
-					employeeDTO.setManagerName(object[6] != null ? object[6].toString() : null);
-					employeeDTO.setEmploymentstatus(object[7] != null ? object[7].toString() : null);
-					employeeDTO.setBillable(object[8] != null ? object[8].toString() : null);
-					employeeDTO.setBillableType(object[9] != null ? object[9].toString() : null);
-					employeeDTO.setTeamId(object[10] != null ? Long.parseLong(object[10].toString()) : null);		
-					employeeDTO.setTeamName(object[11] != null ? object[11].toString() : null);
-					employeeDTO.setProjectId(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
-					employeeDTO.setProjectName(object[13] != null ? object[13].toString() : null); 
-					employeeDTO.setPoStartDate(object[14] != null ? object[14].toString() : null);
-					employeeDTO.setPoEndDate(object[15] != null ? object[15].toString() : null);
-					employeeDTO.setPoNo(object[16] != null ? object[16].toString() : null);
-					employeeDTO.setClientName(object[17] != null ? object[17].toString() : null);
-					employeeDTO.setClientLocation(object[18] != null ? object[18].toString() : null);
-					employeeDTO.setWorkLocation(object[19] != null ? object[19].toString() : null);
-					employeeDTO.setTotalExperience(object[20] != null ? Float.parseFloat(object[20].toString()) : null);
-					employeeDTO.setDepartmentId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
-					employeeDTO.setDepartmentName(object[22] != null ? object[22].toString() : null);
-					employeeDTO.setPoProjectType(object[23] != null ? object[23].toString() : null);
-					employeeDTO.setJobRole(object[24] != null ? object[24].toString() : null);
-					employeeDTO.setPoProjectId(object[25] != null ? object[25].toString() : null);
-					employeeDTO.setClientRM(object[26] != null ? object[26].toString() : null);
-					employeeDTO.setApmosysRM(object[27] != null ? object[27].toString() : null);
-					
-					dtoList.add(employeeDTO);
-				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				System.out.println("DTOList :" +dtoList);
-                apiLogInfo.setApiResponse("ReportBasedOnProjectType: " + dtoList.size());			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-		}catch(Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-	
-	public ServiceResponse getAllEmployeesReportByProjectTypeInConsolidated() {
-		ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-        apiLogInfo.setSubFeatureName("Report List Toggle For Reports Based On Project Type");
-        apiLogInfo.setApiUrl("/api/getAllEmployeesReportByProjectTypeInConsolidated");
-        apiLogInfo.setLogLevel("INFO");
-        StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("EmployeeByProjectTypeReport:" + employeeRepository.getAllEmployeesReportByProjectTypeInConsolidated().size());
-		try {
-			List<Object[]> allEmployeeReport = employeeRepository.getAllEmployeesReportByProjectTypeInConsolidated();
-			List<getAllEmployeesReportByProjectTypeInConsolidatedDTO> dtoList = new ArrayList<getAllEmployeesReportByProjectTypeInConsolidatedDTO>();
-			
-			if(allEmployeeReport == null || allEmployeeReport.isEmpty())  {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Report list is empty.");
-                apiLogInfo.setApiResponse("Report list is empty.");			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}else{
-				allEmployeeReport.forEach(object -> {
-					getAllEmployeesReportByProjectTypeInConsolidatedDTO employeeDTO = new getAllEmployeesReportByProjectTypeInConsolidatedDTO();
-					// System.out.println("employeeDTO"+employeeDTO);
-					employeeDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					employeeDTO.setEmployeementId(object[1] != null ? object[1].toString() : null);
-					employeeDTO.setName(object[2] != null ? object[2].toString() : null);
-					employeeDTO.setEmail(object[3] != null ? object[3].toString() : null);
-					employeeDTO.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()) : null);
-					employeeDTO.setManagerId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
-					employeeDTO.setManagerName(object[6] != null ? object[6].toString() : null);
-					employeeDTO.setEmploymentstatus(object[7] != null ? object[7].toString() : null);
-					employeeDTO.setBillable(object[8] != null ? object[8].toString() : null);
-					employeeDTO.setBillableType(object[9] != null ? object[9].toString() : null);
-					employeeDTO.setTeamIds(object[10] != null ? (object[10].toString()) : null);		
-					employeeDTO.setTeamName(object[11] != null ? object[11].toString() : null);
-					employeeDTO.setProjectIds(object[12] != null ? object[12].toString() : null);
-					employeeDTO.setProjectName(object[13] != null ? object[13].toString() : null); 
-					employeeDTO.setPoStartDate(object[14] != null ? object[14].toString() : null);
-					employeeDTO.setPoEndDate(object[15] != null ? object[15].toString() : null);
-					employeeDTO.setPoNo(object[16] != null ? object[16].toString() : null);
-					employeeDTO.setClientName(object[17] != null ? object[17].toString() : null);
-					employeeDTO.setClientLocation(object[18] != null ? object[18].toString() : null);
-					employeeDTO.setWorkLocation(object[19] != null ? object[19].toString() : null);
-					employeeDTO.setTotalExperience(object[20] != null ? Float.parseFloat(object[20].toString()) : null);
-					employeeDTO.setDepartmentId(object[21] != null ? Long.parseLong(object[21].toString()) : null);
-					employeeDTO.setDepartmentName(object[22] != null ? object[22].toString() : null);
-					employeeDTO.setPoProjectType(object[23] != null ? object[23].toString() : null);
-					employeeDTO.setJobRole(object[24] != null ? object[24].toString() : null);
-					employeeDTO.setPoProjectId(object[25] != null ? object[25].toString() : null);
-					employeeDTO.setPrimaryProjectName(object[26] != null ? object[26].toString() : null);
-					employeeDTO.setPrimaryProjectId(object[27] != null ? object[27].toString() : null);
-					employeeDTO.setClientRM(object[28] != null ? object[28].toString() : null);
-					employeeDTO.setApmosysRM(object[29] != null ? object[29].toString() : null);
-					// System.out.println("employeeDTO"+employeeDTO);
-					
-					Map<String, String> projectMap = new HashMap<>();
-			        if (object[12] != null && object[13] != null) {
-			            String[] projectIds = object[12].toString().split(",");
-			            String[] projectNames = object[13].toString().split(",");
-
-			            for (int i = 0; i < projectIds.length; i++) {
-			                projectMap.put(projectIds[i].trim(), i < projectNames.length ? projectNames[i].trim() : "");
-			            }
-			        }
-			        employeeDTO.setProjects(projectMap);
-			        
-					dtoList.add(employeeDTO);
-				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				System.out.println("DTOList :" +dtoList);
-                apiLogInfo.setApiResponse("ReportBasedOnProjectType: " + dtoList.size());			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-		}catch(Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-	
 	public ServiceResponse getPoProjectDetailsBOthPOAndInternal() {
 		ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
@@ -645,5 +486,27 @@ public class ReportService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	
+	public ServiceResponse updateBillableType(EmployeeDTO dto) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        int result = employeeRepository.updateBillableInfo(dto.getEmpId(), dto.getBillableType(), dto.getBillable());
+	        if (result > 0) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Updated successfully");
+	        } else {
+	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            response.setServiceResponse("Update failed");
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceError(e.getMessage());
+	        response.setServiceResponse("Something went wrong");
+	    }
+	    return response;
+	}
+
 
 }

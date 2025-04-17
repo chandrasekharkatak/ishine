@@ -1,0 +1,32 @@
+export class MyTravelDesk{
+    requestId :any;
+    fullName: any ;
+    employeeId: any ;
+    departmentName: any ;
+    designationName: any ;
+    levelOneApprover : any;
+    email: any ;
+    mobileNo: any ;
+    managerName: any ;
+    associatedTravelRequest: any ;
+    travelMode: any ;
+    travelClass: any ;
+    fromDate: any ;
+    toDate: any ;
+    fromLocation : any;
+    toLocation : any ;
+    purposeOfTravel: any ;
+    supportingDocument: any ;
+    approverStatus: any;
+    status: any;
+    level1approverRemarks : any;
+    level2approverRemarks : any;
+    hodId : any;
+    hodName : any ;
+    level2Approver :any;
+    level2ApproverEmail :any;
+    cityCategory : any;
+    hotelCategory :any;
+    docId: any;
+    city: any;
+}

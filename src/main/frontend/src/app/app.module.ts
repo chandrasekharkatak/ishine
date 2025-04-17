@@ -130,6 +130,14 @@ import { PerformanceConfigComponent } from './configuration/performance-config/p
 import { OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 import { registerLocaleData } from '@angular/common';
 import localeGb from '@angular/common/locales/en-GB';
+import { TravelAllowanceComponent } from './travel-allowance/travel-allowance.component';
+import { ReimbursementComponent } from './reimbursement/reimbursement.component';
+import { MyReimbursementComponent } from './reimbursement/my-reimbursement/my-reimbursement.component';
+import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/view-reimbursement.component';
+import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapproval/reimbursementapproval.component';
+import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
+import { TravelrequestapprovalComponent } from './travel-allowance/travelrequestapproval/travelrequestapproval.component';
+import { ViewTravelrequestComponent } from './travel-allowance/view-travelrequest/view-travelrequest.component';
 import { LMSComponent } from './employee360/lms/lms.component';
 registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
@@ -242,6 +250,15 @@ import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax
      NavigateToProjectViewDirective,
      ProjectViewComponent,
      PerformanceConfigComponent,
+     TravelAllowanceComponent,
+     ReimbursementComponent,
+     MyReimbursementComponent,
+     ViewReimbursementComponent,
+     ReimbursementapprovalComponent,
+     MyTravelrequestComponent,
+     TravelrequestapprovalComponent,
+     ViewTravelrequestComponent,
+  
      LMSComponent,
      BiomaxApprovalComponent,
 

@@ -87,25 +87,17 @@ public class ReportController {
 			   ServiceResponse response=bioMaxService.getEmpBioDataById(empId,date);
 			   return response;
 		   }
-
-		@RequestMapping(value="/getAllEmployeesReportByProjectType" , method = RequestMethod.GET)
-		public ServiceResponse getAllEmployeesReportByProjectType() {		
-			
-			ServiceResponse response =	reportService.getAllEmployeesReportByProjectType();
-			return response;
-		}
-		
-		@RequestMapping(value="/getAllEmployeesReportByProjectTypeInConsolidated" , method = RequestMethod.GET)
-		public ServiceResponse getAllEmployeesReportByProjectTypeInConsolidated() {		
-			
-			ServiceResponse response =	reportService.getAllEmployeesReportByProjectTypeInConsolidated();
-			return response;
-		}
 		
 		@RequestMapping(value = "/getPoProjectDetailsBOthPOAndInternal", method = RequestMethod.GET)
 		public ServiceResponse getPoProjectDetailsForPoProjects() {
 			
 			ServiceResponse response = reportService.getPoProjectDetailsBOthPOAndInternal();
+			return response;
+		}
+		
+		@RequestMapping(value ="/updateEmployeeReportBillableType", method = RequestMethod.POST)
+		public ServiceResponse updateBillableType(@RequestBody EmployeeDTO employeeDTO) {
+			ServiceResponse response = reportService.updateBillableType(employeeDTO);
 			return response;
 		}
 }

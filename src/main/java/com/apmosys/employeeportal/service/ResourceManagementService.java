@@ -138,16 +138,17 @@ public class ResourceManagementService {
 	@Value("${bd.mail}")
 	private String bdMail;
 
+	
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-        apiLogInfo.setSubFeatureName("createDraftProjectInfo");
-        apiLogInfo.setApiUrl("/api/createDraftProjectInfo");
-        apiLogInfo.setLogLevel("INFO");
-        StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("ProjectType : " + resourceManagementDTO.getProjectType() + " ,ProjectId :" + resourceManagementDTO.getProjectId()
-        + " ,ProjectName :" + resourceManagementDTO.getName() + " ,Department :" + resourceManagementDTO.getDeptName() + " ,State:" + 
-        resourceManagementDTO.getClientState());
+       LogDTO apiLogInfo = new LogDTO();
+       apiLogInfo.setSubFeatureName("createDraftProjectInfo");
+       apiLogInfo.setApiUrl("/api/createDraftProjectInfo");
+       apiLogInfo.setLogLevel("INFO");
+       StringBuilder logBuilder = new StringBuilder();
+       logBuilder.append("ProjectType : " + resourceManagementDTO.getProjectType() + " ,ProjectId :" + resourceManagementDTO.getProjectId()
+       + " ,ProjectName :" + resourceManagementDTO.getName() + " ,Department :" + resourceManagementDTO.getDeptName() + " ,State:" + 
+       resourceManagementDTO.getClientState());
 
 		try {
 			Project projObj = null;
@@ -476,8 +477,8 @@ public class ResourceManagementService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-            apiLogInfo.setLogLevel("ERROR");
+           apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+           apiLogInfo.setLogLevel("ERROR");
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
@@ -2615,122 +2616,7 @@ public class ResourceManagementService {
 		return response;
 	}
 
-//	public ServiceResponse getInternalProject() {
-//		ServiceResponse response = new ServiceResponse();
-//        LogDTO apiLogInfo = new LogDTO();
-//        //apiLogInfo.setSubFeatureName("");
-//        apiLogInfo.setApiUrl("/api/getInternalProject");
-//        apiLogInfo.setLogLevel("INFO");
-//        StringBuilder logBuilder = new StringBuilder();
-//        logBuilder.append("InternalProjectList : "+ projectRepository.getAllInternalProject().size());
-//
-//		try {
-//			
-//			List<Object[]> allInternalProject = projectRepository.getAllInternalProject();
-//			List<ResourceManagementDTO> projectInfo = new ArrayList<ResourceManagementDTO>();
-//			
-//			if(allInternalProject != null) {
-//				allInternalProject.forEach((object) -> {
-//					ResourceManagementDTO projectDTO = new ResourceManagementDTO();
-//					
-//					projectDTO.setProjectType("Internal");
-//					projectDTO.setName(object[0] != null ? object[0].toString() : null);
-////					projectDTO.setProjectManager(object[1] != null ? "A-".concat(object[1].toString()) : null);
-//					projectDTO.setProjectManager(object[10] != null ? "A-".concat(object[10].toString()) : null);
-//
-//					projectDTO.setProjectManagerName(object[2] != null ? object[2].toString() : null);
-//					projectDTO.setProjectId(object[3] != null ? Integer.parseInt(object[3].toString()) : null);
-//					projectDTO.setStatus(object[11] != null ? object[11].toString() : null);
-//					projectDTO.setIsActive(object[12] != null ? Long.parseLong(object[12].toString()) :null);
-////					projectDTO.setProjectId(object[3] != null ? Integer.parseInt(object[3].toString()) : null);
-////					projectDTO.setStatus(object[13] != null ? object[13].toString() : null);
-//					//projectDTO.setIsActive(object[13] != null ? Long.parseLong(object[13].toString()) :null);
-//					 //projectDTO.setIsActive(2l);
-//					projectDTO.setStartDate(object[4] != null ? object[4].toString() :null);
-//					projectDTO.setEndDate(object[5] != null ? object[5].toString() :null);
-//					//Find ClientName
-////					Integer clientId = object[9] != null ? Integer.parseInt(object[9].toString()) : null;
-//					Integer clientId = object[7] != null ? Integer.parseInt(object[7].toString()) : null;
-//
-//					if(clientId != null) {
-//						Client clientObj = clientsRepository.findByClientId(clientId);
-//						
-//						projectDTO.setClientName(clientObj.getClientName());
-//					}else {
-//						projectDTO.setClientName(null);
-//					}
-//					
-//					projectDTO.setClientState(object[10] != null ? object[10].toString() : null);
-//					projectDTO.setCreatedOn(object[7] != null ? object[7].toString() : null);
-//					projectDTO.setIsDraftProject(object[12] != null ? object[12].toString() : null);
-//					
-//					//Find ClientLocation
-//					if(clientId != null) {
-//						List<ClientLocation> clientLocation = clientLocationRepository.findByClientId(clientId);
-//						
-//						if(clientLocation != null) {
-//							
-//							String[] locationList = clientLocation.stream()
-//								    .map((ClientLocation location) -> location.getClientLocation()).collect(Collectors.toList())
-//									.toArray(String[]::new);
-//							
-//							projectDTO.setClientLocation(locationList);
-//						}
-//					}
-//					
-//					//Find Project department
-//					Integer projectId = object[3] != null ? Integer.parseInt(object[3].toString()) : null;
-////					String isTeamCreated = "false";
-////					Long count = teamRepository.countByProjectId(projectId);
-////					if(count>0) {
-////						isTeamCreated = "false";
-////					}
-//					List<ProjectDepartmentMap> allDeptList = projectDepartmentMapRepository.findByProjectId(projectId);
-//					List<String> deptList = new ArrayList<String>();
-//					
-//					if(allDeptList != null) {
-//						allDeptList.forEach((dept) -> {
-//							Department deptObj = departmentRepository.findByDeptId(dept.getDeptId());
-//							
-//							if(deptObj != null) {
-//								deptList.add(deptObj.getName());								
-//							}
-//						});
-//						
-//						String[] department = deptList.stream().toArray(String[]::new);
-//						projectDTO.setDepartment(department);
-////						projectDTO.setIsTeamCreated(isTeamCreated);
-//						}
-//					projectInfo.add(projectDTO);
-//				});
-//				
-//				
-//				System.err.println(" ANurag projectInfo  "+projectInfo);
-//				
-//				
-//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//				response.setServiceResponse(projectInfo);
-//				apiLogInfo.setApiResponse("InternalProjectList fetched");
-//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-//			}else {
-//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//				response.setServiceResponse("No Internal project found.");
-//				apiLogInfo.setApiResponse("No Internal Project Found");
-//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-//			}
-//			
-//		}catch(Exception e) {
-//			e.printStackTrace();
-//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-//			response.setServiceResponse("Something Went Wrong.");
-//			response.setServiceError(e.getMessage());
-//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-//			apiLogInfo.setLogLevel("ERROR");
-//		}
-//		apiLogInfo.setApiRequest(logBuilder.toString());
-//		logService.logMyInfo(httpRequest, apiLogInfo);
-//		return response;
-//	}
+
 	public ServiceResponse getInternalProject() {
 		ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
@@ -3054,7 +2940,7 @@ public class ResourceManagementService {
 
 		    if (project != null) {
 
-                project.setProjectName(dto.getName());
+//                project.setProjectName(dto.getName());
                 project.setPoProjectType(dto.getProjectType());
 //                String formattedStartDate = dateFormat.format(dto.getStartDate());
 //                project.setPoStartDate(formattedStartDate);

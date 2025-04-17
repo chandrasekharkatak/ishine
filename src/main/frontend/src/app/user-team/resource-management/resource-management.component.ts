@@ -111,6 +111,7 @@ export class ResourceManagementComponent implements OnInit {
   currentBreadcrumbList: any[] = [];
   // employeesFor360: any[] = [];
   poProjectListFromIshine: any[] = [];
+  flagDialogueBox: boolean = false;
   tableName: string;
 
   constructor(
@@ -658,8 +659,8 @@ export class ResourceManagementComponent implements OnInit {
       //console.log(this.projectObj, " : this.projectObj");
       this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.showViewProjects();
           this.openAlertMod(template, response.serviceResponse);
+          this.showViewProjects();
         } else {
           this.openAlertMod(template, response.serviceResponse);
         }

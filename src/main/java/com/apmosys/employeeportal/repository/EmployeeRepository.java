@@ -547,4 +547,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     @Query(nativeQuery = true)
     public Optional<List<Object[]>> getAllEmployeesWorkAnniversaryToday();
+    
+    
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE employee SET billable_type = :billableType, billable = :billable WHERE emp_id = :empId", nativeQuery = true)
+    int updateBillableInfo(@Param("empId") Long empId, @Param("billableType") String billableType, @Param("billable") String billable);
 }

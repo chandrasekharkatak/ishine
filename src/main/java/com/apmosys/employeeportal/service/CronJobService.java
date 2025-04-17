@@ -4536,7 +4536,7 @@ try {
 					    		  userSessionRepository.deleteById(session.getUserSessionId());
 					    	  }else if(elapsedMinsAfterLastCheck >= SESSION_CHECK_INACTIVE_LIMIT){
 					    		  user = session.getEmpId() + " - "+ " Time elapsed After Last Check : "+ elapsedMinsAfterLastCheck + " min.";
-					    		  userSessionRepository.deleteById(session.getUserSessionId());
+//					    		  userSessionRepository.deleteById(session.getUserSessionId());
 					    	  }
 					    	  
 					    	  if(user != null) {
@@ -5729,9 +5729,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 				e.printStackTrace();
 			}
 		}
+
 		
 		@Async
-//		@Scheduled(cron = "0 36 12 ? * *")
+		@Scheduled(cron = "0 0/5 * ? * *")
 		@Transactional
 		public void getProjectCloneFromPoPortal() {
 			
@@ -5762,7 +5763,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 		                if (project != null) {
 
-		                    project.setProjectName(dto.getName());
+//		                    project.setProjectName(dto.getName());
 		                    project.setPoProjectType(dto.getProjectType());
 		                    Date startDate = dto.getStartDate();
 		                    String formattedStartDate = dateFormat.format(startDate);
@@ -5849,204 +5850,220 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 				        logBuilder.append("Error updating project ID: " + dto.getId() + " - " + ex.getMessage());
 		            }
 		            
-		            List<Object[]> expiredProjects = projectRepository.getExpiredPoProjects();
+		            
+		        }
+		    } else {
+		        logBuilder.append("No projects found from PoPortal API.");
+		    }
+		}
 
-                    if (expiredProjects.isEmpty()) {
-                    	logBuilder.append("No expired PO projects found.");
-                        return;
-                    }
+		
+		@Async
+		@Scheduled(cron = "0 0 10 ? * *")
+		public void sendMailForExpiryProjects() {
+			
+			LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setSubFeatureName("sendMailForExpiryProjects");
+	        apiLogInfo.setApiUrl("/api/sendMailForExpiryProjects");
+	        apiLogInfo.setLogLevel("INFO");
+	        StringBuilder logBuilder = new StringBuilder();
+	        logBuilder.append("Cron to send expiry po mail notification to still mapped resources projects in Ishine started! ");
 
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-                    SimpleDateFormat sourceFormatter = new SimpleDateFormat("yyyy-MM-dd");
-                    SimpleDateFormat targetFormatter = new SimpleDateFormat("dd-MM-yyyy");
+			List<Object[]> expiredProjects = projectRepository.getExpiredPoProjects();
+
+			if (expiredProjects.isEmpty()) {
+				logBuilder.append("No expired PO projects found.");
+				return;
+			}
+
+			SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+			SimpleDateFormat sourceFormatter = new SimpleDateFormat("yyyy-MM-dd");
+			SimpleDateFormat targetFormatter = new SimpleDateFormat("dd-MM-yyyy");
 
 
-                    for (Object[] projects : expiredProjects) {
-                    
-    		            Set<String> uniqueEmails = new HashSet<>();
-    		            
-                    	String employeeName = (String) projects[0];
-                        String projectName = (String) projects[1];
-                        String teamName = (String) projects[2];
+			for (Object[] projects : expiredProjects) {
+			
+				Set<String> uniqueEmails = new HashSet<>();
+				
+				String employeeName = (String) projects[0];
+				String projectName = (String) projects[1];
+				String teamName = (String) projects[2];
 
-                        
-                        Timestamp allocationTimestamp = (Timestamp) projects[5];
-                        String allocationStartDate = allocationTimestamp != null ? dateFormat.format(new Date(allocationTimestamp.getTime())) : "N/A";
-                        
-                        String poStartDate = "N/A";
-                        String poEndDate = "N/A";
-                        try {
-                            if (projects[3] != null) {
-                                poStartDate = targetFormatter.format(sourceFormatter.parse((String) projects[3]));
-                            }
-                            if (projects[4] != null) {
-                                poEndDate = targetFormatter.format(sourceFormatter.parse((String) projects[4]));
-                            }
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                        
-                        Integer projectId = (Integer) projects[6];
-                        
-                        String hodEmail = (String) projects[7];
-                        
-                        String empEmail = (String) projects[8];
-                        
-                        if (hodEmail != null && !hodEmail.isEmpty()) {
-                            uniqueEmails.add(hodEmail);
-                        }
-                        
-                        StringBuilder ccEmailBuilder = new StringBuilder();
+				
+				Timestamp allocationTimestamp = (Timestamp) projects[5];
+				String allocationStartDate = allocationTimestamp != null ? dateFormat.format(new Date(allocationTimestamp.getTime())) : "N/A";
+				
+				String poStartDate = "N/A";
+				String poEndDate = "N/A";
+				try {
+					if (projects[3] != null) {
+						poStartDate = targetFormatter.format(sourceFormatter.parse((String) projects[3]));
+					}
+					if (projects[4] != null) {
+						poEndDate = targetFormatter.format(sourceFormatter.parse((String) projects[4]));
+					}
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+				
+				Integer projectId = (Integer) projects[6];
+				
+				String hodEmail = (String) projects[7];
+				
+				String empEmail = (String) projects[8];
+				
+				if (hodEmail != null && !hodEmail.isEmpty()) {
+					uniqueEmails.add(hodEmail);
+				}
+				
+				StringBuilder ccEmailBuilder = new StringBuilder();
 
-                     if (rmgMail != null && !rmgMail.trim().isEmpty()) {
-                         String[] rmgEmails = rmgMail.split(",");
-                         for (String email : rmgEmails) {
-                             if (email != null && !email.trim().isEmpty()) {
-                                 uniqueEmails.add(email.trim()); 
-                             }
-                         }
-                     }
-                     
-                     if (adminMail != null && !adminMail.trim().isEmpty()) {
-                         String[] adminMails = adminMail.split(",");
-                         for (String email : adminMails) {
-                             if (email != null && !email.trim().isEmpty()) {
-                                 uniqueEmails.add(email.trim()); 
-                             }
-                         }
-                     }
+				if (rmgMail != null && !rmgMail.trim().isEmpty()) {
+					String[] rmgEmails = rmgMail.split(",");
+					for (String email : rmgEmails) {
+						if (email != null && !email.trim().isEmpty()) {
+							uniqueEmails.add(email.trim()); 
+						}
+					}
+				}
+				
+				if (adminMail != null && !adminMail.trim().isEmpty()) {
+					String[] adminMails = adminMail.split(",");
+					for (String email : adminMails) {
+						if (email != null && !email.trim().isEmpty()) {
+							uniqueEmails.add(email.trim()); 
+						}
+					}
+				}
 
-                     for (String email : uniqueEmails) {
-                         if (ccEmailBuilder.length() > 0) {
-                             ccEmailBuilder.append(","); 
-                         }
-                         ccEmailBuilder.append(email);
-                     }
+				for (String email : uniqueEmails) {
+					if (ccEmailBuilder.length() > 0) {
+						ccEmailBuilder.append(","); 
+					}
+					ccEmailBuilder.append(email);
+				}
 
-                     String ccEmails = ccEmailBuilder.toString();
+				String ccEmails = ccEmailBuilder.toString();
 
-                        if (!empEmail.isEmpty()) {
-                        	
-                                String emailBody = buildEmailContent(employeeName, projectName, teamName, poStartDate, poEndDate, allocationStartDate);
+				if (!empEmail.isEmpty()) {
+					
+						String emailBody = buildEmailContent(employeeName, projectName, teamName, poStartDate, poEndDate, allocationStartDate);
 
-                                try {
+						try {
 //                                    mailService.sendMailWithoutAttachmentWithMailBody2( 
 //                                    		"anyush.panda@apmosys.com",
 //                                            "Project PO Expiry Notification", 
 //                                            emailBody,
 //                                    		"priyadarshini.singh@apmosys.com"
 //                                    );
-                                    mailService.sendMailWithoutAttachmentWithMailBody2( 
-                                    		empEmail,
-                                            "Project PO Expiry Notification", 
-                                            emailBody,  
-                                            ccEmails
-                                    );
-                    		        logBuilder.append("Mail sent to " + empEmail + " for expired PO: " + projectName);
-                                } catch (MessagingException e) {
-                    		        logBuilder.append("Error sending mail to " + empEmail + " for PO: " + projectName + " - " + e.getMessage());
-                                }
-                                             
-                        	} else {
-                		        logBuilder.append("No employees found for project ID: " + projectId);
-                        }
-                    }
-                    List<Object[]> expiredProjectsWithoutInterval = projectRepository.getExpiredPoProjectsWithoutInterval();
+							mailService.sendMailWithoutAttachmentWithMailBody2( 
+									empEmail,
+									"Project PO Expiry Notification", 
+									emailBody,  
+									ccEmails
+							);
+							logBuilder.append("Mail sent to " + empEmail + " for expired PO: " + projectName);
+						} catch (MessagingException e) {
+							logBuilder.append("Error sending mail to " + empEmail + " for PO: " + projectName + " - " + e.getMessage());
+						}
+										
+					} else {
+						logBuilder.append("No employees found for project ID: " + projectId);
+				}
+			}
+			List<Object[]> expiredProjectsWithoutInterval = projectRepository.getExpiredPoProjectsWithoutInterval();
 
-                    if (expiredProjectsWithoutInterval.isEmpty()) {
-                        logBuilder.append("No expired PO projects found previous to 5 days interval from current date.");
-                        return;
-                    }
+			if (expiredProjectsWithoutInterval.isEmpty()) {
+				logBuilder.append("No expired PO projects found previous to 5 days interval from current date.");
+				return;
+			}
 
-                    for (Object[] projects : expiredProjectsWithoutInterval) {
+			for (Object[] projects : expiredProjectsWithoutInterval) {
 
-    		            Set<String> uniqueEmails = new HashSet<>();
-    		            
-                        String employeeName = (String) projects[0];
-                        String projectName = (String) projects[1];
-                        String teamName = (String) projects[2];
+				Set<String> uniqueEmails = new HashSet<>();
+				
+				String employeeName = (String) projects[0];
+				String projectName = (String) projects[1];
+				String teamName = (String) projects[2];
 
-                        Timestamp allocationTimestamp = (Timestamp) projects[5];
-                        String allocationStartDate = allocationTimestamp != null ? dateFormat.format(new Date(allocationTimestamp.getTime())) : "N/A";
+				Timestamp allocationTimestamp = (Timestamp) projects[5];
+				String allocationStartDate = allocationTimestamp != null ? dateFormat.format(new Date(allocationTimestamp.getTime())) : "N/A";
 
-                        String poStartDate = "N/A";
-                        String poEndDate = "N/A";
-                        try {
-                            if (projects[3] != null) {
-                                poStartDate = targetFormatter.format(sourceFormatter.parse((String) projects[3]));
-                            }
-                            if (projects[4] != null) {
-                                poEndDate = targetFormatter.format(sourceFormatter.parse((String) projects[4]));
-                            }
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
+				String poStartDate = "N/A";
+				String poEndDate = "N/A";
+				try {
+					if (projects[3] != null) {
+						poStartDate = targetFormatter.format(sourceFormatter.parse((String) projects[3]));
+					}
+					if (projects[4] != null) {
+						poEndDate = targetFormatter.format(sourceFormatter.parse((String) projects[4]));
+					}
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
 
-                        Integer projectId = (Integer) projects[6];
+				Integer projectId = (Integer) projects[6];
 
-                        String hodEmail = (String) projects[7];
-                        
-                        String empEmail = (String) projects[8];
+				String hodEmail = (String) projects[7];
+				
+				String empEmail = (String) projects[8];
 
-                        if (hodEmail != null && !hodEmail.isEmpty()) {
-                            uniqueEmails.add(hodEmail);
-                        }
+				if (hodEmail != null && !hodEmail.isEmpty()) {
+					uniqueEmails.add(hodEmail);
+				}
 
-                        StringBuilder ccEmailBuilder = new StringBuilder();
-                        if (rmgMail != null && !rmgMail.trim().isEmpty()) {
-                            String[] rmgEmails = rmgMail.split(",");
-                            for (String email : rmgEmails) {
-                                if (email != null && !email.trim().isEmpty()) {
-                                    uniqueEmails.add(email.trim());
-                                }
-                            }
-                        }
-                        
-                        if (adminMail != null && !adminMail.trim().isEmpty()) {
-                            String[] adminMails = adminMail.split(",");
-                            for (String email : adminMails) {
-                                if (email != null && !email.trim().isEmpty()) {
-                                    uniqueEmails.add(email.trim()); 
-                                }
-                            }
-                        }
+				StringBuilder ccEmailBuilder = new StringBuilder();
+				if (rmgMail != null && !rmgMail.trim().isEmpty()) {
+					String[] rmgEmails = rmgMail.split(",");
+					for (String email : rmgEmails) {
+						if (email != null && !email.trim().isEmpty()) {
+							uniqueEmails.add(email.trim());
+						}
+					}
+				}
+				
+				if (adminMail != null && !adminMail.trim().isEmpty()) {
+					String[] adminMails = adminMail.split(",");
+					for (String email : adminMails) {
+						if (email != null && !email.trim().isEmpty()) {
+							uniqueEmails.add(email.trim()); 
+						}
+					}
+				}
 
-                        for (String email : uniqueEmails) {
-                            if (ccEmailBuilder.length() > 0) {
-                                ccEmailBuilder.append(",");
-                            }
-                            ccEmailBuilder.append(email);
-                        }
+				for (String email : uniqueEmails) {
+					if (ccEmailBuilder.length() > 0) {
+						ccEmailBuilder.append(",");
+					}
+					ccEmailBuilder.append(email);
+				}
 
-                        String ccEmails = ccEmailBuilder.toString();
+				String ccEmails = ccEmailBuilder.toString();
 
-                        if (!empEmail.isEmpty()) {
-                            
-                                String emailBody = buildEmailContent2(employeeName, projectName, teamName, poStartDate, poEndDate, allocationStartDate);
+				if (!empEmail.isEmpty()) {
+					
+						String emailBody = buildEmailContent2(employeeName, projectName, teamName, poStartDate, poEndDate, allocationStartDate);
 
-                                try {
+						try {
 //                                	mailService.sendMailWithoutAttachmentWithMailBody2( 
 //                                    		"anyush.panda@apmosys.com",
 //                                            "Project PO Expiry Notification", 
 //                                            emailBody,
 //                                    		"priyadarshini.singh@apmosys.com"
 //                                    );
-                                    mailService.sendMailWithoutAttachmentWithMailBody2(
-                                            empEmail,
-                                            "Project Expiry Notification",
-                                            emailBody,
-                                            ccEmails
-                                    );
-                                    logBuilder.append("Mail sent to " + empEmail + " for expired PO: " + projectName);
-                                } catch (MessagingException e) {
-                                    logBuilder.append("Error sending mail to " + empEmail + " for PO: " + projectName + " - " + e.getMessage());
-                                }
-                        }
-                    }
-		        }
-		    } else {
-		        logBuilder.append("No projects found from PoPortal API.");
-		    }
+							mailService.sendMailWithoutAttachmentWithMailBody2(
+									empEmail,
+									"Project Expiry Notification",
+									emailBody,
+									ccEmails
+							);
+							logBuilder.append("Mail sent to " + empEmail + " for expired PO: " + projectName);
+						} catch (MessagingException e) {
+							logBuilder.append("Error sending mail to " + empEmail + " for PO: " + projectName + " - " + e.getMessage());
+						}
+				}
+			}
+		    
 		}
 		
 		private String buildEmailContent(String employeeName, String projectName, String teamName, 

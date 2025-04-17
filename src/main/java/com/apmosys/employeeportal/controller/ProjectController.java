@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
+import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.PoProjectIdRequestDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -101,13 +103,18 @@ public class ProjectController {
 	}
 	
 	@GetMapping(value = "/poprojectclone")
-	public ResponseEntity<List<ProjectPoPortalDTO>> poprojectclone() {
-		return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
+	public ResponseEntity<ServiceResponse> poprojectclone() {
+	    return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
 	}
 	
 	@PostMapping(value = "/poProjectTimesheetSync")
-	public ServiceResponse poProjectTimesheetSync(@RequestBody Set<Long> poProjectIdList) {
-		return projectService.poProjectTimesheetSync(poProjectIdList);
+	public ServiceResponse poProjectTimesheetSync(@RequestBody Set<Long> projectIdList) {
+		return projectService.poProjectTimesheetSync(projectIdList);
 	}
 	
+	@PostMapping(value = "/getEmployeeProjectReport")
+	public ServiceResponse getEmployeeProjectReport(@RequestBody GetEmployeeProjectReportPayloadDTO dto) {
+		return projectService.getEmployeeProjectReport(dto);
+	}
+		
 }

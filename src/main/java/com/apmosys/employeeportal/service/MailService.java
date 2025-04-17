@@ -334,4 +334,48 @@ public class MailService {
 			e.printStackTrace();
 		}
 	}
+	
+	
+	public boolean sendMailforTravel(String receiver, String subject, String htmlBody 
+//			,File attachment
+			)
+			throws AddressException, MessagingException {
+
+		try {
+			Session session = mailProperties();
+
+			Message msg = new MimeMessage(session);
+
+			msg.setSubject(subject);
+			msg.setContent(htmlBody, "text/html");
+			msg.setFrom(new InternetAddress(sender));
+			msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse("sakti.das@apmosys.com"));
+//			msg.setRecipients(javax.mail.Message.RecipientType.CC, InternetAddress.parse(cc, true));
+
+			// creates message part
+			MimeBodyPart messageBodyPart = new MimeBodyPart();
+			messageBodyPart.setContent(htmlBody, "text/html");
+			
+
+			// creates multi-part
+//			Multipart multipart = new MimeMultipart();
+//			multipart.addBodyPart(messageBodyPart);
+			
+			// add attachment
+//			MimeBodyPart attachmentBodypart = new MimeBodyPart();
+//			attachmentBodypart.attachFile(attachment);
+
+//			multipart.addBodyPart(attachmentBodypart);
+//			msg.setContent(multipart);
+			javax.mail.Transport.send(msg);
+			return true;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+
+		}
+	}
+
+
 }

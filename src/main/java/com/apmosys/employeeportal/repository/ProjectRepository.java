@@ -84,4 +84,5 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(nativeQuery = true)
 	List<Object[]> poProjectTimesheetSync(Set<Long> poProjectIdList);
+	
 }

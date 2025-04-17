@@ -69,6 +69,14 @@ import { InformationPreviewComponent } from './user-update-info/information-prev
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 import { ProjectViewComponent } from './project-view/project-view.component';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
+import { TravelAllowanceComponent } from './travel-allowance/travel-allowance.component';
+import { ReimbursementComponent } from './reimbursement/reimbursement.component';
+import { MyReimbursementComponent } from './reimbursement/my-reimbursement/my-reimbursement.component';
+import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/view-reimbursement.component';
+import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapproval/reimbursementapproval.component';
+import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
+import { ViewTravelrequestComponent } from './travel-allowance/view-travelrequest/view-travelrequest.component';
+import { TravelrequestapprovalComponent } from './travel-allowance/travelrequestapproval/travelrequestapproval.component';
 import { LMSComponent } from './employee360/lms/lms.component';
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 
@@ -214,6 +222,23 @@ const routes: Routes = [
   {path:'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard]},
   {path:'release-notes', component: UserReleasenotesComponent, canActivate: [AuthGuard]},
   {path:'newsletters', component: NewsletterComponent, canActivate: [AuthGuard]},
+  {path:'travelDesk', component: TravelAllowanceComponent, canActivate: [AuthGuard],
+    children:[
+      {path:'', redirectTo:'my-travelrequest', pathMatch:'full'},
+      {path:'my-travelrequest', component:MyTravelrequestComponent},
+      {path:'view-travelrequest', component:ViewTravelrequestComponent},
+      {path:'approve-travelrequest', component:TravelrequestapprovalComponent}
+    ]
+  },
+  {path:'reimbursement', component: ReimbursementComponent, canActivate: [AuthGuard],
+    children:[
+      {path:'', redirectTo:'my-reimbursement', pathMatch:'full'},
+      {path:'my-reimbursement', component:MyReimbursementComponent},
+      {path:'view-reimbursement', component:ViewReimbursementComponent},
+      {path:'approve-reimbursement', component:ReimbursementapprovalComponent}
+      
+    ]
+  },
   {path:'qr-code', component: QrCodeGeneratorComponent, canActivate: [AuthGuard]},
   {path:'**', redirectTo:'home', pathMatch:'full'},
 ];

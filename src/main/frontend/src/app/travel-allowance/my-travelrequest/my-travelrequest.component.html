@@ -1,0 +1,206 @@
+<!-- start :: Create & Update Team -->
+<div class="row">
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase">
+            <strong>Create New Request</strong>
+            <!-- <strong *ngIf="isUpdation">Update Timesheet</strong> -->
+        </div>
+        <div class="card-body">
+            <div class="row">
+                
+                <div class="col-md-3">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Full Name
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.name" name="fullName" disabled required />
+                </div>
+            
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Employee Id
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.empId" name="employeeId" disabled required />
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Department
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.departmentName" name="departmentName" disabled required />
+                </div>
+            
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Designation
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.designationName" name="designationName" disabled required />
+                </div>
+            
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Mail Id
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.email" name="email" disabled required />
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Mobile No
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.mobileNo" name="mobileNo" disabled required />
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Manager Name
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.managerName" name="managerName" disabled required />
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <label class="info-label"><span class="text-danger">*</span>Associated Travel Request</label>
+                    <select class="form-control" [(ngModel)]="travelDeskObj.associatedTravelRequest" name="associatedTravelRequest" required>
+                        <option value="" disabled>Select</option>
+                        <option value="Attend Client Interview">Attend Client Interview</option>
+                        <option value="Client Visit">Client Visit</option>
+                        <option value="Office Tour">Office Tour</option>
+                        <option value="Hotel">Hotel and Lodging</option>
+                    </select>
+                </div>
+
+
+
+                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest === 'Hotel'">
+                    <label class="info-label"><span class="text-danger">*</span>Hotel Booking Category</label>
+                    <select class="form-control" [(ngModel)]="travelDeskObj.hotelCategory" name="hotelCategory" required>
+                        <option value="" disabled>Select Category</option>
+                        <option value="Above TL">Above TL</option>
+                        <option value="TL">TL & Below</option>
+                    </select>
+                </div>
+
+                  <div class="col-md-3 mb-0" *ngIf="travelDeskObj.hotelCategory === 'TL' || travelDeskObj.hotelCategory === 'Above TL'">
+                    <label class="info-label"><span class="text-danger">*</span>Sub Category</label>
+                    <!-- <select class="form-control" [(ngModel)]="travelDeskObj.tlSubCategory" name="tlSubCategory" required> -->
+                    <select class="form-control" [(ngModel)]="travelDeskObj.tlSubCategory" name="tlSubCategory" required (ngModelChange)="onSubCategoryChange($event)">    
+                      <option value="" disabled>Select Sub Category</option>
+                      <option value="Metros">Metros</option>
+                      <option value="Category A">Category A</option>
+                      <option value="Category B">Category B</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-3 mb-0" *ngIf="travelDeskObj.tlSubCategory">
+                    <label class="info-label"><span class="text-danger">*</span>Select City</label>
+                    <select class="form-control" [(ngModel)]="travelDeskObj.selectedCity" name="selectedCity" required>
+                      <option value="" disabled>Select City</option>
+                      <option *ngFor="let city of cityOptions" [value]="city">{{ city }}</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel'">
+                    <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
+                    <select class="form-control" [(ngModel)]="travelDeskObj.travelMode" name="travelMode" required>
+                        <option value="" disabled>Select</option>
+                        <option value="Flight">Flight</option>
+                        <option value="Train">Train</option>
+                        <option value="Bus">Bus</option>
+                        <option value="Cab">Cab</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel'">
+                    <label class="info-label"><span class="text-danger">*</span>Travel Class</label>
+                    <select class="form-control" [(ngModel)]="travelDeskObj.travelClass" name="travelClass" required>
+                        <option value="" disabled>Select</option>
+                        <option value="First Class" *ngIf="travelDeskObj.travelMode === 'Train' ">First Class</option>
+                        <option value="Second Class" *ngIf="travelDeskObj.travelMode === 'Train' ">Second Class</option>
+                        <option value="Third Class" *ngIf="travelDeskObj.travelMode === 'Train' ">Third Class</option>
+                        <option value="Business Class" *ngIf="travelDeskObj.travelMode == 'Flight'">Business Class</option>
+                        <option value="Economy Class" *ngIf="travelDeskObj.travelMode == 'Flight'">Economy Class</option>
+                        <option value="Air Conditioned Car/Bus" *ngIf="travelDeskObj.travelMode == 'Cab' || travelDeskObj.travelMode == 'Bus'">Air Conditioned Car/Bus</option>
+                        <option value="Non-Air Conditioned Car/Bus" *ngIf="travelDeskObj.travelMode == 'Cab' || travelDeskObj.travelMode == 'Bus'">Non-Air Conditioned Car/Bus</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel'">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>From Location
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="travelDeskObj.fromLocation" name="fromLocation"  required />
+                </div>
+
+                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel'">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>To Location
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="travelDeskObj.toLocation" name="toLocation"  required />
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>From Date</label>
+                            <input class="form-control" [(ngModel)]="travelDeskObj.fromDate" id="fromDate" type="date" 
+                                [min]="todayDate" placeholder="Choose from date" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>To Date</label>
+                            <input class="form-control" [(ngModel)]="travelDeskObj.toDate" id="toDate" type="date" [min]="travelDeskObj.fromDate" placeholder="Choose to date" autocomplete="off" [disabled]="!travelDeskObj.fromDate">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="purposeOfTravel"><span class="text-danger">*</span>Purpose of Travel</label>
+                            <textarea class="form-control" id="purposeOfTravel" rows="3"
+                                [(ngModel)]="travelDeskObj.purposeOfTravel" name="purposeOfTravel"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="fileUpload" class="info-label"><span class="text-danger">*</span>Supporting Document</label>
+                            <input type="file" id="fileUpload" class="form-control" (change)="onFileChange($event)" />
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-12 px-0 text-center">
+                    <!-- Reset and Submit buttons -->
+                    <button type="button" class="btn btn-secondary btn-lg mx-1" (click)="resetForm(alert_message)">Reset</button>
+                    <button type="button" class="btn btn-primary btn-lg mx-1" (click)="submitForm(alert_messagevalidation)">Submit</button>
+                </div> 
+            </div>
+         
+        </div>
+    </div>
+</div>
+<!-- end :: create & update Team -->
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alert_messagevalidation>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest1()">OK</button>&nbsp;
+    </div>
+</ng-template>

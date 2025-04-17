@@ -327,6 +327,12 @@ export class BodyComponent implements OnInit {
   public openMenu: boolean = false;
   isOver = false;
 
+  // routingFunction(message: string) {
+  //      this.router.navigate(['/'+message]);
+  //     this.clickMenu();
+       
+  // }
+
   routingFunction(message: string) {
     const url = `${window.location.origin}/#/${message}`;
     window.open(url, '_blank');
@@ -334,6 +340,7 @@ export class BodyComponent implements OnInit {
       this.clickMenu();
        
   }
+  
   
   clickMenu() {
     this.openMenu = !this.openMenu;
