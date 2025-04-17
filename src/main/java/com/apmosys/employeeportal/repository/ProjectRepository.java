@@ -57,8 +57,12 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	@Query(nativeQuery=true,value="SELECT * FROM projects p inner join teams t on p.project_id = t.project_id WHERE STR_TO_DATE(p.po_end_date, '%Y-%m-%d') < CURDATE() ")
 	public List<Project> getExpiredPolist();
+	
 	@Query(nativeQuery = true)
 	public List<Object[]> getProjectInfo(Integer projectId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getPoProjectInfo(Integer poProjectId);
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getTeamInfo(Integer projectId);

@@ -127,6 +127,13 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getPoProjectInfo", method = RequestMethod.POST)
+	public ServiceResponse getPoProjectInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.getPoProjectInfo(resourceManagementDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/getTeamInfo", method = RequestMethod.POST)
 	public ServiceResponse getTeamInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		

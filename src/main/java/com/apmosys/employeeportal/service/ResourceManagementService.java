@@ -2118,6 +2118,58 @@ public ServiceResponse getProjectInfo(ResourceManagementDTO resourceManagementDT
 	return response;
 }
 
+public ServiceResponse getPoProjectInfo(ResourceManagementDTO resourceManagementDTO) {
+	
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setSubFeatureName("Project 360");
+    apiLogInfo.setApiUrl("/api/getPoProjectInfo");
+    apiLogInfo.setLogLevel("INFO");
+    StringBuilder logBuilder = new StringBuilder();
+    logBuilder.append("projectInfo : "+ projectRepository.getAllInternalProject().size());
+    
+	try {
+		List<Object[]> projectInfo = projectRepository.getPoProjectInfo(resourceManagementDTO.getProjectId());
+		List<ResourceManagementDTO> result = new ArrayList<>();
+		if(!projectInfo.isEmpty()) {
+			projectInfo.forEach(object ->{
+				ResourceManagementDTO dto = new ResourceManagementDTO();
+				
+				dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+				dto.setProjectName(object[1] != null ? object[1].toString() : null);		
+				dto.setProjectManagerId(object[2] != null ?  Long.parseLong(object[2].toString()) : null);
+				dto.setProjectManagerName(object[3] != null ? object[3].toString() : null);	
+				dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
+				dto.setClientState(object[5] != null? object[5].toString() : null);		
+				
+				result.add(dto);
+			});
+			
+			if(projectInfo != null) {
+				response.setServiceResponse(result);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("projectInfoList fetched");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No project found.");
+				apiLogInfo.setApiResponse("No Project Found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+		}
+	}catch(Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		response.setServiceError(e.getMessage());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setLogLevel("ERROR");
+	}
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
+	return response;
+}
+
 public ServiceResponse getTeamMemberByTeamId(Long teamId) {
 	ServiceResponse response = new ServiceResponse();
 	List<Object[]> allEmployeeList = employeeTeamMapRepository.findEmployeeByTeamId(teamId);

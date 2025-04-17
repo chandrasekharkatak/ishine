@@ -59,7 +59,7 @@ export class ProjectViewComponent implements OnInit {
   
   ngOnInit(): void {
     const storedData = localStorage.getItem('projectId');
-    const parsedData = storedData ? JSON.parse(storedData) : null;
+    const parsedData = storedData || null; 
 
     // console.log("storedData ", storedData);
     // console.log("parsedData ", parsedData);
@@ -69,20 +69,23 @@ export class ProjectViewComponent implements OnInit {
     } else {
         this.selectedProjectId = history.state.data;
     }
-
-   
+    this.getProjectInfo();
   }
 
+  handlePageChange(event) {
+    this.page = event;
+  }
 
-
-handlePageChange(event) {
-  this.page = event;
-}
   getProjectInfo(): void {
     this.projectObj.projectId = this.selectedProjectId;
     // console.log("projectObj ", this.projectObj);
 
-    this.employee360Service.getProjectInfo(this.projectObj).subscribe({
+    if (this.projectObj.projectId.startsWith('po')) {
+      this.projectObj.projectId = this.projectObj.projectId.substring(2); 
+      // console.log("projectId ", this.projectObj.projectId);
+      this.projectObj.projectId = Number(this.projectObj.projectId);
+      // console.log("projectId ", this.projectObj.projectId);
+      this.employee360Service.getPoProjectInfo(this.projectObj).subscribe({
         next: (response: any) => {
             if (response.serviceStatus === "Success") {
                 this.projectList = response.serviceResponse;
@@ -96,6 +99,22 @@ handlePageChange(event) {
             console.error("Error fetching project info:", error);
         }
     });
+    } else {
+      this.employee360Service.getProjectInfo(this.projectObj).subscribe({
+        next: (response: any) => {
+            if (response.serviceStatus === "Success") {
+                this.projectList = response.serviceResponse;
+                this.projectObj = this.projectList[0];
+                this.getTeamInfo(this.projectObj);
+            } else {
+                console.warn("Failed to fetch project info");
+            }
+        },
+        error: (error) => {
+            console.error("Error fetching project info:", error);
+        }
+    });
+    }  
   }
 
   getTeamInfo(project): void {
