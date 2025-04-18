@@ -78,13 +78,13 @@ export class ProjectViewComponent implements OnInit {
 
   getProjectInfo(): void {
     this.projectObj.projectId = this.selectedProjectId;
-    // console.log("projectObj ", this.projectObj);
+    console.log("projectObj ", this.projectObj);
 
     if (this.projectObj.projectId.startsWith('po')) {
       this.projectObj.projectId = this.projectObj.projectId.substring(2); 
-      // console.log("projectId ", this.projectObj.projectId);
+      console.log("projectId ", this.projectObj.projectId);
       this.projectObj.projectId = Number(this.projectObj.projectId);
-      // console.log("projectId ", this.projectObj.projectId);
+      console.log("projectId ", this.projectObj.projectId);
       this.employee360Service.getPoProjectInfo(this.projectObj).subscribe({
         next: (response: any) => {
             if (response.serviceStatus === "Success") {

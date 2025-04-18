@@ -277,7 +277,7 @@ export class ResourceManagementComponent implements OnInit {
                 proj.isDraftProject = selectedProj.isActive == 2 ? 'Pending For Approval' : selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
                 proj.isActive = selectedProj.isActive;
                 proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-                proj.prrojectViewId = "po"+selectedProj.projectId;
+                proj.prrojectViewId = "po"+selectedProj.id;
               } else {
                 proj.isTeamCreated = false;
                 proj.isDraftProject = "NA";
@@ -303,7 +303,6 @@ export class ResourceManagementComponent implements OnInit {
               if (selectedProj) {
                 proj.isTeamCreated = true;
                 proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
-                // proj.isDraftProject = proj.projectType;
                 proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
                 proj.prrojectViewId = selectedProj.projectId;
               } else {
@@ -671,17 +670,17 @@ export class ResourceManagementComponent implements OnInit {
       this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           // this.showViewProjects();
-          // this.openAlertMod(template, response.serviceResponse);
+          this.openAlertMod(this.alertTemplate, response.serviceResponse);
 
-          // this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {
-          //   if (response.serviceStatus == "Success") {
-          //     this.cancelRequest();
-          //     this.openAlertMod(template, response.serviceResponse);
-          //   } else {
-          //     this.cancelRequest();
-          //     this.openAlertMod(template, response.serviceResponse);
-          //   }
-          // });
+          this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus == "Success") {
+              // this.cancelRequest();
+              // this.openAlertMod(template, response.serviceResponse);
+            } else {
+              // this.cancelRequest();
+              // this.openAlertMod(template, response.serviceResponse);
+            }
+          });
         } else {
           this.openAlertMod(this.alertTemplate, response.serviceResponse);
         }
