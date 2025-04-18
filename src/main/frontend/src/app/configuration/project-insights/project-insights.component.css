@@ -1,0 +1,86 @@
+.card-body-custom {
+    border: 1px solid !important;
+    border-radius: 5px !important;
+}
+
+/* Breadcrumb Styling */
+.breadcrumb-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.breadcrumb-item {
+    cursor: pointer;
+    font-weight: 500;
+    color: #193d8a;
+    border-color: #193d8a;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.breadcrumb-item:hover {
+    border-color: #193d8a;
+    background-color: #193d8a;
+    color: #f4f2f3;
+}
+
+.breadcrumb-separator {
+    margin: 15px;
+    color: #030303;
+}
+
+/* Badge Styling */
+
+.badge-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #193d8a;
+    border-color: #193d8a;
+    background-color: #f1f1f1;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.badge:hover {
+    background-color: #cfcfcf;
+}
+
+.badge.active {
+    border-color: #193d8a;
+    background-color: #193d8a;
+    color: #f4f2f3;
+}
+
+.card-hover:hover {
+    cursor: pointer;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.user-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.5rem;
+}

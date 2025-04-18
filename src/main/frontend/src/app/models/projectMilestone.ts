@@ -13,16 +13,22 @@ export class ProjectMilestone {
     assignedToUserNames: any;
     taggedToUserId: any[] = [];
     taggedToUserNames: any;
-    questionList: ProjectQuestion[] = [new ProjectQuestion()];
-    moduleList: ProjectModule[] = [new ProjectModule()];
+    questionList: ProjectQuestion[] = [];
+    moduleList: ProjectModule[] = [];
     isCollapsed: any = true;
     performanceTabName: any;
     createdOn: any;
     createdBy: any;
     updatedOn: any;
     updatedBy: any;
-    toTagEmployeeList:any[]=[];
-    toAssignEmployeeList:any[]=[];
-    isQuestionCollapsed:boolean = true;
+    toTagEmployeeList: any[] = [];
+    toAssignEmployeeList: any[] = [];
+    isQuestionCollapsed: boolean = true;
+    badgePathList = [
+        { name: 'Details' },
+        { name: 'Questions' },
+        { name: 'Modules' },
+    ];
+    currentActiveBadgeLevel = 'Details';
 }
 

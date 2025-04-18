@@ -132,6 +132,7 @@ import { ProjectViewComponent } from './project-view/project-view.component';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
 import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
 import { QuestionComponent } from './configuration/project-insights-config/question/question.component';
+import { ProjectInsightsComponent } from './configuration/project-insights/project-insights.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -233,6 +234,7 @@ import { QuestionComponent } from './configuration/project-insights-config/quest
      PerformanceConfigComponent,
      ProjectInsightsConfigComponent,
      QuestionComponent,
+     ProjectInsightsComponent,
 
     //TestComponent
   ],

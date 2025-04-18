@@ -11,14 +11,14 @@ export class ProjectResponse {
     uploadedFile: any;
     uploadedFileName: any;
     documentPath: any;
-    option:ProjectResponseOption = new ProjectResponseOption();
-    optionsList:any[]= [];
-    options:any;
-    isDraft:any = 'Y';
-    processTo:any;
-    marks:any;
-    markType:any;
-    questionId:any;
-    empId:any;
-    showDocDiv:any = true;
+    option: ProjectResponseOption = new ProjectResponseOption();
+    optionsList: any[] = [];
+    options: any;
+    isDraft: any = 'Y';
+    processTo: any;
+    marks: any;
+    markType: any;
+    questionId: any;
+    empId: any;
+    showDocDiv: any = true;
 }
