@@ -25,7 +25,7 @@ public class ProjectInsightResponse {
 	
 	private Long questionMasterId;
 	
-	@Column(length = 1000)
+	@Column(length = 3000)
 	private String response;
 	
 	private Long empId;

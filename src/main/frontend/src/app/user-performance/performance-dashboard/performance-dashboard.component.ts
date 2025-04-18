@@ -12,7 +12,7 @@ import { Log } from 'src/app/models/log';
 import { Sort } from '@angular/material/sort';
 import { ProjectInsight } from 'src/app/models/projectInsightQuestion';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
-import { first } from 'rxjs/operators';
+import { finalize, first } from 'rxjs/operators';
 import { ProjectQuestion } from 'src/app/models/projectQuestion';
 import { ValidationService } from 'src/app/services/validation.service';
 import { Document } from 'src/app/models/document';
@@ -486,7 +486,15 @@ saveKpiResponses(template: TemplateRef<any>): void {
     projObj.employeeRole = this.currentUser.employeeRole;
      projObj.performanceTabName = 'Performance Dashboard'
 
-    this.projectInsightService.getAllProjectInsightResponsesByProjectId(projObj).pipe(first()).subscribe((response: any) => {
+     let dataProcessed = false;
+     this.projectInsightService.getAllProjectInsightResponsesByProjectId(projObj).pipe(
+      first(),
+      finalize(() => {
+        if (dataProcessed) {
+          this.openProjectInsightResponeMod(insightResponseTemplate);
+        }
+      })
+    ).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectInsight = response.serviceResponse;
         this.projectInsightResponseList = this.projectInsight.projectInsightMilestoneList;
@@ -662,7 +670,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
             });
           }
         });
-        this.openProjectInsightResponeMod(insightResponseTemplate);
+        dataProcessed = true;
       } else {
         this.openAlertMod(alertTemplate, response.serviceResponse);
       }

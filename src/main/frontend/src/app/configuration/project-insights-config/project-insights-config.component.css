@@ -451,3 +451,126 @@ font-weight: normal;
 .suggestion-dropdown {
   animation: fadeIn 0.2s ease-out;
 }
+
+.project-selection {
+  margin-top: 4px;
+  margin-bottom: 20px;
+}
+
+.project-selection select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 14px;
+}
+
+/* Search Options Panel */
+.search-options-panel {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.search-options-panel.expanded {
+  display: block;
+}
+
+.filter-group {
+  margin-bottom: 20px;
+}
+
+.filter-group h4 {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.search-types-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 10px;
+}
+
+/* Custom Checkbox */
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-left: 30px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.custom-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.custom-checkbox .checkmark {
+  position: absolute;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #fff;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.custom-checkbox input:checked ~ .checkmark {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.custom-checkbox input:checked ~ .checkmark:after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.custom-checkbox .label-text {
+  color: #333;
+}
+
+.options-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.options-text {
+  font-weight: 500;
+  color: #495057;
+}
+
+.fa-chevron-down {
+  transition: transform 0.3s ease;
+}
+
+.fa-chevron-down.rotated {
+  transform: rotate(180deg);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .search-wrapper {
+    margin: 0 10px;
+  }
+
+  .search-types-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}

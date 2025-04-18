@@ -15,8 +15,9 @@
 
 
 <!------------------------------------ start :: Search  -------------------------->
-<div class="col-md-12 row justify-content-center" *ngIf="searchTabClick">
-    <div class="col-md-12 mt-5">
+<div class="col-md-12 justify-content-center" *ngIf="searchTabClick">
+  <div class="row mt-5">
+    <div class="col-md-12">
       <div class="search-container">
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
         <input
@@ -41,6 +42,35 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="search-options-panel">
+    <!-- Search Types -->
+    <div class="filter-group">
+      <h4>Search Types</h4>
+      <div class="search-types-grid">
+        <label *ngFor="let filter of filterHeading" class="custom-checkbox">
+          <input type="checkbox">
+          <span class="checkmark"></span>
+          <span class="label-text">{{filter}}</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="options-toggle" (click)="toggleOptions()">
+    <span class="options-text">Options &nbsp; <i class="fas fa-chevron-down" [class.rotated]="isOptionsExpanded"></i></span>
+  </div>
+  <div class="mt-2" *ngIf="isOptionsExpanded">
+    <div class="search-types-grid">
+      <label *ngFor="let filter of subfilterHeading" class="custom-checkbox">
+        <input type="checkbox">
+        <span class="checkmark"></span>
+        <span class="label-text">{{filter}}</span>
+      </label>
+    </div>
+  </div>
+
 
     <div class="col-md-12 mt-4" *ngIf="searchResults?.length > 0 && !isSearchPreviewClicked">
         <h1 style="font-size: 20px;">Results({{searchResults.length}})</h1>

@@ -51,6 +51,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
   backupsearchTerm: string = '';
   searchResults:any[] = [];
   searchOptionList:any[] = [];
+  filterHeading:any[] = ['Department','Team Size','Client Type','Project Duration'];
+  subfilterHeading:any[] = []
 
   // tab clicked
   projectInsightTabClick: boolean = false;
@@ -165,6 +167,12 @@ export class ProjectInsightsConfigComponent implements OnInit {
       this.searchTerm = this.backupsearchTerm;
     }
     this.onSearchTerm();
+  }
+
+  isOptionsExpanded = false;
+
+  toggleOptions() {
+    this.isOptionsExpanded = !this.isOptionsExpanded;
   }
 
   suggestSearchOption(event:any){

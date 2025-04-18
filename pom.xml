@@ -10,10 +10,10 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.apmosys</groupId>
-	<artifactId>employeeportal</artifactId>
+	<artifactId>employeeportalproj</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
-	<name>employeeportal</name>
+	<name>employeeportalproj</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>11</java.version>
@@ -142,14 +142,15 @@
 	</dependency>
 	<dependency>
     	<groupId>org.apache.opennlp</groupId>
-    	<artifactId>opennlp-tools</artifactId>
-    	<version>2.3.3</version>
+   		<artifactId>opennlp-tools</artifactId>
+    	<version>1.9.4</version> <!-- Compatible with Java 8+ -->
 	</dependency>
+
 
 	</dependencies>
 
 	<build>
-		<finalName>employeeportal</finalName>
+		<finalName>employeeportalproj</finalName>
 
 		<plugins>
 			<plugin>
