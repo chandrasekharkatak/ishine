@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.service.ProjectInsightService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -90,5 +91,10 @@ public class ProjectInsightController {
 	@RequestMapping(value = "/suggestSearchOption", method = RequestMethod.GET)
 	public ResponseEntity<Set<String>> suggestSearchOption(@RequestParam String search) {
 		return projectInsightService.suggestSearchOption(search);
+	}
+	
+	@RequestMapping(value = "/getFilterList", method = RequestMethod.GET)
+	public ResponseEntity<List<ProjectInsightFilterDTO>> getFilterList() {
+		return projectInsightService.getFilterList();
 	}
 }

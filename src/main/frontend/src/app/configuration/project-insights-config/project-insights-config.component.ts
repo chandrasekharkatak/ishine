@@ -51,8 +51,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
   backupsearchTerm: string = '';
   searchResults:any[] = [];
   searchOptionList:any[] = [];
-  filterHeading:any[] = ['Department','Team Size','Client Type','Project Duration'];
-  subfilterHeading:any[] = []
+  allFilterList:any[] = [];
+  allFilterOptionList:any[] = [];
+  finalFilterList:any[] = [];
 
   // tab clicked
   projectInsightTabClick: boolean = false;
@@ -136,6 +137,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.projectInsightTabClick = false;
     this.isProjectInsightList = false;
     this.isQuestionForm = false;
+
+    this.getFilterList();
   }
 
   isProjectInsightTabClick(){
@@ -180,6 +183,47 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.isOptionsExpanded = !this.isOptionsExpanded;
   }
 
+  getFilterList(){
+    this.searchOptionList = [];
+    this.projectInsightService.getFilterList().pipe(first()).subscribe(
+      (response: any) => {
+        this.allFilterList = response;
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
+  }
+
+  onFilterCheckBoxClick(){
+    this.allFilterOptionList = [];
+    this.allFilterOptionList = [];
+    if(this.allFilterList.length > 0){
+      this.allFilterList.forEach((object) => {
+        if(object.isSelected != undefined && object.isSelected != null && object.isSelected == true){
+          object.optionList.forEach(element => {
+            element.filterName = object.filterName;
+            this.allFilterOptionList.push(element);
+          });
+
+          console.log(this.allFilterOptionList);
+        }
+      });
+    }
+  }
+
+  onFilterOptionCheckBoxClick(optionObject: any){
+    if(optionObject?.isSelected == true){
+      this.finalFilterList.push(optionObject);
+    }else{
+      let findOptionObj = this.finalFilterList.findIndex(x => x.optionId == optionObject.optionId);
+            if (findOptionObj >= 0) {
+              this.finalFilterList.splice(findOptionObj, 1);
+            }
+    }
+    console.log(this.finalFilterList);
+  }
+
   suggestSearchOption(event:any){
     this.searchOptionList = [];
     this.projectInsightService.suggestSearchOption(this.searchTerm).pipe(first()).subscribe(
@@ -200,6 +244,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   onSearchTerm() {
     this.searchResults = [];
+    this.isSearchPreviewClicked = false;
     this.projectInsightService.onSearchTerm(this.searchTerm).pipe(first()).subscribe(
       (response: any) => {
         this.searchResults = response.projectList;

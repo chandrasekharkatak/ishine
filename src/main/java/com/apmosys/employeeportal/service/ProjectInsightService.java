@@ -39,14 +39,18 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ModuleDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightMilestoneDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionDTO;
 import com.apmosys.employeeportal.dto.ProjectResponseDTO;
 import com.apmosys.employeeportal.dto.SubModuleDTO;
+import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectInsightAssignees;
+import com.apmosys.employeeportal.model.ProjectInsightFilter;
+import com.apmosys.employeeportal.model.ProjectInsightFilterOptions;
 import com.apmosys.employeeportal.model.ProjectInsightMilestone;
 import com.apmosys.employeeportal.model.ProjectInsightModule;
 import com.apmosys.employeeportal.model.ProjectInsightResponse;
@@ -57,6 +61,8 @@ import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightAssigneesRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightFilterOptionsRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightFilterRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightMilestoneRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightModuleRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightResponseRepository;
@@ -125,6 +131,12 @@ public class ProjectInsightService {
 	
 	@Autowired
 	DepartmentRepository departmentRepository;
+	
+	@Autowired
+	ProjectInsightFilterRepository projectInsightFilterRepository;
+	
+	@Autowired
+	ProjectInsightFilterOptionsRepository projectInsightFilterOptionsRepository;
 	
 	public String saveProjectWiseTags(ProjectInsightDTO projectInsightDTO) {
 	    String response = "Failed";
@@ -1909,6 +1921,48 @@ public class ProjectInsightService {
 		try {
 			List<TagMaster> matchedTags = tagMasterRepository.findAll(TagSpecifications.tagNameLikeAny(search));
 			response = matchedTags.stream().map(TagMaster::getTag).collect(Collectors.toSet());
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<List<ProjectInsightFilterDTO>> getFilterList() {
+		List<ProjectInsightFilterDTO> response = new ArrayList<>();
+		try {
+			List<ProjectInsightFilter> projectFilterList = projectInsightFilterRepository.findAll();
+			if(!projectFilterList.isEmpty()) {
+				projectFilterList.forEach((object) -> {
+					List<ProjectInsightFilterOptions> projectFilterOptionList = new ArrayList<>();
+					
+					if(object.getFilterName().equals("Department")) {
+						//getAllDepartmentList
+						List<Department> deptList = departmentRepository.findAll();
+						if(!deptList.isEmpty()) {
+							for(Department dept: deptList) {
+								ProjectInsightFilterOptions dto = new ProjectInsightFilterOptions();
+								
+								dto.setOptionId(dept.getDeptId());
+								dto.setOptionName(dept.getName());
+								dto.setFilterId(object.getFilterId());
+								
+								projectFilterOptionList.add(dto);
+							}
+						}
+					}else {
+						projectFilterOptionList = projectInsightFilterOptionsRepository.findByFilterId(object.getFilterId());
+					}
+
+					ProjectInsightFilterDTO dto = new ProjectInsightFilterDTO();
+					
+					dto.setFilterId(object.getFilterId());
+					dto.setFilterName(object.getFilterName());
+					dto.setOptionList(projectFilterOptionList != null ? projectFilterOptionList : null);
+					
+					response.add(dto);
+				});
+			}
+			
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
