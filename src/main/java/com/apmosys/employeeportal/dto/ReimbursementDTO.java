@@ -40,7 +40,7 @@ public class ReimbursementDTO {
     private String finalStatus;
     private String vehicleType;
     private String foodAllowanceType;
-    private String dateOfFood;
+    private Timestamp dateOfFood;
     
    
 }

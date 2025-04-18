@@ -17,11 +17,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ReimbursementDTO;
-import com.apmosys.employeeportal.dto.TravelDeskDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.ReimbursementData;
-import com.apmosys.employeeportal.model.TravelDesk;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.ReimbursementDataRepository;
@@ -80,13 +78,22 @@ public class ReimbursementService {
 			reimbursementData.setDepartment(reimbursementObj.getDepartmentName());
 			reimbursementData.setEmail(reimbursementObj.getEmail());
 			reimbursementData.setAmount(reimbursementObj.getAmount());
+			reimbursementData.setLevel(1);
 			reimbursementData.setCurrency(reimbursementObj.getSelectedCurrency());
 			reimbursementData.setExpenditureType(reimbursementObj.getExpenditureType());
 			if(reimbursementObj.getExpenditureType().equalsIgnoreCase("Travel")) {
 				reimbursementData.setTravelMode(reimbursementObj.getTravelMode());
 				reimbursementData.setDistance(reimbursementObj.getDistance());
 			}
+			BigInteger approver1 = BigInteger.valueOf((reimbursementObj.getLevelOneApprover()));
+			Employee level1 = employeeRepository.findByEmpId(Long.valueOf(reimbursementObj.getLevelOneApprover()));
+			reimbursementData.setLevel1ApproverEmail(level1.getEmail());
+			reimbursementData.setApprover1(approver1);
+			reimbursementData.setFoodAllowanceType(reimbursementObj.getFoodAllowanceType());
+			reimbursementData.setDateOfFood(reimbursementObj.getDateOfFood());
 			reimbursementData.setFromDate(reimbursementObj.getFromDate());
+			reimbursementData.setVehicleType(reimbursementObj.getVehicleType());
+			reimbursementData.setDistance(reimbursementObj.getDistance());
 			reimbursementData.setToDate(reimbursementObj.getToDate());
 			reimbursementData.setPurpose(reimbursementObj.getPurpose());			
 			reimbursementData.setIsActive(1);
@@ -248,9 +255,9 @@ public class ReimbursementService {
 	        }
 
 	        if (file == null || file.isEmpty()) {
-	            response.setServiceResponse("Uploaded Travel Document Not Found !!");
+	            response.setServiceResponse("Uploaded Reimbursement Document Not Found !!");
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            apiLogInfo.setApiResponse("Uploaded Travel Document Not Found !!");
+	            apiLogInfo.setApiResponse("Uploaded Reimbursement Document Not Found !!");
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	            apiLogInfo.setApiRequest(logBuilder.toString());
 	            return response;
@@ -277,18 +284,18 @@ public class ReimbursementService {
 	            Newsletter newsletter = new Newsletter();
 	            newsletter.setDisplayName(displayName);
 	            newsletter.setFileName(newFileName); // Save actual saved name
-	            newsletter.setType("TRAVEL ALLOWANCE");
+	            newsletter.setType("Reimbursement");
 	            newsletter.setReadEnabled("true");
 	            newsletter.setCreatedBy(Integer.parseInt(uploadedBy.toString()));
-	            Newsletter travelDocDetails = newsletterRepository.save(newsletter);
+	            Newsletter reimbursementDocDetails = newsletterRepository.save(newsletter);
 
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            response.setServiceResponse(travelDocDetails);
-	            response.setServiceMessage("Travel Document uploaded successfully.");
-	            apiLogInfo.setApiResponse("Travel Document uploaded successfully");
+	            response.setServiceResponse(reimbursementDocDetails);
+	            response.setServiceMessage("Reimbursement Document uploaded successfully.");
+	            apiLogInfo.setApiResponse("Reimbursement Document uploaded successfully");
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        } else {
-	            response.setServiceResponse("Failed to upload Travel Document.");
+	            response.setServiceResponse("Failed to upload Reimbursement Document.");
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            apiLogInfo.setApiResponse("File did not exist after write operation.");
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -326,9 +333,9 @@ public class ReimbursementService {
 	        if (existingReimbursementData.getLevel() == 1) {
 	            updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
 	            if(existingReimbursementData.getLevel1ApproveOn() != null && existingReimbursementData.getStatus() == "Approved") {
-		            mailService.sendMailforTravel(existingReimbursementData.getLevel1ApproverEmail(),
-			        		"Travel request approval required",
-			        		"Dear"+existingReimbursementData.getHodName()+", <br><br>" + "A travel request is applied by"+ emp.getName()+"<br> for the purpose of:"+
+		            mailService.sendMailforReimbursement(existingReimbursementData.getLevel1ApproverEmail(),
+			        		"Reimbursement request approval required",
+			        		"Dear"+existingReimbursementData.getHodName()+", <br><br>" + "A Reimbursement request is applied by"+ emp.getName()+"<br> for the purpose of:"+
 			        				existingReimbursementData.getPurpose()+".<br>From date:"+existingReimbursementData.getFromDate().toGMTString()+"and will return on:"+existingReimbursementData.getToDate().toGMTString()+
 			        		".<br> For this the mode of travel will be:"+existingReimbursementData.getTravelMode()+".<>"+"<br>Kindly take action on this application");
 		            }

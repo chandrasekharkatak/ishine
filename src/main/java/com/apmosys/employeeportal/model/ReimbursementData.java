@@ -133,5 +133,14 @@ public class ReimbursementData {
 	@Column(name = "level3_approver_Remarks")
 	private String level3approverRemarks;
 	
+	@Column(name = "foodAllowanceType")
+	private String foodAllowanceType;
+	
+	@Column(name = "dateOfFood")
+	private Timestamp dateOfFood;
+	
+	@Column(name = "vehicleType")
+	private String vehicleType;
+	
 }
 

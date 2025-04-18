@@ -55,7 +55,8 @@ reimbursementObj: any = {
   toLocation:'',
   supportingDocument: null,
   kilometers: null,
-  foodAllowanceType:null
+  foodAllowanceType:null,
+  vehicleType:''
 };
 
 
@@ -93,7 +94,7 @@ reimbursementObj: any = {
       let currentEmp = new Employee();
       currentEmp.empId = this.currentUser.empId;
       currentEmp.isDraft = false;
-      //console.log("currentEmp : ", currentEmp);
+      console.log("currentUser  :::::::::: ", this.currentUser);
       
       const response: any = await this.empService.getEmployeeByEmpId(currentEmp).toPromise();
       if (response.serviceStatus == "Success") {
@@ -147,15 +148,17 @@ reimbursementObj: any = {
  
      // Logic to handle form submission
       if (this.isValidForm()) {
-
+        console.log('Document',this.reimbursementObj.supportingDocument);  
          // First upload the file
     const fileFormData = new FormData();
     fileFormData.append('file', this.reimbursementObj.supportingDocument);
     fileFormData.append("displayName", this.reimbursementObj.supportingDocument.name);
     fileFormData.append("uploadedBy", this.currentEmployeeInfo.empId);
 
+
+
     try {
-      const uploadResponse: any = await this.reimbursementService.uploadFile(fileFormData).pipe(first()).toPromise();
+      const uploadResponse: any = await this.reimbursementService.uploadFileReimbursement(fileFormData).pipe(first()).toPromise();
 
       if (uploadResponse.serviceStatus === "Fail") {
         this.openAlertMod(template, `Error found: ${uploadResponse.serviceResponse}`);
@@ -169,7 +172,7 @@ reimbursementObj: any = {
      this.reimbursementInfo = new MyReimbursement();
      let reimbursementData = new MyReimbursement();
 
-     reimbursementData.empId = this.currentEmployeeInfo.employeementId;
+     reimbursementData.empId = this.currentEmployeeInfo.empId;
      reimbursementData.name = this.currentEmployeeInfo.name;
      reimbursementData.email = this.currentEmployeeInfo.email;
      reimbursementData.departmentName=this.currentEmployeeInfo.departmentName;
@@ -179,7 +182,9 @@ reimbursementObj: any = {
      reimbursementData.amount =this.reimbursementObj.amount;        
      reimbursementData.travelMode =this.reimbursementObj.travelMode;      
      reimbursementData.distance=this.reimbursementObj.distance;     
-     reimbursementData.fromDate =this.reimbursementObj.fromDate;     
+     reimbursementData.fromDate =this.reimbursementObj.fromDate;  
+     reimbursementData.levelOneApprover = this.currentUser.hodId,
+     reimbursementData.managerName= this.currentUser.hodName,   
      reimbursementData.toDate =this.reimbursementObj.toDate;       
      reimbursementData.purpose=this.reimbursementObj.purpose;        
      reimbursementData.fileData =this.reimbursementObj.fileData; 
@@ -188,6 +193,7 @@ reimbursementObj: any = {
      reimbursementData.vehicleType = this.reimbursementObj.vehicleType;
      reimbursementData.foodAllowanceType = this.reimbursementObj.foodAllowanceType;
      reimbursementData.dateOfFood = this.reimbursementObj.dateOfFood ; 
+     reimbursementData.docId = uploadResponse.serviceResponse.documentId;
 
     console.log('reimbursementData Data::::::::::::::::::::::::::::', reimbursementData);
  
@@ -195,8 +201,10 @@ reimbursementObj: any = {
      
        const response: any = await this.reimbursementService.saveReimbursementData(reimbursementData).toPromise();
        if (response.serviceStatus == "Success") {
-         alert("Success! Your request was processed successfully.");
-         window.location.reload();
+        this.openAlertMod(template, "Success! Your request was processed successfully!");
+
+        //  alert("Success! Your request was processed successfully.");
+        //  window.location.reload();
    
        } else {
          console.error(response.serviceResponse);
@@ -220,6 +228,19 @@ reimbursementObj: any = {
       
       cancelRequest() {
         this.modalRef.hide();
+        location.reload();
+      }
+
+      cancelRequest1() {
+        this.modalRef.hide();
+        location.reload();
+      }
+
+      onFileChange(event: any) {
+        const file = event.target.files[0];
+        if (file) {
+          this.reimbursementObj.supportingDocument = file;
+        }
       }
 
 
