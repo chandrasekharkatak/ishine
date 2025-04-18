@@ -392,12 +392,16 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   getAllProjectInsightResponsesByProjectId(projectObj: any, alertTemplate: TemplateRef<any>, insightResponseTemplate: TemplateRef<any>, isPreview: any, type?: any) {
     this.projectId = projectObj.projectId;
-    this.subActionType = 'Review Response';
+    this.subActionType = 'Preview';
     this.responseByEmpId = this.currentUser.empId;
     this.openProjectInsightResponeMod(insightResponseTemplate);
   }
 
   openProjectInsightResponeMod(insightResponseTemplate: TemplateRef<any>) {
     this.projectResponseModalRef = this.modalService.show(insightResponseTemplate, { class: 'modal-xl', ignoreBackdropClick: true, keyboard: false });
+  }
+  
+  closeProjectInsightResponseModal() {
+    this.projectResponseModalRef.hide();
   }
 }

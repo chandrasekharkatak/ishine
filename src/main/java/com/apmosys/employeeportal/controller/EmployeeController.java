@@ -520,4 +520,11 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.setReportingManagerToNewManager(employeeDto);
 		return response;
 	}
+	
+	@RequestMapping(value = "/getAllEmployeesByProjectId", method = RequestMethod.POST)
+	public ServiceResponse getAllEmployeesByProjectId( @RequestParam("projectId") Integer projectId) {
+		ServiceResponse serviceResponse = employeeService.getAllEmployeesByProjectId(projectId);
+		return serviceResponse;
+	}
+	
 }

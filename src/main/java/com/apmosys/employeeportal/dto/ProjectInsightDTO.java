@@ -30,7 +30,8 @@ public class ProjectInsightDTO {
     private String projectInsightQuestionTemplate;
     private List<PoProjectSyncDTO> projectList;
     private List<String> optionList;
-    
+    private List<ProjectInsightEntityDTO> deletedProjectInsightEntityList;
+     
     //For tags
     private StringBuilder projectText; 
     private String tagType;

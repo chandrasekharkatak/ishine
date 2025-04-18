@@ -26,7 +26,7 @@ public interface ProjectInsightSubModuleRepository extends JpaRepository<Project
 
 	@Transactional
 	@Modifying
-	@Query(value="delete from ProjectInsightSubModule where moduleId=:submoduleId  and subModuleType=:subModuleType  ")
-	void deleteByModuleIdAndSubModuleType(Long submoduleId, String subModuleType);
+	@Query(value="delete from ProjectInsightSubModule pim where pim.submoduleId=:submoduleId  and pim.subModuleType=:subModuleType  ")
+	void deleteBySubModuleIdAndSubModuleType(Long submoduleId, String subModuleType);
 	
 }

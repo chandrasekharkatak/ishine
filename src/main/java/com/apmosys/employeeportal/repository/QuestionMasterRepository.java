@@ -2,7 +2,10 @@ package com.apmosys.employeeportal.repository;
 
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import com.apmosys.employeeportal.model.QuestionMaster;
@@ -19,5 +22,10 @@ public interface QuestionMasterRepository extends JpaRepository<QuestionMaster, 
 	QuestionMaster findByQuestionMasterId(Long questionId);
 
 //	List<QuestionMaster> findByMilestoneId(Long milestoneId);
+	
+	@Transactional
+	@Modifying
+	@Query(value="delete from QuestionMaster qm where qm.questionMasterId=:questionMasterId")
+	void deleteAllQuestionsByEntityIdAndEntityType(Long questionMasterId);
 
 }

@@ -223,5 +223,6 @@
 </ng-template>
 
 <ng-template #insight_response_template>
-  <!-- <app-project-insights [projectInsightObj]="projectInsight"></app-project-insights> -->
+  <app-project-insights [actionType]="actionType" [subActionType]="subActionType" [projectId]="projectId"
+  (showProjectInsightConfigListEvent)="showProjectInsight()" (closeProjectInsightResponseModalEvent)="closeProjectInsightResponseModal()"></app-project-insights>
 </ng-template>

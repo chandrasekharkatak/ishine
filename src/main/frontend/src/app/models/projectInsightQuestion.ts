@@ -1,3 +1,4 @@
+import { ProjectInsightEntity } from "./projectInsightEntity";
 import { ProjectMilestone } from "./projectMilestone";
 import { ProjectModule } from "./projectModule";
 import { ProjectQuestion } from "./projectQuestion";
@@ -19,6 +20,7 @@ export class ProjectInsight {
     taggedToUserNames: any;
     questionList: ProjectQuestion[] = [];
     projectInsightMilestoneList: ProjectMilestone[] = [];
+    deletedProjectInsightEntityList: ProjectInsightEntity[] = [];
     isCollapsed: any = false;
     performanceTabName: any;
     projectInsightQuestionTemplate: any;

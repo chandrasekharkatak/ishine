@@ -40,6 +40,7 @@ import com.apmosys.employeeportal.dto.ModuleDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightEntityDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightMilestoneDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionDTO;
 import com.apmosys.employeeportal.dto.ProjectResponseDTO;
@@ -746,6 +747,10 @@ public class ProjectInsightService {
 			
 			combinedText.append(project.getProjectName()).append(" ").append(projectInsightDTO.getProjectManagerName()).append(" ");
 			
+			if(projectInsightDTO.getDeletedProjectInsightEntityList() !=null && !projectInsightDTO.getDeletedProjectInsightEntityList().isEmpty()) {
+				deleteProjectInsightEntities(projectInsightDTO.getDeletedProjectInsightEntityList());
+			}
+			
 			// Add/Update Project question
 			if (!projectInsightDTO.getQuestionList().isEmpty()) {
 				addUpdateQuestion(projectInsightDTO.getQuestionList(), projectInsightDTO.getProjectId(), "Project", combinedText);
@@ -891,6 +896,108 @@ public class ProjectInsightService {
 		return response;
 	}
 	
+	private void deleteProjectInsightEntities(List<ProjectInsightEntityDTO> deletedProjectInsightEntityList) {
+		try {
+			for (ProjectInsightEntityDTO projectInsightEntityDTO : deletedProjectInsightEntityList) {
+				if (projectInsightEntityDTO.getEntityType() != null
+						&& projectInsightEntityDTO.getEntityType().equals("Milestone")) {
+					deleteProjectInsightMilestoneAndItsChild(projectInsightEntityDTO.getEntityId());
+				} else if (projectInsightEntityDTO.getEntityType() != null
+						&& projectInsightEntityDTO.getEntityType().equals("Module")) {
+					deleteProjectInsightModuleAndItsChild(projectInsightEntityDTO.getEntityId());
+				} else if (projectInsightEntityDTO.getEntityType() != null
+						&& (projectInsightEntityDTO.getEntityType().equals("SubModule")
+								|| projectInsightEntityDTO.getEntityType().equals("Sub-SubModule"))) {
+					deleteProjectInsightSubModuleAndItsChild(projectInsightEntityDTO.getEntityId(),projectInsightEntityDTO.getEntityType());
+				} else if (projectInsightEntityDTO.getEntityType() != null
+						&& projectInsightEntityDTO.getEntityType().equals("Question")) {
+					deleteProjectInsightQuestion(projectInsightEntityDTO.getEntityId(),"Question");
+				}
+
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private void deleteProjectInsightQuestion(Long questionId,String entityType) {
+		try {
+			entityType = entityType.equals(null) ? "Question" : entityType;
+			 projectInsightResponseRepository.deleteAllProjectInsightResponseByQuestionMasterId(questionId);
+			 projectInsightAssigneesRepository.deleteAllProjectInsightAssigneesByEntityIdAndEntityType(questionId,entityType);
+			 questionMasterRepository.deleteAllQuestionsByEntityIdAndEntityType(questionId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private void deleteProjectInsightSubModuleAndItsChild(Long subModuleId, String subModuleType) {
+		try {
+			List<QuestionMaster> questionList = questionMasterRepository.findByEntityIdAndEntityType(subModuleId,subModuleType);
+			if (questionList != null && !questionList.isEmpty()) {
+				for (QuestionMaster questionMaster : questionList) {
+					deleteProjectInsightQuestion(questionMaster.getQuestionMasterId(),subModuleType);
+				}
+			}
+		
+			List<ProjectInsightSubModule> projectInsightSubSubModuleList = projectInsightSubModuleRepository.getByModuleIdAndSubModuleType(subModuleId, subModuleType);
+			if (projectInsightSubSubModuleList != null && !projectInsightSubSubModuleList.isEmpty()) {
+				for (ProjectInsightSubModule projectInsightSubModule : projectInsightSubSubModuleList) {
+					deleteProjectInsightSubModuleAndItsChild(projectInsightSubModule.getSubmoduleId(),subModuleType);
+				}
+			}
+			projectInsightSubModuleRepository.deleteBySubModuleIdAndSubModuleType(subModuleId, subModuleType);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private void deleteProjectInsightModuleAndItsChild(Long entityId) {
+		try {
+			List<QuestionMaster> questionList = questionMasterRepository.findByEntityIdAndEntityType(entityId,"Module");
+			if (questionList != null && !questionList.isEmpty()) {
+				for (QuestionMaster questionMaster : questionList) {
+					deleteProjectInsightQuestion(questionMaster.getQuestionMasterId(),"Module");
+				}
+			}
+
+			List<ProjectInsightSubModule> projectInsightSubModuleList = projectInsightSubModuleRepository.findByModuleId(entityId);
+			if (projectInsightSubModuleList != null && !projectInsightSubModuleList.isEmpty()) {
+				for (ProjectInsightSubModule projectInsightSubModule : projectInsightSubModuleList) {
+					deleteProjectInsightSubModuleAndItsChild(projectInsightSubModule.getSubmoduleId(), "SubModule");
+				}
+			}
+			projectInsightModuleRepository.deleteProjectInsightModuleByModuleId(entityId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private void deleteProjectInsightMilestoneAndItsChild(Long entityId) {
+		try {
+			List<QuestionMaster> questionList = questionMasterRepository.findByEntityIdAndEntityType(entityId,"Milestone");
+			if (questionList != null && !questionList.isEmpty()) {
+				for (QuestionMaster questionMaster : questionList) {
+					 deleteProjectInsightQuestion(questionMaster.getQuestionMasterId(),"Milestone");
+				}
+			}
+			List<ProjectInsightModule> projectInsightModuleList = projectInsightModuleRepository.findByMilestoneId(entityId);
+			if (projectInsightModuleList != null && !projectInsightModuleList.isEmpty()) {
+				for (ProjectInsightModule projectInsightModule : projectInsightModuleList) {
+					deleteProjectInsightModuleAndItsChild(projectInsightModule.getModuleId());
+				}
+			}
+			projectInsightMilestoneRepository.deleteProjectInsightMilestoneByMilestoneId(entityId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
 	private void saveOrUpdateSubModuleList(List<SubModuleDTO> subModuleList, Long moduleId, Long updatedBy, String subModuleType, StringBuilder combinedText) {
 		try {
 			if (subModuleList != null && !subModuleList.isEmpty()) {

@@ -2,7 +2,10 @@ package com.apmosys.employeeportal.repository;
 
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import com.apmosys.employeeportal.model.ProjectInsightResponse;
@@ -56,5 +59,10 @@ public interface ProjectInsightResponseRepository extends JpaRepository<ProjectI
 	@Query(value="Select pir from ProjectInsightResponse pir  \n"
 			+ "where pir.questionMasterId=:questionMasterId and  pir.empId not in  :empIdList  \n ")
 	List<ProjectInsightResponse> findAllByQuestionMasterIdAndEmpIdListNotIn(Long questionMasterId,List<Long> empIdList);
+
+	@Transactional
+	@Modifying
+	@Query(value="delete from ProjectInsightResponse pir where pir.questionMasterId=:questionId ")
+	void deleteAllProjectInsightResponseByQuestionMasterId(Long questionId);
 
 }

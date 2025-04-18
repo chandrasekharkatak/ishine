@@ -2,7 +2,10 @@ package com.apmosys.employeeportal.repository;
 
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import com.apmosys.employeeportal.model.ProjectInsightAssignees;
@@ -29,5 +32,10 @@ public interface ProjectInsightAssigneesRepository extends JpaRepository<Project
 
 	@Query(value="Select pia from ProjectInsightAssignees pia where pia.entityId=:entityId and pia.entityType=:entityType  and pia.taggedBy=:taggedBy and  pia.assignType = 'Tagged' ")
 	List<ProjectInsightAssignees> getProjectInsightAssigneesByEntityIdAndEntityTypeAndHelpTaggedBy(Long entityId, String entityType, Long taggedBy);
+	
+	@Transactional
+	@Modifying
+	@Query(value="delete from ProjectInsightAssignees pia where pia.entityId=:entityId and pia.entityType=:entityType")
+	void deleteAllProjectInsightAssigneesByEntityIdAndEntityType(Long entityId,String entityType);
 	
 }
