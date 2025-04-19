@@ -142,5 +142,8 @@ public class ReimbursementData {
 	@Column(name = "vehicleType")
 	private String vehicleType;
 	
+	@Column(name = "doc_id")
+	private String docId;
+	
 }
 

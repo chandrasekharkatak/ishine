@@ -149,6 +149,69 @@ reimbursementObj: any = {
      // Logic to handle form submission
       if (this.isValidForm()) {
         console.log('Document',this.reimbursementObj.supportingDocument);  
+
+        if (!this.reimbursementObj.expenditureType) {
+          this.openAlertMod(template, "Please select an Expenditure Type.");
+          return;
+        }
+      
+        // Travel related validations
+        if (this.reimbursementObj.expenditureType === 'Travel') {
+          if (!this.reimbursementObj.travelMode) {
+            this.openAlertMod(template, "Please select a Travel Mode.");
+            return;
+          }
+      
+          if (this.reimbursementObj.travelMode === 'Personal Vehicle') {
+            if (!this.reimbursementObj.vehicleType) {
+              this.openAlertMod(template, "Please select a Vehicle Type.");
+              return;
+            }
+            if (!this.reimbursementObj.distance || this.reimbursementObj.distance <= 0) {
+              this.openAlertMod(template, "Please enter valid Distance in KM.");
+              return;
+            }
+          }
+        }
+      
+        // Food related validations
+        if (this.reimbursementObj.expenditureType === 'Food') {
+          if (!this.reimbursementObj.foodAllowanceType) {
+            this.openAlertMod(template, "Please select Food Allowance Type.");
+            return;
+          }
+          if (!this.reimbursementObj.dateOfFood) {
+            this.openAlertMod(template, "Please select the Fooding Date.");
+            return;
+          }
+        }
+      
+        // Common fields
+        if (!this.reimbursementObj.amount || this.reimbursementObj.amount <= 0) {
+          this.openAlertMod(template, "Please enter a valid Total Amount .");
+          return;
+        }
+      
+        if (this.reimbursementObj.expenditureType !== 'Food') {
+          if (!this.reimbursementObj.fromDate) {
+            this.openAlertMod(template, "Please select From Date.");
+            return;
+          }
+          if (!this.reimbursementObj.toDate) {
+            this.openAlertMod(template, "Please select To Date.");
+            return;
+          }
+        }
+      
+        if (!this.reimbursementObj.purpose || this.reimbursementObj.purpose.trim() === '') {
+          this.openAlertMod(template, "Please enter the Purpose.");
+          return;
+        }
+
+        if (!this.reimbursementObj.supportingDocument) {
+          this.openAlertMod(template, "Please enter a valid Document .");
+          return;
+        }
          // First upload the file
     const fileFormData = new FormData();
     fileFormData.append('file', this.reimbursementObj.supportingDocument);
@@ -228,7 +291,7 @@ reimbursementObj: any = {
       
       cancelRequest() {
         this.modalRef.hide();
-        location.reload();
+       // location.reload();
       }
 
       cancelRequest1() {

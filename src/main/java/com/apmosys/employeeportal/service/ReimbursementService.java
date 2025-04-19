@@ -79,7 +79,8 @@ public class ReimbursementService {
 			reimbursementData.setEmail(reimbursementObj.getEmail());
 			reimbursementData.setAmount(reimbursementObj.getAmount());
 			reimbursementData.setLevel(1);
-			reimbursementData.setCurrency(reimbursementObj.getSelectedCurrency());
+			reimbursementData.setCurrency("Rupees");
+			reimbursementData.setDocId(reimbursementObj.getDocId());
 			reimbursementData.setExpenditureType(reimbursementObj.getExpenditureType());
 			if(reimbursementObj.getExpenditureType().equalsIgnoreCase("Travel")) {
 				reimbursementData.setTravelMode(reimbursementObj.getTravelMode());
@@ -106,6 +107,9 @@ public class ReimbursementService {
 			BigInteger approver = BigInteger.valueOf(21329);
 			reimbursementData.setApprover(approver);
 			reimbursementData.setStatus("Pending");
+			reimbursementData.setLevel2approverStatus("Pending");
+			reimbursementData.setLevel3approverStatus("Pending");
+
 			savedReimbursementData = reimbursementDataRepository.save(reimbursementData);
 			
 			if(savedReimbursementData == null) {
@@ -120,7 +124,7 @@ public class ReimbursementService {
 				serviceResponse.setServiceMessage("Saved Successfully..!!");
 				return serviceResponse;
 			}
-			}
+		}
 			catch(Exception e) {
 				e.printStackTrace();
 				serviceResponse.setServiceError(e.getMessage());

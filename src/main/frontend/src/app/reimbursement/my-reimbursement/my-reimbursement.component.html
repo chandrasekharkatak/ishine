@@ -160,7 +160,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                            <input class="form-control" [(ngModel)]="reimbursementObj.toDate" id="toDate" type="date" [min]="reimbursementObj.fromDate" [max]="toDate" placeholder="Choose to date" autocomplete="off">
+                            <input class="form-control" [(ngModel)]="reimbursementObj.toDate" id="toDate" type="date" [min]="reimbursementObj.fromDate" [max]="toDate" placeholder="Choose to date" [disabled]="reimbursementObj.fromDate == null" autocomplete="off">
                         </div>
                     </div>
                 </div>
