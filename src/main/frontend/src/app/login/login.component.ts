@@ -25,8 +25,16 @@ import { AuthGuard } from '../guards/auth.guard';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit{
+export class LoginComponent implements OnInit, OnDestroy {
 
+  currentIndex = 0;
+  intervalId: any;
+
+  infoSlides = [
+    'Vision',
+    'Mission 1',
+    'Values'
+  ];
   //flags 
   isLoginForm:boolean=true;
   isOtpForm:boolean=false;
@@ -81,11 +89,32 @@ export class LoginComponent implements OnInit{
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
+  // ngOnDestroy(): void {
+  //   throw new Error('Method not implemented.');
+  // }
 
   timeLeft: number = 60;
   timer: any;
+
+  ngOnInit() {
+    this.intervalId = setInterval(() => {
+      this.nextSlide();
+    }, 6000);
+  }
+
+  ngOnDestroy() {
+    clearInterval(this.intervalId);
+  }
+
+  nextSlide() {
+    this.currentIndex = (this.currentIndex + 1) % this.infoSlides.length;
+  }
+
+  goToSlide(index: number) {
+    this.currentIndex = index;
+  }
   
-    ngOnInit(): void {}
+    // ngOnInit(): void {}
 
   toggleFieldTextType() {
     this.fieldTextType = !this.fieldTextType;

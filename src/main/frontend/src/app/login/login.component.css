@@ -56,3 +56,312 @@
 .form-control{
     width: 100%;
 }
+
+/* Main Container */
+.login-container {
+    display: flex;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0a4c81 0%, #0078d4 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Wave Background */
+  .login-container::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background-image: url('/assets/wave-pattern.svg');
+    background-size: contain;
+    opacity: 0.1;
+    z-index: 0;
+    animation: wave 15s infinite linear;
+  }
+  
+  @keyframes wave {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Left Section */
+  .left-section {
+    flex: 1;
+    padding: 2rem 4rem;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4rem;
+  }
+  
+  .logo {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 2rem;
+  }
+  
+  .arrow {
+    color: #0078d4;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .navigation {
+    display: flex;
+    gap: 1.5rem;
+  }
+  
+  .nav-item {
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: opacity 0.3s;
+  }
+  
+  .nav-item:hover {
+    opacity: 0.8;
+  }
+  
+  .content {
+    margin-top: 4rem;
+  }
+  
+  .title {
+    color: white;
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+  }
+  
+  .description {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    max-width: 80%;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+  
+  .pagination {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .dot {
+    width: 8px;
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+  }
+  
+  .dot.active {
+    background-color: white;
+  }
+  
+  .get-started-btn {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+  }
+  
+  .get-started-btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Right Section */
+  .right-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+    padding: 2rem;
+  }
+  
+  .login-button-top {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+  }
+  
+  .login-btn-top {
+    background: linear-gradient(to right, #0078d4, #00a2ff);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .login-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+  }
+  
+  .greeting {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+  
+  .instruction {
+    color: #666;
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-group label {
+    display: block;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.9rem;
+  }
+  
+  .form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    font-size: 0.8rem;
+  }
+  
+  .remember-me {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .forgot-password {
+    color: #0078d4;
+    text-decoration: none;
+  }
+  
+  .login-btn {
+    width: 100%;
+    background: linear-gradient(to right, #0078d4, #00a2ff);
+    color: white;
+    border: none;
+    padding: 0.8rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  .bottom-pagination {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 2rem;
+  }
+  
+  .bottom-pagination .dot {
+    width: 12px;
+    height: 12px;
+    background-color: rgba(255, 255, 255, 0.5);
+  }
+  
+  .bottom-pagination .dot.active {
+    background-color: white;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 992px) {
+    .login-container {
+      flex-direction: column;
+    }
+    
+    .left-section {
+      padding: 2rem;
+    }
+    
+    .description {
+      max-width: 100%;
+    }
+
+    .title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: left;
+  margin-bottom: 0.5rem;
+}
+
+.text-highlight {
+  color: #FFD700; /* bright yellow */
+}
+
+.powered-by {
+  font-size: 0.9rem;
+  color: #555;
+  text-align: center;
+  margin-top: 0;
+  font-weight: 500;
+}
+  }
+
+  .title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-align: left;
+    margin-bottom: 0.5rem;
+  }
+  
+  .text-highlight {
+    color: #FFD700; /* bright yellow */
+  }
+  
+  .powered-by {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #faf8f8;
+    text-align: left;
+    margin-top: 0;
+    font-weight: 500;
+  }
+
+  .outer-container {
+    display: flex;
+    justify-content: center; /* Center the login card horizontally */
+    align-items: center; /* Center the login card vertically */
+    height: 100vh; /* Full viewport height */
+    background-color: #f0f0f0; /* Background color for outer container */
+}
+  
