@@ -14,7 +14,7 @@
         </nav>
       </div>
       
-      <div class="content">
+      <div class="content" style="overflow-y: auto; ">
         <h1 class="title">
             Welcome To <span class="text-highlight">iShine</span>
           </h1>
@@ -96,6 +96,7 @@
     </div>
     
     <!-- Right Section -->
+     
     <div class="right-section">
       <div class="login-button-top">
         <!-- <button class="login-btn-top">Login</button> -->
@@ -103,9 +104,9 @@
       
     <!-- <div class="outer-container"> -->
       <div class="login-card">
-        <div class="login-form">
+        <!-- <div class="login-form">
             <div class="auth__logo">
-                <!-- <h4 class="auth__logo__text">ApMoSys</h4> -->
+                
                 <img src="assets/Images/ishine_logo.jpeg" alt="">
             </div>
             <div *ngIf="isError" class="auth__error text-center">
@@ -128,14 +129,6 @@
             </div>
         </div>
           
-          <div class="form-options">
-            <div class="remember-me">
-              <!-- <input type="checkbox" id="remember" name="remember" [(ngModel)]="rememberMe"> -->
-              <!-- <label for="remember">Remember me</label> -->
-            </div>
-            <a href="#" class="forgot-password">Forgot Password?</a>
-          </div>
-
           <button type="submit" class="login-btn" (click)="onLogin()">SIGN IN</button>
                   
           
@@ -149,14 +142,131 @@
                                     <em class="fa" [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
                                 </span>
                             </div>
-                            <!-- <span style="color:red; display: flex; justify-content: flex-end"> -->
-                                <p style="color:red; display: flex; justify-content: flex-end">00:{{timeLeft}}</p>
-                            <!-- </span> -->
+                            <p style="color:red; display: flex; justify-content: flex-end">00:{{timeLeft}}</p>
+                            
 
                         </div>
                         <button type="submit" class="login-btn" (click)="onConfirmLoginOTP()">Confirm</button>
                     </div>
+        </div> -->
+
+
+          <!-- LOGIN FORM -->
+          <div class="auth__logo">
+                
+            <img src="assets/Images/ishine_logo.jpeg" alt="">
         </div>
+        <div *ngIf="isError" class="auth__error text-center">
+            <p class="form-text text-danger auth__error__msg">{{errorMsg}}</p>
+        </div>
+          <div *ngIf="isLoginForm" class="login__form">
+ 
+            <div class="form-group">
+                <label for="userName" class="sr-only">Username</label>
+                <input class="form-control" type="text" id="username" placeholder="Enter Username"
+                    [(ngModel)]="userName" name="userName" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="userPassword" class="sr-only">Password</label>
+                <div class="d-flex">
+                    <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="userPassword"
+                        placeholder="Enter Password" [(ngModel)]="password" autocomplete="off"
+                        (keyup.enter)="onLogin()" />
+                    <span class="btn" style="margin-left: -50px;" id="passwordEye"
+                        (click)="toggleFieldTextType()">
+                        <em class="fa"
+                            [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
+                    </span>
+                </div>
+            </div><br>
+            <button type="submit" class="btn btn-primary btn-block login-btn" (click)="onLogin()">LOG
+                IN</button>
+        </div>
+        <!-- OTP FORM -->
+<div *ngIf="isOtpForm" class="otp__form">
+  <div class="form-group">
+      <label for="userOtp" class="sr-only">OTP</label>
+      <div class="d-flex">
+          <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="userOtp"
+              placeholder="Enter OTP" [(ngModel)]="userOTP" autocomplete="off"
+              (keyup.enter)="onConfirmLoginOTP()" />
+          <span class="btn" style="margin-left: -50px;" id="passwordEye"
+              (click)="toggleFieldTextType()">
+              <em class="fa"
+                  [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
+          </span>
+      </div>
+      <!-- <span style="color:red; display: flex; justify-content: flex-end"> -->
+      <p style="color:red; display: flex; justify-content: flex-end">00:{{timeLeft}}</p>
+      <!-- </span> -->
+
+  </div>
+  <button type="submit" class="btn btn-primary btn-block login-btn"
+      (click)="onConfirmLoginOTP()">Confirm</button>
+</div>
+<!-- FORGOT PASSWORD FORM -->
+<div *ngIf="isForgotPassForm" class="forgor-pass__form">
+  <div class="form-group">
+      <label for="emailID" class="sr-only">emailID</label>
+      <input class="form-control" type="text" id="emailID" placeholder="Enter email id"
+          [(ngModel)]="userEmailId" autocomplete="off">
+  </div>
+  <button type="submit" class="btn btn-primary float-left sendOtp__btn" (click)="onSendOTP()">Send
+      OTP</button>
+  <!-- <button type="submit" class="btn btn-outline-primary float-right sendOtp__btn" (click)="onSendOTP()">Resend OTP</button>   -->
+</div>
+<!-- Forgot Password OTP FORM-->
+<div *ngIf="isForgotPassOtpForm" class="otp__form">
+  <div class="form-group">
+      <label for="userOtp" class="sr-only">OTP</label>
+      <div class="d-flex">
+          <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="userOtp"
+              placeholder="Enter OTP" [(ngModel)]="userOTP" autocomplete="off"
+              (keyup.enter)="onConfirmForgotPassOTP()" />
+          <span class="btn" style="margin-left: -50px;" id="passwordEye"
+              (click)="toggleFieldTextType()">
+              <em class="fa"
+                  [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
+          </span>
+      </div>
+  </div>
+  <button type="submit" class="btn btn-primary btn-block login-btn"
+      (click)="onConfirmForgotPassOTP()">Confirm</button>
+</div>
+<!-- CHANGE PASSWORD FORM -->
+<div *ngIf="isChangePassForm" class="change-pass__form">
+  <div class="form-group">
+      <label for="newPass" class="sr-only">New Password</label>
+      <div class="d-flex">
+          <input class="form-control" [type]="fieldTextType ? 'text' : 'password'" id="newPass"
+              placeholder="Enter New Password" [(ngModel)]="userNewPass" autocomplete="off" />
+          <span class="btn" id="passwordEye" (click)="toggleFieldTextType()">
+              <em class="fa"
+                  [ngClass]="{'fa-eye-slash': !fieldTextType,'fa-eye': fieldTextType}"></em>
+          </span>
+      </div>
+  </div>
+  <div class="form-group">
+      <label for="confirmPass" class="sr-only">Confirm New Password</label>
+      <div class="d-flex">
+          <input class="form-control" [type]="fieldTextTypePassword ? 'text' : 'password'"
+              id="confirmPass" placeholder="Confirm New Password" [(ngModel)]="userConfirmNewPass"
+              autocomplete="off" />
+          <span class="btn" id="passwordEye" (click)="toggleFieldChangePassword()">
+              <em class="fa"
+                  [ngClass]="{'fa-eye-slash': !fieldTextTypePassword,'fa-eye': fieldTextTypePassword}"></em>
+          </span>
+      </div>
+  </div>
+  <button type="submit" class="btn btn-primary btn-block login-btn"
+      (click)="onChangePassword(alert_message)">Change Password</button>
+</div>
+<div class="auth__cta d-flex justify-content-between mt-3">
+  <a *ngIf="isLoginForm" class="auth__link" (click)="showForgotPassForm()">Forgot Password?</a><br>
+  <a *ngIf="!isLoginForm" class="auth__link" (click)="showLoginForm()">SIGN IN</a>
+  <a *ngIf="isOtpForm || isForgotPassOtpForm" class="auth__link"
+      (click)="resendOTP();resetTimer();startTimer()">Resend OTP</a>
+</div>
       </div>
     <!-- </div> -->
       
@@ -166,7 +276,7 @@
         <span class="dot"></span>
       </div>
     </div>
-  </div>
+</div>
 
 <!-- Modals Template -->
 <ng-template #reLogin_template>
