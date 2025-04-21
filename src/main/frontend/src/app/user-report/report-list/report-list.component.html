@@ -469,13 +469,13 @@
               <strong>Active PO:</strong>{{tnmPOProjectActiveCount}}&nbsp;&nbsp;&nbsp;
               <strong>Expired PO:</strong>{{tnmPoProjectExpiredCount}}
             </div> -->
-            <!-- <div class="mb-2">
+      <!-- <div class="mb-2">
               <strong>Active PO:</strong>&nbsp;&nbsp;&nbsp;
               <strong>Expired PO:</strong>
             </div> -->
-        
-            <!-- Employees mapped to -->
-            <!-- <div class="mb-1">
+
+      <!-- Employees mapped to -->
+      <!-- <div class="mb-1">
             </div>
             <div class="mb-1">
               <strong>Employees mapped to:</strong>
@@ -652,8 +652,7 @@
                     <span>Billable Type</span>
                     <div *ngIf="selectedEmployees.length > 0 && changeTable" style="margin-top: 5px;">
                       <select [(ngModel)]="selectedBillableTypeForBulk"
-                              (change)="openBulkUpdateModal(bulk_update_template)"
-                              style="width: 170px; padding: 2px;">
+                        (change)="openBulkUpdateModal(bulk_update_template)" style="width: 170px; padding: 2px;">
                         <option value="" disabled selected>Select Billable Type</option>
                         <option *ngFor="let type of billableTypes" [value]="type">{{ type }}</option>
                       </select>
@@ -729,12 +728,10 @@
 
                     <div *ngIf="editIndex === i" style="display: flex; align-items: center; gap: 8px;">
                       <select [(ngModel)]="employee.billableType"
-                        (change)="updateBillableType(employee,alert_message_sync)" style="width: 170px;">
-                        <ng-container *ngFor="let type of billableTypes">
-                          <option *ngIf="type !== employee.billableType" [value]="type">
-                            {{ type }}
-                          </option>
-                        </ng-container>
+                        (change)="updateBillableType(employee, alert_message_sync)" style="width: 170px;">
+                        <option *ngFor="let type of billableTypes" [value]="type">
+                          {{ type }}
+                        </option>
                       </select>
 
                       <i class="fa-solid fa-xmark" (click)="editIndex = -1" style="cursor: pointer; color: red;"></i>
@@ -1473,7 +1470,7 @@
     <input type="checkbox" class="custom-control-input" id="access-control-switch" (change)="toggleAccessList($event)">
     <label class="custom-control-label" for="access-control-switch">View Default Role Access</label>
   </div>
-  
+
   <div class="col-md-12" *ngIf="isAccessFeatureMapping">
     <div class="col-md-12 ml-auto d-flex flex-column flex-md-row  align-items-center">
       <div class="col-md-8 mb-2 mb-md-0">
@@ -1884,7 +1881,8 @@
 <ng-template #bulk_update_template>
   <div class="modal-body text-center">
     <p>Are you sure you want to update Billable Type for the selected employees?</p>
-    <button type="button" class="btn btn-success" (click)="cancelRequest();onConfirmBulkBillableUpdate(alert_message_sync)">Yes, proceed</button>&nbsp;
+    <button type="button" class="btn btn-success"
+      (click)="cancelRequest();onConfirmBulkBillableUpdate(alert_message_sync)">Yes, proceed</button>&nbsp;
     <button type="button" class="btn btn-danger" (click)="cancelRequest();">No, Cancel</button>&nbsp;
   </div>
 </ng-template>
