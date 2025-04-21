@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.model;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -30,6 +32,15 @@ public class EmpPrimaryProjectMapping {
 	
 	@Column(name="primary_project_name")
 	private String primaryProjectName; 
+	
+	@Column(name="is_Mapped")
+	private String isMapped;
+	
+	@Column(name = "updated_on")
+	private LocalDateTime updatedOn;
+	
+	@Column(name = "updated_by")
+	private Long updatedBy;
 
 	
 }

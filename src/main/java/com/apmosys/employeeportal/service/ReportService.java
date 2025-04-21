@@ -1,15 +1,20 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.BulkBillableUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.FeatureMasterDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
@@ -17,10 +22,13 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.EmployeeRole;
+import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeRoleMasterRepository;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -44,7 +52,16 @@ public class ReportService {
 	ProjectRepository projectRepository;
 	
 	@Autowired
+	EmployeeTeamMapRepository employeeTeamMapRepository;
+	
+	@Autowired
+	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
+	
+	
+	@Autowired
 	private LogService logService;
+	
+	
 	
 	
 	
@@ -494,9 +511,9 @@ public class ReportService {
 	        int result = employeeRepository.updateBillableInfo(dto.getEmpId(), dto.getBillableType(), dto.getBillable());
 	        if (result > 0) {
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            response.setServiceResponse("Updated successfully");
+	            response.setServiceResponse("Billable Type Of Employee Updated successfully");
 	        } else {
-	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("Update failed");
 	        }
 	    } catch (Exception e) {
@@ -507,6 +524,97 @@ public class ReportService {
 	    }
 	    return response;
 	}
+	
+	
+	public ServiceResponse updateBulkBillableEmployeeReport(BulkBillableUpdateDTO bulkBillableUpdateDTO) {
+	    ServiceResponse response = new ServiceResponse();
+
+	    try {
+	        int updatedRows = employeeRepository.updateBillableTypeForMultiple(
+	        		bulkBillableUpdateDTO.getEmpIds(), bulkBillableUpdateDTO.getBillableType(), bulkBillableUpdateDTO.getBillable());
+
+	        if (updatedRows > 0) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Updated Billable Type of " + updatedRows + " employees successfully.");
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No records were updated.");
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong while updating.");
+	        response.setServiceError(e.getMessage());
+	    }
+
+	    return response;
+	}
+
+	
+	public ServiceResponse updateDefaultProjectMappings() {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	    	 List<Long> activeEmployees = employeeRepository.findAllActiveEmployees();
+	    	 for(Long empId : activeEmployees) {
+	    		 List<Long> activeProjectIds = employeeTeamMapRepository.findDistinctActiveProjectIdsByEmpId(empId);
+	    		
+	    		 if (activeProjectIds.isEmpty()) {
+	    			 EmpPrimaryProjectMapping existing = empPrimaryProjectMappingRepository.findByEmpId(empId);
+	    			    if (existing != null) {
+	    			    	 empPrimaryProjectMappingRepository.updateIsMappedOnlyTON(empId, "N", new Date());
+	    			    }
+	    			    continue;
+	    		 }
+	    		 
+	    	
+	    		 if (activeProjectIds.size() > 1) {
+	                    continue; 
+	                }
+	    		 
+	    		 Long projectId = activeProjectIds.get(0);
+	             String projectName = employeeTeamMapRepository.getProjectNameById(projectId);
+	             
+	             Optional<EmpPrimaryProjectMapping> existingMappingOpt =
+	            		 empPrimaryProjectMappingRepository.findByEmpIdd(empId);
+	             if (existingMappingOpt.isPresent()) {
+	                    EmpPrimaryProjectMapping existingMapping = existingMappingOpt.get();
+	             
+	             if (Objects.equals(existingMapping.getPrimaryProjectId(), projectId)
+                         && Objects.equals(existingMapping.getPrimaryProjectName(), projectName)
+                         && "Y".equalsIgnoreCase(existingMapping.getIsMapped())) {
+                     continue;
+                 }
+
+                 
+                 empPrimaryProjectMappingRepository.updateMappingDetails(
+                         empId, projectId, projectName, "Y", new Date()
+                 );
+                 
+                 
+	             } else {
+	                    
+	                    EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
+	                    newMapping.setEmpId(empId);
+	                    newMapping.setPrimaryProjectId(projectId);
+	                    newMapping.setPrimaryProjectName(projectName);
+	                    newMapping.setIsMapped("Y");
+	                    newMapping.setUpdatedOn(LocalDateTime.now());
+	                    empPrimaryProjectMappingRepository.save(newMapping);
+	                }
+	            }
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Employee default project mapping updated successfully.");
+	        } catch (Exception e) {
+	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            response.setServiceResponse("Error while updating mapping.");
+	            response.setServiceError(e.getMessage());
+	            e.printStackTrace();
+	        }
+
+	        return response;
+	    }
+	}
 
 
-}

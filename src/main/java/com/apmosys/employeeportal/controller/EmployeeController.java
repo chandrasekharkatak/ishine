@@ -528,7 +528,7 @@ public class EmployeeController {
 	@PostMapping("/updateDefaultProject")
 	public ServiceResponse updateDeafultProject(@RequestBody EmployeeDTO employeeDTO) {
 		
-		ServiceResponse response = employeeService.updateDefaultProject(employeeDTO.getEmpId(),employeeDTO.getSelectedProjectId());
+		ServiceResponse response = employeeService.updateDefaultProject(employeeDTO.getEmpId(),employeeDTO.getSelectedProjectId(),employeeDTO.getUpdatedBy());
 		
 		return response;
 	}

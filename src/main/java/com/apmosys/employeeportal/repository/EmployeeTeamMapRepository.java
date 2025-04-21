@@ -103,5 +103,15 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	@Transactional
 	@Query(nativeQuery = true)
 	void updateActiveFieldToZero(Long key);
+	
+	
+	@Query(value ="SELECT DISTINCT t.project_id\n"
+			+ "        FROM employee_team_mapping etm\n"
+			+ "        JOIN teams t ON etm.team_id = t.team_id\n"
+			+ "        WHERE etm.emp_id = :empId AND etm.active = 1 AND t.is_active = 'Y'",nativeQuery = true)
+	List<Long> findDistinctActiveProjectIdsByEmpId(@Param("empId") Long empId);
+	
+	@Query(value = "SELECT project_name FROM projects WHERE project_id = :projectId", nativeQuery = true)
+	String getProjectNameById(@Param("projectId") Long projectId);
 
 }
