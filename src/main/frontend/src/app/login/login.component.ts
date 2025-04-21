@@ -19,84 +19,24 @@ import { Log } from '../models/log';
 import * as moment from 'moment';
 import { enableAppreciation } from '../models/enableAppreciation';
 import { AuthGuard } from '../guards/auth.guard';
-import {
-  trigger,
-  transition,
-  style,
-  animate
-} from '@angular/animations';
+
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
-  animations: [
-    trigger('slideFadeAnimation', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(30px)' }),
-        animate('600ms ease', style({ opacity: 1, transform: 'translateY(0)' }))
-      ]),
-      transition(':leave', [
-        animate('600ms ease', style({ opacity: 0, transform: 'translateY(-30px)' }))
-      ])
-    ])
-  ]
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit, OnDestroy {
 
+  currentIndex = 0;
+  intervalId: any;
 
-  // Slider variables start
-  sections = [
-    {
-      id: 'vision',
-      title: 'VISION',
-      content: `<p>To Empower Excellence through Sustainable Innovation, Deliver Reliable Solutions that drive Digital Transformation, Foster Partnerships and create a Lasting Value for Businesses and Planet.</p>`
-    },
-    {
-      id: 'mission',
-      title: 'MISSION',
-      content: `
-        <p><strong>Delivering Excellence and Innovation:</strong><br>
-                        We are committed to provide Reliable, Scalable and High Quality AI products and services, exceeding Customer Expectations by promoting Research, Development and Emerging Technologies.</p>
-                    <p><strong>Customer centric approach:</strong><br>
-                        We prioritize customer needs by delivering Customized Business solutions and Exceptional Services to develop long term partnerships.</p>
-                    <p><strong>People First culture:</strong><br>
-                        We foster a Collaborative, Inclusive and Growth oriented work environment that nurtures Talent, Creativity and Professional Excellence.</p>
-                    <p><strong>Security, Compliance and Sustainability:</strong><br>
-                        We ensure highest levels of Data Security and Regulatory Compliances to protect our clients digital assets by integrating Sustainable and Ethical Practices in all our operations.</p>
-      `
-    },
-    {
-      id: 'values1',
-      title: 'VALUES (1)',
-      content: `
-       <p><strong>Integrity:</strong><br>
-                        We uphold Transparency, Honesty, and Ethical practices in every aspect of our work.</p>
-                    <p><strong>Customer-Centricity:</strong><br>
-                        Our customers' success is our priority; we strive to exceed their expectations through Tailored Business Solutions and Exceptional Service.</p>
-                    <p><strong>Collaboration:</strong><br>
-                        We foster Teamwork and Open Communication to build strong relationships with our clients, partners, and employees.</p>
-      `
-    },
-    {
-      id: 'values2',
-      title: 'VALUES (2)',
-      content: `
-        <p><strong>Agility and Growth Mindset:</strong><br>
-                        We Adapt, Learn, Lead and Embrace change and quickly respond to industry trends, market shifts, and client needs for a collective growth.</p>
-                    <p><strong>Continuous Learning:</strong><br>
-                        We invest in People Development and Skill Enhancement to stay ahead in the ever-evolving technology landscape.</p>
-                    <p><strong>Ownership & Empowerment:</strong><br>
-                        We take initiative to cultivate ownership by focusing on Transparency, Autonomy, and Customer Empathy.</p>
-      `
-    }
+  infoSlides = [
+    'Vision',
+    'Mission 1',
+    'Mission 2',
+    'Values 1',
+    'Values 2'
   ];
-  currentSectionIndex = 0;
-  currentSection = this.sections[0];
-  sliderInterval: any;
-  isPaused = false;
-  activeTab: number = 0;
-  // Slider variables end
-
   //flags 
   isLoginForm: boolean = true;
   isOtpForm: boolean = false;
@@ -151,16 +91,28 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
+  // ngOnDestroy(): void {
+  //   throw new Error('Method not implemented.');
+  // }
 
   timeLeft: number = 60;
   timer: any;
 
-  ngOnInit(): void {
-    this.startSlider();
+  ngOnInit() {
+    this.intervalId = setInterval(() => {
+      this.nextSlide();
+    }, 10000);
   }
-  ngOnDestroy(): void {
-    clearInterval(this.sliderInterval);
+
+  ngOnDestroy() {
+    clearInterval(this.intervalId);
   }
+
+  nextSlide() {
+    this.currentIndex = (this.currentIndex + 1) % this.infoSlides.length;
+  }
+
+
   toggleFieldTextType() {
     this.fieldTextType = !this.fieldTextType;
   }
@@ -688,31 +640,5 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.modalRef.hide();
   }
 
-
-  // Slider start
-  startSlider() {
-    this.sliderInterval = setInterval(() => {
-      if (!this.isPaused) {
-        this.currentSection = null;
-        setTimeout(() => {
-          this.currentSectionIndex =
-            (this.currentSectionIndex + 1) % this.sections.length;
-          this.currentSection = this.sections[this.currentSectionIndex];
-        }, 600); // match animation duration
-      }
-    }, 4000);
-  }
-
-  pauseSlider() {
-    this.isPaused = true;
-  }
-
-  resumeSlider() {
-    this.isPaused = false;
-  }
-  selectTab(index: number): void {
-    this.activeTab = index;
-  }
-  // Slider end
 
 }
