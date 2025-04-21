@@ -5859,7 +5859,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 		
 		@Async
-		@Scheduled(cron = "0 0 10 ? * *")
+//		@Scheduled(cron = "0 0 10 ? * *")
 		public void sendMailForExpiryProjects() {
 			
 			LogDTO apiLogInfo = new LogDTO();
