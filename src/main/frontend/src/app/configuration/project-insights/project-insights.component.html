@@ -78,7 +78,7 @@
     <!-- Milestone Details -->
     <div class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="details_template"
-        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'Milestone'}">
+        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'Milestone',entityName:entityObj.milestone,entityId:entityObj.milestoneId}">
       </ng-container>
     </div>
 
@@ -102,7 +102,7 @@
     <!-- Module Details -->
     <div class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="details_template"
-        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'Module'}">
+        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'Module',entityName:entityObj.module,entityId:entityObj.moduleId}">
       </ng-container>
     </div>
 
@@ -125,7 +125,7 @@
     <!-- SubModule Details -->
     <div class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="details_template"
-        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'SubModule'}">
+        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'SubModule',entityName:entityObj.subModule,entityId:entityObj.subModuleId}">
       </ng-container>
     </div>
 
@@ -150,7 +150,7 @@
     <!-- Question Details -->
     <div class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="details_template"
-        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'Question'}">
+        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'Question',entityName:entityObj.question,entityId:entityObj.questionId}">
       </ng-container>
     </div>
 
@@ -158,12 +158,12 @@
 </ng-template>
 
 <!-- Details Template -->
-<ng-template #details_template let-entityType="entityType" let-entity="entity">
+<ng-template #details_template let-entityType="entityType" let-entity="entity" let-entityName="entityName" let-entityId="entityId">
   <!-- Badges -->
   <div class="badge-container m-1 mb-2">
     <span *ngFor="let level of entity?.badgePathList" class="badge"
       [ngClass]="{ 'active': entity?.currentActiveBadgeLevel == level.name }"
-      (click)="changeCurrentActiveBadgeLevel(entity,level.name)">
+      (click)="changeCurrentActiveBadgeLevel(entity,level.name,entityType,entityName,entityId)">
       {{ level.name }}
     </span>
   </div>
@@ -568,7 +568,7 @@
   <!-- Details -->
   <div class="row m-1 mb-2">
     <ng-container [ngTemplateOutlet]="details_template"
-      [ngTemplateOutletContext]="{ entity:entity ,entityType:'Milestone'}">
+      [ngTemplateOutletContext]="{ entity:entity ,entityType:'Milestone',entityName:entity.milestone,entityId:entity.milestoneId}">
     </ng-container>
   </div>
 
@@ -630,7 +630,7 @@
   <!-- Details -->
   <div class="row m-1 mb-2">
     <ng-container [ngTemplateOutlet]="details_template"
-      [ngTemplateOutletContext]="{ entity:entity ,entityType:'Module'}">
+      [ngTemplateOutletContext]="{ entity:entity ,entityType:'Module',entityName:entity.module,entityId:entity.moduleId}">
     </ng-container>
   </div>
 
@@ -695,7 +695,7 @@
   <!-- Details -->
   <div class="row m-1 mb-2">
     <ng-container [ngTemplateOutlet]="details_template"
-      [ngTemplateOutletContext]="{ entity:entity ,entityType:'SubModule'}">
+      [ngTemplateOutletContext]="{ entity:entity ,entityType:'SubModule',entityName:entity.subModule,entityId:entity.subModuleId}">
     </ng-container>
   </div>
 

@@ -257,8 +257,20 @@ export class ProjectInsightsComponent implements OnInit {
   }
 
   // Badge Change
-  changeCurrentActiveBadgeLevel(entityObj: any, currentActiveBadgeLevel: any) {
+  changeCurrentActiveBadgeLevel(entityObj: any, currentActiveBadgeLevel: any, entityType: any, entityName: any, entityId: any) {
     entityObj.currentActiveBadgeLevel = currentActiveBadgeLevel;
+    const existingIndex = this.breadCrumbs.findIndex(b => (b.entityObj == entityObj));
+    if (existingIndex === -1) {
+      let projectCrumb: ProjectInsightEntity = new ProjectInsightEntity();
+      projectCrumb.entityType = entityType;
+      projectCrumb.entityId = entityId;
+      projectCrumb.entityObj = entityObj;
+      if (!entityName) {
+        entityName = entityType;
+      }
+      projectCrumb.entityName = entityName;
+      this.breadCrumbs.push(projectCrumb);
+    }
   }
 
   // Milestone Configurations
