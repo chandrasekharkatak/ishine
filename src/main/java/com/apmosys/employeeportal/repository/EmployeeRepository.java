@@ -553,4 +553,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Transactional
     @Query(value = "UPDATE employee SET billable_type = :billableType, billable = :billable WHERE emp_id = :empId", nativeQuery = true)
     int updateBillableInfo(@Param("empId") Long empId, @Param("billableType") String billableType, @Param("billable") String billable);
+    
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE employee SET billable_type = :billableType, billable = :billable WHERE emp_id IN (:empIds)", nativeQuery = true)
+    int updateBillableTypeForMultiple(@Param("empIds") List<Long> empIds,
+                                      @Param("billableType") String billableType,
+                                      @Param("billable") String billable);
+    
+    @Query(value ="select DISTINCT emp_id from employee where employmentstatus !='Inactive'",nativeQuery=true)
+    List<Long>findAllActiveEmployees();
+
 }

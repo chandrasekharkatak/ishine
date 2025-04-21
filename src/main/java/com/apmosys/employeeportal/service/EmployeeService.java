@@ -6636,7 +6636,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	return response;
 }
-	public ServiceResponse updateDefaultProject(Long empId, String projectId) {
+	public ServiceResponse updateDefaultProject(Long empId, String projectId,Long updatedBy) {
 		
 		ServiceResponse response = new ServiceResponse();
 		EmpPrimaryProjectMapping empPrimaryProjectMapping = new EmpPrimaryProjectMapping();
@@ -6654,6 +6654,9 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 			empPrimaryProjectMappingNew.setEmpId(empId);
 			empPrimaryProjectMappingNew.setPrimaryProjectId(Long.valueOf(projectId));			
 			empPrimaryProjectMappingNew.setPrimaryProjectName(project.getProjectName());
+			empPrimaryProjectMappingNew.setIsMapped("Y");
+			empPrimaryProjectMappingNew.setUpdatedBy(updatedBy);
+			empPrimaryProjectMappingNew.setUpdatedOn(LocalDateTime.now());	
 			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMappingNew);
 			
 			response.setServiceResponse(empPrimaryProjectMappingSaved);
@@ -6666,6 +6669,9 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 			empPrimaryProjectMapping.setPrimaryProjectId(Long.valueOf(projectId));	
 			Project project = projectRepository.findByProjectId(Integer.valueOf(projectId));
 			empPrimaryProjectMapping.setPrimaryProjectName(project.getProjectName());
+			empPrimaryProjectMapping.setUpdatedBy(updatedBy);
+			empPrimaryProjectMapping.setUpdatedOn(LocalDateTime.now());	
+			
 			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMapping);
 			
 			response.setServiceResponse(empPrimaryProjectMappingSaved);

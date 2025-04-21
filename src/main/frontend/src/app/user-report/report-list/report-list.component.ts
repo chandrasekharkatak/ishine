@@ -159,7 +159,7 @@ export class ReportListComponent implements OnInit {
   filters: any = {};
   isSearchEnabled: boolean = false;
 
-  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
+  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
   employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
   leaveReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
@@ -289,28 +289,28 @@ export class ReportListComponent implements OnInit {
     this.isAllSelected = false;
     // Optionally: refresh data
   }
-  
-//   onDepartmentDropdownClosed() {
-//     this.showSearchInput = false;
-//     this.searchText = '';
-//     this.filteredDepartments = [...this.departments];
-//   }
 
-//   showSearchBar = false;
+  //   onDepartmentDropdownClosed() {
+  //     this.showSearchInput = false;
+  //     this.searchText = '';
+  //     this.filteredDepartments = [...this.departments];
+  //   }
 
-// toggleSearchBar() {
-//   this.showSearchBar = !this.showSearchBar;
-// }
-  
-  
+  //   showSearchBar = false;
 
- 
+  // toggleSearchBar() {
+  //   this.showSearchBar = !this.showSearchBar;
+  // }
 
-onDepartmentSelectionChange() {
-  if (!this.isAllSelected && this.employeeReportObj.deptId.length > 0) {
-    this.getEmployeeReportData();
+
+
+
+
+  onDepartmentSelectionChange() {
+    if (!this.isAllSelected && this.employeeReportObj.deptId.length > 0) {
+      this.getEmployeeReportData();
+    }
   }
-}
 
 
   flattenProjectList() {
@@ -397,7 +397,7 @@ onDepartmentSelectionChange() {
         this.selectedBillable[key] = null;
       }
     });
-  
+
     this.selectedTab[box] = tab;
     this.selectedFlag[box] = null;
     this.selectedBillable[box] = null;
@@ -479,26 +479,27 @@ onDepartmentSelectionChange() {
   poProjectSync(template: TemplateRef<any>) {
     this.employeeService.getPoProjectSync().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
-        this.openAlertMod(this.alertModalSync,response.serviceResponse);
+        this.openAlertMod(this.alertModalSync, response.serviceResponse);
       }
     });
   }
 
   editIndex: number = -1;
   billableTypes: string[] = ['Bench', 'Fixed Cost', 'Shadow', 'InternalRNDProducts', 'TNM'];
-
-  updateBillableType(employee:any,template: TemplateRef<any>){
+  updateBillableType(employee: any,template: TemplateRef<any>) {
     const updatedBillable = employee.billableType === 'TNM' ? 'Yes' : 'No';
 
     const payload = {
-      empId: employee.empId, 
+      empId: employee.empId,
       billableType: employee.billableType,
       billable: updatedBillable
     };
 
+    console.log(payload);
+
     this.employeeService.updateEmployeeReportBillableType(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
-        this.openAlertMod(this.alertModalSync,response.serviceResponse);
+        this.openAlertMod(this.alertModalSync, response.serviceResponse);
       }
     });
 
@@ -544,7 +545,7 @@ onDepartmentSelectionChange() {
   //     if (response.serviceStatus === "Success") {
   //       const res = response.serviceResponse;
 
-       
+
   //       this.employeeList = (res.getEmployeeProjectReportForEmployeeDTO || []).map(employeeObj => {
   //         return {
   //           ...employeeObj,
@@ -588,31 +589,82 @@ onDepartmentSelectionChange() {
     const key = `${box}.${selectedMainFlag}`;
     const isActiveBox = box === this.activeBox;
     const category = this.selectedTab[this.activeBox]; // Current active tab
-  
+
     if (category === 'Project' && isActiveBox) {
       return this.projectSummary[key]?.Project?.total_projects_per_po_project || 0;
     }
-  
+
     return this.projectSummary[key]?.Employee?.totalEmpPerProjectType || 0;
   }
-  
-  
-  
+
+
+
   getCount(box: string, billableType: string): number {
     const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
     const key = `${box}.${selectedMainFlag}`;
     const isActiveBox = box === this.activeBox;
     const category = this.selectedTab[this.activeBox];
-  
+
     if (category === 'Project' && isActiveBox) {
       return this.projectSummary[key]?.Project?.[billableType] || 0;
     }
-  
+
     return this.projectSummary[key]?.Employee?.[billableType] || 0;
   }
-  
-  
-  
+
+  masterSelected: boolean = false;
+  selectedEmployees: any[] = [];
+
+  selectAllEmployees() {
+    for (let emp of this.employeeList) {
+      emp.isSelected = this.masterSelected;
+    }
+    this.updateSelectedEmployees();
+  }
+
+  checkIfAllSelected() {
+    this.masterSelected = this.employeeList.every(emp => emp.isSelected);
+    this.updateSelectedEmployees();
+  }
+
+  updateSelectedEmployees() {
+    this.selectedEmployees = this.employeeList.filter(emp => emp.isSelected);
+  }
+
+  openBulkUpdateModal(template: TemplateRef<any>) {
+    if (this.selectedEmployees.length > 0 && this.selectedBillableTypeForBulk) {
+      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    }
+  }
+
+  selectedBillableTypeForBulk: any;
+  onConfirmBulkBillableUpdate(template: TemplateRef<any>) {
+    if (!this.selectedBillableTypeForBulk || this.selectedEmployees.length === 0) return;
+    const updatedBillable = this.selectedBillableTypeForBulk === 'TNM' ? 'Yes' : 'No';
+    const empIds = this.selectedEmployees.map(emp => emp.empId);
+    const payload = {
+      empIds: empIds, 
+      billableType: this.selectedBillableTypeForBulk,
+      billable: updatedBillable
+    };
+    console.log(payload);
+    this.employeeService.updateBulkBillableEmployeeReport(payload).subscribe(
+      (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.openAlertMod(this.alertModalSync, response.serviceResponse);
+          this.selectedEmployees = []; 
+          this.selectedBillableTypeForBulk = '';
+          this.masterSelected = false;
+        } else {
+          this.openAlertMod(this.alertModalSync, response.serviceResponse);
+        }
+      },
+      (error) => {
+        this.openAlertMod(this.alertModalSync, "Something went wrong while updating");
+      }
+    );
+  }
+
 
 
   getAllOrDeptWiseEmployeeTimesheetReport() {
@@ -652,9 +704,9 @@ onDepartmentSelectionChange() {
 
       // this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
       // alert("toggle on" + this.departments.length);
-  
+
       this.employeeReportObj = {
-        deptId:  this.departments.map(dept => dept.deptId),
+        deptId: this.departments.map(dept => dept.deptId),
         poProjectType: null,
         category: 'Employee',
         flag: null,
@@ -722,7 +774,7 @@ onDepartmentSelectionChange() {
 
   departmentChange() {
     this.getEmployeeReportData();
-    
+
     // this.employeeReportObj.deptId = [];
     // console.log(this.employeeReportObj.deptId.length,":this.employeeReportObj.deptId.length");
     // if (this.isAllSelected == false) {
@@ -1152,6 +1204,7 @@ onDepartmentSelectionChange() {
     newemployeeObj.selectedProjectId = this.selectedProjectId;
     newemployeeObj.projectName = employee.projectName;
     newemployeeObj.empId = employee.empId;
+    newemployeeObj.updatedBy = this.currentUser.empId;
 
     console.log('new Employee OBJ :::::::::::::', newemployeeObj);
 
@@ -1161,8 +1214,8 @@ onDepartmentSelectionChange() {
         this.updatedEmpObj = response.serviceResponse;
         //console.log('updated project details ::::::::', this.updatedEmpObj);
         this.openAlertMod(this.alertModal, "Default Project Updated Successfully  !! ")
-
-        this.getAllEmployeesReportByProjectTypeInConsolidated();
+        this.getEmployeeReportData();
+        // this.getAllEmployeesReportByProjectTypeInConsolidated();
         //employee.defaultProjectAssigned = this.updatedEmpObj.primaryProjectName;
       }
     });
@@ -1815,8 +1868,8 @@ onDepartmentSelectionChange() {
     this.jobRoleService.getDefaultMapping().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.defaultMappingList = response.serviceResponse;
-        
-        console.log( this.defaultMappingList , " :  this.defaultMappingList ");
+
+        console.log(this.defaultMappingList, " :  this.defaultMappingList ");
         this.defaultMappingList.forEach((object) => {
           const formattedPermissions = object.permissionList.reduce((permissions, permission) => {
 
@@ -1834,7 +1887,7 @@ onDepartmentSelectionChange() {
 
         this.processData();
         console.log("test");
-        console.log( this.defaultMappingList , " :  this.defaultMappingList 1 ");
+        console.log(this.defaultMappingList, " :  this.defaultMappingList 1 ");
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -1875,17 +1928,17 @@ onDepartmentSelectionChange() {
     const featureSeen = {};
 
     this.defaultMappingListFilter = this.defaultMappingList.sort((a, b) => {
-      const aTabName = a.tabName || ''; 
+      const aTabName = a.tabName || '';
       const bTabName = b.tabName || '';
-      
+
       const tabComp = aTabName.localeCompare(bTabName);
-      
+
       if (tabComp === 0) {
         const aFeatureName = a.featureName || '';
         const bFeatureName = b.featureName || '';
         return aFeatureName.localeCompare(bFeatureName);
       }
-      
+
       return tabComp;
     }).map(x => {
       const tabSpan = tabSeen[x.tabName] ? 0 :
