@@ -27,8 +27,8 @@ public class Summary {
 	
 	private Long goalsRemaining;
 	
-	private Long kraKpiScore;
+	private Float kraKpiScore;
 	
-	private Long questionnaireScore;
+	private Float questionnaireScore;
 	
 }

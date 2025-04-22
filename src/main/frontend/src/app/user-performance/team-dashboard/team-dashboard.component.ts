@@ -14,15 +14,26 @@ import { Log } from 'src/app/models/log';
 import { Feature } from 'src/app/models/feature';
 import { LogService } from 'src/app/services/log.service';
 import { DatePipe } from '@angular/common';
+
+interface GoalResponse {
+  serviceStatus: string;
+  serviceMessage: string;
+  originalError?: any;
+  requestData?: any;
+  serviceResponse?: any;
+}
 @Component({
   selector: 'app-team-dashboard',
   templateUrl: './team-dashboard.component.html',
   styleUrls: ['./team-dashboard.component.css'],
 })
+
 export class TeamDashboardComponent implements OnInit {
   @ViewChild('bulkAssignTemplate') bulkAssignTemplate: TemplateRef<any>;
   @ViewChild('singleAssignTemplate') singleAssignTemplate: TemplateRef<any>;
   @ViewChild('multiGoalTemplate') multiGoalTemplate: TemplateRef<any>;
+
+  
 
   viewPerformanceEmpId: any;
 
@@ -32,8 +43,11 @@ export class TeamDashboardComponent implements OnInit {
   log: Log;
   viewTeamMemberList: any[] = [];
   teamMemberColumns: any[] = ['blank', 'blank', 'employeementId', 'name'];
+  selectedEmployeesColumns: any[] = [ 'blank', 'employeementId', 'name'];
   isSearchEnabled: boolean = false;
+  isSearchEnabled1: boolean = false;
   filters: any = {};
+  filters1: any = {};
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType: any;
@@ -47,9 +61,11 @@ export class TeamDashboardComponent implements OnInit {
   selectedEmployee: any = null;
   quarterCyclesList: any;
   page = 1;
+  page1 = 1;
   quarters: any[] = [];
   loading = false;
   modalRef?: BsModalRef;
+  modalRef1?: BsModalRef;
 
   selectedGoalTemplates: string[] = [];
   errorMessage: string;
@@ -89,7 +105,6 @@ export class TeamDashboardComponent implements OnInit {
     if (this.currentUser && this.currentUser.hodId) {
       this.hodId = this.currentUser.hodId;
       console.log('HOD ID:', this.hodId);
-      // this.getEmployeesInDepartment();
       this.getTeamEmployeeListInTeamDashboard();
       this.loadGoalTemplates();
       this.loadQuarters();
@@ -126,17 +141,20 @@ export class TeamDashboardComponent implements OnInit {
     });
   }
   
-  getTeamEmployeeListInTeamDashboard(){
+
+  getTeamEmployeeListInTeamDashboard() {
     this.viewTeamMemberList = [];
     let empObj = {
       empId: this.currentUser.empId,
       employeeRole: this.currentUser.employeeRole,
       departmentId: this.currentUser.departmentId
     };
-
+  
     this.performanceService.getTeamEmployeeListInTeamDashboard(empObj).subscribe(
       (response: any) => {
-        this.viewTeamMemberList = response;
+        // Filter out the current user from the response
+        this.viewTeamMemberList = response.filter(employee => employee.empId !== this.currentUser.empId);
+        console.log(this.viewTeamMemberList);
       },
       (error) => {
         console.error('Error fetching team members:', error);
@@ -145,36 +163,36 @@ export class TeamDashboardComponent implements OnInit {
     );
   }
   
-  getEmployeesInDepartment() {
-    this.teamDashboardService.findEmployeesInSameDepartmentAsCurrentUser(this.hodId).subscribe(
-      (response: any) => {
-        console.log('Raw response:', JSON.stringify(response))
-        if (response && response.serviceStatus && 
-            response.serviceStatus.toUpperCase() === 'SUCCESS') {
-          this.viewTeamMemberList = response.serviceResponse.map(employee => {
-            return {
-              id: employee.empId,
-              name: employee.name,
-              department: this.currentUser.departmentName || 'N/A',
-              employeementId: employee.employeementId,
-              totalGoals: employee.noOfGoals || 0,
-              goalsCompleted: employee.goalsCompleted || 0
-            };
-          });
-          console.log('Employees fetched successfully:', this.viewTeamMemberList);
-        } else {
-          console.error('Error in response:', response);
-          this.viewTeamMemberList = [];
-        }
-        this.loading = false;
-      },
-      (error) => {
-        console.error('Error fetching department members:', error);
-        this.viewTeamMemberList = [];
-        this.loading = false;
-      }
-    );
-  }
+  // getEmployeesInDepartment() {
+  //   this.teamDashboardService.findEmployeesInSameDepartmentAsCurrentUser(this.hodId).subscribe(
+  //     (response: any) => {
+  //       console.log('Raw response:', JSON.stringify(response))
+  //       if (response && response.serviceStatus && 
+  //           response.serviceStatus.toUpperCase() === 'SUCCESS') {
+  //         this.viewTeamMemberList = response.serviceResponse.map(employee => {
+  //           return {
+  //             id: employee.empId,
+  //             name: employee.name,
+  //             department: this.currentUser.departmentName || 'N/A',
+  //             employeementId: employee.employeementId,
+  //             totalGoals: employee.noOfGoals || 0,
+  //             goalsCompleted: employee.goalsCompleted || 0
+  //           };
+  //         });
+  //         console.log('Employees fetched successfully:', this.viewTeamMemberList);
+  //       } else {
+  //         console.error('Error in response:', response);
+  //         this.viewTeamMemberList = [];
+  //       }
+  //       this.loading = false;
+  //     },
+  //     (error) => {
+  //       console.error('Error fetching department members:', error);
+  //       this.viewTeamMemberList = [];
+  //       this.loading = false;
+  //     }
+  //   );
+  // }
   
   loadQuarters() {
     console.log('Loading quarters...');
@@ -199,49 +217,6 @@ export class TeamDashboardComponent implements OnInit {
       }
     );
   }
-
-  // getEmployeesInDepartment() {
-  //   this.loading = true;
-  //   this.teamDashboardService
-  //     .findEmployeesInSameDepartmentAsCurrentUser(this.hodId)
-  //     .subscribe(
-  //       (response: any) => {
-  //         console.log('Raw response:', JSON.stringify(response));
-  //         if (
-  //           response &&
-  //           response.serviceStatus &&
-  //           response.serviceStatus.toUpperCase() === 'SUCCESS'
-  //         ) {
-  //           // Map the response to match the expected structure
-  //           this.viewTeamMemberList = response.serviceResponse.map(
-  //             (employee) => {
-  //               return {
-  //                 id: employee.empId,
-  //                 name: employee.name,
-  //                 department: this.currentUser.departmentName || 'N/A',
-  //                 employeementId: employee.employeementId,
-  //                 totalGoals: employee.noOfGoals || 0,
-  //                 goalsCompleted: employee.goalsCompleted || 0,
-  //               };
-  //             }
-  //           );
-  //           console.log(
-  //             'Employees fetched successfully:',
-  //             this.viewTeamMemberList
-  //           );
-  //         } else {
-  //           console.error('Error in response:', response);
-  //           this.viewTeamMemberList = [];
-  //         }
-  //         this.loading = false;
-  //       },
-  //       (error) => {
-  //         console.error('Error fetching department members:', error);
-  //         this.viewTeamMemberList = [];
-  //         this.loading = false;
-  //       }
-  //     );
-  // }
 
 
 
@@ -275,9 +250,18 @@ export class TeamDashboardComponent implements OnInit {
       this.filters = {};
     }
   }
+  toggleSearch1() {
+    this.isSearchEnabled1 = !this.isSearchEnabled1;
+    if (!this.isSearchEnabled1) {
+      this.filters = {};
+    }
+  }
 
   handlePageChange(event) {
     this.page = event;
+  }
+  handlePageChange1(event) {
+    this.page1 = event;
   }
 
   sortData(sort: Sort) {
@@ -292,6 +276,9 @@ export class TeamDashboardComponent implements OnInit {
   onSearch(searchData) {
     this.filters = searchData;
   }
+  onSearch1(searchData) {
+    this.filters1 = searchData;
+  }
 
   getEmployeePerformance(viewTeamMember) {
     this.employeeService.setEmployee(viewTeamMember);
@@ -300,7 +287,7 @@ export class TeamDashboardComponent implements OnInit {
 
   toggleEmployeeSelection(employee: any) {
     console.log('Toggling selection for employee:', employee);
-    const index = this.selectedEmployees.findIndex((e) => e.id === employee.id);
+    const index = this.selectedEmployees.findIndex((e) => e.empId === employee.empId);
     if (index === -1) {
       this.selectedEmployees.push(employee);
     } else {
@@ -310,7 +297,7 @@ export class TeamDashboardComponent implements OnInit {
   }
 
   isEmployeeSelected(employee: any): boolean {
-    return this.selectedEmployees.some((e) => e.id === employee.id);
+    return this.selectedEmployees.some((e) => e.empId === employee.empId);
   }
 
   toggleAllSelection(event: any) {
@@ -328,10 +315,63 @@ export class TeamDashboardComponent implements OnInit {
     });
   }
 
+  months: { full: string, short: string }[] = [
+    { full: 'January', short: 'JAN' }, { full: 'February', short: 'FEB' }, { full: 'March', short: 'MAR' },
+    { full: 'April', short: 'APR' }, { full: 'May', short: 'MAY' }, { full: 'June', short: 'JUN' },
+    { full: 'July', short: 'JUL' }, { full: 'August', short: 'AUG' }, { full: 'September', short: 'SEP' },
+    { full: 'October', short: 'OCT' }, { full: 'November', short: 'NOV' }, { full: 'December', short: 'DEC' }
+  ];
+
   futureDateFilter = (date: Date | null): boolean => {
+    if (!date) return false;
+    
     const today = new Date();
-    return date ? date > today : false;
+    today.setHours(0, 0, 0, 0); 
+    
+    if (date < today) return false;
+    if (!this.selectedQuarter) return false;
+    
+    const selectedQuarterCycle = this.quarterCyclesList.find(
+      q => q.quarterId === Number(this.selectedQuarter)
+    )?.quarterCycle;
+    
+    if (!selectedQuarterCycle) return true;
+    
+    const [startMonthShort, endMonthShort] = selectedQuarterCycle.split('-');
+    
+    const startMonthIndex = this.months.findIndex(m => m.short === startMonthShort);
+    const endMonthIndex = this.months.findIndex(m => m.short === endMonthShort);
+    
+    if (startMonthIndex === -1 || endMonthIndex === -1) return true;
+    const currentYear = new Date().getFullYear();
+    let endYear = currentYear;
+    if (endMonthIndex < startMonthIndex) endYear++;
+    
+    const lastDay = new Date(endYear, endMonthIndex + 1, 0).getDate();
+    const endDate = new Date(endYear, endMonthIndex, lastDay);
+    endDate.setHours(0, 0, 0, 0);
+    
+    return date <= endDate;
   };
+
+  onQuarterChange(): void {
+    this.selectedGoalData.forEach(goal => {
+      if (goal.expectedCompletionDate) {
+        const isValid = this.futureDateFilter(new Date(goal.expectedCompletionDate));
+        if (!isValid) {
+          goal.expectedCompletionDate = null;
+        }
+      }
+    });
+
+    if(this.expectedCompletionDate){
+      const isValid = this.futureDateFilter(new Date(this.expectedCompletionDate));
+      if(!isValid){
+        this.expectedCompletionDate = null;
+      }
+    }
+
+  }
 
   disableManualDateInput() {
     return false;
@@ -382,76 +422,123 @@ export class TeamDashboardComponent implements OnInit {
 
   assignGoalsToEmployees(template: TemplateRef<any>) {
     console.log('Attempting to assign goals to multiple employees');
-
+  
     if (
       !this.selectedGoalTemplate ||
       !this.expectedCompletionDate ||
-
       this.selectedEmployees.length === 0 ||
       !this.selectedQuarter
     ) {
       console.error('Missing required data for bulk goal assignment');
-      this.alertMessage = "Please select a goal template, set an expected completion date, select a quarter, and select at least one employee."
+      this.alertMessage = "Please select a goal template, set an expected completion date, select a quarter, and select at least one employee.";
       this.openAlertMod(template, this.alertMessage);
       return;
     }
-
-    const empIds = this.selectedEmployees.map((emp) => emp.id);
-
+    
+    // Check if current user is in the selected employees list
+    // Assuming this.currentUser contains the current user's information
+    const selfAssignment = this.selectedEmployees.some(employee => employee.empId === this.currentUser.empId);
+    
+    if (selfAssignment) {
+      this.alertMessage = "You cannot assign goals to yourself. Please remove yourself from the selected employees list.";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+  
+    // Extract only the employee IDs
+    const empIds = this.selectedEmployees.map((empId) => empId.empId);
+  
+    // Format the date as required by your backend (assuming YYYY-MM-DD)
+    const formattedDate = this.formatDate(this.expectedCompletionDate);
+  
     const requestBody = {
       empIds: empIds,
       templateId: Number(this.selectedGoalTemplate),
-      expectedCompletionDate: this.expectedCompletionDate,
+      expectedCompletionDate: formattedDate,
       quarterId: Number(this.selectedQuarter),
     };
-
+  
     console.log('Sending bulk assignment request:', requestBody);
-
+  
     this.http
       .post(`${environment.baseUrl}api/EmployeeGoals/assign-bulk`, requestBody)
-      .subscribe(
-        (response: any) => {
+      .subscribe({
+        next: (response: any) => {
           console.log('Bulk assignment response:', response);
-          if (
-            response &&
-            response.serviceStatus &&
-            response.serviceStatus.toUpperCase() === 'SUCCESS'
-          ) {
+          
+          // Check for success without relying on specific response structure
+          if (response && (
+            (response.serviceStatus && response.serviceStatus.toUpperCase() === 'SUCCESS') || 
+            Array.isArray(response) || 
+            response.length > 0
+          )) {
             this.selectedEmployees.forEach((emp) => {
               const empInList = this.viewTeamMemberList.find(
                 (e) => e.id === emp.id
               );
-
+  
               if (empInList) {
                 empInList.totalGoals = (empInList.totalGoals || 0) + 1;
               }
             });
-
+  
             this.closeModal();
             this.selectedEmployees = [];
             this.selectedGoalTemplate = '';
             this.expectedCompletionDate = '';
             this.selectedQuarter = '';
             
-            this.getEmployeesInDepartment();
-            this.alertMessage = 'Goals assigned successfully! '
+            this.getTeamEmployeeListInTeamDashboard();
+            this.alertMessage = 'Goals assigned successfully!';
             this.openAlertMod(template, this.alertMessage);
           } else {
             console.error('Error response:', response);
-            this.alertMessage = `Error assigning goals: ` + `${response.serviceMessage}`
+            this.alertMessage = `Error assigning goals: ${response.serviceMessage || 'Unknown error'}`;
             this.openAlertMod(template, this.alertMessage);
           }
         },
-        (error) => {
+        error: (error) => {
           console.error('HTTP error:', error);
-          this.alertMessage = "Error assigning goals. Please try again."
+          let errorMessage = "Error assigning goals. Please try again.";
+          
+          // Try to extract more specific error message if available
+          if (error.error && error.error.message) {
+            errorMessage += ` Details: ${error.error.message}`;
+          } else if (error.message) {
+            errorMessage += ` Details: ${error.message}`;
+          } else if (typeof error === 'string') {
+            errorMessage += ` Details: ${error}`;
+          }
+          
+          this.alertMessage = errorMessage;
           this.openAlertMod(template, this.alertMessage);
         }
-      );
+      });
+  }
+  
+  // Helper function to ensure date is properly formatted
+  private formatDate(date: string | Date): string {
+    if (!date) return '';
+    
+    let d: Date;
+    if (typeof date === 'string') {
+      d = new Date(date);
+    } else {
+      d = date;
+    }
+    
+    // Return in YYYY-MM-DD format for backend
+    return d.toISOString().split('T')[0];
   }
   
   assignMultipleGoalsToEmployee(template: TemplateRef<any>) {
-    
+
+    if (this.selectedEmployee && this.selectedEmployee.empId === this.currentUser.empId) {
+        this.alertMessage = "You cannot assign goals to yourself.";
+        this.openAlertMod(template, this.alertMessage);
+        return;
+    }
+
     const invalidEntries = this.selectedGoalData.some(goal => 
       !goal.templateId || !goal.expectedCompletionDate || !this.selectedQuarter);
     
@@ -462,6 +549,7 @@ export class TeamDashboardComponent implements OnInit {
       return;
     }
     
+
     
     const assignmentPromises = this.selectedGoalData.map(goal => {
       const requestBody = {
@@ -471,28 +559,34 @@ export class TeamDashboardComponent implements OnInit {
         quarterId: Number(this.selectedQuarter) 
       };
       
-      // console.log('Sending goal assignment request:', requestBody);
-      
-      return this.http.post(`${environment.baseUrl}api/EmployeeGoals/assign`, requestBody)
+      return this.http.post<GoalResponse>(`${environment.baseUrl}api/EmployeeGoals/assign`, requestBody)
         .toPromise()
         .catch((error) => {
+          // Extract the actual error message from the backend response
+          let errorMessage = 'Failed to assign goal';
+          if (error.error && error.error.serviceError) {
+            errorMessage = error.error.serviceError;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+          
           console.error('Error assigning goal:', error, requestBody);
           return {
             serviceStatus: 'ERROR',
-            serviceMessage: error.message || 'Failed to assign goal',
+            serviceMessage: errorMessage,
             originalError: error,
             requestData: requestBody,
-          };
+          } as GoalResponse;
         });
     });
 
     Promise.all(assignmentPromises)
-      .then((responses) => {
+      .then((responses: GoalResponse[]) => {
         console.log('All assignment responses:', responses);
         this.loading = false;
 
         const successfulAssignments = responses.filter(
-          (response: any) =>
+          (response: GoalResponse) =>
             response &&
             response.serviceStatus &&
             response.serviceStatus.toUpperCase() === 'SUCCESS'
@@ -515,18 +609,26 @@ export class TeamDashboardComponent implements OnInit {
           this.selectedGoalData = [];
           this.selectedQuarter = '';
           
-          this.getEmployeesInDepartment();
+          this.getTeamEmployeeListInTeamDashboard();
           this.alertMessage = "All goals assigned successfully!"
           this.openAlertMod(template, this.alertMessage); 
         } else {
           console.error('Some assignments failed:', responses);
 
           if (successfulAssignments.length > 0) {
-            this.alertMessage = `${successfulAssignments.length} goals assigned successfully, but ${failedAssignments} failed. Check the console for details.`
+            // Get the error messages from the failed responses
+            const errorMessages = responses
+              .filter((r: GoalResponse) => r.serviceStatus !== 'SUCCESS')
+              .map((r: GoalResponse) => r.serviceMessage)
+              .join(', ');
+              
+            this.alertMessage = `${successfulAssignments.length} goals assigned successfully, but ${failedAssignments} failed: ${errorMessages}`;
             this.openAlertMod(template, this.alertMessage); 
-            this.getEmployeesInDepartment(); 
+            this.getTeamEmployeeListInTeamDashboard(); 
           } else {
-            this.alertMessage = "Failed to assign any goals. Please check the console for details."
+            // Get the error messages from all responses
+            const errorMessages = responses.map((r: GoalResponse) => r.serviceMessage).join(', ');
+            this.alertMessage = `Failed to assign goals: ${errorMessages}`;
             this.openAlertMod(template, this.alertMessage);
           }
         }
@@ -535,13 +637,18 @@ export class TeamDashboardComponent implements OnInit {
         this.loading = false;
         console.error('Fatal error assigning multiple goals:', error);
         
-        this.alertMessage = "Error assigning goals. Please try again"
+        let errorMessage = "Error assigning goals. Please try again";
+        if (error && error.message) {
+          errorMessage = `Error: ${error.message}`;
+        }
+        
+        this.alertMessage = errorMessage;
         this.openAlertMod(template, this.alertMessage);
       });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
 }

@@ -1,17 +1,21 @@
 package com.apmosys.employeeportal.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+@NoArgsConstructor
 @Getter
 @Setter
 @ToString
 public class TimesheetDTO {
-
+	
 	private Integer projectId;
 	private Integer clientId;
 	private String clientName;
@@ -30,13 +34,14 @@ public class TimesheetDTO {
 	private String dayType;
 	private String employeeName;
 	private String createdByName;
+	private Long CreatedByEmpId;
 	private String createdOn;
 	private String startDate;
 	private String endDate;
 	private Long createdBy;
 	private List<ActivityDTO> allTimesheetActivities;
 	private List<ActivityDTO> updatedTimesheetActivities;
-
+    private Long activityTimesheetId;
 	private Long employeementId;
 
 	private Long applicationCount;
@@ -94,4 +99,47 @@ public class TimesheetDTO {
 	private String isApprenticeship;
 	
 	private List<EmployeeTimesheetDto> timeSheet;
-}
+	
+	public TimesheetDTO(
+		    Long timesheetId,               // long
+		    LocalDate date,                 // java.time.LocalDate
+		    String dayType,                 // java.lang.String
+		    String employeeName,            // java.lang.String (ec.name)
+		    String description,             // java.lang.String
+		    String status,                  // java.lang.String
+		    String createdByName,           // java.lang.String (eh.name)
+		    Long createdByEmpId,            // long (eh.empId)
+		    String createdOn,               // java.lang.String
+		    Long employeementId,            // long
+		    Float totalTime,                // float
+		    String email,                   // java.lang.String
+		    LocalDateTime officeInTime,     // java.time.LocalDateTime
+		    LocalDateTime officeOutTime,    // java.time.LocalDateTime
+		    String totalWorkingHours,       // java.lang.String
+		    String isNightShift,            // java.lang.String
+		    Long currentManagerId,          // long
+		    String isConsultant,            // java.lang.String
+		    String isApprenticeship,        // java.lang.String
+		    Long empId                      // long
+		) {
+		    this.timesheetId = timesheetId;
+		    this.date = date.toString();    // Convert LocalDate to String
+		    this.dayType = dayType;
+		    this.employeeName = employeeName;
+		    this.description = description;
+		    this.status = status;
+		    this.createdByName = createdByName;
+		    this.CreatedByEmpId = createdByEmpId;
+		    this.createdOn = createdOn;
+		    this.employeementId = employeementId;
+		    this.totalTime = totalTime;
+		    this.email = email;
+		    this.officeInTime = officeInTime.toString();    // Convert LocalDateTime to String
+		    this.officeOutTime = officeOutTime.toString();  // Convert LocalDateTime to String
+		    this.totalWorkingHours = Float.parseFloat(totalWorkingHours);  // Convert String to Float
+		    this.isNightShift = isNightShift;
+		    this.currentManagerId = currentManagerId;
+		    this.isConsultant = isConsultant;
+		    this.isApprenticeship = isApprenticeship;
+		    this.empId = empId;
+		}}

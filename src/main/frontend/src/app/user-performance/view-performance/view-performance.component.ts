@@ -49,6 +49,10 @@ interface AppraisalSummary {
 }
 
 interface kpiList{
+  isFixed: any;
+  review: any;
+  managerRemark: any;
+  managerRating: any;
   remark: any;
   response:any;
   id:number;
@@ -74,8 +78,6 @@ export class ViewPerformanceComponent implements OnInit {
   activeTab: string = 'kra-kpi';
   quarterCyclesList: any;
   selectedQuarter:any;
-  selectedQuarter1:any;
-
   kraKpiMetrics: any[] = [];
   questionnaireQuestions: any[] = [];
   currentQuestionnaireId: any;
@@ -99,6 +101,7 @@ export class ViewPerformanceComponent implements OnInit {
   selectedGoal?: Goal;
   subscription!: Subscription;
   modalRef?: BsModalRef;
+  modalRef1?: BsModalRef;
   errorMessage: string;
   kpiList:kpiList[] = [];
   alertMessage: any;
@@ -270,10 +273,8 @@ export class ViewPerformanceComponent implements OnInit {
         if (response.serviceStatus === 'Success') {
           this.quarterCyclesList = response.serviceResponse;
           this.selectedQuarter = this.quarterCyclesList[0].quarterId;
-          this.selectedQuarter1 = this.quarterCyclesList[0].quarterId;
           
           this.onQuarterChange();
-          this.onQuarterChange1();
         } else {
           this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
         }
@@ -290,14 +291,10 @@ export class ViewPerformanceComponent implements OnInit {
     this.loadPerformanceStats();
     this.fetchGoals();
     this.loadAppraisalSummary();
-  }
-
-  onQuarterChange1(): void{
-    if (!this.selectedQuarter1) return;
-
     this.loadKpiList();
     this.loadQuestionnaireQuestions();
   }
+
 
 
 
@@ -407,55 +404,125 @@ export class ViewPerformanceComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
+  initializeQuestions(): void {
+    // Initialize questionnaire questions
+    if (this.questionnaireQuestions) {
+      this.questionnaireQuestions.forEach(question => {
+        if (question.response === undefined || question.response === null) {
+          question.response = 0; // Set default value to 0
+        }
+        if (!question.remark) {
+          question.remark = ''; // Set empty remark
+        }
+      });
+    }
+    
+    // Initialize KPI list
+    if (this.kpiList) {
+      this.kpiList.forEach(kpi => {
+        if (kpi.response === undefined || kpi.response === null) {
+          kpi.response = 0; // Set default value to 0
+        }
+        if (!kpi.remark) {
+          kpi.remark = ''; // Set empty remark
+        }
+      });
+    }
+  }
 
 
   loadQuestionnaireQuestions(): void {
-    const quarterId = this.selectedQuarter1;
+    const quarterId = this.selectedQuarter;
     const departmentId = this.currentEmployeeInfo.departmentId;
+    // const empId = this.currentUser.empId;
+    let currentEmp = new Employee();
+    currentEmp.empId = this.viewPerformanceEmpId;
 
+  
     this.questionnaireQuestions = [];
-    this.currentQuestionnaireId = null;    
-
-    this.performanceService.loadQuestionnaireQuestions(departmentId, quarterId).subscribe({
-        next: (response: any) => {
-          if (response.serviceStatus === 'Success') {
-            this.questionnaireQuestions = response.serviceResponse[0].questions;
-            this.currentQuestionnaireId = response.serviceResponse[0].questionId;
-            // console.log('Questionnaire response:',this.questionnaireQuestions);
-            console.log('length of questionnaire: ', this.questionnaireQuestions.length);
+    this.currentQuestionnaireId = null;
+    
+    if (!quarterId || !departmentId) return;
   
-           
-          } else {
-            console.error('Failed to load questionnaire questions:', response.serviceMessage);
-          }
-        },
-        error: (error) => {
-          console.error('Error fetching questionnaire questions:', error);
-        }
-      });
-  }
-
-  saveQuestionnaireResponses(template: TemplateRef<any>): void {
- 
-    const empId = this.currentEmployeeInfo.empId;
-    const quarterId = this.selectedQuarter1;
-
-    console.log('question response:', this.questionnaireQuestions);
-  
-  
-    this.performanceService.submitQuestionnaireResponses(this.questionnaireQuestions,empId,quarterId).subscribe({
+    // First load the questionnaire template
+    this.performanceService.getQuestionnares(departmentId, quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
-          this.alertMessage = "Questionnaire responses submitted successfully!"
-          this.openAlertMod(template, this.alertMessage);
+          // Store the questions template
+          this.questionnaireQuestions = response.serviceResponse[0].questions;
+          console.log('Questionnaire template loaded:', this.questionnaireQuestions);
+          
+          // Now fetch the saved responses
+          this.performanceService.getQuestionnaireResponses(currentEmp.empId, quarterId).subscribe({
+            next: (responseData: any) => {
+              console.log('Saved responses:', responseData);
+              
+              if (responseData && Array.isArray(responseData) && responseData.length > 0) {
+                // Map the saved responses to the questions
+                this.questionnaireQuestions.forEach(question => {
+                  // Look for the matching response using the question id
+                  const savedResponse = responseData.find((resp: any) => 
+                    resp.id === question.id
+                  );
+                  
+                  if (savedResponse) {
+                    // Update the question with saved response data
+                    question.response = savedResponse.response || 0;
+                    question.managerRemark = savedResponse.managerRemark || '';
+                    question.managerRating = savedResponse.managerRating || 0;
+                    // Store the database ID for later updates
+                    question.existingId = savedResponse.id;
+                  } else {
+                    // No saved response found, initialize
+                    question.response = 0;
+                    question.managerRemark = '';
+                    question.managerRating = 0;
+                    question.existingId = null;
+                  }
+                });
+              } else {
+                // No responses found, initialize all questions
+                this.initializeQuestions();
+              }
+            },
+            error: (error) => {
+              console.error('Error fetching saved responses:', error);
+              this.initializeQuestions();
+            }
+          });
         } else {
-          this.alertMessage = `Failed to submit responses: ${response.serviceMessage}`
+          console.error('Failed to load questionnaire questions:', response.serviceMessage);
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching questionnaire questions:', error);
+      }
+    });
+  }
+  
+  saveQuestionnaireResponses(template: TemplateRef<any>): void {
+    let currentEmp = new Employee();
+    currentEmp.empId = this.viewPerformanceEmpId;
+    const quarterId = this.selectedQuarter;
+  
+    console.log('Submitting questionnaire responses:', this.questionnaireQuestions);
+  
+    this.performanceService.submitQuestionnaireResponses(this.questionnaireQuestions,  currentEmp.empId, quarterId).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.alertMessage = "Questionnaire responses submitted successfully!";
+          this.openAlertMod(template, this.alertMessage);
+          
+          // Reload the questions to get the updated data
+          this.loadQuestionnaireQuestions();
+        } else {
+          this.alertMessage = `Failed to submit responses: ${response.serviceMessage}`;
           this.openAlertMod(template, this.alertMessage);
         }
       },
       error: (error) => {
         console.error('Error submitting questionnaire responses:', error);
-        this.alertMessage = `An error occurred while submitting responses. Please try again.`
+        this.alertMessage = `An error occurred while submitting responses. Please try again.`;
         this.openAlertMod(template, this.alertMessage);
       }
     });
@@ -467,51 +534,99 @@ export class ViewPerformanceComponent implements OnInit {
   }
 
   loadKpiList(): void {
-    const quarterId = this.selectedQuarter1;
+    const quarterId = this.selectedQuarter;
     const departmentId = this.currentEmployeeInfo.departmentId;
     const employeeRole = this.currentUser.employeeRole;
-
+    let currentEmp = new Employee();
+    currentEmp.empId = this.viewPerformanceEmpId;
+    
     this.kpiList = [];
-
     
     if (!quarterId || !departmentId) return;
-    this.performanceService.loadKpiList(quarterId, departmentId,employeeRole).subscribe({
-        next: (response: any) => {
-          if (response.serviceStatus === 'Success') {
-            this.kpiList = response.serviceResponse[0].kpis;
-
-          } else {
-            console.error('Failed to load questionnaire questions:', response.serviceMessage);
-          }
-        },
-        error: (error) => {
-          console.error('Error fetching questionnaire questions:', error);
+    
+    this.performanceService.getKraKpi(departmentId, quarterId, employeeRole).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          // Store the KPI template
+          this.kpiList = response.serviceResponse[0].kpis;
+          console.log('KPI list loaded:', this.kpiList);
+          
+          // Now fetch the saved KPI responses
+          this.performanceService.showresponse(currentEmp.empId, quarterId).subscribe({
+            next: (responseData: any) => {
+              console.log('Saved KPI responses:', responseData);
+              
+              if (responseData && Array.isArray(responseData) && responseData.length > 0) {
+                // Map the saved responses to the KPIs
+                this.kpiList.forEach(kpi => {
+                  const savedResponse = responseData.find((resp: any) => 
+                    resp.kpiId === kpi.id
+                  );
+                  
+                  if (savedResponse) {
+                    // Store the database record ID for update operations
+                    kpi.id = savedResponse.id;
+                    kpi.response = savedResponse.response || 0;
+                    kpi.description = savedResponse.description || '';
+                    kpi.managerRating = savedResponse.managerRating;
+                    kpi.managerRemark = savedResponse.managerRemark;
+                    kpi.review = savedResponse.review;
+                    kpi.isFixed = savedResponse.isFixed;
+                    console.log(`Found saved response for KPI ${kpi.id}:`, kpi.response);
+                  } else {
+                    // No saved response found, initialize
+                    kpi.id = null;
+                    kpi.response = 0;
+                    kpi.description = '';
+                    kpi.managerRating = null;
+                    kpi.managerRemark = null;
+                    kpi.review = null;
+                  }
+                });
+              } else {
+                // No responses found, initialize all KPIs
+                this.initializeQuestions();
+              }
+            },
+            error: (error) => {
+              console.error('Error fetching saved KPI responses:', error);
+              this.initializeQuestions();
+            }
+          });
+        } else {
+          console.error('Failed to load KPI list:', response.serviceMessage);
         }
-      });
-  
+      },
+      error: (error) => {
+        console.error('Error fetching KPI list:', error);
+      }
+    });
   }
   
   saveKpiResponses(template: TemplateRef<any>): void {
-  
-    console.log("Response ======> "+ JSON.stringify(this.kpiList));
+    console.log("Response ======> " + JSON.stringify(this.kpiList));
   
     const response = this.kpiList;
-    const empId = this.currentEmployeeInfo.empId;
-    const quarterId = this.selectedQuarter1;
+    let currentEmp = new Employee();
+    currentEmp.empId = this.viewPerformanceEmpId;
+    const quarterId = this.selectedQuarter;
   
-    this.performanceService.submitKpiResponses(response,empId,quarterId).subscribe({
+    this.performanceService.submitKpiResponses(response, currentEmp.empId, quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
-          this.alertMessage = "KPI responses submitted successfully!"
+          this.alertMessage = "KPI responses submitted successfully!";
           this.openAlertMod(template, this.alertMessage);
+          
+          // Reload the KPI list to refresh with the latest data
+          this.loadKpiList();
         } else {
-          this.alertMessage = `Failed to submit responses: ${response.serviceMessage}`
+          this.alertMessage = `Failed to submit responses: ${response.serviceMessage}`;
           this.openAlertMod(template, this.alertMessage);
         }
       },
       error: (error) => {
         console.error('Error submitting KPI responses:', error);
-        this.alertMessage = `Error submitting KPI responses: ${error}`
+        this.alertMessage = `Error submitting KPI responses: ${error}`;
         this.openAlertMod(template, this.alertMessage);
       }
     });
@@ -538,7 +653,7 @@ export class ViewPerformanceComponent implements OnInit {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
 

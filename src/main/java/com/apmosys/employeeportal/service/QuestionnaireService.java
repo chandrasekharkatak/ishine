@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import com.apmosys.employeeportal.dto.KpiDTO;
 import com.apmosys.employeeportal.dto.QuestionDTO;
 import com.apmosys.employeeportal.dto.QuestionnaireDTO;
+import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Question;
 import com.apmosys.employeeportal.model.Questionnaire;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -13,6 +14,7 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,7 +43,7 @@ public class QuestionnaireService {
  
         questionnaire.setQuarterId(quarterId);
         questionnaire.setQuarter(quarter);//we do not need this
-//        questionnaire.setDepartment(department);
+        questionnaire.setDepartment(department);
         questionnaire.setDepartmentId(departmentId);
 //        use convertto dto and convertto entity
         
@@ -77,29 +79,69 @@ public class QuestionnaireService {
         return questionnaireRepository.findByQuarterAndDepartment(quarterId,departmentId);
     }
     
-    public Questionnaire updateQuestionnaire(Long id, QuestionnaireDTO dto) {
-        Questionnaire questionnaire = getQuestionnaireById(id);
-        questionnaire.setQuestionTitle(dto.getQuestionTitle());
-        questionnaire.setQuestionDescription(dto.getQuestionDescription());
-        questionnaire.setCreatedBy(dto.getCreatedBy());
-        questionnaire.setQuarterId(dto.getQuarterId());
-        questionnaire.setDepartmentId(dto.getDepartmentId());
-        
-        questionnaire.setDepartmentName(dto.getDepartmentName());
- 
-        if (dto.getQuestions() != null) {
-       
-            questionnaire.getQuestions().clear();
-        
-            for (QuestionDTO questionDTO : dto.getQuestions()) {
-                Question question = new Question();
-                question.setQuestionText(questionDTO.getQuestionText());
-                question.setResponse(questionDTO.getResponse());
-                questionnaire.addQuestion(question);
+    public ServiceResponse updateQuestionnaire(Long id, QuestionnaireDTO dto) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+            Optional<Questionnaire> existingQuestionnaire = questionnaireRepository.findById(id);
+            
+            if (existingQuestionnaire.isPresent()) {
+                Questionnaire questionnaire = existingQuestionnaire.get();
+                
+                // Update fields only if they are not null
+                if (dto.getQuestionTitle() != null) {
+                    questionnaire.setQuestionTitle(dto.getQuestionTitle());
+                }
+                if (dto.getQuestionDescription() != null) {
+                    questionnaire.setQuestionDescription(dto.getQuestionDescription());
+                }
+                if (dto.getCreatedBy() != null) {
+                    questionnaire.setCreatedBy(dto.getCreatedBy());
+                }
+                if (dto.getQuarterId() != null) {
+                    questionnaire.setQuarterId(dto.getQuarterId());
+                }
+                
+                // Validate department if changed
+                if (dto.getDepartmentId() != null) {
+                    Department department = departmentRepository.findByDeptId(dto.getDepartmentId());
+                    if (department == null) {
+                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                        response.setServiceMessage("Invalid Department ID");
+                        return response;
+                    }
+                    questionnaire.setDepartmentId(dto.getDepartmentId());
+                    questionnaire.setDepartmentName(department.getName());
+                }
+                
+                // Update questions if provided
+                if (dto.getQuestions() != null) {
+                    questionnaire.getQuestions().clear();
+                    
+                    for (QuestionDTO questionDTO : dto.getQuestions()) {
+                        Question question = new Question();
+                        question.setQuestionText(questionDTO.getQuestionText());
+                        question.setResponse(questionDTO.getResponse());
+                        questionnaire.addQuestion(question);
+                    }
+                }
+                
+                Questionnaire updatedQuestionnaire = questionnaireRepository.save(questionnaire);
+                // Convert to DTO if you have a conversion method
+                QuestionnaireDTO updatedDto = convertToDTO(updatedQuestionnaire);
+                
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(updatedDto);
+                response.setServiceMessage("Questionnaire Updated Successfully");
+            } else {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceMessage("Questionnaire Not Found");
             }
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceError(e.getMessage());
+            response.setServiceMessage("Error Updating Questionnaire");
         }
-        
-        return questionnaireRepository.save(questionnaire);
+        return response;
     }
     
 
@@ -117,6 +159,7 @@ public class QuestionnaireService {
         dto.setQuarterId(questionnaire.getQuarterId());
         dto.setQuarter(questionnaire.getQuarter());
         dto.setDepartment(questionnaire.getDepartment());
+        dto.setDepartmentName(questionnaire.getDepartmentName());
         dto.setDepartmentId(questionnaire.getDepartmentId());
         dto.setManagerRating(questionnaire.getManagerRating());
         dto.setManagerRemark(questionnaire.getManagerRemark());

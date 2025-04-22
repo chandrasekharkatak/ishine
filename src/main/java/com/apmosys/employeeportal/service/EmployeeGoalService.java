@@ -38,8 +38,10 @@ public class EmployeeGoalService {
     public EmployeeGoalDTO assignGoalToEmployee(Long empId, Long templateId, LocalDate expectedCompletionDate, Long quarterId) {
         Long tid = employeeGoalRepository.findByTemplateId(templateId,empId);
         
-        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++"+empId);
-        if(templateId.equals(tid) || tid == null ) {
+        
+        if(templateId != tid || tid == null ) {
+
+        
         
         Optional<GoalTemplates> vopt = goalTemplateRepo.findById(templateId);
         GoalTemplates template = null;
@@ -96,69 +98,73 @@ public class EmployeeGoalService {
         EmployeeGoals savedGoal = employeeGoalRepository.save(convertToEntity(employeeGoalDTO));
         return convertToDTO(savedGoal);}
         else {
+            
         	throw new RuntimeException("Goal Already assigned to the employee: " + templateId);
         
         }
     }
     
     public List<EmployeeGoalDTO> assignGoalToMultipleEmployees(List<Long> empIds, Long templateId, LocalDate expectedCompletionDate, Long quarterId) {
-        ServiceResponse response = goalTemplateService.getGoalTemplateById(templateId);
-        if (!ServiceResponse.STATUS_SUCCESS.equals(response.getServiceStatus())) {
-            throw new RuntimeException("Goal template not found with ID: " + templateId);
-        }
-        Optional<GoalTemplates> vopt = goalTemplateRepo.findById(templateId);
-        if (!vopt.isPresent()) {
-            throw new RuntimeException("Goal template not found with ID: " + templateId);
-        }
-        GoalTemplates template = vopt.get();
-
-      
         List<EmployeeGoalDTO> assignedGoals = new ArrayList<>();
+        
         for (Long empId : empIds) {
-        	
-        	
-            EmployeeGoalDTO employeeGoalDTO = new EmployeeGoalDTO();
-            List<Object[]> quarterIdList = quarterCycleRepository.findQuarterCycleById(quarterId);
-            if (quarterIdList != null && !quarterIdList.isEmpty()) {
-                Object[] quarterData = quarterIdList.get(0);
-
-                for (int i = 0; quarterData != null && i < quarterData.length; i++) {
-                    if (quarterData[i] != null && quarterData[i].toString().matches("[A-Z]{3}-[A-Z]{3}")) {
-                        employeeGoalDTO.setQuarter(quarterData[i].toString());
-                        break;
-                    }
+            Long tid = employeeGoalRepository.findByTemplateId(templateId, empId);
+            
+            if(templateId != tid || tid == null) {
+                Optional<GoalTemplates> vopt = goalTemplateRepo.findById(templateId);
+                if (!vopt.isPresent()) {
+                    throw new RuntimeException("Goal template not found with ID: " + templateId);
                 }
+                GoalTemplates template = vopt.get();
                 
-
-                if (employeeGoalDTO.getQuarter() == null && quarterData != null && quarterData.length > 0) {
+                EmployeeGoalDTO employeeGoalDTO = new EmployeeGoalDTO();
+                List<Object[]> quarterIdList = quarterCycleRepository.findQuarterCycleById(quarterId);
+                
+                if (quarterIdList != null && !quarterIdList.isEmpty()) {
+                    Object[] quarterData = quarterIdList.get(0);
                     
-                    for (int i = 0; i < Math.min(3, quarterData.length); i++) {
-                        if (quarterData[i] != null) {
+                    for (int i = 0; quarterData != null && i < quarterData.length; i++) {
+                        if (quarterData[i] != null && quarterData[i].toString().matches("[A-Z]{3}-[A-Z]{3}")) {
                             employeeGoalDTO.setQuarter(quarterData[i].toString());
                             break;
                         }
                     }
+                    
+                    if (employeeGoalDTO.getQuarter() == null && quarterData != null && quarterData.length > 0) {
+                        for (int i = 0; i < Math.min(3, quarterData.length); i++) {
+                            if (quarterData[i] != null) {
+                                employeeGoalDTO.setQuarter(quarterData[i].toString());
+                                break;
+                            }
+                        }
+                    }
                 }
-            }
-            
-            if (employeeGoalDTO.getQuarter() == null) {
-                employeeGoalDTO.setQuarter("Unknown Quarter");
-            }
-            Long iniprogress = (long) 0;
-            employeeGoalDTO.setEmpId(empId);
-            employeeGoalDTO.setTemplateId(templateId);
-            employeeGoalDTO.setAssignedBy(template.getCreatedBy());
-            employeeGoalDTO.setGoalTitle(template.getTitle());
-            employeeGoalDTO.setGoalProgress(iniprogress); 
-            employeeGoalDTO.setGoalStatus("Pending"); 
-            employeeGoalDTO.setExpectedCompletionDate(expectedCompletionDate);
-            employeeGoalDTO.setCreatedDate(LocalDate.now());
-            employeeGoalDTO.setQuarterId(quarterId);
-
-            EmployeeGoals savedGoal = employeeGoalRepository.save(convertToEntity(employeeGoalDTO));
-            assignedGoals.add(convertToDTO(savedGoal));
+                
+                if (employeeGoalDTO.getQuarter() == null) {
+                    employeeGoalDTO.setQuarter("Unknown Quarter");
+                }
+                
+                Long iniprogress = (long) 0;
+                employeeGoalDTO.setEmpId(empId);
+                employeeGoalDTO.setTemplateId(templateId);
+                employeeGoalDTO.setAssignedBy(template.getCreatedBy());
+                employeeGoalDTO.setDescription(template.getDescription());
+                employeeGoalDTO.setGoalTitle(template.getTitle());
+                employeeGoalDTO.setGoalProgress(iniprogress);
+                employeeGoalDTO.setGoalStatus("Pending");
+                employeeGoalDTO.setExpectedCompletionDate(expectedCompletionDate);
+                employeeGoalDTO.setCreatedDate(LocalDate.now());
+                employeeGoalDTO.setQuarterId(quarterId);
+                
+                EmployeeGoals savedGoal = employeeGoalRepository.save(convertToEntity(employeeGoalDTO));
+                assignedGoals.add(convertToDTO(savedGoal));
+            } 
         }
-
+        
+        if (assignedGoals.isEmpty()) {
+            throw new RuntimeException("No goals were assigned. Goals might already be assigned to the selected employees.");
+        }
+        
         return assignedGoals;
     }
     
@@ -304,16 +310,15 @@ public class EmployeeGoalService {
     			if(employeeR != null) {
     				employeeGoal.setEmployeeRemark(employeeR);
     			}
-    			employeeGoal.setGoalProgress(progress);
-    			if(progress == 100)
-    			{
-    				employeeGoal.setGoalStatus("Completed");
-    			}
-    	
-    			else
-    			{
-    				employeeGoal.setGoalStatus("Pending");
-    			}
+//    			employeeGoal.setGoalProgress(progress);
+    			if(progress != null) {
+                    employeeGoal.setGoalProgress(progress);
+                    if(progress == 100) {
+                        employeeGoal.setGoalStatus("Completed");
+                    } else {
+                        employeeGoal.setGoalStatus("Pending");
+                    }
+                }
     			
     			EmployeeGoals updated  = employeeGoalRepository.save(employeeGoal);
     			EmployeeGoalDTO updatedDto = convertToDTO(updated);
@@ -386,12 +391,13 @@ public class EmployeeGoalService {
             if (row[7] != null) dto.setGoalProgress(Long.parseLong(row[7].toString()));
             if (row[8] != null) dto.setGoalStatus(row[8].toString());
             if (row[9] != null) dto.setGoalTitle(row[9].toString());
-            if (row[10] != null) dto.setQuarter(row[10].toString());
+//            if (row[10] != null) dto.setQuarter(row[10].toString());
             if (row[5] != null) dto.setAssignedBy(((Number)row[5]).longValue());
             if(row[4]!= null) dto.setDescription(row[4].toString());
-            if(row[12]!= null) dto.setManagerRemark(row[12].toString());
+            if(row[12]!= null) dto.setQuarter(row[12].toString());
             if(row[13]!= null) dto.setQuarterId(Long.parseLong(row[13].toString()));
             if(row[14]!= null) dto.setEmployeeRemark(row[14].toString());
+            if(row[15]!= null) dto.setManagerRemark(row[15].toString());
             
                     } catch (Exception e) {
                         throw new RuntimeException("Error");

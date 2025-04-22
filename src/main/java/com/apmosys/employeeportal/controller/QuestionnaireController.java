@@ -146,16 +146,7 @@ public class QuestionnaireController {
     @PutMapping("/updateQuestionnaire/{id}")
     public ServiceResponse updateQuestionnaire(@PathVariable Long id, @RequestBody QuestionnaireDTO questionnaireDTO) {
         ServiceResponse response = new ServiceResponse();
-        try {
-            Questionnaire updatedQuestionnaire = questionnaireService.updateQuestionnaire(id, questionnaireDTO);
-            response.setServiceResponse(questionnaireService.convertToDTO(updatedQuestionnaire));
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceMessage("Questionnaire updated successfully");
-        } catch (Exception e) {
-            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceError(e.getMessage());
-            response.setErrorStackTrace(e.toString());
-        }
+        response = questionnaireService.updateQuestionnaire(id, questionnaireDTO);
         return response;
     }
 

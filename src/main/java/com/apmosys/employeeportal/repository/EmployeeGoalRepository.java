@@ -20,5 +20,7 @@ public interface EmployeeGoalRepository extends JpaRepository<EmployeeGoals, Lon
     Long findByTemplateId(@Param("templateId") Long templateId, @Param("empId") Long empId);
     
     Optional<EmployeeGoals> findByGoalId(Long goalId);
+
+    public EmployeeGoals findByTemplateId(Long templateId);
     
 }

@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -1016,96 +1017,114 @@ public class PerformanceService {
 
 
 	public ResponseEntity<List<EmployeeteamDto>> getTeamEmployeeListInTeamDashboard(PerformanceDTO performanceDTO) {
-		List<EmployeeteamDto> response = new ArrayList<EmployeeteamDto>();
-		try {
-			List<Object[]> employeeDbResponse = null;
-			List<Object[]> employeeTeamDbResponse = null;
-			// if employeeRole = SuperAdmin,HR,RMG show all users
-			if(performanceDTO.getEmployeeRole().equalsIgnoreCase("SuperAdmin")
-					|| performanceDTO.getEmployeeRole().equalsIgnoreCase("HR")
-					|| performanceDTO.getEmployeeRole().equalsIgnoreCase("RMG")) {
-				employeeDbResponse = employeePerformanceRepository.getAllEmployeeForTeamMember();
-			}else if(performanceDTO.getEmployeeRole().equalsIgnoreCase("HOD") ) {
-				// if employeeRole = HoD show all users by department
-				List<Long> deptIds = departmentRepository.findByHodId(performanceDTO.getEmpId())
-					    .stream()
-					    .map(Department::getDeptId)
-					    .collect(Collectors.toList());
-				
-				employeeDbResponse = employeePerformanceRepository
-						.getAllEmployeeForTeamMemberByDepartment(deptIds);
-			}else {
-				/* if employeeRole = Manager, TL, Employee show user by reportsTo 
-				   && user persona in a Team i.e if user is Employee but persona in Team is of TL
-				*/
-				List<EmployeeTeamMap> emplTeamList = employeeTeamMapRepository.findByEmpIdAndActive(performanceDTO.getEmpId(), 1l);
-				List<Long> teamIds = new ArrayList<>();
-				AtomicBoolean isTeamAssign = new AtomicBoolean(false);
-				if(!emplTeamList.isEmpty()) {
-					teamIds = emplTeamList.stream().map(EmployeeTeamMap::getTeamId).collect(Collectors.toList());
-					emplTeamList.forEach((object) -> {
-						if(object.getEmployeeRole().contains("TeamLead") ||
-								object.getEmployeeRole().contains("HOD") || 
-								object.getEmployeeRole().contains("Manager") || 
-								object.getEmployeeRole().contains("HR") || 
-								object.getEmployeeRole().contains("RMG") || object.getEmployeeRole().contains("SuperAdmin")) {
-							isTeamAssign.set(true);
-							return;
-						}
-					});
-				}
-				
-				if(isTeamAssign.get()) {
-					// get Team members
-					employeeDbResponse = employeePerformanceRepository.getAllTeamMembers(teamIds);
-					employeeTeamDbResponse = employeePerformanceRepository.getAllEmployeeReportByEmpId(performanceDTO.getEmpId());
-				}else {
-					// get employee who are reporting to me
-					employeeDbResponse = employeePerformanceRepository.getAllEmployeeReportByEmpId(performanceDTO.getEmpId());
-				}
-			}
-			
-			if(!employeeDbResponse.isEmpty()) {
-				employeeDbResponse.forEach((object) -> {
-					EmployeeteamDto employee = new EmployeeteamDto();
-					
-					employee.setEmpId(object[0]!= null ? Long.parseLong(object[0].toString()) : null);
-					employee.setName(object[1] != null ? object[1].toString(): null);
-					employee.setEmployeementId(object[2]!= null ? Long.parseLong(object[2].toString()) : null);
-					employee.setGoalsCompleted(null);
-					employee.setTotalGoals(null);
-				
-					response.add(employee);
-				});
-				
-				if(!employeeTeamDbResponse.isEmpty()) {
-					employeeTeamDbResponse.forEach((object) -> {
-						Long empIdFromDb = Long.parseLong(object[0].toString());
+	    List<EmployeeteamDto> response = new ArrayList<EmployeeteamDto>();
+	    try {
+	        List<Object[]> employeeDbResponse = null;
+	        List<Object[]> employeeTeamDbResponse = null;
+	        
+	        // Get appropriate employees based on role
+	        if(performanceDTO.getEmployeeRole().equalsIgnoreCase("SuperAdmin")) {
+	            // SuperAdmin can see everyone except themselves
+	            employeeDbResponse = employeePerformanceRepository.getAllEmployeeForTeamMember();
+	        } else if(performanceDTO.getEmployeeRole().equalsIgnoreCase("HR")) {
+	            // HR can see regular employees only
+	            employeeDbResponse = employeePerformanceRepository.getRegularEmployees();
+	        } else if(performanceDTO.getEmployeeRole().equalsIgnoreCase("RMG")) {
+	            // RMG can see managers, team leads and regular employees
+	            employeeDbResponse = employeePerformanceRepository.getEmployeesByRoles(
+	                Arrays.asList("Manager", "TeamLead", "Employee"));
+	        } else if(performanceDTO.getEmployeeRole().equalsIgnoreCase("HOD")) {
+	            // HOD sees employees in their department
+	            List<Long> deptIds = departmentRepository.findByHodId(performanceDTO.getEmpId())
+	                    .stream()
+	                    .map(Department::getDeptId)
+	                    .collect(Collectors.toList());
+	            
+	            employeeDbResponse = employeePerformanceRepository
+	                    .getAllEmployeeForTeamMemberByDepartment(deptIds);
+	        } else if(performanceDTO.getEmployeeRole().equalsIgnoreCase("Manager")) {
+	            // Managers see their team leads and regular employees
+	            employeeDbResponse = employeePerformanceRepository.getEmployeesReportingToManager(performanceDTO.getEmpId());
+	        } else if(performanceDTO.getEmployeeRole().equalsIgnoreCase("TeamLead")) {
+	            // Team leads see only regular employees in their team
+	            employeeDbResponse = employeePerformanceRepository.getRegularEmployeesInTeam(performanceDTO.getEmpId());
+	        } else {
+	            // Regular employee - don't show anyone or show peers based on your business rules
+	            employeeDbResponse = new ArrayList<>();
+	            
+	            // If employee has team lead role in any team
+	            List<EmployeeTeamMap> emplTeamList = employeeTeamMapRepository.findByEmpIdAndActive(performanceDTO.getEmpId(), 1L);
+	            List<Long> teamIds = new ArrayList<>();
+	            AtomicBoolean isTeamAssign = new AtomicBoolean(false);
+	            
+	            if(!emplTeamList.isEmpty()) {
+	                teamIds = emplTeamList.stream().map(EmployeeTeamMap::getTeamId).collect(Collectors.toList());
+	                emplTeamList.forEach((object) -> {
+	                    if(object.getEmployeeRole().contains("TeamLead") ||
+	                            object.getEmployeeRole().contains("HOD") || 
+	                            object.getEmployeeRole().contains("Manager") || 
+	                            object.getEmployeeRole().contains("HR") || 
+	                            object.getEmployeeRole().contains("RMG") || 
+	                            object.getEmployeeRole().contains("SuperAdmin")) {
+	                        isTeamAssign.set(true);
+	                        return;
+	                    }
+	                });
+	            }
+	            
+	            if(isTeamAssign.get()) {
+	                // get Team members if they have leadership role in any team
+	                employeeDbResponse = employeePerformanceRepository.getAllTeamMembers(teamIds);
+	                employeeTeamDbResponse = employeePerformanceRepository.getAllEmployeeReportByEmpId(performanceDTO.getEmpId());
+	            }
+	        }
+	        
+	        // Process the results, excluding the current user
+	        if(employeeDbResponse != null && !employeeDbResponse.isEmpty()) {
+	            employeeDbResponse.forEach((object) -> {
+	                // Skip the current user
+	                Long empId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+	                if (empId != null && !empId.equals(performanceDTO.getEmpId())) {
+	                    EmployeeteamDto employee = new EmployeeteamDto();
+	                    
+	                    employee.setEmpId(empId);
+	                    employee.setName(object[1] != null ? object[1].toString(): null);
+	                    employee.setEmployeementId(object[2]!= null ? Long.parseLong(object[2].toString()) : null);
+	                    employee.setGoalsCompleted(null);
+	                    employee.setTotalGoals(null);
+	                
+	                    response.add(employee);
+	                }
+	            });
+	            
+	            if(employeeTeamDbResponse != null && !employeeTeamDbResponse.isEmpty()) {
+	                employeeTeamDbResponse.forEach((object) -> {
+	                    Long empIdFromDb = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+	                    
+	                    // Skip if this is the current user
+	                    if (empIdFromDb != null && !empIdFromDb.equals(performanceDTO.getEmpId())) {
+	                        boolean exists = response.stream()
+	                                .anyMatch(dto -> empIdFromDb.equals(dto.getEmpId()));
+	                        
+	                        if (!exists) {
+	                            EmployeeteamDto dto = new EmployeeteamDto();
 
-				        boolean exists = response.stream()
-				                .anyMatch(dto -> empIdFromDb == dto.getEmpId());
-				        
-				        if (!exists) {
-				            EmployeeteamDto dto = new EmployeeteamDto();
+	                            dto.setEmpId(empIdFromDb);
+	                            dto.setName(object[1] != null ? object[1].toString(): null);
+	                            dto.setEmployeementId(object[2]!= null ? Long.parseLong(object[2].toString()) : null);
+	                            dto.setGoalsCompleted(null);
+	                            dto.setTotalGoals(null);
 
-				            dto.setEmpId(empIdFromDb);
-				            dto.setName(object[1] != null ? object[1].toString(): null);
-				            dto.setEmployeementId(object[2]!= null ? Long.parseLong(object[2].toString()) : null);
-				            dto.setGoalsCompleted(null);
-				            dto.setTotalGoals(null);
-
-				            response.add(dto);
-				        }
-					});
-				}
-			}
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
-		return ResponseEntity.ok(response);
+	                            response.add(dto);
+	                        }
+	                    }
+	                });
+	            }
+	        }
+	    } catch(Exception e) {
+	        e.printStackTrace();
+	    }
+	    return ResponseEntity.ok(response);
 	}
-
-
+	
 }
-
-

@@ -14,6 +14,6 @@ public interface QuestionnaireResponseRepository extends JpaRepository<Questionn
 	
 	
 	
-   @Query(nativeQuery = true , value="SELECT q.score FROM questionnaire_response q WHERE q.emp_id = :employeeId  AND q.quarter_id = :quarterId")
+   @Query(nativeQuery = true , value="SELECT sum(response)/count(response) FROM qresponse q WHERE q.emp_id = :employeeId  AND q.quarter_id = :quarterId")
    public Float calculateTotalScoreByEmpIdAndQuarter(Long employeeId,Long quarterId);
 }

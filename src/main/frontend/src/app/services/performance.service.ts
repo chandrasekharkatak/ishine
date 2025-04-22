@@ -130,13 +130,9 @@ export class PerformanceService {
     return this.http.get<any>(`${this.baseUrl}api/kpi/getKpisByQuarter/${quarterId}/Department/${departmentId}/EmployeeRole/${employeeRole}`);
   }
 
-  submitQuestionnaireResponses(response: any, empId: number, quarterId: number) {
-    return this.http.post<any>(`${this.baseUrl}api/qresponses/save/${empId}/${quarterId}`, response);
-  }
 
-  submitKpiResponses(responses: any, empId: number, quarterId: number) {
-    return this.http.post<any>(`${this.baseUrl}api/kpi-responses/save/${empId}/quarter/${quarterId}`, responses);
-  }
+
+
 
   getReviewLabelForEveryDepartment() {
     return this.http.get(`${this.baseUrl}` + `api/getReviewLabelForEveryDepartment`);
@@ -163,5 +159,44 @@ export class PerformanceService {
   getawards(empId:number):Observable<any> {
     return this.http.get(`${this.baseUrl}api/getEmployeeRewardByOnlyEmpId/empId/${empId}`);
   }
+
+  getQuestionnaireResponses(empId: number, quarterId: number) {
+    return this.http.get<any>(`${this.baseUrl}api/qresponses/show/${empId}/${quarterId}`);
+  }
+
+  showresponse(empId: number, quarterId: number) {
+    return this.http.get<any>(`${this.baseUrl}api/kpi-responses/show/kresponse/${empId}/${quarterId}`);
+  }
+
+  submitQuestionnaireResponses(questions: any[], empId: number, quarterId: number) {
+    // Format the questions as DTOs for backend processing
+    const dtos = questions.map(q => ({
+      id: q.id,
+      questionText: q.questionText,
+      response: q.response,
+      managerRating: q.managerRating,
+      managerRemark: q.managerRemark,
+      // Include any other fields needed
+    }));
+    
+    return this.http.post<any>(`${this.baseUrl}api/qresponses/save/${empId}/quarter/${quarterId}`, dtos);
+  }
+
+  submitKpiResponses(responses: any[], empId: number, quarterId: number) {
+    // Format the responses as DTOs for backend processing
+    const dtos = responses.map(kpi => ({
+      id: kpi.id,
+      description: kpi.description,
+      response: kpi.response,
+      review: kpi.review,
+      isFixed: kpi.isFixed,
+      managerRating: kpi.managerRating,
+      managerRemark: kpi.managerRemark
+      // Include any other fields needed
+    }));
+    
+    return this.http.post<any>(`${this.baseUrl}api/kpi-responses/save/${empId}/quarter/${quarterId}`, dtos);
+  }
 }
+
 

@@ -1,5 +1,5 @@
 export interface KpiTemplate {
-  kpiId?: number;
+  id?: number;
   name: string;
   description: string;
   createdBy: number;

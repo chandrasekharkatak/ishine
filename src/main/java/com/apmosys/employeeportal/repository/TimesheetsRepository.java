@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Timesheet;
 
 @Repository
@@ -23,8 +24,17 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 //	@Query(nativeQuery = true)
 //	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status);
 	
-	@Query(nativeQuery = true)
-	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status,LocalDate dateOfJoining);
+	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO (et.timesheetId, et.date, et.dayType, ec.name, et.description, et.status, \n"
+			+ "eh.name, eh.empId, et.createdOn, ec.employeementId, et.totalTime, ec.email, et.officeInTime, et.officeOutTime, et.totalWorkingHours, et.isNightShift, et.currentManagerId, ee.isConsultant, ee.isApprenticeship, ee.empId )\n"
+			+ "FROM Timesheet et \n"
+			+ "INNER JOIN Employee ec ON ec.empId = et.empId \n"
+			+ "INNER JOIN Employee eh ON eh.createdBy = et.empId \n"
+			+ "INNER JOIN Employee ee ON ee.empId = et.empId \n"
+			+ "WHERE et.status = :status AND et.currentManagerId = :managerId Order by et.date desc")
+			public List<TimesheetDTO> getMyReporteesTimesheetRequests(
+			    @Param("managerId") Long managerId, 
+			    @Param("status") String status
+			   );
 	
 //	@Query(nativeQuery = true)
 //	public Long countMyReporteesTimesheetRequests(Long managerId);

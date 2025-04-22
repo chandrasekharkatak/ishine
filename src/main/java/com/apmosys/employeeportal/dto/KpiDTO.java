@@ -15,11 +15,9 @@ public class KpiDTO {
     private String name;
     private String description;
     private String approvedBy;
-    @NotNull
     private String department;
     private Long departmentId;
     private List<KpisDTO> kpis;
-    @NotNull
     private Long quarterId;
     private String createdBy;
     private String quarter;

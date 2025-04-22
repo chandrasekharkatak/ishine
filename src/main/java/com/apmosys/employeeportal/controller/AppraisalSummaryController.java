@@ -2,10 +2,13 @@ package com.apmosys.employeeportal.controller;
 
 import com.apmosys.employeeportal.dto.AppraisalSummaryDto;
 import com.apmosys.employeeportal.dto.SummaryDto;
+import com.apmosys.employeeportal.model.Log;
+import com.apmosys.employeeportal.model.Summary;
 import com.apmosys.employeeportal.service.AppraisalSummaryService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,12 +18,12 @@ public class AppraisalSummaryController {
     @Autowired
     private AppraisalSummaryService appraisalSummaryService;
 
-    @GetMapping("/employee/{empId}/quarter/{quarterId}")//change to response entity
+    @GetMapping("/employee/{empId}/quarter/{quarterId}")
     public ServiceResponse getAppraisalSummary(@PathVariable Long empId, @PathVariable Long quarterId) {
         ServiceResponse response = new ServiceResponse();
-        
-        try {
-            SummaryDto summaryDto = appraisalSummaryService.getAppraisalSummary(empId, quarterId);
+
+        try {	
+            Summary summaryDto = appraisalSummaryService.getAppraisalSummary(empId, quarterId);
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse(summaryDto);
             response.setServiceMessage("Appraisal Summary Retrieved Successfully");

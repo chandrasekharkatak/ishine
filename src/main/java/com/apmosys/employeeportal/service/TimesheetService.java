@@ -819,12 +819,9 @@ public class TimesheetService {
 		try {
 
 			Employee employeeData = employeeRepository.findByEmpId(timesheetDTO.getManagerId()); 
-
-			List<Object[]> objectList = timesheetsRepository
-					.getMyReporteesTimesheetRequests(timesheetDTO.getManagerId(), timesheetDTO.getStatus(),employeeData.getDateOfJoining());
-
-			
-			
+//	
+			List<TimesheetDTO> objectList = timesheetsRepository
+					.getMyReporteesTimesheetRequests(timesheetDTO.getManagerId(), timesheetDTO.getStatus());
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
 				if (list.isEmpty()) {
@@ -834,37 +831,10 @@ public class TimesheetService {
 					apiLogInfo.setApiResponse("No timesheets found. List is empty.");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
-					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
-
-					list.forEach((object) -> {
-
-						TimesheetDTO dto = new TimesheetDTO();
-						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-						dto.setDate(object[1] != null ? object[1].toString() : null);
-						dto.setDayType(object[2] != null ? object[2].toString() : null);
-						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
-						dto.setDescription(object[4] != null ? object[4].toString() : null);
-						dto.setStatus(object[5] != null ? object[5].toString() : null);
-						dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
-						dto.setCreatedBy(object[7] != null ? Long.parseLong(object[7].toString()) : null);
-						dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
-						dto.setEmployeementId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-						dto.setTotalTime(object[10] != null ? Float.parseFloat(object[10].toString()) : null);
-						dto.setEmail(object[11] != null ? object[11].toString() : null);
-						dto.setOfficeInTime(object[12] != null ? object[12].toString() : null);
-						dto.setOfficeOutTime(object[13] != null ? object[13].toString() : null);
-						dto.setTotalWorkingOfficeHours(object[14] != null ? object[14].toString() : null);
-						dto.setIsNightShift(object[15] != null ? object[15].toString() : null);
-						dto.setIsConsultant(object[17] != null ? object[17].toString() : null);
-						dto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
-
-						dtoList.add(dto);
-					});
-
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
+					response.setServiceResponse(objectList);
 					
-					apiLogInfo.setApiResponse("dtoList : " +dtoList );			
+					apiLogInfo.setApiResponse("dtoList : " +objectList );			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 

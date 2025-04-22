@@ -9,6 +9,7 @@ import com.apmosys.employeeportal.model.AppraisalSummary;
 import com.apmosys.employeeportal.model.Qresponse;
 import com.apmosys.employeeportal.model.QuestionnaireResponse;
 import com.apmosys.employeeportal.model.ReviewTable;
+import com.apmosys.employeeportal.model.Summary;
 import com.apmosys.employeeportal.repository.AppraisalSummaryRepository;
 import com.apmosys.employeeportal.repository.EmployeeGoalRepository;
 import com.apmosys.employeeportal.repository.KpiResponseRepository;
@@ -104,11 +105,12 @@ public class AppraisalSummaryService {
             float averageScore = (kscore + qscore)/2;
            
             Integer finalRating = calculateFinalRating(averageScore);
+            
             AppraisalSummaryDto appraisalSummaryDto = new AppraisalSummaryDto();
             appraisalSummaryDto.setEmployeeId(employeeId);
-            appraisalSummaryDto.setAppraisalScore(averageScore);
+            appraisalSummaryDto.setAppraisalScore( averageScore);
             appraisalSummaryDto.setAppraisalPercentage(String.format("%.2f%%", averageScore));
-            appraisalSummaryDto.setFinalRating((float)finalRating);
+            appraisalSummaryDto.setFinalRating(averageScore);
             appraisalSummaryDto.setFinalRemarks(generateRemarks(finalRating));
 
    
@@ -247,7 +249,7 @@ public class AppraisalSummaryService {
         }
     }
     
-    public SummaryDto getAppraisalSummary(Long empId, Long quarterId) {
+    public Summary getAppraisalSummary(Long empId, Long quarterId) {
         try {
             SummaryDto summaryDto = new SummaryDto();
             summaryDto.setEmpId(empId);
@@ -261,19 +263,33 @@ public class AppraisalSummaryService {
             summaryDto.setGoalsRemaining(goalsRemaining);
 
             // Calculate Questionnaire Score
-            Float questionnaireScore = questionnaireResponseRepository.calculateTotalScoreByEmpIdAndQuarter(empId, quarterId);
-            summaryDto.setQuestionnaireScore(questionnaireScore != null ? questionnaireScore.longValue() : 0L);
+         // Calculate Questionnaire Score - round to 2 decimal places
+            Float questionnaireScore = qresponseRespository.calculateByEmpIdAndQuarterId(empId, quarterId);
+            float roundedQuestionnaireScore = 0F;
+            if (questionnaireScore != null) {
+                // Multiply by 100, round, and divide by 100 to get 2 decimal places
+                roundedQuestionnaireScore = Math.round(questionnaireScore * 100.0f) / 100.0f;
+            }
+            summaryDto.setQuestionnaireScore(roundedQuestionnaireScore);
 
-            // Calculate KPI Score
-            Float kpiScore = kpiResponseRepository.calculateTotalScoreByEmpIdAndQuarter(empId, quarterId);
-            summaryDto.setKraKpiScore(kpiScore != null ? kpiScore.longValue() : 0L);
+            // Calculate KPI Score - round to 2 decimal places
+            Float kpiScore = kresponseRepository.calculateByEmpIdAndQuarterId(empId, quarterId);
+            float roundedKpiScore = 0F;
+            if (kpiScore != null) {
+                // Multiply by 100, round, and divide by 100 to get 2 decimal places
+                roundedKpiScore = Math.round(kpiScore * 100.0f) / 100.0f;
+            }
+            summaryDto.setKraKpiScore(roundedKpiScore);
 
-            return summaryDto;
+            // Fix: Changed from convertToEntity to convertDtoToEntity
+            Summary entity = convertDtoToEntity(summaryDto);
+
+            return entity;
         } catch (Exception e) {
+            // Added logging but kept your exception handling approach
             throw new RuntimeException("Error calculating appraisal summary: " + e.getMessage());
-        }//logger log.error
+        }
     }
-
     
     public AppraisalSummaryDto convertToDto(AppraisalSummary appraisalSummary) {
         AppraisalSummaryDto dto = new AppraisalSummaryDto();
@@ -294,4 +310,16 @@ public class AppraisalSummaryService {
         entity.setAppraisalPercentage(dto.getAppraisalPercentage());
         return entity;
     }
+
+    private Summary convertDtoToEntity(SummaryDto dto) {
+        Summary entity = new Summary();
+        entity.setEmpId(dto.getEmpId());
+        entity.setQuarter(dto.getQuarter());
+        entity.setGoalsCompleted(dto.getGoalsCompleted());
+        entity.setGoalsRemaining(dto.getGoalsRemaining());
+        entity.setQuestionnaireScore(dto.getQuestionnaireScore());
+        entity.setKraKpiScore(dto.getKraKpiScore());
+        // Set any other fields as needed
+        return entity;
+    }	
 }

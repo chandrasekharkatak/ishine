@@ -4,7 +4,7 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { UserPerformanceService } from 'src/app/services/user-performance.service';
 import { TemplateService } from 'src/app/services/template.service';
 import { first } from 'rxjs/operators';
-import { QuestionnaireDTO, QuestionDTO } from 'src/app/models/questionnaire-dto';
+import { QuestionnaireDTO } from 'src/app/models/questionnaire-dto';
 import { KraKpiService } from 'src/app/services/kpi-kra.service';
 import { KpiTemplate } from 'src/app/models/kpiTemplate';
 import { PerformanceService } from 'src/app/services/performance.service';
@@ -40,10 +40,10 @@ export class TemplatesComponent implements OnInit {
   kraKpiTemplates: any[] = [];
   questionnaireTemplates: any[] = [];
   templateForm: FormGroup;
-  questionnaireForm!: FormGroup;
+  questionnaireForm: FormGroup;
   kpikraForm:FormGroup;
   isEditing: boolean = false;
-  editingTemplateId: number | null = null;
+  editingTemplateId: any;
   selectedQuarterId: number | null = null;
   selectdepartmentId:number| null= null;
 
@@ -58,6 +58,10 @@ quarter: any;
 alertMessage: any;
 modalRef?: BsModalRef;
 jobRoleObj: any;
+template: any;
+  templateIdToDelete: number;
+  kraKpiIdToDelete: number;
+  questionnaireIdToDelete: number;
 // jobRoleObj: any;
 
 
@@ -216,10 +220,11 @@ jobRoleObj: any;
         return;
       }
       
-      const questionDTOs: QuestionDTO[] = this.questions.controls.map((control: any) => {
+      const questionDTOs = this.questions.controls.map(control => {
+        const quesFormGroup = control as FormGroup;
         return {
-          id: control.value.id,
-          questionText: control.value.questionText
+          id: quesFormGroup.value.id,
+          questionText: quesFormGroup.value.questionText
         };
       });
       
@@ -230,6 +235,7 @@ jobRoleObj: any;
         createdBy: this.currentUser.empId, 
         questions: questionDTOs,
         response: null,
+        departmentId: this.questionnaireForm.value.departmentId,
       };
       
       // console.log('Form data to submit:', questionnaireData);
@@ -432,10 +438,10 @@ jobRoleObj: any;
   }
 
   editQuestionnaireTemplate(template: any) {
-    this.isEditing = true;
-    this.editingTemplateId = template.questionId;
     this.setActiveTab('create-template');
     this.selectedTemplateType = 'questionnaire';
+    this.isEditing = true;
+    this.editingTemplateId = template.questionId;
     while (this.questions.length !== 0) {
       this.questions.removeAt(0);
     }
@@ -460,15 +466,17 @@ jobRoleObj: any;
     }
   }
   editKraKpiTemplate(template: any) {
-    this.isEditing = true;
-    this.editingTemplateId = template.kpiId;
     this.setActiveTab('create-template');
     this.selectedTemplateType = 'kra-kpi';
+    this.isEditing = true;
+    this.editingTemplateId = template.id;
+    
     while (this.kpis.length !== 0) {
       this.kpis.removeAt(0);
     }
 
     this.kpikraForm.patchValue({
+      
       name: template.name,
       description: template.description,
       quarterId: template.quarterId,
@@ -512,6 +520,35 @@ jobRoleObj: any;
     }
   }
 
+  openDeleteQuestionnaireModal(questionId: number, template: TemplateRef<any>) {
+    this.questionnaireIdToDelete = questionId;
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  confirmDeleteQuestionnaire() {
+    this.templateService.deleteQuestionnaire(this.questionnaireIdToDelete)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          this.modalRef.hide();
+          if (response.serviceStatus === "Success") {
+            this.alertMessage = 'Questionnaire template deleted successfully!';
+            this.openAlertMod(this.alert_message, this.alertMessage);
+            this.fetchQuestionnaireTemplates();
+          } else {
+            this.alertMessage = `Failed to delete questionnaire template: ${response.serviceMessage}`;
+            this.openAlertMod(this.alert_message, this.alertMessage);
+          }
+        },
+        error: (error) => {
+          this.modalRef.hide();
+          this.alertMessage = 'Error deleting questionnaire template. Please try again.';
+          this.openAlertMod(this.alert_message, this.alertMessage);
+        }
+      });
+  }
+
+
   deleteKraKpiTemplate(id: number, template: TemplateRef<any>) {
     if (confirm('Are you sure you want to delete this KRA-KPI template?'))  {
       this.kraKpiService.deleteKpiTemplate(id)
@@ -534,6 +571,35 @@ jobRoleObj: any;
           }
         });
     }
+  }
+
+  openDeleteKraKpiModal(id: number, template: TemplateRef<any>) {
+    this.kraKpiIdToDelete = id;
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  confirmDeleteKraKpi() {
+    this.kraKpiService.deleteKpiTemplate(this.kraKpiIdToDelete)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          this.modalRef.hide();
+          if (response.serviceStatus === "Success") {
+            this.alertMessage = 'KRA-KPI template deleted successfully!';
+            this.openAlertMod(this.alert_message, this.alertMessage);
+            this.fetchKraKpiTemplates();
+          } else {
+            this.alertMessage = `Failed to delete KRA-KPI template: ${response.serviceMessage}`;
+            this.openAlertMod(this.alert_message, this.alertMessage);
+          }
+        },
+        error: (error) => {
+          this.modalRef.hide();
+          console.error('HTTP error deleting KRA-KPI template:', error);
+          this.alertMessage = 'Error deleting KRA-KPI template. Please try again.';
+          this.openAlertMod(this.alert_message, this.alertMessage);
+        }
+      });
   }
   onQuarterChange() {
     if (this.selectedQuarterId) {
@@ -583,6 +649,7 @@ jobRoleObj: any;
       next: (response: any) => {
         if (response.serviceStatus === "Success") {
           this.goalTemplates = response.serviceResponse;
+          console.log('Goal Templates: ', this.goalTemplates);
         } else {
           console.error('Error fetching goal templates:', response.serviceMessage);
         }
@@ -669,7 +736,7 @@ jobRoleObj: any;
       });
   
       const kpiTemplate: KpiTemplate = {
-        kpiId: this.isEditing ? this.editingTemplateId : undefined,
+        id: this.isEditing ? this.editingTemplateId : undefined,
         name: formData.name,
         description: formData.description,
         createdBy: formData.createdBy,
@@ -677,7 +744,6 @@ jobRoleObj: any;
         kpis: kpiDTOs,
         departmentId: formData.departmentId,
         employee_role: formData.employee_role
-
       };
   
       console.log('KRA-KPI Form Data:', kpiTemplate);
@@ -788,6 +854,30 @@ jobRoleObj: any;
           }
         });
     }
+  }
+  openDeleteModal(templateId: number, template: TemplateRef<any>) {
+    this.templateIdToDelete = templateId;
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+  confirmDelete() {
+    this.userPerformanceService.deleteGoalTemplate(this.templateIdToDelete)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          this.modalRef.hide();
+          if (response.serviceStatus === "Success") {
+            this.fetchGoalTemplates();
+          } else {
+            this.alertMessage = `Failed to delete template: ${response.serviceMessage}`;
+            this.openAlertMod(this.alert_message, this.alertMessage);
+          }
+        },
+        error: (error) => {
+          this.modalRef.hide();
+          this.alertMessage = 'Error deleting template. Please try again.';
+          this.openAlertMod(this.alert_message, this.alertMessage);
+        }
+      });
   }
 
   createOrUpdateTemplate(template: TemplateRef<any>) {

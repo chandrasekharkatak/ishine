@@ -29,7 +29,7 @@ export class TemplateService {
   }
 
   updateQuestionnaire(questionId: number, questionnaireData: QuestionnaireDTO): Observable<any> {
-    return this.http.put(`${this.apiUrl}api/questionnaires/${questionId}`, questionnaireData);
+    return this.http.put(`${this.apiUrl}api/questionnaires/updateQuestionnaire/${questionId}`, questionnaireData);
   }
 
   deleteQuestionnaire(questionId: number): Observable<any> {

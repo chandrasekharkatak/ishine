@@ -98,9 +98,6 @@ export class QuarterCycleComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log(this.feature, this.userMapping);
-
-    
-    
   }
 
   months: { full: string, short: string }[] = [
@@ -117,10 +114,7 @@ export class QuarterCycleComponent implements OnInit {
     })
   }
 
-
-
   validateQuarterCycleObj(quarterCycle: QuarterCycle, template: TemplateRef<any>) {
-
     if (!this.validationService.validateNullUndefinedEmptyString(quarterCycle.fromMonth)) {
       this.alertMessage = "Please Select fromMonth!!"
       this.openAlertMod(template, this.alertMessage);
@@ -131,6 +125,69 @@ export class QuarterCycleComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+    return true;
+  }
+
+  // New method to validate quarter overlap
+  validateQuarterOverlap(template: TemplateRef<any>): boolean {
+    if (!this.quarterCycle.fromMonth || !this.quarterCycle.toMonth) return true;
+
+    const fromMonthIndex = this.getMonthIndex(this.quarterCycle.fromMonth);
+    const toMonthIndex = this.getMonthIndex(this.quarterCycle.toMonth);
+    
+    // Validate that from month comes before to month
+    if (fromMonthIndex > toMonthIndex) {
+      this.openAlertMod(template, "From Month cannot be after To Month. Please select a valid range.");
+      return false;
+    }
+    
+    // Skip overlap check when updating the same quarter
+    if (this.isQuaterUpdation && this.quarterCycle.quarterId) {
+      const currentQuarter = this.existingQuarters.find(q => q.quarterId === this.quarterCycle.quarterId);
+      if (currentQuarter) {
+        // If it's the same quarter cycle being updated with the same months, allow it
+        const [existingFrom, existingTo] = currentQuarter.quarterCycle.split('-');
+        if (existingFrom === this.quarterCycle.fromMonth && existingTo === this.quarterCycle.toMonth) {
+          return true;
+        }
+      }
+    }
+    
+    // Check overlap with existing quarters
+    let overlappingQuarter = '';
+    
+    const hasOverlap = this.existingQuarters.some((quarter: any) => {
+      // Skip the current quarter when updating
+      if (this.isQuaterUpdation && quarter.quarterId === this.quarterCycle.quarterId) {
+        return false;
+      }
+      
+      const [existingFrom, existingTo] = quarter.quarterCycle.split('-');
+      const existingFromIndex = this.getMonthIndex(existingFrom);
+      const existingToIndex = this.getMonthIndex(existingTo);
+      
+      // Check if any part of the range overlaps
+      const overlaps = (
+        // New range overlaps with existing range
+        (fromMonthIndex <= existingToIndex && toMonthIndex >= existingFromIndex) ||
+        // Existing range is contained within new range
+        (existingFromIndex >= fromMonthIndex && existingToIndex <= toMonthIndex) ||
+        // New range is contained within existing range
+        (fromMonthIndex >= existingFromIndex && toMonthIndex <= existingToIndex)
+      );
+      
+      if (overlaps) {
+        overlappingQuarter = quarter.quarterCycle;
+      }
+      
+      return overlaps;
+    });
+    
+    if (hasOverlap) {
+      this.openAlertMod(template, `The selected quarter range (${this.quarterCycle.fromMonth}-${this.quarterCycle.toMonth}) overlaps with existing quarter cycle ${overlappingQuarter}.`);
+      return false;
+    }
+    
     return true;
   }
 
@@ -148,7 +205,6 @@ export class QuarterCycleComponent implements OnInit {
     this.isQuaterUpdation = false;
     this.isQuaterForm = false;
     this.getAllQuarterCycles();
-
   }
 
   setFinancialYear() {
@@ -159,29 +215,26 @@ export class QuarterCycleComponent implements OnInit {
     if (currentMonth >= 4) {
       this.quarterCycle.fromYear = currentYear;
       this.quarterCycle.toYear = currentYear + 1;
-
-
     } else {
       this.quarterCycle.fromYear = currentYear - 1;
       this.quarterCycle.toYear = currentYear;
-
-
     }
   }
 
-
-
   createQuarterCycle(template: TemplateRef<any>) {
-
-    let inputValidated: boolean = this.validateQuarterCycleObj(this.quarterCycle, template)
-    console.log("Pr ", inputValidated);
+    // First validate basic fields
+    let inputValidated: boolean = this.validateQuarterCycleObj(this.quarterCycle, template);
     if (!inputValidated) return;
-    console.log("Pr ", inputValidated);
+    
+    // Then validate overlap
+    if (!this.validateQuarterOverlap(template)) return;
+    
     this.quarterCycle.createdBy = this.currentUser.empId;
     this.quarterCycle.financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
     this.quarterCycle.quarterCycle = `${this.quarterCycle.fromMonth}-${this.quarterCycle.toMonth}`;
     this.quarterCycle.isActive = true;
     this.quarterCycle.isEnable = false;
+    
     console.log("quartercycle", this.quarterCycle);
     this.performanceService.createQuarterCycle(this.quarterCycle).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -191,19 +244,20 @@ export class QuarterCycleComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
-
   }
 
   updateQuarterCycle(template: TemplateRef<any>) {
-
-    let inputValidated: boolean = this.validateQuarterCycleObj(this.quarterCycle, template)
-    console.log("Pr ", inputValidated);
+    // First validate basic fields
+    let inputValidated: boolean = this.validateQuarterCycleObj(this.quarterCycle, template);
     if (!inputValidated) return;
-    console.log("Pr ", inputValidated);
-
+    
+    // Then validate overlap
+    if (!this.validateQuarterOverlap(template)) return;
+    
     this.quarterCycle.updatedBy = this.currentUser.empId;
     this.quarterCycle.financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
     this.quarterCycle.quarterCycle = `${this.quarterCycle.fromMonth}-${this.quarterCycle.toMonth}`;
+    
     console.log(this.quarterCycle, "updateeeeeee");
     this.performanceService.updateQuarterCycle(this.quarterCycle).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -213,9 +267,7 @@ export class QuarterCycleComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
-
   }
-
 
   fetchExistingQuarters() {
     const financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
@@ -224,7 +276,7 @@ export class QuarterCycleComponent implements OnInit {
     this.performanceService.getQuartersByYear(financialYear).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.existingQuarters = response.serviceResponse;
-        console.log("lalal", this.existingQuarters);
+        console.log("Existing quarters for selected year:", this.existingQuarters);
       }
     });
   }
@@ -263,9 +315,6 @@ export class QuarterCycleComponent implements OnInit {
     });
   }
 
-
-
-
   getMonthIndex(monthShort: string): number {
     const monthIndex = {
       'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6,
@@ -297,40 +346,28 @@ export class QuarterCycleComponent implements OnInit {
     if (isOverlap) {
       this.quarterCycle.fromMonth = '';
       this.openAlertMod(template, `The selected month ${this.quarterCycle.fromMonth} already exists in a quarter cycle ${existingQuarter}.`);
-
     }
   }
 
   checkMonthExistencee(type: 'fromMonth' | 'toMonth', template: TemplateRef<any>) {
-    const selectedMonth = this.quarterCycle[type];
-    if (!selectedMonth) return;
-
-    const selectedMonthIndex = this.getMonthIndex(selectedMonth);
-    let existingQuarter = '';
-
-    const isOverlap = this.existingQuarters.some((quarter: any) => {
-      const [existingFrom, existingTo] = quarter.quarterCycle.split('-');
-      const existingFromIndex = this.getMonthIndex(existingFrom);
-      const existingToIndex = this.getMonthIndex(existingTo);
-
-      const overlaps = selectedMonthIndex >= existingFromIndex && selectedMonthIndex <= existingToIndex;
-
-      if (overlaps) {
-        existingQuarter = quarter.quarterCycle;
+    // This method is called when a month dropdown value changes
+    const fromMonth = this.quarterCycle.fromMonth;
+    const toMonth = this.quarterCycle.toMonth;
+    
+    // Only validate if both months are selected
+    if (fromMonth && toMonth) {
+      const fromMonthIndex = this.getMonthIndex(fromMonth);
+      const toMonthIndex = this.getMonthIndex(toMonth);
+      
+      // Basic validation that from month is before to month
+      if (fromMonthIndex > toMonthIndex) {
+        this.openAlertMod(template, "From Month cannot be after To Month. Please select a valid range.");
+        setTimeout(() => {
+          this.quarterCycle[type] = '';
+        });
       }
-
-      return overlaps;
-    });
-
-    if (isOverlap) {
-      setTimeout(() => {
-        this.quarterCycle[type] = '';
-      });
-
-      this.openAlertMod(template, `The selected month ${selectedMonth} already exists in the quarter cycle ${existingQuarter}.`);
     }
   }
-
 
   toggleSearch() {
     this.isSearchEnabled = !this.isSearchEnabled;
@@ -339,14 +376,9 @@ export class QuarterCycleComponent implements OnInit {
     }
   }
 
-  
-  
-
   cancelRequest() {
     this.modalRef.hide();
   }
-
-  
 
   Enable(quarterId: any, template: TemplateRef<any>) {
     const obj = new QuarterCycle();
@@ -364,7 +396,6 @@ export class QuarterCycleComponent implements OnInit {
   DeleteConfirm(quarterId: any, template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.quarterIdToBeDeleted = quarterId;
-
   }
 
   Delete(template: TemplateRef<any>) {
@@ -382,17 +413,14 @@ export class QuarterCycleComponent implements OnInit {
     });
   }
 
-
   getByQuarterById(quarterId: any) {
     this.isQuaterTable = false;
     this.isQuaterForm = true;
-
     this.isQuaterCreation = false;
-
     this.isQuaterUpdation = true;
+    
     this.performanceService.getQuarterCycleById(quarterId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-
         this.quarterCycle = response.serviceResponse;
         const [fromYear, toYear] = this.quarterCycle.financialYear.split("-");
         const [fromMonth, toMonth] = this.quarterCycle.quarterCycle.split("-");
@@ -408,12 +436,7 @@ export class QuarterCycleComponent implements OnInit {
         console.error(response.serviceResponse)
       }
     });
-
-
   }
-
-
-
 
   Disable(quarterId: any, template: TemplateRef<any>) {
     const obj = new QuarterCycle();
@@ -428,14 +451,12 @@ export class QuarterCycleComponent implements OnInit {
     });
   }
 
-
-
   addInputSpecializationField(template?: TemplateRef<any>) {
-
     let reviewObj = new review();
     this.allSpecializationList.push(reviewObj);
     // this.allSpecializationList.push("nsjd");
   }
+
   showQuaterCreateForm() {
     this.setFinancialYear();
     this.fetchExistingQuarters();
@@ -447,24 +468,17 @@ export class QuarterCycleComponent implements OnInit {
     this.quarterCycle.toMonth = '';
   }
 
-
-
   getAllDepartmentList() {
     this.allDeptList = [];
 
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
-        
-
       } else {
         console.error(response.serviceResponse)
       }
     });
   }
-
-
-
 
   sortData(sort: Sort) {
     //console.log(sort);
@@ -490,15 +504,10 @@ export class QuarterCycleComponent implements OnInit {
     //console.log("Updated Filter : ", this.filters);
   }
 
-
   //pagination
-
-  
   handlePageChange(event) {
     this.page = event;
   }
-
-
 
   fieldRestictCharacters(event) {
     const k = event.charCode;
@@ -513,12 +522,10 @@ export class QuarterCycleComponent implements OnInit {
     if ((k >= 65 && k <= 90) || (k >= 97 && k <= 122) || (k === 32)) {
       return true;
     }
-
     return false;
   }
-
 }
+
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
-
 }

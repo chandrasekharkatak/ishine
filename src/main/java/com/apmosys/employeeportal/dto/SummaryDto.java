@@ -15,8 +15,8 @@ public class SummaryDto {
 	
 	private Long goalsRemaining;
 	
-	private Long kraKpiScore;//change to float
+	private Float  kraKpiScore;//change to float
 	
-	private Long questionnaireScore;//change to float
+	private Float questionnaireScore;//change to float
 
 }
