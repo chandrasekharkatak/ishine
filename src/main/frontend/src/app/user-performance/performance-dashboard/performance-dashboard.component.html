@@ -72,43 +72,7 @@
         </div>
       </div>
     </div>
-  
-    <div class="row mt-4">
-      <div class="col-md-6">
-        <div class="graph-placeholder p-4 border rounded text-center">[Graphs Here]</div>
-      </div>
 
-      <div class="col-md-6">
-          <div class="goals-list p-2 border rounded d-flex flex-column" style="height: 100%;">
-            <h6 class="mb-1 text-center">Goals List</h6>
-            <div class="table-responsive flex-grow-1" style="max-height: 250px; overflow-y: auto;">
-              <table class="table table-sm table-bordered" style="font-size: 0.90rem;">
-                <thead>
-                  <tr class="bg-light " >
-                    <th scope="col" style="max-width: 2rem ;">Sr No.</th>
-                    <th scope="col" class="">Goal</th>
-                    <th scope="col">Description</th>
-                    <th scope="col" class="text-center ">Status</th>
-                    <th scope="col" class="text-center " style="max-width: 2rem ;">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let goal of goals let i = index">
-                    <td>{{ i+1 }}</td>
-                    <td>{{ goal.goalTitle }}</td>
-                    <td class="text-truncate" style="max-width: 180px;">{{ goal.description }}</td>
-                    <td class="text-center">{{ goal.goalStatus }}</td>
-                    <td class="text-center">
-                      <button class="btn btn-sm btn-outline-primary py-1 px-2" title="View Goal" (click)="openModal(viewGoalTemplate, goal)"  ><i class="fa-solid fa-eye"></i></button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-      </div>
-    </div>
-    
     <div class="row mt-4">
       <div class="col-md-4">
         <div class="card shadow border-0 info">
@@ -154,17 +118,53 @@
         </div>
       </div>
     </div>
+  
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="graph-placeholder p-4 border rounded text-center">[Graphs Here]</div>
+      </div>
+
+      <div class="col-md-6">
+          <div class="goals-list p-2 border rounded d-flex flex-column" style="height: 100%;">
+            <h6 class="mb-1 text-center">Goals List</h6>
+            <div class="table-responsive flex-grow-1" style="max-height: 250px; overflow-y: auto;">
+              <table class="table table-sm table-bordered" style="font-size: 0.90rem;">
+                <thead>
+                  <tr class="bg-light " >
+                    <th scope="col" style="max-width: 2rem ;">Sr No.</th>
+                    <th scope="col" class="">Goal</th>
+                    <th scope="col">Description</th>
+                    <th scope="col" class="text-center ">Status</th>
+                    <th scope="col" class="text-center " style="max-width: 2rem ;">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let goal of goals let i = index">
+                    <td>{{ i+1 }}</td>
+                    <td>{{ goal.goalTitle }}</td>
+                    <td class="text-truncate" style="max-width: 180px;">{{ goal.description }}</td>
+                    <td class="text-center">{{ goal.goalStatus }}</td>
+                    <td class="text-center">
+                      <button class="btn btn-sm btn-outline-primary py-1 px-2" title="View Goal" (click)="openModal(viewGoalTemplate, goal)"  ><i class="fa-solid fa-eye"></i></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+      </div>
+    </div>
     
     <div class="row mt-4" *ngIf="isProjectInsightList">
-      <div class="col-md-12">
+      <div class="col-md-6">
         <div class="card shadow border-0">
           <div class="card-header">
-            <h1 class="card-title mb-0 text-center fw-bold">Project Insights Contribution</h1>
+            <h5 class="card-title mb-0 text-center fw-bold">Project Insights Contribution</h5>
           </div>
           <div class="card-body">
               <div class="col-md-12">
-                <div class="selector-toggle">
-                  <a href="javascript:void(0)" (click)="toggleSearch()">
+                <div class="col d-flex justify-content-between align-items-center search-toggle">
+                  <a href="javascript:void(0)" (click)="toggleSearch('projectInsight')">
                     <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                   </a>
@@ -181,7 +181,7 @@
                         <th scope="col" class="info-label">Actions</th>
                       </tr>
                       <tr app-column-filter-bar *ngIf="isProjectInsightList && isSearchEnabled"
-                        [columnList]="projectInsightColumnColumns" (onSearch)="onSearch($event);page=1"></tr>
+                        [columnList]="projectInsightColumnColumns" (onSearch)="onSearch($event, 'projectInsight');page=1"></tr>
                     </thead>
                     <tbody>
                       <tr
@@ -189,11 +189,11 @@
                         <th colspan="6" class="text-center info-label">No Details to display...</th>
                       </tr>
                       <tr
-                        *ngFor="let project of allProjectInsightList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                        *ngFor="let project of allProjectInsightList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 2, currentPage: page }, let i = index">
                         <td>{{project.projectName}}</td>
                         <td>{{project.projectManagerName}}</td>
                         <td>{{project.createdByName}}</td>
-                        <td>{{project.createdOn}}</td>
+                        <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
                         <td>
                           <button class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)">
                             <em> Add / View Response</em></button>&nbsp;
@@ -203,8 +203,80 @@
                   </table>
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="allProjectInsightList.length == 0"
-                  (pageChange)="handlePageChange($event)"></pagination-controls>
+                  (pageChange)="handlePageChange($event, 'projectInsight')"></pagination-controls>
               </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card shadow border-0">
+          <div class="card-header">
+            <h5 class="card-title mb-0 text-center fw-bold">My Contribution</h5>
+          </div>
+          <div class="card-body">
+            <div class="col-md-12">
+              <!-- Header actions row -->
+              <div class="row">
+                <div class="col d-flex justify-content-between align-items-center search-toggle">
+                  <a href="javascript:void(0)" (click)="toggleSearch('contribution')">
+                    <i *ngIf="!isContributionSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isContributionSearchEnabled" class="fa-solid fa-xmark"></i>
+                  </a>
+                  <button class="btn btn-sm btn-outline-primary" (click)="openAddContributionModal(user_contribution)"><i class="fa-solid fa-plus"></i> &nbsp; Add contribution</button>
+                </div>
+              </div>
+      
+              <!-- Table container -->
+              <div class="table-responsive overflow-auto" bassHorizontalScroll 
+                   [tableId]="'myContributionInfo'"
+                   [tableTHeadId]="'myContributionInfoTHead'" 
+                   [tableTHeadTrId]="'myContributionInfoTHeadTr'">
+                <table class="table" matSort (matSortChange)="sortData($event)">
+                  <thead class="thead-light">
+                    <tr>
+                      <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>
+                      <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                      <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                      <th scope="col" class="info-label">Actions</th>
+                    </tr>
+                    <tr app-column-filter-bar 
+                        *ngIf="myProjectInsightContributionList && isContributionSearchEnabled"
+                        [columnList]="projectInsightContributionColumns" 
+                        (onSearch)="onSearch($event, 'contribution');myContributionPage=1">
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- No data message -->
+                    <tr *ngIf="myProjectInsightContributionList.length == 0 || (myProjectInsightContributionList | colFilter:contributionFilters:false).length == 0">
+                      <td colspan="4" class="text-center info-label">No Details to display...</td>
+                    </tr>
+                    <!-- Data rows -->
+                    <tr *ngFor="let project of myProjectInsightContributionList | colFilter:contributionFilters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 4, currentPage: myContributionPage }, let i = index">
+                      <td>{{project.userDefinedProjectName}}</td>
+                      <td>{{project.status}}</td>
+                      <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
+                      <td>
+                        <button class="btn btn-sm btn-outline-primary" 
+                                type="button" 
+                                (click)="openUserContributionModal(project,user_contribution)">
+                          <em>View / Update</em>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+      
+              <!-- Pagination -->
+              <div class="mt-3">
+                <pagination-controls 
+                  class="my-pagination" 
+                  [hidden]="myProjectInsightContributionList.length == 0"
+                  (pageChange)="handlePageChange($event, 'contribution')">
+                </pagination-controls>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -511,5 +583,111 @@
     <app-project-insights [actionType]="actionType" [subActionType]="subActionType" [projectId]="projectId"
       [responseByEmpId]="responseByEmpId"
       (closeProjectInsightResponseModalEvent)="closeProjectInsightResponseModal()"></app-project-insights>
+  </div>
+</ng-template>
+
+<!-- User contribution -->
+
+<ng-template #user_contribution>
+  <div class="modal-body px-4 py-3">
+    <h5 class="text-center mb-3">Add Your Contribution</h5>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Project Name</label>
+      <input
+        type="text"
+        class="form-control"
+        [(ngModel)]="userContributionObj.userDefinedProjectName"
+        placeholder="Enter project name"
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Title</label>
+      <input
+        type="text"
+        class="form-control"
+        [(ngModel)]="userContributionObj.title"
+        placeholder="Enter Title"
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label> Team members</label>
+      <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" [displayMember]="'name'"
+        [valueMember]="'empId'" [source]="employeeList" [useInfiniteScroll]="true" [multiple]="true"
+        [(ngModel)]="userContributionObj.teamMembers">
+        <mat-option [value]="employee.empId" *ngFor="let employee of employeeList">
+          {{employee.name}}
+        </mat-option>
+      </mat-select>
+    </div>
+
+    <div class="form-group mb-3">
+      <label> Parent Contribution</label>
+      <select class="form-control form-control-sm" [(ngModel)]="userContributionObj.parentContribution" name="parentContro">
+        <option selected value="" disabled>Select</option>
+        <option *ngFor="let parent of myProjectInsightContributionList" [value]="parent.userContributionId">
+          {{parent.userDefinedProjectName}}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group mb-3">
+      <label>Tags</label>
+      <div class="tags-container">
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <span *ngFor="let tag of userContributionObj.tags; let i = index" 
+                class="badge bg-primary d-flex align-items-center">
+            {{tag}}
+            <button type="button" 
+                    class="btn-close btn-close-white ms-2" 
+                    aria-label="Close"
+                    (click)="removeTag(i)">
+            </button>
+          </span>
+        </div>
+
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="newTag"
+          placeholder="Type and press Enter to add tag"
+          (keyup.enter)="addManualTag()"
+        />
+      </div>
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Your Contribution</label>
+      <div (contextmenu)="handleContextMenu($event)">
+        <angular-editor
+        id="myEditor"
+        [(ngModel)]="userContributionObj.response"
+        [config]="editorConfig"
+        >
+      </angular-editor>
+      </div>
+
+      <div *ngIf="showContextMenu" 
+         class="context-menu"
+         [style.left.px]="contextMenuX"
+         [style.top.px]="contextMenuY">
+      <div class="list-group">
+        <button class="list-group-item" (click)="addTag()">Add tag</button>
+      </div>
+    </div>
+
+    <!-- Backdrop for closing context menu -->
+    <div *ngIf="showContextMenu" 
+         class="context-menu-backdrop"
+         (click)="closeContextMenu()">
+    </div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-4">
+      <button type="button" class="btn btn-sm btn-primary" [disabled]="userContributionObj.userDefinedProjectName == null && userContributionObj.response == null" (click)="createUserContribution()"> Yes, Submit</button>
+      <button type="button" class="btn btn-sm btn-outline-primary ml-1" (click)="cancelRequest()"> Cancel</button>
+    </div>
   </div>
 </ng-template>

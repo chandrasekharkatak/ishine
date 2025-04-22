@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.service.ProjectInsightService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -96,5 +97,19 @@ public class ProjectInsightController {
 	@RequestMapping(value = "/getFilterList", method = RequestMethod.GET)
 	public ResponseEntity<List<ProjectInsightFilterDTO>> getFilterList() {
 		return projectInsightService.getFilterList();
+	}
+	
+	/*
+     * User contribution Apis
+     * */
+	
+	@RequestMapping(value = "/getContibutionByEmpId", method = RequestMethod.POST)
+	public ResponseEntity<List<ProjectInsightUserContributionDTO>> getContibutionByEmpId(@RequestBody ProjectInsightUserContributionDTO projectInsightUserContributionDTO){
+		return projectInsightService.getContributionByEmpId(projectInsightUserContributionDTO);
+	}
+	
+	@RequestMapping(value = "/createUserContribution", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> createUserContribution(@RequestBody ProjectInsightUserContributionDTO projectInsightUserContributionDTO){
+		return projectInsightService.createOrUpdateUserContribution(projectInsightUserContributionDTO);
 	}
 }

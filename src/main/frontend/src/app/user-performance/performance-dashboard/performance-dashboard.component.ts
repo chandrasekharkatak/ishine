@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -20,6 +20,8 @@ import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
 import { ProjectResponse } from 'src/app/models/projectResponse';
 import { ProjectMilestone } from 'src/app/models/projectMilestone';
+import { UserContribution } from 'src/app/models/userContribution';
+import { AngularEditorConfig } from '@kolkov/angular-editor';
 
 interface Goal {
   goalStatus: string;
@@ -69,6 +71,9 @@ interface kpiList{
   styleUrls: ['./performance-dashboard.component.css']
 })
 export class PerformanceDashboardComponent implements OnInit {
+
+  @ViewChild('alert_message') alertModal: TemplateRef<any>;
+
   feature="performance_dashboard";
   userMapping:any = {};
   log:Log;
@@ -82,6 +87,33 @@ export class PerformanceDashboardComponent implements OnInit {
   questionnaireQuestions: QuestionDTO[] = [];
   kpiList:kpiList[] = [];
   selectedgoalProgress: any;
+
+  showContextMenu = false;
+  contextMenuX = 0;
+  contextMenuY = 0;
+  selectedText = '';
+  newTag: string = '';
+  
+  //Text Editor
+  editorConfig: AngularEditorConfig = {
+    editable: true,
+    spellcheck: true,
+    height: '20rem',
+    minHeight: '5rem',
+    width: 'auto',
+    minWidth: '0',
+    translate: 'yes',
+    enableToolbar: true,
+    showToolbar: true,
+    placeholder: 'Enter text here...',
+    defaultParagraphSeparator: '',
+    defaultFontName: '',
+    defaultFontSize: '',
+    uploadWithCredentials: false,
+    sanitize: false,
+    toolbarPosition: 'top',
+    fonts: [{class: 'arial', name: 'Arial'}],
+  };
 
   stats: Stats = {
     goalsCompleted: 0,
@@ -98,6 +130,7 @@ export class PerformanceDashboardComponent implements OnInit {
   };
 
   currentEmployeeInfo: Employee = new Employee();
+  userContributionObj:UserContribution = new UserContribution();
   selectedGoal?: Goal;
   modalRef?: BsModalRef;
   errorMessage: string;
@@ -117,6 +150,9 @@ export class PerformanceDashboardComponent implements OnInit {
   isFinalResponseSubmitted:boolean = false;
 
   filters:any = {};
+  contributionFilters:any = {};
+  isContributionSearchEnabled:boolean = false;
+  myContributionPage = 1;
   page = 1;
   sortDirection = 'asc';
   sortColumn: any;
@@ -126,7 +162,9 @@ export class PerformanceDashboardComponent implements OnInit {
 
   allProjectInsightList:any[] = [];
   projectInsightColumnColumns:any[] = ['projectName','description','isActive','createdByName','createdOn'];
+  projectInsightContributionColumns:any[] = ['projectName','status','createdOn', 'blank']
   employeeList:any[] = [];
+  myProjectInsightContributionList:any[] = [];
 
   projectResponseModalRef: BsModalRef = new BsModalRef();
   documentPreviewModalRef: BsModalRef = new BsModalRef();
@@ -157,6 +195,7 @@ export class PerformanceDashboardComponent implements OnInit {
     this.loadPerformanceStats();
     this.getAllProjectInsightContributionList();
     this.getEmployeeList();
+    this.getMyContributionList();
     
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -413,6 +452,122 @@ saveKpiResponses(template: TemplateRef<any>): void {
     });
   }
 
+  //context menu
+  handleContextMenu(event: MouseEvent) {
+    event.preventDefault();
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim().length > 0) {
+      this.selectedText = selection.toString();
+      
+      // Cast event.target to HTMLElement
+      const element = event.target as HTMLElement;
+      const rect = element.getBoundingClientRect();
+      
+      // Get click coordinates
+      this.contextMenuX = event.clientX;
+      this.contextMenuY = event.clientY;
+      
+      // Ensure menu stays within viewport
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const menuWidth = 200; // Approximate width of context menu
+      const menuHeight = 160; // Approximate height of context menu
+      
+      // Adjust if menu would go outside viewport
+      if (this.contextMenuX + menuWidth > viewportWidth) {
+        this.contextMenuX = viewportWidth - menuWidth;
+      }
+      
+      if (this.contextMenuY + menuHeight > viewportHeight) {
+        this.contextMenuY = viewportHeight - menuHeight;
+      }
+      
+      this.showContextMenu = true;
+    }
+  }
+
+  addTag() {
+    if (this.selectedText && this.selectedText.trim()) {
+      if (!this.userContributionObj.tags) {
+        this.userContributionObj.tags = [];
+      }
+      if (!this.userContributionObj.tags.includes(this.selectedText.trim())) {
+        this.userContributionObj.tags.push(this.selectedText.trim());
+      }
+      this.showContextMenu = false;
+    }
+  }
+
+  addManualTag() {
+    if (this.newTag && this.newTag.trim()) {
+      if (!this.userContributionObj.tags) {
+        this.userContributionObj.tags = [];
+      }
+      if (!this.userContributionObj.tags.includes(this.newTag.trim())) {
+        this.userContributionObj.tags.push(this.newTag.trim());
+      }
+      this.newTag = '';
+    }
+  }
+  
+  removeTag(index: number) {
+    if (this.userContributionObj.tags) {
+      this.userContributionObj.tags.splice(index, 1);
+    }
+  }
+
+  closeContextMenu() {
+    this.showContextMenu = false;
+  }
+
+  getMyContributionList(){
+    this.myProjectInsightContributionList = [];
+
+    let insightObj = {
+      employeeRole: this.currentUser.employeeRole,
+      empId: this.currentUser.empId   
+    };
+
+    this.projectInsightService.getContibutionByEmpId(insightObj).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.myProjectInsightContributionList = response;
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    });
+  }
+
+  extractPlainText(htmlContent: string): string {
+    if (!htmlContent) return '';
+    const tempElement = document.createElement('div');
+    tempElement.innerHTML = htmlContent;
+    return tempElement.textContent?.trim() || '';
+  }
+  
+
+  createUserContribution(){
+    this.cancelRequest();
+    
+    this.userContributionObj.onlyText = this.extractPlainText(this.userContributionObj.response);
+    this.userContributionObj.empId = this.currentUser.empId;
+    this.projectInsightService.createUserContribution(this.userContributionObj).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.alertMessage = response.serviceMessage;
+        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+      },
+      error: (error) => {
+        this.alertMessage = error.serviceMessage;
+        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+      }
+    });
+  }
+
+  openAddContributionModal(template: TemplateRef<any>){
+    this.userContributionObj = new UserContribution();
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  }
+
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -420,10 +575,17 @@ saveKpiResponses(template: TemplateRef<any>): void {
 
   // Project Insight
 
-  toggleSearch() {
-    this.isSearchEnabled = !this.isSearchEnabled;
-    if (!this.isSearchEnabled) {
-      this.filters = {};
+  toggleSearch(togleType: any) {
+    if (togleType == 'projectInsight') {
+      this.isSearchEnabled = !this.isSearchEnabled;
+      if (!this.isSearchEnabled) {
+        this.filters = {};
+      }
+    } else {
+      this.isContributionSearchEnabled = !this.isContributionSearchEnabled;
+      if (!this.isContributionSearchEnabled) {
+        this.filters = {};
+      }
     }
   }
 
@@ -436,12 +598,20 @@ saveKpiResponses(template: TemplateRef<any>): void {
     }
   }
 
-  onSearch(searchData) {
-    this.filters = searchData;
+  onSearch(searchData, type: any) {
+    if (type == 'projectInsight') {
+      this.filters = searchData; 
+    }else{
+      this.contributionFilters = searchData;
+    }
   }
   
-  handlePageChange(event) {
-    this.page = event;
+  handlePageChange(event, type: any) {
+    if(type == 'projectInsight'){
+      this.page = event;
+    }else{
+      this.myContributionPage = event;
+    }
   }
 
   getAllProjectInsightContributionList() {
@@ -472,6 +642,11 @@ saveKpiResponses(template: TemplateRef<any>): void {
     this.projectResponseModalRef = this.modalService.show(insightResponseTemplate, { class: 'modal-xl', ignoreBackdropClick: true, keyboard: false });
   }
 
+  openUserContributionModal(projectObj: any, contributionModal: TemplateRef<any>) {
+    this.userContributionObj = projectObj;
+    this.modalRef = this.modalService.show(contributionModal, { class: 'modal-xl' });
+  }
+
   getAllProjectInsightResponsesByProjectId(projectObj: any, alertTemplate: TemplateRef<any>, insightResponseTemplate: TemplateRef<any>, isPreview: any) {
     this.projectId = projectObj.projectId;
     this.subActionType = 'Submit/View Response';
@@ -481,6 +656,11 @@ saveKpiResponses(template: TemplateRef<any>): void {
 
   closeProjectInsightResponseModal() {
     this.projectResponseModalRef.hide();
+  }
+
+  cancelRequest(){
+    this.modalRef.hide();
+    this.modalService.hide();
   }
  
   getEmployeeList() {

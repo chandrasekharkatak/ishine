@@ -64,5 +64,13 @@ export class ProjectInsightService {
   getFilterList(){
     return this.http.get(`${this.baseUrl}` + `api/getFilterList`);
   }
+
+  createUserContribution(contributionObject: any){
+    return this.http.post(`${this.baseUrl}` + `api/createUserContribution`, contributionObject);
+  }
+
+  getContibutionByEmpId(contributionObject: any){
+    return this.http.post(`${this.baseUrl}` + `api/getContibutionByEmpId`, contributionObject);
+  }
   
 }

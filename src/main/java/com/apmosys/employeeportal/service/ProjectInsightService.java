@@ -4,6 +4,7 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +43,7 @@ import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightEntityDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightMilestoneDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionDTO;
 import com.apmosys.employeeportal.dto.ProjectResponseDTO;
 import com.apmosys.employeeportal.dto.SubModuleDTO;
@@ -56,6 +58,7 @@ import com.apmosys.employeeportal.model.ProjectInsightMilestone;
 import com.apmosys.employeeportal.model.ProjectInsightModule;
 import com.apmosys.employeeportal.model.ProjectInsightResponse;
 import com.apmosys.employeeportal.model.ProjectInsightSubModule;
+import com.apmosys.employeeportal.model.ProjectInsightUserContribution;
 import com.apmosys.employeeportal.model.QuestionMaster;
 import com.apmosys.employeeportal.model.TagMaster;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -68,6 +71,7 @@ import com.apmosys.employeeportal.repository.ProjectInsightMilestoneRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightModuleRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightResponseRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightSubModuleRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightUserContributionRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.QuestionMasterRepository;
 import com.apmosys.employeeportal.repository.TagMasterRepository;
@@ -138,6 +142,9 @@ public class ProjectInsightService {
 	
 	@Autowired
 	ProjectInsightFilterOptionsRepository projectInsightFilterOptionsRepository;
+	
+	@Autowired
+	ProjectInsightUserContributionRepository projectInsightUserContributionRepository;
 	
 	public String saveProjectWiseTags(ProjectInsightDTO projectInsightDTO) {
 	    String response = "Failed";
@@ -2074,6 +2081,123 @@ public class ProjectInsightService {
 			e.printStackTrace();
 		}
 		return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<List<ProjectInsightUserContributionDTO>> getContributionByEmpId(
+	        ProjectInsightUserContributionDTO projectInsightUserContributionDTO) {
+
+	    List<ProjectInsightUserContributionDTO> response = new ArrayList<>();
+
+	    try {
+	        if (projectInsightUserContributionDTO == null || projectInsightUserContributionDTO.getEmpId() == null) {
+	            return ResponseEntity.badRequest().body(Collections.emptyList());
+	        }
+
+	        List<ProjectInsightUserContribution> userContributions =
+	                projectInsightUserContributionRepository.findByEmpId(projectInsightUserContributionDTO.getEmpId());
+
+	        if (userContributions != null && !userContributions.isEmpty()) {
+	            response = userContributions.stream().map(object -> {
+	            	List<ProjectInsightAssignees> alltaggedUser = projectInsightAssigneesRepository.getByEntityIdAndEntityType(object.getUserContributionId(),
+		        			"UserContribution");
+	                ProjectInsightUserContributionDTO dto = new ProjectInsightUserContributionDTO();
+	                dto.setAssignTo(object.getAssignTo());
+	                dto.setCreatedOn(object.getCreatedOn() != null ? object.getCreatedOn().toString() : null);
+	                dto.setEmpId(object.getEmpId());
+	                dto.setProjectId(object.getProjectId());
+	                dto.setResponse(object.getResponse());
+	                dto.setStatus(object.getStatus());
+	                dto.setUpdatedOn(object.getUpdatedOn() != null ? object.getUpdatedOn().toString() : null);
+	                dto.setUserContributionId(object.getUserContributionId());
+	                dto.setUserDefinedProjectName(object.getUserDefinedProjectName());
+	                dto.setParentContribution(object.getParentContribution());
+	                dto.setTitle(object.getTitle());
+	                dto.setOnlyText(object.getOnlyTextResponse());
+	                dto.setTeamMembers(alltaggedUser.stream().map(assignObj -> assignObj.getAssignedTo()).collect(Collectors.toList()));                
+	                
+	                return dto;
+	            }).collect(Collectors.toList());
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return ResponseEntity.internalServerError().body(Collections.emptyList());
+	    }
+
+	    return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<ServiceResponse> createOrUpdateUserContribution(ProjectInsightUserContributionDTO dto) {
+		ServiceResponse response = new ServiceResponse();
+	    try {
+	        if (dto.getEmpId() == null) {
+	        	response.setServiceMessage("Missing required fields: empId");
+	            return ResponseEntity.badRequest().body(response);
+	        }
+
+	        ProjectInsightUserContribution entity;
+	        if (dto.getUserContributionId() != null) {
+	            Optional<ProjectInsightUserContribution> optionalEntity =
+	                    projectInsightUserContributionRepository.findById(dto.getUserContributionId());
+
+	            if (optionalEntity.isPresent()) {
+	                entity = optionalEntity.get();
+	                entity.setUpdatedOn(LocalDateTime.now());
+	            } else {
+	            	response.setServiceMessage("User contribution not found with ID: " + dto.getUserContributionId());
+	                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                        .body(response);
+	            }
+	        } else {
+	        	Employee empObj = employeeRepository.findByEmpId(dto.getEmpId());
+	        	
+	            entity = new ProjectInsightUserContribution();
+	            entity.setAssignTo(empObj != null ?
+	            		empObj.getReportingManagerId() != null ?
+	            				empObj.getReportingManagerId():empObj.getManagerId() :null);
+	            entity.setEmpId(dto.getEmpId());
+		        entity.setProjectId(dto.getProjectId());
+	        }
+	        
+	        entity.setResponse(dto.getResponse());
+	        entity.setStatus("Pending");
+	        entity.setUserDefinedProjectName(dto.getUserDefinedProjectName());
+	        entity.setTitle(dto.getTitle());
+	        entity.setParentContribution(dto.getParentContribution());
+	        entity.setOnlyTextResponse(dto.getOnlyText());
+	        
+	        ProjectInsightUserContribution dbResponse = projectInsightUserContributionRepository.save(entity);
+	        
+	        if(dbResponse != null) {
+	        	List<ProjectInsightAssignees> alltaggedUser = projectInsightAssigneesRepository.getByEntityIdAndEntityType(dbResponse.getUserContributionId(),
+	        			"UserContribution");
+	        	if(!alltaggedUser.isEmpty()) {
+	        		projectInsightAssigneesRepository.deleteAll(alltaggedUser);
+	        	}
+	        	
+	        	//Add new team member tag
+	        	if(!dto.getTeamMembers().isEmpty()) {
+	        		List<ProjectInsightAssignees> newAssignees = dto.getTeamMembers().stream().map(object -> {
+	        			ProjectInsightAssignees obj = new ProjectInsightAssignees();
+	        			obj.setEntityId(dbResponse.getUserContributionId());
+	        			obj.setEntityType("UserContribution");
+	        			obj.setAssignedTo(object);
+	        			obj.setTaggedBy(dto.getEmpId());
+	        			
+	        			return obj;
+	        		}).collect(Collectors.toList());
+	        		
+	        		projectInsightAssigneesRepository.saveAll(newAssignees);
+	        	}
+	        }
+
+	        response.setServiceMessage(dto.getUserContributionId() != null ? "User contribution updated successfully." : "User contribution created successfully.");
+	        return ResponseEntity.ok(response);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceMessage("An error occurred while saving the contribution.");
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+	    }
 	}
 	
 }
