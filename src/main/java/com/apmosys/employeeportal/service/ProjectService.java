@@ -240,6 +240,7 @@ public class ProjectService {
 					projectDto.setExperience(object[15] != null ? object[15].toString() : null);
 					projectDto.setEmpId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
 					dtoList.add(projectDto);
+					System.err.println("vhg"+projectDto);
 				});
 				
 				System.err.println("----------------------------------------------------------------------------------------_________________________________________________________________________________-------------------------------------------------_______________________----------____________________------____----__---_");
@@ -909,8 +910,8 @@ public class ProjectService {
 								teamObj.setDescription(object.getDescription());
 								teamObj.setTeamLeadName(teamLeadObj !=null ? teamLeadObj.getName() : null);
 								teamObj.setDeptIds(deptList.toString());
-								teamObj.getCommonProperty().setUpdatedBy(teamUpdatedByObj !=null ? teamUpdatedByObj.getEmpId() : null);
-								teamObj.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+								teamObj.setUpdatedBy(teamUpdatedByObj !=null ? teamUpdatedByObj.getEmpId() : null);
+								teamObj.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 								Team teamDbResponse = teamRepository.save(teamObj);
 								
 								if(teamDbResponse != null) {
@@ -991,7 +992,8 @@ public class ProjectService {
 								newTeamObj.setTeamLeadName(teamLeadObj != null ? teamLeadObj.getName() : null);
 								newTeamObj.setDescription(object.getDescription());
 								newTeamObj.setDeptIds(deptList.toString());
-								newTeamObj.getCommonProperty().setCreatedBy(teamCreatedByObj != null ? teamCreatedByObj.getEmpId() : null);
+								newTeamObj.setCreatedBy(teamCreatedByObj != null ? teamCreatedByObj.getEmpId() : null);
+								newTeamObj.setCreatedOn(new Timestamp(System.currentTimeMillis())); 
 								Team teamDbResponse = teamRepository.save(newTeamObj);
 								
 								List<EmployeeTeamMap> teamMemberDbResponse = null;
@@ -1261,7 +1263,8 @@ public class ProjectService {
 							newTeamObj.setTeamLeadName(teamLeadObj != null ? teamLeadObj.getName() : null);
 							newTeamObj.setDescription(teamObj.getDescription());
 							newTeamObj.setDeptIds(deptList.toString());
-							newTeamObj.getCommonProperty().setCreatedBy(teamCreatedByObj.getEmpId());
+							newTeamObj.setCreatedBy(teamCreatedByObj.getEmpId());
+							newTeamObj.setCreatedOn(new Timestamp(System.currentTimeMillis())); 
 							Team teamDbResponse = teamRepository.save(newTeamObj);
 							
 							if(teamDbResponse != null) {
