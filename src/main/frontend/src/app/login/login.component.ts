@@ -101,7 +101,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.intervalId = setInterval(() => {
       this.nextSlide();
-    }, 10000);
+    }, 6000);
   }
 
   ngOnDestroy() {

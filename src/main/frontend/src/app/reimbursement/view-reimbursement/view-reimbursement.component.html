@@ -21,13 +21,23 @@
                   <th scope="col" class="info-label">To Location</th> -->
                   <th scope="col" class="info-label">Expenditure Type</th>
                   <th scope="col" class="info-label">Travel Mode</th>
-                  <th scope="col" class="info-label">Distance</th>
+                  <th scope="col" class="info-label">Distance(in Kms)</th>
                   <th scope="col" class="info-label">Currency</th>
                   <th scope="col" class="info-label">Amount</th>
                   <th scope="col" class="info-label">Applied By</th>
                   <th scope="col" class="info-label">Applied On</th>
                   <th scope="col" class="wide-col">Purpose Of Travel</th>
-                  <th scope="col" class="info-label">Status</th>
+                  <!-- <th scope="col" class="info-label">Status</th> -->
+                  <th scope="col" class="info-label">Current Approval Level</th>
+                  <th scope="col" class="info-label">Level 1 Approver Name</th>
+                  <th scope="col" class="info-label">Level 1 Approver Status</th>
+                  <th scope="col" class="info-label">Level 1 Approver Remarks</th>
+                  <th scope="col" class="info-label">Level 2 Approver Name</th>
+                  <th scope="col" class="info-label">Level 2 Approver Status</th>
+                  <th scope="col" class="info-label">Level 2 Approver Remarks</th>
+                  <th scope="col" class="info-label">Level 3 Approver Status</th>
+                  <th scope="col" class="info-label">Level 3 Approver Remarks</th>
+                  <th scope="col" class="info-label">Final Status</th>
                   <!-- <th scope="col" class="info-label">Current Approval Level</th>
                   <th scope="col" class="info-label">Level 1 Approver Name</th>
                   <th scope="col" class="info-label">Level 1 Approver Status</th>
@@ -53,7 +63,42 @@
                   <td>{{ row.appliedBy }}</td>
                   <td>{{ row.appliedOn | date }}</td>
                   <td>{{ row.purpose }}</td>
-                  <td>{{ row.status }}</td>
+                  <!-- <td>{{ row.status }}</td> -->
+
+                  <td>{{ row.level }}</td>
+                  <td>{{ row.hodName }}</td> 
+                  <td [ngClass]="{
+                    'text-danger': row.status === 'Rejected',
+                    'text-success': row.status === 'Approved',
+                    'text-warning': row.status === 'Pending'
+                                }">
+                    {{ row.status || 'NA'}}
+                  </td>  
+                  <td>{{ row.level1approverRemarks }}</td>
+                  <td>{{ row.level2approverName }}</td>
+                  <td [ngClass]="{
+                    'text-danger': row.level2approverStatus === 'Rejected',
+                    'text-success': row.level2approverStatus === 'Approved',
+                    'text-warning': row.level2approverStatus === 'Pending'
+                                }">
+                    {{ row.level2approverStatus || 'NA'}}
+                  </td>
+                  <td>{{ row.level2approverRemarks }}</td>
+                  <td [ngClass]="{
+                    'text-danger': row.level3approverStatus === 'Rejected',
+                    'text-success': row.level3approverStatus === 'Approved',
+                    'text-warning': row.level3approverStatus === 'Pending'
+                                }">
+                    {{ row.level3approverStatus || 'NA'}}
+                  </td>
+                  <td>{{ row.level3approverRemarks }}</td>
+                  <td [ngClass]="{
+                    'text-danger': row.finalStatus === 'Rejected',
+                    'text-success': row.finalStatus === 'Approved',
+                    'text-warning': row.finalStatus === 'Pending'
+                                }">
+                    {{ row.finalStatus || 'NA'}}
+                  </td>
                   <!-- <td>{{ row.level }}</td> -->
                   <!-- <td>{{ row.hodName }}</td> -->
                   <!-- <td>{{ row.status }}</td> -->
@@ -61,10 +106,10 @@
                   <td>
                  
                     <div class="d-inline-flex">
-                       <button type="button" class="btn btn-primary btn-sm ml-2" (click)="openEditModal(reimbursement,row)">
+                       <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button" class="btn btn-primary btn-sm ml-2" (click)="openEditModal(reimbursement,row)">
                         <em class="fa fa-edit"></em> Edit
                       </button>
-                      <button type="button" class="btn btn-danger btn-sm ml-2" (click)="deleteReimbursement(row)">
+                      <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button" class="btn btn-danger btn-sm ml-2" (click)="deleteReimbursement(row,alert_message)">
                         <em class="fa fa-trash"></em> Delete
                       </button> 
                     </div>
@@ -205,12 +250,12 @@
                     </div>
                   </div>
 
-                  <div class="col-md-6">
+                  <!-- <div class="col-md-6">
                     <div class="form-group">
                       <label for="status">Status</label>
                       <input type="text" class="form-control" id="status" [(ngModel)]="selectedReimbursementRequest.status" name="status" readonly />
                     </div>
-                  </div>
+                  </div> -->
                 
                   <!-- <div class="col-md-6">
                     <div class="form-group">
@@ -227,7 +272,7 @@
                   </div> -->
                 
                   <div class="col-md-12 text-center">
-                    <button type="button" class="btn btn-primary" (click)="updateRequest()" >Save Changes</button>
+                    <button type="button" class="btn btn-primary" (click)="updateRequest(alert_message)" >Save Changes</button>
                   </div>
                 </div>
                 
@@ -238,3 +283,10 @@
         </div>
       </div>
 </ng-template> 
+
+<ng-template #alert_message>
+  <div class="modal-body text-center">
+      <p>{{alertMessage}}</p>
+      <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+  </div>
+</ng-template>

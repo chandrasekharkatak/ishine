@@ -55,7 +55,8 @@ reimbursementObj: any = {
   toLocation:'',
   supportingDocument: null,
   kilometers: null,
-  foodAllowanceType:null
+  foodAllowanceType:null,
+  vehicleType:''
 };
 
 
@@ -93,7 +94,7 @@ reimbursementObj: any = {
       let currentEmp = new Employee();
       currentEmp.empId = this.currentUser.empId;
       currentEmp.isDraft = false;
-      //console.log("currentEmp : ", currentEmp);
+      console.log("currentUser  :::::::::: ", this.currentUser);
       
       const response: any = await this.empService.getEmployeeByEmpId(currentEmp).toPromise();
       if (response.serviceStatus == "Success") {
@@ -147,12 +148,77 @@ reimbursementObj: any = {
  
      // Logic to handle form submission
       if (this.isValidForm()) {
+        console.log('Document',this.reimbursementObj.supportingDocument);  
 
+        if (!this.reimbursementObj.expenditureType) {
+          this.openAlertMod(template, "Please select an Expenditure Type.");
+          return;
+        }
+      
+        // Travel related validations
+        if (this.reimbursementObj.expenditureType === 'Travel') {
+          if (!this.reimbursementObj.travelMode) {
+            this.openAlertMod(template, "Please select a Travel Mode.");
+            return;
+          }
+      
+          if (this.reimbursementObj.travelMode === 'Personal Vehicle') {
+            if (!this.reimbursementObj.vehicleType) {
+              this.openAlertMod(template, "Please select a Vehicle Type.");
+              return;
+            }
+            if (!this.reimbursementObj.distance || this.reimbursementObj.distance <= 0) {
+              this.openAlertMod(template, "Please enter valid Distance in KM.");
+              return;
+            }
+          }
+        }
+      
+        // Food related validations
+        if (this.reimbursementObj.expenditureType === 'Food') {
+          if (!this.reimbursementObj.foodAllowanceType) {
+            this.openAlertMod(template, "Please select Food Allowance Type.");
+            return;
+          }
+          if (!this.reimbursementObj.dateOfFood) {
+            this.openAlertMod(template, "Please select the Fooding Date.");
+            return;
+          }
+        }
+      
+        // Common fields
+        if (!this.reimbursementObj.amount || this.reimbursementObj.amount <= 0) {
+          this.openAlertMod(template, "Please enter a valid Total Amount .");
+          return;
+        }
+      
+        if (this.reimbursementObj.expenditureType !== 'Food') {
+          if (!this.reimbursementObj.fromDate) {
+            this.openAlertMod(template, "Please select From Date.");
+            return;
+          }
+          if (!this.reimbursementObj.toDate) {
+            this.openAlertMod(template, "Please select To Date.");
+            return;
+          }
+        }
+      
+        if (!this.reimbursementObj.purpose || this.reimbursementObj.purpose.trim() === '') {
+          this.openAlertMod(template, "Please enter the Purpose.");
+          return;
+        }
+
+        if (!this.reimbursementObj.supportingDocument) {
+          this.openAlertMod(template, "Please enter a valid Document .");
+          return;
+        }
          // First upload the file
     const fileFormData = new FormData();
     fileFormData.append('file', this.reimbursementObj.supportingDocument);
     fileFormData.append("displayName", this.reimbursementObj.supportingDocument.name);
     fileFormData.append("uploadedBy", this.currentEmployeeInfo.empId);
+
+
 
     try {
       const uploadResponse: any = await this.reimbursementService.uploadFileReimbursement(fileFormData).pipe(first()).toPromise();
@@ -169,7 +235,7 @@ reimbursementObj: any = {
      this.reimbursementInfo = new MyReimbursement();
      let reimbursementData = new MyReimbursement();
 
-     reimbursementData.empId = this.currentEmployeeInfo.employeementId;
+     reimbursementData.empId = this.currentEmployeeInfo.empId;
      reimbursementData.name = this.currentEmployeeInfo.name;
      reimbursementData.email = this.currentEmployeeInfo.email;
      reimbursementData.departmentName=this.currentEmployeeInfo.departmentName;
@@ -179,7 +245,9 @@ reimbursementObj: any = {
      reimbursementData.amount =this.reimbursementObj.amount;        
      reimbursementData.travelMode =this.reimbursementObj.travelMode;      
      reimbursementData.distance=this.reimbursementObj.distance;     
-     reimbursementData.fromDate =this.reimbursementObj.fromDate;     
+     reimbursementData.fromDate =this.reimbursementObj.fromDate;  
+     reimbursementData.levelOneApprover = this.currentUser.hodId,
+     reimbursementData.managerName= this.currentUser.hodName,   
      reimbursementData.toDate =this.reimbursementObj.toDate;       
      reimbursementData.purpose=this.reimbursementObj.purpose;        
      reimbursementData.fileData =this.reimbursementObj.fileData; 
@@ -188,6 +256,7 @@ reimbursementObj: any = {
      reimbursementData.vehicleType = this.reimbursementObj.vehicleType;
      reimbursementData.foodAllowanceType = this.reimbursementObj.foodAllowanceType;
      reimbursementData.dateOfFood = this.reimbursementObj.dateOfFood ; 
+     reimbursementData.docId = uploadResponse.serviceResponse.documentId;
 
     console.log('reimbursementData Data::::::::::::::::::::::::::::', reimbursementData);
  
@@ -195,8 +264,10 @@ reimbursementObj: any = {
      
        const response: any = await this.reimbursementService.saveReimbursementData(reimbursementData).toPromise();
        if (response.serviceStatus == "Success") {
-         alert("Success! Your request was processed successfully.");
-         window.location.reload();
+        this.openAlertMod(template, "Success! Your request was processed successfully!");
+
+        //  alert("Success! Your request was processed successfully.");
+        //  window.location.reload();
    
        } else {
          console.error(response.serviceResponse);
@@ -220,6 +291,19 @@ reimbursementObj: any = {
       
       cancelRequest() {
         this.modalRef.hide();
+       // location.reload();
+      }
+
+      cancelRequest1() {
+        this.modalRef.hide();
+        location.reload();
+      }
+
+      onFileChange(event: any) {
+        const file = event.target.files[0];
+        if (file) {
+          this.reimbursementObj.supportingDocument = file;
+        }
       }
 
 
