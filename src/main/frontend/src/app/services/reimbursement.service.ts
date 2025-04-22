@@ -17,6 +17,10 @@ export class ReimbursementService {
     return this.http.post(`${this.baseUrl}` + `api/fetchReimbursementData`, reimbursementObj);
   }
 
+  fetchReimbursementDataforApproval(reimbursementObj: MyReimbursement) {
+    return this.http.post(`${this.baseUrl}` + `api/fetchReimbursementDataforApproval`, reimbursementObj);
+  }
+
   saveReimbursementData(reimbursementObj: MyReimbursement) {
     return this.http.post(`${this.baseUrl}` + `api/saveReimbursementData`, reimbursementObj);
   }

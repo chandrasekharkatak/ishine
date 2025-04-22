@@ -28,6 +28,7 @@ export class ReimbursementapprovalComponent implements OnInit {
   domainSpecializationList: any[];
   currentUser: any;
   alertMessage: any;
+  level: number;
   constructor(
     private modalService: BsModalService,
      private sanitizer: DomSanitizer,
@@ -52,7 +53,7 @@ export class ReimbursementapprovalComponent implements OnInit {
 
       console.log('reimbursementData Data  ::::::::::::::::', reimbursementData);
 
-      const response: any = await this.reimbursementService.fetchReimbursementData(reimbursementData).toPromise();
+      const response: any = await this.reimbursementService.fetchReimbursementDataforApproval(reimbursementData).toPromise();
       
       if (response.serviceStatus === "Success") {
         this.reimbursementRequests = response.serviceResponse;  
@@ -66,6 +67,22 @@ export class ReimbursementapprovalComponent implements OnInit {
 
   isValidForm() {
     return true; 
+  }
+
+  shouldShowAction(row: any): boolean {
+    console.log('row data :::::::::::::',row);
+    if (row.level === 1) {
+      return row.level1approverStatus === 'Pending';
+    } else if (row.level === 2) {
+      return row.status === 'Approved' && row.level2approverStatus === 'Pending';
+    } else if (row.level === 3) {
+      return (
+        row.status === 'Approved' &&
+        row.level2approverStatus === 'Approved' &&
+        row.level3approverStatus === 'Pending'
+      );
+    }
+    return false;
   }
   //pagination
 
@@ -127,6 +144,7 @@ export class ReimbursementapprovalComponent implements OnInit {
           this.modalRef.hide();
         this.alertMessage = `Success! Your request was approved successfully ..!!!!`;
         this.openAlertMod(template, this.alertMessage);
+
         console.log('Updated Travel Request:', this.selectedReimbursementRequest);
         }
         
@@ -148,6 +166,7 @@ export class ReimbursementapprovalComponent implements OnInit {
 }
 closeModal() {
   this.modalRef.hide();
+  this.onGetReimbursementInfo();
 }
 
 openEditModal(template: TemplateRef<any> ,row :any) {

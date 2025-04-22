@@ -24,16 +24,17 @@
                   <th scope="col" class="info-label">Currency</th>
                   <th scope="col" class="info-label">Food Allowance Type</th>
                   <th scope="col" class="info-label">Fooding Date</th>
-                  <th scope="col" class="info-label">Currency</th>
+                  <!-- <th scope="col" class="info-label">Currency</th> -->
                   <th scope="col" class="info-label">Amount</th>
                   <th scope="col" class="info-label">Applied By</th>
                   <th scope="col" class="info-label">Applied On</th>
                   <th scope="col" class="wide-col">Purpose Of Travel</th>
-                  <th scope="col" class="info-label">Status</th>
+                  <!-- <th scope="col" class="info-label">Status</th> -->
                   <th scope="col" class="info-label">Current Approval Level</th>
                   <th scope="col" class="info-label">Level 1 Approver Status</th>
                   <th scope="col" class="info-label">Level 1 Approver Name</th>
                   <th scope="col" class="info-label">Level 1 Approver Remarks</th>
+                  <th scope="col" class="info-label">Level 2 Approver Name</th>
                   <th scope="col" class="info-label">Level 2 Approver Status</th>
                   <th scope="col" class="info-label">Level 2 Approver Remarks</th>
                   <th scope="col" class="info-label">Level 3 Approver Status</th>
@@ -61,10 +62,11 @@
                   <td>{{ row.appliedBy }}</td>
                   <td>{{ row.appliedOn | date }}</td>
                   <td>{{ row.purpose }}</td>
-                  <td>{{ row.status }}</td>
+                  <!-- <td>{{ row.status }}</td> -->
                   <td>{{ row.level }}</td>
-                  <td>{{ row.hodName }}</td>
+                  <!-- <td>{{ row.hodName }}</td> -->
                   <td>{{ row.status }}</td>
+                  <td>{{ row.hodName }}</td>
                   <td>{{ row.level1approverRemarks || 'NA'}}</td>
                   <td>{{ 'HR' }}</td>
                   <td>{{ row.level2approverStatus }}</td>
@@ -75,9 +77,19 @@
                   <td>
                  
                     <div class="d-inline-flex">
-                        <button *ngIf="row.status === 'Pending'" type="button" class="btn btn-success btn-sm btn-action button" (click)="openEditModal(approveRequest,row)">
+                        <!-- <button *ngIf="row.status === 'Pending'" type="button" class="btn btn-success btn-sm btn-action button" (click)="openEditModal(approveRequest,row)">
                             <em class="fa fa-edit"></em> Take Action
-                          </button>
+                          </button> -->
+                          <!-- Level 1 approver action -->
+                          <button
+                          *ngIf="shouldShowAction(row)"
+                          type="button"
+                          class="btn btn-success btn-sm btn-action button"
+                          (click)="openEditModal(approveRequest, row)"
+                        >
+                          <em class="fa fa-edit"></em> Take Action
+                        </button>
+
                     </div>
                   </td>
                 </tr>
