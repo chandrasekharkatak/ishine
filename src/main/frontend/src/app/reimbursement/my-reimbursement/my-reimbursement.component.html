@@ -67,7 +67,7 @@
                 
              
            <!-- Travel related fields -->
-                <div class="col-md-3 mb-0" *ngIf="isTravel">
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Travel'">
                     <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
                     <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="reimbursementObj.travelMode">
                         <option selected="selected" value="" disabled>Select</option>
@@ -195,7 +195,7 @@
             <div class="row mb-3">
                 <div class="col-md-12 px-0 text-center">
                     <!-- Reset and Submit buttons -->
-                    <button type="button" class="btn btn-secondary btn-lg mx-1">Reset</button>
+                    <button type="button" class="btn btn-secondary btn-lg mx-1" (click)="resetForm(alert_message)">Reset</button>
                     <button type="submit" class="btn btn-primary btn-lg mx-1" (click)="submitForm(alert_message)">Submit</button>
                 </div>
             </div>

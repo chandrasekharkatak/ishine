@@ -123,7 +123,7 @@ reimbursementObj: any = {
       }
     }
 
-    async resetForm() {
+    async resetForm(template: TemplateRef<any>) {
       this.reimbursementObj = {
         currencyType:'',
         currentUser:'',
@@ -138,10 +138,17 @@ reimbursementObj: any = {
         purpose: '',
         fromLocation:'',
         toLocation:'',
-        supportingDocument: null,
+        supportingDocument: '',
         kilometers: null,
-        foodAllowanceType:null
+        foodAllowanceType:null,
+        file : ''
       };
+      const fileInput: HTMLInputElement | null = document.querySelector('input[type="file"]');
+      if (fileInput) {
+        fileInput.value = ''; // Clear the file input value
+      }
+      this.alertMessage = `Your form data has been successfully reset  !!!!!!`;
+      this.openAlertMod(template, this.alertMessage);
     }
 
    async submitForm(template: TemplateRef<any>) {

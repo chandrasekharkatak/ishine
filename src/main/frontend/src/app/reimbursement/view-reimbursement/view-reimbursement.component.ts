@@ -81,10 +81,16 @@ export class ViewReimbursementComponent implements OnInit {
    }
    //alertMessage: any;
    modalRef: BsModalRef = new BsModalRef();
-   openAlertMod(template: TemplateRef<any>, message: any) {
+   modalRef2: BsModalRef = new BsModalRef();
+   openAlertMod1(template: TemplateRef<any>) {
      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
-     this.alertMessage = message;
    }
+
+   openAlertMod2(template: TemplateRef<any>, message: any) {
+    this.modalRef2 = this.modalService.show(template, { class: 'modal-lg' });
+    this.alertMessage = message;
+  }
+
    openEditModal(template: TemplateRef<any> ,row :any) {
  
      this.selectedReimbursementRequest = { ...row };
@@ -97,7 +103,7 @@ export class ViewReimbursementComponent implements OnInit {
 
     console.log('editpain asichi re ::::::::::::::::::::',this.selectedReimbursementRequest);
  
-     this.openAlertMod(template, "");
+     this.openAlertMod1(template);
  
    }
  
@@ -163,19 +169,19 @@ export class ViewReimbursementComponent implements OnInit {
          const response: any = await this.reimbursementService.updateReimbursementData(newreimbursementData).toPromise();
    
          if (response.serviceStatus === "Success") {
-          this.openAlertMod(template, "Success! Your data was updated successfully. !!");
+          this.openAlertMod2(template, "Success! Your data was updated successfully. !!");
 
            //alert("Success! Your data was updated successfully.");
            console.log('Updated Travel Request:', this.selectedReimbursementRequest);
            this.modalRef.hide();
          } else {
            console.error('Error updating reimbursement request:', response.serviceResponse);
-           this.openAlertMod(template, "There was an issue updating the data.. !!");
+           this.openAlertMod2(template, "There was an issue updating the data.. !!");
 
          }
        } catch (error) {
          console.error('Error during API call:', error);
-         this.openAlertMod(template, "An error occurred while updating the data. Please try again later. !!");
+         this.openAlertMod2(template, "An error occurred while updating the data. Please try again later. !!");
        }
   
      }
@@ -246,7 +252,7 @@ export class ViewReimbursementComponent implements OnInit {
    }
 
    cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef2.hide();
   }
  
 
