@@ -25,8 +25,13 @@ public class ProjectInsightUserContribution {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long userContributionId;
 	private Long empId;
+	
+    @Column(columnDefinition = "LONGTEXT")
 	private String response;
+    
+    @Column(columnDefinition = "LONGTEXT")
 	private String onlyTextResponse;
+    
 	private String status;
 	private Long assignTo;
 	private Long projectId;
