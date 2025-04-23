@@ -841,7 +841,10 @@ public class ResourceManagementService {
 							empTeamMapping.forEach((teamMemberObj) -> {
 								String employeeName = null;
 								Employee empObj = employeeRepository.findByEmpId(teamMemberObj.getEmpId());
-								// find department 
+								if(empObj == null) {
+									return;
+								}
+								System.err.print("Employee dratils"+empObj);		// find department 
 								JobRole findJobRole = jobRoleRepository.findByjobRoleId(empObj.getJobRoleId());
 								Department findDepartment = departmentRepository.findByDeptId(findJobRole.getDeptId());							
 								
