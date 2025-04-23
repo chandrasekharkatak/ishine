@@ -147,6 +147,10 @@ getTeamMemberByTeamId(teamId:any){
   getProjectInfo(project:Project){
     return this.http.post(`${this.baseUrl}`+`api/getProjectInfo`,project);
   }
+
+  getPoProjectInfo(project:Project){
+    return this.http.post(`${this.baseUrl}`+`api/getPoProjectInfo`,project);
+  }
   
   getTeamInfo(project:Project){
     return this.http.post(`${this.baseUrl}`+`api/getTeamInfo`,project);

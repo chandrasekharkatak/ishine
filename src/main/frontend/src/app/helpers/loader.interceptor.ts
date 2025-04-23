@@ -254,7 +254,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/currentStatusForPerformanceTableView`,
     `${this.baseUrl}` + `api/poprojectclone`,
     `${this.baseUrl}` + `api/getEmployeeProjectReport`,
-    `${this.baseUrl}` + `api/updateEmployeeReportBillableType`
+    `${this.baseUrl}` + `api/updateEmployeeReportBillableType`,
+    `${this.baseUrl}` + `api/updateBulkBillableEmployeeReport`
   ]
 
   constructor(private loaderService: LoaderService) { }

@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -55,4 +56,12 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	
 	@Query(value = "SELECT etm.emp_id FROM employee_team_mapping etm WHERE etm.team_id = :teamId AND etm.active != 0 ", nativeQuery = true)
     List<Long> findEmployeeIdsByTeamId(@Param("teamId") Long teamId);
+	
+	@Modifying
+	@Query(nativeQuery = true)
+	public void updateTeamProjectByPoProjectId(Long teamId, Long poProjectId);
+	
+	@Modifying
+	@Query(nativeQuery = true)
+	public void updateTeamName(Long teamId, String newTeamName);
 }
