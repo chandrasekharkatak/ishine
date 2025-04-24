@@ -415,6 +415,7 @@ public class ResourceManagementService {
 					                	Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
 					                	
 					                    member.setActive(0L);
+					                    member.setEndDate(LocalDateTime.now());
 					                    member.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 					                    inActiveMember.add(member);
 					                    
@@ -1895,7 +1896,8 @@ public class ResourceManagementService {
 		
 		findAllMappedEmp.forEach(emp ->{
 		
-			emp.setActive(0l);		
+			emp.setActive(0l);
+			emp.setEndDate(LocalDateTime.now())	;
 			employeeTeamMapRepository.save(emp);
 		});	
 		
