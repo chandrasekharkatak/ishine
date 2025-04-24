@@ -19,4 +19,5 @@ export class UserContribution {
 	attachments: (File | {name: string, documentId: number, isExisting: boolean})[];
 	userDocument:any[] = [];
 	responseList:any[] = [];
+	reviewType:any;
 }

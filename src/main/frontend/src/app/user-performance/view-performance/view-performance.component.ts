@@ -696,6 +696,8 @@ export class ViewPerformanceComponent implements OnInit {
       next: (response: any) => {
         this.alertMessage = response.serviceMessage;
         this.modalRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+
+        this.getUserContributionForReview();
       },
       error: (error) => {
         this.alertMessage = error.serviceMessage;
@@ -730,6 +732,18 @@ export class ViewPerformanceComponent implements OnInit {
       editable: false,
       showToolbar: false
     };
+
+    this.userContributionObj.attachments = [];
+    if (projectObj.userDocument && projectObj.userDocument.length > 0) {
+      projectObj.userDocument.forEach(doc => {
+        this.userContributionObj.attachments.push({
+          name: doc.documentName,
+          documentId: doc.documentId,
+          isExisting: true
+        });
+      });
+    }
+
     this.showPreviewDiv = false;
     this.modalRef = this.modalService.show(contributionModal, { class: 'modal-xl' });
   }

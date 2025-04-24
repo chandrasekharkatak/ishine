@@ -2361,6 +2361,7 @@ public class ProjectInsightService {
 				 }else {
 					 userContributionDbResp.setStatus(projectInsightUserContributionDTO.getStatus());
 					 userContributionDbResp.setProjectId(projectInsightUserContributionDTO.getProjectId());
+					 userContributionDbResp.setReviewType("manager");
 					 
 					 if(projectInsightUserContributionDTO.getProcessType().equals("Reject")) {
 						 userContributionDbResp.setAssignTo(null);

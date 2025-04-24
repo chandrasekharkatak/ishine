@@ -764,7 +764,7 @@
     </div>
 
     <div class="d-flex justify-content-end gap-3 mt-4">
-      <ng-container *ngIf="showReviewButton && userContributionObj.status != 'Approve'">
+      <ng-container *ngIf="showReviewButton">
         <ng-container *ngIf="!showPreReviewerSelection">
           <button type="button" class="btn btn-sm btn-outline-success me-2 ml-1" (click)="processUserContribution('Approve', userContributionObj)">
             Approve
@@ -772,7 +772,7 @@
           <button type="button" class="btn btn-sm btn-outline-danger me-2 ml-1" (click)="processUserContribution('Reject', userContributionObj)">
             Reject
           </button>
-          <button type="button" class="btn btn-sm btn-info ml-1" (click)="processUserContribution('preReviewer', userContributionObj)">
+          <button type="button" *ngIf="userContributionObj.status !== 'Approve' || userContributionObj.reviewType === 'preReviewer'" class="btn btn-sm btn-info ml-1" (click)="processUserContribution('preReviewer', userContributionObj)">
             Add Pre-Reviewer
           </button>
         </ng-container>
@@ -797,7 +797,7 @@
         </ng-container>
       </ng-container>
     
-      <button type="button" class="btn btn-sm btn-primary ml-1" *ngIf="!showReviewButton && userContributionObj.status != 'Approve'"
+      <button type="button" class="btn btn-sm btn-primary ml-1" *ngIf="!showReviewButton && (userContributionObj.status != 'Approve' && userContributionObj.reviewType != 'preReviewer')"
        [disabled]="userContributionObj.userDefinedProjectName == null && userContributionObj.response == null"
         (click)="createUserContribution()"> Yes, Submit</button>
       <button type="button" class="btn btn-sm btn-outline-secondary ml-1" *ngIf="!showPreReviewerSelection" (click)="cancelRequest()">
