@@ -93,6 +93,7 @@ export class ViewPerformanceComponent implements OnInit {
   toggleReviewView:boolean = false;
   showPreReviewerSelection:boolean = false;
   showValidationErrors: boolean = false;
+  showPreviewDiv:boolean = false;
 
   validationErrors: string = '';
   selectedPreReviewer:any = '';
@@ -615,6 +616,40 @@ export class ViewPerformanceComponent implements OnInit {
     });
   }
 
+  previewDocument(file: any, previewElementId: any) {
+    let documentObj = new Document();
+    documentObj.empId = this.currentUser.empId;
+    documentObj.documentName = file.name;
+    this.showPreviewDiv = true;
+
+    this.projectInsightService.getUserUploadedFileForQuestion(documentObj)
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === 'Success' && response.serviceResponse?.body) {
+            const previewContainer = document.getElementById(previewElementId);
+
+            const base64Data = response?.serviceResponse?.body;
+            let contentTypeList = response?.serviceResponse?.headers["Content-Type"];
+            let contentType = contentTypeList[0]
+            if (contentType == 'application/pdf') {
+              previewContainer.innerHTML = `<embed src="data:application/pdf;base64,${base64Data}" type="application/pdf" width="100%" height="800px" />`;
+            }
+            else if (contentType.startsWith('image/')) {
+              previewContainer.innerHTML = `<img src="data:${contentType};base64,${base64Data}" class="img-fluid" style="max-height:800px;" />`;
+            }
+          } else {
+            this.alertMessage = "Failed to load document";
+            this.modalRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+          }
+        },
+        error: (error) => {
+          this.alertMessage = "Error loading document";
+          this.modalRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+          console.error('Error loading document:', error);
+        }
+      });
+  }
+
   processUserContribution(statusType: any, projectUSerContributionObj: any){
 
     if (statusType != 'preReviewer') {
@@ -695,6 +730,7 @@ export class ViewPerformanceComponent implements OnInit {
       editable: false,
       showToolbar: false
     };
+    this.showPreviewDiv = false;
     this.modalRef = this.modalService.show(contributionModal, { class: 'modal-xl' });
   }
 

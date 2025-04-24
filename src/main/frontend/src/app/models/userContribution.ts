@@ -16,4 +16,7 @@ export class UserContribution {
 	processType:any;
 	remark:any;
 	parentContributionName:any;
+	attachments: (File | {name: string, documentId: number, isExisting: boolean})[];
+	userDocument:any[] = [];
+	responseList:any[] = [];
 }

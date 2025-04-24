@@ -38,6 +38,7 @@ public class ProjectInsightUserContribution {
 	private String userDefinedProjectName;
 	private String title;
 	private Long parentContribution;
+	private String reviewType;
 	
 	@Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
 	private Timestamp createdOn;

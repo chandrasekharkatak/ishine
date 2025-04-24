@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,6 +24,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -34,7 +37,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ModuleDTO;
@@ -61,6 +63,7 @@ import com.apmosys.employeeportal.model.ProjectInsightSubModule;
 import com.apmosys.employeeportal.model.ProjectInsightUserContribution;
 import com.apmosys.employeeportal.model.QuestionMaster;
 import com.apmosys.employeeportal.model.TagMaster;
+import com.apmosys.employeeportal.model.UserContributionDocument;
 import com.apmosys.employeeportal.model.UserContributionResponseRemarks;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -76,6 +79,7 @@ import com.apmosys.employeeportal.repository.ProjectInsightUserContributionRepos
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.QuestionMasterRepository;
 import com.apmosys.employeeportal.repository.TagMasterRepository;
+import com.apmosys.employeeportal.repository.UserContributionDocumentRepository;
 import com.apmosys.employeeportal.repository.UserContributionResponseRemarksRepository;
 import com.apmosys.employeeportal.utility.NLPUtils;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -150,6 +154,9 @@ public class ProjectInsightService {
 	
 	@Autowired
 	UserContributionResponseRemarksRepository userContributionResponseRemarksRepository;
+	
+	@Autowired
+	UserContributionDocumentRepository userContributionDocumentRepository;
 	
 	public String saveProjectWiseTags(ProjectInsightDTO projectInsightDTO) {
 	    String response = "Failed";
@@ -2108,6 +2115,8 @@ public class ProjectInsightService {
 		        			"UserContribution");
 	            	List<TagMaster> dbTagMasterResponse = tagMasterRepository.findByEntityIdAndEntityTypeAndType(object.getUserContributionId()
 	            			,"UserContribution","user");
+	            	List<UserContributionDocument> dbDocumentResponse = userContributionDocumentRepository.findByUserContributionId(object.getUserContributionId());
+	            	List<UserContributionResponseRemarks> responseRemarkDbResp = userContributionResponseRemarksRepository.findByUserContributionId(object.getUserContributionId());
 	            	
 	                ProjectInsightUserContributionDTO dto = new ProjectInsightUserContributionDTO();
 	                dto.setAssignTo(object.getAssignTo());
@@ -2124,6 +2133,9 @@ public class ProjectInsightService {
 	                dto.setOnlyText(object.getOnlyTextResponse());
 	                dto.setTeamMembers(alltaggedUser.stream().map(assignObj -> assignObj.getAssignedTo()).collect(Collectors.toList()));  
 	                dto.setTags(dbTagMasterResponse.stream().map(TagMaster::getTag).collect(Collectors.toList()));
+	                dto.setUserDocument(dbDocumentResponse);
+	                dto.setResponseList(responseRemarkDbResp);
+	                dto.setReviewType(object.getReviewType());
 	                
 	                return dto;
 	            }).collect(Collectors.toList());
@@ -2146,6 +2158,7 @@ public class ProjectInsightService {
 	        }
 
 	        ProjectInsightUserContribution entity;
+	        Employee empObj = employeeRepository.findByEmpId(dto.getEmpId());
 	        if (dto.getUserContributionId() != null) {
 	            Optional<ProjectInsightUserContribution> optionalEntity =
 	                    projectInsightUserContributionRepository.findById(dto.getUserContributionId());
@@ -2153,13 +2166,20 @@ public class ProjectInsightService {
 	            if (optionalEntity.isPresent()) {
 	                entity = optionalEntity.get();
 	                entity.setUpdatedOn(LocalDateTime.now());
+	                entity.setStatus("Pending");
+	                
+	                if(entity.getAssignTo() == null) {
+	                	entity.setAssignTo(empObj != null ?
+	    	            		empObj.getReportingManagerId() != null ?
+	    	            				empObj.getReportingManagerId():empObj.getManagerId() :null);
+	                }
+	                
 	            } else {
 	            	response.setServiceMessage("User contribution not found with ID: " + dto.getUserContributionId());
 	                return ResponseEntity.status(HttpStatus.NOT_FOUND)
 	                        .body(response);
 	            }
 	        } else {
-	        	Employee empObj = employeeRepository.findByEmpId(dto.getEmpId());
 	        	
 	            entity = new ProjectInsightUserContribution();
 	            entity.setAssignTo(empObj != null ?
@@ -2222,8 +2242,38 @@ public class ProjectInsightService {
 	        		tagMasterRepository.saveAll(newUserDefinedTags);
 	        	}
 	        	
-	        	
-	        	
+	        	//Upload Files
+	        	List<UserContributionDocument> existingDocs = userContributionDocumentRepository
+	                    .findByUserContributionId(dbResponse.getUserContributionId());
+
+	            final Set<Long> documentIdsToKeep = dto.getUserDocument() != null ? 
+	                dto.getUserDocument().stream()
+	                    .map(UserContributionDocument::getDocumentId)
+	                    .collect(Collectors.toSet()) : 
+	                new HashSet<>();
+
+	            List<UserContributionDocument> docsToDelete = existingDocs.stream()
+	                    .filter(doc -> !documentIdsToKeep.contains(doc.getDocumentId()))
+	                    .collect(Collectors.toList());
+	            
+	            if (!docsToDelete.isEmpty()) {
+	                userContributionDocumentRepository.deleteAll(docsToDelete);
+	            }
+
+	            // Upload new files
+	            if (dto.getAttachments() != null) {
+	                for (MultipartFile document : dto.getAttachments()) {
+	                    if (document != null && document.getOriginalFilename() != null) {
+	                        String uploadResponse = uploadProjectResponseDocument(document);
+	                        if (uploadResponse.equalsIgnoreCase("Document uploaded successfully")) {
+	                            UserContributionDocument newDoc = new UserContributionDocument();
+	                            newDoc.setDocumentName(document.getOriginalFilename());
+	                            newDoc.setUserContributionId(dbResponse.getUserContributionId());
+	                            userContributionDocumentRepository.save(newDoc);
+	                        }
+	                    }
+	                }
+	            }
 	        }
 
 	        response.setServiceMessage(dto.getUserContributionId() != null ? "User contribution updated successfully." : "User contribution created successfully.");
@@ -2262,6 +2312,8 @@ public class ProjectInsightService {
 		        			"UserContribution");
 	            	List<TagMaster> dbTagMasterResponse = tagMasterRepository.findByEntityIdAndEntityTypeAndType(object.getUserContributionId()
 	            			,"UserContribution","user");
+	            	List<UserContributionDocument> dbDocumentResponse = userContributionDocumentRepository.findByUserContributionId(object.getUserContributionId());
+	            	List<UserContributionResponseRemarks> responseRemarkDbResp = userContributionResponseRemarksRepository.findByUserContributionId(object.getUserContributionId());
 	            	
 	                ProjectInsightUserContributionDTO dto = new ProjectInsightUserContributionDTO();
 	                dto.setAssignTo(object.getAssignTo());
@@ -2278,6 +2330,9 @@ public class ProjectInsightService {
 	                dto.setOnlyText(object.getOnlyTextResponse());
 	                dto.setTeamMembers(alltaggedUser.stream().map(ProjectInsightAssignees::getAssignedTo).collect(Collectors.toList()));  
 	                dto.setTags(dbTagMasterResponse.stream().map(TagMaster::getTag).collect(Collectors.toList()));
+	                dto.setUserDocument(dbDocumentResponse);
+	                dto.setResponseList(responseRemarkDbResp);
+	                dto.setReviewType(object.getReviewType());
 	                
 	                return dto;
 	            }).collect(Collectors.toList());
@@ -2302,14 +2357,26 @@ public class ProjectInsightService {
 				 
 				 if(projectInsightUserContributionDTO.getProcessType().equals("preReviewer")) {
 					 userContributionDbResp.setAssignTo(projectInsightUserContributionDTO.getAssignTo());
+					 userContributionDbResp.setReviewType("preReviewer");
 				 }else {
 					 userContributionDbResp.setStatus(projectInsightUserContributionDTO.getStatus());
 					 userContributionDbResp.setProjectId(projectInsightUserContributionDTO.getProjectId());
 					 
+					 if(projectInsightUserContributionDTO.getProcessType().equals("Reject")) {
+						 userContributionDbResp.setAssignTo(null);
+					 }else {
+						 if(projectInsightUserContributionDTO.getReviewType() == null || projectInsightUserContributionDTO.getReviewType().equals("preReviewer")) {
+							 Employee empObj = employeeRepository.findByEmpId(userContributionDbResp.getEmpId());
+							 userContributionDbResp.setAssignTo(empObj != null ?
+					            		empObj.getReportingManagerId() != null ?
+					            				empObj.getReportingManagerId():empObj.getManagerId() :null);
+						 }
+					 }
+					 
 					 // Add remarks
 					 if(projectInsightUserContributionDTO.getRemark() != null) {
 						 UserContributionResponseRemarks newObj = new UserContributionResponseRemarks();
-						 newObj.setRemark(dmsPortalFetchUrlKey);
+						 newObj.setRemark(projectInsightUserContributionDTO.getRemark());
 						 newObj.setRemarkBy(projectInsightUserContributionDTO.getAssignTo());
 						 newObj.setUserContributionId(userContributionDbResp.getUserContributionId());
 						 

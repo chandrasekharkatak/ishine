@@ -23,6 +23,8 @@ import { ProjectMilestone } from 'src/app/models/projectMilestone';
 import { UserContribution } from 'src/app/models/userContribution';
 import { AngularEditorConfig } from '@kolkov/angular-editor';
 import { ProjectService } from 'src/app/services/project.service';
+import { Observable } from 'rxjs';
+import { HttpEvent, HttpResponse } from '@angular/common/http';
 
 interface Goal {
   goalStatus: string;
@@ -64,6 +66,10 @@ interface kpiList{
   response:any;
   id:number;
   description: string;
+}
+
+interface UploadResponse {
+  imageUrl: string;
 }
 
 @Component({
@@ -114,6 +120,34 @@ export class PerformanceDashboardComponent implements OnInit {
     sanitize: false,
     toolbarPosition: 'top',
     fonts: [{class: 'arial', name: 'Arial'}],
+    upload: (file: File): Observable<HttpEvent<UploadResponse>> => {
+      return new Observable(observer => {
+        if (this.isValidFileType(file)) {
+          if (!this.userContributionObj.attachments) {
+            this.userContributionObj.attachments = [];
+          }
+          this.userContributionObj.attachments.push(file);
+          const reader = new FileReader();
+          reader.onload = (e: any) => {
+            const response: HttpResponse<UploadResponse> = new HttpResponse({
+              body: {
+                imageUrl: e.target.result
+              }
+            });
+            observer.next(response);
+            observer.complete();
+          };
+          reader.onerror = (e) => {
+            observer.error('Upload failed');
+          };
+          reader.readAsDataURL(file);
+        } else {
+          this.alertMessage = `File type not allowed: ${file.name}. Only PNG, JPG, and PDF files are accepted.`;
+          this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+          observer.error('Invalid file type');
+        }
+      });
+    }
   };
 
   stats: Stats = {
@@ -134,6 +168,7 @@ export class PerformanceDashboardComponent implements OnInit {
   userContributionObj:UserContribution = new UserContribution();
   selectedGoal?: Goal;
   modalRef?: BsModalRef;
+  docModalRef?: BsModalRef;
   errorMessage: string;
   currentQuestionnaireId: any;
 
@@ -153,6 +188,7 @@ export class PerformanceDashboardComponent implements OnInit {
   toggleReviewView:boolean = false;
   showPreReviewerSelection:boolean = false;
   showValidationErrors: boolean = false;
+  showPreviewDiv:boolean = false;
 
   validationErrors: string = '';
   selectedPreReviewer:any = '';
@@ -583,12 +619,40 @@ saveKpiResponses(template: TemplateRef<any>): void {
   }
   
 
-  createUserContribution(){
+  createUserContribution() {
     this.cancelRequest();
-    
-    this.userContributionObj.onlyText = this.extractPlainText(this.userContributionObj.response);
-    this.userContributionObj.empId = this.currentUser.empId;
-    this.projectInsightService.createUserContribution(this.userContributionObj).pipe(first()).subscribe({
+
+    const formData = new FormData();
+    const contributionData = { ...this.userContributionObj };
+    contributionData.onlyText = this.extractPlainText(this.userContributionObj.response);
+    contributionData.empId = this.currentUser.empId;
+    const existingDocs = [];
+    const newFiles = [];
+
+    if (this.userContributionObj.attachments && this.userContributionObj.attachments.length > 0) {
+        this.userContributionObj.attachments.forEach(attachment => {
+            if ('isExisting' in attachment) {
+                existingDocs.push({
+                    documentId: attachment.documentId,
+                    documentName: attachment.name
+                });
+            } else {
+                newFiles.push(attachment);
+            }
+        });
+    }
+
+    contributionData.userDocument = existingDocs;
+    delete contributionData.attachments;
+
+    formData.append('userContribution', new Blob([JSON.stringify(contributionData)], {
+        type: 'application/json'
+    }));
+    newFiles.forEach(file => {
+        formData.append('attachments', file);
+    });
+
+    this.projectInsightService.createUserContribution(formData).pipe(first()).subscribe({
       next: (response: any) => {
         this.alertMessage = response.serviceMessage;
         this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
@@ -602,6 +666,56 @@ saveKpiResponses(template: TemplateRef<any>): void {
     });
   }
 
+  previewDocument(file: any, previewElementId: any) {
+    let documentObj = new Document();
+    documentObj.empId = this.currentUser.empId;
+    documentObj.documentName = file.name;
+    this.showPreviewDiv = true;
+
+    this.projectInsightService.getUserUploadedFileForQuestion(documentObj)
+      .subscribe({
+        next: (response: any) => {
+          const previewContainer = document.getElementById(previewElementId);
+          if (file instanceof File) {
+            const objectUrl = URL.createObjectURL(file);
+
+            if (file.type === 'application/pdf') {
+              previewContainer.innerHTML = `
+                      <iframe src="${objectUrl}" type="application/pdf" width="100%" height="800px"></iframe>`;
+            }
+            else if (file.type.startsWith('image/')) {
+              previewContainer.innerHTML = `
+                      <img src="${objectUrl}" class="img-fluid" style="max-height:800px;" />`;
+            }
+            setTimeout(() => {
+              URL.revokeObjectURL(objectUrl);
+            }, 100);
+          } else{
+            if (response.serviceStatus === 'Success' && response.serviceResponse?.body) {
+
+              const base64Data = response?.serviceResponse?.body;
+              let contentTypeList = response?.serviceResponse?.headers["Content-Type"];
+              let contentType = contentTypeList[0]
+              if (contentType == 'application/pdf') {
+                previewContainer.innerHTML = `<embed src="data:application/pdf;base64,${base64Data}" type="application/pdf" width="100%" height="800px" />`;
+              }
+              else if (contentType.startsWith('image/')) {
+                previewContainer.innerHTML = `<img src="data:${contentType};base64,${base64Data}" class="img-fluid" style="max-height:800px;" />`;
+              }
+            } else {
+              this.alertMessage = "Failed to load document";
+              this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+            }
+          }
+        },
+        error: (error) => {
+          this.alertMessage = "Error loading document";
+          this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+          console.error('Error loading document:', error);
+        }
+      });
+  }
+  
   getUserContributionForReview(){
     this.getUserContributionForReviewList = [];
     this.finalContributionList = [];
@@ -618,6 +732,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
             this.showReviewButton = true;
         }else{
           this.showReviewButton = false;
+          this.toggleReviewView = false;
         }
       },
       error: (error) => {
@@ -686,6 +801,8 @@ saveKpiResponses(template: TemplateRef<any>): void {
       next: (response: any) => {
         this.alertMessage = response.serviceMessage;
         this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+
+        this.getUserContributionForReview();
       },
       error: (error) => {
         this.alertMessage = error.serviceMessage;
@@ -696,6 +813,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
 
   openAddContributionModal(template: TemplateRef<any>){
     this.userContributionObj = new UserContribution();
+    this.showPreviewDiv = false
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
@@ -718,6 +836,36 @@ saveKpiResponses(template: TemplateRef<any>): void {
         this.filters = {};
       }
     }
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files) {
+      const files = Array.from(input.files);
+      if (!this.userContributionObj.attachments) {
+        this.userContributionObj.attachments = [];
+      }
+      files.forEach(file => {
+        if (this.isValidFileType(file)) {
+          this.userContributionObj.attachments.push(file);
+        } else {
+          this.alertMessage = `File type not allowed: ${file.name}. Only PNG, JPG, and PDF files are accepted.`;
+          this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+        }
+      });
+      input.value = '';
+    }
+  }
+
+  removeFile(index: number): void {
+    if (this.userContributionObj.attachments) {
+      this.userContributionObj.attachments.splice(index, 1);
+    }
+  }
+
+  private isValidFileType(file: File): boolean {
+    const allowedTypes = ['image/png', 'image/jpeg', 'application/pdf'];
+    return allowedTypes.includes(file.type);
   }
 
   sortData(sort: Sort) {
@@ -783,6 +931,19 @@ saveKpiResponses(template: TemplateRef<any>): void {
         showToolbar: !this.showReviewButton
       };
     }
+
+    this.userContributionObj.attachments = [];
+    if (projectObj.userDocument && projectObj.userDocument.length > 0) {
+      projectObj.userDocument.forEach(doc => {
+        this.userContributionObj.attachments.push({
+          name: doc.documentName,
+          documentId: doc.documentId,
+          isExisting: true
+        });
+      });
+    }
+
+    this.showPreviewDiv = false;
     this.modalRef = this.modalService.show(contributionModal, { class: 'modal-xl' });
   }
 

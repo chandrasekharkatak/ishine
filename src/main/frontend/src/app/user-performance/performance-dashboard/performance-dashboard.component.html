@@ -216,23 +216,29 @@
           </div>
           <div class="card-body">
             <div class="col-md-12">
-              <!-- Header actions row -->
               <div class="row">
                 <div class="col d-flex justify-content-between align-items-center search-toggle">
-                  <a href="javascript:void(0)" (click)="toggleSearch('contribution')">
-                    <i *ngIf="!isContributionSearchEnabled" class="fa fa-search"></i>
-                    <i *ngIf="isContributionSearchEnabled" class="fa-solid fa-xmark"></i>
-                  </a>
-                  <button class="btn btn-sm btn-outline-primary" (click)="openAddContributionModal(user_contribution)"><i
-                      class="fa-solid fa-plus"></i> &nbsp; Add contribution</button>
-                  <button class="btn btn-sm btn-outline-primary" *ngIf="showReviewButton && !toggleReviewView"
-                    (click)="switchToReviewView()">
-                    Review contribution(s)
-                  </button>
-                  <button class="btn btn-sm btn-outline-primary" *ngIf="toggleReviewView" (click)="switchToReviewView()">
-                    My Contribution(s)
-                  </button>
-                </div>
+                  <div>
+                    <a href="javascript:void(0)" (click)="toggleSearch('contribution')">
+                      <i *ngIf="!isContributionSearchEnabled" class="fa fa-search"></i>
+                      <i *ngIf="isContributionSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                  </div>
+
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary" (click)="openAddContributionModal(user_contribution)">
+                      <i class="fa-solid fa-plus"></i> &nbsp; Add contribution
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" *ngIf="showReviewButton && !toggleReviewView"
+                      (click)="switchToReviewView()">
+                      Review contribution(s)
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" *ngIf="toggleReviewView"
+                      (click)="switchToReviewView()">
+                      My Contribution(s)
+                    </button>
+                  </div>
+                </div>                
               </div>
       
               <!-- Table container -->
@@ -677,12 +683,9 @@
           <span *ngFor="let tag of userContributionObj.tags; let i = index" 
                 class="badge bg-primary d-flex align-items-center">
             {{tag}}
-            <button type="button" 
-                    class="btn-close btn-close-white ms-2" 
-                    aria-label="Close"
-                    (click)="removeTag(i)"
-                    [disabled]="showReviewButton">
-            </button>
+            <span class="btn-close btn-close-white ms-2" *ngIf="!showReviewButton" style="cursor: pointer;" aria-label="Close" (click)="removeTag(i)">
+              <i class="fa-solid fa-xmark"></i>
+            </span>
           </span>
         </div>
 
@@ -716,9 +719,39 @@
       </div>
     </div>
 
-    <div *ngIf="showReviewButton" class="form-group mb-3">
+    <div class="form-group mb-3">
+      <div class="form-group mb-3">
+        <label>Attachments</label>
+        <div class="d-flex flex-column gap-2">
+          <div class="input-group">
+            <input type="file" [disabled]="showReviewButton" class="form-control" #fileInput (change)="onFileSelected($event)"
+              accept=".png,.jpg,.jpeg,.pdf" multiple />
+          </div>
+    
+          <div class="d-flex flex-wrap gap-2" *ngIf="userContributionObj.attachments?.length">
+            <span *ngFor="let file of userContributionObj.attachments; let i = index"
+                class="badge bg-secondary d-flex align-items-center">
+                <span style="cursor: pointer;" (click)="previewDocument(file, 'document-preview-container')">{{file.name}}</span>
+                <span *ngIf="!showReviewButton" class="btn-close btn-close-white ms-2" style="cursor: pointer;" aria-label="Close" 
+                    (click)="$event.stopPropagation(); removeFile(i)">
+                    <i class="fa-solid fa-xmark"></i>
+                </span>
+            </span>
+        </div>
+        </div>
+      </div>
+    </div>  
+
+    <div *ngIf="showReviewButton || userContributionObj?.responseList?.length > 0" class="form-group mb-3">
       <label><span class="text-danger">*</span> Remark</label>
+      <div *ngIf="userContributionObj?.responseList?.length > 0">
+        <div *ngFor="let obj of userContributionObj?.responseList, let i = index">
+          Review-{{i+1}} <input disabled type="textarea" class="form-control" [(ngModel)]="obj.remark"
+            placeholder="Enter Remark" />
+        </div>
+      </div>
       <input
+        *ngIf="showReviewButton"
         type="textarea"
         class="form-control"
         [(ngModel)]="userContributionObj.remark"
@@ -731,7 +764,7 @@
     </div>
 
     <div class="d-flex justify-content-end gap-3 mt-4">
-      <ng-container *ngIf="showReviewButton">
+      <ng-container *ngIf="showReviewButton && userContributionObj.status != 'Approve'">
         <ng-container *ngIf="!showPreReviewerSelection">
           <button type="button" class="btn btn-sm btn-outline-success me-2 ml-1" (click)="processUserContribution('Approve', userContributionObj)">
             Approve
@@ -764,12 +797,15 @@
         </ng-container>
       </ng-container>
     
-      <button type="button" class="btn btn-sm btn-primary ml-1" *ngIf="!showReviewButton"
+      <button type="button" class="btn btn-sm btn-primary ml-1" *ngIf="!showReviewButton && userContributionObj.status != 'Approve'"
        [disabled]="userContributionObj.userDefinedProjectName == null && userContributionObj.response == null"
         (click)="createUserContribution()"> Yes, Submit</button>
       <button type="button" class="btn btn-sm btn-outline-secondary ml-1" *ngIf="!showPreReviewerSelection" (click)="cancelRequest()">
         Cancel
       </button>
     </div>
+
+    <div *ngIf="showPreviewDiv" class="d-flex justify-content-center align-items-center text-danger" id="document-preview-container"
+      style="border: 1px solid black; padding: 10px; margin-bottom: 15px;margin-top: 20px;"></div>
   </div>
 </ng-template>

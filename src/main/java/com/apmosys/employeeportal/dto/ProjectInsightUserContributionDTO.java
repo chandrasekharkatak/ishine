@@ -7,7 +7,11 @@ import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Id;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.apmosys.employeeportal.model.ProjectInsightUserContribution;
+import com.apmosys.employeeportal.model.UserContributionDocument;
+import com.apmosys.employeeportal.model.UserContributionResponseRemarks;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
@@ -31,6 +35,10 @@ public class ProjectInsightUserContributionDTO {
 		private List<Long> teamMembers;
 		private Long parentContribution;
 		private List<String> tags;
+		private List<MultipartFile> attachments;
+		private List<UserContributionDocument> userDocument;
+		private List<UserContributionResponseRemarks> responseList;
+		private String reviewType;
 		
 		// "preReviewer" , "Approve", "Reject"
 		private String processType;

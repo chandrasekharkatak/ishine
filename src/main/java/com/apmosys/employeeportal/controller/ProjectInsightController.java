@@ -108,9 +108,16 @@ public class ProjectInsightController {
 		return projectInsightService.getContributionByEmpId(projectInsightUserContributionDTO);
 	}
 	
-	@RequestMapping(value = "/createUserContribution", method = RequestMethod.POST)
-	public ResponseEntity<ServiceResponse> createUserContribution(@RequestBody ProjectInsightUserContributionDTO projectInsightUserContributionDTO){
-		return projectInsightService.createOrUpdateUserContribution(projectInsightUserContributionDTO);
+	@RequestMapping(value = "/createUserContribution", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ServiceResponse> createUserContribution(
+	    @RequestPart("userContribution") ProjectInsightUserContributionDTO projectInsightUserContributionDTO,
+	    @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
+	    
+	    if (attachments != null && !attachments.isEmpty()) {
+	        projectInsightUserContributionDTO.setAttachments(attachments);
+	    }
+	    
+	    return projectInsightService.createOrUpdateUserContribution(projectInsightUserContributionDTO);
 	}
 	
 	@RequestMapping(value = "/getUserContributionForReview", method = RequestMethod.POST)
