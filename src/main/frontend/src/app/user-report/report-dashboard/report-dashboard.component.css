@@ -70,10 +70,12 @@
     min-width: 180px;
 }
 
-.thead-light th{
+.thead-light {
     position: sticky;
     top: -0.7px;
-}
+    z-index: 10;
+    background: #e9ecef;
+  }
 
 .info-label{
     width: 300px;
