@@ -1119,34 +1119,33 @@ public class PerformanceService {
 
 
 
-
 	public ResponseEntity<ProjectInsightDTO> addRemarkAsPerQuestion(ProjectInsightDTO projectInsightDTO) {
 		ProjectInsightDTO response = new ProjectInsightDTO();
-		try {
-			if(!projectInsightDTO.getEmpMarkList().isEmpty()) {
-				List<ProjectInsightResponse> addResponseList = new ArrayList<>();
-				projectInsightDTO.getEmpMarkList().forEach((object) -> {
-					ProjectInsightResponse projectResponse = projectInsightResponseRepository.
-							findByEmpIdAndQuestionMasterId(object.getEmpId(),object.getQuestionId());
-					
-					if(object.getMarkType().equals("reject")) {
-						projectResponse.setResponse(null);
-						projectResponse.setIsDraft("Y");
-						projectResponse.setMarks(null);
-						projectResponse.setProcessTo(null);
-					}else {
-						projectResponse.setMarks(object.getMarks());
-					}
-					
-					addResponseList.add(projectResponse);
-				});
-				
-				List<ProjectInsightResponse> dbResponse = projectInsightResponseRepository.saveAll(addResponseList);
-			}
-			
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
+//		try {
+//			if(!projectInsightDTO.getEmpMarkList().isEmpty()) {
+//				List<ProjectInsightResponse> addResponseList = new ArrayList<>();
+//				projectInsightDTO.getEmpMarkList().forEach((object) -> {
+//					ProjectInsightResponse projectResponse = projectInsightResponseRepository.
+//							findByEmpIdAndQuestionMasterId(object.getEmpId(),object.getQuestionId());
+//					
+//					if(object.getMarkType().equals("reject")) {
+//						projectResponse.setResponse(null);
+//						projectResponse.setIsDraft("Y");
+//						projectResponse.setMarks(null);
+//						projectResponse.setProcessTo(null);
+//					}else {
+//						projectResponse.setMarks(object.getMarks());
+//					}
+//					
+//					addResponseList.add(projectResponse);
+//				});
+//				
+//				List<ProjectInsightResponse> dbResponse = projectInsightResponseRepository.saveAll(addResponseList);
+//			}
+//			
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//		}
 		return ResponseEntity.ok(response);
 	}
 

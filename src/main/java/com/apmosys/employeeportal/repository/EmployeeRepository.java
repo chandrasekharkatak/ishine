@@ -541,5 +541,7 @@ List<Object[]> findEmployeesInSameDepartmentAsCurrentUser(Long hodId);
 			+ "LIMIT 1 \n",nativeQuery = true)
 	String getJobRoleByEmployeeId(Long employeeId);
 
+	
+	List<Employee> findByEmpIdIn(List<Long> empIds);
 
 }

@@ -4,7 +4,7 @@ import { first } from 'rxjs/operators';
 import * as moment from 'moment';
 import { AppComponent } from 'src/app/app.component';
 import { ProjectInsightEntity } from 'src/app/models/projectInsightEntity';
-import { ProjectInsight } from 'src/app/models/projectInsightQuestion';
+import { ProjectInsight } from 'src/app/models/projectInsight';
 import { ProjectMilestone } from 'src/app/models/projectMilestone';
 import { ProjectModule } from 'src/app/models/projectModule';
 import { ProjectQuestion } from 'src/app/models/projectQuestion';
@@ -18,6 +18,7 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ProjectResponse } from 'src/app/models/projectResponse';
 import { Document } from 'src/app/models/document';
+import { ProjectResponsePoint } from 'src/app/models/projectResponsePoint';
 
 @Component({
   selector: 'app-project-insights',
@@ -37,7 +38,6 @@ export class ProjectInsightsComponent implements OnInit {
   @Output() closeProjectInsightResponseModalEvent: EventEmitter<any> = new EventEmitter();
   @Output() closeSearchResponsePreviewEvent: EventEmitter<any> = new EventEmitter();
 
-
   isResponsePreview: boolean = false;
   projectInsightObj: ProjectInsight = new ProjectInsight();
 
@@ -49,17 +49,22 @@ export class ProjectInsightsComponent implements OnInit {
   entityObj: any;
 
   // Flags
-  isFinalResponseSubmitted: boolean = true;
+  isResponsePointFinalSubmitted: boolean = false;
+  isCurrentEmployeeRoleGreaterThanManager: boolean;
 
   // Lists
   allProjectList: any[] = [];
+  allEmployeeList: any[] = [];
   employeeList: any[] = [];
   breadCrumbs: ProjectInsightEntity[] = [];
   allBreadCrumbs: ProjectInsightEntity[] = [];
+  displayedResponseUserId: any[] = [];
+  rolesGreaterThanManager: any[] = ['HOD', 'SuperAdmin', 'HR', 'RMG'];
 
   // Variables
   alertMessage: any = '';
   viewType: any = 'Project';
+  selectAllValue = -1;
 
   constructor(
     private validationService: ValidationService,
@@ -71,125 +76,102 @@ export class ProjectInsightsComponent implements OnInit {
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   async ngOnInit(): Promise<void> {
+    this.isCurrentEmployeeRoleGreaterThanManager = this.rolesGreaterThanManager.includes(this.currentUser?.employeeRole);
     await this.getAllProjects();
-    if(this.actionType == 'Configuration'){
-      await this.getEmployeeListByProjectId();
-    } else {
+
+    if (this.validationService.validateNullUndefinedEmptyString(this.projectId)) {
+      await this.getEmployeeListByProjectId(this.projectId);
+    }
+
+    if (this.actionType != 'Configuration') {
       await this.getEmployeeList();
     }
 
+    let temp: any;
     this.entityObj = null;
     this.projectInsightObj = new ProjectInsight();
     this.projectInsightObj.deletedProjectInsightEntityList = [];
+    this.displayedResponseUserId = [];
+
     if (this.actionType == 'Configuration' && this.subActionType == 'Creation') {
       this.addAllBreadCrumbsToList();
-      let temp = this.allBreadCrumbs.filter(entity => { if (entity.entityType === 'Project') return entity });
+      temp = this.allBreadCrumbs.filter(entity => { if (entity.entityType === 'Project') return entity });
       if (!temp[0].entityName) {
         temp[0].entityName = 'Project Name';
       }
-      this.breadCrumbs.push(temp[0]);
-      this.viewType = 'Project';
-      this.entityObj = temp[0]?.entityObj;
-      this.entityObj.currentActiveBadgeLevel = 'Details';
     }
     else if (this.actionType == 'Configuration' && this.subActionType == 'Updation') {
-      await this.getAllProjectQuestionsByProjectId();
-      let temp = this.allBreadCrumbs.filter(entity => { if (entity.entityType === 'Project') return entity });
-      this.breadCrumbs.push(temp[0]);
-      this.viewType = 'Project';
-      this.entityObj = temp[0]?.entityObj;
-      this.entityObj.currentActiveBadgeLevel = 'Details';
+      await this.getAllProjectQuestionsByProjectId(this.alertMessage);
+      temp = this.allBreadCrumbs.filter(entity => { if (entity.entityType === 'Project') return entity });
     }
     else if (this.actionType == 'Contribution' && (this.subActionType == 'Submit/View Response')) {
       await this.getAllProjectInsightResponsesByProjectId(this.projectId, this.currentUser.empId, this.alertModal, 'Performance Dashboard', false);
-      let temp = this.allBreadCrumbs.filter(entity => { if (entity.entityType === 'Project') return entity });
-      this.breadCrumbs.push(temp[0]);
-      this.viewType = 'Project';
-      this.entityObj = temp[0]?.entityObj;
-      this.entityObj.currentActiveBadgeLevel = 'Details';
+      temp = this.allBreadCrumbs.filter(entity => { if (entity.entityType === 'Project') return entity });
     }
-    else if (this.subActionType == 'Review Response' || this.subActionType == 'Search'  || this.subActionType == 'Preview') {
+    else if (this.subActionType == 'Review Response' || this.subActionType == 'Search' || this.subActionType == 'Preview') {
+      if (this.subActionType == 'Review Response') {
+        let userIdList = this.employeeList.map(employee => employee.empId);
+        if (!userIdList.includes(this.responseByEmpId)) {
+          let employeeList = this.allEmployeeList.filter(employee => employee.empId == this.responseByEmpId);
+          this.employeeList?.push(employeeList[0]);
+        }
+
+      }
       await this.getAllProjectInsightResponsesByProjectId(this.projectId, this.responseByEmpId, this.alertModal, 'Teams Dashboard', false);
-      let temp = this.allBreadCrumbs.filter(entity => { if (entity.entityType === 'Project') return entity });
-      this.breadCrumbs.push(temp[0]);
-      this.viewType = 'Project';
-      this.entityObj = temp[0]?.entityObj;
-      this.entityObj.currentActiveBadgeLevel = 'Details';
+      temp = this.allBreadCrumbs.filter(entity => { if (entity.entityType === 'Project') return entity });
     }
+
+    this.breadCrumbs.push(temp[0]);
+    this.viewType = 'Project';
+    this.entityObj = temp[0]?.entityObj;
+    this.entityObj.currentActiveBadgeLevel = 'Details';
+    if (this.actionType == 'Configuration' && this.subActionType != 'Creation') {
+      this.breadCrumbs[0].entityId = this.projectInsightObj.projectId;
+      this.breadCrumbs[0].entityName = this.projectInsightObj.projectName;
+    }
+    this.toggleSelectAll();
   }
 
   // BreadCrumbs Configuration
   addAllBreadCrumbsToList() {
     this.allBreadCrumbs = [];
     if (this.validationService.validateNullUndefinedEmptyString(this.projectInsightObj)) {
-      let projectCrumb: ProjectInsightEntity = new ProjectInsightEntity();
-      projectCrumb.entityType = 'Project';
-      projectCrumb.entityId = this.projectInsightObj.projectId;
-      projectCrumb.entityObj = this.projectInsightObj;
-      projectCrumb.entityName = this.projectInsightObj.projectName;
-      this.allBreadCrumbs.push(projectCrumb);
+      this.allBreadCrumbs.push(this.createBreadCrumbObj('Project', this.projectInsightObj.projectId, this.projectInsightObj, this.projectInsightObj.projectName));
       if (!this.projectInsightObj.badgePathList) {
-        this.projectInsightObj.badgePathList = [
-          { name: 'Details' },
-          { name: 'Questions' },
-          { name: 'Milestones' },
-        ];
+        this.projectInsightObj.badgePathList = this.getBadgePathList('Project');
       }
       this.projectInsightObj.currentActiveBadgeLevel = 'Details';
       if (this.projectInsightObj.questionList) {
         this.projectInsightObj.questionList.forEach((question: ProjectQuestion, index) => {
-          question.badgePathList = [
-            { name: 'Details' }
-          ];
+          question.badgePathList = this.getBadgePathList('Question');
           question.currentActiveBadgeLevel = 'Details';
         });
       }
 
       if (this.projectInsightObj.projectInsightMilestoneList != null && this.projectInsightObj.projectInsightMilestoneList?.length != 0) {
         this.projectInsightObj.projectInsightMilestoneList.forEach((projectMilestone: ProjectMilestone) => {
-          let milestoneCrumb: ProjectInsightEntity = new ProjectInsightEntity();
-          milestoneCrumb.entityType = 'Milestone';
-          milestoneCrumb.entityId = projectMilestone.milestoneId;
-          milestoneCrumb.entityObj = projectMilestone;
-          milestoneCrumb.entityName = projectMilestone.milestone;
-          this.allBreadCrumbs.push(milestoneCrumb);
+          this.allBreadCrumbs.push(this.createBreadCrumbObj('Milestone', projectMilestone.milestoneId, projectMilestone, projectMilestone.milestone));
           if (!projectMilestone.badgePathList) {
-            projectMilestone.badgePathList = [
-              { name: 'Details' },
-              { name: 'Questions' },
-              { name: 'Modules' },
-            ];
+            projectMilestone.badgePathList = this.getBadgePathList('Milestone');
             projectMilestone.currentActiveBadgeLevel = 'Details';
           }
           if (projectMilestone.questionList) {
             projectMilestone.questionList.forEach((question: ProjectQuestion, index) => {
-              question.badgePathList = [
-                { name: 'Details' }
-              ];
+              question.badgePathList = this.getBadgePathList('Question');
               question.currentActiveBadgeLevel = 'Details';
             });
           }
           if (projectMilestone.moduleList != null && projectMilestone.moduleList?.length != 0) {
             projectMilestone.moduleList.forEach((moduleObj: ProjectModule) => {
-              let moduleCrumb: ProjectInsightEntity = new ProjectInsightEntity();
-              moduleCrumb.entityType = 'Module';
-              moduleCrumb.entityId = moduleObj.moduleId;
-              moduleCrumb.entityObj = moduleObj;
-              moduleCrumb.entityName = moduleObj.module;
-              this.allBreadCrumbs.push(moduleCrumb);
+              this.allBreadCrumbs.push(this.createBreadCrumbObj('Module', moduleObj.moduleId, moduleObj, moduleObj.module));
+
               if (!moduleObj.badgePathList) {
-                moduleObj.badgePathList = [
-                  { name: 'Details' },
-                  { name: 'Questions' },
-                  { name: 'SubModules' },
-                ];
+                moduleObj.badgePathList = this.getBadgePathList('Module');
                 moduleObj.currentActiveBadgeLevel = 'Details';
               }
               if (moduleObj.questionList) {
                 moduleObj.questionList.forEach((question: ProjectQuestion, index) => {
-                  question.badgePathList = [
-                    { name: 'Details' }
-                  ];
+                  question.badgePathList = this.getBadgePathList('Question');
                   question.currentActiveBadgeLevel = 'Details';
                 });
               }
@@ -205,25 +187,14 @@ export class ProjectInsightsComponent implements OnInit {
 
   addAllSubModuleBreadCrumbs(subModuleList: ProjectSubModule[], subModuleType) {
     subModuleList.forEach((submoduleObj: ProjectSubModule) => {
-      let subModuleCrumb: ProjectInsightEntity = new ProjectInsightEntity();
-      subModuleCrumb.entityType = subModuleType;
-      subModuleCrumb.entityId = submoduleObj.subModuleId;
-      subModuleCrumb.entityObj = submoduleObj;
-      subModuleCrumb.entityName = submoduleObj.subModule;
-      this.allBreadCrumbs.push(subModuleCrumb);
+      this.allBreadCrumbs.push(this.createBreadCrumbObj(subModuleType, submoduleObj.subModuleId, submoduleObj, submoduleObj.subModule));
       if (!submoduleObj.badgePathList) {
-        submoduleObj.badgePathList = [
-          { name: 'Details' },
-          { name: 'Questions' },
-          { name: subModuleType + 's' },
-        ];
+        submoduleObj.badgePathList = this.getBadgePathList('SubModule', subModuleType);
         submoduleObj.currentActiveBadgeLevel = 'Details';
       }
       if (submoduleObj.questionList) {
         submoduleObj.questionList.forEach((question: ProjectQuestion, index) => {
-          question.badgePathList = [
-            { name: 'Details' }
-          ];
+          question.badgePathList = this.getBadgePathList('Question');
           question.currentActiveBadgeLevel = 'Details';
         });
       }
@@ -238,21 +209,11 @@ export class ProjectInsightsComponent implements OnInit {
     this.entityObj = null;
     this.viewType = entityType;
     this.entityObj = entityObj;
-    // this.entityObj.currentActiveBadgeLevel = 'Details';
-
     const existingIndex = this.breadCrumbs.findIndex(b => (b.entityObj == entityObj));
     if (existingIndex !== -1) {
       this.breadCrumbs = this.breadCrumbs.slice(0, existingIndex + 1);
     } else {
-      let projectCrumb: ProjectInsightEntity = new ProjectInsightEntity();
-      projectCrumb.entityType = entityType;
-      projectCrumb.entityId = entityId;
-      projectCrumb.entityObj = entityObj
-      if (!entityName) {
-        entityName = entityType;
-      }
-      projectCrumb.entityName = entityName;
-      this.breadCrumbs.push(projectCrumb);
+      this.breadCrumbs.push(this.createBreadCrumbObj(entityType, entityId, entityObj, !entityName ? entityType : entityName));
     }
   }
 
@@ -261,20 +222,12 @@ export class ProjectInsightsComponent implements OnInit {
     entityObj.currentActiveBadgeLevel = currentActiveBadgeLevel;
     const existingIndex = this.breadCrumbs.findIndex(b => (b.entityObj == entityObj));
     if (existingIndex === -1) {
-      let projectCrumb: ProjectInsightEntity = new ProjectInsightEntity();
-      projectCrumb.entityType = entityType;
-      projectCrumb.entityId = entityId;
-      projectCrumb.entityObj = entityObj;
-      if (!entityName) {
-        entityName = entityType;
-      }
-      projectCrumb.entityName = entityName;
-      this.breadCrumbs.push(projectCrumb);
+      this.breadCrumbs.push(this.createBreadCrumbObj(entityType, entityId, entityObj, !entityName ? entityType : entityName));
     }
   }
 
   // Milestone Configurations
-  addMilestone(milestoneList: any) {
+  addMilestone(milestoneList: ProjectMilestone[]) {
     let milestone: ProjectMilestone = new ProjectMilestone();
     if (!milestoneList) {
       milestoneList = [];
@@ -285,12 +238,12 @@ export class ProjectInsightsComponent implements OnInit {
     this.entityObj = milestone;
   }
 
-  deleteMilestone(milestoneList: any, milestoneIndex: any) {
-    if(!this.projectInsightObj.deletedProjectInsightEntityList){
+  deleteMilestone(milestoneList: ProjectMilestone[], milestoneIndex: any) {
+    if (!this.projectInsightObj.deletedProjectInsightEntityList) {
       this.projectInsightObj.deletedProjectInsightEntityList = [];
     }
-    milestoneList.forEach((milestone,index)=>{
-      if(index == milestoneIndex && this.validationService.validateNullUndefinedEmptyString(milestone.milestoneId)){
+    milestoneList.forEach((milestone, index) => {
+      if (index == milestoneIndex && this.validationService.validateNullUndefinedEmptyString(milestone.milestoneId)) {
         let projectInsightEntity = new ProjectInsightEntity();
         projectInsightEntity.entityId = milestone.milestoneId;
         projectInsightEntity.entityType = 'Milestone';
@@ -301,7 +254,7 @@ export class ProjectInsightsComponent implements OnInit {
   }
 
   // Module Configurations
-  addModuleToList(moduleList: any) {
+  addModuleToList(moduleList: ProjectModule[]) {
     let module: ProjectModule = new ProjectModule();
     if (!moduleList) {
       moduleList = [];
@@ -312,12 +265,12 @@ export class ProjectInsightsComponent implements OnInit {
     this.entityObj = module;
   }
 
-  deleteModule(moduleList: any, moduleIndex: any) {
-    if(!this.projectInsightObj.deletedProjectInsightEntityList){
+  deleteModule(moduleList: ProjectModule[], moduleIndex: any) {
+    if (!this.projectInsightObj.deletedProjectInsightEntityList) {
       this.projectInsightObj.deletedProjectInsightEntityList = [];
     }
-    moduleList.forEach((module,index)=>{
-      if(index == moduleIndex && this.validationService.validateNullUndefinedEmptyString(module.moduleId)){
+    moduleList.forEach((module, index) => {
+      if (index == moduleIndex && this.validationService.validateNullUndefinedEmptyString(module.moduleId)) {
         let projectInsightEntity = new ProjectInsightEntity();
         projectInsightEntity.entityId = module.moduleId;
         projectInsightEntity.entityType = 'Module';
@@ -328,7 +281,7 @@ export class ProjectInsightsComponent implements OnInit {
   }
 
   // SubModule Configurations
-  addSubModuleToList(subModuleList: any, subModuleType: any) {
+  addSubModuleToList(subModuleList: ProjectSubModule[], subModuleType: any) {
     let subModule: ProjectSubModule = new ProjectSubModule();
     if (!subModuleList) {
       subModuleList = [];
@@ -340,14 +293,14 @@ export class ProjectInsightsComponent implements OnInit {
     this.entityObj = subModule;
   }
 
-  deleteSubModule(subModuleList: any, subModuleIndex: any,subModuleType:any) {
-    if(!this.projectInsightObj.deletedProjectInsightEntityList){
+  deleteSubModule(subModuleList: ProjectSubModule[], subModuleIndex: any, subModuleType: any) {
+    if (!this.projectInsightObj.deletedProjectInsightEntityList) {
       this.projectInsightObj.deletedProjectInsightEntityList = [];
     }
-    subModuleList.forEach((subModule,index)=>{
-      if(index == subModuleIndex && this.validationService.validateNullUndefinedEmptyString(subModule.submoduleId)){
+    subModuleList.forEach((subModule, index) => {
+      if (index == subModuleIndex && this.validationService.validateNullUndefinedEmptyString(subModule.subModuleId)) {
         let projectInsightEntity = new ProjectInsightEntity();
-        projectInsightEntity.entityId = subModule.submoduleId;
+        projectInsightEntity.entityId = subModule.subModuleId;
         projectInsightEntity.entityType = subModuleType;
         this.projectInsightObj.deletedProjectInsightEntityList.push(projectInsightEntity);
       }
@@ -368,11 +321,11 @@ export class ProjectInsightsComponent implements OnInit {
   }
 
   deleteQuestion(questionList: ProjectQuestion[], questionIndex: any) {
-    if(!this.projectInsightObj.deletedProjectInsightEntityList){
+    if (!this.projectInsightObj.deletedProjectInsightEntityList) {
       this.projectInsightObj.deletedProjectInsightEntityList = [];
     }
-    questionList.forEach((question,index)=>{
-      if(index == questionIndex && this.validationService.validateNullUndefinedEmptyString(question.questionId)){
+    questionList.forEach((question, index) => {
+      if (index == questionIndex && this.validationService.validateNullUndefinedEmptyString(question.questionId)) {
         let projectInsightEntity = new ProjectInsightEntity();
         projectInsightEntity.entityId = question.questionId;
         projectInsightEntity.entityType = 'Question';
@@ -399,7 +352,53 @@ export class ProjectInsightsComponent implements OnInit {
   }
 
   // Helpers
-  getProjectManangerInfo(projectId: any, entity: any) {
+  createBreadCrumbObj(entityType: any, entityId: any, entityObj: any, entityName: any) {
+    let crumb: ProjectInsightEntity = new ProjectInsightEntity();
+    crumb.entityId = entityId;
+    crumb.entityType = entityType;
+    crumb.entityName = entityName;
+    crumb.entityObj = entityObj;
+    return crumb;
+  }
+
+  getBadgePathList(entityType: any, subModuleType?: any) {
+    if (entityType == 'Project') {
+      return [
+        { name: 'Details' },
+        { name: 'Questions' },
+        { name: 'Milestones' },
+      ];
+    }
+    else if (entityType == 'Milestone') {
+      return [
+        { name: 'Details' },
+        { name: 'Questions' },
+        { name: 'Modules' },
+      ];
+    }
+    else if (entityType == 'Module') {
+      return [
+        { name: 'Details' },
+        { name: 'Questions' },
+        { name: 'SubModules' },
+      ];
+    }
+    else if (entityType == 'SubModule') {
+      return [
+        { name: 'Details' },
+        { name: 'Questions' },
+        { name: subModuleType + 's' },
+      ];
+    }
+    else if (entityType == 'Question') {
+      return [
+        { name: 'Details' }
+      ];
+    }
+
+  }
+
+  getProjectManangerInfo(projectId: any) {
     this.allProjectList.forEach((object) => {
       if (object.projectId == projectId) {
         this.projectInsightObj.projectManagerName = object.employeeName;
@@ -411,7 +410,7 @@ export class ProjectInsightsComponent implements OnInit {
     });
   }
 
-  convertJSONToStringSubModuleNodesOption(subModuleList: any) {
+  convertJSONToStringSubModuleNodesOption(subModuleList: ProjectSubModule[]) {
     subModuleList.forEach((submoduleObj: any) => {
       if (submoduleObj.questionList != undefined && submoduleObj.questionList != null && submoduleObj.questionList?.length != 0) {
         submoduleObj.questionList.forEach((questionObj: ProjectQuestion) => {
@@ -424,24 +423,57 @@ export class ProjectInsightsComponent implements OnInit {
     });
   }
 
-  convertStringToJSONSubModuleNodesOption(subModuleList){
+  convertStringToJSONSubModuleNodesOption(subModuleList: ProjectSubModule[]) {
     subModuleList.forEach((submoduleObj: any) => {
-      if(submoduleObj.questionList != undefined && submoduleObj.questionList != null && submoduleObj.questionList.length != 0){
-        submoduleObj.questionList.forEach((questionObj: ProjectQuestion) => {
-          if (questionObj.optionType == "checkbox" || questionObj.optionType == "radio") {
-            questionObj.optionsList = JSON.parse(questionObj.options || '[]');
-          }
-        });
-      }
-      if(submoduleObj.subSubModuleList != undefined && submoduleObj.subSubModuleList != null && submoduleObj.subSubModuleList.length != 0){
+      this.parseOptionsOfQuestionToList(submoduleObj.questionList);
+      if (submoduleObj.subSubModuleList != undefined && submoduleObj.subSubModuleList != null && submoduleObj.subSubModuleList.length != 0) {
         this.convertStringToJSONSubModuleNodesOption(submoduleObj.subSubModuleList);
       }
     });
   }
 
-  mapQuestionsResponseList(projectResponseList: any, optionType: any, options: any) {
+  mapQuestionResponseAndFile(projectResponseList: ProjectResponse[], optionType: any, files: any) {
+    for (let responseIndex = 0; responseIndex < projectResponseList?.length; responseIndex++) {
+      let response = projectResponseList[responseIndex];
+      if (optionType == 'checkbox') {
+        response.response = JSON.stringify(response.responseList);
+        response.responseList = null;
+      }
+      if (response?.document != undefined && response?.document != null) {
+        const renamedFile = new File([response.document], response?.documentFileName, { type: response.document.type });
+        files.push(renamedFile);
+        response.document = null;
+      }
+    }
+  }
+
+  mapQuestionsResponseList(projectResponseList: ProjectResponse[], optionType: any, options: any, recommendedResponseId: any) {
     if (projectResponseList != null && projectResponseList?.length != 0) {
       projectResponseList.forEach((response: ProjectResponse, index) => {
+        if (recommendedResponseId != undefined && recommendedResponseId != null && response.projectInsightResponseId == recommendedResponseId) {
+          response.isRecommendedChecked = true;
+        }
+        if (response.projectInsightResponsePointList != undefined && response.projectInsightResponsePointList != null && response.projectInsightResponsePointList?.length > 0) {
+          let responsePointsByUserIdList = response?.projectInsightResponsePointList.map(responsePoint => responsePoint.pointsBy);
+          if (!responsePointsByUserIdList.includes(this.currentUser.empId)) {
+            this.isResponsePointFinalSubmitted = false;
+            let tempPointObj: ProjectResponsePoint = new ProjectResponsePoint();
+            response?.projectInsightResponsePointList.push(tempPointObj);
+          }
+          let responsePointsDraftedList = response?.projectInsightResponsePointList.map(responsePoint => responsePoint.isPointsDrafted);
+          if (responsePointsDraftedList?.includes('Y')) {
+            this.isResponsePointFinalSubmitted = false;
+          }
+        } else {
+          this.isResponsePointFinalSubmitted = false;
+          if (!response.projectInsightResponsePointList) {
+            response.projectInsightResponsePointList = [];
+          }
+          let tempPointObj: ProjectResponsePoint = new ProjectResponsePoint();
+          tempPointObj.isPointsDrafted = 'Y';
+          response?.projectInsightResponsePointList.push(tempPointObj);
+        }
+
         response.optionsList = JSON.parse(response.options);
         if (optionType == 'checkbox') {
           response.responseList = JSON.parse(response.response || '[]');
@@ -453,64 +485,80 @@ export class ProjectInsightsComponent implements OnInit {
             });
           }
         }
-        if (response.isDraft == 'Y') {
-          this.isFinalResponseSubmitted = false;
-        }
-        if (response.isDraft == 'Y') {
+        if (this.projectInsightObj.isFinalSubmitted == 'N' || this.isResponsePreview) {
           response.showDocDiv = true;
-        } else if (response.isDraft == 'N' && response.uploadedFileName != undefined && response.uploadedFileName != null && response.uploadedFileName != '') {
+        } else if (this.projectInsightObj.isFinalSubmitted == 'Y' && this.validationService.validateNullUndefinedEmptyString(response.documentFileName)) {
           response.showDocDiv = true;
         } else {
           response.showDocDiv = false;
         }
-        if (this.isResponsePreview) {
-          response.showDocDiv = true;
-        }
+
+
       });
     } else {
-      let projectResponse = new ProjectResponse();
-      projectResponse.optionsList = JSON.parse(options);
-      if (optionType == 'checkbox') {
-        projectResponse.responseList = JSON.parse(projectResponse.response || '[]');
+      if (this.projectInsightObj.isFinalSubmitted == 'N') {
+        let projectResponse = new ProjectResponse();
+        projectResponse.optionsList = JSON.parse(options);
+        if (optionType == 'checkbox') {
+          projectResponse.responseList = JSON.parse(projectResponse.response || '[]');
+        }
+        projectResponse.showDocDiv = true;
+        projectResponseList.push(projectResponse);
       }
-      this.isFinalResponseSubmitted = false;
-      projectResponse.showDocDiv = true;
-      projectResponseList.push(projectResponse);
     }
   }
 
-  createSubModuleListObject(subModuleList: any, subModuleType: any) {
-    subModuleList.forEach((submodule: any, submodIndex) => {
-      submodule.badgePathList = [
-        { name: 'Details' },
-        { name: 'Questions' },
-        { name: subModuleType + 's' },
-      ];
-      submodule.currentActiveBadgeLevel = 'Details';
-      if (submodule.assignedToUserId != undefined && submodule.assignedToUserId != null && submodule.assignedToUserId?.length > 0) {
-        submodule.toTagEmployeeList = this.employeeList.filter(emp => !submodule.assignedToUserId.includes(emp.empId));
-      } else {
-        submodule.toTagEmployeeList = this.employeeList;
+  convertSubModuleListResponseAndRenameFile(subModuleList: ProjectSubModule[], files: any) {
+    for (let submoduleIndex = 0; submoduleIndex < (subModuleList?.length || 0); submoduleIndex++) {
+      let submodule = subModuleList[submoduleIndex];
+      if (submodule.questionList?.length) {
+        let submoduleProjectQuestion = submodule.questionList;
+        for (let index = 0; index < submodule.questionList?.length; index++) {
+          let question = submoduleProjectQuestion[index];
+          this.mapQuestionResponseAndFile(question.projectResponseList, question.optionType, files);
+        }
       }
+      if (submodule.subSubModuleList != undefined && submodule.subSubModuleList != null && submodule.subSubModuleList?.length != 0) {
+        this.convertSubModuleListResponseAndRenameFile(submodule.subSubModuleList, files)
+      }
+    }
+  }
+
+  createSubModuleListObject(subModuleList: ProjectSubModule[], subModuleType: any) {
+    subModuleList.forEach((submodule: any, submodIndex) => {
+      submodule.badgePathList = this.getBadgePathList('SubModule', subModuleType);
+      submodule.currentActiveBadgeLevel = 'Details';
+      submodule.toTagEmployeeList = this.getToTagEmployeeList(submodule.assignedToUserId);
       if (submodule.questionList != null && submodule.questionList?.length != 0) {
-        submodule.isQuestionCollapsed = true;
         submodule.questionList.forEach((question: ProjectQuestion, index) => {
-          question.badgePathList = [
-            { name: 'Details' }
-          ];
+          question.badgePathList = this.getBadgePathList('Question');
           question.currentActiveBadgeLevel = 'Details';
-          if (submodule.assignedToUserId != undefined && submodule.assignedToUserId != null && submodule.assignedToUserId?.length > 0) {
-            question.toTagEmployeeList = this.employeeList.filter(emp => !submodule.assignedToUserId.includes(emp.empId));
-          } else {
-            question.toTagEmployeeList = this.employeeList;
-          }
-          this.mapQuestionsResponseList(question.projectResponseList, question.optionType, question.options);
+          question.toTagEmployeeList = this.getToTagEmployeeList(submodule.assignedToUserId);
+          this.mapQuestionsResponseList(question.projectResponseList, question.optionType, question.options, question.recommendedResponseId);
         });
       }
       if (submodule.subSubModuleList != null && submodule.subSubModuleList?.length != 0) {
         this.createSubModuleListObject(submodule.subSubModuleList, "Sub-SubModule");
       }
     });
+  }
+
+  parseOptionsOfQuestionToList(questionList: ProjectQuestion[]) {
+    if (questionList != null && questionList?.length != 0) {
+      questionList.forEach((questionObj: ProjectQuestion) => {
+        if (questionObj.optionType == "checkbox" || questionObj.optionType == "radio") {
+          questionObj.optionsList = JSON.parse(questionObj.options || '[]');
+        }
+      });
+    }
+  }
+
+  getToTagEmployeeList(assignedToUserId: any[]) {
+    if (assignedToUserId != undefined && assignedToUserId != null && assignedToUserId?.length > 0) {
+      return this.allEmployeeList.filter(emp => !assignedToUserId.includes(emp.empId));
+    } else {
+      return this.allEmployeeList;
+    }
   }
 
   onCheckboxChange(event: any, value: string, question: any, option: any, response: any) {
@@ -528,11 +576,11 @@ export class ProjectInsightsComponent implements OnInit {
   }
 
   removeUploadedFile(response: any) {
-    if (response?.uploadedFile) {
-      response.uploadedFile = null;
+    if (response?.document) {
+      response.document = null;
     }
-    if (response?.uploadedFileName) {
-      response.uploadedFileName = null;
+    if (response?.documentFileName) {
+      response.documentFileName = null;
     }
   }
 
@@ -574,10 +622,10 @@ export class ProjectInsightsComponent implements OnInit {
   onQuestionFileChange(event: any, question: any, alertTemplate: TemplateRef<any>, previewElementId: any, documentPreviewTemplate: TemplateRef<any>, response: any) {
     const file = event.target.files[0];
     if (file) {
-      response.uploadedFile = file;
+      response.document = file;
       const inputId = event.target.id;
       var fileExtension = file.name.split('.').pop().toLowerCase();
-      response.uploadedFileName = this.currentUser.empId + '-' + inputId + '.' + fileExtension;
+      response.documentFileName = this.currentUser.empId + '-' + inputId + '.' + fileExtension;
     }
 
     const MAX_SIZE = 5 * 1024 * 1024;
@@ -585,12 +633,12 @@ export class ProjectInsightsComponent implements OnInit {
       if (file.size > MAX_SIZE) {
         this.alertMessage = "File size must be lesser than or equal to 1MB."
         this.openAlertMod(alertTemplate, this.alertMessage);
-        response.uploadedFile = null;
-        response.uploadedFileName = null;
+        response.document = null;
+        response.documentFileName = null;
         return false;
       }
     }
-    this.previewUploadedFile(question, response.uploadedFile, response.uploadedFileName, previewElementId, documentPreviewTemplate, alertTemplate, false, response);
+    this.previewUploadedFile(question, response.document, response.documentFileName, previewElementId, documentPreviewTemplate, alertTemplate, false, response);
   }
 
   previewUploadedFile(question, uploadedFile: any, fileName: any, previewElementId: any, documentPreviewTemplate: TemplateRef<any>, alertTemplate: TemplateRef<any>, downloadFile: any, response: any) {
@@ -604,8 +652,8 @@ export class ProjectInsightsComponent implements OnInit {
           this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
           const previewContainer = document.getElementById(previewElementId);
           previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;'>File size must be lesser than or equal to 5MB. </span>";
-          response.uploadedFile = null;
-          response.uploadedFileName = null;
+          response.document = null;
+          response.documentFileName = null;
           return false;
         }
 
@@ -627,8 +675,8 @@ export class ProjectInsightsComponent implements OnInit {
           var allowedExtensions = ['jpg', 'jpeg', 'png', 'jpg2'];
           if (allowedExtensions.indexOf(fileExtension) === -1) {
             previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;'> Please select only image file (jpg, jpeg, png, jpg2) Or PDF </span>";
-            response.uploadedFile = null;
-            response.uploadedFileName = null;
+            response.document = null;
+            response.documentFileName = null;
             return;
           }
           const reader = new FileReader();
@@ -650,55 +698,9 @@ export class ProjectInsightsComponent implements OnInit {
     } else {
       this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
       const previewContainer = document.getElementById(previewElementId);
-      response.uploadedFile = null;
-      response.uploadedFileName = null;
+      response.document = null;
+      response.documentFileName = null;
       previewContainer.innerHTML = `<h3 style='padding: 12px; display:inline-block;'>No Data Found.</h3>`;
-    }
-  }
-
-  convertResponseAndRenameFile(subModuleList: any, finalSubmit: any, files: any) {
-    for (let submoduleIndex = 0; submoduleIndex < (subModuleList?.length || 0); submoduleIndex++) {
-      let submodule = subModuleList[submoduleIndex];
-      if (submodule.questionList?.length) {
-        let submoduleProjectQuestion = submodule.questionList;
-        for (let index = 0; index < submodule.questionList?.length; index++) {
-          let question = submoduleProjectQuestion[index];
-          for (let responseIndex = 0; responseIndex < question.projectResponseList?.length; responseIndex++) {
-            let response = question.projectResponseList[responseIndex];
-            response.isDraft = finalSubmit ? 'N' : 'Y';
-            response.responseByEmpId = this.currentUser.empId;
-            if (question.optionType == 'checkbox') {
-              response.response = JSON.stringify(response.responseList);
-              response.responseList = null;
-            }
-            if (response?.uploadedFile != undefined && response?.uploadedFile != null) {
-              const renamedFile = new File([response.uploadedFile], response?.uploadedFileName, { type: response.uploadedFile.type });
-              files.push(renamedFile);
-              response.uploadedFile = null;
-            }
-          }
-        }
-      }
-      if (submodule.subSubModuleList != undefined && submodule.subSubModuleList != null && submodule.subSubModuleList?.length != 0) {
-        this.convertResponseAndRenameFile(submodule.subSubModuleList, finalSubmit, files)
-      }
-    }
-  }
-
-  mapQuestionResponseAndFile(projectResponseList: any, finalSubmit: any, optionType: any, files: any) {
-    for (let responseIndex = 0; responseIndex < projectResponseList?.length; responseIndex++) {
-      let response = projectResponseList[responseIndex];
-      response.responseByEmpId = this.currentUser.empId;
-      response.isDraft = finalSubmit ? 'N' : 'Y';
-      if (optionType == 'checkbox') {
-        response.response = JSON.stringify(response.responseList);
-        response.responseList = null;
-      }
-      if (response?.uploadedFile != undefined && response?.uploadedFile != null) {
-        const renamedFile = new File([response.uploadedFile], response?.uploadedFileName, { type: response.uploadedFile.type });
-        files.push(renamedFile);
-        response.uploadedFile = null;
-      }
     }
   }
 
@@ -885,32 +887,6 @@ export class ProjectInsightsComponent implements OnInit {
   }
 
   // APIs
-  getEmployeeListByProjectId() {
-    this.employeeList = [];
-    const formData = new FormData();
-    formData.append("projectId", this.projectId);
-    this.employeeService.getAllEmployeesByProjectId(formData).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeeList = response.serviceResponse;
-        this.employeeList = this.employeeList.filter(x => x.employmentstatus != 'InActive');
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
-  }
-
-  getEmployeeList() {
-    this.employeeList = [];
-    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeeList = response.serviceResponse;
-        this.employeeList = this.employeeList.filter(x => x.employmentstatus != 'InActive');
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
-  }
-
   getAllProjects() {
     this.allProjectList = [];
     this.projectService.getAllProjects().pipe(first()).subscribe((response: any) => {
@@ -932,21 +908,55 @@ export class ProjectInsightsComponent implements OnInit {
     });
   }
 
+  getEmployeeListByProjectId(projectId: any): Promise<any> {
+    this.employeeList = [];
+    const formData = new FormData();
+    this.projectId = projectId;
+    formData.append("projectId", this.projectId);
+    return this.employeeService.getAllEmployeesByProjectId(formData).pipe(first())
+      .toPromise()
+      .then((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.employeeList = response.serviceResponse;
+          this.employeeList = this.employeeList.filter(x => x.employmentstatus != 'InActive');
+          this.getProjectManangerInfo(this.projectId);
+        } else {
+          console.error(response.serviceResponse)
+        }
+      })
+      .catch(error => {
+        this.openAlertMod(this.alertModal, 'Error fetching Employee List');
+      });
+  }
+
+  getEmployeeList(): Promise<any> {
+    this.allEmployeeList = [];
+    return this.employeeService.getAllEmployees().pipe(first())
+      .toPromise()
+      .then((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allEmployeeList = response.serviceResponse;
+          this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
+        } else {
+          console.error(response.serviceResponse)
+        }
+      })
+      .catch(error => {
+        this.openAlertMod(this.alertModal, 'Error fetching Employee List');
+      });
+  }
+
   saveProjectInsightConfiguration(template: TemplateRef<any>) {
     let inputValidated: boolean = this.validateProjectInsight(template, this.projectInsightObj);
     if (!inputValidated) return;
 
-    let projObj = new ProjectInsight();
-    projObj = this.projectInsightObj;
-    projObj.createdBy = this.currentUser.empId;
-
-    if (projObj.questionList != null && projObj.questionList?.length != 0) {
-      projObj.questionList.forEach((questionObj: ProjectQuestion) => {
+    if (this.projectInsightObj.questionList != null && this.projectInsightObj.questionList?.length != 0) {
+      this.projectInsightObj.questionList.forEach((questionObj: ProjectQuestion) => {
         questionObj.options = JSON.stringify(questionObj.optionsList);
       });
     }
 
-    projObj.projectInsightMilestoneList.forEach((proj: ProjectMilestone) => {
+    this.projectInsightObj.projectInsightMilestoneList.forEach((proj: ProjectMilestone) => {
       if (proj.questionList != null && proj.questionList?.length != 0) {
         proj.questionList.forEach((questionObj: ProjectQuestion) => {
           questionObj.options = JSON.stringify(questionObj.optionsList);
@@ -969,7 +979,8 @@ export class ProjectInsightsComponent implements OnInit {
       }
     });
 
-    this.projectInsightService.createProjectInsightQuestion(projObj).pipe(first()).subscribe((response: any) => {
+    this.projectInsightObj.createdBy = this.currentUser.empId;
+    this.projectInsightService.createProjectInsightQuestion(this.projectInsightObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showProjectInsightsConfigList();
@@ -983,17 +994,13 @@ export class ProjectInsightsComponent implements OnInit {
     let inputValidated: boolean = this.validateProjectInsight(template, this.projectInsightObj);
     if (!inputValidated) return;
 
-    let projObj = new ProjectInsight();
-    projObj = this.projectInsightObj;
-    projObj.updatedBy = this.currentUser.empId;
-
-    if (projObj.questionList != null && projObj.questionList?.length != 0) {
-      projObj.questionList.forEach((questionObj: ProjectQuestion) => {
+    if (this.projectInsightObj.questionList != null && this.projectInsightObj.questionList?.length != 0) {
+      this.projectInsightObj.questionList.forEach((questionObj: ProjectQuestion) => {
         questionObj.options = JSON.stringify(questionObj.optionsList);
       });
     }
 
-    projObj.projectInsightMilestoneList.forEach((proj: ProjectMilestone) => {
+    this.projectInsightObj.projectInsightMilestoneList.forEach((proj: ProjectMilestone) => {
       if (proj.questionList != null && proj.questionList?.length != 0) {
         proj.questionList.forEach((questionObj: ProjectQuestion) => {
           questionObj.options = JSON.stringify(questionObj.optionsList);
@@ -1015,7 +1022,8 @@ export class ProjectInsightsComponent implements OnInit {
       }
     });
 
-    this.projectInsightService.updateProjectInsightQuestion(projObj).pipe(first()).subscribe((response: any) => {
+    this.projectInsightObj.updatedBy = this.currentUser.empId;
+    this.projectInsightService.updateProjectInsightQuestion(this.projectInsightObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showProjectInsightsConfigList();
@@ -1033,34 +1041,15 @@ export class ProjectInsightsComponent implements OnInit {
       .then((response: any) => {
         if (response.serviceStatus === 'Success') {
           this.projectInsightObj = response.serviceResponse;
-          this.projectInsightObj.deletedProjectInsightEntityList=[];
-          if (this.projectInsightObj.questionList != null && this.projectInsightObj.questionList?.length != 0) {
-            this.projectInsightObj.questionList.forEach((questionObj: ProjectQuestion) => {
-              if (questionObj.optionType == "checkbox" || questionObj.optionType == "radio") {
-                questionObj.optionsList = JSON.parse(questionObj.options || '[]');
-              }
-            });
-          }
+          this.projectInsightObj.deletedProjectInsightEntityList = [];
+          this.parseOptionsOfQuestionToList(this.projectInsightObj.questionList);
 
           this.projectInsightObj.projectInsightMilestoneList.forEach((proj: ProjectMilestone) => {
-            if (proj.questionList != null && proj.questionList?.length != 0) {
-              proj.questionList.forEach((questionObj: ProjectQuestion) => {
-                if (questionObj.optionType == "checkbox" || questionObj.optionType == "radio") {
-                  questionObj.optionsList = JSON.parse(questionObj.options || '[]');
-                }
-              });
-            }
+            this.parseOptionsOfQuestionToList(proj.questionList);
 
             if (proj.moduleList != null && proj.moduleList?.length != 0) {
               proj.moduleList.forEach((moduleObj: any) => {
-
-                if (moduleObj.questionList != null && moduleObj.questionList?.length != 0) {
-                  moduleObj.questionList.forEach((questionObj: ProjectQuestion) => {
-                    if (questionObj.optionType == "checkbox" || questionObj.optionType == "radio") {
-                      questionObj.optionsList = JSON.parse(questionObj.options || '[]');
-                    }
-                  });
-                }
+                this.parseOptionsOfQuestionToList(moduleObj.questionList);
 
                 if (moduleObj.subModuleList != null && moduleObj.subModuleList?.length != 0) {
                   this.convertStringToJSONSubModuleNodesOption(moduleObj.subModuleList);
@@ -1079,9 +1068,56 @@ export class ProjectInsightsComponent implements OnInit {
       });
   }
 
+  saveProjectInsightResponse(template: TemplateRef<any>, finalSubmit: any) {
+    let files: File[] = [];
+
+    if (this.projectInsightObj.questionList?.length) {
+      let applicationQuestionList = this.projectInsightObj.questionList;
+      for (let index = 0; index < applicationQuestionList?.length; index++) {
+        let question = applicationQuestionList[index];
+        this.mapQuestionResponseAndFile(question.projectResponseList, question.optionType, files);
+      }
+    }
+
+    for (let milestoneIndex = 0; milestoneIndex < this.projectInsightObj.projectInsightMilestoneList?.length; milestoneIndex++) {
+      let milestone = this.projectInsightObj.projectInsightMilestoneList[milestoneIndex];
+      if (milestone.questionList?.length) {
+        let questionList = milestone.questionList;
+        for (let index = 0; index < questionList?.length; index++) {
+          let question = questionList[index];
+          this.mapQuestionResponseAndFile(question.projectResponseList, question.optionType, files);
+        }
+      }
+
+      for (let moduleIndex = 0; moduleIndex < (milestone.moduleList?.length || 0); moduleIndex++) {
+        let module = milestone.moduleList[moduleIndex];
+        if (module.questionList?.length) {
+          let moduleQuestionList = module.questionList;
+          for (let index = 0; index < moduleQuestionList?.length; index++) {
+            let question = moduleQuestionList[index];
+            this.mapQuestionResponseAndFile(question.projectResponseList, question.optionType, files);
+          }
+        }
+        this.convertSubModuleListResponseAndRenameFile(module.subModuleList, files);
+      }
+    }
+
+    this.projectInsightObj.empId = this.currentUser.empId;
+    this.projectInsightObj.responseBy = this.currentUser.empId;
+    this.projectInsightObj.isFinalSubmitted = finalSubmit ? 'Y' : 'N';
+    this.projectInsightService.saveProjectInsightResponse(this.projectInsightObj, files).pipe(first()).subscribe((response: any) => {
+      this.closeProjectInsightResponseModal();
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
   getAllProjectInsightResponsesByProjectId(projectId: any, empId: any, alertTemplate: TemplateRef<any>, performanceTabName: any, isPreview: any, type?: any): Promise<void> {
     this.isResponsePreview = isPreview;
-    this.isFinalResponseSubmitted = true;
+    this.isResponsePointFinalSubmitted = true;
     this.projectInsightObj = new ProjectInsight();
     let projObj = new ProjectInsight();
     projObj.empId = empId
@@ -1094,88 +1130,43 @@ export class ProjectInsightsComponent implements OnInit {
       .then((response: any) => {
         if (response.serviceStatus == "Success") {
           this.projectInsightObj = response.serviceResponse;
-          this.projectInsightObj.badgePathList = [
-            { name: 'Details' },
-            { name: 'Questions' },
-            { name: 'Milestones' },
-          ];
+          this.projectInsightObj.badgePathList = this.getBadgePathList('Project');
           this.projectInsightObj.currentActiveBadgeLevel = 'Details';
-          if (this.projectInsightObj.assignedToUserId != undefined && this.projectInsightObj.assignedToUserId != null && this.projectInsightObj.assignedToUserId?.length > 0) {
-            this.projectInsightObj.toTagEmployeeList = this.employeeList.filter(emp => !this.projectInsightObj.assignedToUserId.includes(emp.empId));
-          } else {
-            this.projectInsightObj.toTagEmployeeList = this.employeeList;
-          }
+          this.projectInsightObj.toTagEmployeeList = this.getToTagEmployeeList(this.projectInsightObj.assignedToUserId);
 
           if (this.projectInsightObj.questionList != null && this.projectInsightObj.questionList?.length != 0) {
-            this.projectInsightObj.isQuestionCollapsed = true;
             this.projectInsightObj.questionList.forEach((question: ProjectQuestion, index) => {
-              question.badgePathList = [
-                { name: 'Details' }
-              ];
+              question.badgePathList = this.getBadgePathList('Question');
               question.currentActiveBadgeLevel = 'Details';
-              if (this.projectInsightObj.assignedToUserId != undefined && this.projectInsightObj.assignedToUserId != null && this.projectInsightObj.assignedToUserId?.length > 0) {
-                question.toTagEmployeeList = this.employeeList.filter(emp => !this.projectInsightObj.assignedToUserId.includes(emp.empId));
-              } else {
-                question.toTagEmployeeList = this.employeeList;
-              }
-              this.mapQuestionsResponseList(question.projectResponseList, question.optionType, question.options);
+              question.toTagEmployeeList = this.getToTagEmployeeList(this.projectInsightObj.assignedToUserId);
+              this.mapQuestionsResponseList(question.projectResponseList, question.optionType, question.options, question.recommendedResponseId);
             });
           }
 
           this.projectInsightObj.projectInsightMilestoneList.forEach((milestone: ProjectMilestone, mileIndex) => {
-            milestone.badgePathList = [
-              { name: 'Details' },
-              { name: 'Questions' },
-              { name: 'Modules' },
-            ];
+            milestone.badgePathList = this.getBadgePathList('Milestone');
             milestone.currentActiveBadgeLevel = 'Details';
-            if (milestone.assignedToUserId != undefined && milestone.assignedToUserId != null && milestone.assignedToUserId?.length > 0) {
-              milestone.toTagEmployeeList = this.employeeList.filter(emp => !milestone.assignedToUserId.includes(emp.empId));
-            } else {
-              milestone.toTagEmployeeList = this.employeeList;
-            }
+            milestone.toTagEmployeeList = this.getToTagEmployeeList(milestone.assignedToUserId);
             if (milestone.questionList != null && milestone.questionList?.length != 0) {
-              milestone.isQuestionCollapsed = true;
               milestone.questionList.forEach((question: ProjectQuestion, index) => {
-                question.badgePathList = [
-                  { name: 'Details' }
-                ];
+                question.badgePathList = this.getBadgePathList('Question');
                 question.currentActiveBadgeLevel = 'Details';
-                if (milestone.assignedToUserId != undefined && milestone.assignedToUserId != null && milestone.assignedToUserId?.length > 0) {
-                  question.toTagEmployeeList = this.employeeList.filter(emp => !milestone.assignedToUserId.includes(emp.empId));
-                } else {
-                  question.toTagEmployeeList = this.employeeList;
-                }
-                this.mapQuestionsResponseList(question.projectResponseList, question.optionType, question.options);
+                question.toTagEmployeeList = this.getToTagEmployeeList(milestone.assignedToUserId);
+                this.mapQuestionsResponseList(question.projectResponseList, question.optionType, question.options, question.recommendedResponseId);
               });
             }
 
             if (milestone.moduleList != null && milestone.moduleList?.length != 0) {
               milestone.moduleList.forEach((module: any, modIndex) => {
-                module.badgePathList = [
-                  { name: 'Details' },
-                  { name: 'Questions' },
-                  { name: 'SubModules' },
-                ];
+                module.badgePathList = this.getBadgePathList('Module');
                 module.currentActiveBadgeLevel = 'Details';
-                if (module.assignedToUserId != undefined && module.assignedToUserId != null && module.assignedToUserId?.length > 0) {
-                  module.toTagEmployeeList = this.employeeList.filter(emp => !milestone.assignedToUserId.includes(emp.empId));
-                } else {
-                  module.toTagEmployeeList = this.employeeList;
-                }
+                module.toTagEmployeeList = this.getToTagEmployeeList(module.assignedToUserId);
                 if (module.questionList != null && module.questionList?.length != 0) {
-                  module.isQuestionCollapsed = true;
                   module.questionList.forEach((question: ProjectQuestion, index) => {
-                    question.badgePathList = [
-                      { name: 'Details' }
-                    ];
+                    question.badgePathList = this.getBadgePathList('Question');
                     question.currentActiveBadgeLevel = 'Details';
-                    if (module.assignedToUserId != undefined && module.assignedToUserId != null && module.assignedToUserId?.length > 0) {
-                      question.toTagEmployeeList = this.employeeList.filter(emp => !milestone.assignedToUserId.includes(emp.empId));
-                    } else {
-                      question.toTagEmployeeList = this.employeeList;
-                    }
-                    this.mapQuestionsResponseList(question.projectResponseList, question.optionType, question.options);
+                    question.toTagEmployeeList = this.getToTagEmployeeList(module.assignedToUserId);
+                    this.mapQuestionsResponseList(question.projectResponseList, question.optionType, question.options, question.recommendedResponseId);
                   });
                 }
 
@@ -1193,59 +1184,6 @@ export class ProjectInsightsComponent implements OnInit {
       .catch(error => {
         this.openAlertMod(alertTemplate, 'Error fetching project questions');
       });
-  }
-
-  saveProjectInsightResponse(template: TemplateRef<any>, finalSubmit: any) {
-    let files: File[] = [];
-
-    if (this.projectInsightObj.questionList?.length) {
-      let applicationQuestionList = this.projectInsightObj.questionList;
-      for (let index = 0; index < applicationQuestionList?.length; index++) {
-        let question = applicationQuestionList[index];
-        this.mapQuestionResponseAndFile(question.projectResponseList, finalSubmit, question.optionType, files);
-      }
-    }
-
-    for (let milestoneIndex = 0; milestoneIndex < this.projectInsightObj.projectInsightMilestoneList?.length; milestoneIndex++) {
-      let milestone = this.projectInsightObj.projectInsightMilestoneList[milestoneIndex];
-      if (milestone.questionList?.length) {
-        let questionList = milestone.questionList;
-        for (let index = 0; index < questionList?.length; index++) {
-          let question = questionList[index];
-          this.mapQuestionResponseAndFile(question.projectResponseList, finalSubmit, question.optionType, files);
-        }
-      }
-
-      for (let moduleIndex = 0; moduleIndex < (milestone.moduleList?.length || 0); moduleIndex++) {
-        let module = milestone.moduleList[moduleIndex];
-        if (module.questionList?.length) {
-          let moduleQuestionList = module.questionList;
-          for (let index = 0; index < moduleQuestionList?.length; index++) {
-            let question = moduleQuestionList[index];
-            this.mapQuestionResponseAndFile(question.projectResponseList, finalSubmit, question.optionType, files);
-          }
-        }
-        this.convertResponseAndRenameFile(module.subModuleList, finalSubmit, files);
-      }
-    }
-
-    let projObj = new ProjectInsight();
-    projObj.projectId = this.projectInsightObj.projectId;
-    projObj.projectManagerId = this.projectInsightObj.projectManagerId;
-    projObj.projectManagerName = this.projectInsightObj.projectManagerName;
-    projObj.empId = this.currentUser.empId;
-    projObj.questionList = this.projectInsightObj.questionList;
-    projObj.taggedToUserId = this.projectInsightObj.taggedToUserId;
-    projObj.projectInsightMilestoneList = this.projectInsightObj.projectInsightMilestoneList;
-
-    this.projectInsightService.saveProjectInsightResponse(projObj, files).pipe(first()).subscribe((response: any) => {
-      this.closeProjectInsightResponseModal();
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
   }
 
   getUserUploadedFileForQuestion(question: any, fileName: any, documentPreviewTemplate: TemplateRef<any>, previewElementId: any) {
@@ -1300,5 +1238,81 @@ export class ProjectInsightsComponent implements OnInit {
 
   closeDocumentPreviewTemplate() {
     this.documentPreviewModalRef.hide();
+  }
+
+  checkIfUserIdIsPresentInDisplayResponseUserId(response: any): boolean {
+    console.log(response)
+    return this.displayedResponseUserId?.includes(response?.responseBy);
+  }
+
+  isAllSelected(): boolean {
+    return this.displayedResponseUserId?.length === this.employeeList.length;
+  }
+
+  toggleSelectAll(): void {
+    if (this.isAllSelected()) {
+      this.displayedResponseUserId = [];
+    } else {
+      this.displayedResponseUserId = this.employeeList.map(emp => emp.empId);
+    }
+  }
+
+  saveReviewRemarks(isDraft: any, transferToKnowledgeHub: any) {
+    let files: File[] = [];
+
+    if (this.projectInsightObj.questionList?.length) {
+      let applicationQuestionList = this.projectInsightObj.questionList;
+      for (let index = 0; index < applicationQuestionList?.length; index++) {
+        let question = applicationQuestionList[index];
+        this.mapQuestionResponseAndFile(question.projectResponseList, question.optionType, files);
+      }
+    }
+
+    for (let milestoneIndex = 0; milestoneIndex < this.projectInsightObj.projectInsightMilestoneList?.length; milestoneIndex++) {
+      let milestone = this.projectInsightObj.projectInsightMilestoneList[milestoneIndex];
+      if (milestone.questionList?.length) {
+        let questionList = milestone.questionList;
+        for (let index = 0; index < questionList?.length; index++) {
+          let question = questionList[index];
+          this.mapQuestionResponseAndFile(question.projectResponseList, question.optionType, files);
+        }
+      }
+
+      for (let moduleIndex = 0; moduleIndex < (milestone.moduleList?.length || 0); moduleIndex++) {
+        let module = milestone.moduleList[moduleIndex];
+        if (module.questionList?.length) {
+          let moduleQuestionList = module.questionList;
+          for (let index = 0; index < moduleQuestionList?.length; index++) {
+            let question = moduleQuestionList[index];
+            this.mapQuestionResponseAndFile(question.projectResponseList, question.optionType, files);
+          }
+        }
+        this.convertSubModuleListResponseAndRenameFile(module.subModuleList, files);
+      }
+    }
+
+    this.projectInsightObj.pointsBy = this.currentUser.empId;
+    this.projectInsightObj.isPointsDrafted = isDraft ? 'Y' : 'N';
+    this.projectInsightObj.transferToKnowledgeHub = transferToKnowledgeHub ? 'Y' : 'N'
+    this.projectInsightService.saveReviewPoints(this.projectInsightObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.closeProjectInsightResponseModal();
+        this.openAlertMod(this.alertModal, response.serviceResponse);
+      } else {
+        this.openAlertMod(this.alertModal, response.serviceResponse);
+      }
+    });
+  }
+
+  onRecommendedResponseChange(event: any, response: any, entity: any) {
+    if (event.target.checked) {
+      response.isRecommendedChecked = true;
+    }
+    entity?.projectResponseList.forEach((responseObj) => {
+      if (responseObj.projectInsightResponseId != response.projectInsightResponseId) {
+        responseObj.isRecommendedChecked = false;
+      }
+    });
+    entity.recommendedResponseId = response?.projectInsightResponseId;
   }
 }

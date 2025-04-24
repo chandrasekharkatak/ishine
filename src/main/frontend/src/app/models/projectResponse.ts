@@ -1,24 +1,23 @@
+import { ProjectResponsePoint } from "./projectResponsePoint";
 import { ProjectResponseOption } from "./projectResponsOption";
-
 export class ProjectResponse {
-    responseByEmpName: any;
-    responseByEmpId: any;
-    responseId: any;
+    projectInsightResponseId: any;
+    projectInsightResponseMetadataId: any;
+    questionMasterId: any;
+    options: any;
+    optionsList: any[] = [];
+    option: ProjectResponseOption = new ProjectResponseOption();
     response: any;
     responseList: any;
-    entityId: any;
-    entityType: any;
-    uploadedFile: any;
-    uploadedFileName: any;
+    responseType: any;
+    responseBy: any;
+    responseByEmpName: any;
+    document: any;
+    documentFileName: any;
     documentPath: any;
-    option: ProjectResponseOption = new ProjectResponseOption();
-    optionsList: any[] = [];
-    options: any;
-    isDraft: any = 'Y';
-    processTo: any;
-    marks: any;
-    markType: any;
-    questionId: any;
-    empId: any;
     showDocDiv: any = true;
+    isDraft: any = 'Y';
+    projectInsightResponsePointList: ProjectResponsePoint[] = [];
+    isRecommendedChecked: any;
+    approvedForKnowledgeHub: any;
 }

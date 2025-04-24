@@ -1,8 +1,6 @@
 import { ProjectInsightEntity } from "./projectInsightEntity";
 import { ProjectMilestone } from "./projectMilestone";
-import { ProjectModule } from "./projectModule";
 import { ProjectQuestion } from "./projectQuestion";
-import { ProjectSubModule } from "./projectSubModule";
 
 export class ProjectInsight {
 
@@ -14,27 +12,29 @@ export class ProjectInsight {
     employeeRole: any;
     isActive: any;
     description: any;
+    performanceTabName: any;
+    toAssignEmployeeList: any[] = [];
     assignedToUserId: any[] = [];
     assignedToUserNames: any;
+    toTagEmployeeList: any[] = [];
     taggedToUserId: any[] = [];
     taggedToUserNames: any;
     questionList: ProjectQuestion[] = [];
     projectInsightMilestoneList: ProjectMilestone[] = [];
     deletedProjectInsightEntityList: ProjectInsightEntity[] = [];
-    isCollapsed: any = false;
-    performanceTabName: any;
-    projectInsightQuestionTemplate: any;
+    isFinalSubmitted: any = 'N';
+    responseBy: any;
     createdOn: any;
     createdBy: any;
     updatedOn: any;
     updatedBy: any;
-    toTagEmployeeList: any[] = [];
-    toAssignEmployeeList: any[] = [];
-    isQuestionCollapsed: boolean = false;
     badgePathList = [
         { name: 'Details' },
         { name: 'Questions' },
         { name: 'Milestones' },
     ];
     currentActiveBadgeLevel = 'Details';
+    pointsBy: any;
+    isPointsDrafted: any = true;
+    transferToKnowledgeHub: any;
 }

@@ -198,7 +198,7 @@
                       <tr *ngFor="let project of allProjectInsightList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <td>{{project.projectName}}</td>
                         <td>{{project.projectManagerName}}</td>
-                        <td  *ngIf="userMapping.employee360_view_survey_config" id="clickablefor360" [navigateToEmployee360]="project.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{project.createdByName}}</td>
+                        <td>{{project.createdByName}}</td>
                         <td>{{project.createdOn}}</td>
                         <td>
                             <button name="Preview" class="btn btn-sm btn-outline-primary" type="submit" (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,true)"><em class="fa fa-eye"></em></button>

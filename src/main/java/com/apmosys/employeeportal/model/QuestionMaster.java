@@ -38,6 +38,6 @@ public class QuestionMaster {
 	@Column(columnDefinition = "varchar(10) DEFAULT 'Y'")
 	private String documentUpload;
 	
-	
+	private Long recommendedResponseId;
 	
 }

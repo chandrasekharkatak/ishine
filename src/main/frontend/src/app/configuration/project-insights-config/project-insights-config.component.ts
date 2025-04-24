@@ -18,7 +18,7 @@ import { ClipboardService } from 'ngx-clipboard';
 import { Router } from '@angular/router';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ProjectService } from 'src/app/services/project.service';
-import { ProjectInsight } from 'src/app/models/projectInsightQuestion';
+import { ProjectInsight } from 'src/app/models/projectInsight';
 import { ProjectQuestion } from 'src/app/models/projectQuestion';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ProjectModule } from 'src/app/models/projectModule';
@@ -350,13 +350,6 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   //modals
-
-  openSurveyPreviewMod(template: TemplateRef<any>, surveyObj:ProjectInsight) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-    let surveyContainer = document.getElementById("survey-container");
-    surveyContainer.insertAdjacentHTML('beforeend', surveyObj.projectInsightQuestionTemplate);
-  }
-
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;

@@ -26,14 +26,19 @@ public class ProjectInsightDTO {
 	private String createdByName;
 	private String updatedOn;
 	private Long updatedBy;
-    private List<ResponseMarksDTO> empMarkList;
-    private String projectInsightQuestionTemplate;
-    private List<PoProjectSyncDTO> projectList;
-    private List<String> optionList;
-    private List<ProjectInsightEntityDTO> deletedProjectInsightEntityList;
-     
-    //For tags
-    private StringBuilder projectText; 
-    private String tagType;
-    
+	private List<ResponseMarksDTO> empMarkList;
+	private String projectInsightQuestionTemplate;
+	private List<PoProjectSyncDTO> projectList;
+	private List<String> optionList;
+	private List<ProjectInsightEntityDTO> deletedProjectInsightEntityList;
+	private String isFinalSubmitted;
+	private Long responseBy;
+	private Long pointsBy;
+	private String isPointsDrafted;
+	private String transferToKnowledgeHub;
+	
+	// For tags
+	private StringBuilder projectText;
+	private String tagType;
+
 }

@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { ProjectInsight } from '../models/projectInsightQuestion';
+import { ProjectInsight } from '../models/projectInsight';
 import { Document } from '../models/document';
 
 @Injectable({
@@ -64,7 +64,13 @@ export class ProjectInsightService {
   getFilterList(){
     return this.http.get(`${this.baseUrl}` + `api/getFilterList`);
   }
-
+  saveReviewPoints(projObj: ProjectInsight){
+    const formData = new FormData();
+    const blob = new Blob([JSON.stringify(projObj)], { type: 'application/json' });
+    formData.append('projectInsightDTO', blob);
+    return this.http.post(`${this.baseUrl}` + `api/saveReviewPoints`, formData);
+  }
+  
   /*
   User contribution apis
   */ 
