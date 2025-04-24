@@ -273,6 +273,7 @@ export class ResourceManagementComponent implements OnInit {
                 proj.isDraftProject = selectedProj.isActive == 2 ? 'Pending For Approval' : selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
                 proj.isActive = selectedProj.isActive;
                 proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+                proj.projectViewId = selectedProj.projectId;
               } else {
                 proj.isTeamCreated = false;
                 proj.isDraftProject = "NA";
@@ -300,6 +301,7 @@ export class ResourceManagementComponent implements OnInit {
                 proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
                 // proj.isDraftProject = proj.projectType;
                 proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+                proj.projectViewId = selectedProj.projectId;
               } else {
                 proj.isTeamCreated = false;
                 proj.isDraftProject = proj.projectType;
@@ -794,6 +796,7 @@ export class ResourceManagementComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.showViewProjects();
         this.openAlertMod(template, response.serviceResponse);
+        this.bulkSyncList = [];
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }

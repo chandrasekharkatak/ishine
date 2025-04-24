@@ -13,6 +13,7 @@ export class NavigateToProjectViewDirective {
   constructor(private projectViewService: ProjectViewService) { }
 
   @HostListener('click') onClick() {
+    // console.log("data",this.data);
     if (this.data) {
      
       localStorage.setItem('projectId', this.data);
