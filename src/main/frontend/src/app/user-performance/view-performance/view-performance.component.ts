@@ -24,6 +24,9 @@ import { AppComponent } from 'src/app/app.component';
 import { ProjectResponse } from 'src/app/models/projectResponse';
 import { Sort } from '@angular/material/sort';
 import { ProjectMilestone } from 'src/app/models/projectMilestone';
+import { ProjectService } from 'src/app/services/project.service';
+import { AngularEditorConfig } from '@kolkov/angular-editor';
+import { UserContribution } from 'src/app/models/userContribution';
 
 
 interface Goal {
@@ -83,6 +86,16 @@ export class ViewPerformanceComponent implements OnInit {
   currentQuestionnaireId: any;
 
   allQuestionMarksList: any[] = [];
+  allProjectList:any[] = [];
+  getUserContributionForReviewList:any[] = [];
+  finalContributionList:any[] = [];
+
+  toggleReviewView:boolean = false;
+  showPreReviewerSelection:boolean = false;
+  showValidationErrors: boolean = false;
+
+  validationErrors: string = '';
+  selectedPreReviewer:any = '';
 
   kraKpiReviewForm: FormGroup;
   questionnaireReviewForm: FormGroup;
@@ -98,6 +111,8 @@ export class ViewPerformanceComponent implements OnInit {
   summary?: AppraisalSummary;
 
   currentEmployeeInfo:Employee = new Employee();
+  userContributionObj:UserContribution = new UserContribution();
+
   selectedGoal?: Goal;
   subscription!: Subscription;
   modalRef?: BsModalRef;
@@ -118,6 +133,9 @@ export class ViewPerformanceComponent implements OnInit {
   isSearchEnabled: boolean = false;
   isFinalResponseSubmitted: boolean = false;
 
+  contributionFilters:any = {};
+  isContributionSearchEnabled:boolean = false;
+  myContributionPage = 1;
   filters: any = {};
   page = 1;
   sortDirection = 'asc';
@@ -128,6 +146,7 @@ export class ViewPerformanceComponent implements OnInit {
 
   allProjectInsightList: any[] = [];
   projectInsightColumnColumns: any[] = ['projectName', 'description', 'isActive', 'createdByName', 'createdOn'];
+  projectInsightContributionColumns:any[] = ['projectName','status','createdOn', 'blank']
   employeeList:any[] = [];
 
   projectResponseModalRef: BsModalRef = new BsModalRef();
@@ -137,6 +156,27 @@ export class ViewPerformanceComponent implements OnInit {
   actionType:any='Contribution';
   subActionType:any='Review Response';
   responseByEmpId:any;
+
+  //Text Editor
+  editorConfig: AngularEditorConfig = {
+    editable: true,
+    spellcheck: true,
+    height: '20rem',
+    minHeight: '5rem',
+    width: 'auto',
+    minWidth: '0',
+    translate: 'yes',
+    enableToolbar: true,
+    showToolbar: true,
+    placeholder: 'Enter text here...',
+    defaultParagraphSeparator: '',
+    defaultFontName: '',
+    defaultFontSize: '',
+    uploadWithCredentials: false,
+    sanitize: false,
+    toolbarPosition: 'top',
+    fonts: [{class: 'arial', name: 'Arial'}],
+  };
 
   constructor(
     private router: Router,
@@ -151,6 +191,7 @@ export class ViewPerformanceComponent implements OnInit {
     private route: ActivatedRoute,
     private projectInsightService:ProjectInsightService,
     private validationService: ValidationService,
+    private projectService: ProjectService
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -167,6 +208,8 @@ export class ViewPerformanceComponent implements OnInit {
     this.setActiveTab('kra-kpi');
     this.getAllProjectInsightContributionList();
     this.getEmployeeList();
+    this.getUserContributionForReview();
+    this.getAllProjects();
     
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -451,10 +494,17 @@ export class ViewPerformanceComponent implements OnInit {
 
   // Project Insight
 
-  toggleSearch() {
-    this.isSearchEnabled = !this.isSearchEnabled;
-    if (!this.isSearchEnabled) {
-      this.filters = {};
+  toggleSearch(togleType: any) {
+    if (togleType == 'projectInsight') {
+      this.isSearchEnabled = !this.isSearchEnabled;
+      if (!this.isSearchEnabled) {
+        this.filters = {};
+      }
+    } else {
+      this.isContributionSearchEnabled = !this.isContributionSearchEnabled;
+      if (!this.isContributionSearchEnabled) {
+        this.filters = {};
+      }
     }
   }
 
@@ -467,12 +517,20 @@ export class ViewPerformanceComponent implements OnInit {
     }
   }
 
-  onSearch(searchData) {
-    this.filters = searchData;
+  onSearch(searchData, type: any) {
+    if (type == 'projectInsight') {
+      this.filters = searchData; 
+    }else{
+      this.contributionFilters = searchData;
+    }
   }
-
-  handlePageChange(event) {
-    this.page = event;
+  
+  handlePageChange(event, type: any) {
+    if(type == 'projectInsight'){
+      this.page = event;
+    }else{
+      this.myContributionPage = event;
+    }
   }
 
 
@@ -534,6 +592,120 @@ export class ViewPerformanceComponent implements OnInit {
         console.error(response.serviceResponse)
       }
     });
+  }
+
+  getAllProjects() {
+    this.allProjectList = [];
+    this.projectService.getAllProjects().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allProjectList = response.serviceResponse;
+        this.allProjectList.forEach(project => {
+          project.createdOn = (project.createdOn) ? moment(project.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          project.updatedOn = (project.updatedOn) ? moment(project.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        })
+        this.allProjectList = this.allProjectList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.projectId === value.projectId
+          ))
+        );
+        this.allProjectList = this.allProjectList.sort((a, b) => a.createdOn - b.createdOn);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  processUserContribution(statusType: any, projectUSerContributionObj: any){
+
+    if (statusType != 'preReviewer') {
+      let errors: string[] = [];
+      if (!projectUSerContributionObj.remark) {
+        errors.push('Please enter remarks');
+      }
+      if (!projectUSerContributionObj.projectId) {
+        errors.push('Please Tag Project');
+      }
+
+      if (errors.length > 0) {
+        this.showValidationErrors = true;
+        this.validationErrors = errors.join(', ');
+        return;
+      }
+    }
+
+    if (statusType === 'preReviewer') {
+      if (!this.showPreReviewerSelection) {
+        this.showPreReviewerSelection = true;
+        return;
+      } else if (!this.selectedPreReviewer) {
+        this.alertMessage = "Please select a pre-reviewer";
+        this.modalRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+        return;
+      }
+      projectUSerContributionObj.assignTo = this.selectedPreReviewer;
+    }else{
+      projectUSerContributionObj.assignTo = this.currentUser.empId;
+    }
+
+    this.cancelRequest();
+
+    let userContributionObj = new UserContribution();
+    userContributionObj.userContributionId = projectUSerContributionObj.userContributionId;
+    userContributionObj.processType = statusType;
+    userContributionObj.assignTo = this.currentUser.empId;
+    userContributionObj.status = statusType;
+    userContributionObj.projectId = projectUSerContributionObj.projectId;
+    userContributionObj.remark = projectUSerContributionObj.remark;
+
+    this.projectInsightService.processUserContribution(userContributionObj).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.alertMessage = response.serviceMessage;
+        this.modalRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+      },
+      error: (error) => {
+        this.alertMessage = error.serviceMessage;
+        this.modalRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+      }
+    });
+  }
+
+  getUserContributionForReview(){
+    this.getUserContributionForReviewList = [];
+    this.finalContributionList = [];
+
+    let userContributionObj = new UserContribution();
+    userContributionObj.assignTo = this.currentUser.empId;
+    userContributionObj.empId = this.viewPerformanceEmpId;
+    this.projectInsightService.getUserContributionForReview(userContributionObj).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.getUserContributionForReviewList = response;
+        this.finalContributionList = response;
+      },
+      error: (error) => {
+        this.alertMessage = error.serviceMessage;
+        this.modalRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+      }
+    });
+  }
+
+  openUserContributionModal(projectObj: any, contributionModal: TemplateRef<any>) {
+    this.userContributionObj = projectObj;
+    this.editorConfig = {
+      ...this.editorConfig,
+      editable: false,
+      showToolbar: false
+    };
+    this.modalRef = this.modalService.show(contributionModal, { class: 'modal-xl' });
+  }
+
+  cancelRequestPreReviewer() {
+    this.showPreReviewerSelection = false;
+  }
+
+  cancelRequest() {
+    this.showPreReviewerSelection = false;
+    this.modalRef.hide();
+    this.modalService.hide();
   }
 
 }

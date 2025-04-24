@@ -65,12 +65,24 @@ export class ProjectInsightService {
     return this.http.get(`${this.baseUrl}` + `api/getFilterList`);
   }
 
+  /*
+  User contribution apis
+  */ 
+
   createUserContribution(contributionObject: any){
     return this.http.post(`${this.baseUrl}` + `api/createUserContribution`, contributionObject);
   }
 
   getContibutionByEmpId(contributionObject: any){
     return this.http.post(`${this.baseUrl}` + `api/getContibutionByEmpId`, contributionObject);
+  }
+
+  getUserContributionForReview(contributionObject: any){
+    return this.http.post(`${this.baseUrl}` + `api/getUserContributionForReview`, contributionObject);
+  }
+
+  processUserContribution(contributionObject: any){
+    return this.http.post(`${this.baseUrl}` + `api/processUserContribution`, contributionObject);
   }
   
 }

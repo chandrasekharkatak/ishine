@@ -1,6 +1,6 @@
 <div class="px-0">
   <button class="btn btn-sm btn-outline-primary mb-1" (click)="navigateToteam()">
-      <em><i class="fa-solid fa-arrow-left-long"></i></em>
+    <em><i class="fa-solid fa-arrow-left-long"></i></em>
   </button>
 </div>
 <div class="row px-1 ml-1 mr-1">
@@ -9,8 +9,8 @@
     <div class="mb-1 mt-1 pr-3 pl-2 w-auto">
       <div class="form-inline input-group input-group-sm">
         <label class="mr-2 font-weight-bold ">Select Quarter:</label>
-        <select class="form-control form-control-sm"  [(ngModel)]="selectedQuarter"
-          name="quarterId" (ngModelChange)="onQuarterChange()">
+        <select class="form-control form-control-sm" [(ngModel)]="selectedQuarter" name="quarterId"
+          (ngModelChange)="onQuarterChange()">
           <option selected value="" disabled>Select</option>
           <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{quarter.quarterCycle}}
           </option>
@@ -19,16 +19,12 @@
     </div>
   </div>
 </div>
-    
-    
+
+
 <div class="profile-card container border rounded p-4 shadow-sm">
   <div class="row align-items-center">
     <div class="col-md-3 text-center">
-      <img
-        src="assets/Images/default-user-image.jpeg"
-        alt="Profile "
-        class="profile-image border rounded-circle"
-      />
+      <img src="assets/Images/default-user-image.jpeg" alt="Profile " class="profile-image border rounded-circle" />
     </div>
     <div class="col-md-9">
       <h4>{{ currentEmployeeInfo.name }}</h4>
@@ -46,24 +42,24 @@
         <div class="col-md-6">
           <p>Reports To: {{ currentEmployeeInfo.managerName }}</p>
         </div>
-        
+
         <div class="stats-section mt-3 col-md-12 justify-content-start ">
-    
+
           <div class="row text-center">
             <div class="col-md-3 ml-0">
               Goals Completed
               <p><strong>{{ stats.goalsCompleted }}</strong></p>
-              
+
             </div>
             <div class="col-md-3">
               Goals Remaining
               <p><strong>{{ stats.goalsRemaining }}</strong></p>
-              
+
             </div>
             <div class="col-md-3">
               KRA/KPI Score
               <p><strong>{{ stats.kraKpiScore }}/10</strong></p>
-              
+
             </div>
             <div class="col-md-3">
               Questionnaire Score
@@ -74,350 +70,458 @@
       </div>
     </div>
   </div>
-  
+
 </div>
-    
-    <div class="row mt-4">
-      <div class="col-md-6">
-        <div class="graph-placeholder p-4 border rounded text-center">[Graphs Here]</div>
+
+<div class="row mt-4">
+  <div class="col-md-4">
+    <div class="card shadow border-0 info box">
+      <div class="card-header ">
+        <h5 class="card-title mb-0 text-center">Appraisal Summary</h5>
       </div>
-      <div class="col-md-6">
-        <div class="goals-list p-2 border rounded d-flex flex-column" style="height: 100%;">
-          <h6 class="mb-1 text-center">Goals List</h6>
-          <div class="table-responsive flex-grow-1" style="max-height: 250px; overflow-y: auto;">
-            <table class="table table-sm table-bordered" style="font-size: 0.90rem;">
-              <thead>
-                <tr class="bg-light " >
-                  <th scope="col" style="max-width: 2rem ;">Sr No.</th>
-                  <th scope="col" class="">Goal</th>
-                  <th scope="col">Description</th>
-                  <th scope="col" class="text-center ">Status</th>
-                  <th scope="col" class="text-center " style="max-width: 2rem ;">Action</th>
+      <div class="card-body">
+        <p class="card-text">
+          <strong>Final Rating:</strong>
+          <!-- <span class="badge bg-success">{{ summary.finalRating }}/10</span> -->
+        </p>
+        <p class="card-text">
+          <strong>Appraisal Score:</strong>
+          <!-- <span class="badge bg-info">{{ summary.appraisalScore }}%</span> -->
+        </p>
+        <p class="card-text">
+          <strong>Final Remarks:</strong>
+          <!-- <span class="text-muted d-block mt-1">{{ summary.finalRemarks }}</span> -->
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow border-0 info box">
+      <div class="card-header ">
+        <h5 class="card-title mb-0 text-center">Skills</h5>
+      </div>
+      <div class="card-body">
+
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow border-0 info box">
+      <div class="card-header ">
+        <h5 class="card-title mb-0 text-center">Awards</h5>
+      </div>
+      <div class="card-body">
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-md-6">
+    <div class="graph-placeholder p-4 border rounded text-center">[Graphs Here]</div>
+  </div>
+  <div class="col-md-6">
+    <div class="goals-list p-2 border rounded d-flex flex-column" style="height: 100%;">
+      <h6 class="mb-1 text-center">Goals List</h6>
+      <div class="table-responsive flex-grow-1" style="max-height: 250px; overflow-y: auto;">
+        <table class="table table-sm table-bordered" style="font-size: 0.90rem;">
+          <thead>
+            <tr class="bg-light ">
+              <th scope="col" style="max-width: 2rem ;">Sr No.</th>
+              <th scope="col" class="">Goal</th>
+              <th scope="col">Description</th>
+              <th scope="col" class="text-center ">Status</th>
+              <th scope="col" class="text-center " style="max-width: 2rem ;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let goal of goals let i = index">
+              <td>{{ i+1 }}</td>
+              <td>{{ goal.goalTitle }}</td>
+              <td class="text-truncate" style="max-width: 180px;">{{ goal.description }}</td>
+              <td class="text-center">{{ goal.goalStatus }}</td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary py-1 px-2" title="View Goal"
+                  (click)="openModal(viewGoalTemplate, goal)"><i class="fa-solid fa-eye"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- <div class="row mt-4" *ngIf="isProjectInsightList">
+  <div class="col-md-12">
+    <div class="card shadow border-0">
+      <div class="card-header">
+        <h1 class="card-title mb-0 text-center fw-bold">Project Insights Contribution</h1>
+      </div>
+      <div class="card-body">
+        <div class="col-md-12">
+          <div class="selector-toggle">
+            <a href="javascript:void(0)" (click)="toggleSearch()">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+          </div>
+          <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInsightInfo'"
+            [tableTHeadId]="'projectInsightInfoTHead'" [tableTHeadTrId]="'projectInsightInfoTHeadTr'">
+            <table class="table" matSort (matSortChange)="sortData($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label" mat-sort-header="surveyName|string">Project Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="description|string">Project Manager</th>
+                  <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                  <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                  <th scope="col" class="info-label">Actions</th>
                 </tr>
+                <tr app-column-filter-bar *ngIf="isProjectInsightList && isSearchEnabled"
+                  [columnList]="projectInsightColumnColumns" (onSearch)="onSearch($event);page=1"></tr>
               </thead>
               <tbody>
-                <tr *ngFor="let goal of goals let i = index">
-                  <td>{{ i+1 }}</td>
-                  <td>{{ goal.goalTitle }}</td>
-                  <td class="text-truncate" style="max-width: 180px;">{{ goal.description }}</td>
-                  <td class="text-center">{{ goal.goalStatus }}</td>
-                  <td class="text-center">
-                    <button class="btn btn-sm btn-outline-primary py-1 px-2" title="View Goal" (click)="openModal(viewGoalTemplate, goal)"  ><i class="fa-solid fa-eye"></i></button>
+                <tr
+                  *ngIf="allProjectInsightList.length == 0|| (allProjectInsightList| colFilter:filters:false).length == 0">
+                  <th colspan="6" class="text-center info-label">No Details to display...</th>
+                </tr>
+                <tr
+                  *ngFor="let project of allProjectInsightList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                  <td>{{project.projectName}}</td>
+                  <td>{{project.projectManagerName}}</td>
+                  <td>{{project.createdByName}}</td>
+                  <td>{{project.createdOn}}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary mx-1" type="submit"
+                      (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)">
+                      <em>View Response</em></button>&nbsp;
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-        </div>
-    </div>
-    </div>
-    
-    <div class="row mt-4">
-      <div class="col-md-4">
-        <div class="card shadow border-0 info box">
-          <div class="card-header ">
-            <h5 class="card-title mb-0 text-center">Appraisal Summary</h5>
-          </div>
-          <div class="card-body">
-            <p class="card-text">
-              <strong>Final Rating:</strong> 
-              <!-- <span class="badge bg-success">{{ summary.finalRating }}/10</span> -->
-            </p>
-            <p class="card-text">
-              <strong>Appraisal Score:</strong> 
-              <!-- <span class="badge bg-info">{{ summary.appraisalScore }}%</span> -->
-            </p>
-            <p class="card-text">
-              <strong>Final Remarks:</strong>
-              <!-- <span class="text-muted d-block mt-1">{{ summary.finalRemarks }}</span> -->
-            </p>
-          </div>
-          
-        </div>
-      </div>
-      
-      <div class="col-md-4">
-        <div class="card shadow border-0 info box">
-          <div class="card-header ">
-            <h5 class="card-title mb-0 text-center">Skills</h5>
-          </div>
-          <div class="card-body">
-            
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card shadow border-0 info box">
-          <div class="card-header ">
-            <h5 class="card-title mb-0 text-center">Awards</h5>
-          </div>
-          <div class="card-body">
-            
-          </div>
+          <pagination-controls class="my-pagination" [hidden]="allProjectInsightList.length == 0"
+            (pageChange)="handlePageChange($event)"></pagination-controls>
         </div>
       </div>
     </div>
+  </div>
+</div> -->
 
-    <div class="row mt-4" *ngIf="isProjectInsightList">
-      <div class="col-md-12">
-        <div class="card shadow border-0">
-          <div class="card-header">
-            <h1 class="card-title mb-0 text-center fw-bold">Project Insights Contribution</h1>
+<div class="row mt-4" *ngIf="isProjectInsightList">
+  <div class="col-md-6">
+    <div class="card shadow border-0">
+      <div class="card-header">
+        <h5 class="card-title mb-0 text-center fw-bold">Project Insights Contribution</h5>
+      </div>
+      <div class="card-body">
+          <div class="col-md-12">
+            <div class="col d-flex justify-content-between align-items-center search-toggle">
+              <a href="javascript:void(0)" (click)="toggleSearch('projectInsight')">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+            <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInsightInfo'"
+              [tableTHeadId]="'projectInsightInfoTHead'" [tableTHeadTrId]="'projectInsightInfoTHeadTr'">
+              <table class="table" matSort (matSortChange)="sortData($event)">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label" mat-sort-header="surveyName|string">Project Name</th>
+                    <th scope="col" class="info-label" mat-sort-header="description|string">Project Manager</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                  <tr app-column-filter-bar *ngIf="isProjectInsightList && isSearchEnabled"
+                    [columnList]="projectInsightColumnColumns" (onSearch)="onSearch($event, 'projectInsight');page=1"></tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngIf="allProjectInsightList.length == 0|| (allProjectInsightList| colFilter:filters:false).length == 0">
+                    <th colspan="6" class="text-center info-label">No Details to display...</th>
+                  </tr>
+                  <tr
+                    *ngFor="let project of allProjectInsightList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 2, currentPage: page }, let i = index">
+                    <td>{{project.projectName}}</td>
+                    <td>{{project.projectManagerName}}</td>
+                    <td>{{project.createdByName}}</td>
+                    <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)">
+                        <em> Add / View Response</em></button>&nbsp;
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <pagination-controls class="my-pagination" [hidden]="allProjectInsightList.length == 0"
+              (pageChange)="handlePageChange($event, 'projectInsight')"></pagination-controls>
           </div>
-          <div class="card-body">
-              <div class="col-md-12">
-                <div class="selector-toggle">
-                  <a href="javascript:void(0)" (click)="toggleSearch()">
-                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                  </a>
-                </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInsightInfo'"
-                  [tableTHeadId]="'projectInsightInfoTHead'" [tableTHeadTrId]="'projectInsightInfoTHeadTr'">
-                  <table class="table" matSort (matSortChange)="sortData($event)">
-                    <thead class="thead-light">
-                      <tr>
-                        <th scope="col" class="info-label" mat-sort-header="surveyName|string">Project Name</th>
-                        <th scope="col" class="info-label" mat-sort-header="description|string">Project Manager</th>
-                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
-                        <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
-                        <th scope="col" class="info-label">Actions</th>
-                      </tr>
-                      <tr app-column-filter-bar *ngIf="isProjectInsightList && isSearchEnabled"
-                        [columnList]="projectInsightColumnColumns" (onSearch)="onSearch($event);page=1"></tr>
-                    </thead>
-                    <tbody>
-                      <tr
-                        *ngIf="allProjectInsightList.length == 0|| (allProjectInsightList| colFilter:filters:false).length == 0">
-                        <th colspan="6" class="text-center info-label">No Details to display...</th>
-                      </tr>
-                      <tr
-                        *ngFor="let project of allProjectInsightList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                        <td>{{project.projectName}}</td>
-                        <td>{{project.projectManagerName}}</td>
-                        <td>{{project.createdByName}}</td>
-                        <td>{{project.createdOn}}</td>
-                        <td>
-                          <button class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)">
-                            <em>View Response</em></button>&nbsp;
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <pagination-controls class="my-pagination" [hidden]="allProjectInsightList.length == 0"
-                  (pageChange)="handlePageChange($event)"></pagination-controls>
-              </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card shadow border-0">
+      <div class="card-header">
+        <h5 class="card-title mb-0 text-center fw-bold">{{ currentEmployeeInfo.name }} Contribution</h5>
+      </div>
+      <div class="card-body">
+        <div class="col-md-12">
+          <!-- Header actions row -->
+          <div class="row">
+            <div class="col d-flex justify-content-between align-items-center search-toggle">
+              <a href="javascript:void(0)" (click)="toggleSearch('contribution')">
+                <i *ngIf="!isContributionSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isContributionSearchEnabled" class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+          </div>
+  
+          <!-- Table container -->
+          <div class="table-responsive overflow-auto" bassHorizontalScroll 
+               [tableId]="'myContributionInfo'"
+               [tableTHeadId]="'myContributionInfoTHead'" 
+               [tableTHeadTrId]="'myContributionInfoTHeadTr'">
+            <table class="table" matSort (matSortChange)="sortData($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                  <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                  <th scope="col" class="info-label">Actions</th>
+                </tr>
+                <tr app-column-filter-bar 
+                    *ngIf="finalContributionList && isContributionSearchEnabled"
+                    [columnList]="projectInsightContributionColumns" 
+                    (onSearch)="onSearch($event, 'contribution');myContributionPage=1">
+                </tr>
+              </thead>
+              <tbody>
+                <!-- No data message -->
+                <tr *ngIf="finalContributionList.length == 0 || (finalContributionList | colFilter:contributionFilters:false).length == 0">
+                  <td colspan="4" class="text-center info-label">No Details to display...</td>
+                </tr>
+                <!-- Data rows -->
+                <tr *ngFor="let project of finalContributionList | colFilter:contributionFilters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 4, currentPage: myContributionPage }, let i = index">
+                  <td>{{project.userDefinedProjectName}}</td>
+                  <td>{{project.status}}</td>
+                  <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" 
+                            type="button"
+                            (click)="openUserContributionModal(project,user_contribution)">
+                      <em>View</em>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+  
+          <!-- Pagination -->
+          <div class="mt-3">
+            <pagination-controls 
+              class="my-pagination" 
+              [hidden]="finalContributionList.length == 0"
+              (pageChange)="handlePageChange($event, 'contribution')">
+            </pagination-controls>
           </div>
         </div>
       </div>
     </div>
+  </div>
+</div>
 
-    <div class="row mt-4">
-      <div class="col-md-12">
-      <div class="card shadow order-0">
-        <div class="card-header">
-          <h1 class="card-title mb-0 text-center fw-bold">Reviews and Ratings</h1>
-        </div>
-        <div class="card-body">
-          <ul class="nav nav-tabs mb-4 d-flex justify-content-between align-items-center">
-            <div class="d-flex">
-              <li class="nav-item">
-                <button class="nav-link" [class.active]="activeTab === 'kra-kpi'"  (click)="setActiveTab('kra-kpi')">KRA/KPI Rating</button>
-              </li>
-              <li class="nav-item">
-                <button class="nav-link" [class.active]="activeTab === 'questionnaire'"  (click)="setActiveTab('questionnaire')">Questionnaire Review</button>
-              </li>
-            </div>
-          
-            <div class="d-flex input-group-sm form-inline pr-4">
-              <label class="mr-2 font-weight-bold  me-2">Select Quarter:</label>
-              <select class="form-control form-control-sm" [(ngModel)]="selectedQuarter1" (change)="onQuarterChange1()">
-                <option value="" disabled>select</option>
-                <option *ngFor="let quarters of quarterCyclesList" [value]="quarters.quarterId">{{ quarters.quarterCycle }}</option>
-              </select>
-            </div>
-          </ul>
-          
-          <!-- kpi kra  -->
-          <div >
-            <div class="row" *ngIf="activeTab === 'kra-kpi'">
-              <div class="col-12">
-                <div class="card">
-                  <div class="card-header">
-                    <h5 class="card-title"> KRA/KPI Ratings</h5>
+<div class="row mt-4">
+  <div class="col-md-12">
+    <div class="card shadow order-0">
+      <div class="card-header">
+        <h1 class="card-title mb-0 text-center fw-bold">Reviews and Ratings</h1>
+      </div>
+      <div class="card-body">
+        <ul class="nav nav-tabs mb-4 d-flex justify-content-between align-items-center">
+          <div class="d-flex">
+            <li class="nav-item">
+              <button class="nav-link" [class.active]="activeTab === 'kra-kpi'"
+                (click)="setActiveTab('kra-kpi')">KRA/KPI Rating</button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" [class.active]="activeTab === 'questionnaire'"
+                (click)="setActiveTab('questionnaire')">Questionnaire Review</button>
+            </li>
+          </div>
+
+          <div class="d-flex input-group-sm form-inline pr-4">
+            <label class="mr-2 font-weight-bold  me-2">Select Quarter:</label>
+            <select class="form-control form-control-sm" [(ngModel)]="selectedQuarter1" (change)="onQuarterChange1()">
+              <option value="" disabled>select</option>
+              <option *ngFor="let quarters of quarterCyclesList" [value]="quarters.quarterId">{{ quarters.quarterCycle
+                }}</option>
+            </select>
+          </div>
+        </ul>
+
+        <!-- kpi kra  -->
+        <div>
+          <div class="row" *ngIf="activeTab === 'kra-kpi'">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title"> KRA/KPI Ratings</h5>
+                </div>
+                <div class="card-body">
+                  <div *ngIf="kpiList.length === 0" class="alert alert-info">
+                    No KRA/KPIs found for this quarter and department.
                   </div>
-                  <div class="card-body">
-                    <div *ngIf="kpiList.length === 0" class="alert alert-info">
-                      No KRA/KPIs found for this quarter and department.
-                    </div>
-            
-                      <form *ngIf="kpiList.length > 0">
-                      <div class="list-group ">
-                        <div class="list-group-item row d-flex justify-content-between align-items-center" *ngFor="let kpi of kpiList; let i = index">
-                          <div class="col-md-5">
-                            <label class="form-label fw-bold ">{{i+1}}. {{kpi.description}}</label> 
-                            
+
+                  <form *ngIf="kpiList.length > 0">
+                    <div class="list-group ">
+                      <div class="list-group-item row d-flex justify-content-between align-items-center"
+                        *ngFor="let kpi of kpiList; let i = index">
+                        <div class="col-md-5">
+                          <label class="form-label fw-bold ">{{i+1}}. {{kpi.description}}</label>
+
+                        </div>
+                        <div class="col-md-4 col">
+                          <div class="row mb-0">
+                            <label class="form-label mr-2">Ratings: </label>
+                            <p>{{kpi.response}}</p>
                           </div>
-                          <div class="col-md-4 col">
-                            <div class="row mb-0">
-                              <label class="form-label mr-2">Ratings: </label>
-                              <p>{{kpi.response}}</p>
-                            </div>
-                            <div class="row">
-                              <span>0</span>
-                                <input 
-                                  type="range" 
-                                  min="0" 
-                                  max="10" 
-                                  step="0.5" 
-                                  [value]="kpi.response" 
-                                  disabled
-                                  class="w-50" />
-                                <span>10</span>
-                            </div>
-                          </div>
-                          <div class="col-md-3">
-                            <textarea id="EmployeeJustification" class="form-control" placeholder="employee remark" [value]="kpi.remark" readonly></textarea>
+                          <div class="row">
+                            <span>0</span>
+                            <input type="range" min="0" max="10" step="0.5" [value]="kpi.response" disabled
+                              class="w-50" />
+                            <span>10</span>
                           </div>
                         </div>
-                        <div class="list-group-item row d-flex justify-content-between align-items-center">
-                          <div class="col-md-5">
-                            Review by: 
-                          </div>
-                          <div class="col-md-4 col">
-                            <div class="row mb-0">
-                              <label class="form-label mr-2">Final Ratings: </label>
-                              
-                            </div>
-                              <div class="row">
-                                <span>0</span>
-                                <input 
-                                  type="range" 
-                                  min="0" 
-                                  max="10" 
-                                  step="0.5" 
-                                  [value]="8"
-                                  disabled
-                                  class="w-50"
-                                   />
-                                <span>10</span>
-                              </div>
-                          </div>
-                          <div class="col-md-3">
-                            <textarea  id="ManagerRemark" class="form-control" readonly>Manager's remark</textarea>
-                          </div>
-                      </div>
-                      </div>
-                      
-                      <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
-                        <button type="button" class="btn btn-primary" (click)="saveKpiResponses(alert_message)">
-                          Save KPI Responses
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- questionnaire  -->
-            <div class="row" *ngIf="activeTab === 'questionnaire'">
-              <div class="col-12">
-                <div class="card">
-                  <div class="card-header">
-                    <h5 class="card-title"> Questionnaire Review</h5>
-                  </div>
-                  <div class="card-body">
-                    <div *ngIf="questionnaireQuestions.length === 0" class="alert alert-info">
-                      No questionnaire questions found for this quarter and department.
-                    </div>
-            
-                      <form *ngIf="questionnaireQuestions.length > 0">
-
-                      <div class="list-group">
-                        <div class="list-group-item row d-flex justify-content-between align-items-center" *ngFor="let question of questionnaireQuestions; let i = index">
-                          
-                            <div class="col-md-5">
-                              <label class="form-label fw-bold">{{i+1}}. {{question.questionText}}</label>
-                            </div>
-
-                            <div class="col-md-4 col">
-                              <div class="row mb-0">
-                                <label class="form-label mr-2">Response: </label>
-                                <p>{{question.response}}</p>
-                              </div>
-                              <div class="row">
-                                <span>0</span>
-                                  <input 
-                                    type="range" 
-                                    min="0" 
-                                    max="10" 
-                                    step="0.5" 
-                                    [value]="question.response" 
-                                    disabled
-                                    class="w-50" />
-                                  <span>10</span>
-                              </div>
-                            </div>
-                            <div class="col-md-3">
-                              <textarea id="EmployeeJustification" class="form-control" placeholder="Justify your ratings" [value]="question.remark" readonly></textarea>
-                            </div>
+                        <div class="col-md-3">
+                          <textarea id="EmployeeJustification" class="form-control" placeholder="employee remark"
+                            [value]="kpi.remark" readonly></textarea>
                         </div>
-                        <div class="list-group-item row d-flex justify-content-between align-items-center">
-                          <div class="col-md-5">
-                            Review by: 
-                          </div>
-                          <div class="col-md-4 col">
-                            <div class="row mb-0">
-                              <label class="form-label mr-2">Final Ratings: </label>
-                              
-                            </div>
-                              <div class="row">
-                                <span>0</span>
-                                <input 
-                                  type="range" 
-                                  min="0" 
-                                  max="10" 
-                                  step="0.5" 
-                                  [value]="8"
-                                  disabled
-                                  class="w-50"
-                                   />
-                                <span>10</span>
-                              </div>
-                          </div>
-                          <div class="col-md-3">
-                            <textarea  id="ManagerRemark" class="form-control" readonly>Manager's remark</textarea>
-                          </div>
                       </div>
+                      <div class="list-group-item row d-flex justify-content-between align-items-center">
+                        <div class="col-md-5">
+                          Review by:
+                        </div>
+                        <div class="col-md-4 col">
+                          <div class="row mb-0">
+                            <label class="form-label mr-2">Final Ratings: </label>
+
+                          </div>
+                          <div class="row">
+                            <span>0</span>
+                            <input type="range" min="0" max="10" step="0.5" [value]="8" disabled class="w-50" />
+                            <span>10</span>
+                          </div>
+                        </div>
+                        <div class="col-md-3">
+                          <textarea id="ManagerRemark" class="form-control" readonly>Manager's remark</textarea>
+                        </div>
                       </div>
-                      
-                      <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
-                        <button type="button" class="btn btn-primary" (click)="saveQuestionnaireResponses(alert_message)">
-                          Save Responses
-                        </button>
-                      </div>
-                    </form>
-                  </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                      <button type="button" class="btn btn-primary" (click)="saveKpiResponses(alert_message)">
+                        Save KPI Responses
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
             </div>
-    
           </div>
-    
+
+          <!-- questionnaire  -->
+          <div class="row" *ngIf="activeTab === 'questionnaire'">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="card-title"> Questionnaire Review</h5>
+                </div>
+                <div class="card-body">
+                  <div *ngIf="questionnaireQuestions.length === 0" class="alert alert-info">
+                    No questionnaire questions found for this quarter and department.
+                  </div>
+
+                  <form *ngIf="questionnaireQuestions.length > 0">
+
+                    <div class="list-group">
+                      <div class="list-group-item row d-flex justify-content-between align-items-center"
+                        *ngFor="let question of questionnaireQuestions; let i = index">
+
+                        <div class="col-md-5">
+                          <label class="form-label fw-bold">{{i+1}}. {{question.questionText}}</label>
+                        </div>
+
+                        <div class="col-md-4 col">
+                          <div class="row mb-0">
+                            <label class="form-label mr-2">Response: </label>
+                            <p>{{question.response}}</p>
+                          </div>
+                          <div class="row">
+                            <span>0</span>
+                            <input type="range" min="0" max="10" step="0.5" [value]="question.response" disabled
+                              class="w-50" />
+                            <span>10</span>
+                          </div>
+                        </div>
+                        <div class="col-md-3">
+                          <textarea id="EmployeeJustification" class="form-control" placeholder="Justify your ratings"
+                            [value]="question.remark" readonly></textarea>
+                        </div>
+                      </div>
+                      <div class="list-group-item row d-flex justify-content-between align-items-center">
+                        <div class="col-md-5">
+                          Review by:
+                        </div>
+                        <div class="col-md-4 col">
+                          <div class="row mb-0">
+                            <label class="form-label mr-2">Final Ratings: </label>
+
+                          </div>
+                          <div class="row">
+                            <span>0</span>
+                            <input type="range" min="0" max="10" step="0.5" [value]="8" disabled class="w-50" />
+                            <span>10</span>
+                          </div>
+                        </div>
+                        <div class="col-md-3">
+                          <textarea id="ManagerRemark" class="form-control" readonly>Manager's remark</textarea>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                      <button type="button" class="btn btn-primary" (click)="saveQuestionnaireResponses(alert_message)">
+                        Save Responses
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
+
       </div>
     </div>
-    </div>
-    
+  </div>
+</div>
+
 <!-- Modals Template -->
 
 <ng-template #viewGoalTemplate>
   <div class="modal-content rounded-lg shadow-lg">
     <div class="modal-header ">
       <h5 class="modal-title fw-bold">{{ selectedGoal?.goalTitle }}</h5>
-      <button type="button" class="close " aria-label="Close" (click)="modalRef.hide()"><i class="fa-solid fa-xmark"></i></button>
+      <button type="button" class="close " aria-label="Close" (click)="modalRef.hide()"><i
+          class="fa-solid fa-xmark"></i></button>
     </div>
 
     <div class="modal-body p-4">
@@ -428,7 +532,7 @@
         </div>
         <div class="col-md-6">
           <p><strong>Status:</strong></p>
-          <span class="badge" >{{ selectedGoal?.goalProgress }}</span>
+          <span class="badge">{{ selectedGoal?.goalProgress }}</span>
         </div>
       </div>
 
@@ -449,25 +553,22 @@
           <p><strong>Assigned By:</strong> {{ selectedGoal?.assignedBy }}</p>
         </div>
       </div>
-      
+
       <div class="mb-3 col ">
         <div class="row d-flex align-items-center">
-        <div class="mx-2">
-          <label for="employeeRemark" class="form-label"><strong>Your Remark:</strong></label>
-          <textarea id="employeeRemark" readonly [(ngModel)]="selectedGoal.employeeRemark"
-                    rows="3" placeholder="{{ selectedGoal.employeeRemark }}"
-                    class="form-control">
+          <div class="mx-2">
+            <label for="employeeRemark" class="form-label"><strong>Your Remark:</strong></label>
+            <textarea id="employeeRemark" readonly [(ngModel)]="selectedGoal.employeeRemark" rows="3"
+              placeholder="{{ selectedGoal.employeeRemark }}" class="form-control">
           </textarea>
-        </div>
-        <div class="mx-5  align-items-center">
-          <label for="managerRemark" class="form-label "><strong>Manager's Remark:</strong></label>
-          <textarea id="managerRemark" 
-                  rows="3" 
-                  class="form-control">{{ selectedGoal.managerRemark }}</textarea>
-        </div>
+          </div>
+          <div class="mx-5  align-items-center">
+            <label for="managerRemark" class="form-label "><strong>Manager's Remark:</strong></label>
+            <textarea id="managerRemark" rows="3" class="form-control">{{ selectedGoal.managerRemark }}</textarea>
+          </div>
         </div>
       </div>
-      
+
     </div>
 
     <div class="modal-footer d-flex justify-content-between">
@@ -480,8 +581,8 @@
 
 <ng-template #alert_message>
   <div class="modal-body text-center">
-      <p>{{alertMessage}}</p>
-      <button type="button" class="btn btn-primary" (click)="this.modalRef.hide();">OK</button>&nbsp;
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="this.modalRef.hide();">OK</button>&nbsp;
   </div>
 </ng-template>
 
@@ -493,5 +594,137 @@
     <app-project-insights [actionType]="actionType" [subActionType]="subActionType" [projectId]="projectId"
       [responseByEmpId]="responseByEmpId"
       (closeProjectInsightResponseModalEvent)="closeProjectInsightResponseModal()"></app-project-insights>
+  </div>
+</ng-template>
+
+<ng-template #user_contribution>
+  <div class="modal-body px-4 py-3">
+    <h5 class="text-center mb-3">{{ currentEmployeeInfo.name }} Contribution</h5>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Tag Project</label>
+      <select class="form-control form-control-sm" [(ngModel)]="userContributionObj.projectId" name="tagProj">
+        <option selected value="" disabled>Select</option>
+        <option *ngFor="let proj of allProjectList" [value]="proj.projectId">
+          {{proj.projectName}}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Project Name</label>
+      <input
+        type="text"
+        disabled
+        class="form-control"
+        [(ngModel)]="userContributionObj.userDefinedProjectName"
+        placeholder="Enter project name"
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Title</label>
+      <input
+        type="text"
+        disabled
+        class="form-control"
+        [(ngModel)]="userContributionObj.title"
+        placeholder="Enter Title"
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label> Team members</label>
+      <mat-select disabled ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" [displayMember]="'name'"
+        [valueMember]="'empId'" [source]="employeeList" [useInfiniteScroll]="true" [multiple]="true"
+        [(ngModel)]="userContributionObj.teamMembers">
+        <mat-option [value]="employee.empId" *ngFor="let employee of employeeList">
+          {{employee.name}}
+        </mat-option>
+      </mat-select>
+    </div>
+
+    <div class="form-group mb-3">
+      <label> Parent Contribution</label>
+      <input
+        type="text"
+        disabled
+        class="form-control"
+        [(ngModel)]="userContributionObj.parentContributionName"
+        placeholder="Enter Parent Contribution"
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label>Tags</label>
+      <div class="tags-container">
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <span *ngFor="let tag of userContributionObj.tags; let i = index" 
+                class="badge bg-primary d-flex align-items-center">
+            {{tag}}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Contribution</label>
+      <angular-editor disabled id="myEditor" [(ngModel)]="userContributionObj.response" [config]="editorConfig">
+      </angular-editor>
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Remark</label>
+      <input
+        type="textarea"
+        class="form-control"
+        [(ngModel)]="userContributionObj.remark"
+        placeholder="Enter Remark"
+      />
+    </div>
+
+    <div class="text-danger me-auto" *ngIf="validationErrors">
+      <small>{{validationErrors}}</small>
+    </div>
+
+    <div class="d-flex justify-content-end gap-3 mt-4">
+      <ng-container *ngIf="!showPreReviewerSelection">
+        <button type="button" class="btn btn-sm btn-outline-success me-2 ml-1"
+          (click)="processUserContribution('Approve', userContributionObj)">
+          Approve
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger me-2 ml-1"
+          (click)="processUserContribution('Reject', userContributionObj)">
+          Reject
+        </button>
+        <button type="button" class="btn btn-sm btn-info ml-1"
+          (click)="processUserContribution('preReviewer', userContributionObj)">
+          Add Pre-Reviewer
+        </button>
+      </ng-container>
+    
+      <ng-container *ngIf="showPreReviewerSelection">
+        <div class="d-flex align-items-center gap-3">
+          <select class="form-control form-control-sm" style="width: 200px;" [(ngModel)]="selectedPreReviewer">
+            <option value="" disabled selected>Select Pre-Reviewer</option>
+            <option *ngFor="let employee of employeeList" [value]="employee.empId">
+              {{employee.name}}
+            </option>
+          </select>
+          <button type="button" class="btn btn-sm btn-primary ml-1"
+            (click)="processUserContribution('preReviewer', userContributionObj)">
+            Proceed
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary ml-1" (click)="cancelRequestPreReviewer()">
+            Cancel
+          </button>
+        </div>
+      </ng-container>
+    
+      <button type="button" class="btn btn-sm btn-outline-secondary ml-1" *ngIf="!showPreReviewerSelection"
+        (click)="cancelRequest()">
+        Cancel
+      </button>
+    </div>
   </div>
 </ng-template>

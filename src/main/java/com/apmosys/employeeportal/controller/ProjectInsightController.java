@@ -112,4 +112,14 @@ public class ProjectInsightController {
 	public ResponseEntity<ServiceResponse> createUserContribution(@RequestBody ProjectInsightUserContributionDTO projectInsightUserContributionDTO){
 		return projectInsightService.createOrUpdateUserContribution(projectInsightUserContributionDTO);
 	}
+	
+	@RequestMapping(value = "/getUserContributionForReview", method = RequestMethod.POST)
+	public ResponseEntity<List<ProjectInsightUserContributionDTO>> getUserContributionForReview(@RequestBody ProjectInsightUserContributionDTO projectInsightUserContributionDTO){
+		return projectInsightService.getUserContributionForReview(projectInsightUserContributionDTO);
+	}
+	
+	@RequestMapping(value = "/processUserContribution", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> processUserContribution(@RequestBody ProjectInsightUserContributionDTO projectInsightUserContributionDTO){
+		return projectInsightService.processUserContribution(projectInsightUserContributionDTO);
+	}
 }

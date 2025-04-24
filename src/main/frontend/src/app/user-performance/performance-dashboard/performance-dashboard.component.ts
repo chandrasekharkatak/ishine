@@ -22,6 +22,7 @@ import { ProjectResponse } from 'src/app/models/projectResponse';
 import { ProjectMilestone } from 'src/app/models/projectMilestone';
 import { UserContribution } from 'src/app/models/userContribution';
 import { AngularEditorConfig } from '@kolkov/angular-editor';
+import { ProjectService } from 'src/app/services/project.service';
 
 interface Goal {
   goalStatus: string;
@@ -148,6 +149,13 @@ export class PerformanceDashboardComponent implements OnInit {
   isResponsePreview:boolean = true;
   isSearchEnabled:boolean = false;
   isFinalResponseSubmitted:boolean = false;
+  showReviewButton:boolean = false;
+  toggleReviewView:boolean = false;
+  showPreReviewerSelection:boolean = false;
+  showValidationErrors: boolean = false;
+
+  validationErrors: string = '';
+  selectedPreReviewer:any = '';
 
   filters:any = {};
   contributionFilters:any = {};
@@ -165,6 +173,9 @@ export class PerformanceDashboardComponent implements OnInit {
   projectInsightContributionColumns:any[] = ['projectName','status','createdOn', 'blank']
   employeeList:any[] = [];
   myProjectInsightContributionList:any[] = [];
+  getUserContributionForReviewList:any[] = [];
+  finalContributionList:any[] = [];
+  allProjectList:any[] = [];
 
   projectResponseModalRef: BsModalRef = new BsModalRef();
   documentPreviewModalRef: BsModalRef = new BsModalRef();
@@ -183,6 +194,7 @@ export class PerformanceDashboardComponent implements OnInit {
     private logService:LogService,
     private projectInsightService:ProjectInsightService,
     private validationService: ValidationService,
+    private projectService: ProjectService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -196,6 +208,8 @@ export class PerformanceDashboardComponent implements OnInit {
     this.getAllProjectInsightContributionList();
     this.getEmployeeList();
     this.getMyContributionList();
+    this.getUserContributionForReview();
+    this.getAllProjects();
     
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -520,8 +534,30 @@ saveKpiResponses(template: TemplateRef<any>): void {
     this.showContextMenu = false;
   }
 
+  getAllProjects() {
+    this.allProjectList = [];
+    this.projectService.getAllProjects().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allProjectList = response.serviceResponse;
+        this.allProjectList.forEach(project => {
+          project.createdOn = (project.createdOn) ? moment(project.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          project.updatedOn = (project.updatedOn) ? moment(project.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+        })
+        this.allProjectList = this.allProjectList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.projectId === value.projectId
+          ))
+        );
+        this.allProjectList = this.allProjectList.sort((a, b) => a.createdOn - b.createdOn);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
   getMyContributionList(){
     this.myProjectInsightContributionList = [];
+    this.finalContributionList = [];
 
     let insightObj = {
       employeeRole: this.currentUser.employeeRole,
@@ -531,6 +567,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
     this.projectInsightService.getContibutionByEmpId(insightObj).pipe(first()).subscribe({
       next: (response: any) => {
         this.myProjectInsightContributionList = response;
+        this.finalContributionList = response;
       },
       error: (error) => {
         console.log(error);
@@ -552,6 +589,100 @@ saveKpiResponses(template: TemplateRef<any>): void {
     this.userContributionObj.onlyText = this.extractPlainText(this.userContributionObj.response);
     this.userContributionObj.empId = this.currentUser.empId;
     this.projectInsightService.createUserContribution(this.userContributionObj).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.alertMessage = response.serviceMessage;
+        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+
+        this.getMyContributionList();
+      },
+      error: (error) => {
+        this.alertMessage = error.serviceMessage;
+        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+      }
+    });
+  }
+
+  getUserContributionForReview(){
+    this.getUserContributionForReviewList = [];
+    this.finalContributionList = [];
+
+    let userContributionObj = new UserContribution();
+    userContributionObj.assignTo = this.currentUser.empId;
+    this.projectInsightService.getUserContributionForReview(userContributionObj).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.getUserContributionForReviewList = response;
+
+        if(this.getUserContributionForReviewList != undefined
+          && this.getUserContributionForReviewList != null &&
+          this.getUserContributionForReviewList.length > 0){
+            this.showReviewButton = true;
+        }else{
+          this.showReviewButton = false;
+        }
+      },
+      error: (error) => {
+        this.alertMessage = error.serviceMessage;
+        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+      }
+    });
+  }
+
+  switchToReviewView() {
+    this.toggleReviewView = !this.toggleReviewView;
+    if (this.toggleReviewView) {
+      this.finalContributionList = this.getUserContributionForReviewList;
+    } else {
+      this.finalContributionList = this.myProjectInsightContributionList;
+    }
+  }
+
+  cancelRequestPreReviewer() {
+    this.showPreReviewerSelection = false;
+  }
+
+  processUserContribution(statusType: any, projectUSerContributionObj: any){
+
+    if (statusType != 'preReviewer') {
+      let errors: string[] = [];
+      if (!projectUSerContributionObj.remark) {
+        errors.push('Please enter remarks');
+      }
+      if (!projectUSerContributionObj.projectId) {
+        errors.push('Please Tag Project');
+      }
+
+      if (errors.length > 0) {
+        this.showValidationErrors = true;
+        this.validationErrors = errors.join(', ');
+        return;
+      }
+    }
+
+    if (statusType === 'preReviewer') {
+      if (!this.showPreReviewerSelection) {
+        this.showPreReviewerSelection = true;
+        return;
+      } else if (!this.selectedPreReviewer) {
+        this.alertMessage = "Please select a pre-reviewer";
+        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+        return;
+      }
+      projectUSerContributionObj.assignTo = this.selectedPreReviewer;
+    }else{
+      projectUSerContributionObj.assignTo = this.currentUser.empId;
+    }
+
+    this.cancelRequest();
+
+    let userContributionObj = new UserContribution();
+    userContributionObj.userContributionId = projectUSerContributionObj.userContributionId;
+    userContributionObj.processType = statusType;
+    userContributionObj.status = statusType;
+    userContributionObj.assignTo = projectUSerContributionObj.assignTo;
+    userContributionObj.projectId = projectUSerContributionObj.projectId;
+    userContributionObj.remark = projectUSerContributionObj.remark;
+
+    this.projectInsightService.processUserContribution(userContributionObj).pipe(first()).subscribe({
       next: (response: any) => {
         this.alertMessage = response.serviceMessage;
         this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
@@ -644,6 +775,14 @@ saveKpiResponses(template: TemplateRef<any>): void {
 
   openUserContributionModal(projectObj: any, contributionModal: TemplateRef<any>) {
     this.userContributionObj = projectObj;
+
+    if(this.showReviewButton){
+      this.editorConfig = {
+        ...this.editorConfig,
+        editable: !this.showReviewButton,
+        showToolbar: !this.showReviewButton
+      };
+    }
     this.modalRef = this.modalService.show(contributionModal, { class: 'modal-xl' });
   }
 
@@ -658,7 +797,8 @@ saveKpiResponses(template: TemplateRef<any>): void {
     this.projectResponseModalRef.hide();
   }
 
-  cancelRequest(){
+  cancelRequest() {
+    this.showPreReviewerSelection = false;
     this.modalRef.hide();
     this.modalService.hide();
   }

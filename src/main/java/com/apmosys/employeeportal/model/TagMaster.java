@@ -18,5 +18,8 @@ public class TagMaster {
 	private Long tagId;
 	private Long projectId;
 	private String tag;
+	private String entityType;
+	private Long entityId;
+	private String type;
 
 }

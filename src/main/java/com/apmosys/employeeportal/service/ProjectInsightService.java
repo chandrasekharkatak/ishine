@@ -61,6 +61,7 @@ import com.apmosys.employeeportal.model.ProjectInsightSubModule;
 import com.apmosys.employeeportal.model.ProjectInsightUserContribution;
 import com.apmosys.employeeportal.model.QuestionMaster;
 import com.apmosys.employeeportal.model.TagMaster;
+import com.apmosys.employeeportal.model.UserContributionResponseRemarks;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
@@ -75,6 +76,7 @@ import com.apmosys.employeeportal.repository.ProjectInsightUserContributionRepos
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.QuestionMasterRepository;
 import com.apmosys.employeeportal.repository.TagMasterRepository;
+import com.apmosys.employeeportal.repository.UserContributionResponseRemarksRepository;
 import com.apmosys.employeeportal.utility.NLPUtils;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.TagSpecifications;
@@ -145,6 +147,9 @@ public class ProjectInsightService {
 	
 	@Autowired
 	ProjectInsightUserContributionRepository projectInsightUserContributionRepository;
+	
+	@Autowired
+	UserContributionResponseRemarksRepository userContributionResponseRemarksRepository;
 	
 	public String saveProjectWiseTags(ProjectInsightDTO projectInsightDTO) {
 	    String response = "Failed";
@@ -2098,8 +2103,12 @@ public class ProjectInsightService {
 
 	        if (userContributions != null && !userContributions.isEmpty()) {
 	            response = userContributions.stream().map(object -> {
+	            	
 	            	List<ProjectInsightAssignees> alltaggedUser = projectInsightAssigneesRepository.getByEntityIdAndEntityType(object.getUserContributionId(),
 		        			"UserContribution");
+	            	List<TagMaster> dbTagMasterResponse = tagMasterRepository.findByEntityIdAndEntityTypeAndType(object.getUserContributionId()
+	            			,"UserContribution","user");
+	            	
 	                ProjectInsightUserContributionDTO dto = new ProjectInsightUserContributionDTO();
 	                dto.setAssignTo(object.getAssignTo());
 	                dto.setCreatedOn(object.getCreatedOn() != null ? object.getCreatedOn().toString() : null);
@@ -2113,7 +2122,8 @@ public class ProjectInsightService {
 	                dto.setParentContribution(object.getParentContribution());
 	                dto.setTitle(object.getTitle());
 	                dto.setOnlyText(object.getOnlyTextResponse());
-	                dto.setTeamMembers(alltaggedUser.stream().map(assignObj -> assignObj.getAssignedTo()).collect(Collectors.toList()));                
+	                dto.setTeamMembers(alltaggedUser.stream().map(assignObj -> assignObj.getAssignedTo()).collect(Collectors.toList()));  
+	                dto.setTags(dbTagMasterResponse.stream().map(TagMaster::getTag).collect(Collectors.toList()));
 	                
 	                return dto;
 	            }).collect(Collectors.toList());
@@ -2169,13 +2179,13 @@ public class ProjectInsightService {
 	        ProjectInsightUserContribution dbResponse = projectInsightUserContributionRepository.save(entity);
 	        
 	        if(dbResponse != null) {
+	        	//Add new team member tag
 	        	List<ProjectInsightAssignees> alltaggedUser = projectInsightAssigneesRepository.getByEntityIdAndEntityType(dbResponse.getUserContributionId(),
 	        			"UserContribution");
 	        	if(!alltaggedUser.isEmpty()) {
 	        		projectInsightAssigneesRepository.deleteAll(alltaggedUser);
 	        	}
-	        	
-	        	//Add new team member tag
+
 	        	if(!dto.getTeamMembers().isEmpty()) {
 	        		List<ProjectInsightAssignees> newAssignees = dto.getTeamMembers().stream().map(object -> {
 	        			ProjectInsightAssignees obj = new ProjectInsightAssignees();
@@ -2189,6 +2199,31 @@ public class ProjectInsightService {
 	        		
 	        		projectInsightAssigneesRepository.saveAll(newAssignees);
 	        	}
+	        	
+	        	//Add tags
+	        	List<TagMaster> dbTagMasterResponse = tagMasterRepository
+	        			.findByEntityIdAndEntityTypeAndType(dbResponse.getUserContributionId(),"UserContribution","user");
+	        	
+	        	if(!dbTagMasterResponse.isEmpty()) {
+	        		tagMasterRepository.deleteAll(dbTagMasterResponse);
+	        	}
+	        	if(!dto.getTags().isEmpty()) {
+	        		List<TagMaster> newUserDefinedTags = dto.getTags().stream()
+	        														.map(tagObj -> {
+	        															TagMaster newObj = new TagMaster();
+	        															
+	        															newObj.setEntityId(dbResponse.getUserContributionId());
+	        															newObj.setEntityType("UserContribution");
+	        															newObj.setTag(tagObj);
+	        															newObj.setType("user");
+	        															
+	        															return newObj;
+	        														}).collect(Collectors.toList());
+	        		tagMasterRepository.saveAll(newUserDefinedTags);
+	        	}
+	        	
+	        	
+	        	
 	        }
 
 	        response.setServiceMessage(dto.getUserContributionId() != null ? "User contribution updated successfully." : "User contribution created successfully.");
@@ -2198,6 +2233,103 @@ public class ProjectInsightService {
 	        response.setServiceMessage("An error occurred while saving the contribution.");
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 	    }
+	}
+
+	public ResponseEntity<List<ProjectInsightUserContributionDTO>> getUserContributionForReview(
+			ProjectInsightUserContributionDTO projectInsightUserContributionDTO) {
+		List<ProjectInsightUserContributionDTO> response = new ArrayList<>();
+		try {
+			List<ProjectInsightUserContribution> userContributionsForReview = new ArrayList<>();
+			if(projectInsightUserContributionDTO.getEmpId() != null
+					&& projectInsightUserContributionDTO.getAssignTo() != null) {
+				//Get data for manager i.e ---> Team dashboard --> user's contribution
+				
+				userContributionsForReview =projectInsightUserContributionRepository
+						.findByEmpIdAndAssignTo(projectInsightUserContributionDTO.getEmpId(),projectInsightUserContributionDTO.getAssignTo());
+				
+			}else if(projectInsightUserContributionDTO.getAssignTo() != null) {
+				//Get for pre reviewer i.e ---> My performance dashboard --> (view assigned contribution)
+				
+				userContributionsForReview = projectInsightUserContributionRepository
+						.findByAssignTo(projectInsightUserContributionDTO.getAssignTo());
+				
+			}
+			
+			if (userContributionsForReview != null && !userContributionsForReview.isEmpty()) {
+	            response = userContributionsForReview.stream().map(object -> {
+	            	
+	            	List<ProjectInsightAssignees> alltaggedUser = projectInsightAssigneesRepository.getByEntityIdAndEntityType(object.getUserContributionId(),
+		        			"UserContribution");
+	            	List<TagMaster> dbTagMasterResponse = tagMasterRepository.findByEntityIdAndEntityTypeAndType(object.getUserContributionId()
+	            			,"UserContribution","user");
+	            	
+	                ProjectInsightUserContributionDTO dto = new ProjectInsightUserContributionDTO();
+	                dto.setAssignTo(object.getAssignTo());
+	                dto.setCreatedOn(object.getCreatedOn() != null ? object.getCreatedOn().toString() : null);
+	                dto.setEmpId(object.getEmpId());
+	                dto.setProjectId(object.getProjectId());
+	                dto.setResponse(object.getResponse());
+	                dto.setStatus(object.getStatus());
+	                dto.setUpdatedOn(object.getUpdatedOn() != null ? object.getUpdatedOn().toString() : null);
+	                dto.setUserContributionId(object.getUserContributionId());
+	                dto.setUserDefinedProjectName(object.getUserDefinedProjectName());
+	                dto.setParentContribution(object.getParentContribution());
+	                dto.setTitle(object.getTitle());
+	                dto.setOnlyText(object.getOnlyTextResponse());
+	                dto.setTeamMembers(alltaggedUser.stream().map(ProjectInsightAssignees::getAssignedTo).collect(Collectors.toList()));  
+	                dto.setTags(dbTagMasterResponse.stream().map(TagMaster::getTag).collect(Collectors.toList()));
+	                
+	                return dto;
+	            }).collect(Collectors.toList());
+	        }
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.badRequest().body(Collections.emptyList());
+		}
+		return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<ServiceResponse> processUserContribution(
+			ProjectInsightUserContributionDTO projectInsightUserContributionDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			 Optional<ProjectInsightUserContribution> dbResponse = projectInsightUserContributionRepository
+					 .findById(projectInsightUserContributionDTO.getUserContributionId());
+			 
+			 if(!dbResponse.isEmpty()) {
+				 ProjectInsightUserContribution userContributionDbResp = dbResponse.get();
+				 
+				 if(projectInsightUserContributionDTO.getProcessType().equals("preReviewer")) {
+					 userContributionDbResp.setAssignTo(projectInsightUserContributionDTO.getAssignTo());
+				 }else {
+					 userContributionDbResp.setStatus(projectInsightUserContributionDTO.getStatus());
+					 userContributionDbResp.setProjectId(projectInsightUserContributionDTO.getProjectId());
+					 
+					 // Add remarks
+					 if(projectInsightUserContributionDTO.getRemark() != null) {
+						 UserContributionResponseRemarks newObj = new UserContributionResponseRemarks();
+						 newObj.setRemark(dmsPortalFetchUrlKey);
+						 newObj.setRemarkBy(projectInsightUserContributionDTO.getAssignTo());
+						 newObj.setUserContributionId(userContributionDbResp.getUserContributionId());
+						 
+						 userContributionResponseRemarksRepository.save(newObj);
+					 }
+				 }
+				 
+				 projectInsightUserContributionRepository.save(userContributionDbResp);
+			 }else {
+				 response.setServiceMessage("No contribution found !!");
+		         return ResponseEntity.badRequest().body(response);
+			 }
+			
+			 response.setServiceMessage("Review added successfully !!");
+			return ResponseEntity.ok(response);
+		}catch(Exception e) {
+			 e.printStackTrace();
+		     response.setServiceMessage("An error occurred while saving the contribution.");
+		     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+		}
 	}
 	
 }

@@ -13,4 +13,7 @@ export class UserContribution {
 	teamMembers: any;
 	parentContribution: any
 	tags: any[] = [];
+	processType:any;
+	remark:any;
+	parentContributionName:any;
 }

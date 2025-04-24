@@ -12,4 +12,6 @@ public interface TagMasterRepository extends JpaRepository<TagMaster, Long>, Jpa
 
 	List<TagMaster> findByProjectId(Long projectId);
 
+	List<TagMaster> findByEntityIdAndEntityTypeAndType(Long userContributionId, String string, String string2);
+
 }

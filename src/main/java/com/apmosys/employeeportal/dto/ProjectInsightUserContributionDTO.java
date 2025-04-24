@@ -30,5 +30,10 @@ public class ProjectInsightUserContributionDTO {
 		private String title;
 		private List<Long> teamMembers;
 		private Long parentContribution;
+		private List<String> tags;
+		
+		// "preReviewer" , "Approve", "Reject"
+		private String processType;
+		private String remark;
 		
 }

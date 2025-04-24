@@ -10,4 +10,8 @@ public interface ProjectInsightUserContributionRepository extends JpaRepository<
 
 	List<ProjectInsightUserContribution> findByEmpId(Long empId);
 
+	List<ProjectInsightUserContribution> findByEmpIdAndAssignTo(Long empId, Long assignTo);
+
+	List<ProjectInsightUserContribution> findByAssignTo(Long assignTo);
+
 }
