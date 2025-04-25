@@ -16,7 +16,7 @@
           <i *ngIf="crumb?.entityType != 'Project'" class="fa fa-chevron-right breadcrumb-separator"></i>
           <span class="breadcrumb-item" [title]="crumb?.entityName"
             (click)="navigateTo(crumb.entityObj,crumb.entityType,crumb.entityId,crumb.entityName)">
-            {{ crumb.entityName }}
+            {{ crumb?.entityName }}
           </span>
         </ng-container>
       </div>

@@ -527,7 +527,14 @@ public class ProjectInsightService {
 					|| projectInsightDTO.getEmployeeRole().equals("Manager")) {
 				objectList = projectInsightMilestoneRepository.getAllProjectInsightByUser(projectInsightDTO.getEmpId());
 			} else {
+				List<Long> projectIds  = new ArrayList<Long>();
 				objectList = projectInsightMilestoneRepository.getAllProjectInsight();
+				if(objectList != null && !objectList.isEmpty()) {
+					projectIds =  objectList.stream().map(object -> parseLong(object[0])).collect(Collectors.toList());
+				} else {
+					projectIds.add(-1l);
+				}
+				objectList.addAll(questionMasterRepository.getAllProjectInsight(projectIds));
 			}
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
@@ -617,7 +624,7 @@ public class ProjectInsightService {
 		logBuilder.append("ProjectId : " + projectInsightDTO.getProjectId());
 		try {
 
-			if (!validationService.validateProjectId(projectInsightDTO.getProjectId())) {
+			if (projectInsightDTO.getProjectId() == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project Id does not exists.");
 				apiLogInfo.setApiResponse("Project Id does not exists");
@@ -659,11 +666,11 @@ public class ProjectInsightService {
 						projectInsightQuestion.add(mileStoneProjObject);
 					});
 					responseObject.setProjectInsightMilestoneList(projectInsightQuestion);
-					response.setServiceResponse(responseObject);
-					apiLogInfo.setApiResponse("All Questions By MilestoneId Fetched");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			} 
+			response.setServiceResponse(responseObject);
+			apiLogInfo.setApiResponse("All Questions By MilestoneId Fetched");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			e.printStackTrace();
 			apiLogInfo.setLogLevel("ERROR");
@@ -1185,26 +1192,27 @@ public class ProjectInsightService {
 			boolean isEmployee = checkIfIsEmployee(employeePersonaListForTeam,projectInsightDTO.getEmployeeRole());
 			
 			List<ProjectInsightMilestone> projectInsightMilestoneList =  projectInsightMilestoneRepository.getByProjectId(projectInsightDTO.getProjectId());
-			if (projectInsightMilestoneList != null && !projectInsightMilestoneList.isEmpty()) {
-				ProjectInsightDTO projectInsightDTODbObject = createProjectInsightMileStoneObject(projectInsightMilestoneList,projectInsightDTO.getEmpId(),isEmployee,projectInsightDTO.getPerformanceTabName(),projectInsightDTO.getProjectId());
-				projectInsightDTODbObject.setQuestionList(getProjectQuestionDTOList(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId(), isEmployee, projectInsightDTO.getPerformanceTabName(), projectInsightDTO.getProjectId(),null));
-				projectInsightDTODbObject.setTaggedToUserNames(getAllTaggedUserName(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId()));
-				projectInsightDTODbObject.setTaggedToUserId(getAllTaggedUserId(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId()));
-				projectInsightDTODbObject.setProjectId(projectInsightDTO.getProjectId());
-				projectInsightDTODbObject.setProjectManagerId(project.getProjectManagerId());
-				projectInsightDTODbObject.setProjectManagerName(getProjectManagerName(project.getProjectManagerId()));
-				projectInsightDTODbObject.setProjectName(project.getProjectName());
-				projectInsightDTODbObject.setIsFinalSubmitted(getIsFinalResponseSubmittedByUserForProject(projectInsightDTO.getEmpId(),projectInsightDTO.getProjectId()));
-				response.setServiceResponse(projectInsightDTODbObject);
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				apiLogInfo.setApiResponse("All Project Insight Responses Fetched For Project!!");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
+			List<ProjectQuestionDTO>  projectQuestionList = getProjectQuestionDTOList(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId(), isEmployee, projectInsightDTO.getPerformanceTabName(), projectInsightDTO.getProjectId(),null);
+			if((projectInsightMilestoneList == null || projectInsightMilestoneList.isEmpty()) && (projectQuestionList == null || projectQuestionList.isEmpty())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No Milestone Found for Project.");
-				apiLogInfo.setApiResponse("No Milestone Found for Project.");
+				response.setServiceResponse("No Milestone or Questions Found for Project.");
+				apiLogInfo.setApiResponse("No Milestone or Questions Found for Project.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
+		
+			ProjectInsightDTO projectInsightDTODbObject = createProjectInsightMileStoneObject(projectInsightMilestoneList,projectInsightDTO.getEmpId(),isEmployee,projectInsightDTO.getPerformanceTabName(),projectInsightDTO.getProjectId());
+			projectInsightDTODbObject.setQuestionList(projectQuestionList);
+			projectInsightDTODbObject.setTaggedToUserNames(getAllTaggedUserName(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId()));
+			projectInsightDTODbObject.setTaggedToUserId(getAllTaggedUserId(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId()));
+			projectInsightDTODbObject.setProjectId(projectInsightDTO.getProjectId());
+			projectInsightDTODbObject.setProjectManagerId(project.getProjectManagerId());
+			projectInsightDTODbObject.setProjectManagerName(getProjectManagerName(project.getProjectManagerId()));
+			projectInsightDTODbObject.setProjectName(project.getProjectName());
+			projectInsightDTODbObject.setIsFinalSubmitted(getIsFinalResponseSubmittedByUserForProject(projectInsightDTO.getEmpId(),projectInsightDTO.getProjectId()));
+			response.setServiceResponse(projectInsightDTODbObject);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("All Project Insight Responses Fetched For Project!!");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -1898,6 +1906,13 @@ public class ProjectInsightService {
 					}
 				} else {
 					objectList = projectInsightMilestoneRepository.getAllProjectInsight();
+					List<Long> projectIds = new ArrayList<Long>();
+					if(objectList != null && !objectList.isEmpty()) {
+						projectIds = objectList.stream().map(obj -> parseLong(obj[0])).collect(Collectors.toList()); 
+					} else {
+						projectIds.add(-1l);
+					}
+					objectList.addAll(questionMasterRepository.getAllProjectInsight(projectIds));
 				}
 			}
 			
@@ -1938,11 +1953,11 @@ public class ProjectInsightService {
 	}
 	
 	private Long parseLong(Object obj) {
-		return obj != null ? Long.parseLong(obj.toString()) : null;
+		return obj != null ? !obj.toString().equalsIgnoreCase("null") ?  Long.parseLong(obj.toString()) :null : null;
 	}
 
 	private String parseString(Object obj) {
-		return obj != null ? obj.toString() : null;
+		return obj != null ? !obj.toString().equalsIgnoreCase("null") ?  obj.toString() : null : null;
 	}
 	
 	private boolean checkIfIsEmployee(List<Object[]> employeePersonaListForTeam, String employeeRole) {

@@ -1043,7 +1043,7 @@ export class ProjectInsightsComponent implements OnInit {
           this.projectInsightObj = response.serviceResponse;
           this.projectInsightObj.deletedProjectInsightEntityList = [];
           this.parseOptionsOfQuestionToList(this.projectInsightObj.questionList);
-
+          if (this.projectInsightObj.projectInsightMilestoneList != null && this.projectInsightObj.projectInsightMilestoneList?.length != 0) {
           this.projectInsightObj.projectInsightMilestoneList.forEach((proj: ProjectMilestone) => {
             this.parseOptionsOfQuestionToList(proj.questionList);
 
@@ -1057,6 +1057,7 @@ export class ProjectInsightsComponent implements OnInit {
               });
             }
           });
+        }
 
           this.addAllBreadCrumbsToList();
         } else {
