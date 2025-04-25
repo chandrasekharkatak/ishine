@@ -2361,7 +2361,6 @@ public class ProjectInsightService {
 				 }else {
 					 userContributionDbResp.setStatus(projectInsightUserContributionDTO.getStatus());
 					 userContributionDbResp.setProjectId(projectInsightUserContributionDTO.getProjectId());
-					 userContributionDbResp.setReviewType("manager");
 					 
 					 if(projectInsightUserContributionDTO.getProcessType().equals("Reject")) {
 						 userContributionDbResp.setAssignTo(null);
@@ -2371,6 +2370,8 @@ public class ProjectInsightService {
 							 userContributionDbResp.setAssignTo(empObj != null ?
 					            		empObj.getReportingManagerId() != null ?
 					            				empObj.getReportingManagerId():empObj.getManagerId() :null);
+							 
+							 userContributionDbResp.setReviewType("manager");
 						 }
 					 }
 					 
