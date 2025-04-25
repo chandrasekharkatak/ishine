@@ -27,5 +27,6 @@ public class ProjectQuestionDTO {
 	private boolean isTagged;
 	private String taggedToUserNames;
     private List<Long> taggedForHelp;
+    private Long recommendedResponseId;
 	
 }

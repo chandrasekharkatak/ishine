@@ -6612,43 +6612,29 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("ProjectId : " + projectId);
-	
 		try {
-	
 			Project projectObj = projectRepository.findByProjectId(projectId);
 			if (projectObj == null) {
 				throw new RuntimeException("Project Not Found!!");
 			}
 	
 			List<Team> teamList = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(), "Y");
-			List<Employee> employeeList = new ArrayList();
+			List<Employee> employeeList = new ArrayList<Employee>();
 			if (!teamList.isEmpty()) {
-				teamList.forEach((object) -> {
-					List<EmployeeTeamMap> empTeamMapping = employeeTeamMapRepository
-							.findByTeamIdAndActive(object.getTeamId());
-					if (!empTeamMapping.isEmpty()) {
-	
-						List<Long> empTeamEmpIdList = empTeamMapping.stream().map(EmployeeTeamMap::getEmpId).distinct()
-								.collect(Collectors.toList());
-	
-						empTeamEmpIdList.forEach((empId) -> {
-							Employee empObj = employeeRepository.findByEmpId(empId);
-							if (empObj != null) {
-								employeeList.add(empObj);
-							}
-						});
+				List<Long> teamIdList = teamList.stream().map(Team::getTeamId).distinct().collect(Collectors.toList());
+					List<Long> empIds = employeeTeamMapRepository.findByActiveAndTeamIdIn(teamIdList);
+					if (!empIds.isEmpty()) {
+						employeeList = employeeRepository.findByEmpIdIn(empIds);
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("No teamMember(s) found in the Team.");
 						apiLogInfo.setApiResponse("No teamMember(s) Found in the Team");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
-				});
-	
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(employeeList);
 				apiLogInfo.setApiResponse("teamListDto :" + employeeList.size());
+				response.setServiceResponse(employeeList);
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No team(s) found in the project.");

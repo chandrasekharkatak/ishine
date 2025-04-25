@@ -12,9 +12,9 @@
       <!-- Breadcrumbs -->
       <div class="breadcrumb-container m-1 mb-2">
         <ng-container *ngFor="let crumb of breadCrumbs; let i = index">
-          <i *ngIf="crumb.entityType == 'Project'" class="fa fa-home"></i>
-          <i *ngIf="crumb.entityType != 'Project'" class="fa fa-chevron-right breadcrumb-separator"></i>
-          <span class="breadcrumb-item" [title]="crumb.entityName"
+          <i *ngIf="crumb?.entityType == 'Project'" class="fa fa-home"></i>
+          <i *ngIf="crumb?.entityType != 'Project'" class="fa fa-chevron-right breadcrumb-separator"></i>
+          <span class="breadcrumb-item" [title]="crumb?.entityName"
             (click)="navigateTo(crumb.entityObj,crumb.entityType,crumb.entityId,crumb.entityName)">
             {{ crumb.entityName }}
           </span>
@@ -30,18 +30,35 @@
           (click)="saveProjectInsightConfiguration(alert_message)">Save</button>
         <button *ngIf="subActionType == 'Updation'" type="submit" class="btn btn-outline-primary btn-sm mx-1"
           (click)="updateProjectInsightConfiguration(alert_message)">Update</button>
-        <button *ngIf="subActionType == 'Submit/View Response' && !isFinalResponseSubmitted" type="submit"
-          class="btn btn-outline-primary btn-sm mx-1" (click)="saveProjectInsightResponse(alert_message,false)">Save As
+        <button *ngIf="subActionType == 'Submit/View Response' && this.projectInsightObj.isFinalSubmitted == 'N'"
+          type="submit" class="btn btn-outline-primary btn-sm mx-1"
+          (click)="saveProjectInsightResponse(alert_message,false)">Save As
           Draft</button>
-        <button *ngIf="subActionType == 'Submit/View Response' && !isFinalResponseSubmitted" type="submit"
-          class="btn btn-outline-primary btn-sm mx-1" (click)="saveProjectInsightResponse(alert_message,true)">Final
+        <button *ngIf="subActionType == 'Submit/View Response' && this.projectInsightObj.isFinalSubmitted == 'N'"
+          type="submit" class="btn btn-outline-primary btn-sm mx-1"
+          (click)="saveProjectInsightResponse(alert_message,true)">Final
           Submit</button>
         <button *ngIf="subActionType == 'Updation' || subActionType == 'Creation'" type="submit"
           class="btn btn-primary btn-sm mx-1" (click)="showProjectInsightsConfigList()">Cancel</button>
-        <button *ngIf="subActionType == 'Submit/View Response' || subActionType == 'Review Response' || subActionType == 'Preview'" type="submit"
-          class="btn btn-primary btn-sm mx-1" (click)="closeProjectInsightResponseModal()">Cancel</button>
-        <!-- <button *ngIf="subActionType == 'Search'" type="submit" class="btn btn-primary btn-sm mx-1"
-          (click)="closeSearchResponsePreview()">Cancel</button> -->
+        <!-- <button
+          *ngIf="subActionType == 'Review Response' && isCurrentEmployeeRoleGreaterThanManager && !isResponsePointFinalSubmitted"
+          type="submit" class="btn btn-outline-primary btn-sm mx-1" (click)="saveReviewRemarks(true,false)">Draft Transfer To
+          Knowledge Hub</button> -->
+        <button
+          *ngIf="subActionType == 'Review Response' && isCurrentEmployeeRoleGreaterThanManager && !isResponsePointFinalSubmitted"
+          type="submit" class="btn btn-outline-primary btn-sm mx-1" (click)="saveReviewRemarks(false,true)">Transfer To
+          Knowledge Hub</button>
+        <button
+          *ngIf="subActionType == 'Review Response' && !isCurrentEmployeeRoleGreaterThanManager && !isResponsePointFinalSubmitted"
+          type="submit" class="btn btn-outline-primary btn-sm mx-1" (click)="saveReviewRemarks(true,false)">Draft Review
+          Points</button>
+        <button
+          *ngIf="subActionType == 'Review Response' && !isCurrentEmployeeRoleGreaterThanManager && !isResponsePointFinalSubmitted"
+          type="submit" class="btn btn-outline-primary btn-sm mx-1" (click)="saveReviewRemarks(false,false)">Save Review
+          Points</button>
+        <button
+          *ngIf="subActionType == 'Submit/View Response' || subActionType == 'Review Response' || subActionType == 'Preview'"
+          type="submit" class="btn btn-primary btn-sm mx-1" (click)="closeProjectInsightResponseModal()">Cancel</button>
 
       </div>
     </div>
@@ -158,14 +175,35 @@
 </ng-template>
 
 <!-- Details Template -->
-<ng-template #details_template let-entityType="entityType" let-entity="entity" let-entityName="entityName" let-entityId="entityId">
+<ng-template #details_template let-entityType="entityType" let-entity="entity" let-entityName="entityName"
+  let-entityId="entityId">
   <!-- Badges -->
-  <div class="badge-container m-1 mb-2">
-    <span *ngFor="let level of entity?.badgePathList" class="badge"
-      [ngClass]="{ 'active': entity?.currentActiveBadgeLevel == level.name }"
-      (click)="changeCurrentActiveBadgeLevel(entity,level.name,entityType,entityName,entityId)">
-      {{ level.name }}
-    </span>
+  <div class="col-md-12 m-1 mb-2">
+    <div class="row">
+      <div class="col-md-8">
+        <div class="badge-container">
+          <span *ngFor="let level of entity?.badgePathList" class="badge"
+            [ngClass]="{ 'active': entity?.currentActiveBadgeLevel == level.name }"
+            (click)="changeCurrentActiveBadgeLevel(entity,level.name,entityType,entityName,entityId)">
+            {{ level.name }}
+          </span>
+        </div>
+      </div>
+      <div *ngIf="entityType == 'Question' && subActionType == 'Review Response'" class="col-md-4">
+        <div class=" d-flex">
+          <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" [displayMember]="'name'"
+            [valueMember]="'empId'" [source]="employeeList" [useInfiniteScroll]="true" [multiple]="true"
+            [(ngModel)]="displayedResponseUserId">
+            <option class="m-2 cursor-pointer" [value]="selectAllValue" (click)="toggleSelectAll()"
+              [disabled]="employeeList.length === 0">Select All
+            </option>
+            <mat-option [value]="employee.empId" *ngFor="let employee of employeeList">
+              {{employee.name}}
+            </mat-option>
+          </mat-select>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="col-md-12 pr-0 pl-0">
@@ -187,7 +225,7 @@
           <mat-select *ngIf="entityType == 'Project'" ngxMatSelect class="form-control"
             #createTeamProjects="ngxMatSelect" [displayMember]="'projectName'" [valueMember]="'projectId'"
             [source]="allProjectList" [useInfiniteScroll]="true"
-            (selectionChange)="getProjectManangerInfo(entity.projectId,entity)" [multiple]="false"
+            (selectionChange)="getEmployeeListByProjectId(entity.projectId);" [multiple]="false"
             [(ngModel)]="entity.projectId"
             [disabled]="subActionType == 'Updation' || subActionType == 'Search' || subActionType == 'Preview' ||  actionType == 'Contribution'">
             <mat-option [value]="project.projectId" *ngFor="let project of createTeamProjects.filteredSource">
@@ -195,14 +233,17 @@
             </mat-option>
           </mat-select>
           <input *ngIf="entityType == 'Milestone'" type="text" class="form-control" autocomplete="none"
-            [(ngModel)]="entity.milestone" [disabled]="actionType == 'Contribution' || subActionType == 'Search' || subActionType == 'Preview'">
+            [(ngModel)]="entity.milestone"
+            [disabled]="actionType == 'Contribution' || subActionType == 'Search' || subActionType == 'Preview'">
           <input *ngIf="entityType == 'Module'" type="text" class="form-control" autocomplete="none"
-            [(ngModel)]="entity.module" [disabled]="actionType == 'Contribution' || subActionType == 'Search' || subActionType == 'Preview'">
+            [(ngModel)]="entity.module"
+            [disabled]="actionType == 'Contribution' || subActionType == 'Search' || subActionType == 'Preview'">
           <input *ngIf="entityType == 'Sub-SubModule' || entityType == 'SubModule'" type="text" class="form-control"
             autocomplete="none" [(ngModel)]="entity.subModule"
             [disabled]="actionType == 'Contribution' || subActionType == 'Search' || subActionType == 'Preview'">
           <input *ngIf="entityType == 'Question'" type="text" class="form-control" autocomplete="none"
-            [(ngModel)]="entity.question" [disabled]="actionType == 'Contribution' || subActionType == 'Search' || subActionType == 'Preview'">
+            [(ngModel)]="entity.question"
+            [disabled]="actionType == 'Contribution' || subActionType == 'Search' || subActionType == 'Preview'">
         </div>
       </div>
     </div>
@@ -266,13 +307,13 @@
 
     <!-- Tag For Help -->
     <div
-      *ngIf="entity?.currentActiveBadgeLevel == 'Details' && actionType == 'Contribution' && !isFinalResponseSubmitted"
+      *ngIf="entity?.currentActiveBadgeLevel == 'Details' && actionType == 'Contribution' && this.projectInsightObj.isFinalSubmitted == 'N'"
       class="row m-1 mb-2">
       <div class="col-md-12">
         <div class="form-group mb-0">
           <label>Tag For Help</label>
           <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" [displayMember]="'name'"
-            [valueMember]="'empId'" [source]="employeeList" [useInfiniteScroll]="true" [multiple]="true"
+            [valueMember]="'empId'" [source]="allEmployeeList" [useInfiniteScroll]="true" [multiple]="true"
             [(ngModel)]="entity.taggedToUserId">
             <mat-option [value]="employee.empId" *ngFor="let employee of entity.toTagEmployeeList">
               {{employee.name}}
@@ -283,7 +324,7 @@
     </div>
 
     <div
-      *ngIf="entity?.currentActiveBadgeLevel == 'Details' && actionType == 'Contribution' && isFinalResponseSubmitted && entity.taggedToUserNames"
+      *ngIf="entity?.currentActiveBadgeLevel == 'Details' && actionType == 'Contribution' && this.projectInsightObj.isFinalSubmitted == 'Y' && entity.taggedToUserNames"
       class="row m-1 mb-2">
       <div class="col-md-12">
         <div class="user-info py-2 border-bottom">
@@ -348,7 +389,8 @@
 <!-- Questions Template -->
 <ng-template #questions_template let-entityType="entityType" let-entity="entity">
   <div class="col-md-12">
-    <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'" class="option-config-section">
+    <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
+      class="option-config-section">
       <div class="row">
         <div class="col-md-12">
           <div class="info-wrapper">
@@ -395,124 +437,181 @@
       </div>
     </div>
 
-    <div *ngIf="actionType == 'Contribution' || subActionType == 'Search' || subActionType == 'Preview'" class="responses-section">
-      <div *ngFor="let response of entity.projectResponseList; let responseIndex = index" class="response-container">
-        <div class="user-info">
-          <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-          </svg>
-          <span *ngIf="subActionType != 'Preview'" class="small font-weight-bold">Response By: {{response.responseByEmpName || ''}}</span>
-          <span *ngIf="subActionType == 'Preview'" class="small font-weight-bold">Response By: {{''}}</span>
-        </div>
+    <div *ngIf="actionType == 'Contribution' || subActionType == 'Search' || subActionType == 'Preview'"
+      class="responses-section">
+      <div
+        *ngIf="entity.projectResponseList != undefined && entity.projectResponseList != null && entity.projectResponseList?.length > 0">
+        <div *ngFor="let response of entity.projectResponseList; let responseIndex = index">
+          <div
+            *ngIf="(checkIfUserIdIsPresentInDisplayResponseUserId(response) && subActionType == 'Review Response') || subActionType == 'Preview' || subActionType == 'Submit/View Response'"
+            class="response-container p-2 mt-2">
+            <div class="user-info d-flex align-items-center flex-wrap gap-3">
+              <div class="d-flex align-items-center mr-3">
+                <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+                <span *ngIf="subActionType != 'Preview'" class="small font-weight-bold">Response By:
+                  {{response.responseByEmpName || ''}}</span>
+                <span *ngIf="subActionType == 'Preview'" class="small font-weight-bold">Response By: {{''}}</span>
+              </div>
 
-        <div *ngIf="entity.optionType == 'text' && subActionType != 'Preview'" class="mt-2">
-          <textarea type="text" class="form-control" autocomplete="none" placeholder="Enter Answer here..."
-            [disabled]="response.isDraft == 'N'" [(ngModel)]="response.response"></textarea>
-        </div>
-        <div *ngIf="entity.optionType == 'text' && subActionType == 'Preview'" class="mt-2">
-          <textarea type="text" class="form-control" autocomplete="none" placeholder="Enter Answer here..."
-            disabled></textarea>
-        </div>
+              <div *ngIf="subActionType == 'Review Response'" class="form-check mr-3">
+                <label class="custom-checkbox mb-0" [for]="'recommended-response-checkbox-' + responseIndex">
+                  <input type="checkbox" [id]="'recommended-response-checkbox-' + responseIndex"
+                    [(ngModel)]="response.isRecommendedChecked" [disabled]="isCurrentEmployeeRoleGreaterThanManager"
+                    (change)="onRecommendedResponseChange($event, response, entity)">
+                  <span class="checkmark"></span>&nbsp;&nbsp;{{ !isCurrentEmployeeRoleGreaterThanManager ? 'Recommend '
+                  : 'Recommended '}} Response
+                </label>
+              </div>
 
-        <div *ngIf="entity.optionType == 'checkbox' && subActionType != 'Preview'" class="mt-2">
-          <div *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index"
-            class="custom-control custom-checkbox">
-            <input type="checkbox" class="custom-control-input"
-              [id]="'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex" [(ngModel)]="option.isChecked"
-              (change)="onCheckboxChange($event, option.optionValue, entity, option, response)"
-              [disabled]="response.isDraft == 'N'">
-            <label class="custom-control-label"
-              [for]="'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex">
-              {{option.optionValue}}
-            </label>
+              <div *ngIf="subActionType == 'Review Response' && isCurrentEmployeeRoleGreaterThanManager"
+                class="form-check mr-3">
+                <label class="custom-checkbox mb-0" [for]="'checkbox-response-' + responseIndex">
+                  <input type="checkbox" [id]="'checkbox-response-' + responseIndex"
+                    [(ngModel)]="response.approvedForKnowledgeHub" [disabled]="isResponsePointFinalSubmitted">
+                  <span class="checkmark"></span>
+                  Approve For Knowledge Hub
+                </label>
+              </div>
+
+            </div>
+
+            <div *ngIf="subActionType == 'Review Response'" class="marks-section mt-2">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <!-- Label -->
+                <span class="small font-weight-bold">Points (out of 10): </span>
+                <!-- Input -->
+                <div class="d-flex flex-wrap gap-3">
+                  <div
+                    *ngFor="let responsePoint of response.projectInsightResponsePointList; let responsePointIndex = index"
+                    class="d-flex flex-column align-items-center my-2 pr-2">
+                    <input class="form-control response-marking text-center mb-1" type="number" min="0" max="10"
+                      oninput="this.value = this.value.replace(/\D/g, '')"
+                      onkeydown="if(event.key==='-' || event.key==='+' || event.key==='e' || event.key==='E')return false;"
+                      [disabled]="(responsePoint.pointsBy != undefined && responsePoint.pointsBy != null && responsePoint.pointsBy != currentUser?.empId) || responsePoint.isPointsDrafted == 'N'"
+                      [(ngModel)]="responsePoint.points" placeholder="0 - 10" />
+                    <span class="small text-center">{{responsePoint.pointsByName || ''}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="entity.optionType == 'text' && subActionType != 'Preview'" class="mt-2">
+              <textarea type="text" class="form-control" autocomplete="none" placeholder="Enter Answer here..."
+                [disabled]="this.projectInsightObj.isFinalSubmitted == 'Y'" [(ngModel)]="response.response"></textarea>
+            </div>
+            <div *ngIf="entity.optionType == 'text' && subActionType == 'Preview'" class="mt-2">
+              <textarea type="text" class="form-control" autocomplete="none" placeholder="Enter Answer here..."
+                disabled></textarea>
+            </div>
+
+            <div *ngIf="entity.optionType == 'checkbox' && subActionType != 'Preview'" class="mt-2">
+              <div *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index"
+                class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input"
+                  [id]="'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex"
+                  [(ngModel)]="option.isChecked"
+                  (change)="onCheckboxChange($event, option.optionValue, entity, option, response)"
+                  [disabled]="this.projectInsightObj.isFinalSubmitted == 'Y'">
+                <label class="custom-control-label"
+                  [for]="'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex">
+                  {{option.optionValue}}
+                </label>
+              </div>
+            </div>
+            <div *ngIf="entity.optionType == 'checkbox' && subActionType == 'Preview'" class="mt-2">
+              <div *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index"
+                class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input"
+                  [id]="'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex"
+                  (change)="onCheckboxChange($event, option.optionValue, entity, option, response)" disabled>
+                <label class="custom-control-label"
+                  [for]="'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex">
+                  {{option.optionValue}}
+                </label>
+              </div>
+            </div>
+
+            <div *ngIf="entity.optionType == 'radio' && subActionType != 'Preview'" class="mt-2">
+              <div *ngFor="let option of response.optionsList; let optIndex = index"
+                class="custom-control custom-radio">
+                <input type="radio" class="custom-control-input"
+                  [id]="'radio' + optIndex + '-response-' + responseIndex"
+                  name="radio{{optIndex}}-response-{{responseIndex}}"
+                  [disabled]="this.projectInsightObj.isFinalSubmitted == 'Y'" [value]="option.optionValue"
+                  [(ngModel)]="response.response">
+                <label class="custom-control-label" [for]="'radio' + optIndex + '-response-' + responseIndex">
+                  {{option.optionValue}}
+                </label>
+              </div>
+            </div>
+            <div *ngIf="entity.optionType == 'radio' && subActionType == 'Preview'" class="mt-2">
+              <div *ngFor="let option of response.optionsList; let optIndex = index"
+                class="custom-control custom-radio">
+                <input type="radio" class="custom-control-input"
+                  [id]="'radio' + optIndex + '-response-' + responseIndex"
+                  name="radio{{optIndex}}-response-{{responseIndex}}" disabled [value]="option.optionValue">
+                <label class="custom-control-label" [for]="'radio' + optIndex + '-response-' + responseIndex">
+                  {{option.optionValue}}
+                </label>
+              </div>
+            </div>
+
+            <div *ngIf="response.showDocDiv && subActionType != 'Preview'" class="mt-3">
+              <div class="d-flex align-items-center">
+                <label *ngIf="!response.documentFileName" class="btn btn-sm btn-outline-secondary mr-2 mb-0"
+                  for="file-{{entity.questionId}}">
+                  <span *ngIf="this.projectInsightObj.isFinalSubmitted == 'N'">Upload File</span>
+                  <input id="file-{{entity.questionId}}" name="file-{{entity.questionId}}" type="file" class="d-none"
+                    (change)="onQuestionFileChange($event, entity, alert_message, 'document-preview-container', document_preview_template, response)"
+                    [disabled]="this.projectInsightObj.isFinalSubmitted == 'Y'">
+                </label>
+
+                <span *ngIf="response.documentFileName" class="small mr-2">
+                  {{response.documentFileName}}
+                </span>
+
+                <button *ngIf="response.documentFileName && this.projectInsightObj.isFinalSubmitted == 'N'"
+                  type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
+                  (click)="removeUploadedFile(response)">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <button *ngIf="response.documentFileName" type="button" class="btn btn-sm btn-outline-primary"
+                  title="Preview File"
+                  (click)="previewUploadedFile(response, response.document, response.documentFileName, 'document-preview-container', document_preview_template, alert_message, true, response)">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+            <div *ngIf="!response.showDocDiv && subActionType == 'Preview'" class="mt-3">
+              <div class="d-flex align-items-center">
+                <label *ngIf="!response.documentFileName" class="btn btn-sm btn-outline-secondary mr-2 mb-0"
+                  for="file-{{entity.questionId}}">
+                  <span>Upload File</span>
+                  <input id="file-{{entity.questionId}}" name="file-{{entity.questionId}}" type="file" class="d-none"
+                    (change)="onQuestionFileChange($event, entity, alert_message, 'document-preview-container', document_preview_template, response)"
+                    disabled>
+                </label>
+                <button type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
+                  (click)="removeUploadedFile(response)">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" title="Preview File"
+                  (click)="previewUploadedFile(response, response.document, response.documentFileName, 'document-preview-container', document_preview_template, alert_message, true, response)">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div *ngIf="entity.optionType == 'checkbox' && subActionType == 'Preview'" class="mt-2">
-          <div *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index"
-            class="custom-control custom-checkbox">
-            <input type="checkbox" class="custom-control-input"
-              [id]="'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex"
-              (change)="onCheckboxChange($event, option.optionValue, entity, option, response)"
-              disabled>
-            <label class="custom-control-label"
-              [for]="'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex">
-              {{option.optionValue}}
-            </label>
-          </div>
-        </div>
-
-        <div *ngIf="entity.optionType == 'radio' && subActionType != 'Preview'" class="mt-2">
-          <div *ngFor="let option of response.optionsList; let optIndex = index" class="custom-control custom-radio">
-            <input type="radio" class="custom-control-input" [id]="'radio' + optIndex + '-response-' + responseIndex"
-              name="radio{{optIndex}}-response-{{responseIndex}}" [disabled]="response.isDraft == 'N'"
-              [value]="option.optionValue" [(ngModel)]="response.response">
-            <label class="custom-control-label" [for]="'radio' + optIndex + '-response-' + responseIndex">
-              {{option.optionValue}}
-            </label>
-          </div>
-        </div>
-
-        <div *ngIf="entity.optionType == 'radio' && subActionType == 'Preview'" class="mt-2">
-          <div *ngFor="let option of response.optionsList; let optIndex = index" class="custom-control custom-radio">
-            <input type="radio" class="custom-control-input" [id]="'radio' + optIndex + '-response-' + responseIndex"
-              name="radio{{optIndex}}-response-{{responseIndex}}" disabled
-              [value]="option.optionValue">
-            <label class="custom-control-label" [for]="'radio' + optIndex + '-response-' + responseIndex">
-              {{option.optionValue}}
-            </label>
-          </div>
-        </div>
-
-        <div *ngIf="response.showDocDiv && subActionType != 'Preview'" class="mt-3">
-          <div class="d-flex align-items-center">
-            <label *ngIf="!response.uploadedFileName" class="btn btn-sm btn-outline-secondary mr-2 mb-0"
-              for="file-{{entity.questionId}}">
-              <span *ngIf="response.isDraft == 'Y'">Upload File</span>
-              <input id="file-{{entity.questionId}}" name="file-{{entity.questionId}}" type="file" class="d-none"
-                (change)="onQuestionFileChange($event, entity, alert_message, 'document-preview-container', document_preview_template, response)"
-                [disabled]="response.isDraft == 'N'">
-            </label>
-
-            <span *ngIf="response.uploadedFileName" class="small mr-2">
-              {{response.uploadedFileName}}
-            </span>
-
-            <button *ngIf="response.uploadedFileName && !isFinalResponseSubmitted" type="button"
-              class="btn btn-sm btn-outline-danger mr-2" title="Remove File" (click)="removeUploadedFile(response)">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-
-            <button *ngIf="response.uploadedFileName" type="button" class="btn btn-sm btn-outline-primary"
-              title="Preview File"
-              (click)="previewUploadedFile(response, response.uploadedFile, response.uploadedFileName, 'document-preview-container', document_preview_template, alert_message, true, response)">
-              <i class="fa-solid fa-eye"></i>
-            </button>
-          </div>
-        </div>
-
-        <div *ngIf="subActionType == 'Preview'" class="mt-3">
-          <div class="d-flex align-items-center">
-            <label *ngIf="!response.uploadedFileName" class="btn btn-sm btn-outline-secondary mr-2 mb-0"
-              for="file-{{entity.questionId}}">
-              <span>Upload File</span>
-              <input id="file-{{entity.questionId}}" name="file-{{entity.questionId}}" type="file" class="d-none"
-                (change)="onQuestionFileChange($event, entity, alert_message, 'document-preview-container', document_preview_template, response)"
-                disabled>
-            </label>
-            <button type="button"
-              class="btn btn-sm btn-outline-danger mr-2" title="Remove File" (click)="removeUploadedFile(response)">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-primary"
-              title="Preview File"
-              (click)="previewUploadedFile(response, response.uploadedFile, response.uploadedFileName, 'document-preview-container', document_preview_template, alert_message, true, response)">
-              <i class="fa-solid fa-eye"></i>
-            </button>
-          </div>
-        </div>
-
+      </div>
+      <div
+        *ngIf="entity.projectResponseList == undefined || entity.projectResponseList == null || entity.projectResponseList?.length == 0"
+        class="m-2">
+        <span class="text-center info-label"><strong>No Response to display...</strong></span>
       </div>
     </div>
   </div>

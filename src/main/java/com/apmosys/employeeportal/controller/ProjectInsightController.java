@@ -80,6 +80,12 @@ public class ProjectInsightController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/saveReviewPoints", method = RequestMethod.POST,consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+	public ServiceResponse saveReviewPoints( @RequestPart("projectInsightDTO") ProjectInsightDTO projectInsightDTO) {
+		ServiceResponse response = projectInsightService.saveReviewPoints(projectInsightDTO);
+		return response;
+	}
+	
     /*
      * Search Apis
      * */

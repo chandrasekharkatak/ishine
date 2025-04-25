@@ -14,7 +14,7 @@ import { LogService } from 'src/app/services/log.service';
 import { Log } from 'src/app/models/log';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { first } from 'rxjs/operators';
-import { ProjectInsight } from 'src/app/models/projectInsightQuestion';
+import { ProjectInsight } from 'src/app/models/projectInsight';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ProjectQuestion } from 'src/app/models/projectQuestion';
 import { ValidationService } from 'src/app/services/validation.service';
@@ -334,33 +334,6 @@ export class ViewPerformanceComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
-
-  processUserMarks(response: ProjectResponse, type: any, question:any){
-    if(type == "approve" && !this.validationService.validateNullUndefinedEmptyString(response.marks)){
-      this.alertMessage = `Please provide marks !!`;
-      this.openAlertMod(this.alertMessageModal, this.alertMessage);
-      return false;
-    }
-    response.markType = type;
-    response.questionId = question.questionId;
-    response.empId = response.responseByEmpId;
-    this.allQuestionMarksList.push(response);
-  }
-
-  submitReview(template: TemplateRef<any>){
-    let projectInsightObj = {
-      empMarkList: this.allQuestionMarksList
-    }
-    this.performanceService.addRemarkAsPerQuestion(projectInsightObj).subscribe({
-      next: (response: any) => {
-        // this.closeProjectInsightResponseModal();
-      },
-      error: (error) => {
-        console.error('Error fetching questionnaire questions:', error);
-      }
-    });
-  }
-
   loadQuestionnaireQuestions(): void {
     const quarterId = this.selectedQuarter1;
     const departmentId = this.currentEmployeeInfo.departmentId;
@@ -553,7 +526,7 @@ export class ViewPerformanceComponent implements OnInit {
     let insightObj = {
       employeeRole: this.currentUser.employeeRole,
       empId: this.viewPerformanceEmpId,
-      performanceTabName : 'Team Dashboard'      
+      performanceTabName : 'Teams Dashboard'      
     };
 
     this.projectInsightService.getAllProjectInsightContributionList(insightObj).pipe(first()).subscribe((response: any) => {

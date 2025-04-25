@@ -10,7 +10,7 @@ import { Feature } from 'src/app/models/feature';
 import { LogService } from 'src/app/services/log.service';
 import { Log } from 'src/app/models/log';
 import { Sort } from '@angular/material/sort';
-import { ProjectInsight } from 'src/app/models/projectInsightQuestion';
+import { ProjectInsight } from 'src/app/models/projectInsight';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { finalize, first } from 'rxjs/operators';
 import { ProjectQuestion } from 'src/app/models/projectQuestion';
@@ -242,7 +242,6 @@ export class PerformanceDashboardComponent implements OnInit {
     this.fetchGoals();
     this.loadPerformanceStats();
     this.getAllProjectInsightContributionList();
-    this.getEmployeeList();
     this.getMyContributionList();
     this.getUserContributionForReview();
     this.getAllProjects();
