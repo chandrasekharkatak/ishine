@@ -169,7 +169,6 @@ public class ResourceManagementService {
 		            findTeamByProject = teamRepository.findTeamByProjectId(projectObj.getProjectId());
 		        else
 		            findTeamByProject = teamRepository.findByProjectId(projectObj.getProjectId());
-
 		        addTeamList.addAll(findTeamByProject);
 
 		        List<Long> teamId = allExistTeam.stream().map(Team::getTeamId).collect(Collectors.toList());
@@ -2093,7 +2092,8 @@ public ServiceResponse getProjectInfo(ResourceManagementDTO resourceManagementDT
 				dto.setProjectManagerId(object[2] != null ?  Long.parseLong(object[2].toString()) : null);
 				dto.setProjectManagerName(object[3] != null ? object[3].toString() : null);	
 				dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
-				dto.setClientState(object[5] != null? object[5].toString() : null);		
+//				dto.setClientLocation(object[5] != null ? object[5].toString() : null);
+				dto.setClientState(object[6] != null? object[6].toString() : null);		
 				
 				result.add(dto);
 			});
@@ -2145,8 +2145,7 @@ public ServiceResponse getPoProjectInfo(ResourceManagementDTO resourceManagement
 				dto.setProjectManagerId(object[2] != null ?  Long.parseLong(object[2].toString()) : null);
 				dto.setProjectManagerName(object[3] != null ? object[3].toString() : null);	
 				dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
-				dto.setClientState(object[5] != null? object[5].toString() : null);		
-				
+				dto.setClientState(object[5] != null? object[5].toString() : null);				
 				result.add(dto);
 			});
 			
@@ -2231,7 +2230,7 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 				dto.setProjectName(object[9] != null ? object[9].toString() : null);
 				dto.setClientId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 				dto.setClientName(object[11] != null ? object[11].toString() : null);
-				
+				dto.setPoEndDate(object[12] != null ? object[12].toString() : null);			
 				result.add(dto);
 			});
 			

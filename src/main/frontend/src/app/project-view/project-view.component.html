@@ -93,7 +93,7 @@
                                                         {{ member.employeeName }}
                                                     </td>
                                                     <td>{{ member.billableType || 'N/A' }}</td>
-                                                    <td>{{ member.startDate | date:'dd-MM-yyyy HH:mm:ss' }}</td>
+                                                    <td>{{ member.startDate | date:'dd-MM-yyyy' }}</td>
                                                     <td>{{ member.employeeRole }}</td>
                                                     <td>
                                                         <button *ngIf="team.active !== 0" class="btn btn-sm btn-outline-primary mt-1" title="Edit" (click)="editProjectInfo(team)" type="submit">
