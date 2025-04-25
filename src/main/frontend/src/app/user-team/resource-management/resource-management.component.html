@@ -1,4 +1,4 @@
-<div class="row mb-3">
+<div class="row mb-3" >
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isProjectTable}"
             *ngIf="userMapping.view_all_rmg_projects" (click)="showViewProjects()">View All Projects</button>
@@ -7,7 +7,7 @@
     </div>
 </div>
 <!-- New content -->
-<div class="container bg-white">
+<div class="container bg-white" *ngIf="allProjectTable">
     <div class="row">
       <div class="col-md-8">
         <!-- Top Stats -->
@@ -247,11 +247,11 @@
 <!-- start :: View Projects -->
 <div class="row" *ngIf="allProjectTable">
     <div class="col-md-12">
-        <div class="row">
+        <!-- <div class="row">
             <div class="col-md-12 table-header">
                 <h1 class="table-header-title">All Projects</h1>
             </div>
-        </div>
+        </div> -->
 
 
         <div *ngIf="bulkSyncList.length >= 1" class="form-group ml-4">
