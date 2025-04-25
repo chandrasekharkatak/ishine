@@ -38,7 +38,7 @@
                         <label class="info-label">
                             <span class="text-danger">*</span>HOD Name
                         </label>
-                        <input type="text" class="form-control" name="fullName"  [(ngModel)]="currentEmployeeInfo.managerName" disabled />
+                        <input type="text" class="form-control" name="fullName"  [(ngModel)]="currentUser.hodName" disabled />
                     </div>
                 
             
@@ -196,7 +196,7 @@
                 <div class="col-md-12 px-0 text-center">
                     <!-- Reset and Submit buttons -->
                     <button type="button" class="btn btn-secondary btn-lg mx-1" (click)="resetForm(alert_message)">Reset</button>
-                    <button type="submit" class="btn btn-primary btn-lg mx-1" (click)="submitForm(alert_message)">Submit</button>
+                    <button type="submit" class="btn btn-primary btn-lg mx-1" (click)="submitForm(alert_message1)">Submit</button>
                 </div>
             </div>
         </div>

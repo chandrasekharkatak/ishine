@@ -29,6 +29,7 @@ public class ReimbursementDTO {
     private String level;
     private Long levelOneApprover;
     private Long levelTwoApprover;
+    private String levelThreeApprover;
     private String level1approverRemarks;
     private String level2approverRemarks;
     private String level3approverRemarks;
@@ -41,6 +42,7 @@ public class ReimbursementDTO {
     private String vehicleType;
     private String foodAllowanceType;
     private Timestamp dateOfFood;
+    
     
    
 }

@@ -93,10 +93,16 @@ public class ReimbursementData {
 	private Timestamp level1ApproveOn;
 	
 	@Column(name = "level2_approve_by")
-	private BigInteger approver2;
+	private String approver2;
+	
+	@Column(name = "level3_approve_by")
+	private String approver3;
 	
 	@Column(name = "level2_approver_email")
 	private String level2ApproverEmail;
+	
+	@Column(name = "level3_approver_email")
+	private String level3ApproverEmail;
 	
 	@Column(name = "level2_approve_on")
 	private Timestamp level2ApproveOn;

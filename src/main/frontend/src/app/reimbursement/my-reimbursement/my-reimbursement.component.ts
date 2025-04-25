@@ -248,7 +248,7 @@ reimbursementObj: any = {
      reimbursementData.departmentName=this.currentEmployeeInfo.departmentName;
      reimbursementData.designationName=this.currentEmployeeInfo.designationName;
      reimbursementData.mobileNo=this.currentEmployeeInfo.mobileNo;
-     reimbursementData.managerName=this.currentEmployeeInfo.managerName;
+     //reimbursementData.managerName=this.currentEmployeeInfo.managerName;
      reimbursementData.amount =this.reimbursementObj.amount;        
      reimbursementData.travelMode =this.reimbursementObj.travelMode;      
      reimbursementData.distance=this.reimbursementObj.distance;     
@@ -274,7 +274,7 @@ reimbursementObj: any = {
         this.openAlertMod(template, "Success! Your request was processed successfully!");
 
         //  alert("Success! Your request was processed successfully.");
-        //  window.location.reload();
+        //window.location.reload();
    
        } else {
          console.error(response.serviceResponse);

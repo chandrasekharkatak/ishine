@@ -53,10 +53,10 @@
                   <!-- <td>{{ row.fromLocation }}</td>
                   <td>{{ row.toLocation }}</td> -->
                   <td>{{ row.expenditureType }}</td>
-                  <td>{{ row.travelMode }}</td>
-                  <td>{{ row.distance }}</td>
+                  <td>{{ row.travelMode || 'NA'}}</td>
+                  <td>{{ row.distance || 'NA'}}</td>
                   <td>{{ row.currency }}</td>
-                  <td>{{ row.foodAllowanceType }}</td>
+                  <td>{{ row.foodAllowanceType || 'NA'}}</td>
                   <td>{{ row.dateOfFood | date}}</td>
                   <td>{{ row.amount }}</td>
                   <td>{{ row.appliedBy }}</td>
@@ -65,14 +65,32 @@
                   <!-- <td>{{ row.status }}</td> -->
                   <td>{{ row.level }}</td>
                   <!-- <td>{{ row.hodName }}</td> -->
-                  <td>{{ row.status }}</td>
+                  <td [ngClass]="{
+                    'text-danger': row.status === 'Rejected',
+                    'text-success': row.status === 'Approved',
+                    'text-warning': row.status === 'Pending'
+                                }">
+                    {{ row.status || 'NA'}}
+                  </td>
                   <td>{{ row.hodName }}</td>
                   <td>{{ row.level1approverRemarks || 'NA'}}</td>
                   <td>{{ 'HR' }}</td>
-                  <td>{{ row.level2approverStatus }}</td>
+                  <td [ngClass]="{
+                    'text-danger': row.level2approverStatus === 'Rejected',
+                    'text-success': row.level2approverStatus === 'Approved',
+                    'text-warning': row.level2approverStatus === 'Pending'
+                                }">
+                    {{ row.level2approverStatus || 'NA'}}
+                  </td>
                   <td>{{ row.level2approverRemarks || 'NA' }}</td>
                   <!-- <td>{{ 'HR Head' }}</td> -->
-                  <td>{{ row.level3approverStatus }}</td>
+                  <td [ngClass]="{
+                    'text-danger': row.level3approverStatus === 'Rejected',
+                    'text-success': row.level3approverStatus === 'Approved',
+                    'text-warning': row.level3approverStatus === 'Pending'
+                                }">
+                    {{ row.level3approverStatus || 'NA'}}
+                  </td>
                   <td>{{ row.level3approverRemarks || 'NA' }}</td>
                   <td>
                  
@@ -120,6 +138,10 @@
                 <div class="form-group">
                   <label for="requestId">Requester Name</label>
                   <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedReimbursementRequest.fullName" name="requestId" readonly />
+                </div>
+                <div class="form-group">
+                  <label for="requestId">Expenditure Type</label>
+                  <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedReimbursementRequest.expenditureType" name="expenditureType" readonly />
                 </div>
                 <div class="form-group">
                   <label for="approverRemarks">Approver Remarks</label>

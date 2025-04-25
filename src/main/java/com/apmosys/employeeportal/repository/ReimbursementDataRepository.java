@@ -16,5 +16,7 @@ public interface ReimbursementDataRepository extends JpaRepository<Reimbursement
 	
 	List<ReimbursementData> findByApprover1(BigInteger empId);
 	
-	List<ReimbursementData> findByApprover2(BigInteger empId);
+	List<ReimbursementData> findByApprover2(String empId);
+	
+	List<ReimbursementData> findByApprover3(String empId);
 }

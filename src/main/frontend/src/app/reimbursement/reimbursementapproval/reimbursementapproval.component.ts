@@ -72,7 +72,7 @@ export class ReimbursementapprovalComponent implements OnInit {
   shouldShowAction(row: any): boolean {
     console.log('row data :::::::::::::',row);
     if (row.level === 1) {
-      return row.level1approverStatus === 'Pending';
+      return row.status === 'Pending';
     } else if (row.level === 2) {
       return row.status === 'Approved' && row.level2approverStatus === 'Pending';
     } else if (row.level === 3) {
@@ -93,13 +93,14 @@ export class ReimbursementapprovalComponent implements OnInit {
   //alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
     this.modalRef.hide();
-    //location.reload();
+    //this.onGetReimbursementInfo();
+    location.reload();
   }
 
   async actionRequest(template: TemplateRef<any>) {
@@ -111,6 +112,7 @@ export class ReimbursementapprovalComponent implements OnInit {
     newtreimbursementData.requestId=this.selectedReimbursementRequest.requestId;
     newtreimbursementData.empId = this.selectedReimbursementRequest.empId;
     newtreimbursementData.status = this.selectedReimbursementRequest.approverStatus;
+    newtreimbursementData.expenditureType = this.selectedReimbursementRequest.expenditureType;
     if(this.selectedReimbursementRequest.level == 1){
       newtreimbursementData.level1approverRemarks = this.selectedReimbursementRequest.approverRemarks;
 
@@ -146,6 +148,7 @@ export class ReimbursementapprovalComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
 
         console.log('Updated Travel Request:', this.selectedReimbursementRequest);
+        
         }
         
       } else {

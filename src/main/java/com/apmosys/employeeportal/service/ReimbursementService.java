@@ -48,6 +48,18 @@ public class ReimbursementService {
 
 	@Value("${file.location.documents.reimbursement}")
 	private String reimbursementFileLocation;
+	
+	@Value("${level2.Approver}")
+	private String level2Approver ;
+	
+	@Value("${level3.Approver}")
+	private String level3Approver ;
+	
+	@Value("${level2.ApproverMail}")
+	private String level2ApproverMail ;
+	
+	@Value("${level3.ApproverMail}")
+	private String level3ApproverMail ;
 
 	public ServiceResponse fetchReimbursementData(BigInteger empId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -80,8 +92,10 @@ public class ReimbursementService {
 			System.out.println(empId);
 			List<ReimbursementData> reimbursementL1 = reimbursementDataRepository.findByApprover1(empId);
 			System.out.println(reimbursementL1);
-			List<ReimbursementData> reimbursementL2 = reimbursementDataRepository.findByApprover2(empId);
+			List<ReimbursementData> reimbursementL2 = reimbursementDataRepository.findByApprover2(empId.toString());
 			System.out.println(reimbursementL2);
+			List<ReimbursementData> reimbursementL3 = reimbursementDataRepository.findByApprover3(empId.toString());
+			System.out.println(reimbursementL3);
 			if (!reimbursementL1.isEmpty()) {
 				List<ReimbursementData> activeReimbursementL1 = reimbursementL1.stream().filter(
 						t -> t.getStatus().equalsIgnoreCase("Pending") && t.getIsActive() == 1 && t.getLevel() == 1)
@@ -97,6 +111,15 @@ public class ReimbursementService {
 						.collect(Collectors.toList());
 				System.out.println(activeReimbursementL2);
 				activeReimbursement.addAll(activeReimbursementL2);
+				System.out.println(activeReimbursement);
+			}
+			if (!reimbursementL3.isEmpty()) {
+				List<ReimbursementData> activeReimbursementL3 = reimbursementL3.stream()
+						.filter(t -> t.getLevel3approverStatus().equalsIgnoreCase("Pending") && t.getIsActive() == 1
+								&& t.getLevel() == 3 && t.getFinalStatus().equalsIgnoreCase("Pending"))
+						.collect(Collectors.toList());
+				System.out.println(activeReimbursementL3);
+				activeReimbursement.addAll(activeReimbursementL3);
 				System.out.println(activeReimbursement);
 			}
 
@@ -139,8 +162,13 @@ public class ReimbursementService {
 			}
 			BigInteger approver1 = BigInteger.valueOf((reimbursementObj.getLevelOneApprover()));
 			Employee level1 = employeeRepository.findByEmpId(Long.valueOf(reimbursementObj.getLevelOneApprover()));
+			reimbursementData.setApprover2(level2Approver); 
+			reimbursementData.setApprover3(level3Approver);
+			reimbursementData.setLevel2ApproverEmail(level2ApproverMail);
+			reimbursementData.setLevel3ApproverEmail(level3ApproverMail);
 			reimbursementData.setLevel1ApproverEmail(level1.getEmail());
 			reimbursementData.setApprover1(approver1);
+			reimbursementData.setHodName(level1.getName());			
 			reimbursementData.setFoodAllowanceType(reimbursementObj.getFoodAllowanceType());
 			reimbursementData.setDateOfFood(reimbursementObj.getDateOfFood());
 			reimbursementData.setFromDate(reimbursementObj.getFromDate());
@@ -181,6 +209,18 @@ public class ReimbursementService {
 				    e.printStackTrace();
 				}
 				Employee emp = employeeRepository.findByEmpId(Long.valueOf(savedReimbursementData.getEmpId().toString()));
+				
+				if(reimbursementObj.getExpenditureType().equals("Food")) {
+			      	mailService.sendMailWithAttachment(savedReimbursementData.getLevel1ApproverEmail(),savedReimbursementData.getEmail(),
+	    	        		"Reimbursement request approval required",
+	    	        		"Dear " + savedReimbursementData.getHodName() + ",<br><br>" +
+	    	        				"A reimbursement request has been submitted by " + emp.getName() + ".<br>" +
+	    	        				"Purpose: " + savedReimbursementData.getPurpose() + "<br>" +
+//	    	        				"Location: " + savedReimbursementData.getCity() + "<br><br>" +
+	    	        				"Kindly review and take the necessary action on this reimbursement application.<br><br>" +
+	    	        				"Regards,<br>" +
+	    	        				"iShine Reimbursement Desk", file);
+				}else {
 	            
 	            	mailService.sendMailWithAttachment(savedReimbursementData.getLevel1ApproverEmail(),savedReimbursementData.getEmail(),
 	    	        		"Reimbursement request approval required",
@@ -194,7 +234,7 @@ public class ReimbursementService {
 	    	        				"Regards,<br>" +
 	    	        				"iShine Reimbursement Desk", file);
 
-	            
+				}
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				serviceResponse.setServiceResponse(savedReimbursementData);
 				serviceResponse.setServiceMessage("Saved Successfully..!!");
@@ -220,10 +260,12 @@ public class ReimbursementService {
 				return serviceResponse;
 			} else {
 				existingReimbursementData.setEmpId(reimbursementObj.getEmpId());
+//				existingReimbursementData.setFullName(existingReimbursementData.getFullName());
+//				existingReimbursementData.setCurrency(existingReimbursementData.getCurrency());
 				existingReimbursementData.setEmail(reimbursementObj.getEmail());
 				existingReimbursementData.setMobileNo(reimbursementObj.getMobileNo());
 				existingReimbursementData.setDepartment(reimbursementObj.getDepartmentName());
-				existingReimbursementData.setFullName(reimbursementObj.getName());
+				//existingReimbursementData.setFullName(reimbursementObj.getName());
 				existingReimbursementData.setExpenditureType(reimbursementObj.getExpenditureType());
 				if (reimbursementObj.getExpenditureType().equalsIgnoreCase("Travel")) {
 					existingReimbursementData.setTravelMode(reimbursementObj.getTravelMode());
@@ -231,10 +273,11 @@ public class ReimbursementService {
 				}
 				existingReimbursementData.setEmail(reimbursementObj.getEmail());
 				existingReimbursementData.setAmount(reimbursementObj.getAmount());
-				existingReimbursementData.setCurrency(reimbursementObj.getSelectedCurrency());
+				//existingReimbursementData.setCurrency(reimbursementObj.getSelectedCurrency());
 				existingReimbursementData.setPurpose(reimbursementObj.getPurpose());
 				existingReimbursementData.setFromDate(reimbursementObj.getFromDate());
 				existingReimbursementData.setToDate(reimbursementObj.getToDate());
+				existingReimbursementData.setDateOfFood(reimbursementObj.getDateOfFood());
 				existingReimbursementData.setAppliedBy(reimbursementObj.getEmpId());
 				Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
 				currentTimestamp.setNanos(currentTimestamp.getNanos() / 1000 * 1000);
@@ -396,8 +439,11 @@ public class ReimbursementService {
 			currentTimestamp.setNanos(currentTimestamp.getNanos() / 1000 * 1000);
 			Employee emp = employeeRepository
 					.findByEmpId(Long.valueOf(existingReimbursementData.getEmpId().toString()));
+		if(reimbursementObj.getExpenditureType().equals("Travel")) {
+							
 			if (existingReimbursementData.getLevel() == 1) {
 				updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
+
 				if (existingReimbursementData.getStatus() == "Approved") {
 					mailService.sendMailforReimbursement(existingReimbursementData.getLevel1ApproverEmail(),
 							"Reimbursement request approval required",
@@ -415,11 +461,25 @@ public class ReimbursementService {
 				}
 			} else if (existingReimbursementData.getLevel() == 2) {
 				updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
-
+				
+				mailService.sendMailforReimbursement(existingReimbursementData.getLevel1ApproverEmail(),
+						"Reimbursement request approval required",
+						"Dear Approver"+ ",<br><br>" +
+								"A reimbursement request submitted by " + emp.getName() + " has been reviewed and approved at HOD Level and HRM Level.<br>" +
+								"Details of the request are as follows:<br><br>" +
+								"<strong>Purpose:</strong> " + existingReimbursementData.getPurpose() + "<br>" +
+								"From date:" + existingReimbursementData.getFromDate().toGMTString() +
+								" To date:" + existingReimbursementData.getToDate().toGMTString() + "<br><br>" +
+//								"<strong>Mode of Travel:</strong> " + existingReimbursementData.getTravelMode() + "<br><br>" +
+								"Kindly review and take the necessary action on this request at your level.<br><br>" +
+								"Regards,<br>" +
+								"iShine Reimbursement Desk");
+				
 			} else {
 				updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
 
 			}
+		}
 
 			ReimbursementData updatedReimbursementData = reimbursementDataRepository.save(existingReimbursementData);
 
