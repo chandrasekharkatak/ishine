@@ -91,3 +91,67 @@ thead {
     right: 0%;
     top:-25px;
   }
+
+  /* New content */
+
+  .mini-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 12px 16px;
+    min-width: 140px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-left: 5px solid var(--card-border-color);
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .mini-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+  }
+  .mini-card1{
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 10px 12px;
+    min-width: 110px;
+    min-height: 80px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-left: 5px solid var(--card-border-color);
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .mini-card1:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+  }
+  
+  .value {
+    font-size: 20px;
+    font-weight: bold;
+  }
+  
+  .label {
+    font-size: 12px;
+    color: #444;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .fa {
+    font-size: 16px;
+    margin-left: 6px;
+  }
+    
+          
+
+  /* New content */
