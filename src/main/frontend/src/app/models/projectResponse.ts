@@ -20,4 +20,6 @@ export class ProjectResponse {
     projectInsightResponsePointList: ProjectResponsePoint[] = [];
     isRecommendedChecked: any;
     approvedForKnowledgeHub: any;
+    tags: any[] = [];
+    newTag: any;
 }

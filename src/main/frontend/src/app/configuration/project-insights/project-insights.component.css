@@ -159,3 +159,31 @@
   .custom-checkbox-new input[type="checkbox"]:checked ~ .checkmark::after {
     display: block;
   }
+
+
+.context-menu {
+    position: fixed;
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    z-index: 9999; 
+  }
+  
+  .context-menu .list-group-item {
+    cursor: pointer;
+    padding: 8px 16px;
+  }
+  
+  .context-menu .list-group-item:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .context-menu-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9998;
+  }

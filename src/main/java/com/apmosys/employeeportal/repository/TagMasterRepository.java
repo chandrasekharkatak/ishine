@@ -13,5 +13,8 @@ public interface TagMasterRepository extends JpaRepository<TagMaster, Long>, Jpa
 	List<TagMaster> findByProjectId(Long projectId);
 
 	List<TagMaster> findByEntityIdAndEntityTypeAndType(Long userContributionId, String string, String string2);
+	
+	@Query(value = "select tm from TagMaster tm where tm.entityId in :entityIdList and tm.entityType=:entityType  and tm.type=:type ")
+	List<TagMaster> findByEntityIdInAndEntityTypeAndType(List<Long> entityIdList, String entityType, String type);
 
 }

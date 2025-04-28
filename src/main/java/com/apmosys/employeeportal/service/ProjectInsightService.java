@@ -624,7 +624,7 @@ public class ProjectInsightService {
 		logBuilder.append("ProjectId : " + projectInsightDTO.getProjectId());
 		try {
 
-			if (projectInsightDTO.getProjectId() == null) {
+			if (!validationService.validateProjectId(projectInsightDTO.getProjectId())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project Id does not exists.");
 				apiLogInfo.setApiResponse("Project Id does not exists");
@@ -666,11 +666,11 @@ public class ProjectInsightService {
 						projectInsightQuestion.add(mileStoneProjObject);
 					});
 					responseObject.setProjectInsightMilestoneList(projectInsightQuestion);
+					response.setServiceResponse(responseObject);
+					apiLogInfo.setApiResponse("All Questions By MilestoneId Fetched");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			} 
-			response.setServiceResponse(responseObject);
-			apiLogInfo.setApiResponse("All Questions By MilestoneId Fetched");
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			e.printStackTrace();
 			apiLogInfo.setLogLevel("ERROR");
@@ -983,10 +983,26 @@ public class ProjectInsightService {
 		}
 	}
 
+	private void deleteResponseById(Long questionId) {
+		try {
+			List<ProjectInsightResponse> projectInsightResponseList =  projectInsightResponseRepository.findAllByQuestionMasterId(questionId);
+			if(projectInsightResponseList != null && !projectInsightResponseList.isEmpty()) {
+				List<Long> projectInsightResponseIdList = projectInsightResponseList.stream().map(ProjectInsightResponse::getProjectInsightResponseId).collect(Collectors.toList());
+				List<TagMaster> dbTagMasterResponse = tagMasterRepository.findByEntityIdInAndEntityTypeAndType(projectInsightResponseIdList, "Response", "user");
+				tagMasterRepository.deleteAll(dbTagMasterResponse);
+			}
+			 projectInsightResponseRepository.deleteAllProjectInsightResponseByQuestionMasterId(questionId);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+	
 	private void deleteProjectInsightQuestion(Long questionId,String entityType) {
 		try {
 			entityType = entityType.equals(null) ? "Question" : entityType;
-			 projectInsightResponseRepository.deleteAllProjectInsightResponseByQuestionMasterId(questionId);
+			deleteResponseById(questionId);
 			 projectInsightAssigneesRepository.deleteAllProjectInsightAssigneesByEntityIdAndEntityType(questionId,entityType);
 			 questionMasterRepository.deleteAllQuestionsByEntityIdAndEntityType(questionId);
 		} catch (Exception e) {
@@ -1192,27 +1208,26 @@ public class ProjectInsightService {
 			boolean isEmployee = checkIfIsEmployee(employeePersonaListForTeam,projectInsightDTO.getEmployeeRole());
 			
 			List<ProjectInsightMilestone> projectInsightMilestoneList =  projectInsightMilestoneRepository.getByProjectId(projectInsightDTO.getProjectId());
-			List<ProjectQuestionDTO>  projectQuestionList = getProjectQuestionDTOList(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId(), isEmployee, projectInsightDTO.getPerformanceTabName(), projectInsightDTO.getProjectId(),null);
-			if((projectInsightMilestoneList == null || projectInsightMilestoneList.isEmpty()) && (projectQuestionList == null || projectQuestionList.isEmpty())) {
+			if (projectInsightMilestoneList != null && !projectInsightMilestoneList.isEmpty()) {
+				ProjectInsightDTO projectInsightDTODbObject = createProjectInsightMileStoneObject(projectInsightMilestoneList,projectInsightDTO.getEmpId(),isEmployee,projectInsightDTO.getPerformanceTabName(),projectInsightDTO.getProjectId());
+				projectInsightDTODbObject.setQuestionList(getProjectQuestionDTOList(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId(), isEmployee, projectInsightDTO.getPerformanceTabName(), projectInsightDTO.getProjectId(),null));
+				projectInsightDTODbObject.setTaggedToUserNames(getAllTaggedUserName(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId()));
+				projectInsightDTODbObject.setTaggedToUserId(getAllTaggedUserId(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId()));
+				projectInsightDTODbObject.setProjectId(projectInsightDTO.getProjectId());
+				projectInsightDTODbObject.setProjectManagerId(project.getProjectManagerId());
+				projectInsightDTODbObject.setProjectManagerName(getProjectManagerName(project.getProjectManagerId()));
+				projectInsightDTODbObject.setProjectName(project.getProjectName());
+				projectInsightDTODbObject.setIsFinalSubmitted(getIsFinalResponseSubmittedByUserForProject(projectInsightDTO.getEmpId(),projectInsightDTO.getProjectId()));
+				response.setServiceResponse(projectInsightDTODbObject);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("All Project Insight Responses Fetched For Project!!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No Milestone or Questions Found for Project.");
-				apiLogInfo.setApiResponse("No Milestone or Questions Found for Project.");
+				response.setServiceResponse("No Milestone Found for Project.");
+				apiLogInfo.setApiResponse("No Milestone Found for Project.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
-		
-			ProjectInsightDTO projectInsightDTODbObject = createProjectInsightMileStoneObject(projectInsightMilestoneList,projectInsightDTO.getEmpId(),isEmployee,projectInsightDTO.getPerformanceTabName(),projectInsightDTO.getProjectId());
-			projectInsightDTODbObject.setQuestionList(projectQuestionList);
-			projectInsightDTODbObject.setTaggedToUserNames(getAllTaggedUserName(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId()));
-			projectInsightDTODbObject.setTaggedToUserId(getAllTaggedUserId(projectInsightDTO.getProjectId(), "Project",projectInsightDTO.getEmpId()));
-			projectInsightDTODbObject.setProjectId(projectInsightDTO.getProjectId());
-			projectInsightDTODbObject.setProjectManagerId(project.getProjectManagerId());
-			projectInsightDTODbObject.setProjectManagerName(getProjectManagerName(project.getProjectManagerId()));
-			projectInsightDTODbObject.setProjectName(project.getProjectName());
-			projectInsightDTODbObject.setIsFinalSubmitted(getIsFinalResponseSubmittedByUserForProject(projectInsightDTO.getEmpId(),projectInsightDTO.getProjectId()));
-			response.setServiceResponse(projectInsightDTODbObject);
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			apiLogInfo.setApiResponse("All Project Insight Responses Fetched For Project!!");
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -1496,6 +1511,7 @@ public class ProjectInsightService {
 			projectResponseDTO.setDocumentPath(projectInsightResponse.getDocumentPath());
 			projectResponseDTO.setResponseType(projectInsightResponse.getResponseType());
 			projectResponseDTO.setIsFinalSubmitted(projectInsightResponse.getIsFinalSubmitted());
+			projectResponseDTO.setTags(getAllTagsForResponse(projectInsightResponse.getProjectInsightResponseId()));
 			projectResponseDTO.setProjectInsightResponsePointList(getResponsePointDTOList(projectInsightResponse.getProjectInsightResponseId()));
 			projectResponseDTO.setApprovedForKnowledgeHub( projectInsightResponse.getIsApprovedForKnowledgeHub()!= null&&  projectInsightResponse.getIsApprovedForKnowledgeHub().equals("Y") ? true :  false );
 			return projectResponseDTO;
@@ -1505,6 +1521,20 @@ public class ProjectInsightService {
 		}
 	}
 	
+	private List<String> getAllTagsForResponse(Long projectInsightResponseId) {
+		List<String> tagsList = new ArrayList<String>();
+		try {
+			List<TagMaster> dbTagMasterResponse = tagMasterRepository.findByEntityIdAndEntityTypeAndType(projectInsightResponseId, "Response", "user");
+			if (dbTagMasterResponse != null && !dbTagMasterResponse.isEmpty()) {
+				tagsList = dbTagMasterResponse.stream().map(TagMaster::getTag).collect(Collectors.toList());
+			}
+			return tagsList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
 	private List<ProjectInsightResponsePointsDTO> getResponsePointDTOList(Long projectInsightResponseId) {
 		try {
 			List<ProjectInsightResponsePointsDTO> projectInsightResponsePointDTOList = new ArrayList<ProjectInsightResponsePointsDTO>();
@@ -1727,13 +1757,27 @@ public class ProjectInsightService {
 		try {
 			ProjectInsightResponse projectInsightResponse = projectInsightResponseRepository.findByEmpIdAndQuestionMasterId(responseBy, projectQuestionDTO.getQuestionId());
 			if (projectInsightResponse != null) {
+				List<TagMaster> dbTagMasterResponse = tagMasterRepository.findByEntityIdAndEntityTypeAndType(projectInsightResponse.getProjectInsightResponseId(), "Response", "user");
+				tagMasterRepository.deleteAll(dbTagMasterResponse);
 				projectInsightResponse = mapProjectResponseDTOToProjectResponseAndUploadFile(projectInsightResponse,projectResponseDTO ,files,projectInsightResponseMetadataId,projectQuestionDTO.getQuestionId(), combinedText);
 				if (files != null) {}
 			} else {
 				projectInsightResponse = new ProjectInsightResponse();
 				projectInsightResponse = mapProjectResponseDTOToProjectResponseAndUploadFile(projectInsightResponse,projectResponseDTO ,files,projectInsightResponseMetadataId,projectQuestionDTO.getQuestionId(), combinedText);
 			}
-			projectInsightResponseRepository.save(projectInsightResponse);
+			ProjectInsightResponse projectInsightResponse2 = projectInsightResponseRepository.save(projectInsightResponse);
+			if (projectResponseDTO.getTags() != null && !projectResponseDTO.getTags().isEmpty()
+					&& projectInsightResponse2 != null && projectInsightResponse2.getProjectInsightResponseId() != null) {
+				List<TagMaster> newUserDefinedTags = projectResponseDTO.getTags().stream().map(tagObj -> {
+					TagMaster newObj = new TagMaster();
+					newObj.setEntityId(projectInsightResponse2.getProjectInsightResponseId());
+					newObj.setEntityType("Response");
+					newObj.setTag(tagObj);
+					newObj.setType("user");
+					return newObj;
+				}).collect(Collectors.toList());
+				tagMasterRepository.saveAll(newUserDefinedTags);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
@@ -1905,10 +1949,10 @@ public class ProjectInsightService {
 						objectList.addAll(objectList2);
 					}
 				} else {
+					List<Long> projectIds  = new ArrayList<Long>();
 					objectList = projectInsightMilestoneRepository.getAllProjectInsight();
-					List<Long> projectIds = new ArrayList<Long>();
 					if(objectList != null && !objectList.isEmpty()) {
-						projectIds = objectList.stream().map(obj -> parseLong(obj[0])).collect(Collectors.toList()); 
+						projectIds =  objectList.stream().map(object -> parseLong(object[0])).collect(Collectors.toList());
 					} else {
 						projectIds.add(-1l);
 					}

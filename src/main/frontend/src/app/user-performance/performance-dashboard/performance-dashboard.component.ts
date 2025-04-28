@@ -908,7 +908,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
       if (response.serviceStatus == "Success") {
         this.allProjectInsightList = response.serviceResponse;
         this.allProjectInsightList.forEach(project => {
-          project.createdOn = (project.createdOn) ? moment(project.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          project.createdOn = (project.createdOn) ? moment(project.createdOn).format(AppComponent.LOCAL_DATE_FORMAT) : null;
         });
       } else {
         console.error(response.serviceResponse);

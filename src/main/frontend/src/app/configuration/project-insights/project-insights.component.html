@@ -77,14 +77,14 @@
     </div>
 
     <!-- Project Questions -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="questions_card_template"
         [ngTemplateOutletContext]="{entity:entityObj , entityType:'Project'}">
       </ng-container>
     </div>
 
     <!-- Project Milestone -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Milestones'" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('Milestones')" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="milestone_card_template"
         [ngTemplateOutletContext]="{ entityList:entityObj.projectInsightMilestoneList}">
       </ng-container>
@@ -100,14 +100,14 @@
     </div>
 
     <!-- Milestone Questions -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="questions_card_template"
         [ngTemplateOutletContext]="{entity:entityObj , entityType:'Milestone'}">
       </ng-container>
     </div>
 
     <!-- Milestone Modules -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Modules'" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('Modules') && !entityObj?.currentActiveBadgeLevel?.includes('SubModules')" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="module_card_template"
         [ngTemplateOutletContext]="{ entityList:entityObj.moduleList}">
       </ng-container>
@@ -124,14 +124,14 @@
     </div>
 
     <!-- Module Questions -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="questions_card_template"
         [ngTemplateOutletContext]="{entity:entityObj , entityType:'Module'}">
       </ng-container>
     </div>
 
     <!-- Module SubModules -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'SubModules'" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('SubModules') && !entityObj?.currentActiveBadgeLevel?.includes('Sub-SubModules')" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="submodule_card_template"
         [ngTemplateOutletContext]="{ entityList:entityObj.subModuleList,subModuleType:'SubModule'}">
       </ng-container>
@@ -147,7 +147,7 @@
     </div>
 
     <!-- SubModule Questions -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="questions_card_template"
         [ngTemplateOutletContext]="{entity:entityObj , entityType:'SubModule'}">
       </ng-container>
@@ -155,7 +155,7 @@
 
     <!-- SubModule SubSubModules -->
     <div
-      *ngIf="entityObj?.currentActiveBadgeLevel == 'SubModules' || entityObj?.currentActiveBadgeLevel == 'Sub-SubModules'"
+      *ngIf="entityObj?.currentActiveBadgeLevel?.includes('SubModules') || entityObj?.currentActiveBadgeLevel?.includes('Sub-SubModules')"
       class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="submodule_card_template"
         [ngTemplateOutletContext]="{ entityList:entityObj.subSubModuleList,subModuleType:'Sub-SubModule'}">
@@ -183,7 +183,7 @@
       <div class="col-md-8">
         <div class="badge-container">
           <span *ngFor="let level of entity?.badgePathList" class="badge"
-            [ngClass]="{ 'active': entity?.currentActiveBadgeLevel == level.name }"
+            [ngClass]="{ 'active': entity?.currentActiveBadgeLevel?.includes(level.name)}"
             (click)="changeCurrentActiveBadgeLevel(entity,level.name,entityType,entityName,entityId)">
             {{ level.name }}
           </span>
@@ -254,7 +254,7 @@
         <div class="form-group mb-0">
           <label class="info-label">Project Manager</label>
           <input type="text" class="form-control" autocomplete="none" [(ngModel)]="entity.projectManagerName"
-            [disabled]="subActionType == 'Updation' || subActionType == 'Search' || subActionType == 'Preview' || actionType == 'Contribution'">
+            disabled>
         </div>
       </div>
     </div>
@@ -499,12 +499,78 @@
             </div>
 
             <div *ngIf="entity.optionType == 'text' && subActionType != 'Preview'" class="mt-2">
-              <textarea type="text" class="form-control" autocomplete="none" placeholder="Enter Answer here..."
-                [disabled]="this.projectInsightObj.isFinalSubmitted == 'Y'" [(ngModel)]="response.response"></textarea>
+              <div class="form-group mb-3">
+                <label>Tags</label>
+                <div class="tags-container">
+                  <div class="d-flex flex-wrap gap-2 mb-2">
+                    <span *ngFor="let tag of response.tags; let i = index" class="badge active mr-1">
+                      {{tag}}&nbsp;&nbsp;
+                      <span class="btn-close btn-close-white ms-2" *ngIf="projectInsightObj.isFinalSubmitted == 'N'"
+                        style="cursor: pointer;" aria-label="Close" (click)="removeTag(response,i)">
+                        <i class="fa-solid fa-xmark"></i>
+                      </span>
+                    </span>
+                  </div>
+            
+                  <input type="text" class="form-control" [(ngModel)]="response.newTag"
+                    [disabled]="projectInsightObj.isFinalSubmitted == 'Y'" placeholder="Type and press Enter to add tag"
+                    (keyup.enter)="addManualTag(response)" />
+                </div>
+              </div>
+            
+              <div class="form-group mb-3">
+                <label><span class="text-danger">*</span>Enter Response Here</label>
+                <div (contextmenu)="handleContextMenu($event)">
+                  <angular-editor id="myEditor" [(ngModel)]="response.response" [config]="editorConfig">
+                  </angular-editor>
+                </div>
+            
+                <div *ngIf="showContextMenu" class="context-menu" [style.left.px]="contextMenuX" [style.top.px]="contextMenuY">
+                  <div class="list-group">
+                    <button class="list-group-item" (click)="addTag(response)">Add tag</button>
+                  </div>
+                </div>
+            
+                <div *ngIf="showContextMenu" class="context-menu-backdrop" (click)="closeContextMenu()">
+                </div>
+              </div>
             </div>
             <div *ngIf="entity.optionType == 'text' && subActionType == 'Preview'" class="mt-2">
-              <textarea type="text" class="form-control" autocomplete="none" placeholder="Enter Answer here..."
-                disabled></textarea>
+              <div class="form-group mb-3">
+                <label>Tags</label>
+                <div class="tags-container">
+                  <div class="d-flex flex-wrap gap-2 mb-2">
+                    <span *ngFor="let tag of response.tags; let i = index" class="badge active mr-1">
+                      {{tag}}&nbsp;&nbsp;
+                      <span class="btn-close btn-close-white ms-2" *ngIf="projectInsightObj.isFinalSubmitted == 'N'"
+                        style="cursor: pointer;" aria-label="Close" (click)="removeTag(response,i)">
+                        <i class="fa-solid fa-xmark"></i>
+                      </span>
+                    </span>
+                  </div>
+            
+                  <input type="text" class="form-control" [(ngModel)]="response.newTag"
+                    [disabled]="projectInsightObj.isFinalSubmitted == 'Y'" placeholder="Type and press Enter to add tag"
+                    (keyup.enter)="addManualTag(response)" />
+                </div>
+              </div>
+            
+              <div class="form-group mb-3">
+                <label><span class="text-danger">*</span>Enter Response Here</label>
+                <div (contextmenu)="handleContextMenu($event)">
+                  <angular-editor id="myEditor" [config]="editorConfig">
+                  </angular-editor>
+                </div>
+            
+                <div *ngIf="showContextMenu" class="context-menu" [style.left.px]="contextMenuX" [style.top.px]="contextMenuY">
+                  <div class="list-group">
+                    <button class="list-group-item" (click)="addTag(response)">Add tag</button>
+                  </div>
+                </div>
+            
+                <div *ngIf="showContextMenu" class="context-menu-backdrop" (click)="closeContextMenu()">
+                </div>
+              </div>
             </div>
 
             <div *ngIf="entity.optionType == 'checkbox' && subActionType != 'Preview'" class="mt-2">
@@ -672,7 +738,7 @@
   </div>
 
   <!-- Questions -->
-  <div *ngIf="entity?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
+  <div *ngIf="entity?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
     <ng-container [ngTemplateOutlet]="questions_card_template"
       [ngTemplateOutletContext]="{ entity:entity ,entityType:'Milestone'}">
     </ng-container>
@@ -734,7 +800,7 @@
   </div>
 
   <!-- Questions -->
-  <div *ngIf="entity?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
+  <div *ngIf="entity?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
     <ng-container [ngTemplateOutlet]="questions_card_template"
       [ngTemplateOutletContext]="{ entity:entity ,entityType:'Module'}">
     </ng-container>
@@ -799,7 +865,7 @@
   </div>
 
   <!-- Questions -->
-  <div *ngIf="entity?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
+  <div *ngIf="entity?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
     <ng-container [ngTemplateOutlet]="questions_card_template"
       [ngTemplateOutletContext]="{ entity:entity ,entityType:'SubModule'}">
     </ng-container>
