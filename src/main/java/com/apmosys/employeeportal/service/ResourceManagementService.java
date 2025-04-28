@@ -2435,7 +2435,7 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                             .collect(Collectors.toList());
 	                 } else if ("Not Started".equalsIgnoreCase(approvalStatus)) {
 	                     combinedProjects = combinedProjects.stream()
-	                             .filter(project -> "NA".equalsIgnoreCase(project.getIsDraftProject()) || "Internal".equalsIgnoreCase(project.getIsDraftProject()))
+	                             .filter(project -> "Not Started".equalsIgnoreCase(project.getIsDraftProject()) || "Internal".equalsIgnoreCase(project.getIsDraftProject()))
 	                             .collect(Collectors.toList());
 	                 } else if ("Rejected".equalsIgnoreCase(approvalStatus)) {
 	                     combinedProjects = combinedProjects.stream()
@@ -2536,12 +2536,12 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
                             } else if ("false".equalsIgnoreCase(selectedProj.getIsDraftProject())) {
                                 proj.setIsDraftProject("Approved");
                             } else {
-                                proj.setIsDraftProject("NA");
+                                proj.setIsDraftProject("Not started");
                             }
                         }
                     } else {
                         proj.setIsTeamCreated("false");
-                        proj.setIsDraftProject("NA");
+                        proj.setIsDraftProject("Not Started");
                     }
                     
                     if (proj.getStatus() != null) {
@@ -2573,7 +2573,7 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
                                     } else if ("false".equalsIgnoreCase(selectedProj.getIsDraftProject())) {
                                         proj.setIsDraftProject("Approved");
                                     } else {
-                                        proj.setIsDraftProject("NA");
+                                        proj.setIsDraftProject("Not Started");
                                     }
                                 }
                             } else {
