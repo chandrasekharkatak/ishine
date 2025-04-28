@@ -24,5 +24,6 @@ public class ProjectResponseDTO {
 	private String isFinalSubmitted;
 	private List<ProjectInsightResponsePointsDTO> projectInsightResponsePointList;
 	private boolean isApprovedForKnowledgeHub;
+	private List<String> tags;
 
 }

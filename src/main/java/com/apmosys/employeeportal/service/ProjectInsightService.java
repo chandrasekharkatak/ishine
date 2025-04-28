@@ -527,7 +527,14 @@ public class ProjectInsightService {
 					|| projectInsightDTO.getEmployeeRole().equals("Manager")) {
 				objectList = projectInsightMilestoneRepository.getAllProjectInsightByUser(projectInsightDTO.getEmpId());
 			} else {
+				List<Long> projectIds  = new ArrayList<Long>();
 				objectList = projectInsightMilestoneRepository.getAllProjectInsight();
+				if(objectList != null && !objectList.isEmpty()) {
+					projectIds =  objectList.stream().map(object -> parseLong(object[0])).collect(Collectors.toList());
+				} else {
+					projectIds.add(-1l);
+				}
+				objectList.addAll(questionMasterRepository.getAllProjectInsight(projectIds));
 			}
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
@@ -976,10 +983,26 @@ public class ProjectInsightService {
 		}
 	}
 
+	private void deleteResponseById(Long questionId) {
+		try {
+			List<ProjectInsightResponse> projectInsightResponseList =  projectInsightResponseRepository.findAllByQuestionMasterId(questionId);
+			if(projectInsightResponseList != null && !projectInsightResponseList.isEmpty()) {
+				List<Long> projectInsightResponseIdList = projectInsightResponseList.stream().map(ProjectInsightResponse::getProjectInsightResponseId).collect(Collectors.toList());
+				List<TagMaster> dbTagMasterResponse = tagMasterRepository.findByEntityIdInAndEntityTypeAndType(projectInsightResponseIdList, "Response", "user");
+				tagMasterRepository.deleteAll(dbTagMasterResponse);
+			}
+			 projectInsightResponseRepository.deleteAllProjectInsightResponseByQuestionMasterId(questionId);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+	
 	private void deleteProjectInsightQuestion(Long questionId,String entityType) {
 		try {
 			entityType = entityType.equals(null) ? "Question" : entityType;
-			 projectInsightResponseRepository.deleteAllProjectInsightResponseByQuestionMasterId(questionId);
+			deleteResponseById(questionId);
 			 projectInsightAssigneesRepository.deleteAllProjectInsightAssigneesByEntityIdAndEntityType(questionId,entityType);
 			 questionMasterRepository.deleteAllQuestionsByEntityIdAndEntityType(questionId);
 		} catch (Exception e) {
@@ -1488,6 +1511,7 @@ public class ProjectInsightService {
 			projectResponseDTO.setDocumentPath(projectInsightResponse.getDocumentPath());
 			projectResponseDTO.setResponseType(projectInsightResponse.getResponseType());
 			projectResponseDTO.setIsFinalSubmitted(projectInsightResponse.getIsFinalSubmitted());
+			projectResponseDTO.setTags(getAllTagsForResponse(projectInsightResponse.getProjectInsightResponseId()));
 			projectResponseDTO.setProjectInsightResponsePointList(getResponsePointDTOList(projectInsightResponse.getProjectInsightResponseId()));
 			projectResponseDTO.setApprovedForKnowledgeHub( projectInsightResponse.getIsApprovedForKnowledgeHub()!= null&&  projectInsightResponse.getIsApprovedForKnowledgeHub().equals("Y") ? true :  false );
 			return projectResponseDTO;
@@ -1497,6 +1521,20 @@ public class ProjectInsightService {
 		}
 	}
 	
+	private List<String> getAllTagsForResponse(Long projectInsightResponseId) {
+		List<String> tagsList = new ArrayList<String>();
+		try {
+			List<TagMaster> dbTagMasterResponse = tagMasterRepository.findByEntityIdAndEntityTypeAndType(projectInsightResponseId, "Response", "user");
+			if (dbTagMasterResponse != null && !dbTagMasterResponse.isEmpty()) {
+				tagsList = dbTagMasterResponse.stream().map(TagMaster::getTag).collect(Collectors.toList());
+			}
+			return tagsList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
 	private List<ProjectInsightResponsePointsDTO> getResponsePointDTOList(Long projectInsightResponseId) {
 		try {
 			List<ProjectInsightResponsePointsDTO> projectInsightResponsePointDTOList = new ArrayList<ProjectInsightResponsePointsDTO>();
@@ -1719,13 +1757,27 @@ public class ProjectInsightService {
 		try {
 			ProjectInsightResponse projectInsightResponse = projectInsightResponseRepository.findByEmpIdAndQuestionMasterId(responseBy, projectQuestionDTO.getQuestionId());
 			if (projectInsightResponse != null) {
+				List<TagMaster> dbTagMasterResponse = tagMasterRepository.findByEntityIdAndEntityTypeAndType(projectInsightResponse.getProjectInsightResponseId(), "Response", "user");
+				tagMasterRepository.deleteAll(dbTagMasterResponse);
 				projectInsightResponse = mapProjectResponseDTOToProjectResponseAndUploadFile(projectInsightResponse,projectResponseDTO ,files,projectInsightResponseMetadataId,projectQuestionDTO.getQuestionId(), combinedText);
 				if (files != null) {}
 			} else {
 				projectInsightResponse = new ProjectInsightResponse();
 				projectInsightResponse = mapProjectResponseDTOToProjectResponseAndUploadFile(projectInsightResponse,projectResponseDTO ,files,projectInsightResponseMetadataId,projectQuestionDTO.getQuestionId(), combinedText);
 			}
-			projectInsightResponseRepository.save(projectInsightResponse);
+			ProjectInsightResponse projectInsightResponse2 = projectInsightResponseRepository.save(projectInsightResponse);
+			if (projectResponseDTO.getTags() != null && !projectResponseDTO.getTags().isEmpty()
+					&& projectInsightResponse2 != null && projectInsightResponse2.getProjectInsightResponseId() != null) {
+				List<TagMaster> newUserDefinedTags = projectResponseDTO.getTags().stream().map(tagObj -> {
+					TagMaster newObj = new TagMaster();
+					newObj.setEntityId(projectInsightResponse2.getProjectInsightResponseId());
+					newObj.setEntityType("Response");
+					newObj.setTag(tagObj);
+					newObj.setType("user");
+					return newObj;
+				}).collect(Collectors.toList());
+				tagMasterRepository.saveAll(newUserDefinedTags);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
@@ -1897,7 +1949,14 @@ public class ProjectInsightService {
 						objectList.addAll(objectList2);
 					}
 				} else {
+					List<Long> projectIds  = new ArrayList<Long>();
 					objectList = projectInsightMilestoneRepository.getAllProjectInsight();
+					if(objectList != null && !objectList.isEmpty()) {
+						projectIds =  objectList.stream().map(object -> parseLong(object[0])).collect(Collectors.toList());
+					} else {
+						projectIds.add(-1l);
+					}
+					objectList.addAll(questionMasterRepository.getAllProjectInsight(projectIds));
 				}
 			}
 			
@@ -1938,11 +1997,11 @@ public class ProjectInsightService {
 	}
 	
 	private Long parseLong(Object obj) {
-		return obj != null ? Long.parseLong(obj.toString()) : null;
+		return obj != null ? !obj.toString().equalsIgnoreCase("null") ?  Long.parseLong(obj.toString()) :null : null;
 	}
 
 	private String parseString(Object obj) {
-		return obj != null ? obj.toString() : null;
+		return obj != null ? !obj.toString().equalsIgnoreCase("null") ?  obj.toString() : null : null;
 	}
 	
 	private boolean checkIfIsEmployee(List<Object[]> employeePersonaListForTeam, String employeeRole) {
