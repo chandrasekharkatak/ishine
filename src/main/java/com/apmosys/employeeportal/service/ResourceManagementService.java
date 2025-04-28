@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import javax.mail.internet.AddressException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 import org.springframework.web.client.RestTemplate;
 
@@ -36,6 +39,7 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
@@ -135,6 +139,12 @@ public class ResourceManagementService {
 	
 	@Value("${bd.mail}")
 	private String bdMail;
+	
+	@Value("${poPortal.api.allProjects}")
+	private String allPoPortalProjects;
+	
+	@Autowired
+	private final RestTemplate restTemplate = new RestTemplate();
 
 	
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
@@ -2386,5 +2396,203 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	        
 	        return response;
 	 }
+	 @Transactional
+	 public ServiceResponse combinedPOINTERNALList(ProjectFilterDTO projectFilterDTO) {
+	     ServiceResponse response = new ServiceResponse();
+	     StringBuilder logBuilder = new StringBuilder();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setLogLevel("INFO");
+
+	     try {
+	    	 
+	    	 String approvalStatus = projectFilterDTO.getApprovalStatus();
+	         List<ResourceManagementDTO> poPortalProjects = fetchPoPortalProjects();
+	         ServiceResponse internalProjectResponse = getInternalProject();
+
+	         if (internalProjectResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+	             List<ResourceManagementDTO> internalProjects = (List<ResourceManagementDTO>) internalProjectResponse.getServiceResponse();
+	             ServiceResponse teamCreatedProjectsResponse = alreadyCreatedTeam();
+
+	             if (teamCreatedProjectsResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+	                 List<ResourceManagementDTO> teamCreatedProjects = (List<ResourceManagementDTO>) teamCreatedProjectsResponse.getServiceResponse();
+
+	                 processPoPortalProjects(poPortalProjects, teamCreatedProjects);
+	                 processInternalProjects(internalProjects, teamCreatedProjects);
+
+	                 // Combine the projects
+	                 List<ResourceManagementDTO> combinedProjects = new ArrayList<>();
+	                 combinedProjects.addAll(poPortalProjects);
+	                 combinedProjects.addAll(internalProjects);
+
+	                
+	                 if ("Pending For Approval".equalsIgnoreCase(approvalStatus)) {
+	                     combinedProjects = combinedProjects.stream()
+	                             .filter(project -> "Pending For Approval".equalsIgnoreCase(project.getIsDraftProject()))
+	                             .collect(Collectors.toList());
+	                 } else if ("Approved".equalsIgnoreCase(approvalStatus)) {
+	                     combinedProjects = combinedProjects.stream()
+	                             .filter(project -> "Approved".equalsIgnoreCase(project.getIsDraftProject()))
+	                             .collect(Collectors.toList());
+	                 } else if ("Not Started".equalsIgnoreCase(approvalStatus)) {
+	                     combinedProjects = combinedProjects.stream()
+	                             .filter(project -> "NA".equalsIgnoreCase(project.getIsDraftProject()) || "Internal".equalsIgnoreCase(project.getIsDraftProject()))
+	                             .collect(Collectors.toList());
+	                 } else if ("Rejected".equalsIgnoreCase(approvalStatus)) {
+	                     combinedProjects = combinedProjects.stream()
+	                             .filter(project -> "Rejected".equalsIgnoreCase(project.getIsDraftProject()))
+	                             .collect(Collectors.toList());
+	                 }
+
+	               
+	                 if ("All".equalsIgnoreCase(approvalStatus)) {
+	                	 combinedProjects = combinedProjects;
+	                 }
+
+	                
+	                 combinedProjects.sort((a, b) -> {
+	                     try {
+	                         String createdOnStrA = a.getCreatedOn();
+	                         String createdOnStrB = b.getCreatedOn();
+
+	                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+	                         Date createdOnA = (createdOnStrA != null && !createdOnStrA.isEmpty()) ? sdf.parse(createdOnStrA) : null;
+	                         Date createdOnB = (createdOnStrB != null && !createdOnStrB.isEmpty()) ? sdf.parse(createdOnStrB) : null;
+
+	                         if (createdOnA == null && createdOnB == null) return 0;
+	                         if (createdOnA == null) return 1;
+	                         if (createdOnB == null) return -1;
+
+	                         return createdOnB.compareTo(createdOnA); 
+
+	                     } catch (Exception e) {
+	                         e.printStackTrace();
+	                         return 0;
+	                     }
+	                 });
+
+	                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                 response.setServiceResponse(combinedProjects);
+	                 apiLogInfo.setApiResponse("Filtered and combined project info list size: " + combinedProjects.size());
+	                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	             } else {
+	                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                 response.setServiceResponse("Failed to fetch already created team projects.");
+	                 apiLogInfo.setApiResponse("Failed to fetch already created team projects.");
+	                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             }
+	         } else {
+	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("Failed to fetch internal projects.");
+	             apiLogInfo.setApiResponse("Failed to fetch internal projects.");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         }
+
+	     } catch (Exception e) {
+	         e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+
+	     return response;
+	 }
+
+
+	 
+	 private List<ResourceManagementDTO> fetchPoPortalProjects() {
+		    List<ResourceManagementDTO> poPortalProjects = new ArrayList<>();
+		    try {
+		        ResourceManagementDTO[] poPortalProjectArray = restTemplate.getForObject(
+		                allPoPortalProjects, ResourceManagementDTO[].class);
+		        poPortalProjects = Arrays.asList(poPortalProjectArray != null ? poPortalProjectArray : new ResourceManagementDTO[0]);
+		    } catch (RestClientException e) {
+		        throw new RuntimeException("Error fetching projects from PoPortal: " + e.getMessage());
+		    }
+		    return poPortalProjects;
+		}
+	 
+	 
+	 private void processPoPortalProjects(List<ResourceManagementDTO> poPortalProjects,
+             List<ResourceManagementDTO> teamCreatedProjects) {
+                for (ResourceManagementDTO proj : poPortalProjects) {
+                    ResourceManagementDTO selectedProj = teamCreatedProjects.stream()
+                        .filter(projTeam -> proj.getId() != null && proj.getId().equals(projTeam.getPoProjectId()))
+                         .findFirst()
+                         .orElse(null);
+                    
+                    if (selectedProj != null) {
+                        proj.setIsTeamCreated("true");
+                        if (selectedProj.getIsActive() != null && selectedProj.getIsActive() == 2) {
+                            proj.setIsDraftProject("Pending For Approval");
+                        } else {
+                            if ("Rejected".equalsIgnoreCase(selectedProj.getIsDraftProject())) {
+                                proj.setIsDraftProject("Rejected");
+                            } else if ("false".equalsIgnoreCase(selectedProj.getIsDraftProject())) {
+                                proj.setIsDraftProject("Approved");
+                            } else {
+                                proj.setIsDraftProject("NA");
+                            }
+                        }
+                    } else {
+                        proj.setIsTeamCreated("false");
+                        proj.setIsDraftProject("NA");
+                    }
+                    
+                    if (proj.getStatus() != null) {
+                        if ("true".equals(proj.getStatus())) {
+                            proj.setStatus("InProgress");
+                        } else if ("false".equals(proj.getStatus())) {
+                            proj.setStatus("Completed");
+                        }
+                    }
+                }
+            }
+	 
+	 
+	 private void processInternalProjects(List<ResourceManagementDTO> internalProjects,
+             List<ResourceManagementDTO> teamCreatedProjects) {
+                      for (ResourceManagementDTO proj : internalProjects) {
+                            ResourceManagementDTO selectedProj = teamCreatedProjects.stream()
+                             .filter(projTeam -> proj.getProjectId() != null && proj.getProjectId().equals(projTeam.getProjectId()))
+                             .findFirst()
+                             .orElse(null);
+                            
+                            if (selectedProj != null) {
+                                proj.setIsTeamCreated("true");
+                                if ("true".equalsIgnoreCase(selectedProj.getIsDraftProject())) {
+                                    proj.setIsDraftProject("Pending For Approval");
+                                } else {
+                                    if ("Rejected".equalsIgnoreCase(selectedProj.getIsDraftProject())) {
+                                        proj.setIsDraftProject("Rejected");
+                                    } else if ("false".equalsIgnoreCase(selectedProj.getIsDraftProject())) {
+                                        proj.setIsDraftProject("Approved");
+                                    } else {
+                                        proj.setIsDraftProject("NA");
+                                    }
+                                }
+                            } else {
+                                proj.setIsTeamCreated("false");
+                                proj.setIsDraftProject(proj.getProjectType());
+                            }
+                            
+                            if (proj.getStatus() != null) {
+                                if ("true".equals(proj.getStatus())) {
+                                    proj.setStatus("InProgress");
+                                } else if ("false".equals(proj.getStatus())) {
+                                    proj.setStatus("Completed");
+                                }
+                            }
+                      }
+	 }
+                      
+	    
+
+
 	
 }

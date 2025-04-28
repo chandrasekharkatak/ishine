@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.service.ResourceManagementService;
@@ -178,5 +179,10 @@ public class ResourceManagementController {
 	public ServiceResponse getEmployeeByNameAndEmpld() {
 	    return resourceManagementService.getEmployeeByNameAndEmpld();
 	}
+	 @PostMapping("/combinedPOINTERNALList")
+	    public ServiceResponse combinedPOINTERNALList(@RequestBody ProjectFilterDTO projectFilterDTO) {
+	        return resourceManagementService.combinedPOINTERNALList(projectFilterDTO);
+	    }
+
 
 }
