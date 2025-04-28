@@ -1802,6 +1802,8 @@ public class ResourceManagementService {
 		
 		EmployeeTeamMap findResource = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActiveStatus(resourceManagementDTO.getEmpId(), resourceManagementDTO.getTeamId());
 		Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
+	    Employee emp = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());        	
+      	Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
 		System.out.println("findResource  "+findResource );
 		if(findResource != null) {
 			findResource.setActive(0l);	
@@ -1818,7 +1820,21 @@ public class ResourceManagementService {
 			}
 			
 			employeeTeamMapRepository.save(findResource);
-		
+			 try {
+					mailService.sendMail(rmgMail,"Regarding Resource removed from Project ", "Dear "
+							+ emp.getName()+"<br>"
+							+ "You have been removed from project "+findProject.getProjectName()+ "under the team - "+findTeam.getTeamName()+"<br>"
+									+ "<br><br>"
+									+ "Sincerely,"+"<br>"
+									+ "Team RMG - ApMoSys Technologies"
+							);
+				} catch (AddressException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (MessagingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Resource removed successfully, from Team Name - "+findTeam.getTeamName());
 			
@@ -2352,4 +2368,84 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	        return response;
 	    }
 	
+	 
+	 public ServiceResponse updateProjectResourcesAsInActiveBulk(List<ResourceManagementDTO> resourceManagementDTOList) {
+		   
+
+		    ServiceResponse response = new ServiceResponse();
+		    StringBuilder resultMessage = new StringBuilder();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/updateProjectResourcesAsInActiveBulk");
+	        apiLogInfo.setLogLevel("INFO");
+		    int failureCount = 0;
+
+		    for (ResourceManagementDTO resourceManagementDTO : resourceManagementDTOList) {
+		       
+		        EmployeeTeamMap findResource = employeeTeamMapRepository
+		                .findByEmpIdAndTeamIdAndActiveStatus(resourceManagementDTO.getEmpId(), resourceManagementDTO.getTeamId());
+		        Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
+		        Employee emp = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());        	
+            	Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
+
+
+		        if (findResource != null) {
+		            try {
+		                findResource.setActive(0L); 
+
+		                
+		                if (resourceManagementDTO.getEndDate() != null) {
+		                    String str = resourceManagementDTO.getEndDate();
+		                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		                    LocalDate date = LocalDate.parse(str, formatter);
+		                    LocalDateTime endDateTime = date.atStartOfDay();
+
+		                    findResource.setEndDate(endDateTime);
+		                } else {
+		                    
+		                    findResource.setEndDate(LocalDateTime.now());
+		                }
+
+		                employeeTeamMapRepository.save(findResource);
+		                try {
+							mailService.sendMail(rmgMail,"Regarding Resource removed from Project ", "Dear "
+									+ emp.getName()+"<br>"
+									+ "You have been removed from project "+findProject.getProjectName()+ "under the team - "+findTeam.getTeamName()+"<br>"
+											+ "<br><br>"
+											+ "Sincerely,"+"<br>"
+											+ "Team RMG - ApMoSys Technologies"
+									);
+						} catch (AddressException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (MessagingException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+		               
+		                resultMessage.append("Resource with EmpId " + resourceManagementDTO.getEmpId() + " from Team " +
+		                        findTeam.getTeamName() + " removed successfully.\n");
+
+		            } catch (Exception e) {
+		                failureCount++;
+		                resultMessage.append("Failed to remove resource with EmpId " + resourceManagementDTO.getEmpId() +
+		                        " from Team " + findTeam.getTeamName() + ". Error: " + e.getMessage() + "\n");
+		            }
+		        } else {
+		            failureCount++;
+		            resultMessage.append("No resource found with EmpId " + resourceManagementDTO.getEmpId() +
+		                    " in Team " + findTeam.getTeamName() + ".\n");
+		        }
+		    }
+
+		    if (failureCount == 0) {
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse("Successfully removed resources");
+		    } else {
+		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse(resultMessage.toString());
+		    }
+
+		    return response;
+		}
+
 }
