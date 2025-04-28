@@ -160,6 +160,24 @@ thead {
     margin-left: 6px;
   }
     
-          
-
-  /* New content */
+  .custom-select-style {
+    border: 2px solid #053885;
+    color: #053885;
+    border-radius: 0.375rem;
+    padding: 0.15rem 0.75rem;
+    height: calc(1.5rem + 2px);
+    font-size: 1rem;
+    background-color: #fff;
+    width: 100%;
+    min-width: 280px;
+  }  
+  
+  mat-autocomplete {
+    z-index: 1000; 
+  }
+  
+  mat-option {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }

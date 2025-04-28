@@ -24,6 +24,8 @@ import { ProjectService } from 'src/app/services/project.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import { SortPipe } from 'src/app/sort.pipe';
+import { FormControl } from '@angular/forms';
+import { startWith, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-resource-management',
@@ -139,6 +141,12 @@ export class ResourceManagementComponent implements OnInit {
   flagDialogueBox: boolean = false;
   tableName: string;
 
+  searchQuery: any;
+  selectedEmpId: any;
+  employeeList: Employee[] = [];
+  filteredEmployees: Employee[] = [];
+  employeeCtrl = new FormControl();   // Search input controller
+
   constructor(
     private departmentService: DepartmentService,
     public validationService: ValidationService,
@@ -174,16 +182,20 @@ export class ResourceManagementComponent implements OnInit {
     });
     //console.log(this.currentProjectId, " : this.currentProjectId");
     this.sectionViewInit();
+    this.getEmployeeByNameAndEmpld();
+
+    this.employeeCtrl.valueChanges
+    .pipe(
+      startWith(''),
+      map(value => this.filterEmployees(value))
+    )
+    .subscribe(filtered => {
+      this.filteredEmployees = filtered;
+    });
 
     if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
       this.toggleSearch();
     }
-    // this.employee360Service.employeesFor360$.subscribe((employees) => {
-    //   this.employeesFor360 = employees;
-    //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
-    // });
-    // console.log('userMapping',this.userMapping);
-   
   }
    
 
@@ -1386,4 +1398,36 @@ console.log("this.copyDepartment ",this.copyDepartment);
     });
   }
 
+  getEmployeeByNameAndEmpld() {
+    this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => { 
+      if (response.serviceStatus === 'Success') {
+        this.employeeList = response.serviceResponse;
+        this.filteredEmployees = this.employeeList;
+      }
+    });
+  }
+  
+  filterEmployees(searchText: string) {
+    const lowerText = (searchText || '').toLowerCase();
+    return this.employeeList.filter(emp => 
+      emp.name.toLowerCase().includes(lowerText) || 
+      emp.employmentId.toLowerCase().includes(lowerText)
+    );
+  }
+  
+  // When an employee is selected
+  onEmployeeSelected(event: any) {
+    const selectedName = event.option.value;
+    const selectedEmp = this.employeeList.find(emp => emp.name === selectedName);
+    if (selectedEmp) {
+      this.selectedEmpId = selectedEmp.empId;
+      console.log('Selected Employee ID:', this.selectedEmpId);
+    }
+  }
+
+  displayEmployee(emp: any): string {
+    console.log("emp",emp)
+    return emp ? `${emp.name}` : '';
+  }  
+  
 }

@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -172,6 +173,10 @@ public class ResourceManagementController {
 	public ServiceResponse sendEmailNotificationToBDTeam(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 	    return resourceManagementService.sendEmailNotificationToBDTeam(resourceManagementDTO);
 	}
-
+	
+	@GetMapping("/getEmployeeByNameAndEmpld")
+	public ServiceResponse getEmployeeByNameAndEmpld() {
+	    return resourceManagementService.getEmployeeByNameAndEmpld();
+	}
 
 }

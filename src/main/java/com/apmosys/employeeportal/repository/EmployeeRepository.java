@@ -115,7 +115,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public Long countByJobRoleId(Long jobRoleId);
 
 	public Employee findByEmployeementId(Long employeementId);
-
 	
 	public List<Employee> findByMobileNo(Long employeementId);
 
@@ -563,5 +562,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     @Query(value ="select DISTINCT emp_id from employee where employmentstatus !='Inactive'",nativeQuery=true)
     List<Long>findAllActiveEmployees();
+    
+    @Query(nativeQuery = true)
+    public List<Object[]> getEmployeeByNameAndEmpld();
 
 }

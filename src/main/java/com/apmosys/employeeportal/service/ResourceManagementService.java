@@ -31,6 +31,7 @@ import org.springframework.web.client.RestTemplate;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
@@ -2350,5 +2351,40 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	        
 	        return response;
 	    }
+	 
+	 public ServiceResponse getEmployeeByNameAndEmpld() {
+		 
+		 ServiceResponse response = new ServiceResponse();
+	        LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setSubFeatureName("getEmployeeByNameAndEmpld");
+	        apiLogInfo.setApiUrl("/api/getEmployeeByNameAndEmpld");
+	        apiLogInfo.setLogLevel("INFO");
+
+	        try {
+	        	
+	        	List<Object[]> employees = employeeRepository.getEmployeeByNameAndEmpld();
+	            List<GetEmployeeByNameAndEmpldDTO> employeeDTOList = new ArrayList<>();
+
+	            employees.forEach(object -> {
+	                GetEmployeeByNameAndEmpldDTO dto = new GetEmployeeByNameAndEmpldDTO();
+	                
+	                dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+	                dto.setName(object[1] != null ? object[1].toString() : null);
+	                dto.setEmploymentId(object[2] != null ? object[2].toString() : null);
+
+	                employeeDTOList.add(dto);
+	            });
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(employeeDTOList);
+	            
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Error : " + e.getMessage());
+	        }
+	        
+	        return response;
+	 }
 	
 }

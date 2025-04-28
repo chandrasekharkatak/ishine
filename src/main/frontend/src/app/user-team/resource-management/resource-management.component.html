@@ -209,31 +209,26 @@
       </div>
     
 </div>
-    <!-- Filters -->
-    <div class="row g-2">
-      <div class="col-md-3">
-        <select class="form-select border border-primary text-primary">
-          <option selected>Search Employee</option>
-          <option>John Doe</option>
-          <option>Jane Smith</option>
-        </select>
-      </div>
-  
-      <div class="col-md-2">
-        <select class="form-select border border-primary text-primary">
-          <option selected>Status</option>
-          <option>Pending</option>
-          <option>Approved</option>
-        </select>
+
+    <div class="row g-2 justify-content-end align-items-center">
+      <div class="col-md-3 d-flex align-items-center" >
+        <div class="info-wrapper" style="margin-top: 18px;">
+          <div class="form-group">
+            <input type="text" class="form-select custom-select-style" placeholder="Search by Name or Emp ID" aria-label="Search employee" [formControl]="employeeCtrl" [matAutocomplete]="auto">    
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)" [displayWith]="displayEmployee">
+              <mat-option *ngFor="let emp of filteredEmployees" [value]="emp" [navigateToEmployee360]="emp.empId">{{ emp.name }}</mat-option>
+            </mat-autocomplete>
+          </div>
+        </div>
       </div>
   
       <div class="col-md-1 d-flex align-items-center justify-content-around">
-        <i class="fa fa-search text-primary"></i>
-        <i class="fa fa-filter text-primary"></i>
-        <i class="fa fa-download text-primary"></i>
+        <i class="fa fa-search" style="color: #053885;"></i>
+        <i class="fa fa-filter" style="color: #053885;"></i>
+        <i class="fa fa-download" style="color: #053885;"></i>
       </div>
     </div>
- </div>
+</div>
   
   
   
