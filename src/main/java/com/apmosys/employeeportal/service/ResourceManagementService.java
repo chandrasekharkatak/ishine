@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,6 +32,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 import org.springframework.web.client.RestTemplate;
 
+import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
@@ -2440,6 +2442,33 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                 List<ResourceManagementDTO> combinedProjects = new ArrayList<>();
 	                 combinedProjects.addAll(poPortalProjects);
 	                 combinedProjects.addAll(internalProjects);
+	                 
+	                 
+	              // Calculate counts before filtering
+	                 int pendingForApprovalCount = (int) combinedProjects.stream()
+	                         .filter(project -> "Pending For Approval".equalsIgnoreCase(project.getIsDraftProject()))
+	                         .count();
+
+	                 int approvedCount = (int) combinedProjects.stream()
+	                         .filter(project -> "Approved".equalsIgnoreCase(project.getIsDraftProject()))
+	                         .count();
+
+	                 int notStartedCount = (int) combinedProjects.stream()
+	                         .filter(project -> "Not Started".equalsIgnoreCase(project.getIsDraftProject()) ||
+	                                            "Internal".equalsIgnoreCase(project.getIsDraftProject()))
+	                         .count();
+
+	                 int rejectedCount = (int) combinedProjects.stream()
+	                         .filter(project -> "Rejected".equalsIgnoreCase(project.getIsDraftProject()))
+	                         .count();
+
+	                
+	                 Map<String, Integer> countsMap = new HashMap<>();
+	                 countsMap.put("pendingForApprovalCount", pendingForApprovalCount);
+	                 countsMap.put("approvedCount", approvedCount);
+	                 countsMap.put("notStartedCount", notStartedCount);
+	                 countsMap.put("rejectedCount", rejectedCount);
+
 
 	                
 	                 if ("Pending For Approval".equalsIgnoreCase(approvalStatus)) {
@@ -2487,9 +2516,14 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                         return 0;
 	                     }
 	                 });
+	                 
+	                 CombinedPOInternalProjectResponse combinedProjectResponse = new CombinedPOInternalProjectResponse();
+	                 combinedProjectResponse.setCombinedProjects(combinedProjects);
+	                 combinedProjectResponse.setCounts(countsMap);
+	                 
 
 	                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	                 response.setServiceResponse(combinedProjects);
+	                 response.setServiceResponse(combinedProjectResponse);
 	                 apiLogInfo.setApiResponse("Filtered and combined project info list size: " + combinedProjects.size());
 	                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	             } else {
