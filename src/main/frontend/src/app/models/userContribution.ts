@@ -18,6 +18,6 @@ export class UserContribution {
 	parentContributionName:any;
 	attachments: (File | {name: string, documentId: number, isExisting: boolean})[];
 	userDocument:any[] = [];
-	responseList:any[] = [];
+	responseRemarkList:any[] = [];
 	reviewType:any;
 }

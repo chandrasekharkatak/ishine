@@ -37,8 +37,9 @@ public class ProjectInsightUserContributionDTO {
 		private List<String> tags;
 		private List<MultipartFile> attachments;
 		private List<UserContributionDocument> userDocument;
-		private List<UserContributionResponseRemarks> responseList;
+		private List<UserContributionResponseRemarks> responseRemarkList;
 		private String reviewType;
+		private String contributionBy;
 		
 		// "preReviewer" , "Approve", "Reject"
 		private String processType;

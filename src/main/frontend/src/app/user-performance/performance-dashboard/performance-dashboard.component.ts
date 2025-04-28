@@ -245,6 +245,7 @@ export class PerformanceDashboardComponent implements OnInit {
     this.getMyContributionList();
     this.getUserContributionForReview();
     this.getAllProjects();
+    this.getEmployeeList();
     
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {

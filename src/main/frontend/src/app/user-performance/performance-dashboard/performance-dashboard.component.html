@@ -212,7 +212,7 @@
       <div class="col-md-6">
         <div class="card shadow border-0">
           <div class="card-header">
-            <h5 class="card-title mb-0 text-center fw-bold">My Contribution</h5>
+            <h5 class="card-title mb-0 text-center fw-bold">{{!toggleReviewView ? 'My Contribution' : 'Review Contribution'}}</h5>
           </div>
           <div class="card-body">
             <div class="col-md-12">
@@ -252,6 +252,7 @@
                       <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>
                       <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                       <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                      <th scope="col" *ngIf="showReviewButton" class="info-label" mat-sort-header="createdOn|string">Contribution by</th>
                       <th scope="col" class="info-label">Actions</th>
                     </tr>
                     <tr app-column-filter-bar 
@@ -270,6 +271,7 @@
                       <td>{{project.userDefinedProjectName}}</td>
                       <td>{{project.status}}</td>
                       <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
+                      <td *ngIf="showReviewButton">{{project.contributionBy }}</td>
                       <td>
                         <button class="btn btn-sm btn-outline-primary" 
                                 type="button" 
@@ -611,7 +613,7 @@
 
 <ng-template #user_contribution>
   <div class="modal-body px-4 py-3">
-    <h5 class="text-center mb-3">{{showReviewButton ? 'Review Contribution' : 'Add Your Contribution'}}</h5>
+    <h5 class="text-center mb-3">Add/View Your Contribution</h5>
 
     <div *ngIf="showReviewButton" class="form-group mb-3">
       <label><span class="text-danger">*</span> Tag Project</label>
@@ -742,10 +744,10 @@
       </div>
     </div>  
 
-    <div *ngIf="showReviewButton || userContributionObj?.responseList?.length > 0" class="form-group mb-3">
+    <div *ngIf="showReviewButton || userContributionObj?.responseRemarkList?.length > 0" class="form-group mb-3">
       <label><span class="text-danger">*</span> Remark</label>
-      <div *ngIf="userContributionObj?.responseList?.length > 0">
-        <div *ngFor="let obj of userContributionObj?.responseList, let i = index">
+      <div *ngIf="userContributionObj?.responseRemarkList?.length > 0">
+        <div *ngFor="let obj of userContributionObj?.responseRemarkList, let i = index">
           Review-{{i+1}} <input disabled type="textarea" class="form-control" [(ngModel)]="obj.remark"
             placeholder="Enter Remark" />
         </div>

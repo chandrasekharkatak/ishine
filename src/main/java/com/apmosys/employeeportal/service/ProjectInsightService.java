@@ -2261,7 +2261,7 @@ public class ProjectInsightService {
 	                dto.setTeamMembers(alltaggedUser.stream().map(assignObj -> assignObj.getAssignedTo()).collect(Collectors.toList()));  
 	                dto.setTags(dbTagMasterResponse.stream().map(TagMaster::getTag).collect(Collectors.toList()));
 	                dto.setUserDocument(dbDocumentResponse);
-	                dto.setResponseList(responseRemarkDbResp);
+	                dto.setResponseRemarkList(responseRemarkDbResp);
 	                dto.setReviewType(object.getReviewType());
 	                
 	                return dto;
@@ -2416,6 +2416,7 @@ public class ProjectInsightService {
 			ProjectInsightUserContributionDTO projectInsightUserContributionDTO) {
 		List<ProjectInsightUserContributionDTO> response = new ArrayList<>();
 		try {
+			List<Object[]> employeeList = employeeRepository.getEmployees();
 			List<ProjectInsightUserContribution> userContributionsForReview = new ArrayList<>();
 			if(projectInsightUserContributionDTO.getEmpId() != null
 					&& projectInsightUserContributionDTO.getAssignTo() != null) {
@@ -2446,6 +2447,15 @@ public class ProjectInsightService {
 	                dto.setAssignTo(object.getAssignTo());
 	                dto.setCreatedOn(object.getCreatedOn() != null ? object.getCreatedOn().toString() : null);
 	                dto.setEmpId(object.getEmpId());
+	                dto.setContributionBy(
+	                	    Optional.ofNullable(employeeList)
+	                	            .orElse(Collections.emptyList())
+	                	            .stream()
+	                	            .filter(obj -> obj[0] != null && Long.valueOf(obj[0].toString()).equals(object.getEmpId()))
+	                	            .map(obj -> obj[3] != null ? obj[3].toString() : null)
+	                	            .findFirst()
+	                	            .orElse(null)
+	                	);
 	                dto.setProjectId(object.getProjectId());
 	                dto.setResponse(object.getResponse());
 	                dto.setStatus(object.getStatus());
@@ -2458,7 +2468,7 @@ public class ProjectInsightService {
 	                dto.setTeamMembers(alltaggedUser.stream().map(ProjectInsightAssignees::getAssignedTo).collect(Collectors.toList()));  
 	                dto.setTags(dbTagMasterResponse.stream().map(TagMaster::getTag).collect(Collectors.toList()));
 	                dto.setUserDocument(dbDocumentResponse);
-	                dto.setResponseList(responseRemarkDbResp);
+	                dto.setResponseRemarkList(responseRemarkDbResp);
 	                dto.setReviewType(object.getReviewType());
 	                
 	                return dto;
@@ -2508,6 +2518,7 @@ public class ProjectInsightService {
 						 newObj.setRemark(projectInsightUserContributionDTO.getRemark());
 						 newObj.setRemarkBy(projectInsightUserContributionDTO.getAssignTo());
 						 newObj.setUserContributionId(userContributionDbResp.getUserContributionId());
+						 newObj.setRemarkStatus(projectInsightUserContributionDTO.getProcessType());
 						 
 						 userContributionResponseRemarksRepository.save(newObj);
 					 }

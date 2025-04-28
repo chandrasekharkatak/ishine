@@ -25,6 +25,7 @@ public class UserContributionResponseRemarks {
 	private Long remarkBy;
 	private String remark;
 	private Long userContributionId;
+	private String remarkStatus;
 	
 	@Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
 	private Timestamp createdOn;
