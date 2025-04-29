@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,6 +55,8 @@ import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForEmployeeDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForTeamDTO;
+import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
+import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoProjectDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoEmployeeTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
@@ -237,6 +240,7 @@ public class ProjectService {
 					projectDto.setExperience(object[15] != null ? object[15].toString() : null);
 					projectDto.setEmpId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
 					dtoList.add(projectDto);
+					System.err.println("vhg"+projectDto);
 				});
 				
 				System.err.println("----------------------------------------------------------------------------------------_________________________________________________________________________________-------------------------------------------------_______________________----------____________________------____----__---_");
@@ -906,8 +910,8 @@ public class ProjectService {
 								teamObj.setDescription(object.getDescription());
 								teamObj.setTeamLeadName(teamLeadObj !=null ? teamLeadObj.getName() : null);
 								teamObj.setDeptIds(deptList.toString());
-								teamObj.getCommonProperty().setUpdatedBy(teamUpdatedByObj !=null ? teamUpdatedByObj.getEmpId() : null);
-								teamObj.getCommonProperty().setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+								teamObj.setUpdatedBy(teamUpdatedByObj !=null ? teamUpdatedByObj.getEmpId() : null);
+								teamObj.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 								Team teamDbResponse = teamRepository.save(teamObj);
 								
 								if(teamDbResponse != null) {
@@ -988,7 +992,8 @@ public class ProjectService {
 								newTeamObj.setTeamLeadName(teamLeadObj != null ? teamLeadObj.getName() : null);
 								newTeamObj.setDescription(object.getDescription());
 								newTeamObj.setDeptIds(deptList.toString());
-								newTeamObj.getCommonProperty().setCreatedBy(teamCreatedByObj != null ? teamCreatedByObj.getEmpId() : null);
+								newTeamObj.setCreatedBy(teamCreatedByObj != null ? teamCreatedByObj.getEmpId() : null);
+								newTeamObj.setCreatedOn(new Timestamp(System.currentTimeMillis())); 
 								Team teamDbResponse = teamRepository.save(newTeamObj);
 								
 								List<EmployeeTeamMap> teamMemberDbResponse = null;
@@ -1258,7 +1263,8 @@ public class ProjectService {
 							newTeamObj.setTeamLeadName(teamLeadObj != null ? teamLeadObj.getName() : null);
 							newTeamObj.setDescription(teamObj.getDescription());
 							newTeamObj.setDeptIds(deptList.toString());
-							newTeamObj.getCommonProperty().setCreatedBy(teamCreatedByObj.getEmpId());
+							newTeamObj.setCreatedBy(teamCreatedByObj.getEmpId());
+							newTeamObj.setCreatedOn(new Timestamp(System.currentTimeMillis())); 
 							Team teamDbResponse = teamRepository.save(newTeamObj);
 							
 							if(teamDbResponse != null) {
@@ -2201,7 +2207,7 @@ public class ProjectService {
 	    apiLogInfo.setSubFeatureName("Employee Report");
 	    apiLogInfo.setApiUrl("/api/getEmployeeProjectReport");
 	    apiLogInfo.setLogLevel("INFO");
-
+	
 	    StringBuilder logBuilder = new StringBuilder();
 	    logBuilder.append("Category: ").append(dto.getCategory()).append(", ");
 	    logBuilder.append("Report Type: ").append(dto.getReport());
@@ -2363,4 +2369,118 @@ public class ProjectService {
 		        return new GetEmployeeProjectReportDTO(null, null, null);
 		    }
 		}
+	 
+	 @Transactional
+	 public ServiceResponse handleTeamsAsPerLinkedPo(HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
+	     ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/handleTeamsAsPerLinkedPo");
+	     apiLogInfo.setLogLevel("INFO");
+	     StringBuilder logBuilder = new StringBuilder();
+
+	     try {
+	         if (payloadDTO.getPrimaryProject() == null) {
+	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("Primary project list received at Ishine is empty!");
+	             apiLogInfo.setApiResponse("Empty data(Primary project list) received at Ishine");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             return response;
+	         }
+
+	         HandleTeamsAsPerLinkedPoProjectDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
+	         List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
+
+	         if (primaryTeams.isEmpty()) {
+	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("The resource onboarding procees to teams has not started for "+primaryProjectDTO.getProjectName().toString()+ ". Therefore not able to proceed with link PO. Kindly contact the RMG team to start the onboarding proccess for the "+primaryProjectDTO.getProjectName().toString()+".");
+	             apiLogInfo.setApiResponse("Project has no team created in Ishine");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             return response;
+	         }
+
+	         Set<String> primaryTeamNames = primaryTeams.stream()
+	                 .map(t -> t[1].toString())
+	                 .collect(Collectors.toSet());
+
+	         if (payloadDTO.getDeletedProjects().isEmpty()) {
+	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("Deleted project list received at Ishine is empty.");
+	             apiLogInfo.setApiResponse("Deleted project list at Ishine is empty.");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             return response;
+	         }
+
+	         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+	         for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
+	             List<Object[]> deletedTeams = projectRepository.getTeamIdsForPoProjectId(deletedProject.getProjectId());
+
+	             for (Object[] team : deletedTeams) {
+	                 Long teamId = team[0] != null ? Long.parseLong(team[0].toString()) : null;
+	                 String teamName = team[1] != null ? team[1].toString() : null;
+
+	                 if (teamId == null || teamName == null) {
+	                     apiLogInfo.setApiResponse("No team found for this project " + primaryProjectDTO.getProjectName().toString() + " in Ishine");
+	                     continue;
+	                 }
+
+	                 String newTeamName = primaryTeamNames.contains(teamName)
+	                         ? teamName + " | " + deletedProject.getProjectName()
+	                         : teamName;
+
+	                 teamRepository.updateTeamName(teamId, newTeamName);
+	                 teamRepository.updateTeamProjectByPoProjectId(teamId, Long.parseLong(primaryProjectDTO.getProjectId().toString()));
+	             }
+
+	             Project deletedProjEntity = projectRepository.findByPoProjectId(deletedProject.getProjectId());
+	             if (deletedProjEntity != null) {
+	                 deletedProjEntity.setActive("false");
+	                 deletedProjEntity.setPoNo(deletedProject.getPoNo());
+	                 deletedProjEntity.setClientId(deletedProject.getClientId());
+	                 deletedProjEntity.setPoStartDate(dateFormatter.format(deletedProject.getStartDate().toLocalDateTime().toLocalDate()));
+	                 deletedProjEntity.setPoEndDate(dateFormatter.format(deletedProject.getEndDate().toLocalDateTime().toLocalDate()));
+	                 deletedProjEntity.setProjectName(deletedProject.getProjectName());
+	                 deletedProjEntity.setUpdatedOn(LocalDateTime.now());
+
+	                 projectRepository.save(deletedProjEntity);
+	             } else {
+	            	 apiLogInfo.setApiResponse("No project found for poProjectId: " + deletedProject.getProjectId());
+	             }
+	         }
+
+	         Project primaryProjectEntity = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
+	         if (primaryProjectEntity != null) {
+	             primaryProjectEntity.setPoNo(primaryProjectDTO.getPoNo());
+	             primaryProjectEntity.setClientId(primaryProjectDTO.getClientId());
+	             primaryProjectEntity.setPoStartDate(dateFormatter.format(primaryProjectDTO.getStartDate().toLocalDateTime().toLocalDate()));
+	             primaryProjectEntity.setPoEndDate(dateFormatter.format(primaryProjectDTO.getEndDate().toLocalDateTime().toLocalDate()));
+	             primaryProjectEntity.setProjectName(primaryProjectDTO.getProjectName());
+	             primaryProjectEntity.setUpdatedOn(LocalDateTime.now());
+
+	             projectRepository.save(primaryProjectEntity);
+	         }
+
+	         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	         response.setServiceResponse("Teams reassigned successfully.");
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	     } catch (NullPointerException ex) {
+    	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    	    response.setServiceResponse("Null value encountered.");
+    	    response.setServiceError(ex.getMessage());
+    	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+    	    apiLogInfo.setLogLevel("ERROR");
+    	} catch (Exception e) {
+	         e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+	     return response;
+	 }
 }

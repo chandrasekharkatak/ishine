@@ -24,19 +24,20 @@
                   <th scope="col" class="info-label">Currency</th>
                   <th scope="col" class="info-label">Food Allowance Type</th>
                   <th scope="col" class="info-label">Fooding Date</th>
-                  <th scope="col" class="info-label">Currency</th>
+                  <!-- <th scope="col" class="info-label">Currency</th> -->
                   <th scope="col" class="info-label">Amount</th>
                   <th scope="col" class="info-label">Applied By</th>
                   <th scope="col" class="info-label">Applied On</th>
                   <th scope="col" class="wide-col">Purpose Of Travel</th>
-                  <th scope="col" class="info-label">Status</th>
+                  <!-- <th scope="col" class="info-label">Status</th> -->
                   <th scope="col" class="info-label">Current Approval Level</th>
                   <th scope="col" class="info-label">Level 1 Approver Status</th>
                   <th scope="col" class="info-label">Level 1 Approver Name</th>
                   <th scope="col" class="info-label">Level 1 Approver Remarks</th>
                   <th scope="col" class="info-label">Level 2 Approver Name</th>
+                  <th scope="col" class="info-label">Level 2 Approver Status</th>
                   <th scope="col" class="info-label">Level 2 Approver Remarks</th>
-                  <th scope="col" class="info-label">Level 3 Approver Name</th>
+                  <th scope="col" class="info-label">Level 3 Approver Status</th>
                   <th scope="col" class="info-label">Level 3 Approver Remarks</th>
                   <th scope="col" class="info-label">Action</th>
                 </tr>
@@ -52,30 +53,61 @@
                   <!-- <td>{{ row.fromLocation }}</td>
                   <td>{{ row.toLocation }}</td> -->
                   <td>{{ row.expenditureType }}</td>
-                  <td>{{ row.travelMode }}</td>
-                  <td>{{ row.distance }}</td>
+                  <td>{{ row.travelMode || 'NA'}}</td>
+                  <td>{{ row.distance || 'NA'}}</td>
                   <td>{{ row.currency }}</td>
-                  <td>{{ row.foodAllowanceType }}</td>
-                  <td>{{ row.dateOfFood }}</td>
+                  <td>{{ row.foodAllowanceType || 'NA'}}</td>
+                  <td>{{ row.dateOfFood | date}}</td>
                   <td>{{ row.amount }}</td>
                   <td>{{ row.appliedBy }}</td>
                   <td>{{ row.appliedOn | date }}</td>
                   <td>{{ row.purpose }}</td>
-                  <td>{{ row.status }}</td>
+                  <!-- <td>{{ row.status }}</td> -->
                   <td>{{ row.level }}</td>
+                  <!-- <td>{{ row.hodName }}</td> -->
+                  <td [ngClass]="{
+                    'text-danger': row.status === 'Rejected',
+                    'text-success': row.status === 'Approved',
+                    'text-warning': row.status === 'Pending'
+                                }">
+                    {{ row.status || 'NA'}}
+                  </td>
                   <td>{{ row.hodName }}</td>
-                  <td>{{ row.status }}</td>
-                  <td>{{ row.level1approverRemarks }}</td>
+                  <td>{{ row.level1approverRemarks || 'NA'}}</td>
                   <td>{{ 'HR' }}</td>
-                  <td>{{ row.level2approverRemarks }}</td>
-                  <td>{{ 'HR Head' }}</td>
-                  <td>{{ row.level3approverRemarks }}</td>
+                  <td [ngClass]="{
+                    'text-danger': row.level2approverStatus === 'Rejected',
+                    'text-success': row.level2approverStatus === 'Approved',
+                    'text-warning': row.level2approverStatus === 'Pending'
+                                }">
+                    {{ row.level2approverStatus || 'NA'}}
+                  </td>
+                  <td>{{ row.level2approverRemarks || 'NA' }}</td>
+                  <!-- <td>{{ 'HR Head' }}</td> -->
+                  <td [ngClass]="{
+                    'text-danger': row.level3approverStatus === 'Rejected',
+                    'text-success': row.level3approverStatus === 'Approved',
+                    'text-warning': row.level3approverStatus === 'Pending'
+                                }">
+                    {{ row.level3approverStatus || 'NA'}}
+                  </td>
+                  <td>{{ row.level3approverRemarks || 'NA' }}</td>
                   <td>
                  
                     <div class="d-inline-flex">
-                        <button *ngIf="row.level2approverStatus === 'Pending'" type="button" class="btn btn-success btn-sm btn-action button" (click)="openEditModal(approveRequest,row)">
+                        <!-- <button *ngIf="row.status === 'Pending'" type="button" class="btn btn-success btn-sm btn-action button" (click)="openEditModal(approveRequest,row)">
                             <em class="fa fa-edit"></em> Take Action
-                          </button>
+                          </button> -->
+                          <!-- Level 1 approver action -->
+                          <button
+                          *ngIf="shouldShowAction(row)"
+                          type="button"
+                          class="btn btn-success btn-sm btn-action button"
+                          (click)="openEditModal(approveRequest, row)"
+                        >
+                          <em class="fa fa-edit"></em> Take Action
+                        </button>
+
                     </div>
                   </td>
                 </tr>
@@ -105,7 +137,11 @@
               <form #approveForm="ngForm">
                 <div class="form-group">
                   <label for="requestId">Requester Name</label>
-                  <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedReimbursementRequest.name" name="requestId" readonly />
+                  <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedReimbursementRequest.fullName" name="requestId" readonly />
+                </div>
+                <div class="form-group">
+                  <label for="requestId">Expenditure Type</label>
+                  <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedReimbursementRequest.expenditureType" name="expenditureType" readonly />
                 </div>
                 <div class="form-group">
                   <label for="approverRemarks">Approver Remarks</label>

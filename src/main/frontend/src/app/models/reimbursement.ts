@@ -30,8 +30,9 @@ export class MyReimbursement{
         level1approverStatus : any;
         level2approverStatus : any;
         level3approverStatus : any;
-        approver1 : any ;
+        levelOneApprover : any ;
         approver2 : any;
         approver3 : any;
+        docId:any;
 
 }

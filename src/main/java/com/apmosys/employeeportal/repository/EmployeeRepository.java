@@ -533,7 +533,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> getTeamProjectMappingsByEmpId(Long empId );
 	
 	@Query(nativeQuery = true)
-	public EmployeeDetailsForTeamMemberDTO getEmployeeDetailsForTeam(Long empId );
+	public List<Object[]> getEmployeeDetailsForTeam(Long empId );
 
     @Query(nativeQuery = true,value = "SELECT \n"
     		+ "    (SELECT COUNT(*) FROM employee_rewards WHERE rewarded_to = e.emp_id) AS rewardCount,\n"

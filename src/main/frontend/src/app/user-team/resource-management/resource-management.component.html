@@ -93,7 +93,7 @@
                                     <td>{{project.startDate | date: 'dd/MM/yyyy'}}</td>
                                     <td>{{project.endDate  | date: 'dd/MM/yyyy'}}</td>
                                     <td>{{project.clientState}}</td>
-                                    <td>{{project.createdOn | date: 'dd/MM/yyyy'}}</td>
+                                    <td>{{ project.createdOn?.split(' ')[0] }}</td>
                                     <td>{{project.status}}</td>
                                     <!-- <td
                                         [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isActive == 2) ? 'orange': (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">

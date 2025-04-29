@@ -9,6 +9,7 @@ import { TravelDeskService } from 'src/app/services/travel-desk.service';
 import { ReimbursementComponent } from '../reimbursement.component';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
 import { MyReimbursement } from 'src/app/models/reimbursement';
+import { Template } from '@angular/compiler/src/render3/r3_ast';
 
 @Component({
   selector: 'app-view-reimbursement',
@@ -80,10 +81,16 @@ export class ViewReimbursementComponent implements OnInit {
    }
    //alertMessage: any;
    modalRef: BsModalRef = new BsModalRef();
-   openAlertMod(template: TemplateRef<any>, message: any) {
+   modalRef2: BsModalRef = new BsModalRef();
+   openAlertMod1(template: TemplateRef<any>) {
      this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
-     this.alertMessage = message;
    }
+
+   openAlertMod2(template: TemplateRef<any>, message: any) {
+    this.modalRef2 = this.modalService.show(template, { class: 'modal-lg' });
+    this.alertMessage = message;
+  }
+
    openEditModal(template: TemplateRef<any> ,row :any) {
  
      this.selectedReimbursementRequest = { ...row };
@@ -96,7 +103,7 @@ export class ViewReimbursementComponent implements OnInit {
 
     console.log('editpain asichi re ::::::::::::::::::::',this.selectedReimbursementRequest);
  
-     this.openAlertMod(template, "");
+     this.openAlertMod1(template);
  
    }
  
@@ -118,7 +125,7 @@ export class ViewReimbursementComponent implements OnInit {
  
    
  
-   async updateRequest() {
+   async updateRequest(template : TemplateRef<any>) {
 
     console.log("Update pain asichi  ::::::::::::::::");
 
@@ -162,22 +169,25 @@ export class ViewReimbursementComponent implements OnInit {
          const response: any = await this.reimbursementService.updateReimbursementData(newreimbursementData).toPromise();
    
          if (response.serviceStatus === "Success") {
-           alert("Success! Your data was updated successfully.");
+          this.openAlertMod2(template, "Success! Your data was updated successfully. !!");
+
+           //alert("Success! Your data was updated successfully.");
            console.log('Updated Travel Request:', this.selectedReimbursementRequest);
            this.modalRef.hide();
          } else {
            console.error('Error updating reimbursement request:', response.serviceResponse);
-           alert('There was an issue updating the data.');
+           this.openAlertMod2(template, "There was an issue updating the data.. !!");
+
          }
        } catch (error) {
          console.error('Error during API call:', error);
-         alert('An error occurred while updating the data. Please try again later.');
+         this.openAlertMod2(template, "An error occurred while updating the data. Please try again later. !!");
        }
   
      }
    }
  
-   async deleteReimbursement(row : any) {
+   async deleteReimbursement(row : any,template : TemplateRef<any>) {
 
      if (this.isValidForm()) {
       this.reimbursementInfo = new MyReimbursement(); 
@@ -242,7 +252,7 @@ export class ViewReimbursementComponent implements OnInit {
    }
 
    cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef2.hide();
   }
  
 
