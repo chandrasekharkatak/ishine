@@ -1,31 +1,29 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
+import { ActivatedRoute, Params, Router } from '@angular/router';
+import * as moment from 'moment';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first, map, startWith } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
+import { Department } from 'src/app/models/department';
+import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
 import { Project } from 'src/app/models/project';
-import { first } from 'rxjs/operators';
-import { User } from 'src/app/models/user';
-import { DepartmentService } from 'src/app/services/department.service';
 import { Team } from 'src/app/models/team';
-import { Employee } from 'src/app/models/employee';
-import { EmployeeService } from 'src/app/services/employee.service';
-import { Department } from 'src/app/models/department';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { TeamMember } from 'src/app/models/teamMember';
-import { ResourceManagementService } from 'src/app/services/resource-management.service';
+import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { DepartmentService } from 'src/app/services/department.service';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { ProjectService } from 'src/app/services/project.service';
+import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TeamService } from 'src/app/services/team.service';
 import { UtilityService } from 'src/app/services/utility.service';
-import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { ActivatedRoute, Router, Params } from '@angular/router';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
-import { ProjectService } from 'src/app/services/project.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { Employee360Service } from 'src/app/services/employee360.service';
-import { SortPipe } from 'src/app/sort.pipe';
-import { FormControl } from '@angular/forms';
-import { startWith, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-resource-management',
@@ -40,7 +38,7 @@ export class ResourceManagementComponent implements OnInit {
     { value: -5, label: "TNM Difference", icon: "", iconColor: "#D32F2F", borderColor: "#D32F2F" },
     { value: -7, label: "Fixed Cost Difference", icon: "", iconColor: "#D32F2F", borderColor: "#D32F2F" }
   ];
-  
+
   statusCards = [
     { value: 12, label: "Pending for approval", icon: "fa fa-clock", iconColor: "#FFB300", borderColor: "#FFB300" },
     { value: 45, label: "Approved", icon: "fa-check-circle", iconColor: "#4CAF50", borderColor: "#4CAF50" },
@@ -49,7 +47,7 @@ export class ResourceManagementComponent implements OnInit {
     { value: 5, label: "On Hold", icon: "fa-pause-circle", iconColor: "#F44336", borderColor: "#F44336" },
     { value: 32, label: "Pending", icon: "fa-hourglass-half", iconColor: "#03A9F4", borderColor: "#03A9F4" }
   ];
-  
+
   totalEmployees = 92;
   mappedEmployees = 58;
   unmappedEmployees = 24;
@@ -57,8 +55,8 @@ export class ResourceManagementComponent implements OnInit {
   statuses = ['Pending', 'Approved'];
   selectedEmployee = '';
   selectedStatus = '';
-  
-// new cards changes.....................................................................
+
+  // new cards changes.....................................................................
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
@@ -84,7 +82,9 @@ export class ResourceManagementComponent implements OnInit {
   newteamMember: TeamMember = new TeamMember();
   isActive: any;
   temp: any
-
+  lastDate: any;
+  selectAll: boolean = false;
+  selectedTeamsDetails: any[] = [];
   isProjectTable: boolean = false;
   isEditProject: boolean = false;
   isUpdation: boolean = false;
@@ -131,10 +131,10 @@ export class ResourceManagementComponent implements OnInit {
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   filters: any = {};
   isSearchEnabled: boolean = false;
-  projectColumns: any[] = ["blank", "blank", "name","poNo","projectManagerName", "clientName", "apmosysRM", "clientRM" , "startDate" , "endDate" , "clientState" ,"createdOn", "status", "isDraftProject"];
+  projectColumns: any[] = ["blank", "blank", "name", "poNo", "projectManagerName", "clientName", "apmosysRM", "clientRM", "startDate", "endDate", "clientState", "createdOn", "status", "isDraftProject"];
 
   projectDetails: any = [];
-  copyDepartment : any = [];
+  copyDepartment: any = [];
   currentBreadcrumbList: any[] = [];
   // employeesFor360: any[] = [];
   poProjectListFromIshine: any[] = [];
@@ -206,8 +206,14 @@ export class ResourceManagementComponent implements OnInit {
     if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
       this.toggleSearch();
     }
+    // this.employee360Service.employeesFor360$.subscribe((employees) => {
+    //   this.employeesFor360 = employees;
+    //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
+    // });
+    // console.log('userMapping',this.userMapping);
+
   }
-   
+
 
   sectionViewInit() {
     if (this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin') {
@@ -341,7 +347,7 @@ export class ResourceManagementComponent implements OnInit {
             // Process internal projects
             this.internalProjectList.forEach((proj) => {
               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
-              console.log("Priyadarshini",proj.projectId," ",proj.projectName);
+              console.log("Priyadarshini", proj.projectId, " ", proj.projectName);
 
               if (selectedProj) {
                 proj.isTeamCreated = true;
@@ -394,7 +400,7 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
-  
+
   alreadyCreatedTeam() {
     this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -759,8 +765,8 @@ export class ResourceManagementComponent implements OnInit {
   onApproveProject(project: any) {
     project.empId = this.currentUser.empId;
     // project.projectId = this.projectObj.projectId;
-    console.log("this.projectObj.projectId   ",this.projectObj.projectId);
-    console.log("this.projectObj.projectId   ",project.projectId);
+    console.log("this.projectObj.projectId   ", this.projectObj.projectId);
+    console.log("this.projectObj.projectId   ", project.projectId);
     this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.showViewProjects();
@@ -1002,26 +1008,38 @@ export class ResourceManagementComponent implements OnInit {
   // }
 
   tempTeam = new Project();
-
-  openDeleteModalForTeam(template: TemplateRef<any>, teamObj) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  projectdetails1: any[] = [];
+  openDeleteModalForTeam(template: TemplateRef<any>,alert_message: TemplateRef<any>, teamObj, project) {
     this.tempTeam = teamObj;
-  }
+    this.projectdetails1 = project;
 
-  deleteTeam(template: TemplateRef<any>) {
-    console.log("delete team method call ", this.tempTeam);
-    this.projectService.deleteTeam(this.tempTeam).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
+    if (!this.tempTeam.teamId) {
+      this.openAlertMod(alert_message, "Team is missing. Cannot proceed.");
+      this.allTeamList.pop();
+      this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
+      this.copyDepartment = [];
+      if (!this.allTeamList || this.allTeamList.length === 0) {
+        this.addInputTeamField();
       }
-    })
-
-
-
+      return;
+   }else{
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+   }
+   
 
   }
+
+
+  openDeleteModalForTeamBulk(template: TemplateRef<any>,alert_message: TemplateRef<any>, teamObj, project) {
+    this.tempTeam = teamObj;
+    this.projectdetails1 = project;
+    console.log("tesmp",this.projectdetails1);
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+ 
+  
+ 
 
   tempArray: any[] = [];
 
@@ -1033,10 +1051,10 @@ export class ResourceManagementComponent implements OnInit {
       newTeamMember.employeeRole = this.newteamMember.employeeRole;
 
       this.allTeamMembers.push(newTeamMember);
-      //console.log("New member ===== ::  ",newTeamMember);
+      
 
     }
-    // this.tempArrays =  Object.assign({},this.allTe)
+    
     this.newteamMember = new TeamMember();
   }
 
@@ -1045,8 +1063,7 @@ export class ResourceManagementComponent implements OnInit {
     this.allTeamList?.forEach((team) => {
       if (team.teamName == currentTeam.teamName) {
         team.teamMemberList.splice(index, 1);
-        //console.log(team.teamMemberList, " : team.teamMemberList");
-
+       
         this.teamObj.allTeamMemberList.splice(index, 1);
         let existingEmployee = this.employeeListByDept.find(employee => employee.empId == teamMember.empId);
         if (existingEmployee) existingEmployee.isSelected = false;
@@ -1062,10 +1079,8 @@ export class ResourceManagementComponent implements OnInit {
         if (existingEmployee) existingEmployee.isSelected = false;
       }
     });
-    //console.log("Updated Members : ", this.allTeamMembers);
+   
   }
-
-  // Modals
 
   openTeamMemberModal(template: TemplateRef<any>, currentTeam) {
     this.allTeamMembers = [];
@@ -1074,7 +1089,7 @@ export class ResourceManagementComponent implements OnInit {
     this.newteamMember.employeeRole = null;
     // this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     // this.getAllEmployeesByRole(currentTeam.departmentList);
-    console.log("this.copyDepartment ",this.copyDepartment);
+    console.log("this.copyDepartment ", this.copyDepartment);
     // this.getAllEmployeesByDepartmentIds(this.copyDepartment);
     this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     this.getAllEmployeesByRole(this.copyDepartment);
@@ -1087,7 +1102,7 @@ export class ResourceManagementComponent implements OnInit {
         //console.log(teamLeadObj, " :teamLeadObj");
         //console.log(this.teamObj.teamLeadId, " : this.teamObj.teamLeadId");
 
-        console.log("team.teammemberList ",team.allTeamMemberList);
+        console.log("team.teammemberList ", team.allTeamMemberList);
 
         this.teamObj.allTeamMemberList = team.teamMemberList?.filter(x => x.isTeamLead != true);
         if ((this.teamObj.allTeamMemberList != undefined || this.teamObj.allTeamMemberList != null) && this.teamObj.allTeamMemberList.length != 0) {
@@ -1144,8 +1159,8 @@ export class ResourceManagementComponent implements OnInit {
     // }
     if (this.previewTeamList.length === 0) {
       console.warn('No team members available for this team.');
-      return; 
-  }
+      return;
+    }
     if (projectObj.projectManager != null) {
       this.setManagerName(projectObj);
     }
@@ -1203,36 +1218,36 @@ export class ResourceManagementComponent implements OnInit {
 
   // Excel Export
 
-//   exportToExcel(id:any) {
-//     this.excelName = 'Projects.xlsx';
+  //   exportToExcel(id:any) {
+  //     this.excelName = 'Projects.xlsx';
 
-//     const onlySpecificDataArr = this.allProjectList.map(
-//       x => ({
-//         "Project Name": x.name,
-//         "PO Number": x.poNo,
-//         "Project Manager": x.projectManagerName,
-//         "Client Name": x.clientName,
-//         "Client State": x.clientState,
-//         "Apmosys RM": x.apmosysRM,
-//         "Client RM": x.clientRM,
-//         "Start Date": x.startDate ? x.startDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.startDate,
-// "End Date": x.endDate ? x.endDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.endDate,
-//         // "Start Date": x.startDate,
-//         // "End Date": x.endDate,
-//         "Created On": x.createdOn,
-//         "Approval Status": x.isDraftProject,
-//         "Project Status": x.status,
-//       })
-//     )
-//     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
-//   }
-exportToExcel(id:any): void {
-  const tableId = id; // Replace with your actual table ID
-  this.excelName = "TeamMemberSheet.xlsx";
-  this.tableName= 'Team Members';
+  //     const onlySpecificDataArr = this.allProjectList.map(
+  //       x => ({
+  //         "Project Name": x.name,
+  //         "PO Number": x.poNo,
+  //         "Project Manager": x.projectManagerName,
+  //         "Client Name": x.clientName,
+  //         "Client State": x.clientState,
+  //         "Apmosys RM": x.apmosysRM,
+  //         "Client RM": x.clientRM,
+  //         "Start Date": x.startDate ? x.startDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.startDate,
+  // "End Date": x.endDate ? x.endDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.endDate,
+  //         // "Start Date": x.startDate,
+  //         // "End Date": x.endDate,
+  //         "Created On": x.createdOn,
+  //         "Approval Status": x.isDraftProject,
+  //         "Project Status": x.status,
+  //       })
+  //     )
+  //     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+  //   }
+  exportToExcel(id: any): void {
+    const tableId = id; // Replace with your actual table ID
+    this.excelName = "TeamMemberSheet.xlsx";
+    this.tableName = 'Team Members';
 
-  this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
-}
+    this.exportExcelService.exportTableFormat(tableId, this.excelName, this.tableName);
+  }
 
 
   // check resource template
@@ -1240,16 +1255,16 @@ exportToExcel(id:any): void {
   getExistingProjectsByUser(employeeId: string): Promise<any[]> {
     return new Promise((resolve, reject) => {
       console.log("Fetching project details for employee ID:", employeeId);
-  
+
       let projectObj = new Project();
       projectObj.empId = employeeId;
-  
+
       this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe(
         (response: any) => {
           if (response.serviceStatus === "Success") {
             this.projectDetails = response.serviceResponse;
             console.log("Project details fetched successfully:", this.projectDetails);
-  
+
             if (this.projectDetails.length > 0) {
               if (this.projectDetails[0].billableType === "TNM") {
                 this.openAlertMod(
@@ -1267,21 +1282,21 @@ exportToExcel(id:any): void {
               this.newMemberInProject = "NewMember";
               this.newteamMember.billableType = this.newMemberInProject;
             }
-  
-            resolve(this.projectDetails); 
+
+            resolve(this.projectDetails);
           } else {
             console.error("Failed to fetch project details:", response);
-            reject(response); 
+            reject(response);
           }
         },
         (error) => {
           console.error("Error in service call:", error);
-          reject(error); 
+          reject(error);
         }
       );
     });
   }
-  
+
 
   deleteResourceFromProject(template: TemplateRef<any>) {
 
@@ -1307,63 +1322,63 @@ exportToExcel(id:any): void {
   openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
     this.getExistingProjectsByUser(employee.empId).then((projectDetails) => {
       this.dataObj = employee;
-  
+
       if (projectDetails.length > 0) {
         this.modalRef2 = this.modalService.show(template, { class: 'modal-xl' });
       } else {
         console.log("No project details found for the employee.");
       }
-  
+
       console.log("data employee newmenbfcg  ", employee);
     }).catch((error) => {
       console.error("Error fetching project details:", error);
     });
   }
-  
 
 
-changeDepartment(event: any): void {
+
+  changeDepartment(event: any): void {
     const selectedDepartmentIds = event.value;
-console.log("this.copyDepartment ",this.copyDepartment);
+    console.log("this.copyDepartment ", this.copyDepartment);
     // Identify deselected departments by finding the difference between the previous and current selections
     const deselectedDepartmentIds = this.copyDepartment.filter(
-        id => !selectedDepartmentIds.includes(id)
+      id => !selectedDepartmentIds.includes(id)
     );
 
-    console.log("deselectedDepartmentIds    ",deselectedDepartmentIds)
+    console.log("deselectedDepartmentIds    ", deselectedDepartmentIds)
 
     // Update the current department selection
     this.copyDepartment = selectedDepartmentIds;
 
     // If there are any deselected departments, show the alert
     if (deselectedDepartmentIds.length > 0) {
-        this.allTeamList.forEach(team => {
-            if (team.teamMemberList === '' || team.teamMemberList === null || team.teamMemberList === undefined) {
-                return;
-            } else {
-                this.openAlertMod(this.alertTemplate,"You have deselected a department! Wish to add it again, please ensure that the team members for that department are added as well.");
+      this.allTeamList.forEach(team => {
+        if (team.teamMemberList === '' || team.teamMemberList === null || team.teamMemberList === undefined) {
+          return;
+        } else {
+          this.openAlertMod(this.alertTemplate, "You have deselected a department! Wish to add it again, please ensure that the team members for that department are added as well.");
 
-                const departmentList = team.departmentList;
-                console.log("team.teamMemberList  ",team.teamMemberList)
-                console.log("departmentList     ",departmentList);
-                
-                  // Use strict equality check and type casting if necessary
-                  const filteredTeamMemberList = team.teamMemberList.filter(member => {
-                    const memberDeptId = String(member.departmentId); // Convert to string for comparison
-                    const isMatch = departmentList.some(deptId => String(deptId) === memberDeptId);
-                    console.log(`Checking if department ID ${memberDeptId} is in departmentList:`, isMatch);
-                    return isMatch;
-                });
-                console.log("filteredTeamMemberList    ",filteredTeamMemberList)
-                team.teamMemberList = filteredTeamMemberList;
-                console.log(team.teamMemberList);
-            }
-        });
+          const departmentList = team.departmentList;
+          console.log("team.teamMemberList  ", team.teamMemberList)
+          console.log("departmentList     ", departmentList);
+
+          // Use strict equality check and type casting if necessary
+          const filteredTeamMemberList = team.teamMemberList.filter(member => {
+            const memberDeptId = String(member.departmentId); // Convert to string for comparison
+            const isMatch = departmentList.some(deptId => String(deptId) === memberDeptId);
+            console.log(`Checking if department ID ${memberDeptId} is in departmentList:`, isMatch);
+            return isMatch;
+          });
+          console.log("filteredTeamMemberList    ", filteredTeamMemberList)
+          team.teamMemberList = filteredTeamMemberList;
+          console.log(team.teamMemberList);
+        }
+      });
     }
 
     // Update the previousDepartmentIds with the current selection for future comparison
     this.copyDepartment = selectedDepartmentIds;
-}
+  }
 
 
 
@@ -1392,7 +1407,7 @@ console.log("this.copyDepartment ",this.copyDepartment);
   }
 
   syncPoProjectDetailsByProjectId(template: TemplateRef<any>, project: any) {
-    this.resourceManagementService.syncPoProjectDetailsByProjectId(project).pipe(first()).subscribe((response: any) => { 
+    this.resourceManagementService.syncPoProjectDetailsByProjectId(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
       } else {
@@ -1402,7 +1417,7 @@ console.log("this.copyDepartment ",this.copyDepartment);
   }
 
   sendEmailNotificationToBDTeam(template: TemplateRef<any>, project: any) {
-    this.resourceManagementService.sendEmailNotificationToBDTeam(project).pipe(first()).subscribe((response: any) => { 
+    this.resourceManagementService.sendEmailNotificationToBDTeam(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
       } else {
@@ -1410,6 +1425,97 @@ console.log("this.copyDepartment ",this.copyDepartment);
       }
     });
   }
+  
+  deleteTeam(template: TemplateRef<any>) {
+    console.log("delete team method call ", this.tempTeam);
+    this.tempTeam.endDate = this.lastDate;
+    this.projectService.deleteTeam(this.tempTeam).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        const teamIndex = this.allTeamList.findIndex(team => team.teamId === this.tempTeam.teamId);
+     
+      if (teamIndex !== -1) {
+        this.allTeamList.splice(teamIndex, 1); 
+        this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));  
+        this.copyDepartment = [];  
+      }
+      if (!this.allTeamList || this.allTeamList.length === 0) {
+        this.addInputTeamField();
+      }
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    })
+
+  }
+  deleteResourceModal1(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    const detailsList = Array.isArray(this.projectdetails1) ? this.projectdetails1 : [this.projectdetails1];
+
+    detailsList.forEach(details => {
+      this.lastDate = details.endDate
+        ? moment(details.endDate).format('YYYY-MM-DD')
+        : moment().format('YYYY-MM-DD');
+      console.log("Testing for end date", this.lastDate);
+    });
+  }
+
+
+  toggleSelectAll(): void {
+    this.allTeamList.forEach(teamObj => {
+      teamObj.selected = this.selectAll;  
+    });
+    this.updateSelectedTeamsDetails();
+  }
+
+  
+  updateSelection(): void {
+   
+    this.selectAll = this.allTeamList.every(teamObj => teamObj.selected);
+    this.updateSelectedTeamsDetails();
+  }
+
+  
+  updateSelectedTeamsDetails(): void {
+    this.allTeamList.forEach(teamObj => {
+      teamObj.endDate = this.lastDate; 
+    });
+    this.selectedTeamsDetails = this.allTeamList.filter(teamObj => teamObj.selected);
+    console.log('Selected Team Details:', this.selectedTeamsDetails);
+  }
+
+  deleteTeamsByIdsBulk(template: TemplateRef<any>) {
+    console.log("Deleting teams: ", this.selectedTeamsDetails);
+  
+    this.projectService.deleteTeamsByIdsBulk(this.selectedTeamsDetails).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        const deletedIds = this.selectedTeamsDetails.map(team => team.teamId);
+        this.allTeamList = this.allTeamList.filter(team => !deletedIds.includes(team.teamId));
+        this.selectedTeamsDetails = [];
+        this.allTeamList.forEach(team => team.selected = false);
+        this.selectAll = false;
+        this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
+        this.copyDepartment = [];
+        if (!this.allTeamList || this.allTeamList.length === 0) {
+          this.addInputTeamField();
+        }
+        console.log("Selected teams cleared: ", this.selectedTeamsDetails);
+       
+        this.openAlertMod(template, response.serviceResponse);
+       
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+  
+  
+
+
+
+
+
+
 
   getEmployeeByNameAndEmpld() {
     this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => { 
@@ -1419,6 +1525,7 @@ console.log("this.copyDepartment ",this.copyDepartment);
       }
     });
   }
+  
   
   filterEmployees(searchText: string) {
     const lowerText = (searchText || '').toLowerCase();
