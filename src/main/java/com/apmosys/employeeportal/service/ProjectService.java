@@ -1692,14 +1692,14 @@ public class ProjectService {
 		                    
 		                    if (object[5] != null) {
 		                        PoEmployeeTimesheetSyncDTO employeeDTO = new PoEmployeeTimesheetSyncDTO();
-		                        employeeDTO.setEmployeementId(Long.parseLong(object[5].toString()));
-		                        employeeDTO.setEmployeeName(object[6] != null ? object[6].toString() : null);
-		                        employeeDTO.setCurrentStatus(object[7] != null ? object[7].toString() : null);
-		                        employeeDTO.setStartDate(object[8] != null ? (Timestamp) object[8] : null);
-		                        employeeDTO.setEndDate(object[9] != null ? (Timestamp) object[9] : null);
-		                        employeeDTO.setLastTimesheetFilledPoProjectId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
-		                        employeeDTO.setLastTimesheetFilledProjectName(object[11] != null ? object[11].toString() : null);
-		                        employeeDTO.setIsInternal(object[10] != null ? true : false);
+		                        employeeDTO.setEmployeementId(Long.parseLong(object[6].toString()));
+		                        employeeDTO.setEmployeeName(object[7] != null ? object[7].toString() : null);
+		                        employeeDTO.setCurrentStatus(object[8] != null ? object[8].toString() : null);
+		                        employeeDTO.setStartDate(object[9] != null ? (Timestamp) object[9] : null);
+		                        employeeDTO.setEndDate(object[10] != null ? (Timestamp) object[10] : null);
+		                        employeeDTO.setLastTimesheetFilledPoProjectId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+		                        employeeDTO.setLastTimesheetFilledProjectName(object[12] != null ? object[12].toString() : null);
+		                        employeeDTO.setIsInternal(object[11] != null ? true : false);
 
 		                        teamDTO.getEmployeesMapped().add(employeeDTO);
 		                    }

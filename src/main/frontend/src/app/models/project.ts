@@ -28,7 +28,7 @@ export class Project{
 	isDraftProject:any;
 	bulkSyncList: any[] = [];
 	id:any;
-
+	teamsApprovedList:any;
 	//Project from Po
 	name:any;
 	status:any;

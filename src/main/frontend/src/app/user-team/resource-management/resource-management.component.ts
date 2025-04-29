@@ -234,10 +234,6 @@ export class ResourceManagementComponent implements OnInit {
   ];
 
   getAllProjects() {
-    this.resourceManagementService.getPoProjectDetailsForPoProjects().pipe(first()).subscribe((response: any) => { 
-      this.poProjectListFromIshine = response.serviceResponse;
-    });
-
     fetch(this.currentUser.poPortalAllProjectApi).then(res => res.json()).then(async data => {
       let allPoProject = data;
       //console.log("allPoProject    V  allPoProject   ",allPoProject);
@@ -277,7 +273,7 @@ export class ResourceManagementComponent implements OnInit {
                 proj.isDraftProject = selectedProj.isActive == 2 ? 'Pending For Approval' : selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
                 proj.isActive = selectedProj.isActive;
                 proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-                proj.prrojectViewId = "po"+selectedProj.id;
+                proj.projectViewId = selectedProj.projectId;
               } else {
                 proj.isTeamCreated = false;
                 proj.isDraftProject = "NA";
@@ -298,13 +294,14 @@ export class ResourceManagementComponent implements OnInit {
             // Process internal projects
             this.internalProjectList.forEach((proj) => {
               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
-              // console.log("Priyadarshini",proj.projectId," ",proj.projectName);
+              console.log("Priyadarshini",proj.projectId," ",proj.projectName);
 
               if (selectedProj) {
                 proj.isTeamCreated = true;
                 proj.isDraftProject = selectedProj.isDraftProject == 'true' ? 'Pending For Approval' : selectedProj.isDraftProject == 'Rejected' ? 'Rejected' : selectedProj.isDraftProject == 'false' ? 'Approved' : "NA";
+                // proj.isDraftProject = proj.projectType;
                 proj.createdOn = (proj.createdOn) ? moment(proj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-                proj.prrojectViewId = selectedProj.projectId;
+                proj.projectViewId = selectedProj.projectId;
               } else {
                 proj.isTeamCreated = false;
                 proj.isDraftProject = proj.projectType;
@@ -337,45 +334,9 @@ export class ResourceManagementComponent implements OnInit {
             // added in single list  
 
             this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
-            console.log(this.allProject_Po_Internal);
-            for(let y of this.allProject_Po_Internal){
-                   // console.log('matches++',matchingEmployee);
-                  y.emp360 = y.empId;
-                }
-
 
             //console.log(_projectList, " all projects");
-            // console.log(this.internalProjectList, " this.internalProjectList");
-
-            this.allProject_Po_Internal.forEach((internalProj) => {
-              if(internalProj.id != null){
-                allPoProject.forEach((allPoProj) => {
-                  if (allPoProj?.id != null) {
-                    let matchedProject = this.poProjectListFromIshine.find(
-                      (poProj) => poProj?.id === internalProj?.id
-                    );
-                
-                    if (matchedProject && matchedProject?.id != null && allPoProj.id === matchedProject.id) {
-                      const normalizeDate = (dateString) => {
-                        return new Date(dateString).toISOString().split('T')[0]; 
-                      };
-                      const allPoProjEndDate = normalizeDate(allPoProj?.endDate);
-                      const matchedProjectEndDate = normalizeDate(matchedProject?.endDate);
-                      if (allPoProj?.poNo === matchedProject?.poNo && allPoProjEndDate === matchedProjectEndDate ) {
-                        internalProj.isSynced = true;
-                      } else if (allPoProj.poNo != matchedProject.poNo || allPoProjEndDate != matchedProjectEndDate) {
-                        internalProj.isSynced = false;
-                      } else {
-                        console.log('Internal Project ', internalProj?.projectId);
-                      }
-                      if (new Date(matchedProjectEndDate) < new Date()) {
-                        internalProj.isMail = true;
-                      } 
-                    }
-                  }
-                });
-              }
-          });
+            console.log(this.internalProjectList, " this.internalProjectList");
 
             console.error("  allProject_Po_Internal   ", this.allProject_Po_Internal);
           } else {
@@ -385,6 +346,7 @@ export class ResourceManagementComponent implements OnInit {
       });
     });
   }
+
   
   alreadyCreatedTeam() {
     this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
@@ -834,6 +796,7 @@ export class ResourceManagementComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.showViewProjects();
         this.openAlertMod(template, response.serviceResponse);
+        this.bulkSyncList = [];
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -1065,7 +1028,8 @@ export class ResourceManagementComponent implements OnInit {
     // this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     // this.getAllEmployeesByRole(currentTeam.departmentList);
     console.log("this.copyDepartment ",this.copyDepartment);
-    this.getAllEmployeesByDepartmentIds(this.copyDepartment);
+    // this.getAllEmployeesByDepartmentIds(this.copyDepartment);
+    this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     this.getAllEmployeesByRole(this.copyDepartment);
     this.allTeamList?.forEach((team: any) => {
       if (team.teamName == currentTeam.teamName) {

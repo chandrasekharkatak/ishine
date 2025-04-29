@@ -169,7 +169,6 @@ public class ResourceManagementService {
 		            findTeamByProject = teamRepository.findTeamByProjectId(projectObj.getProjectId());
 		        else
 		            findTeamByProject = teamRepository.findByProjectId(projectObj.getProjectId());
-
 		        addTeamList.addAll(findTeamByProject);
 
 		        List<Long> teamId = allExistTeam.stream().map(Team::getTeamId).collect(Collectors.toList());
@@ -415,6 +414,7 @@ public class ResourceManagementService {
 					                	Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
 					                	
 					                    member.setActive(0L);
+					                    member.setEndDate(LocalDateTime.now());
 					                    member.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 					                    inActiveMember.add(member);
 					                    
@@ -841,7 +841,10 @@ public class ResourceManagementService {
 							empTeamMapping.forEach((teamMemberObj) -> {
 								String employeeName = null;
 								Employee empObj = employeeRepository.findByEmpId(teamMemberObj.getEmpId());
-								// find department 
+								if(empObj == null) {
+									return;
+								}
+								System.err.print("Employee dratils"+empObj);		// find department 
 								JobRole findJobRole = jobRoleRepository.findByjobRoleId(empObj.getJobRoleId());
 								Department findDepartment = departmentRepository.findByDeptId(findJobRole.getDeptId());							
 								
@@ -1799,6 +1802,8 @@ public class ResourceManagementService {
 		
 		EmployeeTeamMap findResource = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActiveStatus(resourceManagementDTO.getEmpId(), resourceManagementDTO.getTeamId());
 		Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
+	    Employee emp = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());        	
+      	Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
 		System.out.println("findResource  "+findResource );
 		if(findResource != null) {
 			findResource.setActive(0l);	
@@ -1815,7 +1820,21 @@ public class ResourceManagementService {
 			}
 			
 			employeeTeamMapRepository.save(findResource);
-		
+			 try {
+					mailService.sendMail(rmgMail,"Regarding Resource removed from Project ", "Dear "
+							+ emp.getName()+"<br>"
+							+ "You have been removed from project "+findProject.getProjectName()+ "under the team - "+findTeam.getTeamName()+"<br>"
+									+ "<br><br>"
+									+ "Sincerely,"+"<br>"
+									+ "Team RMG - ApMoSys Technologies"
+							);
+				} catch (AddressException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (MessagingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Resource removed successfully, from Team Name - "+findTeam.getTeamName());
 			
@@ -1892,7 +1911,8 @@ public class ResourceManagementService {
 		
 		findAllMappedEmp.forEach(emp ->{
 		
-			emp.setActive(0l);		
+			emp.setActive(0l);
+			emp.setEndDate(LocalDateTime.now())	;
 			employeeTeamMapRepository.save(emp);
 		});	
 		
@@ -2088,7 +2108,8 @@ public ServiceResponse getProjectInfo(ResourceManagementDTO resourceManagementDT
 				dto.setProjectManagerId(object[2] != null ?  Long.parseLong(object[2].toString()) : null);
 				dto.setProjectManagerName(object[3] != null ? object[3].toString() : null);	
 				dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
-				dto.setClientState(object[5] != null? object[5].toString() : null);		
+//				dto.setClientLocation(object[5] != null ? object[5].toString() : null);
+				dto.setClientState(object[6] != null? object[6].toString() : null);		
 				
 				result.add(dto);
 			});
@@ -2140,8 +2161,7 @@ public ServiceResponse getPoProjectInfo(ResourceManagementDTO resourceManagement
 				dto.setProjectManagerId(object[2] != null ?  Long.parseLong(object[2].toString()) : null);
 				dto.setProjectManagerName(object[3] != null ? object[3].toString() : null);	
 				dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
-				dto.setClientState(object[5] != null? object[5].toString() : null);		
-				
+				dto.setClientState(object[5] != null? object[5].toString() : null);				
 				result.add(dto);
 			});
 			
@@ -2226,7 +2246,7 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 				dto.setProjectName(object[9] != null ? object[9].toString() : null);
 				dto.setClientId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 				dto.setClientName(object[11] != null ? object[11].toString() : null);
-				
+				dto.setPoEndDate(object[12] != null ? object[12].toString() : null);			
 				result.add(dto);
 			});
 			
@@ -2348,4 +2368,84 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	        return response;
 	    }
 	
+	 
+	 public ServiceResponse updateProjectResourcesAsInActiveBulk(List<ResourceManagementDTO> resourceManagementDTOList) {
+		   
+
+		    ServiceResponse response = new ServiceResponse();
+		    StringBuilder resultMessage = new StringBuilder();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/updateProjectResourcesAsInActiveBulk");
+	        apiLogInfo.setLogLevel("INFO");
+		    int failureCount = 0;
+
+		    for (ResourceManagementDTO resourceManagementDTO : resourceManagementDTOList) {
+		       
+		        EmployeeTeamMap findResource = employeeTeamMapRepository
+		                .findByEmpIdAndTeamIdAndActiveStatus(resourceManagementDTO.getEmpId(), resourceManagementDTO.getTeamId());
+		        Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
+		        Employee emp = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());        	
+            	Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
+
+
+		        if (findResource != null) {
+		            try {
+		                findResource.setActive(0L); 
+
+		                
+		                if (resourceManagementDTO.getEndDate() != null) {
+		                    String str = resourceManagementDTO.getEndDate();
+		                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		                    LocalDate date = LocalDate.parse(str, formatter);
+		                    LocalDateTime endDateTime = date.atStartOfDay();
+
+		                    findResource.setEndDate(endDateTime);
+		                } else {
+		                    
+		                    findResource.setEndDate(LocalDateTime.now());
+		                }
+
+		                employeeTeamMapRepository.save(findResource);
+		                try {
+							mailService.sendMail(rmgMail,"Regarding Resource removed from Project ", "Dear "
+									+ emp.getName()+"<br>"
+									+ "You have been removed from project "+findProject.getProjectName()+ "under the team - "+findTeam.getTeamName()+"<br>"
+											+ "<br><br>"
+											+ "Sincerely,"+"<br>"
+											+ "Team RMG - ApMoSys Technologies"
+									);
+						} catch (AddressException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (MessagingException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+		               
+		                resultMessage.append("Resource with EmpId " + resourceManagementDTO.getEmpId() + " from Team " +
+		                        findTeam.getTeamName() + " removed successfully.\n");
+
+		            } catch (Exception e) {
+		                failureCount++;
+		                resultMessage.append("Failed to remove resource with EmpId " + resourceManagementDTO.getEmpId() +
+		                        " from Team " + findTeam.getTeamName() + ". Error: " + e.getMessage() + "\n");
+		            }
+		        } else {
+		            failureCount++;
+		            resultMessage.append("No resource found with EmpId " + resourceManagementDTO.getEmpId() +
+		                    " in Team " + findTeam.getTeamName() + ".\n");
+		        }
+		    }
+
+		    if (failureCount == 0) {
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse("Successfully removed resources");
+		    } else {
+		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse(resultMessage.toString());
+		    }
+
+		    return response;
+		}
+
 }

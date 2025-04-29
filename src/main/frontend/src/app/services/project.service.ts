@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Project } from '../models/project';
 import { environment } from 'src/environments/environment';
+import { Project } from '../models/project';
 
 @Injectable({
   providedIn: 'root'
@@ -64,4 +64,8 @@ export class ProjectService {
 getTeamMemberByTeamId(teamId:any){
   return this.http.get(`${this.baseUrl}`+`api/getTeamMemberByTeamId/`+teamId);
 } 
+updateProjectResourcesAsInActiveBulk(project: any){
+  return this.http.post(`${this.baseUrl}` + `api/updateProjectResourcesAsInActiveBulk`, project);
+}
+
 }
