@@ -145,7 +145,17 @@ export class ResourceManagementComponent implements OnInit {
   selectedEmpId: any;
   employeeList: Employee[] = [];
   filteredEmployees: Employee[] = [];
-  employeeCtrl = new FormControl();   // Search input controller
+  employeeCtrl = new FormControl();
+
+  total = 6;
+  assigned = 3;
+  pending = 3;
+
+  members = [
+    { role: 'Automation Tester', department: 'Automation Testing', experience: '2-3 years', assigned: 1, total: 3 },
+    { role: 'Functional Tester', department: 'Functional Testing', experience: '1-2 years', assigned: 2, total: 2 },
+    { role: 'Developer', department: 'Development', experience: '3-5 years', assigned: 0, total: 1 }
+  ];
 
   constructor(
     private departmentService: DepartmentService,
@@ -1432,5 +1442,23 @@ console.log("this.copyDepartment ",this.copyDepartment);
     console.log("emp",emp)
     return emp ? `${emp.name}` : '';
   }  
+
+  openEditModal(template,project){
+    console.log("Project ",project)
+    this.isEditProject = true;
+
+    this.allProjectTable = true;
+    this.isHideButton = true;
+
+    this.allTeamList = [];
+    this.projectObj = Object.assign({}, project);
+    this.getAllDepartmentList(project);
+    this.getTeamListByProjectName(project);
+
+    this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
+  }
   
+  openTeamMembersModal(template: any) {
+    this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
+  }
 }

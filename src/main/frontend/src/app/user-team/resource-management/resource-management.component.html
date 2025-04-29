@@ -349,6 +349,9 @@
                                             type="submit"
                                             (click)="showEditProjectForm(project);project.isEditProject = true"><em
                                                 class="fa fa-edit"></em></button>&nbsp;
+                                        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isHideButton"
+                                            type="submit" (click)="openEditModal(team_configuration_form,project);project.isEditProject = true">
+                                            <em class="fa fa-edit"></em></button>&nbsp;
                                         <button class="btn btn-sm btn-outline-danger mb-1"
                                             *ngIf="project.name == projectObj.name && isHideButton" type="submit"
                                             (click)="closeEditProject();project.isEditProject = false"><i
@@ -1097,3 +1100,157 @@
             <button type="button" class="btn btn-primary" (click)="cancelRequest();getAllProjects()">OK</button>&nbsp;
         </div>
     </ng-template>
+
+    <ng-template #team_configuration_form>
+        <div class="modal-body p-0">
+            <div class="form-container">
+                <h3>Project Information</h3>
+                <div class="form-group">
+                <div class="form-field">
+                    <label>Project Name</label>
+                    <input type="text" disabled [(ngModel)]="projectObj.name" />
+                </div>
+                <div class="form-field">
+                    <label>Client Name</label>
+                    <input type="text" disabled [(ngModel)]="projectObj.clientName" />
+                </div>
+                <div class="form-field">
+                    <label>Department</label>
+                    <mat-select class="form-control" multiple
+                        [(ngModel)]="projectObj.department">
+                        <mat-option
+                            *ngFor="let dept of filteredDeptList"
+                            disabled
+                            [value]="dept.name">{{dept.name}}</mat-option>
+                    </mat-select>
+                </div>
+                <div class="form-field">
+                    <label>Project Manager</label>
+                    <mat-select class="form-control" multiple
+                        [(ngModel)]="projectObj.department">
+                        <mat-option
+                            *ngFor="let dept of filteredDeptList"
+                            disabled
+                            [value]="dept.name">{{dept.name}}</mat-option>
+                    </mat-select>
+                </div>
+                <div class="form-field">
+                    <label>Project Status</label>
+                    <input type="text" disabled [(ngModel)]="projectObj.status" />
+                </div>
+                <div class="form-field">
+                    <label>State</label>
+                    <input type="text" disabled [(ngModel)]="projectObj.clientState" />
+                </div>
+                </div>
+
+                <div class="teams-section">
+                    <h3>Teams</h3>
+                    <div *ngFor="let teamObj of allTeamList; let i = index" class="team-row">
+                      <div class="form-field">
+                        <label>Team Name</label>
+                        <input type="text" class="form-control" [(ngModel)]="teamObj.teamName"
+                               (blur)="checkTeamName(alert_message, teamObj, i)">
+                      </div>
+                  
+                      <div class="form-field">
+                        <label class="info-label">
+                          <span class="text-danger">*</span>Department
+                        </label>
+                        <mat-select ngxMatSelect class="form-control"
+                                    #departmentSelect="ngxMatSelect"
+                                    [displayMember]="'name'"
+                                    [valueMember]="'deptId'"
+                                    [source]="allDeptList"
+                                    [useInfiniteScroll]="true"
+                                    [multiple]="true"
+                                    [(ngModel)]="teamObj.departmentList"
+                                    (selectionChange)="changeDepartment($event)">
+                          <mat-option [value]="dept.deptId" *ngFor="let dept of departmentSelect.filteredSource">
+                            {{ dept.name }}
+                          </mat-option>
+                        </mat-select>
+                      </div>
+                  
+                      <div class="button-group">
+                        <button class="icon-button" (click)="openTeamMembersModal(teamMemberTemplate)">
+                          <i class="fa-solid fa-user-plus"></i>
+                        </button>
+                        <button class="icon-button">
+                          <i class="fa-solid fa-users-viewfinder"></i>
+                        </button>
+                        <button class="icon-button">
+                          <i class="fa-solid fa-square-plus"></i>
+                        </button>
+                      </div>
+                    </div>
+                  
+                    <button class="set-team-btn">Set Team</button>
+                </div>                  
+            </div>
+        </div>
+    </ng-template>
+  
+  <!-- Modal Template -->
+  <ng-template #teamMemberTemplate>
+    <div class="modal-body p-0">
+      <div class="team-modal-container">
+        <h3 class="modal-title">Team member</h3>
+  
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-box">
+            <p>Total Requirements</p>
+            <h4>{{ total }}</h4>
+          </div>
+          <div class="stat-box">
+            <p>Assigned</p>
+            <h4>{{ assigned }}</h4>
+          </div>
+          <div class="stat-box">
+            <p>Pending</p>
+            <h4>{{ pending }}</h4>
+          </div>
+        </div>
+  
+        <!-- Member Blocks -->
+        <div class="member-card" *ngFor="let member of members">
+          <div class="member-left">
+            <h5>{{ member.role }}</h5>
+            <div class="badge">{{ member.department }}</div>
+            <span class="experience">{{ member.experience }}</span>
+  
+            <!-- Add team members -->
+            <div class="add-team-row">
+              <select><option>Anish Naie</option></select>
+              <select><option>Team Lead</option></select>
+              <select><option>TMM</option></select>
+              <button class="icon-button-small"><i class="fa fa-pen"></i></button>
+              <button class="icon-button-small"><i class="fa fa-plus"></i></button>
+            </div>
+            <div class="add-team-row">
+              <select><option>Select Member</option></select>
+              <select><option>Select Role</option></select>
+              <select><option>Billability Type</option></select>
+              <button class="icon-button-small"><i class="fa fa-plus"></i></button>
+            </div>
+  
+            <!-- Shadow resources -->
+            <div class="shadow-resources">
+              <label>Add Shadow resources</label>
+              <select><option>Select Member</option></select>
+              <button class="icon-button-small"><i class="fa fa-plus"></i></button>
+            </div>
+          </div>
+  
+          <div class="member-right">
+            <span class="assignment">Assigned {{ member.assigned }}/{{ member.total }}</span>
+            <i class="fa-solid fa-hourglass-half"></i>
+            <button class="dropdown-button"><i class="fa-solid fa-chevron-down"></i></button>
+          </div>
+        </div>
+  
+        <button class="set-team-btn mt-3">Set Team</button>
+      </div>
+    </div>
+  </ng-template>  
