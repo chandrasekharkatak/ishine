@@ -20,6 +20,8 @@ public class TagMaster {
 	private String tag;
 	private String entityType;
 	private Long entityId;
+	
+	//user --> tag created by user   /   nlp --> tag created by system
 	private String type;
 
 }

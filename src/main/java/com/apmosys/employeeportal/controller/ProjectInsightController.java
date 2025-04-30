@@ -20,6 +20,7 @@ import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
+import com.apmosys.employeeportal.response.SearchResultResponse;
 import com.apmosys.employeeportal.service.ProjectInsightService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -91,7 +92,7 @@ public class ProjectInsightController {
      * */
 	
 	@RequestMapping(value = "/onSearchTerm", method = RequestMethod.GET)
-	public ResponseEntity<ProjectInsightDTO> onSearchTerm(@RequestParam String search) {
+	public ResponseEntity<SearchResultResponse> onSearchTerm(@RequestParam String search) {
 		return projectInsightService.onSearchTerm(search);
 	}
 	

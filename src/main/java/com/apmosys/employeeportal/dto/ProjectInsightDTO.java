@@ -28,7 +28,7 @@ public class ProjectInsightDTO {
 	private Long updatedBy;
 	private List<ResponseMarksDTO> empMarkList;
 	private String projectInsightQuestionTemplate;
-	private List<PoProjectSyncDTO> projectList;
+	private List<PoProjectSyncDTO> searchResultList;
 	private List<String> optionList;
 	private List<ProjectInsightEntityDTO> deletedProjectInsightEntityList;
 	private String isFinalSubmitted;

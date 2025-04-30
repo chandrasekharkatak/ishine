@@ -25,5 +25,6 @@ public class ProjectInsightMilestoneDTO {
 	private Long createdBy;
 	private String updatedOn;
 	private Long updatedBy;
+	private Long projectId;
 
 }

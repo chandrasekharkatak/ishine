@@ -66,4 +66,7 @@ public interface ProjectInsightResponseRepository extends JpaRepository<ProjectI
 	@Query(value="delete from ProjectInsightResponse pir where pir.questionMasterId=:questionId ")
 	void deleteAllProjectInsightResponseByQuestionMasterId(Long questionId);
 
+	List<ProjectInsightResponse> findByQuestionMasterIdAndIsApprovedForKnowledgeHub(Long questionMasterId,
+			String string);
+
 }
