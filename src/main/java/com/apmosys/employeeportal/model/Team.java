@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.model;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -11,6 +12,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import org.hibernate.envers.Audited;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -37,7 +40,14 @@ public class Team {
 	private String description;
 	private String deptIds;
  
-	@Embedded
-	public CommonProperties commonProperty = new CommonProperties();
+	
+	private Timestamp createdOn;
+	
+	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+	private LocalDateTime updatedOn;
+	private Long updatedBy;
+	private Long createdBy;
+//	@Embedded
+//	public CommonProperties commonProperty = new CommonProperties();
 
 }

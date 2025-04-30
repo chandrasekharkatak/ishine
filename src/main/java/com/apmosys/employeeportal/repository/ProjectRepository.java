@@ -89,4 +89,9 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	List<Object[]> poProjectTimesheetSync(Set<Long> poProjectIdList);
 	
+	@Query(nativeQuery = true)
+	public List<Object[]> getTeamIdsForPoProjectId(Long poProjectId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmpIdAndEmployeeRoleForLinkedPoTeams(Long teamId);
 }

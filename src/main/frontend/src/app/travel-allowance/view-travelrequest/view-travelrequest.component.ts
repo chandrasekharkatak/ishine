@@ -188,6 +188,7 @@ export class ViewTravelrequestComponent implements OnInit {
       
       if (response.serviceStatus === "Success") {
         //this.openAlertMod( "Success! Your Data is deleted successfully. !!");
+        
         alert("Success! Your Data is deleted successfully.");
         this.onGetTravelInfo();
         

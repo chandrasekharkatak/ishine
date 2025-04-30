@@ -104,7 +104,24 @@ import { UserSalaryComponent } from './user-salary/user-salary.component';
 import { UserSurveyComponent } from './user-survey/user-survey.component';
 import { MyTeamComponent } from './user-team/my-team/my-team.component';
 
+import { registerLocaleData } from '@angular/common';
+import localeGb from '@angular/common/locales/en-GB';
+import { OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
+import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
+import { LMSComponent } from './employee360/lms/lms.component';
+import { ExpiedPoAndProjectComponent } from './home/expied-po-and-project/expied-po-and-project.component';
+import { NavigateToProjectViewDirective } from './navigate-to-project-view.directive';
+import { ProjectViewComponent } from './project-view/project-view.component';
+import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
+import { MyReimbursementComponent } from './reimbursement/my-reimbursement/my-reimbursement.component';
+import { ReimbursementComponent } from './reimbursement/reimbursement.component';
+import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapproval/reimbursementapproval.component';
+import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/view-reimbursement.component';
 import { AppreciationComponent } from './rewards/appreciation/appreciation.component';
+import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
+import { TravelAllowanceComponent } from './travel-allowance/travel-allowance.component';
+import { TravelrequestapprovalComponent } from './travel-allowance/travelrequestapproval/travelrequestapproval.component';
+import { ViewTravelrequestComponent } from './travel-allowance/view-travelrequest/view-travelrequest.component';
 import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes.component';
 import { AttendanceReconciliationComponent } from './user-report/attendance-reconciliation/attendance-reconciliation.component';
 import { QueryMasterComponent } from './user-report/query-master/query-master/query-master.component';
@@ -122,28 +139,13 @@ import { EmployeeInfoComponent } from './user-update-info/employee-info/employee
 import { EmployeeUpdateListComponent } from './user-update-info/employee-update-list/employee-update-list.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
-import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
-import { ExpiedPoAndProjectComponent } from './home/expied-po-and-project/expied-po-and-project.component';
-import { NavigateToProjectViewDirective } from './navigate-to-project-view.directive';
-import { ProjectViewComponent } from './project-view/project-view.component';
-import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
-import { OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
-import { registerLocaleData } from '@angular/common';
-import localeGb from '@angular/common/locales/en-GB';
-import { TravelAllowanceComponent } from './travel-allowance/travel-allowance.component';
-import { ReimbursementComponent } from './reimbursement/reimbursement.component';
-import { MyReimbursementComponent } from './reimbursement/my-reimbursement/my-reimbursement.component';
-import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/view-reimbursement.component';
-import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapproval/reimbursementapproval.component';
-import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
-import { TravelrequestapprovalComponent } from './travel-allowance/travelrequestapproval/travelrequestapproval.component';
-import { ViewTravelrequestComponent } from './travel-allowance/view-travelrequest/view-travelrequest.component';
-import { LMSComponent } from './employee360/lms/lms.component';
 registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 // 
 
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
+import { LmstabComponent } from './lmstab/lmstab.component';
+
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -257,10 +259,11 @@ import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax
      ReimbursementapprovalComponent,
      MyTravelrequestComponent,
      TravelrequestapprovalComponent,
-     ViewTravelrequestComponent,
-  
+     ViewTravelrequestComponent, 
      LMSComponent,
      BiomaxApprovalComponent,
+     LmstabComponent,
+  
 
     //TestComponent
   ],
