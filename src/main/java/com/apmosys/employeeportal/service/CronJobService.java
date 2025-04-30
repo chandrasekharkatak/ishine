@@ -5858,7 +5858,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		    }
 		}
 
-		@Scheduled(cron = "0 30 13 * * ?")
+		@Scheduled(cron = "0 30 14 * * ?")
 		public void sendMailForExpiryProjects() {
 		    LogDTO apiLogInfo = new LogDTO();
 		    apiLogInfo.setSubFeatureName("sendMailForExpiryProjects");
@@ -5994,7 +5994,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		                        .filter(p -> department.equals(p.getDepartment()))
 		                        .collect(Collectors.toList());
 
-		                File report = generateDepartmentPoReport(department, deptProjects);
+//		                File report = generateDepartmentPoReport(department, deptProjects);
 
 		                String mailBody = "<p>Dear HOD,</p>"
 		                        + "<p>Please find attached the expired PO report for your department: <strong>" + department + "</strong>.</p>"
@@ -6026,43 +6026,43 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		    System.out.println(logBuilder.toString()); // Final log output
 		}
 		
-		public File generateDepartmentPoReport(String department, List<ProjectPo> projectList) throws IOException {
-		    String fileName = department.replaceAll("\\s+", "_") + "_Expired_PO_Report.xlsx";
-		    File file = new File("/home/apmosys/Desktop/FILE_MAIL", fileName);
-
-		    try (FileOutputStream fos = new FileOutputStream(file)) {
-		        var wb = new Workbook(fos, "Expired PO Report", "1.0");
-		        Worksheet ws = wb.newWorksheet(department + "_POs");
-
-		        // Headers
-		        String[] headers = {
-		            "PO No", "Department", "Project Name", "PO Start Date",
-		            "PO End Date", "APMOSYS RM", "Is Renewable", "PO Project Type"
-		        };
-		        for (int i = 0; i < headers.length; i++) {
-		            ws.value(0, i, headers[i]);
-		        }
-
-		        // Data
-		        int row = 1;
-		        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-		        for (ProjectPo po : projectList) {
-		            ws.value(row, 0, po.getPoNo());
-		            ws.value(row, 1, po.getDepartment());
-		            ws.value(row, 2, po.getProjectName());
-		            ws.value(row, 3, po.getPoStartDate() != null ? sdf.format(po.getPoStartDate()) : "N/A");
-		            ws.value(row, 4, po.getPoEndDate() != null ? sdf.format(po.getPoEndDate()) : "N/A");
-		            ws.value(row, 5, po.getApmosysRm());
-		          //  ws.value(row, 6, po.getIsRenewable() ? "Yes" : "No");
-		            ws.value(row, 7, po.getPoProjectType());
-		            row++;
-		        }
-
-		        wb.finish();
-		    }
-
-		    return null;
-		}
+//		public File generateDepartmentPoReport(String department, List<ProjectPo> projectList) throws IOException {
+//		    String fileName = department.replaceAll("\\s+", "_") + "_Expired_PO_Report.xlsx";
+//		    File file = new File("/home/apmosys/Desktop/FILE_MAIL", fileName);
+//
+//		    try (FileOutputStream fos = new FileOutputStream(file)) {
+//		        var wb = new Workbook(fos, "Expired PO Report", "1.0");
+//		        Worksheet ws = wb.newWorksheet(department + "_POs");
+//
+//		        // Headers
+//		        String[] headers = {
+//		            "PO No", "Department", "Project Name", "PO Start Date",
+//		            "PO End Date", "APMOSYS RM", "Is Renewable", "PO Project Type"
+//		        };
+//		        for (int i = 0; i < headers.length; i++) {
+//		            ws.value(0, i, headers[i]);
+//		        }
+//
+//		        // Data
+//		        int row = 1;
+//		        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+//		        for (ProjectPo po : projectList) {
+//		            ws.value(row, 0, po.getPoNo());
+//		            ws.value(row, 1, po.getDepartment());
+//		            ws.value(row, 2, po.getProjectName());
+//		            ws.value(row, 3, po.getPoStartDate() != null ? sdf.format(po.getPoStartDate()) : "N/A");
+//		            ws.value(row, 4, po.getPoEndDate() != null ? sdf.format(po.getPoEndDate()) : "N/A");
+//		            ws.value(row, 5, po.getApmosysRm());
+//		          //  ws.value(row, 6, po.getIsRenewable() ? "Yes" : "No");
+//		            ws.value(row, 7, po.getPoProjectType());
+//		            row++;
+//		        }
+//
+//		        wb.finish();
+//		    }
+//
+//		    return null;
+//		}
 				
 		private String buildEmailContent(String employeeName, String projectName, String teamName, 
                  String poStartDate, String poEndDate, String allocationStartDate) {
