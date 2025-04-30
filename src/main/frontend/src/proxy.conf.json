@@ -3,5 +3,32 @@
       "target": "http://localhost:8080",
       "secure": false,
       "logLevel": "debug"
-    }
+    },
+
+  "/browser/perfData": {
+    "target": "http://192.168.0.75:12800",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/browser/errorLog": {
+    "target": "http://192.168.0.75:12800",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/browser/errorLogs": {
+    "target": "http://192.168.0.75:12800",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/v3/segment": {
+    "target": "http://192.168.0.75:12800",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/v3/segments": {
+    "target": "http://192.168.0.75:12800",
+    "secure": false,
+    "changeOrigin": true
+  }
+
 }

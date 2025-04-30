@@ -1,8 +1,9 @@
-import { Component, HostListener, OnDestroy } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from './models/user';
 import { AuthenticationService } from './services/authentication.service';
 import { first } from 'rxjs/operators';
+import ClientMonitor from 'skywalking-client-js';
 
 
 interface SideNavToggle{
@@ -14,7 +15,7 @@ interface SideNavToggle{
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
   title = 'employee-portal-revamp';
 
   isSideNavCollapsed = false;
@@ -36,10 +37,30 @@ export class AppComponent {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
+  ngOnInit():void{
+    import('skywalking-client-js').then(ClientMonitor => {
+      console.log('skywalking Client JS loaded:', ClientMonitor);
+      if (ClientMonitor.default && typeof ClientMonitor.default.register === 'function') {
+        ClientMonitor.default.register({
+          service: 'Ishine::ui',
+          pagePath: window.location.pathname,
+          serviceVersion: '1.0.0',
+          useWebVitals:true,
+          enableSPA:true
+        });
+        console.log('skywalking initialized successfully');
+      } else {
+        console.error('skywalking Client JS register function not found.');
+      }
+    }).catch(err => {
+      console.error('Error loading skywalking Client JS:', err);    });
+
+  }
   onToggleSideNav(data: SideNavToggle){
     this.screenWidth = data.screenWidth;
     this.isSideNavCollapsed = data.collapsed;
   }
+
 
 // added by anurag for auto-logout when user close browser directly before logout their session. It's work like transaction if someone refresh or reload their session will logout
 

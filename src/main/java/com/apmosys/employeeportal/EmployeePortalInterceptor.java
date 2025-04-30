@@ -38,7 +38,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 				"/employeeportal/api/resendOTP",
 				"/employeeportal/api/checkUserSession",
 				"/employeeportal/api/logoutUser",
-				"/employeeportal/api/downloadFileFromQrCode",
+				"/employeeportal/api/downloadFileFromQrCode/**",
 				"/employeeportal/api/getAllEmployees"
 			);
 			
