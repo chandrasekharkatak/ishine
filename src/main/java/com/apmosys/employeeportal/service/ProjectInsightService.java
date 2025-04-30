@@ -51,6 +51,7 @@ import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionDTO;
 import com.apmosys.employeeportal.dto.ProjectResponseDTO;
 import com.apmosys.employeeportal.dto.SubModuleDTO;
+import com.apmosys.employeeportal.dto.TagDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -1881,7 +1882,7 @@ public class ProjectInsightService {
 					Long questionMasterId = null;
 					Long projectId = null;
 					
-					if(entityType.equals("UserContribution")) {
+					if(entityType != null && entityType.equals("UserContribution")) {
 						entityId = entityIdOrQuestionMasterId;
 						type = entityType;
 					}else {
@@ -2838,13 +2839,154 @@ public class ProjectInsightService {
 	}
 	
 	public ServiceResponse extractTagDataFromProjectInsight(ProjectInsightDTO projectInsightDTO) {
-		ServiceResponse response = new ServiceResponse();
-		try {
-			
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
-		return response;
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        List<TagDTO> tagDTOList = new ArrayList<>();
+	        processProjectNode(projectInsightDTO, tagDTOList);
+	        
+	        if(!tagDTOList.isEmpty()) {
+	        	tagDTOList.forEach((tagobj) -> {
+	        		tagUtils.saveTags(tagobj);
+	        	});
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return response;
+	}
+	
+	
+	// Search tag ------------------------------------------------------------------------
+	
+	private void processProjectNode(ProjectInsightDTO project, List<TagDTO> tagDTOList) {
+	    TagDTO projectTag = new TagDTO();
+	    projectTag.setEntityType("Project");
+	    projectTag.setEntityId(project.getProjectId());
+	    
+	    StringBuilder sb = new StringBuilder();
+	    sb.append(project.getProjectName()).append(", ");
+	    sb.append(project.getProjectManagerName()).append(". ");
+	    if (project.getQuestionList() != null) {
+	        for (ProjectQuestionDTO q : project.getQuestionList()) {
+	            sb.append(formatQuestion(q));
+	        }
+	    }
+	    projectTag.setProjectText(sb);
+	    tagDTOList.add(projectTag);
+
+	    if (project.getProjectInsightMilestoneList() != null) {
+	        for (ProjectInsightMilestoneDTO milestone : project.getProjectInsightMilestoneList()) {
+	            processMilestoneNode(milestone, tagDTOList, project.getProjectId());
+	        }
+	    }
+	}
+	
+	private void processMilestoneNode(ProjectInsightMilestoneDTO milestone, List<TagDTO> tagDTOList, Long projectId) {
+	    TagDTO milestoneTag = new TagDTO();
+	    milestoneTag.setEntityType("Milestone");
+	    milestoneTag.setEntityId(milestone.getMilestoneId());
+	    StringBuilder sb = new StringBuilder();
+	    sb.append(milestone.getMilestone()).append(". ");
+	    // Add milestone-level questions
+	    if (milestone.getQuestionList() != null) {
+	        for (ProjectQuestionDTO q : milestone.getQuestionList()) {
+	            sb.append(formatQuestion(q));
+	        }
+	    }
+	    milestoneTag.setProjectText(sb);
+	    tagDTOList.add(milestoneTag);
+
+	    // Process Modules
+	    if (milestone.getModuleList() != null) {
+	        for (ModuleDTO module : milestone.getModuleList()) {
+	            processModuleNode(module, tagDTOList, milestone.getMilestoneId());
+	        }
+	    }
+	}
+
+	// Recursive processing for Module
+	private void processModuleNode(ModuleDTO module, List<TagDTO> tagDTOList, Long milestoneId) {
+	    TagDTO moduleTag = new TagDTO();
+	    moduleTag.setEntityType("Module");
+	    moduleTag.setEntityId(module.getModuleId());
+	    StringBuilder sb = new StringBuilder();
+	    sb.append(module.getModule()).append(". ");
+	    // Add module-level questions
+	    if (module.getQuestionList() != null) {
+	        for (ProjectQuestionDTO q : module.getQuestionList()) {
+	            sb.append(formatQuestion(q));
+	        }
+	    }
+	    moduleTag.setProjectText(sb);
+	    tagDTOList.add(moduleTag);
+
+	    // Process SubModules
+	    if (module.getSubModuleList() != null) {
+	        for (SubModuleDTO subModule : module.getSubModuleList()) {
+	            processSubModuleNode(subModule, tagDTOList, module.getModuleId());
+	        }
+	    }
+	}
+
+	// Recursive processing for SubModule
+	private void processSubModuleNode(SubModuleDTO subModule, List<TagDTO> tagDTOList, Long moduleId) {
+	    TagDTO subModuleTag = new TagDTO();
+	    subModuleTag.setEntityType("SubModule");
+	    subModuleTag.setEntityId(subModule.getSubmoduleId());
+	    StringBuilder sb = new StringBuilder();
+	    sb.append(subModule.getSubModule()).append(". ");
+	    // Add submodule-level questions
+	    if (subModule.getQuestionList() != null) {
+	        for (ProjectQuestionDTO q : subModule.getQuestionList()) {
+	            sb.append(formatQuestion(q));
+	        }
+	    }
+	    subModuleTag.setProjectText(sb);
+	    tagDTOList.add(subModuleTag);
+
+	    // Process SubSubModules if present
+	    if (subModule.getSubSubModuleList() != null) {
+	        for (SubModuleDTO subSubModule : subModule.getSubSubModuleList()) {
+	            processSubSubModuleNode(subSubModule, tagDTOList, subModule.getSubmoduleId());
+	        }
+	    }
+	}
+
+	// Recursive processing for SubSubModule
+	private void processSubSubModuleNode(SubModuleDTO subSubModule, List<TagDTO> tagDTOList, Long subModuleId) {
+	    TagDTO subSubModuleTag = new TagDTO();
+	    subSubModuleTag.setEntityType("Sub-SubModule");
+	    subSubModuleTag.setEntityId(subSubModule.getSubmoduleId());
+	    StringBuilder sb = new StringBuilder();
+	    sb.append(subSubModule.getSubModule()).append(". ");
+	    // Add subsubmodule-level questions
+	    if (subSubModule.getQuestionList() != null) {
+	        for (ProjectQuestionDTO q : subSubModule.getQuestionList()) {
+	            sb.append(formatQuestion(q));
+	        }
+	    }
+	    subSubModuleTag.setProjectText(sb);
+	    tagDTOList.add(subSubModuleTag);
+	}
+	
+	private String formatQuestion(ProjectQuestionDTO q) {
+	    StringBuilder sb = new StringBuilder();
+	    sb.append(q.getQuestion()).append(" ");
+	    sb.append(q.getDescription()).append(" ");
+	    if (q.getOptionType() != null) {
+	        sb.append(q.getOptionType()).append(" ");
+	    }
+	    if (q.getOptions() != null && !q.getOptions().equals("[]")) {
+	        sb.append(q.getOptions()).append(" ");
+	    }
+	    if (q.getProjectResponseList() != null) {
+	        for (ProjectResponseDTO resp : q.getProjectResponseList()) {
+	            if (resp.getResponse() != null) {
+	                sb.append(resp.getResponse()).append(" ");
+	            }
+	        }
+	    }
+	    return sb.toString();
 	}
 
 	public ServiceResponse saveReviewPoints(ProjectInsightDTO projectInsightDTO) {

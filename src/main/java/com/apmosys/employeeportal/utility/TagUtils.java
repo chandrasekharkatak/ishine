@@ -105,7 +105,7 @@ public class TagUtils {
 			    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
 			    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-			    body.add("document", new ByteArrayResource(document.getBytes()) {
+			    body.add("file", new ByteArrayResource(document.getBytes()) {
 			        @Override
 			        public String getFilename() {
 			            return document.getOriginalFilename();
