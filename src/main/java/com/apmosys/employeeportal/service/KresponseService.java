@@ -23,55 +23,51 @@ public class KresponseService {
     public Boolean saveResponses(List<KresponseDTO> responses, Long empId, Long quarterId) {
         boolean flag = true;
         
-        // First, fetch all existing responses for this employee and quarter
+      
         List<Kresponse> existingResponses = kresponseRepository.findByEmpIdAndQuarterId(empId, quarterId);
         List<Kresponse> entitiesToSave = new ArrayList<>();
-        
-        for(KresponseDTO dto : responses) {
-            // Try to find existing response for this KPI
-            Optional<Kresponse> existingResponse = existingResponses.stream()
-                .filter(resp -> resp.getKpiId().equals(dto.getId()))
-                .findFirst();
+        int i=0;
+        for(KresponseDTO dto : responses){
             
-            if(existingResponse.isPresent()) {
-                // Update existing response
-                Kresponse entity = existingResponse.get();
+            if(existingResponses.size() != 0 ) {
+    
+                Kresponse entity = existingResponses.get(i);
                 entity.setDescription(dto.getDescription());
                 entity.setResponse(dto.getResponse());
-                entity.setReview(dto.getReview());
+
                 entity.setIsFixed(dto.getIsFixed());
-                entity.setManagerRating(dto.getManagerRating());
-                entity.setManagerRemark(dto.getManagerRemark());
+
+                entity.setRemark(dto.getRemark());
+                entity.setProgress(dto.getProgress());
                 entitiesToSave.add(entity);
+
+                i++;
+                
             } else {
-                // Create new response
                 Kresponse entity = new Kresponse();
                 entity.setKpiId(dto.getId());
                 entity.setDescription(dto.getDescription());
                 entity.setResponse(dto.getResponse());
                 entity.setEmpId(empId);
                 entity.setQuarterId(quarterId);
-                entity.setReview(dto.getReview());
                 entity.setIsFixed(dto.getIsFixed());
-                entity.setManagerRating(dto.getManagerRating());
-                entity.setManagerRemark(dto.getManagerRemark());
+                entity.setRemark(dto.getRemark());
+                entity.setProgress(dto.getProgress());
                 entitiesToSave.add(entity);
             }
         }
         
-        // Save all entities (both new and updated)
+
         this.kresponseRepository.saveAll(entitiesToSave);
         return flag;
     }
-    
     public List<Kresponse> showResponse(Long empId, Long quarterId) {
         ServiceResponse response = new ServiceResponse();
         Long empId_quarterId = kresponseRepository.findempId(empId, quarterId);
         if (empId_quarterId == null) {
             // Handle case where no data exists for this employee and quarter
             response.setServiceStatus("NOT_FOUND");
-            response.setServiceMessage("No data found for employee ID " + empId + " and quarter ID " + quarterId);
-            return new ArrayList<>(); // Return empty list instead of "return response;"
+            response.setServiceMessage("No data found for employee ID " + empId + " and quarter ID " + quarterId); // Return empty list instead of "return response;"
         }
         // Fetch the response data for the given employee and quarter
         List<Kresponse> KResponse = kresponseRepository.findByEmpIdAndQuarterId(empId, quarterId);

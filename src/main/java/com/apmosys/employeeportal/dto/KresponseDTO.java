@@ -11,8 +11,10 @@ public class KresponseDTO {
 	private Long quarterId;
 	private String description;
 	private Float response;
-	private String review;
+//	private String review;
 	private Boolean isFixed;
-    private Long managerRating;
-    private String managerRemark;
+//    private Long rating;
+    private String remark; 
+    private Long progress;
+    
 }

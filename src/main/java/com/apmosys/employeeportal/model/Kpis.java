@@ -13,7 +13,6 @@ public class Kpis {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Float response;
     
     private String description;
     
@@ -23,5 +22,4 @@ public class Kpis {
     @JoinColumn(name = "kpi_id")  
     private Kpi kpi;
     
-    private Boolean isFixed;
 }

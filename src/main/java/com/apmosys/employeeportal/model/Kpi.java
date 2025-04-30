@@ -24,7 +24,7 @@ public class Kpi {
     private String name;
     private String description;
    
-    private String quarter;
+   
 
     @OneToMany(mappedBy = "kpi", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Kpis> kpis = new ArrayList<>();

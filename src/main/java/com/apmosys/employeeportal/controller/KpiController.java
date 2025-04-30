@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.controller;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeKpiMappingDTO;
+import com.apmosys.employeeportal.dto.EmployeeKpiMappingDTO;
 import com.apmosys.employeeportal.dto.KpiDTO;
 import com.apmosys.employeeportal.dto.QuestionnaireDTO;
 import com.apmosys.employeeportal.model.KpiResponse;
@@ -224,6 +226,54 @@ public class KpiController {
             response.setServiceResponse(approvedKpi);
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceMessage("KPI approved successfully.");
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceMessage(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceError(e.getMessage());
+        }
+        return response; 	 	
+    }
+    
+    @PostMapping("/assign/employeeId/quarterId")
+    public ServiceResponse assignKpi(@RequestBody EmployeeKpiMappingDTO employeeKpiMappingDTO) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+            // Remove path variable use dto 
+            EmployeeKpiMappingDTO assignKpi = kpiService.assignKpi(
+                employeeKpiMappingDTO.getId(),
+                employeeKpiMappingDTO.getEmpId(),
+                employeeKpiMappingDTO.getQuarterId()
+            );  
+            response.setServiceResponse(assignKpi);         
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceMessage("KPI created successfully.");
+        } catch (IllegalStateException e) {
+            // Handle duplicate KRA/KPI assignment error
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceMessage(e.getMessage());
+            response.setServiceError(e.getMessage());
+        } catch (EntityNotFoundException e) {
+            // Handle KPI template not found error
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceMessage(e.getMessage()); // "KPI template not found with ID: " + id
+            response.setServiceError(e.getMessage());
+        } catch (Exception e) {
+            // Handle other unexpected errors
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceMessage(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceError(e.getMessage());
+        }
+        return response;
+    }
+    
+    @GetMapping("/employee/{empId}/quarter/{quarterId}")
+    public ServiceResponse getKpisByEmployeeIdAndQuarter(@PathVariable Long empId, @PathVariable Long quarterId) {
+        ServiceResponse response = new ServiceResponse();
+        try {
+            EmployeeKpiMappingDTO employeeKpi = kpiService.getKpiByEmployeeIdAndQuarterId(empId, quarterId);
+            response.setServiceResponse(employeeKpi);
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceMessage("KPI for employee ID " + empId + " and quarter ID " + quarterId + " retrieved successfully.");
         } catch (Exception e) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
             response.setServiceMessage(ServiceResponse.SOMETHING_WENT_WRONG);

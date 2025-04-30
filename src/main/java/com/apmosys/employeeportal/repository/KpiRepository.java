@@ -12,15 +12,21 @@ import java.util.Optional;
 @Repository
 public interface KpiRepository extends JpaRepository<Kpi, Long> {
 //    List<Kpi> findByStatus(GoalStatus status);
-    Optional<Kpi> findById(Long id);
+   
     List<Kpi> findByDepartmentIgnoreCase(String department);
 	List<Kpi> findByQuarterId(Long quarterId);
 	List<Kpi> findByQuarterIdAndDepartmentId(Long quarterId, Long departmentId);
 	List<Kpi> findByDepartmentId(Long departmentId);
 	List<Kpi> findByQuarterIdAndDepartmentIgnoreCase(Long quarterId, String department);
 	
+	
+//	Kpi findById(Long id);
+	
 	@Query(nativeQuery = true,value = "select id from kpi_kra where id = :id")
 	public Long findbyId(@Param ("id") Long id) ;
+	
+	@Query(nativeQuery = true, value = "select * from kpi_kra where id= :id")
+	public Kpi findByID(Long id);
 	
 
 

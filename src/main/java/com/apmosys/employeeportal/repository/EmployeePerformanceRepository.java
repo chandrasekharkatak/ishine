@@ -96,21 +96,15 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 		    		+ "WHERE e.reporting_manager_id=:empId OR e.manager_id=:empId "
 		)	
 	List<Object[]> getAllEmployeeReportByEmpId(Long empId);
-	
-	@Query(value = "SELECT e.emp_id, e.name, e.employeement_id FROM employees e WHERE e.employee_role = 'Employee'", nativeQuery = true)
-	List<Object[]> getRegularEmployees();
-	
-	@Query(value = "SELECT e.emp_id, e.name, e.employeement_id FROM employees e WHERE e.reports_to = :managerId", nativeQuery = true)
-	List<Object[]> getEmployeesReportingToManager(@Param("managerId") Long managerId);
-	
-	@Query(value = "SELECT e.emp_id, e.name, e.employeement_id FROM employees e " + 
-		       "JOIN employee_team_map etm ON e.emp_id = etm.emp_id " +
-		       "JOIN team_members tm ON etm.team_id = tm.team_id " +
-		       "WHERE tm.lead_id = :teamLeadId AND e.employee_role = 'Employee' AND etm.active = 1", nativeQuery = true)
-		List<Object[]> getRegularEmployeesInTeam(@Param("teamLeadId") Long teamLeadId);
-		
-		@Query(value = "SELECT e.emp_id, e.name, e.employeement_id FROM employees e WHERE e.employee_role IN :roles", nativeQuery = true)
-		List<Object[]> getEmployeesByRoles(@Param("roles") List<String> roles);
+
+	@Query(
+		    nativeQuery = true,
+		    value = "SELECT e.emp_id,e.name,e.employeement_id FROM employee e \n"
+		    		+ "INNER JOIN project_insight_response pir ON pir.emp_id=e.emp_id \n"
+		    		+ "WHERE pir.process_to=:empId "
+		    		+ "GROUP BY e.emp_id,e.name,e.employeement_id"
+		)
+	List<Object[]> getEmployeeUnderReviewByEmpId(Long empId);
 
 	
 	

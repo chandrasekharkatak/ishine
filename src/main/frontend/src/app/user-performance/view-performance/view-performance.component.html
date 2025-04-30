@@ -257,10 +257,30 @@
               <div class="list-group">
                 <div class="list-group-item p-2 mb-0" *ngFor="let kpi of kpiList; let i = index">
                   <div class="row">
-                    <div class="col-md-4 mb-2">
+                    <div class="col-md-3 mb-2">
                       <label class="form-label fw-bold">{{i+1}}. {{kpi.description}}</label> 
                     </div>
-                    <div class="col-md-4 mb-2">
+                    <div class="col-md-3 mb-2">
+                      <div class="d-flex align-items-center mb-2">
+                        <label class="form-label me-2 mb-0">Progress:</label>
+                        <span>{{kpi.progress}}</span>
+                      </div>
+                      <div class="d-flex align-items-center">
+                        <span class="me-2">0</span>
+                        <input 
+                          type="range" 
+                          min="0"
+                          max="100" 
+                          step="1" 
+                          value="{{kpi.progress || 0}}"
+                           
+                          class="form-range flex-grow-1"
+                          disabled
+                        />
+                        <span class="ms-2">100</span>
+                      </div>
+                    </div>
+                    <div class="col-md-3 mb-2" *ngIf="kpi.progress==100" >
                       <div class="d-flex align-items-center mb-2">
                         <label class="form-label me-2 mb-0">Rating:</label>
                         <span>{{kpi.response}}</span>
@@ -279,7 +299,7 @@
                         <span class="ms-2">10</span>
                       </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                       <textarea class="form-control" placeholder="Justify your ratings" [value]="kpi.remark || '' " ></textarea>
                     </div>
                   </div>
@@ -333,7 +353,7 @@
                     <div class="col-md-4 mb-2">
                       <div class="d-flex align-items-center mb-2">
                         <label class="form-label me-2 mb-0">Response:</label>
-                        <span>{{question.response}}</span>
+                        <span>{{question.managerRating}}</span>
                       </div>
                       <div class="d-flex align-items-center">
                         <span class="me-2">0</span>
@@ -342,16 +362,22 @@
                           min="0" 
                           max="10" 
                           step="0.5" 
-                          [(ngModel)]="question.response" 
+                          [(ngModel)]="question.managerRating" 
                           [ngModelOptions]="{ standalone: true }"
-                          [value]="question.response || 0"
+                          [value]="question.managerRating || 0"
                           class="form-range flex-grow-1"
                            />
                         <span class="ms-2">10</span>
                       </div>
                     </div>
                     <div class="col-md-4">
-                      <textarea class="form-control" placeholder="Justify your ratings" [value]="question.remark || '' " ></textarea>
+                      <textarea
+                        class="form-control"
+                        placeholder="Manager's ratings"
+                        [(ngModel)]="question.managerRemark"
+                        [ngModelOptions]="{ standalone: true }"
+                        required
+                      ></textarea>
                     </div>
                   </div>
                 </div>
@@ -362,12 +388,7 @@
                     <div class="col-md-4 mb-2">
                       <label class="form-label fw-bold">Review by:</label>
                     </div>
-                    <div class="col-md-4 mb-2">
-                      
-                    </div>
-                    <div class="col-md-4">
-                      <textarea class="form-control" readonly>Employee's remark</textarea>
-                    </div>
+                   
                   </div>
                 </div>
               </div>
@@ -388,15 +409,17 @@
 <!-- Modal Template -->
 <ng-template #viewGoalTemplate>
   <div class="modal-content rounded-lg shadow-lg">
-    <div class="modal-header">
+    <div class="modal-header py-2 px-4">
       <h5 class="modal-title fw-bold">{{ selectedGoal?.goalTitle }}</h5>
+      <div class="py-3">
       <button type="button" class="close btn" aria-label="Close" (click)="modalRef.hide()">
         <i class="fa-solid fa-xmark"></i>
       </button>
+      </div>
     </div>
 
-    <div class="modal-body p-4">
-      <div class="row mb-2">
+    <div class="modal-body py-2 px-3">
+      <div class="row mb-1">
         <div class="col-md-6 mb-1">
           <div class="card h-100 border-0 bg-light">
             <div class="card-body">
@@ -409,7 +432,7 @@
           <div class="card h-100 border-0 bg-light">
             <div class="card-body">
               <h6 class="card-subtitle mb-2">Progress</h6>
-              <div class="progress mb-2">
+              <div class="progress mb-1">
                 <div class="progress-bar bg-success" role="progressbar" 
                   [style.width]="selectedGoal?.goalProgress + '%'" 
                   [attr.aria-valuenow]="selectedGoal?.goalProgress" 
@@ -443,29 +466,80 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-md-6 mb-1">
-          <h6 class="mb-2">Your Remark</h6>
-          <textarea 
-            [(ngModel)]="selectedGoal.employeeRemark"
-            rows="3" 
-            placeholder="Your remarks"
-            readonly
-            class="form-control">
-          </textarea>
+      <div class=" shadow-sm mb-1">
+        <div class="p-3" style="background-color: #e8ebef9d;">
+          <h6 class="card-subtitle mb-0"><strong>Remarks Conversation: </strong></h6>
         </div>
-        <div class="col-md-6 mb-1">
-          <h6 class="mb-2">Manager's Remark</h6>
-          <textarea 
-          [(ngModel)]="selectedGoal.managerRemark"
-            rows="3" 
-            class="form-control"
-            >{{ selectedGoal.managerRemark }}</textarea>
+        <div class=" ">
+          <div class="chat-container px-3 py-2 bg-light" style="max-height: 250px; overflow-y: auto;" #chatContainer>
+            <div *ngFor="let remark of goalRemarks; let i = index" class="mb-3">
+
+              <div *ngIf="remark.remarkBy === this.currentUser.empId" class="d-flex justify-content-end">
+                <div class="message-bubble employee-message p-2 rounded shadow-sm" 
+                     style="max-width: 75%;min-width: 25%; background-color: #d6e2e46c; position: relative;">
+                     <div class="mb-0">
+                      <span class="fw-bold text-primary" style="font-size: small;">{{ remark.remarkByName }}</span>
+                    </div>
+                  <div class="message-content">{{ remark.remarkText }}</div>
+                  <div class="m-0">
+                    <small class="text-muted " style="font-size: smaller;">{{ remark.date }}</small>
+
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Manager message -->
+              <div *ngIf="remark.remarkBy !== this.currentUser.empId" class="d-flex">
+                
+                <div class="message-bubble manager-message p-2 rounded shadow-sm" 
+                     style="max-width: 75%;min-width: 25%; background-color: #d6e2e46c; position: relative;">
+                  <div class="mb-0">
+                    <span class="fw-bold text-primary" style="font-size: small;">{{ remark.remarkByName }}</span>
+                  </div>
+                  <div class="message-content">{{ remark.remarkText }}</div>
+                  <div class=" m-0">
+                    <small class="text-muted" style="font-size: smaller;">{{ remark.date }}</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Empty state when no remarks -->
+            <div *ngIf="goalRemarks.length === 0" class="text-center py-5 text-muted">
+              <i class="far fa-comments fa-3x mb-2"></i>
+              <p>No remarks yet. Start the conversation!</p>
+            </div>
+          </div>
+          
+          <!-- Message input area -->
+          <div class="p-2 bg-light ">
+            <form (ngSubmit)="addRemark()" #remarkForm="ngForm">
+              <div class="input-group">
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  style="border-radius: 20px 0 0 20px;"
+                  placeholder="Type a message..." 
+                  [(ngModel)]="newRemarkText" 
+                  name="remarkText"
+                  autocomplete="off"
+                  required
+                  #remarkInput>
+                <button 
+                  class="btn btn-primary" 
+                  style="border-radius: 0 20px 20px 0;"
+                  type="submit"
+                  [disabled]="!remarkForm.valid || !newRemarkText.trim()">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="modal-footer d-flex justify-content-between">
+    <div class="modal-footer d-flex justify-content-between p-2">
       <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
       <button type="button" class="btn btn-outline-primary" (click)="saveUpdates(alert_message)">Save Changes</button>
     </div>

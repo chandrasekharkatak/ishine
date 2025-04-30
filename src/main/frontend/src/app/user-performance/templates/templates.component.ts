@@ -13,6 +13,7 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { Employee } from 'src/app/models/employee';
 import { User } from 'src/app/models/user';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { Sort } from '@angular/material/sort';
 
 
 
@@ -46,7 +47,7 @@ export class TemplatesComponent implements OnInit {
   editingTemplateId: any;
   selectedQuarterId: number | null = null;
   selectdepartmentId:number| null= null;
-
+  isSearchEnabled: boolean = false;
 selectedDepartmentId: number | null = null;
   selectedQuarterIdForKpi: number | null = null;
 quarterCyclesList: any;
@@ -63,6 +64,14 @@ template: any;
   kraKpiIdToDelete: number;
   questionnaireIdToDelete: number;
 // jobRoleObj: any;
+  filters: any = {};
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType: any;
+  page = 1;
+  goalTemplateColumns: any[] = [ 'blank', 'title', 'description','department'];
+  kraKpiColumns: any[] = [ 'blank', 'name', 'description','department'];
+  questionnaireColumns: any[] = [ 'blank', 'title', 'description','department','quarter'];
 
 
   constructor(
@@ -404,6 +413,7 @@ template: any;
 
   setActiveTab(tab: string) {
     this.activeTab = tab;
+    this.isSearchEnabled=false;
     if (tab === 'goals') this.fetchGoalTemplates();
     if (tab === 'kra-kpi') {
       this.fetchKraKpiTemplates(); 
@@ -476,7 +486,6 @@ template: any;
     }
 
     this.kpikraForm.patchValue({
-      
       name: template.name,
       description: template.description,
       quarterId: template.quarterId,
@@ -955,5 +964,26 @@ template: any;
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
+  }
+
+  toggleSearch() {
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if (!this.isSearchEnabled) {
+      this.filters = {};
+    }
+  }
+  sortData(sort: Sort) {
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split('|');
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;
+    }
+  }
+  onSearch(searchData) {
+    this.filters = searchData;
+  }
+  handlePageChange(event) {
+    this.page = event;
   }
 }

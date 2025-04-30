@@ -14,5 +14,4 @@ export class QuestionnaireDTO {
     questionText: string;
   }[];
 
-
 }

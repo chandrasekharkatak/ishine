@@ -31,7 +31,8 @@ interface GoalResponse {
 export class TeamDashboardComponent implements OnInit {
   @ViewChild('bulkAssignTemplate') bulkAssignTemplate: TemplateRef<any>;
   @ViewChild('singleAssignTemplate') singleAssignTemplate: TemplateRef<any>;
-  @ViewChild('multiGoalTemplate') multiGoalTemplate: TemplateRef<any>;
+  @ViewChild('multiGoalTemplate') multiGoalTemplate: TemplateRef<any>; 
+  @ViewChild('assignKRATemplate') assignKRATemplate: TemplateRef<any>;
 
   
 
@@ -56,6 +57,7 @@ export class TeamDashboardComponent implements OnInit {
   selectedEmployees: any[] = [];
   assignGoalItem: any;
   goalTemplates: any[] = [];
+  KraTemplates: any[] = [];
   selectedGoalTemplate: string = '';
   expectedCompletionDate: string = '';
   selectedEmployee: any = null;
@@ -76,6 +78,7 @@ export class TeamDashboardComponent implements OnInit {
   }[] = [];
   today: Date = new Date();
   alertMessage:any;
+  selectedKraTemplateId: any;
 
   constructor(
     private router: Router,
@@ -152,7 +155,7 @@ export class TeamDashboardComponent implements OnInit {
   
     this.performanceService.getTeamEmployeeListInTeamDashboard(empObj).subscribe(
       (response: any) => {
-        // Filter out the current user from the response
+        
         this.viewTeamMemberList = response.filter(employee => employee.empId !== this.currentUser.empId);
         console.log(this.viewTeamMemberList);
       },
@@ -243,6 +246,30 @@ export class TeamDashboardComponent implements OnInit {
       }
     );
   }
+  loadKraTemplates() {
+    const departmentId = this.currentUser.departmentId
+    console.log('Loading Kra templates...');
+    this.http.get(`${environment.baseUrl}api/kpi/department/${departmentId}`).subscribe(
+      (response: any) => {
+        console.log('Goal templates response:', response);
+        if (
+          response &&
+          response.serviceStatus &&
+          response.serviceStatus.toUpperCase() === 'SUCCESS'
+        ) {
+          this.KraTemplates = response.serviceResponse || [];
+          console.log('Processed KRA templates:', this.KraTemplates);
+        } else {
+          console.error('Error loading KRA templates:', response);
+          this.KraTemplates = [];
+        }
+      },
+      (error) => {
+        console.error('Error fetching goal templates:', error);
+        this.goalTemplates = [];
+      }
+    );
+  }
 
   toggleSearch() {
     this.isSearchEnabled = !this.isSearchEnabled;
@@ -321,14 +348,13 @@ export class TeamDashboardComponent implements OnInit {
     { full: 'July', short: 'JUL' }, { full: 'August', short: 'AUG' }, { full: 'September', short: 'SEP' },
     { full: 'October', short: 'OCT' }, { full: 'November', short: 'NOV' }, { full: 'December', short: 'DEC' }
   ];
-
+  
   futureDateFilter = (date: Date | null): boolean => {
     if (!date) return false;
     
     const today = new Date();
-    today.setHours(0, 0, 0, 0); 
+    today.setHours(0, 0, 0, 0);
     
-    if (date < today) return false;
     if (!this.selectedQuarter) return false;
     
     const selectedQuarterCycle = this.quarterCyclesList.find(
@@ -343,16 +369,31 @@ export class TeamDashboardComponent implements OnInit {
     const endMonthIndex = this.months.findIndex(m => m.short === endMonthShort);
     
     if (startMonthIndex === -1 || endMonthIndex === -1) return true;
-    const currentYear = new Date().getFullYear();
+    
+    const currentYear = today.getFullYear();
+    
+    const startDate = new Date(currentYear, startMonthIndex, 1);
+    startDate.setHours(0, 0, 0, 0);
+    
     let endYear = currentYear;
     if (endMonthIndex < startMonthIndex) endYear++;
     
     const lastDay = new Date(endYear, endMonthIndex + 1, 0).getDate();
     const endDate = new Date(endYear, endMonthIndex, lastDay);
-    endDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
     
-    return date <= endDate;
+    const isCurrentQuarter = today >= startDate && today <= endDate;
+    
+    if (isCurrentQuarter) {
+      return date >= today && date <= endDate;
+    } else {
+      return date >= startDate && date <= endDate;
+    }
   };
+
+  setCurrentQuarter():void{
+    
+  }
 
   onQuarterChange(): void {
     this.selectedGoalData.forEach(goal => {
@@ -402,6 +443,17 @@ export class TeamDashboardComponent implements OnInit {
     this.addNewGoalSelection(); 
     
     this.modalRef = this.modalService.show(this.multiGoalTemplate, {
+      class: 'modal-lg',
+    });
+  }
+
+  openAssignKraModal(employee: any) {
+    console.log('Setting up to assign KRA/KPI to employee:', employee);
+    this.selectedEmployee = employee;
+    
+    this.loadKraTemplates();
+    
+    this.modalRef = this.modalService.show(this.assignKRATemplate, {
       class: 'modal-lg',
     });
   }
@@ -529,6 +581,47 @@ export class TeamDashboardComponent implements OnInit {
     
     // Return in YYYY-MM-DD format for backend
     return d.toISOString().split('T')[0];
+  }
+  assignKraToEmployee(template: TemplateRef<any>){
+    const requestBody = {
+      id : this.selectedKraTemplateId,
+      empId: this.selectedEmployee.empId,
+      quarterId: this.selectedQuarter
+
+    }
+    if( !this.selectedQuarter || !this.selectedKraTemplateId) return false;
+    else {
+      return this.http.post(`${environment.baseUrl}api/kpi/assign/employeeId/quarterId`, requestBody)
+        .subscribe({
+         next:(response: any) => {
+          if (response.serviceStatus && response.serviceStatus.toUpperCase() === 'SUCCESS'){
+            this.alertMessage = 'KRA/KPI assigned successfully!';
+            this.openAlertMod(template, this.alertMessage);
+          }
+          else {
+            console.error('Error response:', response);
+            this.alertMessage = `Error assigning KRA: ${response.serviceMessage || 'Unknown error'}`;
+            this.openAlertMod(template, this.alertMessage);
+          }
+          (error) => {
+            console.error('HTTP error:', error);
+            let errorMessage = "Error assigning KRA. Please try again.";
+            if (error.error && error.error.message) {
+              errorMessage += ` Details: ${error.error.message}`;
+            } else if (error.message) {
+              errorMessage += ` Details: ${error.message}`;
+            } else if (typeof error === 'string') {
+              errorMessage += ` Details: ${error}`;
+            }
+            
+            this.alertMessage = errorMessage;
+            this.openAlertMod(template, this.alertMessage);
+          }
+
+        }
+      });
+    }
+
   }
   
   assignMultipleGoalsToEmployee(template: TemplateRef<any>) {

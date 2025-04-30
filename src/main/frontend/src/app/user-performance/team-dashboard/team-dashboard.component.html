@@ -71,6 +71,14 @@
                 >
                   <i class="fa fa-tasks"></i> Assign Goals
                 </button>
+
+                <button
+                  class="btn btn-success btn-sm mx-2"
+                  title="Assign Multiple Goals"
+                  (click)="openAssignKraModal(viewTeamMember)"
+                >
+                <i class="fa fa-bullseye" aria-hidden="true"></i> Assign KRA
+                </button>
               </td>
             </tr>
           </ng-container>
@@ -221,6 +229,71 @@
         Assign Goals
       </button>
     </div>
+  </div>
+</ng-template>
+
+<ng-template #assignKRATemplate>
+  <div class="modal-header">
+    <h4 class="modal-title">
+      Assign KRA to {{ selectedEmployee?.name }}
+    </h4>
+    <button
+      type="button"
+      class="close"
+      aria-label="Close"
+      (click)="closeModal()"
+    >
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="container">
+      <div class="row mb-3">
+        <div class="col-md-12">
+          <label>Select Quarter</label>
+          <select class="form-control" [(ngModel)]="selectedQuarter" >
+            <option [ngValue]="null">Select Quarter</option>
+            <option
+              *ngFor="let quarter of quarterCyclesList"
+              [ngValue]="quarter.quarterId"
+            >
+              {{ quarter.quarterCycle }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div
+        class="row mb-2">
+        <div class="col-md-5">
+          <label>KRA/KPI Template</label>
+          <select class="form-control" [(ngModel)]="selectedKraTemplateId">
+            <option [ngValue]="null">Select Template</option>
+            <option
+              *ngFor="let template of KraTemplates"
+              [value]="template.id"
+            >
+              {{ template.name }}
+            </option>
+          </select>
+        </div>
+
+      </div>
+     
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="closeModal()">
+      Cancel
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="assignKraToEmployee(alert_message)"
+      [disabled]="!selectedQuarter"
+    >
+      Assign Goals
+    </button>
   </div>
 </ng-template>
 

@@ -83,6 +83,19 @@ public class EmployeeGoalController {
     public ServiceResponse updateStatusOfGoal(@RequestBody EmployeeGoalDTO employeegoalDto,@PathVariable Long id,@PathVariable Long empId) {
     	return employeeGoalService.updatestatusofGoal(employeegoalDto,id,empId);
     }
+    @GetMapping("/employee/{empId}/quarter/{quarterId}")
+    public ServiceResponse getGoalsByEmployeeIdAndQuarterId(
+            @PathVariable Long empId,
+            @PathVariable Long quarterId) {
+        return employeeGoalService.getEmployeeGoalsByGoalId(empId,quarterId);}
+        
+        
+    @GetMapping("/goalId/{goalId}")
+    public ServiceResponse getGoalRemarksHistory(@PathVariable Long goalId)
+    {
+    	return employeeGoalService.getGoalRemarksHistory(goalId);
+    }
+    
    
 }
 

@@ -265,6 +265,5 @@ public class EmployeeDTO {
     private Long reporteeCountReportingManager;
     
     private String hodDepartmentName;
-
 	
 }

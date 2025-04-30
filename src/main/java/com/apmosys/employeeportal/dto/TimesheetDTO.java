@@ -101,29 +101,29 @@ public class TimesheetDTO {
 	private List<EmployeeTimesheetDto> timeSheet;
 	
 	public TimesheetDTO(
-		    Long timesheetId,               // long
-		    LocalDate date,                 // java.time.LocalDate
-		    String dayType,                 // java.lang.String
-		    String employeeName,            // java.lang.String (ec.name)
-		    String description,             // java.lang.String
-		    String status,                  // java.lang.String
-		    String createdByName,           // java.lang.String (eh.name)
-		    Long createdByEmpId,            // long (eh.empId)
-		    String createdOn,               // java.lang.String
-		    Long employeementId,            // long
-		    Float totalTime,                // float
-		    String email,                   // java.lang.String
-		    LocalDateTime officeInTime,     // java.time.LocalDateTime
-		    LocalDateTime officeOutTime,    // java.time.LocalDateTime
-		    String totalWorkingHours,       // java.lang.String
-		    String isNightShift,            // java.lang.String
-		    Long currentManagerId,          // long
-		    String isConsultant,            // java.lang.String
-		    String isApprenticeship,        // java.lang.String
-		    Long empId                      // long
+		    Long timesheetId,              
+		    LocalDate date,                 
+		    String dayType,                 
+		    String employeeName,            
+		    String description,             
+		    String status,                 
+		    String createdByName,          
+		    Long createdByEmpId,            
+		    String createdOn,               
+		    Long employeementId,            
+		    Float totalTime,                
+		    String email,                   
+		    LocalDateTime officeInTime,    
+		    LocalDateTime officeOutTime,    
+		    String totalWorkingHours,       
+		    String isNightShift,           
+		    Long currentManagerId,          
+		    String isConsultant,           
+		    String isApprenticeship,        
+		    Long empId                      
 		) {
 		    this.timesheetId = timesheetId;
-		    this.date = date.toString();    // Convert LocalDate to String
+		    this.date = date.toString();    
 		    this.dayType = dayType;
 		    this.employeeName = employeeName;
 		    this.description = description;
@@ -134,9 +134,9 @@ public class TimesheetDTO {
 		    this.employeementId = employeementId;
 		    this.totalTime = totalTime;
 		    this.email = email;
-		    this.officeInTime = officeInTime.toString();    // Convert LocalDateTime to String
-		    this.officeOutTime = officeOutTime.toString();  // Convert LocalDateTime to String
-		    this.totalWorkingHours = Float.parseFloat(totalWorkingHours);  // Convert String to Float
+		    this.officeInTime = officeInTime.toString();    
+		    this.officeOutTime = officeOutTime.toString();  
+		    this.totalWorkingHours = Float.parseFloat(totalWorkingHours); 
 		    this.isNightShift = isNightShift;
 		    this.currentManagerId = currentManagerId;
 		    this.isConsultant = isConsultant;

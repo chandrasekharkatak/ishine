@@ -17,16 +17,18 @@ public class Kresponse {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long responseId;
+	private Long id;
 	private Float response;
 	private Long kpiId;
 	private Long empId;
 	private Long quarterId;
 	private String description;
-	private String review;
+//	private String review;
 	
 	private Boolean isFixed;
-    private Long managerRating;
-    private String managerRemark;
+//    private Long rating;
+    private String remark;
+    private Long progress;
+    
 	
 }

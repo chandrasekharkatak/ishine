@@ -21,10 +21,10 @@ public class EmployeeGoalsQuarterController {
 	@Autowired
     private EmployeeGoalService employeeGoalService;
 	
-    @GetMapping("/employee/{empId}/quarter/{quarterId}")
-    public ServiceResponse getEmployeeGoalsByEmpIdAndQuarterId(
-            @PathVariable Long empId, 
-            @PathVariable Long quarterId) {
-        return employeeGoalService.getEmployeeGoalsByEmpIdAndQuarterId(empId, quarterId);
-    }
+//    @GetMapping("/employee/{empId}/quarter/{quarterId}")
+//    public ServiceResponse getEmployeeGoalsByEmpIdAndQuarterId(
+//            @PathVariable Long empId, 
+//            @PathVariable Long quarterId) {
+//        return employeeGoalService.getEmployeeGoalsByEmpIdAndQuarterId(empId, quarterId);
+//    }
 }

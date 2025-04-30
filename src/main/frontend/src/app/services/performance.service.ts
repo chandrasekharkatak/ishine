@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { QuarterCycle } from '../models/quarterCycle';
+import { catchError, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -126,8 +127,8 @@ export class PerformanceService {
     return this.http.get<any>(`${this.baseUrl}api/questionnaires/department/${departmentId}/quarter/${quarterId}`);
   }
 
-  getKraKpi(departmentId: number, quarterId: number, employeeRole: string) {
-    return this.http.get<any>(`${this.baseUrl}api/kpi/getKpisByQuarter/${quarterId}/Department/${departmentId}/EmployeeRole/${employeeRole}`);
+  getKraKpi(currentEmp:number,quarterId:number) {
+    return this.http.get<any>(`${this.baseUrl}api/kpi/employee/${currentEmp}/quarter/${quarterId}`);
   }
 
 
@@ -171,16 +172,59 @@ export class PerformanceService {
   submitQuestionnaireResponses(questions: any[], empId: number, quarterId: number) {
     // Format the questions as DTOs for backend processing
     const dtos = questions.map(q => ({
-      id: q.id,
+      id: q.id || q.existingId,
       questionText: q.questionText,
-      response: q.response,
-      managerRating: q.managerRating,
-      managerRemark: q.managerRemark,
+      response: q.response || 0,
+      managerRating: q.managerRating || 0,
+      managerRemark: q.managerRemark || '',
       // Include any other fields needed
     }));
     
-    return this.http.post<any>(`${this.baseUrl}api/qresponses/save/${empId}/quarter/${quarterId}`, dtos);
+    console.log('Submitting to API:', JSON.stringify(dtos));
+    
+    return this.http.post<any>(
+      `${this.baseUrl}api/qresponses/save/${empId}/quarter/${quarterId}`, 
+      dtos
+    ).pipe(
+      tap(response => console.log('API response:', response)),
+      catchError(err => {
+        console.error('API error:', err);
+        return throwError(() => err);
+      })
+    );
   }
+  // submitQuestionnaireResponses(
+  //   questions: any[],
+  //   employeeId: number,
+  //   quarterId: number
+  // ): Observable<any> {
+  //   // Create a clean payload with explicit structure
+  //   const payload = {
+  //     employeeId: employeeId,
+  //     quarterId: quarterId,
+  //     questions: questions.map(q => ({
+  //       id: q.id || null,
+  //       questionText: q.questionText,
+  //       response: q.response || 0,
+  //       managerRating: q.managerRating || 0,
+  //       managerRemark: q.managerRemark || ''
+  //     }))
+  //   };
+  
+  //   // Log the final payload
+  //   console.log('API payload:', JSON.stringify(payload));
+  
+  //   return this.http.post<any>(
+  //     `${this.baseUrl}/appraisal/submit-questionnaire`, 
+  //     payload
+  //   ).pipe(
+  //     tap(response => console.log('API response:', response)),
+  //     catchError(err => {
+  //       console.error('API error details:', err);
+  //       return throwError(() => err);
+  //     })
+  //   );
+  // }
 
   submitKpiResponses(responses: any[], empId: number, quarterId: number) {
     // Format the responses as DTOs for backend processing
@@ -191,7 +235,8 @@ export class PerformanceService {
       review: kpi.review,
       isFixed: kpi.isFixed,
       managerRating: kpi.managerRating,
-      managerRemark: kpi.managerRemark
+      managerRemark: kpi.managerRemark,
+      progress : kpi.progress
       // Include any other fields needed
     }));
     

@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,6 +21,8 @@ public interface KresponseRepository extends JpaRepository<Kresponse, Long> {
 	List<Kresponse> findByEmpId(Long empId);
 	
 	public List<Kresponse> findByEmpIdAndQuarterId(Long empId,Long quarterId);
+
+    public Optional<Kresponse> findByEmpIdAndQuarterIdAndKpiId(Long empId, Long quarterId, Long id);
 
 	
 
