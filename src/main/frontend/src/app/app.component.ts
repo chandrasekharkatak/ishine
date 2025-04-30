@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { User } from './models/user';
 import { AuthenticationService } from './services/authentication.service';
 import { first } from 'rxjs/operators';
-import ClientMonitor from 'skywalking-client-js';
+// import ClientMonitor from 'skywalking-client-js';
 
 
 interface SideNavToggle{
