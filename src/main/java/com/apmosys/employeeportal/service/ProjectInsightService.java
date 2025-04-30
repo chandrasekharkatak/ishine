@@ -2959,7 +2959,6 @@ public class ProjectInsightService {
 	    subSubModuleTag.setEntityId(subSubModule.getSubmoduleId());
 	    StringBuilder sb = new StringBuilder();
 	    sb.append(subSubModule.getSubModule()).append(". ");
-	    // Add subsubmodule-level questions
 	    if (subSubModule.getQuestionList() != null) {
 	        for (ProjectQuestionDTO q : subSubModule.getQuestionList()) {
 	            sb.append(formatQuestion(q));
@@ -2967,9 +2966,30 @@ public class ProjectInsightService {
 	    }
 	    subSubModuleTag.setProjectText(sb);
 	    tagDTOList.add(subSubModuleTag);
+	    
+	 // Process SubSubModules if present
+	    if (subSubModule.getSubSubModuleList() != null) {
+	        for (SubModuleDTO subSubModules : subSubModule.getSubSubModuleList()) {
+	            processSubSubModuleNode(subSubModules, tagDTOList, subSubModules.getSubmoduleId());
+	        }
+	    }
 	}
 	
 	private String formatQuestion(ProjectQuestionDTO q) {
+	    // Check if any response is approved for Knowledge Hub
+	    boolean hasApproved = false;
+	    if (q.getProjectResponseList() != null) {
+	        for (ProjectResponseDTO resp : q.getProjectResponseList()) {
+	            if (resp.isApprovedForKnowledgeHub()) {
+	                hasApproved = true;
+	                break;
+	            }
+	        }
+	    }
+	    if (!hasApproved) {
+	        return "";
+	    }
+
 	    StringBuilder sb = new StringBuilder();
 	    sb.append(q.getQuestion()).append(" ");
 	    sb.append(q.getDescription()).append(" ");
@@ -2981,7 +3001,7 @@ public class ProjectInsightService {
 	    }
 	    if (q.getProjectResponseList() != null) {
 	        for (ProjectResponseDTO resp : q.getProjectResponseList()) {
-	            if (resp.getResponse() != null) {
+	            if (resp.getResponse() != null && resp.isApprovedForKnowledgeHub()) {
 	                sb.append(resp.getResponse()).append(" ");
 	            }
 	        }
