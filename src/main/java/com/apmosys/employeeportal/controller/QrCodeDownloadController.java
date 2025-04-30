@@ -101,5 +101,24 @@ public class QrCodeDownloadController {
 		            .body(pdfData);
 
 	}
+	
+	@GetMapping("/downloadFileFromQrCode")
+	public ResponseEntity<Resource> downloadFile(@RequestParam("file") String fileName) {
+	    try {
+	        Path filePath = Paths.get(qrStoragePath + fileName);
+	        Resource resource = new UrlResource(filePath.toUri());
+
+	        if (!resource.exists() || !resource.isReadable()) {
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+	        }
+
+	        return ResponseEntity.ok()
+	                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+	                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+	                .body(resource);
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+	    }
+	}
 
 }
