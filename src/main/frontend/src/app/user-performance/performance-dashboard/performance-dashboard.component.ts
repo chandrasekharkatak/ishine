@@ -491,20 +491,18 @@ export class PerformanceDashboardComponent implements OnInit {
       });
     }
   }
+
   initializeQuestionnaireData(): void {
     if (this.questionnaireQuestions && this.questionnaireQuestions.length > 0) {
       this.questionnaireQuestions.forEach(question => {
-        // Ensure all required fields have valid default values
         if (question.managerRating === undefined || question.managerRating === null) {
           question.managerRating = 0;
         }
         
-        // Important: Initialize manager remarks if missing
         if (question.managerRemark === undefined || question.managerRemark === null) {
           question.managerRemark = '';
         }
         
-        // Ensure response is initialized
         if (question.response === undefined || question.response === null) {
           question.response = 0;
         }
@@ -580,9 +578,8 @@ export class PerformanceDashboardComponent implements OnInit {
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.kpiList = response.serviceResponse.kpis.map(kpi => ({
-            kpiId: kpi.kpiId,
-            id: kpi.kpiId, // Make sure id is set properly for consistency
-            description: kpi.description, // Add the description here
+            id: kpi.id, 
+            description: kpi.description, 
             progress: kpi.progress || 0,
             response: 0,
             remark: ''
@@ -601,13 +598,13 @@ export class PerformanceDashboardComponent implements OnInit {
               if (responseData && Array.isArray(responseData) && responseData.length > 0) {
                 this.kpiList.forEach(kpi => {
                   const savedResponse = responseData.find((resp: any) => 
-                    resp.kpiId === kpi.id
+                    resp.id === kpi.id
                   );
                   
                   if (savedResponse) {
                     kpi.response = savedResponse.response || 0;
                     kpi.progress = savedResponse.progress || kpi.progress;
-                    kpi.remark = savedResponse.managerRemark || '';
+                    kpi.remark = savedResponse.remark || '';
                     console.log(`Found saved response for KPI ${kpi.id}:`, kpi.response);
                   }
                 });
@@ -628,13 +625,12 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
   saveKpiResponses(template: TemplateRef<any>): void {
-    // Create payload with properly formatted KPI responses
     const payload = this.kpiList.map(kpi => ({
-      kpiId: kpi.id,
+      id: kpi.id,
       description: kpi.description,
       progress: kpi.progress,
-      response: kpi.response, // Include the response rating
-      remark: kpi.remark // Include any remarks if needed
+      response: kpi.response, 
+      remark: kpi.remark 
     }));
     
     const empId = this.currentEmployeeInfo.empId;
@@ -647,7 +643,6 @@ export class PerformanceDashboardComponent implements OnInit {
         if (response.serviceStatus === 'Success') {
           this.alertMessage = "KPI responses submitted successfully!";
           this.openAlertMod(template, this.alertMessage);
-          // Refresh data after successful submission
           this.loadKpiList();
           this.loadPerformanceStats();
         } else {
@@ -665,15 +660,13 @@ export class PerformanceDashboardComponent implements OnInit {
   
 
   saveUpdates(template: TemplateRef<any>) {
-  // Create a new remark object
   const newRemark = {
     remarkBy: this.currentUser.empId,
-    remarkByName: this.currentUser.name, // Make sure you have the user's name
-    remarkText: this.selectedGoal.managerRemark || this.selectedGoal.employeeRemark, // Whichever field contains the new remark text
-    date: new Date() // This won't be used by backend, but good for frontend tracking
+    remarkByName: this.currentUser.name, 
+    remarkText: this.selectedGoal.managerRemark || this.selectedGoal.employeeRemark, 
+    date: new Date() 
   };
 
-  // Create a proper payload matching the EmployeeGoalDTO structure
   const payload = {
     goalProgress: this.selectedGoal.goalProgress,
     goalTitle: this.selectedGoal.goalTitle,
@@ -707,7 +700,6 @@ export class PerformanceDashboardComponent implements OnInit {
     const empId = this.currentEmployeeInfo.empId;
     const quarterId = this.selectedQuarter;
   
-    // Ensure all data is properly formatted before submission
     const preparedQuestions = this.questionnaireQuestions.map(question => ({
       id: question.id || question.existingId,
       questionText: question.questionText,
@@ -716,7 +708,6 @@ export class PerformanceDashboardComponent implements OnInit {
       managerRemark: question.managerRemark || ''
     }));
   
-    // Log the data being sent
     console.log('Submitting questionnaire data:', JSON.stringify(preparedQuestions));
     
     this.performanceService.submitQuestionnaireResponses(
@@ -779,36 +770,11 @@ export class PerformanceDashboardComponent implements OnInit {
       date: this.datePipe.transform(new Date(), 'yyyy-MM-dd'),
     };
 
-    // Add to local array first for immediate UI update
     this.goalRemarks.push(newRemark);
     this.selectedGoal.remarks = this.goalRemarks;
 
-    // Clear input
     this.newRemarkText = '';
-
-    // Save to backend
-    // this.goalService.addGoalRemark(this.selectedGoal.id, newRemark).subscribe(
-    //   savedRemark => {
-    //     // Update with real ID from backend
-    //     const index = this.goalRemarks.findIndex(r => r.id === newRemark.id);
-    //     if (index !== -1) {
-    //       this.goalRemarks[index] = savedRemark;
-    //     }
-    //   },
-    //   error => {
-    //     console.error('Error saving remark:', error);
-    //     // Remove from local array if save failed
-    //     this.goalRemarks = this.goalRemarks.filter(r => r.id !== newRemark.id);
-    //   }
-    // );
   }
 
-  // isSameDay(date1: Date, date2: Date): boolean {
-  //   const d1 = new Date(date1);
-  //   const d2 = new Date(date2);
-  //   return d1.getFullYear() === d2.getFullYear() && 
-  //          d1.getMonth() === d2.getMonth() && 
-  //          d1.getDate() === d2.getDate();
-  // }
 
 }

@@ -79,6 +79,7 @@ export class TeamDashboardComponent implements OnInit {
   today: Date = new Date();
   alertMessage:any;
   selectedKraTemplateId: any;
+  filteredQuartersList: any;
 
   constructor(
     private router: Router,
@@ -131,6 +132,7 @@ export class TeamDashboardComponent implements OnInit {
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.quarterCyclesList = response.serviceResponse;
+          this.filterCurrentAndFutureQuarters();
           console.log(this.quarterCyclesList);
          
         } else {
@@ -142,6 +144,51 @@ export class TeamDashboardComponent implements OnInit {
         this.errorMessage = error.message || 'Error fetching quarters.';
       },
     });
+  }
+
+  filterCurrentAndFutureQuarters(): void {
+    const today = new Date();
+    const currentMonth = today.getMonth(); 
+    
+    this.filteredQuartersList = this.quarterCyclesList.filter(quarter => {
+      const [startMonthShort, endMonthShort] = quarter.quarterCycle.split('-');
+      
+      const startMonthIndex = this.months.findIndex(m => m.short === startMonthShort);
+      const endMonthIndex = this.months.findIndex(m => m.short === endMonthShort);
+      
+      if (startMonthIndex === -1 || endMonthIndex === -1) return false;
+      
+      if (this.isCurrentOrFutureQuarter(startMonthIndex, endMonthIndex, currentMonth)) {
+        return true;
+      }
+      return false;
+    });
+    
+  }
+
+  isCurrentOrFutureQuarter(startMonthIndex: number, endMonthIndex: number, currentMonth: number): boolean {
+    if (endMonthIndex < startMonthIndex) {
+      if (currentMonth <= endMonthIndex) {
+        return true;
+      }
+      
+      if (currentMonth >= startMonthIndex) {
+        return true;
+      }
+      
+      return false;
+    } 
+    else {
+      if (currentMonth < startMonthIndex) {
+        return true;
+      }
+      
+      if (currentMonth >= startMonthIndex && currentMonth <= endMonthIndex) {
+        return true;
+      }
+      
+      return false;
+    }
   }
   
 
