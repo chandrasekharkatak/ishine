@@ -38,6 +38,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
