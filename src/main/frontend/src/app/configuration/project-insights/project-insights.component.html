@@ -72,7 +72,7 @@
     <!-- Project Details -->
     <div class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="details_template"
-        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'Project'}">
+        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'Project',entityParentId:projectInsightObj?.projectId,entityName:entityObj?.projectName}">
       </ng-container>
     </div>
 
@@ -95,7 +95,7 @@
     <!-- Milestone Details -->
     <div class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="details_template"
-        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'Milestone',entityName:entityObj.milestone,entityId:entityObj.milestoneId}">
+        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'Milestone',entityName:entityObj.milestone,entityId:entityObj.milestoneId,entityParentId:entityObj?.projectId}">
       </ng-container>
     </div>
 
@@ -119,7 +119,7 @@
     <!-- Module Details -->
     <div class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="details_template"
-        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'Module',entityName:entityObj.module,entityId:entityObj.moduleId}">
+        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'Module',entityName:entityObj.module,entityId:entityObj.moduleId,entityParentId:entityObj?.milestoneId}">
       </ng-container>
     </div>
 
@@ -142,7 +142,7 @@
     <!-- SubModule Details -->
     <div class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="details_template"
-        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'SubModule',entityName:entityObj.subModule,entityId:entityObj.subModuleId}">
+        [ngTemplateOutletContext]="{ entity:entityObj ,entityType:'SubModule',entityName:entityObj.subModule,entityId:entityObj.subModuleId,entityParentId:entityObj?.moduleId}">
       </ng-container>
     </div>
 
@@ -176,7 +176,7 @@
 
 <!-- Details Template -->
 <ng-template #details_template let-entityType="entityType" let-entity="entity" let-entityName="entityName"
-  let-entityId="entityId">
+  let-entityId="entityId" let-entityParentId="entityParentId">
   <!-- Badges -->
   <div class="col-md-12 m-1 mb-2">
     <div class="row">
@@ -201,6 +201,13 @@
               {{employee.name}}
             </mat-option>
           </mat-select>
+        </div>
+      </div>
+      <div *ngIf="actionType == 'Configuration' && subActionType != 'Creation' && subActionType != 'Search' && subActionType != 'Preview' && (entity?.currentActiveBadgeLevel?.includes('Details') || entity?.currentActiveBadgeLevel?.includes('Questions'))" class="col-md-4">
+        <div class=" d-flex justify-content-end">
+          <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download {{entity.currentActiveBadgeLevel}}"
+            (click)="exportProjectToExcel(entity,entityType,entityName,entityParentId,entity?.currentActiveBadgeLevel)">
+          </button>
         </div>
       </div>
     </div>
@@ -349,12 +356,32 @@
 <!-- Questions Card Template -->
 <ng-template #questions_card_template let-entity="entity" let-entityType="entityType">
   <div class="col-md-12 pr-0 pl-0">
-    <div class="row m-1">
-      <div class="col-md-4 d-flex justify-content-start">
+    <div class="row m-1 justify-content-between align-items-center">
+      <div class="col-md-4">
         <h5>{{entityType}} Questions</h5>
       </div>
       <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
-        class="col-md-4 ml-auto d-flex justify-content-end">
+        class="col-md-8 d-flex justify-content-end align-items-center flex-wrap">
+        <label *ngIf="!file" class="btn btn-sm btn-outline-primary mr-2 mb-0" for="project-data-input-file">
+          <span>Upload Excel File</span>
+          <input id="project-data-input-file" type="file" class="d-none" #fileInput accept=".xlsx, .xls"
+            (change)="onFileChange($event);" [disabled]="file">
+        </label>
+    
+        <span *ngIf="fileName" class="small mr-2">
+          {{fileName}}
+        </span>
+    
+        <button *ngIf="file" type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
+          (click)="clearFileInput()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+    
+        <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel" [disabled]="!file"
+          (click)="uploadXcelData()">
+          <i class="fa fa-upload" aria-hidden="true"></i>
+        </button>
+    
         <button type="button" class="btn btn-outline-primary btn-sm" (click)="addQuestion(entity)"><em
             class="fa-solid fa-plus"></em>&nbsp;Add Questions</button>
       </div>
@@ -686,12 +713,31 @@
 <!-- Milestone Card Template -->
 <ng-template #milestone_card_template let-entityList="entityList">
   <div class="col-md-12 pr-0 pl-0">
-    <div class="row m-1">
-      <div class="col-md-4 d-flex justify-content-start">
+    <div class="row m-1 justify-content-between align-items-center">
+      <div class="col-md-4">
         <h5>Project Milestones</h5>
       </div>
       <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
-        class="col-md-4 ml-auto d-flex justify-content-end">
+        class="col-md-8 d-flex justify-content-end align-items-center flex-wrap">
+        <label *ngIf="!file" class="btn btn-sm btn-outline-primary mr-2 mb-0" for="project-data-input-file">
+          <span>Upload Excel File</span>
+          <input id="project-data-input-file" type="file" class="d-none" #fileInput accept=".xlsx, .xls"
+            (change)="onFileChange($event);" [disabled]="file">
+        </label>
+    
+        <span *ngIf="fileName" class="small mr-2">
+          {{fileName}}
+        </span>
+    
+        <button *ngIf="file" type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
+          (click)="clearFileInput()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+    
+        <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel" [disabled]="!file"
+          (click)="uploadXcelData()">
+          <i class="fa fa-upload" aria-hidden="true"></i>
+        </button>
         <button type="button" class="btn btn-outline-primary btn-sm" (click)="addMilestone(entityList)"><em
             class="fa-solid fa-plus"></em>&nbsp;Add Milestones</button>
       </div>
@@ -706,7 +752,13 @@
                 <h5 class="m-2">{{milestone.milestone}}</h5>
               </div>
               <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
-                class="col-2 d-flex align-items-start justify-content-end p-2">
+                class="col-1 d-flex align-items-start justify-content-end p-2" style="padding-right: 0% !important;">
+                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download Milestone"
+                  (click)="exportProjectToExcel(milestone,'Milestone',milestone.milestone,milestone.projectId)">
+                </button>
+              </div>
+              <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
+                class="col-1 d-flex align-items-start justify-content-end p-2">
                 <button type="button" class="btn btn-outline-danger btn-sm"
                   (click)="deleteMilestone(entityList,milestoneIndex)" title="Delete Milestone"><em
                     class="fa fa-trash"></em></button>
@@ -733,7 +785,7 @@
   <!-- Details -->
   <div class="row m-1 mb-2">
     <ng-container [ngTemplateOutlet]="details_template"
-      [ngTemplateOutletContext]="{ entity:entity ,entityType:'Milestone',entityName:entity.milestone,entityId:entity.milestoneId}">
+      [ngTemplateOutletContext]="{ entity:entity ,entityType:'Milestone',entityName:entity.milestone,entityId:entity.milestoneId,entityParentId:entity?.projectId}">
     </ng-container>
   </div>
 
@@ -748,12 +800,31 @@
 <!-- Module Card Template -->
 <ng-template #module_card_template let-entityList="entityList">
   <div class="col-md-12 pr-0 pl-0">
-    <div class="row m-1">
-      <div class="col-md-4 d-flex justify-content-start">
+    <div class="row m-1 justify-content-between align-items-center">
+      <div class="col-md-4">
         <h5>Project Modules</h5>
       </div>
       <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
-        class="col-md-4 ml-auto d-flex justify-content-end">
+        class="col-md-8 d-flex justify-content-end align-items-center flex-wrap">
+        <label *ngIf="!file" class="btn btn-sm btn-outline-primary mr-2 mb-0" for="project-data-input-file">
+          <span>Upload Excel File</span>
+          <input id="project-data-input-file" type="file" class="d-none" #fileInput accept=".xlsx, .xls"
+            (change)="onFileChange($event);" [disabled]="file">
+        </label>
+    
+        <span *ngIf="fileName" class="small mr-2">
+          {{fileName}}
+        </span>
+    
+        <button *ngIf="file" type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
+          (click)="clearFileInput()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+    
+        <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel" [disabled]="!file"
+          (click)="uploadXcelData()">
+          <i class="fa fa-upload" aria-hidden="true"></i>
+        </button>
         <button type="button" class="btn btn-outline-primary btn-sm" (click)="addModuleToList(entityList)"><em
             class="fa-solid fa-plus"></em>&nbsp;Add Modules</button>
       </div>
@@ -767,7 +838,13 @@
                 <h5 class="m-2">{{module.module}}</h5>
               </div>
               <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
-                class="col-2 d-flex align-items-start justify-content-end p-2">
+                class="col-1 d-flex align-items-start justify-content-end p-2" style="padding-right: 0% !important;">
+                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download Module"
+                  (click)="exportProjectToExcel(module,'Module',module?.module,module?.milestoneId)">
+                </button>
+              </div>
+              <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
+                class="col-1 d-flex align-items-start justify-content-end p-2">
                 <button type="button" class="btn btn-outline-danger btn-sm"
                   (click)="deleteModule(entityList,moduleIndex)" title="Delete Module">
                   <em class="fa fa-trash"></em>
@@ -795,7 +872,7 @@
   <!-- Details -->
   <div class="row m-1 mb-2">
     <ng-container [ngTemplateOutlet]="details_template"
-      [ngTemplateOutletContext]="{ entity:entity ,entityType:'Module',entityName:entity.module,entityId:entity.moduleId}">
+      [ngTemplateOutletContext]="{ entity:entity ,entityType:'Module',entityName:entity.module,entityId:entity.moduleId,entityParentId:entity?.milestoneId}">
     </ng-container>
   </div>
 
@@ -810,12 +887,31 @@
 <!-- SubModule Card Template -->
 <ng-template #submodule_card_template let-entityList="entityList" let-subModuleType="subModuleType">
   <div class="col-md-12 pr-0 pl-0">
-    <div class="row m-1">
-      <div class="col-md-4 d-flex justify-content-start">
+    <div class="row m-1 justify-content-between align-items-center">
+      <div class="col-md-4">
         <h5>Project SubModules</h5>
       </div>
       <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
-        class="col-md-4 ml-auto d-flex justify-content-end">
+        class="col-md-8 d-flex justify-content-end align-items-center flex-wrap">
+        <label *ngIf="!file" class="btn btn-sm btn-outline-primary mr-2 mb-0" for="project-data-input-file">
+          <span>Upload Excel File</span>
+          <input id="project-data-input-file" type="file" class="d-none" #fileInput accept=".xlsx, .xls"
+            (change)="onFileChange($event);" [disabled]="file">
+        </label>
+    
+        <span *ngIf="fileName" class="small mr-2">
+          {{fileName}}
+        </span>
+    
+        <button *ngIf="file" type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
+          (click)="clearFileInput()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+    
+        <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel" [disabled]="!file"
+          (click)="uploadXcelData()">
+          <i class="fa fa-upload" aria-hidden="true"></i>
+        </button>
         <button type="button" class="btn btn-outline-primary btn-sm"
           (click)="addSubModuleToList(entityList,subModuleType)"><em class="fa-solid fa-plus"></em>&nbsp;Add
           SubModules</button>
@@ -831,7 +927,13 @@
                 <h5 class="m-2">{{subModule.subModule}}</h5>
               </div>
               <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
-                class="col-2 d-flex align-items-start justify-content-end p-2">
+                class="col-1 d-flex align-items-start justify-content-end p-2" style="padding-right: 0% !important;">
+                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download {{subModuleType}}"
+                  (click)="exportProjectToExcel(subModule,subModuleType,subModule?.subModule,subModule?.moduleId)">
+                </button>
+              </div>
+              <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
+                class="col-1 d-flex align-items-start justify-content-end p-2">
                 <button type="button" class="btn btn-outline-danger btn-sm"
                   (click)="deleteSubModule(entityList,subModuleIndex,subModuleType)" title="Delete {{subModuleType}}">
                   <em class="fa fa-trash"></em>
@@ -860,7 +962,7 @@
   <!-- Details -->
   <div class="row m-1 mb-2">
     <ng-container [ngTemplateOutlet]="details_template"
-      [ngTemplateOutletContext]="{ entity:entity ,entityType:'SubModule',entityName:entity.subModule,entityId:entity.subModuleId}">
+      [ngTemplateOutletContext]="{ entity:entity ,entityType:'SubModule',entityName:entity.subModule,entityId:entity.subModuleId,entityParentId:entity?.moduleId}">
     </ng-container>
   </div>
 

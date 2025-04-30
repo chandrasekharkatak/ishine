@@ -833,4 +833,12 @@ export class ValidationService {
       return false;
     }
   }
+
+  validateNullUndefinedEmptyList(list: any[]): boolean {
+
+    if (list === undefined || list === null || !list || (list && list.length == 0)) {
+      return false;
+    }
+    return true;
+  }
 }

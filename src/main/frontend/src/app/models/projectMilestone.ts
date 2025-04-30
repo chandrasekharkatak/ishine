@@ -7,6 +7,7 @@ export class ProjectMilestone {
     employeeRole: any;
     milestone: any;
     milestoneId: any;
+    projectId: any;
     description: any;
     redmineId: any;
     assignedToUserId: any[] = [];
@@ -30,5 +31,6 @@ export class ProjectMilestone {
         { name: 'Modules' },
     ];
     currentActiveBadgeLevel = 'Details';
+    actionType: any;
 }
 

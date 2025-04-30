@@ -29,4 +29,5 @@ export class ProjectQuestion {
     ];
     currentActiveBadgeLevel = 'Details';
     recommendedResponseId: any;
+    actionType: any;
 }

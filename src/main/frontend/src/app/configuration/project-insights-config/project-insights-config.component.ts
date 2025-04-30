@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -27,7 +27,7 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { Document } from 'src/app/models/document';
 import { ProjectResponse } from 'src/app/models/projectResponse';
 import { ProjectMilestone } from 'src/app/models/projectMilestone';
-
+import * as XLSX from 'xlsx';
 @Component({
   selector: 'app-project-insights-config',
   templateUrl: './project-insights-config.component.html',
@@ -37,7 +37,8 @@ import { ProjectMilestone } from 'src/app/models/projectMilestone';
 export class ProjectInsightsConfigComponent implements OnInit {
   @ViewChild('alert_message') alertMessageTempalte:TemplateRef<any>;
   @ViewChild('insight_response_template') insightResponseTemplate:TemplateRef<any>;
-
+  @ViewChild('fileInput') fileInput: ElementRef;
+  
   feature = "Survey Config";
   currentUser: User;
   userMapping: any = {};
@@ -76,9 +77,13 @@ export class ProjectInsightsConfigComponent implements OnInit {
   isResponsePreview:boolean = true;
   isSearchEnabled:boolean = false;
   isFinalResponseSubmitted:boolean = false;
+  blockUpdateButton: boolean = true;
+  isExcelUploaded:boolean = false;
 
   projectInsight:ProjectInsight = new ProjectInsight();
-  
+  projectInsightObj: ProjectInsight = new ProjectInsight();
+  projectInsightExcelObj: ProjectInsight = new ProjectInsight();
+
   employeeList:any[] = [];
   allProjectList:any[] = [];
   allProjectInsightList: any[] = [];
@@ -93,6 +98,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
   actionType:any='Configuration';
   subActionType:any='Creation';
   responseByEmpId:any;
+
+  file: any;
+  fileName:any;
 
   constructor(
     private validationService: ValidationService,
@@ -150,9 +158,11 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   showProjectInsightForm(){
+    this.projectInsightExcelObj = null;
     this.isQuestionForm = true;
     this.isCreation = true;
     this.subActionType='Creation';
+    this.isExcelUploaded = false;
     this.isProjectInsightList = false;
     this.isProjectInsightResponseList = false;
     this.projectInsight = new ProjectInsight(); 
@@ -162,8 +172,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.isProjectInsightList = true;
     this.isQuestionForm = false;
     this.isCreation = false;
+    this.isExcelUploaded = false;
     this.subActionType='Creation';
     this.isProjectInsightResponseList = false;
+    this.clearFileInput();
     this.getAllProjectInsightList();
   }
 
@@ -397,4 +409,282 @@ export class ProjectInsightsConfigComponent implements OnInit {
   closeProjectInsightResponseModal() {
     this.projectResponseModalRef.hide();
   }
+
+  clearFileInput(): void {
+    this.file = null;
+    this.fileName = null;
+    this.projectInsightExcelObj = new ProjectInsight();
+    const fileInput = document.getElementById('project-data-input-file') as HTMLInputElement;
+    if (fileInput)
+      fileInput.value = '';
+  }
+
+  uploadFile(): void {
+    const fileInput = this.fileInput.nativeElement;
+    fileInput.click();
+  }
+
+  onFileChange(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.file = file;
+      this.fileName = file.name;
+      const fileExtension = this.fileName.split(".").pop();
+      let elem = document.getElementById('project-data-input-file') as HTMLInputElement;
+      if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
+        this.alertMessage = "Only .xlsx file is allowed.";
+        this.modalRef = this.modalService.show(this.alertMessageTempalte, { class: 'modal-sm' });
+        this.clearFileInput();
+        return false;
+      }
+    } else {
+      this.clearFileInput();
+    }
+  }
+
+  async uploadXcelData() {
+    this.projectInsightObj = new ProjectInsight();
+    try {
+      let excelValidated: any = await this.exportExcelService.validateProjectInsightImportExcel(this.file);
+      if (!excelValidated || excelValidated != 'Success') {
+        let alertMessage = 'Something went wrong';
+        if (excelValidated) {
+          alertMessage = excelValidated;
+        }
+        this.openAlertMod(this.alertMessageTempalte, alertMessage);
+        return false;
+      }
+
+      this.isExcelUploaded = true;
+      this.subActionType = 'Creation';
+      this.projectInsightExcelObj = await this.exportExcelService.convertJsonDataToProjectInsightObj(this.file);
+      if (this.projectInsightExcelObj) {
+        this.projectInsightObj = null;
+        await this.getAllQuestionsByProjectId(this.projectInsightExcelObj.projectId, this.alertMessageTempalte, false);
+        if (this.projectInsightObj) {
+          this.subActionType = 'Updation';
+          this.projectInsightExcelObj = await this.mergeProjectInsightExcelObjectWithProjectInsightDBObject(this.projectInsightObj, this.projectInsightExcelObj);
+        }
+      }
+
+      this.isQuestionForm = true;
+      this.isCreation = true;
+      this.isProjectInsightList = false;
+      this.isProjectInsightResponseList = false;
+    } catch (error) {
+      this.openAlertMod(this.alertMessageTempalte, "Failed to process Excel file");
+      return false;
+    }
+  }
+
+  getAllQuestionsByProjectId(projectId: any, template: TemplateRef<any>, downloadExcel: boolean): Promise<any> {
+    let projectInsight: ProjectInsight = new ProjectInsight();
+    projectInsight.projectId = projectId;
+    return this.projectInsightService.getAllQuestionsByProjectId(projectInsight).pipe(first())
+      .toPromise()
+      .then((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.projectInsightObj = response.serviceResponse;
+          this.projectInsightObj.deletedProjectInsightEntityList = [];
+          this.parseOptionsOfQuestionToList(this.projectInsightObj.questionList);
+          if (this.projectInsightObj.projectInsightMilestoneList != null && this.projectInsightObj.projectInsightMilestoneList?.length != 0) {
+            this.projectInsightObj.projectInsightMilestoneList.forEach((proj: ProjectMilestone) => {
+              this.parseOptionsOfQuestionToList(proj.questionList);
+
+              if (proj.moduleList != null && proj.moduleList?.length != 0) {
+                proj.moduleList.forEach((moduleObj: any) => {
+                  this.parseOptionsOfQuestionToList(moduleObj.questionList);
+
+                  if (moduleObj.subModuleList != null && moduleObj.subModuleList?.length != 0) {
+                    this.convertStringToJSONSubModuleNodesOption(moduleObj.subModuleList);
+                  }
+                });
+              }
+            });
+          }
+          if (downloadExcel) {
+            this.exportExcelService.exportProjectToExcel(this.projectInsightObj, 'Project', this.projectInsightObj.projectName, null);
+          }
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      })
+      .catch(error => {
+        this.openAlertMod(template, 'Error fetching project questions');
+      });
+  }
+
+  parseOptionsOfQuestionToList(questionList: ProjectQuestion[]) {
+    if (questionList != null && questionList?.length != 0) {
+      questionList.forEach((questionObj: ProjectQuestion) => {
+        if (questionObj.optionType == "checkbox" || questionObj.optionType == "radio") {
+          questionObj.optionsList = JSON.parse(questionObj.options || '[]');
+        }
+      });
+    }
+  }
+
+  convertStringToJSONSubModuleNodesOption(subModuleList: ProjectSubModule[]) {
+    subModuleList.forEach((submoduleObj: any) => {
+      this.parseOptionsOfQuestionToList(submoduleObj.questionList);
+      if (submoduleObj.subSubModuleList != undefined && submoduleObj.subSubModuleList != null && submoduleObj.subSubModuleList.length != 0) {
+        this.convertStringToJSONSubModuleNodesOption(submoduleObj.subSubModuleList);
+      }
+    });
+  }
+
+  mergeProjectInsightExcelObjectWithProjectInsightDBObject(projectInsightObj: any, projectInsightExcelObj: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+      try {
+        projectInsightExcelObj.projectId = projectInsightObj.projectId;
+        projectInsightExcelObj.projectName = projectInsightObj.projectName;
+        projectInsightExcelObj.projectManagerId = projectInsightObj.projectManagerId;
+        projectInsightExcelObj.projectManagerName = projectInsightObj.projectManagerName;
+        projectInsightExcelObj.questionList = this.mergeQuestions(projectInsightObj?.questionList, projectInsightExcelObj?.questionList);
+        projectInsightExcelObj.projectInsightMilestoneList = this.mergerMilestones(projectInsightObj?.projectInsightMilestoneList, projectInsightExcelObj.projectInsightMilestoneList);
+
+        resolve(projectInsightExcelObj);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  mergeQuestions(dbQuestionsList: any[], excelQuestionsList: any[]) {
+    if (this.validationService.validateNullUndefinedEmptyList(dbQuestionsList) && this.validationService.validateNullUndefinedEmptyList(excelQuestionsList)) {
+      excelQuestionsList = excelQuestionsList.map(item => Object.assign({}, item));
+      dbQuestionsList = dbQuestionsList.map(item => Object.assign({}, item));
+      for (let dbQuestionIndex = 0; dbQuestionIndex < dbQuestionsList.length; dbQuestionIndex++) {
+        const dbQuestion = dbQuestionsList[dbQuestionIndex];
+        const matchIndex = excelQuestionsList.findIndex(excelQ => excelQ.questionId === dbQuestion.questionId);
+        if (matchIndex !== -1) {
+          excelQuestionsList[matchIndex] = { ...dbQuestion, ...excelQuestionsList[matchIndex] };
+        } else {
+          excelQuestionsList.push(dbQuestion);
+        }
+      }
+      return excelQuestionsList;
+    }
+    else if (!this.validationService.validateNullUndefinedEmptyList(dbQuestionsList) && this.validationService.validateNullUndefinedEmptyList(excelQuestionsList)) {
+      return excelQuestionsList;
+    }
+    else if (!this.validationService.validateNullUndefinedEmptyList(dbQuestionsList) && !this.validationService.validateNullUndefinedEmptyList(excelQuestionsList)) {
+      return [];
+    }
+  }
+
+  mergerMilestones(dbProjectInsightMilestoneList: any, excelProjectInsightMilestoneList: any) {
+    if (this.validationService.validateNullUndefinedEmptyList(dbProjectInsightMilestoneList) && this.validationService.validateNullUndefinedEmptyList(excelProjectInsightMilestoneList)) {
+      excelProjectInsightMilestoneList = excelProjectInsightMilestoneList.map(item => Object.assign({}, item));
+      dbProjectInsightMilestoneList = dbProjectInsightMilestoneList.map(item => Object.assign({}, item));
+      for (let dbMilestoneIndex = 0; dbMilestoneIndex < dbProjectInsightMilestoneList.length; dbMilestoneIndex++) {
+        const dbMilestone = dbProjectInsightMilestoneList[dbMilestoneIndex];
+        const matchIndex = excelProjectInsightMilestoneList.findIndex(excelMilestone => excelMilestone.milestoneId === dbMilestone.milestoneId);
+        if (matchIndex !== -1) {
+          let excelMilestone = excelProjectInsightMilestoneList[matchIndex];
+          dbMilestone.milestone = excelMilestone.milestone;
+          dbMilestone.description = excelMilestone.description;
+          dbMilestone.projectId = excelMilestone.projectId;
+          dbMilestone.assignedToUserId = excelMilestone.assignedToUserId;
+          dbMilestone.redmineId = excelMilestone.redmineId;
+          dbMilestone.milestoneId = excelMilestone.milestoneId;
+          dbMilestone.actionType = excelMilestone.actionType;
+
+          if (!this.validationService.validateNullUndefinedEmptyList(excelMilestone?.questionList)) {
+            excelMilestone.questionList = [];
+          }
+          dbMilestone.questionList = this.mergeQuestions(dbMilestone?.questionList, excelMilestone?.questionList);
+          dbMilestone.moduleList = this.mergeModules(dbMilestone?.moduleList, excelMilestone?.moduleList);
+
+          excelProjectInsightMilestoneList[matchIndex] = dbMilestone;
+        } else {
+          excelProjectInsightMilestoneList.push(dbMilestone);
+        }
+      }
+      return excelProjectInsightMilestoneList;
+    }
+    else if (!this.validationService.validateNullUndefinedEmptyList(dbProjectInsightMilestoneList) && this.validationService.validateNullUndefinedEmptyList(excelProjectInsightMilestoneList)) {
+      return excelProjectInsightMilestoneList;
+    }
+    else if (!this.validationService.validateNullUndefinedEmptyList(dbProjectInsightMilestoneList) && !this.validationService.validateNullUndefinedEmptyList(excelProjectInsightMilestoneList)) {
+      return [];
+    }
+  }
+
+  mergeModules(dbModuleList: any, excelModuleList: any) {
+    if (this.validationService.validateNullUndefinedEmptyList(dbModuleList) && this.validationService.validateNullUndefinedEmptyList(excelModuleList)) {
+      excelModuleList = excelModuleList.map(item => Object.assign({}, item));
+      dbModuleList = dbModuleList.map(item => Object.assign({}, item));
+      for (let dbModuleIndex = 0; dbModuleIndex < dbModuleList.length; dbModuleIndex++) {
+        const dbModule = dbModuleList[dbModuleIndex];
+        const matchIndex = excelModuleList.findIndex(excelModule => excelModule.moduleId === dbModule.moduleId);
+        if (matchIndex !== -1) {
+          let excelModule = excelModuleList[matchIndex];
+          dbModule.module = excelModule.module;
+          dbModule.description = excelModule.description;
+          dbModule.milestoneId = excelModule.milestoneId;
+          dbModule.assignedToUserId = excelModule.assignedToUserId;
+          dbModule.redmineId = excelModule.redmineId;
+          dbModule.moduleId = excelModule.moduleId;
+          dbModule.actionType = excelModule.actionType;
+
+          if (!this.validationService.validateNullUndefinedEmptyList(excelModule?.questionList)) {
+            excelModule.questionList = [];
+          }
+          dbModule.questionList = this.mergeQuestions(dbModule?.questionList, excelModule?.questionList);
+          dbModule.subModuleList = this.mergeSubModules(dbModule?.subModuleList, excelModule?.subModuleList, 'SubModule');
+
+          excelModuleList[matchIndex] = dbModule;
+        } else {
+          excelModuleList.push(dbModule);
+        }
+      }
+      return excelModuleList;
+    }
+    else if (!this.validationService.validateNullUndefinedEmptyList(dbModuleList) && this.validationService.validateNullUndefinedEmptyList(excelModuleList)) {
+      return excelModuleList;
+    }
+    else if (!this.validationService.validateNullUndefinedEmptyList(dbModuleList) && !this.validationService.validateNullUndefinedEmptyList(excelModuleList)) {
+      return [];
+    }
+  }
+
+  mergeSubModules(dbSubModuleList: any, excelSubModuleList: any, subModuleType: any) {
+    if (this.validationService.validateNullUndefinedEmptyList(dbSubModuleList) && this.validationService.validateNullUndefinedEmptyList(excelSubModuleList)) {
+      excelSubModuleList = excelSubModuleList.map(item => Object.assign({}, item));
+      dbSubModuleList = dbSubModuleList.map(item => Object.assign({}, item));
+      for (let dbSubModuleIndex = 0; dbSubModuleIndex < dbSubModuleList.length; dbSubModuleIndex++) {
+        const dbSubModule = dbSubModuleList[dbSubModuleIndex];
+        const matchIndex = excelSubModuleList.findIndex(excelSubModule => excelSubModule.subModuleId === dbSubModule.submoduleId);
+        if (matchIndex !== -1) {
+          let excelSubModule = excelSubModuleList[matchIndex];
+          dbSubModule.subModule = excelSubModule.subModule;
+          dbSubModule.description = excelSubModule.description;
+          dbSubModule.moduleId = excelSubModule.moduleId;
+          dbSubModule.assignedToUserId = excelSubModule.assignedToUserId;
+          dbSubModule.redmineId = excelSubModule.redmineId;
+          excelSubModule.subModuleId = excelSubModule.subModuleId;
+          excelSubModule.actionType = excelSubModule.actionType;
+
+          if (!this.validationService.validateNullUndefinedEmptyList(excelSubModule?.questionList)) {
+            excelSubModule.questionList = [];
+          }
+          dbSubModule.questionList = this.mergeQuestions(dbSubModule?.questionList, excelSubModule?.questionList);
+          dbSubModule.subSubModuleList = this.mergeSubModules(dbSubModule?.subSubModuleList, excelSubModule?.subSubModuleList, 'Sub-SubModule');
+
+          excelSubModuleList[matchIndex] = dbSubModule;
+        } else {
+          excelSubModuleList.push(dbSubModule);
+        }
+      }
+      return excelSubModuleList;
+    }
+    else if (!this.validationService.validateNullUndefinedEmptyList(dbSubModuleList) && this.validationService.validateNullUndefinedEmptyList(excelSubModuleList)) {
+      return excelSubModuleList;
+    }
+    else if (!this.validationService.validateNullUndefinedEmptyList(dbSubModuleList) && !this.validationService.validateNullUndefinedEmptyList(excelSubModuleList)) {
+      return [];
+    }
+  }
+
 }

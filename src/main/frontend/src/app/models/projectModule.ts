@@ -4,6 +4,7 @@ import { ProjectSubModule } from "./projectSubModule";
 export class ProjectModule {
     module: any;
     moduleId: any;
+    milestoneId: any;
     description: any;
     redmineId: any;
     assignedToUserId: any;
@@ -22,4 +23,5 @@ export class ProjectModule {
         { name: 'SubModules' },
     ];
     currentActiveBadgeLevel = 'Details';
+    actionType: any;
 }
