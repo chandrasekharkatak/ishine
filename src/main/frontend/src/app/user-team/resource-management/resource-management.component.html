@@ -574,10 +574,17 @@
                                                                         <i class="fa fa-plus" aria-hidden="true"></i>
                                                                     </button>
                                                                 </div>
+                                                                <div class="m-0">
+                                                                    <button type="button" title="Delete team"
+                                                                        class="btn btn-outline-danger mx-1"
+                                                                        (click)="openDeleteModalForTeam(delete_team_modal,alert_message, teamObj, projectObj)">
+                                                                        <i class="fa fa-trash" aria-hidden="true"></i>
+                                                                    </button>
+                                                                </div>
                                                                 <div class="m-0" *ngIf="allTeamList.length > 1">
                                                                     <button type="button" title="Delete team"
                                                                             class="btn btn-outline-danger mx-1"
-                                                                            (click)="openDeleteModalForTeam(delete_team_modal, teamObj)">
+                                                                            (click)="openDeleteModalForTeamBulk(delete_team_modal,alert_message,teamObj, projectObj)">
                                                                         <i class="fa fa-trash" aria-hidden="true"></i>
                                                                     </button>
                                                                 </div>
@@ -1089,7 +1096,7 @@
     <ng-template #delete_team_modal>
         <div class="modal-body text-center">
             <p>Are you sure want to delete Team ?</p>
-            <button type="button" class="btn btn-success" (click)="cancelRequest();deleteTeam(alert_team_message)">Yes</button>&nbsp;
+            <button type="button" class="btn btn-success" (click)="cancelRequest();deleteResourceModal1(delete_modal_template1)">Yes</button>&nbsp;
             <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
         </div>
     </ng-template>
@@ -1146,9 +1153,29 @@
 
                 <div class="teams-section">
                     <h3>Teams</h3>
+                     <div class="col-md-12 mb-3" *ngIf="allTeamList.length > 1">
+                                                           
+                                                            <label>
+                                                                <input type="checkbox" [(ngModel)]="selectAll"
+                                                                    (change)="toggleSelectAll()"> Select All Teams
+                                                            </label>
+                                                            <div *ngIf="selectedTeamsDetails.length > 0">
+                                                                <button type="button" class="btn btn-primary sm"
+                                                                    (click)="openDeleteModalForTeamBulk(delete_team_modal,alert_message, teamObj, projectObj)">Delete
+                                                                    Selected Teams</button>
+                                                            </div>
+
+
+                                                        </div>
                     <div *ngFor="let teamObj of allTeamList; let i = index" class="team-row">
+                        
                       <div class="form-field">
+
+                        <input type="checkbox" *ngIf="allTeamList.length > 1"
+                        [(ngModel)]="teamObj.selected"
+                        (change)="updateSelection()" />
                         <label>Team Name</label>
+
                         <input type="text" class="form-control" [(ngModel)]="teamObj.teamName"
                                (blur)="checkTeamName(alert_message, teamObj, i)">
                       </div>
@@ -1254,3 +1281,23 @@
       </div>
     </div>
   </ng-template>  
+
+  <ng-template #delete_modal_template1>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete Resource from <br> team and project ?</p>
+        <div class="col-md-12">
+            <div class="info-wrapper">
+                <div class="form-group" style="display: flex;">
+                    <label class="info-label ml-1">Select End Date</label>
+                    <input id="occasionDate" OnClick="this.showPicker()" type="date" class="form-control"
+                        autocomplete="none" [(ngModel)]="lastDate">
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn btn-success" *ngIf="selectedTeamsDetails.length"
+            (click)="deleteTeamsByIdsBulk(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" *ngIf="!selectedTeamsDetails.length"
+            (click)="deleteTeam(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>

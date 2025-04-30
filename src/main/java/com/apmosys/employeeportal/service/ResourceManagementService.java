@@ -33,11 +33,11 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
-import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -73,7 +73,6 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
-import com.apmosys.employeeportal.model.Designation;
 
 @Service
 public class ResourceManagementService {
@@ -946,11 +945,6 @@ public class ResourceManagementService {
 		
 	}
 	
-		
-	
-
-	
-	
 	private ServiceResponse updateExistingProject(Project project, ResourceManagementDTO dto) {
 		ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
@@ -1007,7 +1001,6 @@ public class ResourceManagementService {
 	  return response;
 	}
 	
-	
 	private Long getProjectManagerId(String projectManagerString) {
 	    if (projectManagerString == null || !projectManagerString.contains("-")) {
 	        return null;
@@ -1024,9 +1017,6 @@ public class ResourceManagementService {
 	    }
 	}
 	
-	
-	
-//	<-->
 	public ServiceResponse activityRealtedToTeam(List<EmployeeTeamMap> teamMemberDbResponse,TeamDTO teamObj,ResourceManagementDTO resourceManagementDTO,Team teamDbResponse) {
 		ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
@@ -2629,7 +2619,6 @@ public class ResourceManagementService {
 		return response;
 	}
 
-
 	public ServiceResponse getInternalProject() {
 		ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
@@ -2738,10 +2727,7 @@ public class ResourceManagementService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
-
-	
-	
+		
 /**
  * getExistingProjectsAndTeamsByEmployee
  * adding this method for RMG
@@ -2895,9 +2881,22 @@ public class ResourceManagementService {
 		
 		findAllMappedEmp.forEach(emp ->{
 		
-			emp.setActive(0l);		
-			employeeTeamMapRepository.save(emp);
-		});	
+			emp.setActive(0l);	
+			System.err.println("findAllMappedEmp  "+teamDto.getEndDate());
+			 if(teamDto.getEndDate() != null) {
+ 				String str = teamDto.getEndDate();
+ 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+ 				LocalDate date = LocalDate.parse(str, formatter);
+ 				LocalDateTime endDateTime = date.atStartOfDay();
+
+ 				emp.setEndDate(endDateTime);
+ 			}else {
+ 				emp.setEndDate(LocalDateTime.now());
+ 			}
+             employeeTeamMapRepository.save(emp);
+         });
+			
+		
 		
 		dbTeam = teamRepository.save(getTeam);
 		}
@@ -3525,7 +3524,6 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	 }
 
 
-	 
 	 private List<ResourceManagementDTO> fetchPoPortalProjects() {
 		    List<ResourceManagementDTO> poPortalProjects = new ArrayList<>();
 		    try {
@@ -3613,10 +3611,6 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	 }
                       
 	    
-
-
-	
-	 
 	 public ServiceResponse updateProjectResourcesAsInActiveBulk(List<ResourceManagementDTO> resourceManagementDTOList) {
 		   
 
@@ -3663,10 +3657,10 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 											+ "Team RMG - ApMoSys Technologies"
 									);
 						} catch (AddressException e) {
-							// TODO Auto-generated catch block
+							
 							e.printStackTrace();
 						} catch (MessagingException e) {
-							// TODO Auto-generated catch block
+							
 							e.printStackTrace();
 						}
 		               
@@ -3695,6 +3689,76 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 
 		    return response;
 		}
+	 
+	 public ServiceResponse deleteTeamsByIdsBulk(List<TeamDTO> teamDtos) {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setSubFeatureName("deleteTeamsByIdsBulk");
+	        apiLogInfo.setApiUrl("/api/deleteTeamsByIdsBulk");
+	        apiLogInfo.setLogLevel("INFO");
 
+		   try {
+			   for (TeamDTO teamDto : teamDtos) {
+			        Optional<Team> team = teamRepository.findById(teamDto.getTeamId());
+			        Team dbTeam = null;
+
+			        if (team.isPresent()) {
+			            Team getTeam = team.get();
+			            getTeam.setIsActive("N");           
+			            List<EmployeeTeamMap> findAllMappedEmp = employeeTeamMapRepository.findByTeamId(teamDto.getTeamId());
+			            System.err.println("findAllMappedEmp for Team: " + teamDto.getTeamName() + " -> " + findAllMappedEmp);
+
+			            findAllMappedEmp.forEach(emp -> {
+			                emp.setActive(0L); 
+			                if(teamDto.getEndDate() != null) {
+			    				String str = teamDto.getEndDate();
+			    				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			    				LocalDate date = LocalDate.parse(str, formatter);
+			    				LocalDateTime endDateTime = date.atStartOfDay();
+
+			    				emp.setEndDate(endDateTime);
+			    			}else {
+			    				emp.setEndDate(LocalDateTime.now());
+			    			}
+			                employeeTeamMapRepository.save(emp);
+			            });
+
+			            
+			            dbTeam = teamRepository.save(getTeam);
+
+			            
+			           
+			            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				        response.setServiceResponse("Team and Its Resources are Set Inactive");
+			        } else {
+			            
 	
+			            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			            response.setServiceResponse("Team and Its Resources are NOt Set Inactive");
+			        }
+			    }
+
+			    
+			    try {
+			        StringBuilder deletedTeamsList = new StringBuilder();
+			        teamDtos.forEach(teamDto -> deletedTeamsList.append("<br>").append(teamDto.getTeamName()));
+
+			        mailService.sendMail("sakti.das@apmosys.com",
+			                "Regarding Resource management",
+			                "Dear RMG Team, <br><br>" +
+			                        "The following teams have been deleted, and the resources have been removed from these teams: " + deletedTeamsList.toString() +
+			                        "<br><br>Sincerely,<br>Team RMG - ApMoSys Technologies");
+			    } catch (Exception e) {
+			        e.printStackTrace();
+			    }
+		   } catch(Exception e) {
+			   
+			     e.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            response.setServiceResponse("Error while sending email: " + e.getMessage());
+		   }
+		   
+
+		    return response;
+		}
 }
