@@ -28,5 +28,6 @@ public class ProjectQuestionDTO {
 	private String taggedToUserNames;
     private List<Long> taggedForHelp;
     private Long recommendedResponseId;
+    private String actionType;
 	
 }

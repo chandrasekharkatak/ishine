@@ -4,6 +4,7 @@ export class ProjectSubModule {
 
     subModule: any;
     subModuleId: any;
+    moduleId: any;
     description: any;
     redmineId: any;
     assignedToUserId: any[] = [];
@@ -23,4 +24,5 @@ export class ProjectSubModule {
         { name: 'Sub-SubModules' },
     ];
     currentActiveBadgeLevel = 'Details';
+    actionType: any;
 }

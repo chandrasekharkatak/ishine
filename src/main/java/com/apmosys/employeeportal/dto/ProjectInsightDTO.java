@@ -40,5 +40,7 @@ public class ProjectInsightDTO {
 	// For tags
 	private StringBuilder projectText;
 	private String tagType;
+	private boolean isExcelUploaded;
+	private String actionType;
 
 }

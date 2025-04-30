@@ -37,4 +37,5 @@ export class ProjectInsight {
     pointsBy: any;
     isPointsDrafted: any = true;
     transferToKnowledgeHub: any;
+    isExcelUploaded: boolean;
 }

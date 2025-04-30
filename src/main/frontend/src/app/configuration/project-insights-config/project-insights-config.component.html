@@ -147,6 +147,7 @@
 <div class="row" *ngIf="isQuestionForm">
   <div class="col-md-12">
     <app-project-insights [actionType]="actionType" [subActionType]="subActionType" [projectId]="projectId"
+      [projectInsightExcelObj]="projectInsightExcelObj" [isExcelUploaded]="isExcelUploaded"
       (showProjectInsightConfigListEvent)="showProjectInsight()"></app-project-insights>
   </div>
 </div>
@@ -163,12 +164,33 @@
         </div>
 
         <div class="col-md-12">
-            <div class="row">
-                <div class="col-md-4 ml-auto d-flex justify-content-end align-items-start mb-1">
-                    <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isQuestionForm && isCreation}" (click)="showProjectInsightForm()"><em class="fa-solid fa-plus"></em>&nbsp;Create Project Insight Questions</button>
-                </div>
+            <div class="row justify-content-end">
+              <div class="ol-md-12 d-flex justify-content-end align-items-center flex-wrap gap-2">
+                <label *ngIf="!file" class="btn btn-sm btn-outline-primary mr-2 mb-0" for="project-data-input-file">
+                  <span>Upload Excel File</span>
+                  <input id="project-data-input-file" type="file" class="d-none" #fileInput accept=".xlsx, .xls"
+                    (change)="onFileChange($event);uploadFile()" [disabled]="file">
+                </label>
+            
+                <span *ngIf="fileName" class="small mr-2">
+                  {{fileName}}
+                </span>
+            
+                <button *ngIf="file" type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
+                  (click)="clearFileInput()">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+            
+                <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel"
+                  [disabled]="!file" (click)="uploadXcelData()">
+                  <i class="fa fa-upload" aria-hidden="true"></i>
+                </button>
+            
+                <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isQuestionForm && isCreation}"
+                  (click)="showProjectInsightForm()"><em class="fa-solid fa-plus"></em>&nbsp;Create Project Insight
+                  Questions</button>
+              </div>
             </div>
-        </div>
 
         <div class="row">
             <div class="col-md-12">
@@ -203,6 +225,8 @@
                         <td>
                             <button name="Preview" class="btn btn-sm btn-outline-primary" type="submit" (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,true)"><em class="fa fa-eye"></em></button>
                             <button class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showProjectInsightUpdate(project, alert_message)"><em class="fa fa-edit"></em></button>
+                            <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary mx-1" (click)="getAllQuestionsByProjectId(project?.projectId,alert_message,true)">
+                          </button>
                         </td>
                       </tr>
                     </tbody>

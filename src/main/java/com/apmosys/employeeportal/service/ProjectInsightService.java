@@ -1,7 +1,5 @@
 package com.apmosys.employeeportal.service;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -27,7 +25,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -40,6 +37,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
+
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ModuleDTO;
@@ -48,8 +46,8 @@ import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightEntityDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightMilestoneDTO;
-import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightResponsePointsDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionDTO;
 import com.apmosys.employeeportal.dto.ProjectResponseDTO;
 import com.apmosys.employeeportal.dto.SubModuleDTO;
@@ -230,9 +228,9 @@ public class ProjectInsightService {
 			// Add Milestone
 			if (!projectInsightDTO.getProjectInsightMilestoneList().isEmpty()) {
 				projectInsightDTO.getProjectInsightMilestoneList().forEach((projectInsightMilestoneDTO) -> {
-					ProjectInsightMilestone newMilestoneCreated = saveProjectMilestone(projectInsightMilestoneDTO, projectInsightDTO.getCreatedBy(), projectInsightDTO.getProjectId(), combinedText);
+					ProjectInsightMilestone newMilestoneCreated = saveOrUpdateProjectMilestone(projectInsightMilestoneDTO, projectInsightDTO.getProjectId(), combinedText, projectInsightDTO.getCreatedBy(), projectInsightDTO.getUpdatedBy());
 
-					if (newMilestoneCreated.getMilestoneId() != null) {
+					if (newMilestoneCreated != null && newMilestoneCreated.getMilestoneId() != null) {
 						isSuccess.set(true);
 						Long milestoneId = newMilestoneCreated.getMilestoneId();
 
@@ -246,27 +244,26 @@ public class ProjectInsightService {
 						}
 
 						// Add Module
-						if (!projectInsightMilestoneDTO.getModuleList().isEmpty()) {
-							projectInsightMilestoneDTO.getModuleList().forEach((module) -> {
-								ProjectInsightModule moduleResponse = saveProjectModule(module, milestoneId, projectInsightDTO.getCreatedBy(), combinedText);
+						if (projectInsightMilestoneDTO.getModuleList() != null && !projectInsightMilestoneDTO.getModuleList().isEmpty()) {
 
-								if (moduleResponse != null) {
-									isSuccess.set(true);
-									Long moduleId = moduleResponse.getModuleId();
-									
+							for (ModuleDTO moduleDTO : projectInsightMilestoneDTO.getModuleList()) { 
+								ProjectInsightModule projectInsightModule = saveOrUpdateModule(moduleDTO, milestoneId, combinedText, projectInsightDTO.getCreatedBy(), projectInsightDTO.getUpdatedBy());
+								if(projectInsightModule.getModuleId() != null) {
+									Long moduleId = projectInsightModule.getModuleId();
+
 									// Module Assign to
-									saveAssignedTo(module.getAssignedToUserId(), moduleId, "Module",false);
+									saveAssignedTo(moduleDTO.getAssignedToUserId(), moduleId, "Module", true);
 
-									// Add Module question
-									if (!module.getQuestionList().isEmpty()) {
-										ServiceResponse moduleQuestionResponse = addUpdateQuestion(module.getQuestionList(), moduleId, "Module", combinedText);
-										isSuccess.set("Success".equals(moduleQuestionResponse.getServiceStatus()));
+									// Add/Update Module question
+									if (moduleDTO.getQuestionList() != null && !moduleDTO.getQuestionList().isEmpty()) {
+										addUpdateQuestion(moduleDTO.getQuestionList(), moduleId, "Module", combinedText);
 									}
-
-									// Save SubModules
-									saveSubModuleList(module.getSubModuleList(), moduleId, "SubModule", combinedText);
+									
+									if (!moduleDTO.getSubModuleList().isEmpty()) {
+										saveOrUpdateSubModuleList(moduleDTO.getSubModuleList(), moduleId, "SubModule", combinedText, projectInsightDTO.getCreatedBy(), projectInsightDTO.getUpdatedBy());
+									}
 								}
-							});
+							}
 						}
 					} else {
 						apiLogInfo.setApiResponse("Failed to create Project Insight Questions");
@@ -298,9 +295,7 @@ public class ProjectInsightService {
 
 	private ProjectInsightModule saveProjectModule(ModuleDTO module, Long milestoneId, Long createdBy, StringBuilder combinedText) {
 		try {
-			
 			combinedText.append(module.getModule()).append(" ").append(module.getDescription());
-			
 			ProjectInsightModule newProjectInsightModule = new ProjectInsightModule();
 			newProjectInsightModule.setCreatedBy(createdBy);
 			newProjectInsightModule.setMilestoneId(milestoneId);
@@ -314,26 +309,48 @@ public class ProjectInsightService {
 		}
 	}
 
-	private ProjectInsightMilestone saveProjectMilestone(ProjectInsightMilestoneDTO projectInsightMilestoneDTO, Long createdBy, Long projectId, StringBuilder combinedText) {
+	private ProjectInsightMilestone saveOrUpdateProjectMilestone(ProjectInsightMilestoneDTO projectInsightMilestoneDTO, Long projectId, StringBuilder combinedText, Long createdBy, Long updatedBy) {
 		try {
-			
-			combinedText.append(projectInsightMilestoneDTO.getMilestone()).append(" ")
-									.append(projectInsightMilestoneDTO.getDescription());
-			
-			ProjectInsightMilestone projectInsightMilestone = new ProjectInsightMilestone();
-			projectInsightMilestone.setCreatedBy(createdBy);
-			projectInsightMilestone.setProjectId(projectId);
-			projectInsightMilestone.setMilestone(projectInsightMilestoneDTO.getMilestone());
-			projectInsightMilestone.setDescription(projectInsightMilestoneDTO.getDescription());
-			projectInsightMilestone.setDeptId(projectInsightMilestoneDTO.getDeptId());
-			projectInsightMilestone.setRedmineId(projectInsightMilestoneDTO.getRedmineId());
-			return projectInsightMilestoneRepository.save(projectInsightMilestone);
+			ProjectInsightMilestone projectInsightMilestone = null;
+			if (projectInsightMilestoneDTO.getMilestoneId() == null || (projectInsightMilestoneDTO.getActionType() != null && projectInsightMilestoneDTO.getActionType().equalsIgnoreCase("Add"))) {
+				projectInsightMilestone = saveProjectInsightMilestone(projectInsightMilestone, projectInsightMilestoneDTO, projectId, createdBy, updatedBy);
+			} else if (projectInsightMilestoneDTO.getMilestoneId() != null) {
+				ProjectInsightMilestone milestoneDbObject = projectInsightMilestoneRepository.getByMilestoneId(projectInsightMilestoneDTO.getMilestoneId());
+				if (milestoneDbObject != null) {
+					projectInsightMilestone = saveProjectInsightMilestone(milestoneDbObject, projectInsightMilestoneDTO, projectId, createdBy, updatedBy);
+				} else {
+					projectInsightMilestone = saveProjectInsightMilestone(projectInsightMilestone, projectInsightMilestoneDTO, projectId, createdBy, updatedBy);
+				}
+			}
+			if (projectInsightMilestone != null) {
+				projectInsightMilestone = projectInsightMilestoneRepository.save(projectInsightMilestone);
+			}
+			return projectInsightMilestone;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
 		}
 	}
 
+	public ProjectInsightMilestone saveProjectInsightMilestone(ProjectInsightMilestone projectInsightMilestone, ProjectInsightMilestoneDTO projectInsightMilestoneDTO, Long projectId, Long createdBy,Long updatedBy) {
+		try {
+			if (projectInsightMilestone == null) {
+				projectInsightMilestone = new ProjectInsightMilestone();
+			}
+			projectInsightMilestone.setProjectId(projectId);
+			projectInsightMilestone.setMilestone(projectInsightMilestoneDTO.getMilestone());
+			projectInsightMilestone.setDescription(projectInsightMilestoneDTO.getDescription());
+			projectInsightMilestone.setDeptId(projectInsightMilestoneDTO.getDeptId());
+			projectInsightMilestone.setUpdatedBy(updatedBy);
+			projectInsightMilestone.setCreatedBy(createdBy);
+			projectInsightMilestone.setRedmineId(projectInsightMilestoneDTO.getRedmineId());
+			return projectInsightMilestone;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+	
 	private void saveSubModuleList(List<SubModuleDTO> subModuleList, Long moduleId, String subModuleType, StringBuilder combinedText) {
 		try {
 			if (subModuleList != null && !subModuleList.isEmpty()) {
@@ -367,6 +384,26 @@ public class ProjectInsightService {
 					}
 				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+	
+	public QuestionMaster saveQuestionMaster(QuestionMaster questionMaster, ProjectQuestionDTO projectQuestionDTO, Long entityId, String entity) {
+		try {
+			if (questionMaster == null) {
+				questionMaster = new QuestionMaster();
+			}
+			questionMaster.setEntityId(entityId);
+			questionMaster.setEntityType(entity);
+			questionMaster.setQuestion(projectQuestionDTO.getQuestion());
+			questionMaster.setDescription(projectQuestionDTO.getDescription());
+			questionMaster.setDocumentUpload(projectQuestionDTO.getDocumentUpload());
+			questionMaster.setOptions(projectQuestionDTO.getOptions());
+			questionMaster.setOptionType(projectQuestionDTO.getOptionType());
+			questionMaster.setRequired(projectQuestionDTO.getRequired());
+			return questionMaster;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
@@ -407,35 +444,17 @@ public class ProjectInsightService {
 		try {
 			List<QuestionMaster> questionList = new ArrayList<>();
 			questionAddList.forEach((questionObj) -> {
-				
-				combinedText.append(questionObj.getQuestion()).append(" ").append(questionObj.getDescription())
-				.append(questionObj.getOptions());
-				
-				// update
-				if (questionObj.getQuestionId() != null) {
+				combinedText.append(questionObj.getQuestion()).append(" ").append(questionObj.getDescription()).append(questionObj.getOptions());
+ 
+				if (questionObj.getQuestionId() == null || (questionObj.getActionType() != null && questionObj.getActionType().equalsIgnoreCase("Add"))) {
+					questionList.add(saveQuestionMaster(null, questionObj, entityId, entity));
+				} else if (questionObj.getQuestionId() != null) {
 					QuestionMaster quesDbObject = questionMasterRepository.findByQuestionMasterId(questionObj.getQuestionId());
 					if (quesDbObject != null) {
-						
-						quesDbObject.setQuestion(questionObj.getQuestion());
-						quesDbObject.setDescription(questionObj.getDescription());
-						quesDbObject.setDocumentUpload(questionObj.getDocumentUpload());
-						quesDbObject.setOptions(questionObj.getOptions());
-						quesDbObject.setOptionType(questionObj.getOptionType());
-						quesDbObject.setRequired(questionObj.getRequired());
-						questionList.add(quesDbObject);
+						questionList.add(saveQuestionMaster(quesDbObject, questionObj, entityId, entity));
+					} else {
+						questionList.add(saveQuestionMaster(null, questionObj, entityId, entity));
 					}
-				} else {
-					// Add
-					QuestionMaster newProjQuestion = new QuestionMaster();
-					newProjQuestion.setEntityId(entityId);
-					newProjQuestion.setEntityType(entity);
-					newProjQuestion.setQuestion(questionObj.getQuestion());
-					newProjQuestion.setDescription(questionObj.getDescription());
-					newProjQuestion.setDocumentUpload(questionObj.getDocumentUpload());
-					newProjQuestion.setOptions(questionObj.getOptions());
-					newProjQuestion.setOptionType(questionObj.getOptionType());
-					newProjQuestion.setRequired(questionObj.getRequired());
-					questionList.add(newProjQuestion);
 				}
 			});
 
@@ -461,7 +480,7 @@ public class ProjectInsightService {
 		}
 		return response;
 	}
-
+	
 	public ServiceResponse getAllProjectInsightList(ProjectInsightDTO projectInsightDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -770,113 +789,47 @@ public class ProjectInsightService {
 			}
 
 			if (projectInsightDTO.getProjectInsightMilestoneList() != null && !projectInsightDTO.getProjectInsightMilestoneList().isEmpty()) {
-				projectInsightDTO.getProjectInsightMilestoneList().forEach((milestone) -> {
-
-					combinedText.append(milestone.getMilestone()).append(" ")
-					.append(milestone.getDescription());
+				for(ProjectInsightMilestoneDTO projectInsightMilestoneDTO : projectInsightDTO.getProjectInsightMilestoneList()) {
+					ProjectInsightMilestone projectInsightMilestone = saveOrUpdateProjectMilestone(projectInsightMilestoneDTO,projectInsightDTO.getProjectId(), combinedText,projectInsightDTO.getUpdatedBy(),projectInsightDTO.getCreatedBy());
+					if (projectInsightMilestone == null || (projectInsightMilestone != null && projectInsightMilestone.getMilestoneId() == null)) {
+						apiLogInfo.setApiResponse("No Project Insight Milestone Found.");
+						response.setServiceResponse("No Project Insight Milestone Found.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						return response;
+					}
+					combinedText.append(projectInsightMilestoneDTO.getMilestone()).append(" ").append(projectInsightMilestoneDTO.getDescription());
+					Long milestoneId = projectInsightMilestone.getMilestoneId();
 					
-					if (milestone.getMilestoneId() != null) {
-						ProjectInsightMilestone milestoneDbObject = projectInsightMilestoneRepository.getByMilestoneId(milestone.getMilestoneId());
+					// Milestone Assign to
+					saveAssignedTo(projectInsightMilestoneDTO.getAssignedToUserId(),milestoneId, "Milestone", true);
+					
+					// Add/Update Milestone question
+					if (projectInsightMilestoneDTO.getQuestionList() != null && !projectInsightMilestoneDTO.getQuestionList().isEmpty()) {
+						addUpdateQuestion(projectInsightMilestoneDTO.getQuestionList(), milestoneId , "Milestone", combinedText);
+					}
+					
+					if (projectInsightMilestoneDTO.getModuleList() != null && !projectInsightMilestoneDTO.getModuleList().isEmpty()) {
+						for (ModuleDTO moduleDTO : projectInsightMilestoneDTO.getModuleList()) { 
+							ProjectInsightModule projectInsightModule = saveOrUpdateModule(moduleDTO, milestoneId, combinedText, projectInsightDTO.getCreatedBy(), projectInsightDTO.getUpdatedBy());
+							if(projectInsightModule.getModuleId() != null) {
+								Long moduleId = projectInsightModule.getModuleId();
 
-						if (milestoneDbObject != null) {
-							milestoneDbObject.setUpdatedBy(projectInsightDTO.getUpdatedBy());
-							milestoneDbObject.setMilestone(milestone.getMilestone());
-							milestoneDbObject.setDescription(milestone.getDescription());
-							milestoneDbObject.setDeptId(milestone.getDeptId());
-							milestoneDbObject.setRedmineId(milestone.getRedmineId());
-							ProjectInsightMilestone milestoneUpdateDbResponse = projectInsightMilestoneRepository.save(milestoneDbObject);
+								// Module Assign to
+								saveAssignedTo(moduleDTO.getAssignedToUserId(), moduleId, "Module", true);
 
-							if (milestoneUpdateDbResponse != null) {
-								// Add/Update Milestone question
-								if (milestone.getQuestionList() != null && !milestone.getQuestionList().isEmpty()) {
-									addUpdateQuestion(milestone.getQuestionList(), milestoneUpdateDbResponse.getMilestoneId() , "Milestone", combinedText);
+								// Add/Update Module question
+								if (moduleDTO.getQuestionList() != null && !moduleDTO.getQuestionList().isEmpty()) {
+									addUpdateQuestion(moduleDTO.getQuestionList(), moduleId, "Module", combinedText);
 								}
-
-								// Milestone Assign to
-								saveAssignedTo(milestone.getAssignedToUserId(), milestone.getMilestoneId(), "Milestone", true);
-
-								// --> Module
-								if (!milestone.getModuleList().isEmpty()) {
-									milestone.getModuleList().forEach((module) -> {
-										ProjectInsightModule moduleDbResponse = saveOrUpdateModule(module, milestoneUpdateDbResponse.getMilestoneId(), projectInsightDTO.getUpdatedBy(), projectInsightDTO.getCreatedBy(), combinedText);
-									
-										
-										if (moduleDbResponse != null) {
-											Long moduleId = moduleDbResponse.getModuleId();
-
-											// Module Assign to
-											saveAssignedTo(module.getAssignedToUserId(), moduleId, "Module", true);
-
-											// Add/Update Module question
-											if (module.getQuestionList() != null
-													&& !module.getQuestionList().isEmpty()) {
-												addUpdateQuestion(module.getQuestionList(), moduleId, "Module", combinedText);
-											}
-
-											// --> SubModule
-											if (!module.getSubModuleList().isEmpty()) {
-												saveOrUpdateSubModuleList(module.getSubModuleList(), moduleId, projectInsightDTO.getUpdatedBy(), "SubModule", combinedText);
-											}
-										}
-									});
+								
+								if (!moduleDTO.getSubModuleList().isEmpty()) {
+									saveOrUpdateSubModuleList(moduleDTO.getSubModuleList(), moduleId, "SubModule", combinedText, projectInsightDTO.getCreatedBy(), projectInsightDTO.getUpdatedBy());
 								}
-							} else {
-								apiLogInfo.setApiResponse("Unable to update project insight milestone.");
-								response.setServiceResponse("Unable to update project insight milestone.");
-								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							}
-						} else {
-							apiLogInfo.setApiResponse("No Project Insight Milestone Found.");
-							response.setServiceResponse("No Project Insight Milestone Found.");
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						}
-					} else {
-						// Create New Milestone
-						ProjectInsightMilestone newMilestoneCreated = saveProjectMilestone(milestone,
-								projectInsightDTO.getUpdatedBy(), projectInsightDTO.getProjectId(), combinedText);
-						if (newMilestoneCreated.getMilestoneId() != null) {
-							Long milestoneId = newMilestoneCreated.getMilestoneId();
-
-							// Milestone Assign to
-							saveAssignedTo(milestone.getAssignedToUserId(), milestoneId, "Milestone", false);
-
-							// Add Milestone Question
-							if (!milestone.getQuestionList().isEmpty()) {
-								addUpdateQuestion(milestone.getQuestionList(), milestoneId, "Milestone", combinedText);
-							}
-
-							// Add Module
-							if (!milestone.getModuleList().isEmpty()) {
-								milestone.getModuleList().forEach((module) -> {
-									ProjectInsightModule moduleResponse = saveProjectModule(module, milestoneId,
-											projectInsightDTO.getCreatedBy(), combinedText);
-
-									if (moduleResponse != null) {
-										Long moduleId = moduleResponse.getModuleId();
-
-										// Module Assign to
-										saveAssignedTo(module.getAssignedToUserId(), moduleId, "Module", false);
-
-										// Add Module question
-										if (!module.getQuestionList().isEmpty()) {
-											addUpdateQuestion(module.getQuestionList(), moduleId, "Module", combinedText);
-										}
-
-										// Save SubModules
-										saveSubModuleList(module.getSubModuleList(), moduleId, "SubModule", combinedText);
-									}
-								});
-							}
-						} else {
-							apiLogInfo.setApiResponse("Failed to create Project Insight Milestone");
-							response.setServiceResponse("Failed to create Project Insight Milestone.");
-							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						}
 					}
-				});
+				}
 				
 				apiLogInfo.setApiResponse("Project Insight updated Successfully");
 				response.setServiceResponse("Project Insight updated Successfully.");
@@ -1097,36 +1050,109 @@ public class ProjectInsightService {
 		}
 	}
 
-	private ProjectInsightModule saveOrUpdateModule(ModuleDTO module, Long milestoneId, Long updatedBy, Long createdBy, StringBuilder combinedText) {
+	private ProjectInsightModule saveOrUpdateModule(ModuleDTO moduleDTO, Long milestoneId, StringBuilder combinedText, Long createdBy, Long updatedBy) {
 		try {
-			ProjectInsightModule moduleDbResponse;
-			if (module.getModuleId() != null) {
-				ProjectInsightModule moduleDbObject = projectInsightModuleRepository.getByModuleId(module.getModuleId());
-
-				combinedText.append(module.getModule()).append(" ")
-									.append(module.getDescription());
-				
+			ProjectInsightModule projectInsightModule = null;
+			if (moduleDTO.getModuleId() == null || (moduleDTO.getActionType() != null  && moduleDTO.getActionType().equalsIgnoreCase("Add"))) {
+				projectInsightModule = saveProjectModule(projectInsightModule, moduleDTO, milestoneId, createdBy, updatedBy);
+			} else if (moduleDTO.getModuleId() != null) {
+				ProjectInsightModule moduleDbObject = projectInsightModuleRepository.getByModuleId(moduleDTO.getModuleId());
 				if (moduleDbObject != null) {
-					moduleDbObject.setDescription(module.getDescription());
-					moduleDbObject.setModule(module.getModule());
-					moduleDbObject.setRedmineId(module.getRedmineId());
-					moduleDbObject.setUpdatedBy(updatedBy);
-					moduleDbObject.setUpdatedOn(LocalDateTime.now());
-					moduleDbResponse = projectInsightModuleRepository.save(moduleDbObject);
+					projectInsightModule = saveProjectModule(moduleDbObject, moduleDTO, milestoneId, createdBy,updatedBy);
 				} else {
-					moduleDbResponse = saveProjectModule(module, milestoneId, createdBy, combinedText);
+					projectInsightModule = saveProjectModule(projectInsightModule, moduleDTO, milestoneId, createdBy, updatedBy);
 				}
-			} else {
-				moduleDbResponse = saveProjectModule(module, milestoneId, createdBy, combinedText);
 			}
-			
-			return moduleDbResponse;
+			if (projectInsightModule != null) {
+				projectInsightModule = projectInsightModuleRepository.save(projectInsightModule);
+			}
+			return projectInsightModule;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
 		}
 	}
 
+	private ProjectInsightModule saveProjectModule(ProjectInsightModule projectInsightModule, ModuleDTO moduleDTO, Long milestoneId, Long createdBy, Long updatedBy) {
+		try {
+			if(projectInsightModule == null) {
+				projectInsightModule = new ProjectInsightModule();
+			}
+			projectInsightModule.setMilestoneId(milestoneId);
+			projectInsightModule.setDescription(moduleDTO.getDescription());
+			projectInsightModule.setRedmineId(moduleDTO.getRedmineId());
+			projectInsightModule.setModule(moduleDTO.getModule());
+			projectInsightModule.setCreatedBy(createdBy);
+			projectInsightModule.setUpdatedBy(updatedBy);
+			projectInsightModule.setUpdatedOn(LocalDateTime.now());
+			return projectInsightModule;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private void saveOrUpdateSubModuleList(List<SubModuleDTO> subModuleList, Long moduleId, String subModuleType,StringBuilder combinedText, Long createdBy, Long updatedBy) {
+		try {
+			if (subModuleList != null && !subModuleList.isEmpty()) {
+				for (SubModuleDTO subModuleDTO : subModuleList) {
+					combinedText.append(subModuleDTO.getDescription()).append(" ").append(subModuleDTO.getSubModule());
+					ProjectInsightSubModule projectInsightSubModule = null;
+					if (subModuleDTO.getSubmoduleId() == null || (subModuleDTO.getActionType() != null && subModuleDTO.getActionType().equalsIgnoreCase("Add"))) {
+						projectInsightSubModule = saveSubModule(projectInsightSubModule, subModuleDTO, moduleId, subModuleType, combinedText, createdBy, updatedBy);
+					} else if (subModuleDTO.getSubmoduleId() != null) {
+						ProjectInsightSubModule submoduleDbResponse = projectInsightSubModuleRepository.getById(subModuleDTO.getSubmoduleId());
+						if (submoduleDbResponse != null) {
+							projectInsightSubModule = saveSubModule(submoduleDbResponse, subModuleDTO, moduleId, subModuleType, combinedText, createdBy, updatedBy);
+						} else {
+							projectInsightSubModule = saveSubModule(projectInsightSubModule, subModuleDTO, moduleId, subModuleType, combinedText, createdBy, updatedBy);
+						}
+					}
+					if (projectInsightSubModule != null) {
+						projectInsightSubModule = projectInsightSubModuleRepository.save(projectInsightSubModule);
+						if (projectInsightSubModule.getSubmoduleId() != null) {
+							Long subModuleId = projectInsightSubModule.getSubmoduleId();
+							saveAssignedTo(subModuleDTO.getAssignedToUserId(), subModuleId, subModuleType, true);
+
+							// Add SubModule question
+							if (subModuleDTO.getQuestionList() != null && !subModuleDTO.getQuestionList().isEmpty()) {
+								addUpdateQuestion(subModuleDTO.getQuestionList(), subModuleId, subModuleType, combinedText);
+							}
+
+							if (subModuleDTO.getSubSubModuleList() != null && !subModuleDTO.getSubSubModuleList().isEmpty()) {
+								saveOrUpdateSubModuleList(subModuleDTO.getSubSubModuleList(), subModuleId, "Sub-SubModule", combinedText, createdBy, updatedBy);
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private ProjectInsightSubModule saveSubModule(ProjectInsightSubModule projectInsightSubModule, SubModuleDTO subModuleDTO, Long moduleId, String subModuleType, StringBuilder combinedText, Long createdBy,
+			Long updatedBy) {
+		try {
+			if (projectInsightSubModule == null) {
+				projectInsightSubModule = new ProjectInsightSubModule();
+			}
+
+			projectInsightSubModule.setSubmodule(subModuleDTO.getSubModule());
+			projectInsightSubModule.setModuleId(moduleId);
+			projectInsightSubModule.setDescription(subModuleDTO.getDescription());
+			projectInsightSubModule.setRedmineId(subModuleDTO.getRedmineId());
+			projectInsightSubModule.setSubModuleType(subModuleType);
+			projectInsightSubModule.setCreatedBy(subModuleDTO.getCreatedBy());
+			projectInsightSubModule.setUpdatedBy(updatedBy);
+			return projectInsightSubModule;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+	
 //	----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // Project Response Methods
 	public ServiceResponse getAllProjectInsightResponsesByProjectId(ProjectInsightDTO projectInsightDTO) {
