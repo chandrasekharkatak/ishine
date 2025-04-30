@@ -58,4 +58,6 @@ public class ResourceManagementDTO {
 	private Boolean isRenewable;
 	private String deptId;
 	private List<ResourceRequirementDTO> resourceRequirements;
+	private List<TeamSpocDTO> teamSpocs;
+	private List<ProjectManagersDTO> projectManagers;
 }

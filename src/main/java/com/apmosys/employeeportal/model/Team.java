@@ -39,6 +39,7 @@ public class Team {
 	private Long poTeamId;
 	private String description;
 	private String deptIds;
+	private Long spocId;
  
 	
 	private Timestamp createdOn;

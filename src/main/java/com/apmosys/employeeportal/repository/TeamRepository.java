@@ -64,4 +64,17 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	@Modifying
 	@Query(nativeQuery = true)
 	public void updateTeamName(Long teamId, String newTeamName);
+	
+	@Query(value = "SELECT \r\n"
+			+ "    t.team_id, \r\n"
+			+ "    t.team_name, \r\n"
+			+ "    e.emp_id AS spoc_id, \r\n"
+			+ "    e.name AS spoc_name\r\n"
+			+ "FROM \r\n"
+			+ "    teams t\r\n"
+			+ "LEFT JOIN \r\n"
+			+ "    employee e ON t.spoc_id = e.emp_id\r\n"
+			+ "WHERE \r\n"
+			+ "    t.project_id = :projectId",nativeQuery = true)
+	List<Object[]> findTeamsAndSpocsByProjectId(@Param("projectId") Integer projectId);
 }

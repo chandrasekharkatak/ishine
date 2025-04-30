@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,9 +49,11 @@ import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInfoDTO;
+import com.apmosys.employeeportal.dto.ProjectManagersDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
+import com.apmosys.employeeportal.dto.TeamSpocDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
 import com.apmosys.employeeportal.model.Client;
@@ -70,6 +74,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
+import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -98,6 +103,9 @@ public class ResourceManagementService {
 	
 	@Autowired
 	TeamRepository teamRepository;
+	
+	@Autowired
+	ProjectManagerMappingRepository projectManagerMappingRepository;
 	
 	@Autowired
 	ActivitiesRepository activitiesRepository;
@@ -1934,17 +1942,18 @@ public class ResourceManagementService {
 					
 					projectDto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
 					projectDto.setProjectName(object[1] != null ? object[1].toString() : null);
-					projectDto.setProjectManager(object[2] != null ? object[2].toString() : null);
-					projectDto.setCreatedOn(object[4] != null ? object[4].toString() : null);
-					projectDto.setClientName(object[5] != null ? object[5].toString() : null);			
-					projectDto.setClientState(object[6] != null ? object[6].toString() : null);
-					projectDto.setIsDraftProject(object[7] != null ? object[7].toString() : null);
-					projectDto.setPoProjectId(object[8] != null ? Long.parseLong(object[8].toString()) : null);	
-					projectDto.setIsActive(object[9] != null ? Long.parseLong(object[9].toString()): null);
-					projectDto.setId(object[8] != null ? Long.parseLong(object[8].toString()) : null);				
-							
-				
-					
+//					projectDto.setProjectManager(object[2] != null ? object[2].toString() : null);
+					projectDto.setCreatedOn(object[2] != null ? object[2].toString() : null);
+					projectDto.setClientName(object[3] != null ? object[3].toString() : null);			
+					projectDto.setClientState(object[4] != null ? object[4].toString() : null);
+					projectDto.setIsDraftProject(object[5] != null ? object[5].toString() : null);
+					projectDto.setPoProjectId(object[6] != null ? Long.parseLong(object[6].toString()) : null);	
+					projectDto.setIsActive(object[7] != null ? Long.parseLong(object[7].toString()): null);
+					projectDto.setId(object[6] != null ? Long.parseLong(object[6].toString()) : null);				
+					List<TeamSpocDTO> spocList = getTeamSpocsByProjectId(projectId);
+					projectDto.setTeamSpocs(spocList);
+					List<ProjectManagersDTO> projectManagersList = getProjectManagersByProjectId(projectId);
+				    projectDto.setProjectManagers(projectManagersList);			
 					dtoList.add(projectDto);
 						
 			});
@@ -1973,6 +1982,38 @@ public class ResourceManagementService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	
+	public List<TeamSpocDTO> getTeamSpocsByProjectId(Integer projectId) {
+	    List<Object[]> result = teamRepository.findTeamsAndSpocsByProjectId(projectId);
+	    List<TeamSpocDTO> spocList = new ArrayList<>();
+
+	    for (Object[] obj : result) {
+	        TeamSpocDTO dto = new TeamSpocDTO();
+	        dto.setTeamId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+	        dto.setTeamName(obj[1] != null ? obj[1].toString() : null);
+	        dto.setSpocId(obj[2] != null ? Long.parseLong(obj[2].toString()) : null);
+	        dto.setSpocName(obj[3] != null ? obj[3].toString() : null);
+	        spocList.add(dto);
+	    }
+
+	    return spocList;
+	}
+	
+	public List<ProjectManagersDTO> getProjectManagersByProjectId(Integer projectId) {
+	    List<Object[]> result = projectManagerMappingRepository.findProjectManagersPerProject(projectId);
+	    List<ProjectManagersDTO> projectManagerList = new ArrayList<>();
+
+	    for (Object[] obj : result) {
+	    	ProjectManagersDTO dto = new ProjectManagersDTO();
+	    	dto.setProjectManagerId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+	    	dto.setProjectManagerName(obj[1] != null ? obj[1].toString() : null);   		        
+	    	projectManagerList.add(dto);
+	    }
+
+	    return projectManagerList;
+	}
+
 	
 	public ServiceResponse getPendingForApprovalProject() {
 		ServiceResponse response = new ServiceResponse();
@@ -3395,6 +3436,7 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	     try {
 	    	 
 	    	 String approvalStatus = projectFilterDTO.getApprovalStatus();
+	    	 Long currentUserEmpId = projectFilterDTO.getCurrentUserEmpId();
 	         List<ResourceManagementDTO> poPortalProjects = fetchPoPortalProjects();
 	         ServiceResponse internalProjectResponse = getInternalProject();
 
@@ -3404,17 +3446,64 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 
 	             if (teamCreatedProjectsResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
 	                 List<ResourceManagementDTO> teamCreatedProjects = (List<ResourceManagementDTO>) teamCreatedProjectsResponse.getServiceResponse();
+	                 
+	                 
 
 	                 processPoPortalProjects(poPortalProjects, teamCreatedProjects);
 	                 processInternalProjects(internalProjects, teamCreatedProjects);
 
-	                 // Combine the projects
+	                
 	                 List<ResourceManagementDTO> combinedProjects = new ArrayList<>();
-	                 combinedProjects.addAll(poPortalProjects);
-	                 combinedProjects.addAll(internalProjects);
+	                     combinedProjects.addAll(poPortalProjects);
+	                     combinedProjects.addAll(internalProjects);
+	                     
+	                     boolean isPMOrSpoc = teamCreatedProjects.stream().anyMatch(team ->
+	                     (team.getProjectManagers() != null && team.getProjectManagers().stream()
+	                         .anyMatch(pm -> pm.getProjectManagerId() != null && pm.getProjectManagerId().equals(currentUserEmpId)))
+	                     ||
+	                     (team.getTeamSpocs() != null && team.getTeamSpocs().stream()
+	                         .anyMatch(spoc -> spoc.getSpocId() != null && spoc.getSpocId().equals(currentUserEmpId)))
+	                 );
+
+	                 if (isPMOrSpoc) {
+	                     Set<Long> poProjectIds = teamCreatedProjects.stream()
+	                         .filter(team ->
+	                             (team.getProjectManagers() != null && team.getProjectManagers().stream()
+	                                 .anyMatch(pm -> pm.getProjectManagerId() != null && pm.getProjectManagerId().equals(currentUserEmpId)))
+	                             ||
+	                             (team.getTeamSpocs() != null && team.getTeamSpocs().stream()
+	                                 .anyMatch(spoc -> spoc.getSpocId() != null && spoc.getSpocId().equals(currentUserEmpId)))
+	                         )
+	                         .map(ResourceManagementDTO::getPoProjectId)
+	                         .filter(Objects::nonNull)
+	                         .collect(Collectors.toSet());
+
+	                     Set<Integer> internalProjectIds = teamCreatedProjects.stream()
+	                         .filter(team ->
+	                             (team.getProjectManagers() != null && team.getProjectManagers().stream()
+	                                 .anyMatch(pm -> pm.getProjectManagerId() != null && pm.getProjectManagerId().equals(currentUserEmpId)))
+	                             ||
+	                             (team.getTeamSpocs() != null && team.getTeamSpocs().stream()
+	                                 .anyMatch(spoc -> spoc.getSpocId() != null && spoc.getSpocId().equals(currentUserEmpId)))
+	                         )
+	                         .map(ResourceManagementDTO::getProjectId)
+	                         .filter(Objects::nonNull)
+	                         .collect(Collectors.toSet());
+
+	                     combinedProjects = combinedProjects.stream()
+	                         .filter(project ->
+	                             "Not Started".equalsIgnoreCase(project.getIsDraftProject()) ||
+	                             "Internal".equalsIgnoreCase(project.getIsDraftProject()) ||
+	                             (project.getId() != null && poProjectIds.contains(project.getId())) ||
+	                             (project.getProjectId() != null && internalProjectIds.contains(project.getProjectId()))
+	                         )
+	                         .collect(Collectors.toList());
+	                 }
+	                     
 	                 
 	                 
-	              // Calculate counts before filtering
+	                 
+	             
 	                 int pendingForApprovalCount = (int) combinedProjects.stream()
 	                         .filter(project -> "Pending For Approval".equalsIgnoreCase(project.getIsDraftProject()))
 	                         .count();
@@ -3493,6 +3582,7 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                 
 
 	                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	                 response.setServiceResponse(combinedProjectResponse);
 	                 response.setServiceResponse(combinedProjectResponse);
 	                 apiLogInfo.setApiResponse("Filtered and combined project info list size: " + combinedProjects.size());
 	                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -3548,6 +3638,11 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
                     
                     if (selectedProj != null) {
                         proj.setIsTeamCreated("true");
+                        proj.setProjectManagers(selectedProj.getProjectManagers());
+                        proj.setTeamSpocs(selectedProj.getTeamSpocs());                      
+                        
+                        
+                        
                         if (selectedProj.getIsActive() != null && selectedProj.getIsActive() == 2) {
                             proj.setIsDraftProject("Pending For Approval");
                         } else {
@@ -3585,6 +3680,8 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
                             
                             if (selectedProj != null) {
                                 proj.setIsTeamCreated("true");
+                                proj.setProjectManagers(selectedProj.getProjectManagers());
+                                proj.setTeamSpocs(selectedProj.getTeamSpocs());    
                                 if ("true".equalsIgnoreCase(selectedProj.getIsDraftProject())) {
                                     proj.setIsDraftProject("Pending For Approval");
                                 } else {

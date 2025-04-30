@@ -7,11 +7,13 @@ import lombok.Setter;
 import lombok.ToString;
 
 @ToString
-@Getter
 @Setter
-public class ProjectFilterDTO {
+@Getter
+public class TeamSpocDTO {
 	
-	private String approvalStatus;
-	private Long currentUserEmpId;
+	private Long teamId;
+    private String teamName;
+    private Long spocId;
+    private String spocName;
 
 }
