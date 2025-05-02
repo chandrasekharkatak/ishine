@@ -46,7 +46,8 @@ export class AppComponent implements OnInit{
           pagePath: window.location.pathname,
           serviceVersion: '1.0.0',
           useWebVitals:true,
-          enableSPA:true
+          enableSPA:true,
+          collector: 'http://localhost:8080'
         });
         console.log('skywalking initialized successfully');
       } else {
