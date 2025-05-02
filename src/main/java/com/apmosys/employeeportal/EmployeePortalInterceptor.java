@@ -39,8 +39,21 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 				"/employeeportal/api/checkUserSession",
 				"/employeeportal/api/logoutUser",
 				"/employeeportal/api/downloadFileFromQrCode/**",
-				"/employeeportal/api/getAllEmployees"
+				"/employeeportal/api/getAllEmployees",
+				 "/browser/perfData",
+				    "/browser/errorLog",
+				    "/browser/errorLogs",
+				    "/v3/segment",
+				    "/v3/segments"
 			);
+	
+//	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(
+//		    "/browser/perfData",
+//		    "/browser/errorLog",
+//		    "/browser/errorLogs",
+//		    "/v3/segment",
+//		    "/v3/segments"
+//		);
 			
 	private final String POPORTAL_SESSION_KEY = "Nguif3kxwSDzmojAtj6M93aJlfJqsAWj9blFug4JWkHsoQ2LYgWiApqDe1GZqmpV"; 
 	
@@ -63,6 +76,12 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 					return true;
 				}
 		};
+		
+//		for (String proxyPath : SKYWALKING_PROXIED_PATHS) {
+//		    if (request.getRequestURI().startsWith(proxyPath)) {
+//		        return true;
+//		    }
+//		}
 		
 		
 		final String requestTokenHeader = request.getHeader("Authorization");

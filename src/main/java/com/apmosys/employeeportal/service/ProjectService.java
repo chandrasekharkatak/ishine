@@ -1617,6 +1617,7 @@ public class ProjectService {
 	                    project.setClientId(clientId);
 	                    project.setPoNo(dto.getPoNo());
 	                    project.setApmosysRM(dto.getApmosysRM());
+	                    project.setApmosysRmEmail(dto.getApmosysRmEmail());               
 	                    project.setIsRenewable(dto.getIsRenewable());
 	                    project.setClientRM(dto.getClientRM());
 

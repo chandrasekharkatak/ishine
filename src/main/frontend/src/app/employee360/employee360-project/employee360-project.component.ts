@@ -55,7 +55,7 @@ isProjectTeamMemberVisible:boolean=false;
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  projectColumns:any[] = ['blank','projectName' ,'teamName' , 'clientName', 'billableType', 'startDate', 'updatedOn'];
+  projectColumns:any[] = ['blank','projectName' ,'teamName' , 'clientName', 'billableType', 'startDate', 'updatedOn','poStartDate','poEndDate','status'];
   employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -278,6 +278,8 @@ async getTeamEmployeeByTeamId(teamId: any) {
     this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectList = response.serviceResponse;
+
+        console.log("dekhauchi re project details ::::::::",this.allProjectList);
         console.log("this.projectDetails ", this.allProjectList);
 
         console.log("Existing project detauls fetched for employee",this.allProjectList);
