@@ -79,6 +79,7 @@ reimbursementObj: any = {
   }
 
   onReasonSelect(){
+    this.reimbursementObj.amount = 0;
     console.log(this.reimbursementObj.expenditureType);
     if(this.reimbursementObj.expenditureType === 'Travel'){
       this.isTravel = true;
@@ -279,7 +280,6 @@ reimbursementObj: any = {
        } else {
          console.error(response.serviceResponse);
        }
-
       }catch (error) {
         console.error("Error during submit:", error);
         this.openAlertMod(template, "An unexpected error occurred while submitting the request.");
@@ -303,7 +303,8 @@ reimbursementObj: any = {
 
       cancelRequest1() {
         this.modalRef.hide();
-        location.reload();
+        this.resetAfterSubmit();
+       // location.reload();
       }
 
       onFileChange(event: any) {
@@ -316,7 +317,29 @@ reimbursementObj: any = {
 
 
 
-
+      async resetAfterSubmit() {
+        this.reimbursementObj = {
+          currencyType:'',
+          currentUser:'',
+          amount:0,
+          distance:'',
+          travelMode: '',
+          travelClass: '',
+          expenditureType:'',
+          fromDate: null,
+          toDate: null,
+          dateOfFood: null,
+          purpose: '',
+          fromLocation:'',
+          toLocation:'',
+          supportingDocument: '',
+          kilometers: null,
+          foodAllowanceType:null,
+          file : ''
+        };
+       
+      }
+  
 
 
 

@@ -439,7 +439,7 @@ public class ReimbursementService {
 			currentTimestamp.setNanos(currentTimestamp.getNanos() / 1000 * 1000);
 			Employee emp = employeeRepository
 					.findByEmpId(Long.valueOf(existingReimbursementData.getEmpId().toString()));
-		if(reimbursementObj.getExpenditureType().equals("Travel")) {
+		//if(reimbursementObj.getExpenditureType().equals("Travel")) {
 							
 			if (existingReimbursementData.getLevel() == 1) {
 				updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
@@ -479,7 +479,7 @@ public class ReimbursementService {
 				updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
 
 			}
-		}
+		//}
 
 			ReimbursementData updatedReimbursementData = reimbursementDataRepository.save(existingReimbursementData);
 
