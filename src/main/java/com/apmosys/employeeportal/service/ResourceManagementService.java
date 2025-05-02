@@ -2765,6 +2765,7 @@ public class ResourceManagementService {
 			dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
 			dto.setPoStartDate(obj[11] != null ? obj[11].toString().toString() : null);
 			dto.setPoEndDate(obj[12] != null ? obj[12].toString().toString() : null);
+			dto.setStatus(obj[13] != null ? obj[13].toString() : null);
 			
 			allData.add(dto);
 		});

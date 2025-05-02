@@ -15,7 +15,8 @@ interface SideNavToggle{
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit{
+ export class AppComponent implements OnInit{
+  //export class AppComponent {
   title = 'employee-portal-revamp';
 
   isSideNavCollapsed = false;
@@ -46,7 +47,8 @@ export class AppComponent implements OnInit{
           pagePath: window.location.pathname,
           serviceVersion: '1.0.0',
           useWebVitals:true,
-          enableSPA:true
+          enableSPA:true,
+          collector: "http://192.168.21.175:8081/employeeportal"
         });
         console.log('skywalking initialized successfully');
       } else {
