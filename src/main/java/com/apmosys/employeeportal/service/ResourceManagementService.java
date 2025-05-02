@@ -1994,6 +1994,7 @@ public class ResourceManagementService {
 	        dto.setTeamName(obj[1] != null ? obj[1].toString() : null);
 	        dto.setSpocId(obj[2] != null ? Long.parseLong(obj[2].toString()) : null);
 	        dto.setSpocName(obj[3] != null ? obj[3].toString() : null);
+	        dto.setDepartmentList(obj[4]!= null ? obj[4].toString().split(",") : null);      
 	        spocList.add(dto);
 	    }
 
@@ -3582,8 +3583,8 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                 
 
 	                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//	                 response.setServiceResponse(combinedProjectResponse);
 	                 response.setServiceResponse(combinedProjectResponse);
+//	                 response.setServiceResponse(teamCreatedProjects);
 	                 apiLogInfo.setApiResponse("Filtered and combined project info list size: " + combinedProjects.size());
 	                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	             } else {

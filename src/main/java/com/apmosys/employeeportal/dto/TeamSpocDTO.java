@@ -15,5 +15,7 @@ public class TeamSpocDTO {
     private String teamName;
     private Long spocId;
     private String spocName;
+    private String[] departmentList;
+    
 
 }
