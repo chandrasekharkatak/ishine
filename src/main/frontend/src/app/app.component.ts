@@ -39,23 +39,23 @@ interface SideNavToggle{
   }
 
   ngOnInit():void{
-    import('skywalking-client-js').then(ClientMonitor => {
-      console.log('skywalking Client JS loaded:', ClientMonitor);
-      if (ClientMonitor.default && typeof ClientMonitor.default.register === 'function') {
-        ClientMonitor.default.register({
-          service: 'Ishine::ui',
-          pagePath: window.location.pathname,
-          serviceVersion: '1.0.0',
-          useWebVitals:true,
-          enableSPA:true,
-          collector: "http://192.168.21.175:8081/employeeportal"
-        });
-        console.log('skywalking initialized successfully');
-      } else {
-        console.error('skywalking Client JS register function not found.');
-      }
-    }).catch(err => {
-      console.error('Error loading skywalking Client JS:', err);    });
+    // import('skywalking-client-js').then(ClientMonitor => {
+    //   console.log('skywalking Client JS loaded:', ClientMonitor);
+    //   if (ClientMonitor.default && typeof ClientMonitor.default.register === 'function') {
+    //     ClientMonitor.default.register({
+    //       service: 'Ishine::ui',
+    //       pagePath: window.location.pathname,
+    //       serviceVersion: '1.0.0',
+    //       useWebVitals:true,
+    //       enableSPA:true,
+    //       collector: "http://192.168.21.175:8081/employeeportal"
+    //     });
+    //     console.log('skywalking initialized successfully');
+    //   } else {
+    //     console.error('skywalking Client JS register function not found.');
+    //   }
+    // }).catch(err => {
+    //   console.error('Error loading skywalking Client JS:', err);    });
 
   }
   onToggleSideNav(data: SideNavToggle){

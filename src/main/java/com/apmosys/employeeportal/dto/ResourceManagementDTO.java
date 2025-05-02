@@ -57,4 +57,5 @@ public class ResourceManagementDTO {
 	private String clientRM;
 	private Boolean isRenewable;
 	private String deptId;
+	private String apmosysRmEmail;
 }

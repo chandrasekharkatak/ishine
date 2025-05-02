@@ -263,7 +263,10 @@ public class ResourceManagementService {
                 newProject.setApmosysRM(resourceManagementDTO.getApmosysRM());	
 			    newProject.setIsRenewable(resourceManagementDTO.getIsRenewable());
 			    newProject.setClientRM(resourceManagementDTO.getClientRM());
-				
+			    newProject.setApmosysRmEmail(resourceManagementDTO.getApmosysRmEmail());
+			    
+			    
+			    
 				  	if (resourceManagementDTO.getIsHOD().equals("true")) {
 				 	newProject.setIsDraftProject("false"); 
 				 	} else {
