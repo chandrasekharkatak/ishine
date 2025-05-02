@@ -5,6 +5,7 @@ import java.util.List;
 import com.apmosys.employeeportal.dto.ModuleDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightMilestoneDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.dto.SubModuleDTO;
 
 import lombok.Data;
@@ -17,6 +18,7 @@ public class SearchResultResponse {
 	private List<ModuleDTO> moduleList;
 	private List<SubModuleDTO> subModuleList;
 	private List<SubModuleDTO> subSubModuleList;
+	private List<ProjectInsightUserContributionDTO> userContributionList;
 	
 	private ProjectInsightDTO project;
 	private ProjectInsightMilestoneDTO milestone; 

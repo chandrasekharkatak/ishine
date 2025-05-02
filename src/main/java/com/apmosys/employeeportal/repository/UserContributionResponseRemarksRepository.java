@@ -10,4 +10,7 @@ public interface UserContributionResponseRemarksRepository extends JpaRepository
 
 	List<UserContributionResponseRemarks> findByUserContributionId(Long userContributionId);
 
+	List<UserContributionResponseRemarks> findByUserContributionIdAndRemarkStatus(Long userContributionId,
+			String string);
+
 }

@@ -40,6 +40,7 @@ public class ProjectInsightUserContributionDTO {
 		private List<UserContributionResponseRemarks> responseRemarkList;
 		private String reviewType;
 		private String contributionBy;
+		private String projectName;
 		
 		// "preReviewer" , "Approve", "Reject"
 		private String processType;

@@ -813,7 +813,8 @@ saveKpiResponses(template: TemplateRef<any>): void {
 
   openAddContributionModal(template: TemplateRef<any>){
     this.userContributionObj = new UserContribution();
-    this.showPreviewDiv = false
+    this.showPreviewDiv = false;
+    this.showReviewButton = false;
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
@@ -885,13 +886,13 @@ saveKpiResponses(template: TemplateRef<any>): void {
     }
   }
   
-  handlePageChange(event, type: any) {
-    if(type == 'projectInsight'){
+  handlePageChange(event: number, table: string): void {
+    if (table === 'projectInsight') {
       this.page = event;
-    }else{
+    } else if (table === 'contribution') {
       this.myContributionPage = event;
     }
-  }
+  }  
 
   getAllProjectInsightContributionList() {
     this.sortColumn = [];

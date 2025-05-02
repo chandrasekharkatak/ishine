@@ -2166,6 +2166,13 @@ public class ProjectInsightService {
 	public ResponseEntity<SearchResultResponse> onSearchTerm(String search) {
 	    SearchResultResponse response = new SearchResultResponse();
 	    try {
+	    	
+	    	/* Note
+	    	 * getSearchResultByEntityIdAndEntityType is configured in such a way that if entityid, entitytype passed
+	    	 * which are present in Tagmaster as well as Filestorage then the reult will be in section i.e different
+	    	 * section for project, milestone, module, submodule, subsubmodule
+	    	 * */
+	    	
 	        List<String> tagList = nlpUtils.extractTags(search);
 
 	        if (tagList.isEmpty()) {
@@ -2175,50 +2182,107 @@ public class ProjectInsightService {
 	        List<TagMaster> matchedTags = tagMasterRepository.findAll(TagSpecifications.tagNameLikeAny(tagList));
 	        List<FileStorage> files = fileMongoRepository.findByTagsIn(tagList);
 
-	        
-	        List<ProjectInsightDTO> projectRespList = new ArrayList<>();
-	        List<ProjectInsightMilestoneDTO> projectInsightMilestoneRespList = new ArrayList<>();
-	        List<ModuleDTO> moduleRespList = new ArrayList<>();
-	        List<SubModuleDTO> subModuleRespList = new ArrayList<>();
-	        List<SubModuleDTO> subSubModuleRespList = new ArrayList<>();
-
-	        BiConsumer<SearchResultResponse, Boolean> addResults = (result, isSubSubModule) -> {
-	            if (result != null) {
-	                projectRespList.add(result.getProject());
-	                projectInsightMilestoneRespList.add(result.getMilestone());
-	                moduleRespList.add(result.getModule());
-	                subModuleRespList.add(result.getSubModule());
-	                subSubModuleRespList.add(result.getSubSubModule());
+	        Set<Long> projectIdSet = new HashSet<>();
+	        for (TagMaster tag : matchedTags) {
+	            if (tag.getProjectId() != null) {
+	                projectIdSet.add(tag.getProjectId());
 	            }
-	        };
+	        }
+	        for (FileStorage file : files) {
+	            if (file.getProjectId() != null) {
+	                projectIdSet.add(file.getProjectId());
+	            }
+	        }
 
-	        matchedTags.forEach(tag -> {
-	            SearchResultResponse result = getSearchResultByEntityIdAndEntityType(
-	                tag.getProjectId(), tag.getEntityId(), tag.getEntityType()
-	            );
-	            addResults.accept(result, false);
-	        });
-
-	        files.forEach(file -> {
-	            SearchResultResponse result = getSearchResultByEntityIdAndEntityType(
-	                file.getProjectId(), file.getEntityId(), file.getEntityType()
-	            );
-	            addResults.accept(result, false);
-	        });
+	        List<ProjectInsightDTO> projectRespList = new ArrayList<>();
+	        for (Long projectId : projectIdSet) {
+	            SearchResultResponse result = getSearchResultByEntityIdAndEntityType(projectId);
+	            if (result != null && result.getProject() != null) {
+	                projectRespList.add(result.getProject());
+	            }
+	        }
 
 	        response.setProjectList(projectRespList);
-	        response.setProjectInsightMilestoneList(projectInsightMilestoneRespList);
-	        response.setModuleList(moduleRespList);
-	        response.setSubModuleList(subModuleRespList);
-	        response.setSubSubModuleList(subSubModuleRespList);
-
+	        response.setUserContributionList(getUserContributionSearchResult(matchedTags,files));
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }
 
 	    return ResponseEntity.ok(response);
 	}
-	
+
+	private List<ProjectInsightUserContributionDTO> getUserContributionSearchResult(List<TagMaster> matchedTags,
+			List<FileStorage> files) {
+		List<ProjectInsightUserContributionDTO> response = new ArrayList<>();
+		try {
+			Set<Long> uniqueContributionIds = new HashSet<>();
+
+			matchedTags.stream().filter(obj -> "UserContribution".equals(obj.getEntityType()))
+					.map(TagMaster::getEntityId).forEach(uniqueContributionIds::add);
+
+			files.stream().filter(obj -> "UserContribution".equals(obj.getEntityType())).map(FileStorage::getEntityId)
+					.forEach(uniqueContributionIds::add);
+
+			List<ProjectInsightUserContribution> userContributionsResult = projectInsightUserContributionRepository
+					.findAllById(uniqueContributionIds);
+
+			if (userContributionsResult != null && !userContributionsResult.isEmpty()) {
+				List<Object[]> employeeList = employeeRepository.getEmployees();
+
+				response = userContributionsResult.stream().map(object -> {
+					List<UserContributionResponseRemarks> responseRemarkDbResp = userContributionResponseRemarksRepository
+							.findByUserContributionIdAndRemarkStatus(object.getUserContributionId(), "Approve");
+
+					if (responseRemarkDbResp == null || responseRemarkDbResp.isEmpty()) {
+						return null;
+					}
+
+					List<ProjectInsightAssignees> allTaggedUser = projectInsightAssigneesRepository
+							.getByEntityIdAndEntityType(object.getUserContributionId(), "UserContribution");
+
+					List<TagMaster> dbTagMasterResponse = tagMasterRepository.findByEntityIdAndEntityTypeAndType(
+							object.getUserContributionId(), "UserContribution", "user");
+
+					List<UserContributionDocument> dbDocumentResponse = userContributionDocumentRepository
+							.findByUserContributionId(object.getUserContributionId());
+
+					Project projectObject = projectRepository.findByProjectId(object.getProjectId().intValue());
+
+					ProjectInsightUserContributionDTO dto = new ProjectInsightUserContributionDTO();
+					dto.setAssignTo(object.getAssignTo());
+					dto.setCreatedOn(object.getCreatedOn() != null ? object.getCreatedOn().toString() : null);
+					dto.setEmpId(object.getEmpId());
+					dto.setContributionBy(Optional.ofNullable(employeeList).orElse(Collections.emptyList()).stream()
+							.filter(emp -> emp[0] != null && Long.valueOf(emp[0].toString()).equals(object.getEmpId()))
+							.map(emp -> emp[3] != null ? emp[3].toString() : null).findFirst().orElse(null));
+					dto.setProjectId(object.getProjectId());
+					dto.setProjectName(projectObject != null ? projectObject.getProjectName() : null);
+					dto.setResponse(object.getResponse());
+					dto.setStatus(object.getStatus());
+					dto.setUpdatedOn(object.getUpdatedOn() != null ? object.getUpdatedOn().toString() : null);
+					dto.setUserContributionId(object.getUserContributionId());
+					dto.setUserDefinedProjectName(object.getUserDefinedProjectName());
+					dto.setParentContribution(object.getParentContribution());
+					dto.setTitle(object.getTitle());
+					dto.setOnlyText(object.getOnlyTextResponse());
+					dto.setTeamMembers(allTaggedUser.stream().map(ProjectInsightAssignees::getAssignedTo)
+							.collect(Collectors.toList()));
+					dto.setTags(dbTagMasterResponse.stream().map(TagMaster::getTag).collect(Collectors.toList()));
+					dto.setUserDocument(dbDocumentResponse);
+					dto.setResponseRemarkList(responseRemarkDbResp);
+					dto.setReviewType(object.getReviewType());
+
+					return dto;
+				}).filter(Objects::nonNull)
+						.collect(Collectors.toList());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return response;
+	}
+
 	public List<ProjectQuestionDTO> getProjectQuestionDTOListForSearchResult(Long entityId, String entityType) {
 		List<ProjectQuestionDTO> projectInsightQuestionList = new ArrayList<>();
 		try {
@@ -2415,7 +2479,7 @@ public class ProjectInsightService {
 		return subModuleDTO;
 	}
 	
-    public SearchResultResponse getSearchResultByEntityIdAndEntityType(Long projectId, Long entityId, String entityType) {
+    public SearchResultResponse getSearchResultByEntityIdAndEntityType(Long projectId) {
         SearchResultResponse response = new SearchResultResponse();
         LogDTO apiLogInfo = new LogDTO();
         apiLogInfo.setLogLevel("INFO");
@@ -2428,30 +2492,33 @@ public class ProjectInsightService {
             if (project == null) {
                 throw new RuntimeException("Project Not Found!!");
             }
+            
+            ProjectInsightDTO projectInsightDTO = getAllMilestoneInfoByProjectId(projectId);
+            response.setProject(projectInsightDTO);
 
-            if ("Project".equals(entityType)) {
-            	ProjectInsightDTO projectInsightDTO = getAllMilestoneInfoByProjectId(projectId);
-                response.setProject(projectInsightDTO);
-                
-            } else if ("Milestone".equals(entityType)) {
-            	ProjectInsightMilestoneDTO milestone = getAllModuleInfoByMilestoneId(entityId);
-                response.setMilestone(milestone);
-                
-            } else if ("Module".equals(entityType)) {
-            	ModuleDTO module = getAllSubModuleInfoByModuleId(entityId, "SubModule");
-                response.setModule(module);
-                
-            } else if ("SubModule".equals(entityType) || "Sub-SubModule".equals(entityType)) {
-            	SubModuleDTO submodule = getAllSubSubModuleInfoBySubModuleId(entityId, "SubModule");
-            	
-            	if("SubModule".equals(entityType)) {
-            		response.setSubModule(submodule);
-            	}else {
-            		response.setSubSubModule(submodule);
-            	}
-            } else {
-                System.out.println("invalid");
-            }
+//            if ("Project".equals(entityType)) {
+//            	ProjectInsightDTO projectInsightDTO = getAllMilestoneInfoByProjectId(projectId);
+//                response.setProject(projectInsightDTO);
+//                
+//            } else if ("Milestone".equals(entityType)) {
+//            	ProjectInsightMilestoneDTO milestone = getAllModuleInfoByMilestoneId(entityId);
+//                response.setMilestone(milestone);
+//                
+//            } else if ("Module".equals(entityType)) {
+//            	ModuleDTO module = getAllSubModuleInfoByModuleId(entityId, "SubModule");
+//                response.setModule(module);
+//                
+//            } else if ("SubModule".equals(entityType) || "Sub-SubModule".equals(entityType)) {
+//            	SubModuleDTO submodule = getAllSubSubModuleInfoBySubModuleId(entityId, "SubModule");
+//            	
+//            	if("SubModule".equals(entityType)) {
+//            		response.setSubModule(submodule);
+//            	}else {
+//            		response.setSubSubModule(submodule);
+//            	}
+//            } else {
+//                System.out.println("invalid");
+//            }
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
@@ -2862,6 +2929,7 @@ public class ProjectInsightService {
 	    TagDTO projectTag = new TagDTO();
 	    projectTag.setEntityType("Project");
 	    projectTag.setEntityId(project.getProjectId());
+	    projectTag.setProjectId(project.getProjectId());
 	    
 	    StringBuilder sb = new StringBuilder();
 	    sb.append(project.getProjectName()).append(", ");
@@ -2885,6 +2953,8 @@ public class ProjectInsightService {
 	    TagDTO milestoneTag = new TagDTO();
 	    milestoneTag.setEntityType("Milestone");
 	    milestoneTag.setEntityId(milestone.getMilestoneId());
+	    milestoneTag.setProjectId(projectId);
+	    
 	    StringBuilder sb = new StringBuilder();
 	    sb.append(milestone.getMilestone()).append(". ");
 	    // Add milestone-level questions
@@ -2899,16 +2969,18 @@ public class ProjectInsightService {
 	    // Process Modules
 	    if (milestone.getModuleList() != null) {
 	        for (ModuleDTO module : milestone.getModuleList()) {
-	            processModuleNode(module, tagDTOList, milestone.getMilestoneId());
+	            processModuleNode(module, tagDTOList, milestone.getMilestoneId(), projectId);
 	        }
 	    }
 	}
 
 	// Recursive processing for Module
-	private void processModuleNode(ModuleDTO module, List<TagDTO> tagDTOList, Long milestoneId) {
+	private void processModuleNode(ModuleDTO module, List<TagDTO> tagDTOList, Long milestoneId, Long projectId) {
 	    TagDTO moduleTag = new TagDTO();
 	    moduleTag.setEntityType("Module");
 	    moduleTag.setEntityId(module.getModuleId());
+	    moduleTag.setProjectId(projectId);
+	    
 	    StringBuilder sb = new StringBuilder();
 	    sb.append(module.getModule()).append(". ");
 	    // Add module-level questions
@@ -2923,16 +2995,18 @@ public class ProjectInsightService {
 	    // Process SubModules
 	    if (module.getSubModuleList() != null) {
 	        for (SubModuleDTO subModule : module.getSubModuleList()) {
-	            processSubModuleNode(subModule, tagDTOList, module.getModuleId());
+	            processSubModuleNode(subModule, tagDTOList, module.getModuleId(), projectId);
 	        }
 	    }
 	}
 
 	// Recursive processing for SubModule
-	private void processSubModuleNode(SubModuleDTO subModule, List<TagDTO> tagDTOList, Long moduleId) {
+	private void processSubModuleNode(SubModuleDTO subModule, List<TagDTO> tagDTOList, Long moduleId, Long projectId) {
 	    TagDTO subModuleTag = new TagDTO();
 	    subModuleTag.setEntityType("SubModule");
 	    subModuleTag.setEntityId(subModule.getSubmoduleId());
+	    subModuleTag.setProjectId(projectId);
+	    
 	    StringBuilder sb = new StringBuilder();
 	    sb.append(subModule.getSubModule()).append(". ");
 	    // Add submodule-level questions
@@ -2947,16 +3021,18 @@ public class ProjectInsightService {
 	    // Process SubSubModules if present
 	    if (subModule.getSubSubModuleList() != null) {
 	        for (SubModuleDTO subSubModule : subModule.getSubSubModuleList()) {
-	            processSubSubModuleNode(subSubModule, tagDTOList, subModule.getSubmoduleId());
+	            processSubSubModuleNode(subSubModule, tagDTOList, subModule.getSubmoduleId(), projectId);
 	        }
 	    }
 	}
 
 	// Recursive processing for SubSubModule
-	private void processSubSubModuleNode(SubModuleDTO subSubModule, List<TagDTO> tagDTOList, Long subModuleId) {
+	private void processSubSubModuleNode(SubModuleDTO subSubModule, List<TagDTO> tagDTOList, Long subModuleId, Long projectId) {
 	    TagDTO subSubModuleTag = new TagDTO();
 	    subSubModuleTag.setEntityType("Sub-SubModule");
 	    subSubModuleTag.setEntityId(subSubModule.getSubmoduleId());
+	    subSubModuleTag.setProjectId(projectId);
+	    
 	    StringBuilder sb = new StringBuilder();
 	    sb.append(subSubModule.getSubModule()).append(". ");
 	    if (subSubModule.getQuestionList() != null) {
@@ -2970,7 +3046,7 @@ public class ProjectInsightService {
 	 // Process SubSubModules if present
 	    if (subSubModule.getSubSubModuleList() != null) {
 	        for (SubModuleDTO subSubModules : subSubModule.getSubSubModuleList()) {
-	            processSubSubModuleNode(subSubModules, tagDTOList, subSubModules.getSubmoduleId());
+	            processSubSubModuleNode(subSubModules, tagDTOList, subSubModules.getSubmoduleId(), projectId);
 	        }
 	    }
 	}

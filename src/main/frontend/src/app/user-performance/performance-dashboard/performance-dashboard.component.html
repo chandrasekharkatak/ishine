@@ -188,8 +188,10 @@
                         *ngIf="allProjectInsightList.length == 0|| (allProjectInsightList| colFilter:filters:false).length == 0">
                         <th colspan="6" class="text-center info-label">No Details to display...</th>
                       </tr>
-                      <tr
-                        *ngFor="let project of allProjectInsightList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 2, currentPage: page }, let i = index">
+                      <tr *ngFor="let project of allProjectInsightList 
+              | colFilter:filters:false 
+              | sort : [sortColumn, sortColumnType, sortDirection] 
+              | paginate: { id: 'projectInsightPagination', itemsPerPage: 2, currentPage: page }">
                         <td>{{project.projectName}}</td>
                         <td>{{project.projectManagerName}}</td>
                         <td>{{project.createdByName}}</td>
@@ -202,7 +204,7 @@
                     </tbody>
                   </table>
                 </div>
-                <pagination-controls class="my-pagination" [hidden]="allProjectInsightList.length == 0"
+                <pagination-controls class="my-pagination" id="projectInsightPagination" [hidden]="allProjectInsightList.length == 0"
                   (pageChange)="handlePageChange($event, 'projectInsight')"></pagination-controls>
               </div>
           </div>
@@ -229,7 +231,7 @@
                     <button class="btn btn-sm btn-outline-primary" (click)="openAddContributionModal(user_contribution)">
                       <i class="fa-solid fa-plus"></i> &nbsp; Add contribution
                     </button>
-                    <button class="btn btn-sm btn-outline-primary" *ngIf="showReviewButton && !toggleReviewView"
+                    <button class="btn btn-sm btn-outline-primary" *ngIf="!toggleReviewView"
                       (click)="switchToReviewView()">
                       Review contribution(s)
                     </button>
@@ -267,7 +269,10 @@
                       <td colspan="4" class="text-center info-label">No Details to display...</td>
                     </tr>
                     <!-- Data rows -->
-                    <tr *ngFor="let project of finalContributionList | colFilter:contributionFilters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 4, currentPage: myContributionPage }, let i = index">
+                    <tr *ngFor="let project of finalContributionList 
+                                  | colFilter:contributionFilters:false 
+                                  | sort : [sortColumn, sortColumnType, sortDirection] 
+                                  | paginate: { id: 'contributionPagination', itemsPerPage: 4, currentPage: myContributionPage }">
                       <td>{{project.userDefinedProjectName}}</td>
                       <td>{{project.status}}</td>
                       <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
@@ -294,6 +299,7 @@
               <!-- Pagination -->
               <div class="mt-3">
                 <pagination-controls 
+                  id="contributionPagination"
                   class="my-pagination" 
                   [hidden]="finalContributionList.length == 0"
                   (pageChange)="handlePageChange($event, 'contribution')">

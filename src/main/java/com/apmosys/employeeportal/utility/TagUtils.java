@@ -39,7 +39,7 @@ public class TagUtils {
 		try {
 	        String projectText = tagDTO.getProjectText().toString();
 
-	        if (tagDTO.getProjectId() == null || projectText == null || projectText.isEmpty() || tagDTO.getTagType() == null) {
+	        if (tagDTO.getProjectId() == null || projectText == null || projectText.isEmpty()) {
 	        	response.setServiceMessage("Invalid Project ID or Text or TagType");
 	        	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        	return response;
