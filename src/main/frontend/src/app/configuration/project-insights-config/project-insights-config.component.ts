@@ -445,7 +445,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   async uploadXcelData() {
     this.projectInsightObj = new ProjectInsight();
     try {
-      let excelValidated: any = await this.exportExcelService.validateProjectInsightImportExcel(this.file);
+      let excelValidated: any = await this.exportExcelService.validateProjectInsightImportFromExcel(this.file);
       if (!excelValidated || excelValidated != 'Success') {
         let alertMessage = 'Something went wrong';
         if (excelValidated) {
@@ -472,6 +472,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
       this.isProjectInsightList = false;
       this.isProjectInsightResponseList = false;
     } catch (error) {
+      console.log(error);
       this.openAlertMod(this.alertMessageTempalte, "Failed to process Excel file");
       return false;
     }
@@ -503,7 +504,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
             });
           }
           if (downloadExcel) {
-            this.exportExcelService.exportProjectToExcel(this.projectInsightObj, 'Project', this.projectInsightObj.projectName, null);
+            this.exportExcelService.exportProjectInsightToExcel(this.projectInsightObj, 'Project', this.projectInsightObj.projectName, null);
           }
         } else {
           this.openAlertMod(template, response.serviceResponse);

@@ -620,7 +620,7 @@ public class ProjectInsightService {
 			if (mileStoneList != null && !mileStoneList.isEmpty()) {
 					List<ProjectInsightMilestoneDTO> projectInsightQuestion = new ArrayList<>();
 					mileStoneList.forEach((mileStone) -> {
-						ProjectInsightMilestoneDTO mileStoneProjObject =  mapMilestone(mileStone);   
+						ProjectInsightMilestoneDTO mileStoneProjObject =  mapMilestone(mileStone,projectInsightDTO.getProjectId());   
 						
 						List<ProjectInsightModule> moduleList = projectInsightModuleRepository.getByMilestoneId(mileStone.getMilestoneId());
 						List<ModuleDTO> moduleResponseList = new ArrayList<>();
@@ -655,6 +655,64 @@ public class ProjectInsightService {
 		return response;
 	}
 
+	public ServiceResponse getAllProjectInsightQuestionsByProjectIdAndEmpId(ProjectInsightDTO projectInsightDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setSubFeatureName("getAllProjectInsightQuestionsByProjectIdAndEmpId");
+		apiLogInfo.setApiUrl("/api/getAllProjectInsightQuestionsByProjectIdAndEmpId");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("projectId : " + projectInsightDTO.getProjectId());
+		try {
+			if (projectInsightDTO.getProjectId() == null) {
+				throw new IllegalArgumentException("Project Id cannot be null!!");
+			}
+
+			Project project = projectRepository
+					.findByProjectId(Integer.parseInt(projectInsightDTO.getProjectId().toString()));
+			if (project == null) {
+				throw new RuntimeException("Project Not Found!!");
+			}
+
+			List<Object[]> employeePersonaListForTeam = employeeTeamMapRepository.getEmployeePersonaForProject(projectInsightDTO.getEmpId(), projectInsightDTO.getProjectId());
+			boolean isEmployee = checkIfIsEmployee(employeePersonaListForTeam, projectInsightDTO.getEmployeeRole());
+
+			List<ProjectQuestionDTO> projectQuestionList = getProjectQuestionDTOList(projectInsightDTO.getProjectId(),"Project", projectInsightDTO.getEmpId(), isEmployee, projectInsightDTO.getPerformanceTabName(), projectInsightDTO.getProjectId(), null);
+			List<ProjectInsightMilestone> projectInsightMilestoneList = projectInsightMilestoneRepository.getByProjectId(projectInsightDTO.getProjectId());
+			if ((projectQuestionList == null || projectQuestionList.isEmpty())
+					&& (projectInsightMilestoneList == null || projectInsightMilestoneList.isEmpty())) {
+				response.setServiceResponse("No Questions or Milestone Found for Project.");
+				apiLogInfo.setApiResponse("No Questions or Milestone Found for Project.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				return response;
+			}
+
+			ProjectInsightDTO projectInsightDTODbObject = createProjectInsightMileStoneObject(projectInsightMilestoneList, projectInsightDTO.getEmpId(), isEmployee, projectInsightDTO.getPerformanceTabName(), projectInsightDTO.getProjectId());
+			projectInsightDTODbObject.setQuestionList(projectQuestionList);
+			projectInsightDTODbObject.setProjectId(projectInsightDTO.getProjectId());
+			projectInsightDTODbObject.setProjectManagerId(project.getProjectManagerId());
+			projectInsightDTODbObject.setProjectManagerName(getProjectManagerName(project.getProjectManagerId()));
+			projectInsightDTODbObject.setProjectName(project.getProjectName());
+			projectInsightDTODbObject.setIsFinalSubmitted(getIsFinalResponseSubmittedByUserForProject(projectInsightDTO.getEmpId(), projectInsightDTO.getProjectId()));
+			response.setServiceResponse(projectInsightDTODbObject);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("All Project Insight Questions Fetched For Project!!");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
 	private String getProjectManagerName(Long projectManagerId) {
 		try {
 			if(projectManagerId == null) {
@@ -671,7 +729,7 @@ public class ProjectInsightService {
 		}
 	}
 
-	private ProjectInsightMilestoneDTO mapMilestone(ProjectInsightMilestone mileStone) {
+	private ProjectInsightMilestoneDTO mapMilestone(ProjectInsightMilestone mileStone,Long projectId) {
 		try {
 			ProjectInsightMilestoneDTO mileStoneProjObject = new ProjectInsightMilestoneDTO();
 			List<ProjectInsightAssignees> assignToDbList = projectInsightAssigneesRepository.getByEntityIdAndEntityType(mileStone.getMilestoneId(), "Milestone");
@@ -685,6 +743,7 @@ public class ProjectInsightService {
 			mileStoneProjObject.setMilestone(mileStone.getMilestone());
 			mileStoneProjObject.setMilestoneId(mileStone.getMilestoneId());
 			mileStoneProjObject.setRedmineId(mileStone.getMilestoneId());
+			mileStoneProjObject.setProjectId(projectId);
 			List<ProjectQuestionDTO> projectQuestionList = getQuestion(mileStone.getMilestoneId(), "Milestone");
 			mileStoneProjObject.setQuestionList(projectQuestionList);
 
@@ -739,7 +798,7 @@ public class ProjectInsightService {
 					submodDto.setModuleId(submodule.getModuleId());
 					submodDto.setRedmineId(submodule.getRedmineId());
 					submodDto.setSubModule(submodule.getSubmodule());
-					submodDto.setSubmoduleId(submodule.getSubmoduleId());
+					submodDto.setSubModuleId(submodule.getSubmoduleId());
 					submodDto.setUpdatedBy(submodule.getUpdatedBy());
 					submodDto.setQuestionList(getQuestion(submodule.getSubmoduleId(),subModuleType));
 					List<ProjectInsightSubModule> subSubModuleList = projectInsightSubModuleRepository.getByModuleIdAndSubModuleType(submodule.getSubmoduleId(),"Sub-SubModule");
@@ -982,8 +1041,8 @@ public class ProjectInsightService {
 					.append(subModuleDTO.getSubModule());
 					
 					
-					if (subModuleDTO.getSubmoduleId() != null) {
-						ProjectInsightSubModule submoduleDbResponse = projectInsightSubModuleRepository.getById(subModuleDTO.getSubmoduleId());
+					if (subModuleDTO.getSubModuleId() != null) {
+						ProjectInsightSubModule submoduleDbResponse = projectInsightSubModuleRepository.getById(subModuleDTO.getSubModuleId());
 						if (submoduleDbResponse != null) {
 							submoduleDbResponse.setModuleId(moduleId);
 							submoduleDbResponse.setDescription(subModuleDTO.getDescription());
@@ -992,11 +1051,11 @@ public class ProjectInsightService {
 							submoduleDbResponse.setUpdatedBy(updatedBy);
 							submoduleDbResponse.setSubModuleType(subModuleType);
 							projectInsightSubModuleRepository.save(submoduleDbResponse);
-							saveAssignedTo(subModuleDTO.getAssignedToUserId(), subModuleDTO.getSubmoduleId(),subModuleType, true);
+							saveAssignedTo(subModuleDTO.getAssignedToUserId(), subModuleDTO.getSubModuleId(),subModuleType, true);
 
 							// Add SubModule question
 							if (subModuleDTO.getQuestionList() != null && !subModuleDTO.getQuestionList().isEmpty()) {
-								addUpdateQuestion(subModuleDTO.getQuestionList(), subModuleDTO.getSubmoduleId(), subModuleType, combinedText);
+								addUpdateQuestion(subModuleDTO.getQuestionList(), subModuleDTO.getSubModuleId(), subModuleType, combinedText);
 							}
 
 							if (subModuleDTO.getSubSubModuleList() != null && !subModuleDTO.getSubSubModuleList().isEmpty()) {
@@ -1099,10 +1158,10 @@ public class ProjectInsightService {
 				for (SubModuleDTO subModuleDTO : subModuleList) {
 					combinedText.append(subModuleDTO.getDescription()).append(" ").append(subModuleDTO.getSubModule());
 					ProjectInsightSubModule projectInsightSubModule = null;
-					if (subModuleDTO.getSubmoduleId() == null || (subModuleDTO.getActionType() != null && subModuleDTO.getActionType().equalsIgnoreCase("Add"))) {
+					if (subModuleDTO.getSubModuleId() == null || (subModuleDTO.getActionType() != null && subModuleDTO.getActionType().equalsIgnoreCase("Add"))) {
 						projectInsightSubModule = saveSubModule(projectInsightSubModule, subModuleDTO, moduleId, subModuleType, combinedText, createdBy, updatedBy);
-					} else if (subModuleDTO.getSubmoduleId() != null) {
-						ProjectInsightSubModule submoduleDbResponse = projectInsightSubModuleRepository.getById(subModuleDTO.getSubmoduleId());
+					} else if (subModuleDTO.getSubModuleId() != null) {
+						ProjectInsightSubModule submoduleDbResponse = projectInsightSubModuleRepository.getById(subModuleDTO.getSubModuleId());
 						if (submoduleDbResponse != null) {
 							projectInsightSubModule = saveSubModule(submoduleDbResponse, subModuleDTO, moduleId, subModuleType, combinedText, createdBy, updatedBy);
 						} else {
@@ -1300,7 +1359,7 @@ public class ProjectInsightService {
 			if (!projectInsightSubModuleList.isEmpty()) {
 				for (ProjectInsightSubModule projectInsightSubModule : projectInsightSubModuleList) {
 					SubModuleDTO subModuleDTO = new SubModuleDTO();
-					subModuleDTO.setSubmoduleId(projectInsightSubModule.getSubmoduleId());
+					subModuleDTO.setSubModuleId(projectInsightSubModule.getSubmoduleId());
 					subModuleDTO.setSubModule(projectInsightSubModule.getSubmodule());
 					subModuleDTO.setModuleId(projectInsightSubModule.getModuleId());
 					subModuleDTO.setDescription(projectInsightSubModule.getDescription());
@@ -1668,7 +1727,7 @@ public class ProjectInsightService {
 			if (subModuleList != null && !subModuleList.isEmpty()) {
 				for (SubModuleDTO subModuleDTO : subModuleList) {
 					saveProjectInsightResponse(subModuleDTO.getQuestionList(),files,projectInsightResponseMetadata,responseBy,combinedText);
-					saveTaggedForHelp(subModuleDTO.getTaggedToUserId(),subModuleDTO.getSubmoduleId(),subModuleType,responseBy);
+					saveTaggedForHelp(subModuleDTO.getTaggedToUserId(),subModuleDTO.getSubModuleId(),subModuleType,responseBy);
 					if(subModuleDTO.getSubSubModuleList() != null && !subModuleDTO.getSubSubModuleList().isEmpty()) {
 						saveProjectInsightSubModuleResponse(subModuleDTO.getSubSubModuleList(), responseBy, files, projectInsightResponseMetadata,"Sub-SubModule",combinedText);
 					}
@@ -2352,7 +2411,7 @@ public class ProjectInsightService {
 					
 					for (ProjectInsightSubModule projectInsightSubModule : projectInsightSubModuleList) {
 						SubModuleDTO subModuleDTO = new SubModuleDTO();
-						subModuleDTO.setSubmoduleId(projectInsightSubModule.getSubmoduleId());
+						subModuleDTO.setSubModuleId(projectInsightSubModule.getSubmoduleId());
 						subModuleDTO.setSubModule(projectInsightSubModule.getSubmodule());
 						subModuleDTO.setModuleId(projectInsightSubModule.getModuleId());
 						subModuleDTO.setDescription(projectInsightSubModule.getDescription());
@@ -2381,7 +2440,7 @@ public class ProjectInsightService {
 			ProjectInsightSubModule subModuleObject = projectInsightSubModuleRepository.getBySubmoduleId(subModuleId);
 			if(subModuleObject != null) {
 				subModuleDTO.setSubModule(subModuleObject.getSubmodule());
-				subModuleDTO.setSubmoduleId(subModuleObject.getSubmoduleId());
+				subModuleDTO.setSubModuleId(subModuleObject.getSubmoduleId());
 				subModuleDTO.setModuleId(subModuleObject.getModuleId());
 				subModuleDTO.setDescription(subModuleObject.getDescription());
 				subModuleDTO.setRedmineId(subModuleObject.getRedmineId());
@@ -2393,7 +2452,7 @@ public class ProjectInsightService {
 					
 					for (ProjectInsightSubModule projectInsightSubModule : projectInsightSubModuleList) {
 						SubModuleDTO subsubModuleDTO = new SubModuleDTO();
-						subsubModuleDTO.setSubmoduleId(projectInsightSubModule.getSubmoduleId());
+						subsubModuleDTO.setSubModuleId(projectInsightSubModule.getSubmoduleId());
 						subsubModuleDTO.setSubModule(projectInsightSubModule.getSubmodule());
 						subsubModuleDTO.setModuleId(projectInsightSubModule.getModuleId());
 						subsubModuleDTO.setDescription(projectInsightSubModule.getDescription());
@@ -2932,7 +2991,7 @@ public class ProjectInsightService {
 	private void processSubModuleNode(SubModuleDTO subModule, List<TagDTO> tagDTOList, Long moduleId) {
 	    TagDTO subModuleTag = new TagDTO();
 	    subModuleTag.setEntityType("SubModule");
-	    subModuleTag.setEntityId(subModule.getSubmoduleId());
+	    subModuleTag.setEntityId(subModule.getSubModuleId());
 	    StringBuilder sb = new StringBuilder();
 	    sb.append(subModule.getSubModule()).append(". ");
 	    // Add submodule-level questions
@@ -2947,7 +3006,7 @@ public class ProjectInsightService {
 	    // Process SubSubModules if present
 	    if (subModule.getSubSubModuleList() != null) {
 	        for (SubModuleDTO subSubModule : subModule.getSubSubModuleList()) {
-	            processSubSubModuleNode(subSubModule, tagDTOList, subModule.getSubmoduleId());
+	            processSubSubModuleNode(subSubModule, tagDTOList, subModule.getSubModuleId());
 	        }
 	    }
 	}
@@ -2956,7 +3015,7 @@ public class ProjectInsightService {
 	private void processSubSubModuleNode(SubModuleDTO subSubModule, List<TagDTO> tagDTOList, Long subModuleId) {
 	    TagDTO subSubModuleTag = new TagDTO();
 	    subSubModuleTag.setEntityType("Sub-SubModule");
-	    subSubModuleTag.setEntityId(subSubModule.getSubmoduleId());
+	    subSubModuleTag.setEntityId(subSubModule.getSubModuleId());
 	    StringBuilder sb = new StringBuilder();
 	    sb.append(subSubModule.getSubModule()).append(". ");
 	    if (subSubModule.getQuestionList() != null) {
@@ -2970,7 +3029,7 @@ public class ProjectInsightService {
 	 // Process SubSubModules if present
 	    if (subSubModule.getSubSubModuleList() != null) {
 	        for (SubModuleDTO subSubModules : subSubModule.getSubSubModuleList()) {
-	            processSubSubModuleNode(subSubModules, tagDTOList, subSubModules.getSubmoduleId());
+	            processSubSubModuleNode(subSubModules, tagDTOList, subSubModules.getSubModuleId());
 	        }
 	    }
 	}
@@ -3095,7 +3154,7 @@ public class ProjectInsightService {
 		try {
 			for (SubModuleDTO subModuleDTO : subModuleList) {
 				if (subModuleDTO.getQuestionList() != null && !subModuleDTO.getQuestionList().isEmpty()) {
-					saveQuestionResponsesReviewPoints(subModuleDTO.getQuestionList(), projectId, pointsBy, pointsDrafted, subModuleDTO.getSubmoduleId(), subModuleType,transferToKnowledgeHub);
+					saveQuestionResponsesReviewPoints(subModuleDTO.getQuestionList(), projectId, pointsBy, pointsDrafted, subModuleDTO.getSubModuleId(), subModuleType,transferToKnowledgeHub);
 				}
 
 				if (subModuleDTO.getSubSubModuleList() != null && !subModuleDTO.getSubSubModuleList().isEmpty()) {

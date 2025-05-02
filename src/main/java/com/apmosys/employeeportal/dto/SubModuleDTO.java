@@ -8,7 +8,7 @@ import lombok.Data;
 public class SubModuleDTO {
 
 	private String subModule;
-	private Long submoduleId;
+	private Long subModuleId;
 	private Long moduleId;
 	private String description;
 	private Long redmineId;
