@@ -93,5 +93,10 @@ public class ProjectController {
 	}
 	
 	
+	@RequestMapping(value = "/getProjectByName", method = RequestMethod.POST)
+	public ServiceResponse getProjectByName(@RequestBody ProjectDTO projectDto) {
+		ServiceResponse response = projectService.getProjectByName(projectDto);
+		return response;
+	}
 	
 }

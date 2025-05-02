@@ -25,6 +25,7 @@ import { AngularEditorConfig } from '@kolkov/angular-editor';
 import { ProjectService } from 'src/app/services/project.service';
 import { Observable } from 'rxjs';
 import { HttpEvent, HttpResponse } from '@angular/common/http';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 
 interface Goal {
   goalStatus: string;
@@ -231,6 +232,7 @@ export class PerformanceDashboardComponent implements OnInit {
     private projectInsightService:ProjectInsightService,
     private validationService: ValidationService,
     private projectService: ProjectService,
+    private exportExcelService: ExportExcelService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -975,5 +977,12 @@ saveKpiResponses(template: TemplateRef<any>): void {
         console.error(response.serviceResponse)
       }
     });
+  }
+
+  async getAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj: any) :Promise<any> {
+    let status = await this.exportExcelService.callGetAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj.projectId,this.currentUser.empId, 'Performance Dashboard',this.currentUser.employeeRole);
+    if(!status || (status && status !== 'Success')){
+      this.openAlertMod(this.alertModal,'Something went Wrong, while downloading excel.');
+    }
   }
 }

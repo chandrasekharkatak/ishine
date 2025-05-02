@@ -197,8 +197,12 @@
                         <td>{{project.createdByName}}</td>
                         <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
                         <td>
-                          <button class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)">
-                            <em> Add / View Response</em></button>&nbsp;
+                          <button class="fa-solid fas fa-tasks btn btn-sm btn-outline-primary" type="submit" title="Add / View Response"
+                            (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)">
+                          </button>&nbsp;
+                          <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" type="submit" title="Download Questions Excel"
+                            (click)="getAllProjectInsightQuestionsByProjectIdAndEmpId(project)">
+                          </button>&nbsp;
                         </td>
                       </tr>
                     </tbody>

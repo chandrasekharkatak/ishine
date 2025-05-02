@@ -245,6 +245,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getUserUploadedFileForQuestion`,
     `${this.baseUrl}` + `api/getAllProjectInsightContributionList`,
     `${this.baseUrl}` + `api/saveReviewPoints`,
+    `${this.baseUrl}` + `api/getAllProjectInsightQuestionsByProjectIdAndEmpId`,
 
   ]
 

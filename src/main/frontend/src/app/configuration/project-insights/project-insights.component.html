@@ -77,16 +77,16 @@
     </div>
 
     <!-- Project Questions -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="questions_card_template"
         [ngTemplateOutletContext]="{entity:entityObj , entityType:'Project'}">
       </ng-container>
     </div>
 
     <!-- Project Milestone -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('Milestones')" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Milestones'" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="milestone_card_template"
-        [ngTemplateOutletContext]="{ entityList:entityObj.projectInsightMilestoneList}">
+        [ngTemplateOutletContext]="milestoneTemplateContext">
       </ng-container>
     </div>
   </div>
@@ -100,16 +100,16 @@
     </div>
 
     <!-- Milestone Questions -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="questions_card_template"
         [ngTemplateOutletContext]="{entity:entityObj , entityType:'Milestone'}">
       </ng-container>
     </div>
 
     <!-- Milestone Modules -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('Modules') && !entityObj?.currentActiveBadgeLevel?.includes('SubModules')" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Modules'" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="module_card_template"
-        [ngTemplateOutletContext]="{ entityList:entityObj.moduleList}">
+        [ngTemplateOutletContext]="moduleTemplateContext">
       </ng-container>
 
     </div>
@@ -124,16 +124,16 @@
     </div>
 
     <!-- Module Questions -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="questions_card_template"
         [ngTemplateOutletContext]="{entity:entityObj , entityType:'Module'}">
       </ng-container>
     </div>
 
     <!-- Module SubModules -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('SubModules') && !entityObj?.currentActiveBadgeLevel?.includes('Sub-SubModules')" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'SubModules'" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="submodule_card_template"
-        [ngTemplateOutletContext]="{ entityList:entityObj.subModuleList,subModuleType:'SubModule'}">
+        [ngTemplateOutletContext]="subModuleTemplateContext">
       </ng-container>
     </div>
   </div>
@@ -147,7 +147,7 @@
     </div>
 
     <!-- SubModule Questions -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
+    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="questions_card_template"
         [ngTemplateOutletContext]="{entity:entityObj , entityType:'SubModule'}">
       </ng-container>
@@ -155,10 +155,10 @@
 
     <!-- SubModule SubSubModules -->
     <div
-      *ngIf="entityObj?.currentActiveBadgeLevel?.includes('SubModules') || entityObj?.currentActiveBadgeLevel?.includes('Sub-SubModules')"
+      *ngIf="entityObj?.currentActiveBadgeLevel == 'SubModules' || entityObj?.currentActiveBadgeLevel == 'Sub-SubModules'"
       class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="submodule_card_template"
-        [ngTemplateOutletContext]="{ entityList:entityObj.subSubModuleList,subModuleType:'Sub-SubModule'}">
+        [ngTemplateOutletContext]="subModuleTemplateContext">
       </ng-container>
     </div>
   </div>
@@ -183,9 +183,14 @@
       <div class="col-md-8">
         <div class="badge-container">
           <span *ngFor="let level of entity?.badgePathList" class="badge"
-            [ngClass]="{ 'active': entity?.currentActiveBadgeLevel?.includes(level.name)}"
+            [ngClass]="{ 'active': entity?.currentActiveBadgeLevel == level.name}"
             (click)="changeCurrentActiveBadgeLevel(entity,level.name,entityType,entityName,entityId)">
-            {{ level.name }}
+            <span *ngIf="level.name != 'Sub-SubModules' && level.name != 'Questions' && level.name != 'Milestones' && level.name != 'Modules' && level.name != 'SubModules' && level.name != 'Sub-SubModules'">{{level.name}}</span>
+            <span *ngIf="level.name == 'Questions'">{{level.name}}({{entity?.questionList?.length || 0}}) </span>
+            <span *ngIf="level.name == 'Milestones'">{{level.name}}({{entity?.projectInsightMilestoneList?.length || 0}})</span>
+            <span *ngIf="level.name == 'Modules'">{{level.name}}({{entity?.moduleList?.length || 0}})</span>
+            <span *ngIf="level.name == 'SubModules'">{{level.name}}({{entity?.subModuleList?.length || entity?.subSubModuleList?.length}})</span>
+            <span *ngIf="level.name == 'Sub-SubModules'">{{level.name}}({{entity?.subSubModuleList?.length || 0}})</span>
           </span>
         </div>
       </div>
@@ -203,10 +208,17 @@
           </mat-select>
         </div>
       </div>
-      <div *ngIf="actionType == 'Configuration' && subActionType != 'Creation' && subActionType != 'Search' && subActionType != 'Preview' && (entity?.currentActiveBadgeLevel?.includes('Details') || entity?.currentActiveBadgeLevel?.includes('Questions'))" class="col-md-4">
+      <div *ngIf="actionType == 'Configuration' && subActionType != 'Creation' && subActionType != 'Search' && subActionType != 'Preview' && (entity?.currentActiveBadgeLevel == 'Details' || entity?.currentActiveBadgeLevel == 'Questions')" class="col-md-4">
         <div class=" d-flex justify-content-end">
           <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download {{entity.currentActiveBadgeLevel}}"
             (click)="exportProjectToExcel(entity,entityType,entityName,entityParentId,entity?.currentActiveBadgeLevel)">
+          </button>
+        </div>
+      </div>
+      <div *ngIf="actionType == 'Contribution' && subActionType != 'Search' && subActionType != 'Preview' && entity?.currentActiveBadgeLevel == 'Questions'" class="col-md-4">
+        <div class=" d-flex justify-content-end">
+          <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download {{entity.currentActiveBadgeLevel}}"
+            (click)="exportProjectInsightEntityQuestionsToExcel(entity,entityType,entityName,entityParentId,entity?.currentActiveBadgeLevel)">
           </button>
         </div>
       </div>
@@ -378,7 +390,7 @@
         </button>
     
         <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel" [disabled]="!file"
-          (click)="uploadXcelData()">
+          (click)="uploadXcelData('Question',entity)">
           <i class="fa fa-upload" aria-hidden="true"></i>
         </button>
     
@@ -735,7 +747,7 @@
         </button>
     
         <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel" [disabled]="!file"
-          (click)="uploadXcelData()">
+          (click)="uploadXcelData('Milestone',null,entityList)">
           <i class="fa fa-upload" aria-hidden="true"></i>
         </button>
         <button type="button" class="btn btn-outline-primary btn-sm" (click)="addMilestone(entityList)"><em
@@ -755,6 +767,12 @@
                 class="col-1 d-flex align-items-start justify-content-end p-2" style="padding-right: 0% !important;">
                 <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download Milestone"
                   (click)="exportProjectToExcel(milestone,'Milestone',milestone.milestone,milestone.projectId)">
+                </button>
+              </div>
+              <div *ngIf="actionType == 'Contribution' && subActionType != 'Search' && subActionType != 'Preview'" 
+                class="col-1 d-flex align-items-start justify-content-end p-2" style="padding-right: 0% !important;">
+                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download Questions of {{milestone?.milestone || 'Milestone'}}"
+                  (click)="exportProjectInsightEntityQuestionsToExcel(milestone,'Milestone',milestone.milestone,milestone.projectId)">
                 </button>
               </div>
               <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
@@ -790,7 +808,7 @@
   </div>
 
   <!-- Questions -->
-  <div *ngIf="entity?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
+  <div *ngIf="entity?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
     <ng-container [ngTemplateOutlet]="questions_card_template"
       [ngTemplateOutletContext]="{ entity:entity ,entityType:'Milestone'}">
     </ng-container>
@@ -822,7 +840,7 @@
         </button>
     
         <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel" [disabled]="!file"
-          (click)="uploadXcelData()">
+          (click)="uploadXcelData('Module',null,entityList)">
           <i class="fa fa-upload" aria-hidden="true"></i>
         </button>
         <button type="button" class="btn btn-outline-primary btn-sm" (click)="addModuleToList(entityList)"><em
@@ -841,6 +859,12 @@
                 class="col-1 d-flex align-items-start justify-content-end p-2" style="padding-right: 0% !important;">
                 <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download Module"
                   (click)="exportProjectToExcel(module,'Module',module?.module,module?.milestoneId)">
+                </button>
+              </div>
+              <div *ngIf="actionType == 'Contribution' && subActionType != 'Search' && subActionType != 'Preview'"
+                class="col-1 d-flex align-items-start justify-content-end p-2" style="padding-right: 0% !important;">
+                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download Questions of {{module?.module || 'Module'}}"
+                  (click)="exportProjectInsightEntityQuestionsToExcel(module,'Module',module?.module,module?.milestoneId)">
                 </button>
               </div>
               <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
@@ -877,7 +901,7 @@
   </div>
 
   <!-- Questions -->
-  <div *ngIf="entity?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
+  <div *ngIf="entity?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
     <ng-container [ngTemplateOutlet]="questions_card_template"
       [ngTemplateOutletContext]="{ entity:entity ,entityType:'Module'}">
     </ng-container>
@@ -909,7 +933,7 @@
         </button>
     
         <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel" [disabled]="!file"
-          (click)="uploadXcelData()">
+          (click)="uploadXcelData(subModuleType,null,entityList)">
           <i class="fa fa-upload" aria-hidden="true"></i>
         </button>
         <button type="button" class="btn btn-outline-primary btn-sm"
@@ -930,6 +954,12 @@
                 class="col-1 d-flex align-items-start justify-content-end p-2" style="padding-right: 0% !important;">
                 <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download {{subModuleType}}"
                   (click)="exportProjectToExcel(subModule,subModuleType,subModule?.subModule,subModule?.moduleId)">
+                </button>
+              </div>
+              <div *ngIf="actionType == 'Contribution' && subActionType != 'Search' && subActionType != 'Preview'"
+                class="col-1 d-flex align-items-start justify-content-end p-2" style="padding-right: 0% !important;">
+                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary"  title="Download Questions of {{subModule?.subModule || subModuleType}}"
+                  (click)="exportProjectInsightEntityQuestionsToExcel(subModule,subModuleType,subModule?.subModule,subModule?.moduleId)">
                 </button>
               </div>
               <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
@@ -967,7 +997,7 @@
   </div>
 
   <!-- Questions -->
-  <div *ngIf="entity?.currentActiveBadgeLevel?.includes('Questions')" class="row m-1 mb-2">
+  <div *ngIf="entity?.currentActiveBadgeLevel == 'Questions'" class="row m-1 mb-2">
     <ng-container [ngTemplateOutlet]="questions_card_template"
       [ngTemplateOutletContext]="{ entity:entity ,entityType:'SubModule'}">
     </ng-container>

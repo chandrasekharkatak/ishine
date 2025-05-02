@@ -51,6 +51,12 @@ public class ProjectInsightController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getAllProjectInsightQuestionsByProjectIdAndEmpId", method = RequestMethod.POST)
+	public ServiceResponse getAllProjectInsightQuestionsByProjectIdAndEmpId(@RequestBody ProjectInsightDTO projectInsightDTO) {
+		ServiceResponse response = projectInsightService.getAllProjectInsightQuestionsByProjectIdAndEmpId(projectInsightDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/getUserUploadedFileForQuestion", method = RequestMethod.POST)
 	public ServiceResponse getUserUploadedFileForQuestion(@RequestBody EmployeeDocumentDTO employeeDocumentDTO) {
 		ServiceResponse response = projectInsightService.getUserUploadedFileForQuestion(employeeDocumentDTO);

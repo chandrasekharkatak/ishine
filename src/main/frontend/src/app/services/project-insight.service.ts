@@ -91,4 +91,7 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/processUserContribution`, contributionObject);
   }
   
+  getAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightQuestionsByProjectIdAndEmpId`, projectObj);
+  }
 }
