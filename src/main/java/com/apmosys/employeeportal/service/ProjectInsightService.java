@@ -3063,7 +3063,7 @@ public class ProjectInsightService {
 	private void processSubModuleNode(SubModuleDTO subModule, List<TagDTO> tagDTOList, Long moduleId, Long projectId) {
 	    TagDTO subModuleTag = new TagDTO();
 	    subModuleTag.setEntityType("SubModule");
-	    subModuleTag.setEntityId(subModule.getSubmoduleId());
+	    subModuleTag.setEntityId(subModule.getSubModuleId());
 	    subModuleTag.setProjectId(projectId);
 	    
 	    StringBuilder sb = new StringBuilder();
@@ -3080,7 +3080,7 @@ public class ProjectInsightService {
 	    // Process SubSubModules if present
 	    if (subModule.getSubSubModuleList() != null) {
 	        for (SubModuleDTO subSubModule : subModule.getSubSubModuleList()) {
-	            processSubSubModuleNode(subSubModule, tagDTOList, subModule.getSubmoduleId(), projectId);
+	            processSubSubModuleNode(subSubModule, tagDTOList, subModule.getSubModuleId(), projectId);
 	        }
 	    }
 	}
@@ -3089,7 +3089,7 @@ public class ProjectInsightService {
 	private void processSubSubModuleNode(SubModuleDTO subSubModule, List<TagDTO> tagDTOList, Long subModuleId, Long projectId) {
 	    TagDTO subSubModuleTag = new TagDTO();
 	    subSubModuleTag.setEntityType("Sub-SubModule");
-	    subSubModuleTag.setEntityId(subSubModule.getSubmoduleId());
+	    subSubModuleTag.setEntityId(subSubModule.getSubModuleId());
 	    subSubModuleTag.setProjectId(projectId);
 	    
 	    StringBuilder sb = new StringBuilder();
@@ -3105,7 +3105,7 @@ public class ProjectInsightService {
 	 // Process SubSubModules if present
 	    if (subSubModule.getSubSubModuleList() != null) {
 	        for (SubModuleDTO subSubModules : subSubModule.getSubSubModuleList()) {
-	            processSubSubModuleNode(subSubModules, tagDTOList, subSubModules.getSubmoduleId(), projectId);
+	            processSubSubModuleNode(subSubModules, tagDTOList, subSubModules.getSubModuleId(), projectId);
 	        }
 	    }
 	}
