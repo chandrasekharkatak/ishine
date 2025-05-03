@@ -78,7 +78,10 @@ table {
 th {
     overflow: hidden;
     text-overflow: ellipsis;
-
+    text-align: center;
+}
+td{
+  /* text-align: center; */
 }
 
 thead {
@@ -89,7 +92,7 @@ thead {
 .export-button{
     position:absolute;
     right: 0%;
-    top:-25px;
+    /* top:-25px; */
   }
 
   /* New content */
@@ -99,7 +102,7 @@ thead {
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     padding: 12px 16px;
-    min-width: 118px;
+    min-width: 150px;
     margin-bottom: 10px;
     display: flex;
     flex-direction: column;
@@ -122,7 +125,7 @@ thead {
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     padding: 10px 12px;
-    min-width: 110px;
+    min-width: 140px;
     min-height: 80px;
     margin-bottom: 10px;
     display: flex;
@@ -181,3 +184,64 @@ thead {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+
+  .action-menu {
+    font-size: 18px;
+    color: #333;
+    cursor: pointer;
+  }
+  
+  .dropdown-menu {
+    min-width: 200px;
+  }
+  
+  .dropdown-item i {
+    width: 18px;
+    color: #1b1e5e;
+  }
+
+  .action-menu-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .three-dots {
+    cursor: pointer;
+    font-size: 18px;
+    padding: 6px;
+  }
+  
+  .custom-dropdown {
+    position: absolute;
+    right: 0;
+    left: 100%; /* Shift it to the right of the icon */
+    margin-left: 8px; /* Optional spacing */
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    padding: 8px 0;
+    z-index: 1000;
+    width: 180px;
+    list-style: none;
+    white-space: nowrap;
+  }
+  
+  .custom-dropdown li {
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: #1b1e5e;
+  }
+  
+  .custom-dropdown li i {
+    margin-right: 10px;
+    min-width: 16px;
+  }
+  
+  .custom-dropdown li:hover {
+    background-color: #f5f5f5;
+  }
+  

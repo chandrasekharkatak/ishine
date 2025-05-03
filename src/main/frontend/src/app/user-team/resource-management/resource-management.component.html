@@ -13,7 +13,9 @@
         <!-- Top Stats -->
         <div class="row mb-3">
          
-            <div class="col-md-3">
+            <div class="col-md-3" style="display: flex;
+            justify-content: left;
+            max-width: fit-content;">
                 <div class="mini-card" style="border-left: 4px solid #5E35B1; background: white;">
                   <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="value fw-bold" style="color: #5E35B1; font-size: 1.5rem;">96</div>
@@ -25,7 +27,9 @@
                   </div>
                 </div>
             </div>
-          <div class="col-md-3">
+          <div class="col-md-3" style="display: flex;
+          justify-content: left;
+          max-width: fit-content;">
 
             <div class="mini-card" style="border-left: 4px solid #FFB300; background: white;">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -38,7 +42,9 @@
                 </div>
               </div>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-3" style="display: flex;
+          justify-content: left;
+          max-width: fit-content;">
 
             <div class="mini-card" style="border-left: 4px solid #D32F2F; background: white;">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -51,7 +57,9 @@
                 </div>
             </div>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-3" style="display: flex;
+          justify-content: left;
+          max-width: fit-content;">
             <div class="mini-card text-center" style="border-left: 4px solid #D32F2F; background: white;">
                 <div class="d-flex justify-content-around align-items-center mb-1">
                   <!-- TNM Column -->
@@ -78,22 +86,30 @@
         </div>
   
         <!-- Status Cards -->
-        <div class="row mb-3">
-            <div class="col-md-2">
+        <div class="row mb-3" style="display: flex;
+        justify-content: left;
+        max-width: fit-content;">
+            <div class="col-md-2" style="display: flex;
+            justify-content: left;
+            max-width: fit-content;">
                 <div class="mini-card1" style="border-left: 4px solid #FFB300;">
                   <div class="value fw-bold" style="color: #FFB300;">12</div>
                   <div class="label text-muted">Pending for approval <i class="fa fa-clock" style="color: #FFB300;"></i></div>
                 </div>
               </div>
               
-              <div class="col-md-2">
+              <div class="col-md-2" style="display: flex;
+              justify-content: left;
+              max-width: fit-content;">
                 <div class="mini-card1" style="border-left: 4px solid #4CAF50;">
                   <div class="value fw-bold" style="color: #4CAF50;">45</div>
                   <div class="label text-muted">Approved <i class="fa fa-check-circle" style="color: #4CAF50;"></i></div>
                 </div>
               </div>
               
-              <div class="col-md-2">
+              <div class="col-md-2" style="display: flex;
+              justify-content: left;
+              max-width: fit-content;">
                 <div class="mini-card1" style="border-left: 4px solid #9E9E9E;">
                   <div class="value fw-bold" style="color: #9E9E9E;">28</div>
                   <div class="label text-muted">Not Started <i class="fa fa-minus-circle" style="color: #9E9E9E;"></i></div>
@@ -102,21 +118,27 @@
       <!-- </div> -->
       <!-- <div class="row mb-3"> -->
 
-        <div class="col-md-2">
+        <div class="col-md-2" style="display: flex;
+        justify-content: left;
+        max-width: fit-content;">
             <div class="mini-card1" style="border-left: 4px solid #009688;">
               <div class="value fw-bold" style="color: #009688;">28</div>
               <div class="label text-muted">Completed <i class="fa fa-check" style="color: #009688;"></i></div>
             </div>
           </div>
           
-          <div class="col-md-2">
+          <div class="col-md-2" style="display: flex;
+          justify-content: left;
+          max-width: fit-content;">
             <div class="mini-card1" style="border-left: 4px solid #F44336;">
               <div class="value fw-bold" style="color: #F44336;">5</div>
               <div class="label text-muted">On Hold <i class="fa fa-pause-circle" style="color: #F44336;"></i></div>
             </div>
           </div>
           
-          <div class="col-md-2">
+          <div class="col-md-2" style="display: flex;
+          justify-content: left;
+          max-width: fit-content;">
             <div class="mini-card1" style="border-left: 4px solid #03A9F4;">
               <div class="value fw-bold" style="color: #03A9F4;">32</div>
               <div class="label text-muted">Pending <i class="fa fa-hourglass-half" style="color: #03A9F4;"></i></div>
@@ -128,40 +150,42 @@
       <!-- Employee Card Section -->
       <div class="col-md-4">
         <div class="row">
-        <div class="col-md-6 text-end mb-2">
+        <div class="col-md-6 text-end mb-2" >
           <strong>Total Employees</strong><br />
           <h2>{{ totalEmployees }}</h2>
         </div>
-        <div class="col-md-6 mb-2">
-            <div class="col-md-3">
-                <select class="form-select border border-primary text-primary">
-                  <option selected>Search Department</option>
-                  <option>John Doe</option>
-                  <option>Jane Smith</option>
-                </select>
-              </div>
+        <div class="col-md-6 text-end mb-2" style="display: flex;
+        justify-content: left;
+        max-width: fit-content;">
+            
+            <!-- <div class="col-md-4"> -->
+                <div class="mini-card" style="border-left: 4px #2E7D32;">
+                  <div class="value">{{ mappedEmployees }}</div>
+                  <div class="label">Mapped to shankh Projects <i class="fa fa-link" style="color: #2E7D32;"></i></div>
+                  <div class="small text-primary text-end" style="font-size: 12px;">View Employees</div>
+                </div>
+              <!-- </div> -->
+                
+              
           </div>
         </div>
         <div class="row mb-4">
-          <div class="col-md-4">
-            <div class="mini-card" style="border-left: 4px #2E7D32;">
-              <div class="value">{{ mappedEmployees }}</div>
-              <div class="label">Mapped to shankh Projects <i class="fa fa-link" style="color: #2E7D32;"></i></div>
-              <div class="small text-primary text-end" style="font-size: 12px;">View Employees</div>
-            </div>
-          </div>
-          <div class="col-md-4">
+          <div class="col-md-6" style="display: flex;
+          justify-content: left;
+          max-width: fit-content;">
             <div class="mini-card" style="border-left:4px #1565C0;">
               <div class="value">{{ unmappedEmployees }}</div>
               <div class="label">Mapped to Internal Projects <i class="fa fa-unlink" style="color: #1565C0;"></i></div>
               <div class="small text-primary text-end"style="font-size: 12px;">View Employees</div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6" style="display: flex;
+          justify-content: left;
+          max-width: fit-content;">
             <div class="mini-card" style="border-left:4px #F9A825;">
               <div class="value">{{ unmappedEmployees }}</div>
               <div class="label">Mapped to Both Projects <i class="fa fa-unlink text-danger" style="color: #F9A825;"></i></div>
-              <div class="text-primary text-end mt-3" style="font-size: 12px;">View Employees</div>
+              <div class="text-primary text-end " style="font-size: 12px;">View Employees</div>
             </div>
           </div>
 
@@ -210,23 +234,39 @@
     
 </div>
 
-    <div class="row g-2 justify-content-end align-items-center">
-      <div class="col-md-3 d-flex align-items-center" >
-        <div class="info-wrapper" style="margin-top: 18px;">
-          <div class="form-group">
+    <div class="row justify-content-end align-items-center">
+
+        <div class="col-md-4 " style="display: flex;
+        justify-content: left;
+        max-width: fit-content;">
+            <select class="form-select border border-primary text-primary">
+                <option selected>Search Department</option>
+                <option>John Doe</option>
+                <option>Jane Smith</option>
+              </select>
+        </div>
+
+
+      <div class="col-md-6" style="display: flex;
+      justify-content: left;
+      max-width: fit-content;">
+        
             <input type="text" class="form-select custom-select-style" placeholder="Search by Name or Emp ID" aria-label="Search employee" [formControl]="employeeCtrl" [matAutocomplete]="auto">    
             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)" [displayWith]="displayEmployee">
               <mat-option *ngFor="let emp of filteredEmployees" [value]="emp" [navigateToEmployee360]="emp.empId">{{ emp.name }}</mat-option>
             </mat-autocomplete>
-          </div>
-        </div>
+          
       </div>
   
-      <div class="col-md-1 d-flex align-items-center justify-content-around">
-        <i class="fa fa-search" style="color: #053885;"></i>
-        <i class="fa fa-filter" style="color: #053885;"></i>
-        <i class="fa fa-download" style="color: #053885;"></i>
+      <!-- <div class="col-md-1  align-items-center justify-content-around">
+        
       </div>
+      <div class="col-md-1  align-items-center justify-content-around">
+        <i class="fa fa-filter" style="color: #053885;"></i>
+      </div>
+      <div class="col-md-1  align-items-center justify-content-around">
+        <i class="fa fa-download" style="color: #053885;"></i>
+      </div> -->
     </div>
 </div>
   
@@ -256,49 +296,62 @@
 
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" >
-                    <a href="javascript:void(0)" (click)="toggleSearch()">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                    </a>
+                <div class="row">
+                    <div class="col-md-1" style="display: flex;
+                    justify-content: left;
+                    max-width: fit-content;">
+                        <a  (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">
+                            <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
+                            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                        </a>
+                    </div>
+                    <div class="col-md-1" style="display: flex;
+                    justify-content: left;
+                    max-width: fit-content;">
+                        <i class="fa fa-filter" style="color: #053885;"></i>
+                      </div>
+                    <div class="col-md-1" style="display: flex;
+                    justify-content: left;
+                    max-width: fit-content;">
+                        <i class="fa fa-download" style="color: #053885;display: flex;
+                        justify-content: left;
+                        max-width: fit-content;" [hidden]="allProjectList.length == 0" (click)="exportToExcel('project-info')" ></i>
+                      </div>
                 </div>
-                <div class="export-button">
-                    <button type="button"
-                            class="btn btn-sm btn-outline-primary ml-auto  mr-5 mt-2 mb-2 excel-button"
-                            [hidden]="allProjectList.length == 0" (click)="exportToExcel('project-info')"><em
-                                class="fa fa-file-arrow-down fa-2x"></em></button>
-                </div>
+                
                 <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'"
                     [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
                     <table class="table" id="project-info"  matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" >
                             <tr id="projectInfoTHeadTr">
                                 <th></th>
-                                <th scope="col" class="info-label">Sr No.</th>
-                                <th scope="col" class="info-label" mat-sort-header="name|string">Project Name</th>
-                                <th scope="col" class="info-label" mat-sort-header="poNo|string">PO Number</th>
-                                <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Project
+                                <th scope="col" class="info-label"  >Actions</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 120px;">Sr No.</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 170px;" mat-sort-header="isDraftProject|string">Approval
+                                    Status</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 300px;" mat-sort-header="name|string">Project Name</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;" mat-sort-header="poNo|string">PO Number</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;" mat-sort-header="projectManagerName|string">Project
                                     Manager</th>
                                     <!-- <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Start Date</th>
                                     <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">End Date</th> -->
-                                <th scope="col" class="info-label" mat-sort-header="clientName|string">Client</th>
-                                <th scope="col" class="info-label" mat-sort-header="apmosysRM|string">Apmosys RM</th>
-                                <th scope="col" class="info-label" mat-sort-header="clientRM|string">Client RM</th>
-                                <th scope="col" class="info-label" mat-sort-header="startDate|string">Start Date</th>
-                                <th scope="col" class="info-label" mat-sort-header="endDate|string">End Date</th>
-                                <th scope="col" class="info-label" mat-sort-header="clientState|string">State</th>
-                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                                <th scope="col" class="info-label" mat-sort-header="status|string">Project Status</th>
-                                <th scope="col" class="info-label" mat-sort-header="isDraftProject|string">Approval
-                                    Status</th>
-                                <th scope="col" class="info-label">Actions</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;" mat-sort-header="clientName|string">Client</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;" mat-sort-header="apmosysRM|string">Apmosys RM</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;" mat-sort-header="clientRM|string">Client RM</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;" mat-sort-header="startDate|string">Start Date</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;" mat-sort-header="endDate|string">End Date</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;" mat-sort-header="clientState|string">State</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;" mat-sort-header="createdOn|datetime">Created On</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;" mat-sort-header="status|string">Project Status</th>
+                                
+                                
                             </tr>
                             <tr app-column-filter-bar *ngIf="allProjectTable && isSearchEnabled"
                                 [columnList]="projectColumns" (onSearch)="onSearch($event);page=1"></tr>
 
                             <!-- table body for PoPortal -->
                         </thead>
-                        <tbody>
+                        <tbody *ngIf="allProject_Po_Internal && allProject_Po_Internal.length">
                             <!-- <tr *ngIf="poPortalProjectList.length == 0 && (allProjectList | multicolFilter:filters:false).length == 0">
                                 <th colspan="9" class="text-center info-label">No details to display...</th>
                             </tr> -->
@@ -309,8 +362,58 @@
                                             *ngIf="project.isDraftProject == 'Approved' && project.projectType != 'Internal'"><input
                                                 class="sync-project-checkbox" id="{{i}}" type="checkbox"
                                                 (change)="onSelectProjectForSync(project,$event)"></span></td>
+                                                <td>
+                                                    <!-- <button class="btn btn-sm btn-outline-primary mb-1"
+                                                        *ngIf="!project.isSynced && project.isDraftProject != 'NA'"
+                                                        (click)="syncPoProjectDetailsByProjectId(alert_message_sync, project);"
+                                                        type="submit">Sync Po</button>&nbsp; -->
+                                                    <!-- <button class="btn btn-sm btn-outline-primary mb-1"
+                                                        *ngIf="project.isMail && project.isDraftProject != 'NA'"
+                                                        (click)="sendEmailNotificationToBDTeam(alert_message, project);"
+                                                        type="submit">Mail</button>&nbsp; -->
+                                                        <div class="action-menu-wrapper" (clickOutside)="closeMenu(i)">
+                                                            <!-- Three Dots -->
+                                                            <div class="three-dots" (click)="toggleMenu(i)">
+                                                              <i class="fas fa-ellipsis-v"></i>
+                                                            </div>
+                                                          
+                                                            <!-- Dropdown Menu -->
+                                                            <ul *ngIf="openMenuIndex === i" class="custom-dropdown">
+                                                              <li (click)="onAction('Preview', project)"><i class="fas fa-eye"></i> Preview</li>
+                                                              <li (click)="onAction('Edit', project)"><i class="fas fa-pen"></i> Edit</li>
+                                                              <li (click)="onAction('Audit', project)"><i class="fas fa-clock"></i> Audit</li>
+                                                              <li (click)="onAction('Complete', project)"><i class="fas fa-check-double"></i> Mark as Complete</li>
+                                                              <li (click)="onAction('Approve', project)"><i class="fas fa-square-check"></i> Approve</li>
+                                                              <li (click)="onAction('Reject', project)"><i class="fas fa-times"></i> Reject</li>
+                                                            </ul>
+                                                          </div>
+                                                          
+                                                          
+                                                          
+                                                          
+                                                        <!-- In use functionality -->
+                                                    <!-- <button class="btn btn-sm btn-outline-primary mb-1"
+                                                        *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
+                                                        (click)="openProjectPreviewModal(preview_team, project);isEditProject = false"
+                                                        type="submit">Preview</button>&nbsp;
+                                                    <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isHideButton"
+                                                        type="submit"
+                                                        (click)="showEditProjectForm(project);project.isEditProject = true"><em
+                                                            class="fa fa-edit"></em></button>&nbsp;
+                                                    <button class="btn btn-sm btn-outline-danger mb-1"
+                                                        *ngIf="project.name == projectObj.name && isHideButton" type="submit"
+                                                        (click)="closeEditProject();project.isEditProject = false"><i
+                                                            class="fa-solid fa-xmark"></i></button>&nbsp;
+                                                    <button class="btn btn-sm btn-outline-success mb-1"
+                                                        *ngIf="userMapping.rmg_approval_option && project.isActive == '2' || userMapping.rmg_approval_option && project.isDraftProject === 'Pending For Approval' && !isHideButton"
+                                                        (click)="onApproveProject(project)" type="submit">Approve</button>&nbsp;
+                                                    <button class="btn btn-sm btn-outline-danger mb-1"
+                                                        *ngIf="userMapping.rmg_approval_option &&  project.isActive == 2  || userMapping.rmg_approval_option && project.isDraftProject === 'Pending For Approval' && !isHideButton"
+                                                        (click)="openRejectModal(reject_project,project)"
+                                                        type="submit">Reject</button>&nbsp; -->
+                                                </td>
                                     <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
-
+                                    <td>{{project.status}}</td>
                                     <td *ngIf='project.isDraftProject == "NA"'>{{project.name}}</td>
                                     <td *ngIf='project.projectId && project.isDraftProject != "NA"' style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId" style="cursor: pointer;" title="Click to view Project Details">{{project.name}}</td>
                                     <td *ngIf='project.id && project.isDraftProject != "NA"' style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId" style="cursor: pointer;" title="Click to view Project Details">{{project.name}}</td>
@@ -327,40 +430,12 @@
                                     <td>{{project.endDate  | date: 'dd/MM/yyyy'}}</td>
                                     <td>{{project.clientState}}</td>
                                     <td>{{project.createdOn | date: 'dd/MM/yyyy'}}</td>
-                                    <td>{{project.status}}</td>
+                                    
                                     <!-- <td
                                         [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isActive == 2) ? 'orange': (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
                                         <em>{{project.isDraftProject}}</em></td> -->
                                         <td [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}"><em>{{project.isDraftProject}}</em></td>
-                                    <td>
-                                        <!-- <button class="btn btn-sm btn-outline-primary mb-1"
-                                            *ngIf="!project.isSynced && project.isDraftProject != 'NA'"
-                                            (click)="syncPoProjectDetailsByProjectId(alert_message_sync, project);"
-                                            type="submit">Sync Po</button>&nbsp; -->
-                                        <!-- <button class="btn btn-sm btn-outline-primary mb-1"
-                                            *ngIf="project.isMail && project.isDraftProject != 'NA'"
-                                            (click)="sendEmailNotificationToBDTeam(alert_message, project);"
-                                            type="submit">Mail</button>&nbsp; -->
-                                        <button class="btn btn-sm btn-outline-primary mb-1"
-                                            *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
-                                            (click)="openProjectPreviewModal(preview_team, project);isEditProject = false"
-                                            type="submit">Preview</button>&nbsp;
-                                        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isHideButton"
-                                            type="submit"
-                                            (click)="showEditProjectForm(project);project.isEditProject = true"><em
-                                                class="fa fa-edit"></em></button>&nbsp;
-                                        <button class="btn btn-sm btn-outline-danger mb-1"
-                                            *ngIf="project.name == projectObj.name && isHideButton" type="submit"
-                                            (click)="closeEditProject();project.isEditProject = false"><i
-                                                class="fa-solid fa-xmark"></i></button>&nbsp;
-                                        <button class="btn btn-sm btn-outline-success mb-1"
-                                            *ngIf="userMapping.rmg_approval_option && project.isActive == '2' || userMapping.rmg_approval_option && project.isDraftProject === 'Pending For Approval' && !isHideButton"
-                                            (click)="onApproveProject(project)" type="submit">Approve</button>&nbsp;
-                                        <button class="btn btn-sm btn-outline-danger mb-1"
-                                            *ngIf="userMapping.rmg_approval_option &&  project.isActive == 2  || userMapping.rmg_approval_option && project.isDraftProject === 'Pending For Approval' && !isHideButton"
-                                            (click)="openRejectModal(reject_project,project)"
-                                            type="submit">Reject</button>&nbsp;
-                                    </td>
+                                   
                                 </tr>
                                 <tr *ngIf="project.isEditProject && isEditProject">
                                     <td colspan="15">

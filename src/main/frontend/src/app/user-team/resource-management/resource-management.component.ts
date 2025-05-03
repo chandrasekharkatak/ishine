@@ -1191,6 +1191,28 @@ export class ResourceManagementComponent implements OnInit {
     }
   }
 
+
+
+
+  openMenuIndex: number | null = null;
+
+toggleMenu(index: number) {
+  this.openMenuIndex = this.openMenuIndex === index ? null : index;
+}
+
+closeMenu(index: number) {
+  if (this.openMenuIndex === index) {
+    this.openMenuIndex = null;
+  }
+}
+
+onAction(action: string, project: any) {
+  console.log('Action:', action, 'on Project:', project);
+  this.openMenuIndex = null;
+  // handle your logic here...
+}
+
+
   // Excel Export
 
 //   exportToExcel(id:any) {
