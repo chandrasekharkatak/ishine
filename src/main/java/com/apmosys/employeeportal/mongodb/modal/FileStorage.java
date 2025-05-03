@@ -1,8 +1,8 @@
 package com.apmosys.employeeportal.mongodb.modal;
-
 import javax.persistence.Id;
 
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import lombok.Data;
 
@@ -16,5 +16,8 @@ public class FileStorage {
 	    private String entityType;
 	    private Long projectId;
 	    private Long questionMasterId;
+	    
+	    @Field("extracted_text")
+	    private String extractedText;
 	
 }

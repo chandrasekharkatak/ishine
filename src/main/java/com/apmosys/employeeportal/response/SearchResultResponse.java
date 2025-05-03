@@ -7,6 +7,7 @@ import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightMilestoneDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.dto.SubModuleDTO;
+import com.apmosys.employeeportal.dto.TagDTO;
 
 import lombok.Data;
 
@@ -25,5 +26,7 @@ public class SearchResultResponse {
 	private ModuleDTO module;
 	private SubModuleDTO subModule;
 	private SubModuleDTO subSubModule;
+	
+	private List<TagDTO> tagList;
 	
 }

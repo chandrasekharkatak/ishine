@@ -47,10 +47,24 @@ export class ProjectInsightsConfigComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
 
+  accordionState = {
+    project: {},
+    milestone: {},
+    module: {},
+    subModule: {},
+    subSubModule: {}
+  };
+
   //search
   searchTerm: string = '';
   backupsearchTerm: string = '';
   searchResults:any[] = [];
+  tagList:any[] = [];
+  treeData: any[] = [];
+  selectedObject: any = null;
+  userContributionList:any[] = [];
+  isLeftPanelOpen = true;
+  collapsedProjects: { [projectId: string]: boolean } = {};
   searchOptionList:any[] = [];
   allFilterList:any[] = [];
   allFilterOptionList:any[] = [];
@@ -260,11 +274,141 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.projectInsightService.onSearchTerm(this.searchTerm).pipe(first()).subscribe(
       (response: any) => {
         this.searchResults = response.projectList;
+        this.tagList = response.tagList;
+        this.userContributionList = response.userContributionList;
+        this.buildTaggedTreeData();
       },
       (error) => {
         console.error(error);
       }
     );
+  }
+
+  toggleAccordion(level: string, id: string | number) {
+    this.accordionState[level][id] = !this.accordionState[level][id];
+    if (this.accordionState[level][id]) {
+      // Find the object by traversing treeData (implement a helper if needed)
+      this.selectedObject = this.findObjectByIdAndLevel(level, id, this.treeData);
+    } else {
+      this.selectedObject = null;
+    }
+  }
+
+  isAccordionOpen(level: string, id: string | number): boolean {
+    return !!this.accordionState[level][id];
+  }
+
+  isSelectedObject(obj: any): boolean {
+    return this.selectedObject === obj;
+  }
+
+  findObjectByIdAndLevel(level: string, id: string | number, nodes: any[]): any {
+    for (const node of nodes) {
+      if (node.type.toLowerCase() === level.toLowerCase() && node.id === id) {
+        return node.object;
+      }
+      if (node.children?.length) {
+        const found = this.findObjectByIdAndLevel(level, id, node.children);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+
+  buildTaggedTreeData() {
+    this.treeData = (this.searchResults || [])
+      .map(project => {
+        const projectTags = (this.tagList || []).filter(tag => tag.projectId === project.projectId);
+
+        // Recursive for submodules
+        const buildTaggedSubModules = (subModules) => {
+          if (!subModules) return [];
+          return subModules
+            .map(subModule => {
+              const subModuleTag = projectTags.find(tag => tag.entityType === 'SubModule' && tag.entityId === subModule.subModuleId);
+              const taggedSubSubModules = buildTaggedSubModules(subModule.subSubModuleList);
+              if (subModuleTag || taggedSubSubModules.length) {
+                return {
+                  type: 'SubModule',
+                  id: subModule.subModuleId,
+                  label: subModule.subModule,
+                  object: subModule,
+                  tags: subModuleTag ? [subModuleTag] : [],
+                  children: taggedSubSubModules
+                };
+              }
+              return null;
+            })
+            .filter(Boolean);
+        };
+
+        // Recursive for modules
+        const buildTaggedModules = (modules) => {
+          if (!modules) return [];
+          return modules
+            .map(module => {
+              const moduleTag = projectTags.find(tag => tag.entityType === 'Module' && tag.entityId === module.moduleId);
+              const taggedSubModules = buildTaggedSubModules(module.subModuleList);
+              if (moduleTag || taggedSubModules.length) {
+                return {
+                  type: 'Module',
+                  id: module.moduleId,
+                  label: module.module,
+                  object: module,
+                  tags: moduleTag ? [moduleTag] : [],
+                  children: taggedSubModules
+                };
+              }
+              return null;
+            })
+            .filter(Boolean);
+        };
+
+        // Recursive for milestones
+        const buildTaggedMilestones = (milestones) => {
+          console.log(milestones, " --milestones");
+          
+          if (!milestones) return [];
+          return milestones
+            .map(milestone => {
+              const milestoneTag = projectTags.find(tag => tag.entityType === 'Milestone' && tag.entityId === milestone.milestoneId);
+              const taggedModules = buildTaggedModules(milestone.moduleList);
+              if (milestoneTag || taggedModules.length) {
+                return {
+                  type: 'Milestone',
+                  id: milestone.milestoneId,
+                  label: milestone.milestone,
+                  object: milestone,
+                  tags: milestoneTag ? [milestoneTag] : [],
+                  children: taggedModules
+                };
+              }
+              return null;
+            })
+            .filter(Boolean);
+        };
+
+        const projectTag = projectTags.find(tag => tag.entityType === 'Project' && tag.entityId === project.projectId);
+        const taggedMilestones = buildTaggedMilestones(project.projectInsightMilestoneList);
+
+        if (projectTag || taggedMilestones.length) {
+          return {
+            type: 'Project',
+            id: project.projectId,
+            label: project.projectName,
+            object: project,
+            tags: projectTag ? [projectTag] : [],
+            children: taggedMilestones
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+  }
+
+  onSelectNode(node: any) {
+    this.selectedObject = node.object;
   }
 
   searchTagTerm(tag:any){

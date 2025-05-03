@@ -44,92 +44,105 @@
     </div>
   </div>
 
-  <!-- <div class="search-options-panel">
-    <div class="filter-group">
-      <h4>Search Types</h4>
-      <div class="search-types-grid">
-        <label *ngFor="let filter of allFilterList" class="custom-checkbox">
-          <input type="checkbox" [(ngModel)]="filter.isSelected" (change)="onFilterCheckBoxClick()">
-          <span class="checkmark"></span>
-          <span class="label-text">{{ filter.filterName }}</span>
-        </label>
-      </div>
-    </div>
-  </div> -->
-
-  <!-- <div class="options-toggle" (click)="toggleOptions()">
-    <span class="options-text">Options &nbsp; <i class="fas fa-chevron-down" [class.rotated]="isOptionsExpanded"></i></span>
-  </div>
-  <div class="mt-2" *ngIf="isOptionsExpanded">
-    <div class="search-types-grid">
-      <label *ngFor="let option of allFilterOptionList" class="custom-checkbox">
-        <input type="checkbox" [(ngModel)]="option.isSelected" (change)="onFilterOptionCheckBoxClick(option)">
-        <span class="checkmark"></span>
-        <span class="label-text">{{ option.optionName }}</span>
-      </label>
-    </div>
-  </div> -->
-
-
-    <div class="col-md-12 mt-4" *ngIf="searchResults?.length > 0 && !isSearchPreviewClicked">
-        <h1 style="font-size: 20px;">Results({{searchResults.length}})</h1>
-        <div class="search-content">
-            <div class="search-result" *ngFor="let project of searchResults"  (click)="onProjectClick(project)">
-                <div class="d-flex align-items-start" style="cursor: pointer;">
-                    <i class="fa-solid fa-folder-open text-primary fs-4 me-3 mt-1"></i>
-                    <div style="line-height: 1rem;">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="result-title mb-1">
-                              {{ project.projectName }} <span class="text-muted">| Manager: {{ project.projectManagerName || 'N/A' }}</span>
-                            </h5>
-                          </div>                          
-    
-                        <p class="result-description text-muted mb-1">
-                            {{ project.description || 'No description available.' }}
-                        </p>
-    
-                        <p class="mb-1">
-                            <strong>State:</strong> {{ project.state }}
-                        </p>
-    
-                        <p class="mb-1" *ngIf="project.departmentList?.length">
-                            <strong>Departments:</strong> {{ project.departmentList.join(', ') }}
-                        </p>
-
-                        <p class="mb-1" style="font-size: 0.9rem; color: grey;">
-                            {{ project.createdOn |  date: 'yyyy-MM-dd hh:mm:ss'}}
-                        </p>
-    
-                        <div class="tags-line mt-1" *ngIf="project.tagList?.length">
-                            <span class="tag" (click)="searchTagTerm(tag)" *ngFor="let tag of project.tagList">
-                                {{ tag }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- No Results -->
-    <div class="col-md-10 mt-3" *ngIf="searchResults?.length === 0 && searchTerm">
-        <p class="text-center text-muted">No results found for "{{ searchTerm }}"</p>
-    </div>
-
-    <!----------------------- On preview search content ------------------------------------------>
-    <div class="col-md-12 mt-3 search-preview-content" *ngIf="isSearchPreviewClicked">
-        <button class="btn btn-link back-button" (click)="goBack()">
-            <i class="fas fa-arrow-left"><em style="font-size: 15px;
-              margin-left: 10px;">Go Back</em></i>
-        </button>
-        <div class="container-fluid">
-          <div class="col-md-12">
-            <app-project-insights [actionType]="actionType" [subActionType]="subActionType" [projectId]="projectId"
-              [responseByEmpId]="responseByEmpId"
-              (closeSearchResponsePreview)="goBack()"></app-project-insights>
+  <div class="accordion-tree" style="margin-top: 28px;">
+    <ul class="vscode-tree">
+      <ng-container *ngFor="let project of treeData">
+        <li>
+          <!-- Project Accordion Header -->
+          <div class="accordion-header" (click)="toggleAccordion('project', project.id)">
+            <i class="fa-solid" [ngClass]="isAccordionOpen('project', project.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+            <span [class.highlight]="project.tags.length" [class.selected]="isSelectedObject(project.object)">
+              <i class="fa-solid fa-folder-tree mr-2 text-vscode-folder"></i>
+              <span class="project-label">{{ project.label }}</span>
+            </span>
           </div>
-        </div>
-    </div>
+          <!-- Project Details (Accordion Body) - visible only on click -->
+          <div class="accordion-body" *ngIf="isAccordionOpen('project', project.id)">
+            <div class="details-card">
+              <pre>{{ project.object | json }}</pre>
+            </div>
+          </div>
+          <!-- Milestones Accordion (always visible) -->
+          <ul *ngIf="project.children?.length">
+            <ng-container *ngFor="let milestone of project.children">
+              <li>
+                <div class="accordion-header" (click)="toggleAccordion('milestone', milestone.id)">
+                  <i class="fa-solid" [ngClass]="isAccordionOpen('milestone', milestone.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                  <span [class.highlight]="milestone.tags.length" [class.selected]="isSelectedObject(milestone.object)">
+                    <i class="fa-solid fa-flag-checkered mr-2 text-vscode-milestone"></i> {{ milestone.label }}
+                  </span>
+                </div>
+                <!-- Milestone Details -->
+                <div class="accordion-body" *ngIf="isAccordionOpen('milestone', milestone.id)">
+                  <div class="details-card">
+                    <pre>{{ milestone.object | json }}</pre>
+                  </div>
+                </div>
+                <!-- Modules Accordion (always visible) -->
+                <ul *ngIf="milestone.children?.length">
+                  <ng-container *ngFor="let module of milestone.children">
+                    <li>
+                      <div class="accordion-header" (click)="toggleAccordion('module', module.id)">
+                        <i class="fa-solid" [ngClass]="isAccordionOpen('module', module.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                        <span [class.highlight]="module.tags.length" [class.selected]="isSelectedObject(module.object)">
+                          <i class="fa-solid fa-cubes-stacked mr-2 text-vscode-module"></i> {{ module.label }}
+                        </span>
+                      </div>
+                      <!-- Module Details -->
+                      <div class="accordion-body" *ngIf="isAccordionOpen('module', module.id)">
+                        <div class="details-card">
+                          <pre>{{ module.object | json }}</pre>
+                        </div>
+                      </div>
+                      <!-- SubModules Accordion (always visible) -->
+                      <ul *ngIf="module.children?.length">
+                        <ng-container *ngFor="let subModule of module.children">
+                          <li>
+                            <div class="accordion-header" (click)="toggleAccordion('subModule', subModule.id)">
+                              <i class="fa-solid" [ngClass]="isAccordionOpen('subModule', subModule.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                              <span [class.highlight]="subModule.tags.length" [class.selected]="isSelectedObject(subModule.object)">
+                                <i class="fa-solid fa-puzzle-piece mr-2 text-vscode-submodule"></i> {{ subModule.label }}
+                              </span>
+                            </div>
+                            <!-- SubModule Details -->
+                            <div class="accordion-body" *ngIf="isAccordionOpen('subModule', subModule.id)">
+                              <div class="details-card">
+                                <pre>{{ subModule.object | json }}</pre>
+                              </div>
+                            </div>
+                            <!-- SubSubModules Accordion (always visible) -->
+                            <ul *ngIf="subModule.children?.length">
+                              <ng-container *ngFor="let subSubModule of subModule.children">
+                                <li>
+                                  <div class="accordion-header" (click)="toggleAccordion('subSubModule', subSubModule.id)">
+                                    <i class="fa-solid" [ngClass]="isAccordionOpen('subSubModule', subSubModule.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                                    <span [class.highlight]="subSubModule.tags.length" [class.selected]="isSelectedObject(subSubModule.object)">
+                                      <i class="fa-solid fa-layer-group mr-2 text-vscode-subsubmodule"></i> {{ subSubModule.label }}
+                                    </span>
+                                  </div>
+                                  <!-- SubSubModule Details -->
+                                  <div class="accordion-body" *ngIf="isAccordionOpen('subSubModule', subSubModule.id)">
+                                    <div class="details-card">
+                                      <pre>{{ subSubModule.object | json }}</pre>
+                                    </div>
+                                  </div>
+                                </li>
+                              </ng-container>
+                            </ul>
+                          </li>
+                        </ng-container>
+                      </ul>
+                    </li>
+                  </ng-container>
+                </ul>
+              </li>
+            </ng-container>
+          </ul>
+        </li>
+      </ng-container>
+    </ul>
+  </div>
+
 </div>  
 <!------------------------------------ end :: Search  -------------------------->
 

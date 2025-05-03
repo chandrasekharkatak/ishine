@@ -9,7 +9,8 @@ import com.apmosys.employeeportal.mongodb.modal.FileStorage;
 
 public interface FileMongoRepository extends MongoRepository<FileStorage, String> {
 
-	@Query(value = "{ 'tags': { $in: ?0 } }", fields = "{ 'entityId': 1, 'entityType': 1, 'projectId': 1, '_id': 0 }")
-    List<FileStorage> findByTagsIn(List<String> tags);
+	@Query(value = "{ 'extractedText': { $in: ?0 } }", 
+	           fields = "{ 'entityId': 1, 'entityType': 1, 'projectId': 1, '_id': 0 }")
+	    List<FileStorage> findByTagsIn(List<String> tags);
 	
 }

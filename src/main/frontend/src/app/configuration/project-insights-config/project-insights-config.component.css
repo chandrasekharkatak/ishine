@@ -574,3 +574,148 @@ font-weight: normal;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
 }
+
+
+
+
+
+
+:root {
+  --vscode-bg: #1e1e2f;
+  --vscode-tree-bg: #2b2d42;
+  --vscode-detail: #f8f9fa;
+  --vscode-folder: #4fc3f7;
+  --vscode-milestone: #ffd54f;
+  --vscode-module: #81c784;
+  --vscode-submodule: #ba68c8;
+  --vscode-subsubmodule: #ff8a65;
+  --vscode-highlight: #e0f7fa;
+  --vscode-selected: #b3e5fc;
+  --vscode-tree-line: #444;
+  --vscode-font: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+}
+
+/* Main container */
+.tree-view {
+  background-color: var(--vscode-tree-bg);
+  color: var(--vscode-detail);
+  padding: 2rem;
+  border-radius: 1rem;
+  font-family: var(--vscode-font);
+  max-width: 1000px;
+  margin: 2rem auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Tree Styling */
+.vscode-tree {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.vscode-tree li {
+  margin-bottom: 0.5rem;
+}
+
+/* Accordion Header */
+.accordion-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.accordion-header:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  transform: translateX(2px);
+}
+
+/* Icons */
+.text-vscode-folder { color: var(--vscode-folder); }
+.text-vscode-milestone { color: var(--vscode-milestone); }
+.text-vscode-module { color: var(--vscode-module); }
+.text-vscode-submodule { color: var(--vscode-submodule); }
+.text-vscode-subsubmodule { color: var(--vscode-subsubmodule); }
+
+/* Label Styles */
+.vscode-tree span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.vscode-tree span.highlight:not(.selected) {
+  background-color: var(--vscode-highlight);
+  color: #0277bd;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.375rem;
+}
+
+.vscode-tree span.selected {
+  background-color: var(--vscode-selected);
+  color: #01579b;
+  font-weight: 700;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Accordion Body */
+.accordion-body {
+  margin: 0.5rem 0 0.5rem 1.5rem;
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* Indentation (Optional: Can use grid instead) */
+ul ul {
+  padding-left: 1.5rem;
+  border-left: 1px dashed var(--vscode-tree-line);
+  margin-left: 0.75rem;
+}
+
+/* Details Card */
+.details-card {
+  background-color: #f8f9fa;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid #dee2e6;
+  padding: 1rem;
+  color: #212529;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+  margin-top: 0.5rem;
+}
+
+/* Selected Object Panel */
+.selected-object-panel {
+  margin-top: 2rem;
+}
+
+.selected-object-panel h5 {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Smooth open/close animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+.vscode-tree,
+.vscode-tree li,
+.vscode-tree ul {
+  list-style: none;
+}

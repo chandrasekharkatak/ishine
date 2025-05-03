@@ -2223,51 +2223,83 @@ public class ProjectInsightService {
 	 * */
 
 	public ResponseEntity<SearchResultResponse> onSearchTerm(String search) {
-	    SearchResultResponse response = new SearchResultResponse();
-	    try {
-	    	
-	    	/* Note
-	    	 * getSearchResultByEntityIdAndEntityType is configured in such a way that if entityid, entitytype passed
-	    	 * which are present in Tagmaster as well as Filestorage then the reult will be in section i.e different
-	    	 * section for project, milestone, module, submodule, subsubmodule
-	    	 * */
-	    	
-	        List<String> tagList = nlpUtils.extractTags(search);
+		SearchResultResponse response = new SearchResultResponse();
+		try {
 
-	        if (tagList.isEmpty()) {
-	            return ResponseEntity.ok(response);
-	        }
+			/*
+			 * Note getSearchResultByEntityIdAndEntityType is configured in such a way that
+			 * if entityid, entitytype passed which are present in Tagmaster as well as
+			 * Filestorage then the reult will be in section i.e different section for
+			 * project, milestone, module, submodule, subsubmodule
+			 */
 
-	        List<TagMaster> matchedTags = tagMasterRepository.findAll(TagSpecifications.tagNameLikeAny(tagList));
-	        List<FileStorage> files = fileMongoRepository.findByTagsIn(tagList);
+			List<String> tagList = nlpUtils.extractTags(search);
 
-	        Set<Long> projectIdSet = new HashSet<>();
-	        for (TagMaster tag : matchedTags) {
-	            if (tag.getProjectId() != null) {
-	                projectIdSet.add(tag.getProjectId());
-	            }
-	        }
-	        for (FileStorage file : files) {
-	            if (file.getProjectId() != null) {
-	                projectIdSet.add(file.getProjectId());
-	            }
-	        }
+			if (tagList.isEmpty()) {
+				return ResponseEntity.ok(response);
+			}
 
-	        List<ProjectInsightDTO> projectRespList = new ArrayList<>();
-	        for (Long projectId : projectIdSet) {
-	            SearchResultResponse result = getSearchResultByEntityIdAndEntityType(projectId);
-	            if (result != null && result.getProject() != null) {
-	                projectRespList.add(result.getProject());
-	            }
-	        }
+			List<TagDTO> responseTagList = new ArrayList<>();
+			List<TagMaster> matchedTags = tagMasterRepository.findAll(TagSpecifications.tagNameLikeAny(tagList));
+//			List<FileStorage> files = fileMongoRepository.findByTagsIn(tagList);
+			List<FileStorage> files = new ArrayList<>();
 
-	        response.setProjectList(projectRespList);
-	        response.setUserContributionList(getUserContributionSearchResult(matchedTags,files));
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
+			Set<Long> projectIdSet = new HashSet<>();
 
-	    return ResponseEntity.ok(response);
+			for (TagMaster tag : matchedTags) {
+				Long projectId = tag.getProjectId();
+				if (projectId != null) {
+					projectIdSet.add(projectId);
+
+					boolean alreadyExists = responseTagList.stream()
+							.anyMatch(obj -> obj.getEntityId().equals(tag.getEntityId())
+									&& obj.getEntityType().equals(tag.getEntityType()));
+
+					if (!alreadyExists) {
+						TagDTO newdto = new TagDTO();
+						newdto.setEntityId(tag.getEntityId());
+						newdto.setEntityType(tag.getEntityType());
+						newdto.setProjectId(projectId);
+						responseTagList.add(newdto);
+					}
+				}
+			}
+
+			for (FileStorage file : files) {
+				Long projectId = file.getProjectId();
+				if (projectId != null) {
+					projectIdSet.add(projectId);
+
+					boolean alreadyExists = responseTagList.stream()
+							.anyMatch(tag -> tag.getEntityId().equals(file.getEntityId())
+									&& tag.getEntityType().equals(file.getEntityType()));
+
+					if (!alreadyExists) {
+						TagDTO newdto = new TagDTO();
+						newdto.setEntityId(file.getEntityId());
+						newdto.setEntityType(file.getEntityType());
+						newdto.setProjectId(projectId);
+						responseTagList.add(newdto);
+					}
+				}
+			}
+
+			List<ProjectInsightDTO> projectRespList = new ArrayList<>();
+			for (Long projectId : projectIdSet) {
+				SearchResultResponse result = getSearchResultByEntityIdAndEntityType(projectId);
+				if (result != null && result.getProject() != null) {
+					projectRespList.add(result.getProject());
+				}
+			}
+
+			response.setProjectList(projectRespList);
+			response.setUserContributionList(getUserContributionSearchResult(matchedTags, files));
+			response.setTagList(responseTagList);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return ResponseEntity.ok(response);
 	}
 
 	private List<ProjectInsightUserContributionDTO> getUserContributionSearchResult(List<TagMaster> matchedTags,
