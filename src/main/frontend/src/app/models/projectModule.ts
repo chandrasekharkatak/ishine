@@ -7,7 +7,8 @@ export class ProjectModule {
     milestoneId: any;
     description: any;
     redmineId: any;
-    assignedToUserId: any;
+    assignedToUserId: any[]=[];
+    assignedToEmployeementId: any[] = [];
     assignedToUserNames: any;
     taggedToUserId: any[] = [];
     taggedToUserNames: any;
@@ -18,9 +19,9 @@ export class ProjectModule {
     toAssignEmployeeList: any[] = [];
     isQuestionCollapsed: boolean = true;
     badgePathList = [
-        { name: 'Details' },
-        { name: 'Questions' },
-        { name: 'SubModules' },
+        { name: 'Details', isUpdatedFromExcelUpload: 'No' },
+        { name: 'Questions', isUpdatedFromExcelUpload: 'No' },
+        { name: 'SubModules' , isUpdatedFromExcelUpload: 'No'},
     ];
     currentActiveBadgeLevel = 'Details';
     actionType: any;

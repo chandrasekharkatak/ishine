@@ -25,9 +25,10 @@ export class ProjectQuestion {
     toTagEmployeeList: any[] = [];
     toAssignEmployeeList: any[] = [];
     badgePathList = [
-        { name: 'Details' }
+        { name: 'Details', isUpdatedFromExcelUpload: 'No' }
     ];
     currentActiveBadgeLevel = 'Details';
     recommendedResponseId: any;
     actionType: any;
+    isUpdatedFromExcelUpload: any;
 }

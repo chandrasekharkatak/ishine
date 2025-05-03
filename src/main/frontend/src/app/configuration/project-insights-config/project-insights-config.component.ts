@@ -28,6 +28,7 @@ import { Document } from 'src/app/models/document';
 import { ProjectResponse } from 'src/app/models/projectResponse';
 import { ProjectMilestone } from 'src/app/models/projectMilestone';
 import * as XLSX from 'xlsx';
+import { ProjectInsightImportExportService } from 'src/app/services/project-insight-import-export.service';
 @Component({
   selector: 'app-project-insights-config',
   templateUrl: './project-insights-config.component.html',
@@ -128,6 +129,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     private utilityService: UtilityService,
     private projectService: ProjectService,
     private projectInsightService:ProjectInsightService,
+    private projectInsightImportExportService: ProjectInsightImportExportService,
     private employeeService: EmployeeService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -554,6 +556,15 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.projectResponseModalRef.hide();
   }
 
+  async exportProjectInsightToExcelByProjectId(projectId: any, template: TemplateRef<any>, downloadExcel: boolean): Promise<any> {
+    this.projectInsightObj = await this.projectInsightImportExportService.getAllQuestionsByProjectId(projectId);
+    if (this.projectInsightObj) {
+      this.projectInsightImportExportService.exportProjectInsightToExcel(this.projectInsightObj, 'Project', this.projectInsightObj.projectName, null);
+    } else {
+      this.openAlertMod(this.alertMessageTempalte, 'Something went wrong');
+    }
+  }
+
   clearFileInput(): void {
     this.file = null;
     this.fileName = null;
@@ -589,7 +600,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   async uploadXcelData() {
     this.projectInsightObj = new ProjectInsight();
     try {
-      let excelValidated: any = await this.exportExcelService.validateProjectInsightImportFromExcel(this.file);
+      let excelValidated: any = await this.projectInsightImportExportService.validateProjectInsightImportFromExcel(this.file);
       if (!excelValidated || excelValidated != 'Success') {
         let alertMessage = 'Something went wrong';
         if (excelValidated) {
@@ -600,19 +611,19 @@ export class ProjectInsightsConfigComponent implements OnInit {
       }
 
       this.isExcelUploaded = true;
+      this.isCreation = true;
       this.subActionType = 'Creation';
-      this.projectInsightExcelObj = await this.exportExcelService.convertJsonDataToProjectInsightObj(this.file);
+      this.projectInsightExcelObj = await this.projectInsightImportExportService.convertJsonDataToProjectInsightObj(this.file);
       if (this.projectInsightExcelObj) {
-        this.projectInsightObj = null;
-        await this.getAllQuestionsByProjectId(this.projectInsightExcelObj.projectId, this.alertMessageTempalte, false);
+        this.projectInsightObj = await this.projectInsightImportExportService.getAllQuestionsByProjectId(this.projectInsightExcelObj.projectId);
         if (this.projectInsightObj) {
+          this.isCreation = false;
           this.subActionType = 'Updation';
           this.projectInsightExcelObj = await this.mergeProjectInsightExcelObjectWithProjectInsightDBObject(this.projectInsightObj, this.projectInsightExcelObj);
         }
       }
 
       this.isQuestionForm = true;
-      this.isCreation = true;
       this.isProjectInsightList = false;
       this.isProjectInsightResponseList = false;
     } catch (error) {
@@ -622,214 +633,212 @@ export class ProjectInsightsConfigComponent implements OnInit {
     }
   }
 
-  getAllQuestionsByProjectId(projectId: any, template: TemplateRef<any>, downloadExcel: boolean): Promise<any> {
-    let projectInsight: ProjectInsight = new ProjectInsight();
-    projectInsight.projectId = projectId;
-    return this.projectInsightService.getAllQuestionsByProjectId(projectInsight).pipe(first())
-      .toPromise()
-      .then((response: any) => {
-        if (response.serviceStatus === 'Success') {
-          this.projectInsightObj = response.serviceResponse;
-          this.projectInsightObj.deletedProjectInsightEntityList = [];
-          this.parseOptionsOfQuestionToList(this.projectInsightObj.questionList);
-          if (this.projectInsightObj.projectInsightMilestoneList != null && this.projectInsightObj.projectInsightMilestoneList?.length != 0) {
-            this.projectInsightObj.projectInsightMilestoneList.forEach((proj: ProjectMilestone) => {
-              this.parseOptionsOfQuestionToList(proj.questionList);
-
-              if (proj.moduleList != null && proj.moduleList?.length != 0) {
-                proj.moduleList.forEach((moduleObj: any) => {
-                  this.parseOptionsOfQuestionToList(moduleObj.questionList);
-
-                  if (moduleObj.subModuleList != null && moduleObj.subModuleList?.length != 0) {
-                    this.convertStringToJSONSubModuleNodesOption(moduleObj.subModuleList);
-                  }
-                });
-              }
-            });
-          }
-          if (downloadExcel) {
-            this.exportExcelService.exportProjectInsightToExcel(this.projectInsightObj, 'Project', this.projectInsightObj.projectName, null);
-          }
-        } else {
-          this.openAlertMod(template, response.serviceResponse);
-        }
-      })
-      .catch(error => {
-        this.openAlertMod(template, 'Error fetching project questions');
-      });
-  }
-
-  parseOptionsOfQuestionToList(questionList: ProjectQuestion[]) {
-    if (questionList != null && questionList?.length != 0) {
-      questionList.forEach((questionObj: ProjectQuestion) => {
-        if (questionObj.optionType == "checkbox" || questionObj.optionType == "radio") {
-          questionObj.optionsList = JSON.parse(questionObj.options || '[]');
-        }
-      });
+  async mergeProjectInsightExcelObjectWithProjectInsightDBObject(projectInsightObj: any, projectInsightExcelObj: any): Promise<any> {
+    try {
+      projectInsightExcelObj.projectId = projectInsightObj.projectId;
+      projectInsightExcelObj.projectName = projectInsightObj.projectName;
+      projectInsightExcelObj.projectManagerId = projectInsightObj.projectManagerId;
+      projectInsightExcelObj.projectManagerName = projectInsightObj.projectManagerName;
+      projectInsightExcelObj.questionList = await this.mergeQuestions(projectInsightObj?.questionList, projectInsightExcelObj?.questionList);
+      projectInsightExcelObj.projectInsightMilestoneList = await this.mergeMilestones(projectInsightObj?.projectInsightMilestoneList, projectInsightExcelObj.projectInsightMilestoneList);
+      return projectInsightExcelObj;
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
   }
 
-  convertStringToJSONSubModuleNodesOption(subModuleList: ProjectSubModule[]) {
-    subModuleList.forEach((submoduleObj: any) => {
-      this.parseOptionsOfQuestionToList(submoduleObj.questionList);
-      if (submoduleObj.subSubModuleList != undefined && submoduleObj.subSubModuleList != null && submoduleObj.subSubModuleList.length != 0) {
-        this.convertStringToJSONSubModuleNodesOption(submoduleObj.subSubModuleList);
+  isValidList(list: any[]): boolean {
+    return this.validationService.validateNullUndefinedEmptyList(list);
+  }
+
+  async mergeMilestones(dbList: any[], excelList: any[]): Promise<any> {
+    try {
+      if (!this.isValidList(dbList)) {
+        return this.isValidList(excelList) ? excelList : [];
       }
-    });
-  }
-
-  mergeProjectInsightExcelObjectWithProjectInsightDBObject(projectInsightObj: any, projectInsightExcelObj: any): Promise<any> {
-    return new Promise((resolve, reject) => {
-      try {
-        projectInsightExcelObj.projectId = projectInsightObj.projectId;
-        projectInsightExcelObj.projectName = projectInsightObj.projectName;
-        projectInsightExcelObj.projectManagerId = projectInsightObj.projectManagerId;
-        projectInsightExcelObj.projectManagerName = projectInsightObj.projectManagerName;
-        projectInsightExcelObj.questionList = this.mergeQuestions(projectInsightObj?.questionList, projectInsightExcelObj?.questionList);
-        projectInsightExcelObj.projectInsightMilestoneList = this.mergerMilestones(projectInsightObj?.projectInsightMilestoneList, projectInsightExcelObj.projectInsightMilestoneList);
-
-        resolve(projectInsightExcelObj);
-      } catch (error) {
-        reject(error);
+      if (!this.isValidList(excelList)) {
+        return dbList;
       }
-    });
-  }
 
-  mergeQuestions(dbQuestionsList: any[], excelQuestionsList: any[]) {
-    if (this.validationService.validateNullUndefinedEmptyList(dbQuestionsList) && this.validationService.validateNullUndefinedEmptyList(excelQuestionsList)) {
-      excelQuestionsList = excelQuestionsList.map(item => Object.assign({}, item));
-      dbQuestionsList = dbQuestionsList.map(item => Object.assign({}, item));
-      for (let dbQuestionIndex = 0; dbQuestionIndex < dbQuestionsList.length; dbQuestionIndex++) {
-        const dbQuestion = dbQuestionsList[dbQuestionIndex];
-        const matchIndex = excelQuestionsList.findIndex(excelQ => excelQ.questionId === dbQuestion.questionId);
-        if (matchIndex !== -1) {
-          excelQuestionsList[matchIndex] = { ...dbQuestion, ...excelQuestionsList[matchIndex] };
-        } else {
-          excelQuestionsList.push(dbQuestion);
-        }
-      }
-      return excelQuestionsList;
-    }
-    else if (!this.validationService.validateNullUndefinedEmptyList(dbQuestionsList) && this.validationService.validateNullUndefinedEmptyList(excelQuestionsList)) {
-      return excelQuestionsList;
-    }
-    else if (!this.validationService.validateNullUndefinedEmptyList(dbQuestionsList) && !this.validationService.validateNullUndefinedEmptyList(excelQuestionsList)) {
-      return [];
-    }
-  }
-
-  mergerMilestones(dbProjectInsightMilestoneList: any, excelProjectInsightMilestoneList: any) {
-    if (this.validationService.validateNullUndefinedEmptyList(dbProjectInsightMilestoneList) && this.validationService.validateNullUndefinedEmptyList(excelProjectInsightMilestoneList)) {
-      excelProjectInsightMilestoneList = excelProjectInsightMilestoneList.map(item => Object.assign({}, item));
-      dbProjectInsightMilestoneList = dbProjectInsightMilestoneList.map(item => Object.assign({}, item));
-      for (let dbMilestoneIndex = 0; dbMilestoneIndex < dbProjectInsightMilestoneList.length; dbMilestoneIndex++) {
-        const dbMilestone = dbProjectInsightMilestoneList[dbMilestoneIndex];
-        const matchIndex = excelProjectInsightMilestoneList.findIndex(excelMilestone => excelMilestone.milestoneId === dbMilestone.milestoneId);
-        if (matchIndex !== -1) {
-          let excelMilestone = excelProjectInsightMilestoneList[matchIndex];
+      for (const excelMilestone of excelList) {
+        const dbMilestone = dbList.find(milestone => milestone.milestoneId === excelMilestone.milestoneId && excelMilestone.actionType != 'Add');
+        if (dbMilestone) {
           dbMilestone.milestone = excelMilestone.milestone;
           dbMilestone.description = excelMilestone.description;
           dbMilestone.projectId = excelMilestone.projectId;
           dbMilestone.assignedToUserId = excelMilestone.assignedToUserId;
           dbMilestone.redmineId = excelMilestone.redmineId;
-          dbMilestone.milestoneId = excelMilestone.milestoneId;
           dbMilestone.actionType = excelMilestone.actionType;
-
-          if (!this.validationService.validateNullUndefinedEmptyList(excelMilestone?.questionList)) {
+          if (!this.isValidList(excelMilestone?.questionList)) {
             excelMilestone.questionList = [];
           }
-          dbMilestone.questionList = this.mergeQuestions(dbMilestone?.questionList, excelMilestone?.questionList);
-          dbMilestone.moduleList = this.mergeModules(dbMilestone?.moduleList, excelMilestone?.moduleList);
-
-          excelProjectInsightMilestoneList[matchIndex] = dbMilestone;
+          dbMilestone.questionList = await this.mergeQuestions(dbMilestone?.questionList, excelMilestone?.questionList);
+          dbMilestone.moduleList = await this.mergeModules(dbMilestone?.moduleList, excelMilestone?.moduleList);
         } else {
-          excelProjectInsightMilestoneList.push(dbMilestone);
+          dbList.push(excelMilestone);
         }
       }
-      return excelProjectInsightMilestoneList;
-    }
-    else if (!this.validationService.validateNullUndefinedEmptyList(dbProjectInsightMilestoneList) && this.validationService.validateNullUndefinedEmptyList(excelProjectInsightMilestoneList)) {
-      return excelProjectInsightMilestoneList;
-    }
-    else if (!this.validationService.validateNullUndefinedEmptyList(dbProjectInsightMilestoneList) && !this.validationService.validateNullUndefinedEmptyList(excelProjectInsightMilestoneList)) {
-      return [];
+      return dbList;
+    } catch (error) {
+      throw error;
     }
   }
 
-  mergeModules(dbModuleList: any, excelModuleList: any) {
-    if (this.validationService.validateNullUndefinedEmptyList(dbModuleList) && this.validationService.validateNullUndefinedEmptyList(excelModuleList)) {
-      excelModuleList = excelModuleList.map(item => Object.assign({}, item));
-      dbModuleList = dbModuleList.map(item => Object.assign({}, item));
-      for (let dbModuleIndex = 0; dbModuleIndex < dbModuleList.length; dbModuleIndex++) {
-        const dbModule = dbModuleList[dbModuleIndex];
-        const matchIndex = excelModuleList.findIndex(excelModule => excelModule.moduleId === dbModule.moduleId);
-        if (matchIndex !== -1) {
-          let excelModule = excelModuleList[matchIndex];
+  async mergeModules(dbList: any[], excelList: any[]): Promise<any> {
+    try {
+      if (!this.isValidList(dbList)) {
+        return this.isValidList(excelList) ? excelList : [];
+      }
+      if (!this.isValidList(excelList)) {
+        return dbList;
+      }
+
+      for (const excelModule of excelList) {
+        const dbModule = dbList.find(module => module.moduleId === excelModule.moduleId && excelModule.actionType != 'Add');
+        if (dbModule) {
           dbModule.module = excelModule.module;
           dbModule.description = excelModule.description;
           dbModule.milestoneId = excelModule.milestoneId;
           dbModule.assignedToUserId = excelModule.assignedToUserId;
           dbModule.redmineId = excelModule.redmineId;
-          dbModule.moduleId = excelModule.moduleId;
           dbModule.actionType = excelModule.actionType;
-
-          if (!this.validationService.validateNullUndefinedEmptyList(excelModule?.questionList)) {
+          if (!this.isValidList(excelModule?.questionList)) {
             excelModule.questionList = [];
           }
-          dbModule.questionList = this.mergeQuestions(dbModule?.questionList, excelModule?.questionList);
-          dbModule.subModuleList = this.mergeSubModules(dbModule?.subModuleList, excelModule?.subModuleList, 'SubModule');
-
-          excelModuleList[matchIndex] = dbModule;
+          dbModule.questionList = await this.mergeQuestions(dbModule?.questionList, excelModule?.questionList);
+          dbModule.subModuleList = await this.mergeSubModules(dbModule?.subModuleList, excelModule?.subModuleList, 'SubModule');
         } else {
-          excelModuleList.push(dbModule);
+          dbList.push(excelModule);
         }
       }
-      return excelModuleList;
-    }
-    else if (!this.validationService.validateNullUndefinedEmptyList(dbModuleList) && this.validationService.validateNullUndefinedEmptyList(excelModuleList)) {
-      return excelModuleList;
-    }
-    else if (!this.validationService.validateNullUndefinedEmptyList(dbModuleList) && !this.validationService.validateNullUndefinedEmptyList(excelModuleList)) {
-      return [];
+      return dbList;
+    } catch (error) {
+      throw error;
     }
   }
 
-  mergeSubModules(dbSubModuleList: any, excelSubModuleList: any, subModuleType: any) {
-    if (this.validationService.validateNullUndefinedEmptyList(dbSubModuleList) && this.validationService.validateNullUndefinedEmptyList(excelSubModuleList)) {
-      excelSubModuleList = excelSubModuleList.map(item => Object.assign({}, item));
-      dbSubModuleList = dbSubModuleList.map(item => Object.assign({}, item));
-      for (let dbSubModuleIndex = 0; dbSubModuleIndex < dbSubModuleList.length; dbSubModuleIndex++) {
-        const dbSubModule = dbSubModuleList[dbSubModuleIndex];
-        const matchIndex = excelSubModuleList.findIndex(excelSubModule => excelSubModule.subModuleId === dbSubModule.submoduleId);
-        if (matchIndex !== -1) {
-          let excelSubModule = excelSubModuleList[matchIndex];
+  async mergeSubModules(dbList: any[], excelList: any[], subModuleType: any): Promise<any> {
+    try {
+      if (!this.isValidList(dbList)) {
+        return this.isValidList(excelList) ? excelList : [];
+      }
+      if (!this.isValidList(excelList)) {
+        return dbList;
+      }
+
+      for (const excelSubModule of excelList) {
+        const dbSubModule = dbList.find(subModule => subModule.subModuleId === excelSubModule.subModuleId && excelSubModule.actionType != 'Add');
+        if (dbSubModule) {
           dbSubModule.subModule = excelSubModule.subModule;
           dbSubModule.description = excelSubModule.description;
           dbSubModule.moduleId = excelSubModule.moduleId;
           dbSubModule.assignedToUserId = excelSubModule.assignedToUserId;
           dbSubModule.redmineId = excelSubModule.redmineId;
           excelSubModule.subModuleId = excelSubModule.subModuleId;
-          excelSubModule.actionType = excelSubModule.actionType;
-
-          if (!this.validationService.validateNullUndefinedEmptyList(excelSubModule?.questionList)) {
+          dbSubModule.actionType = excelSubModule.actionType;
+          if (!this.isValidList(excelSubModule?.questionList)) {
             excelSubModule.questionList = [];
           }
-          dbSubModule.questionList = this.mergeQuestions(dbSubModule?.questionList, excelSubModule?.questionList);
-          dbSubModule.subSubModuleList = this.mergeSubModules(dbSubModule?.subSubModuleList, excelSubModule?.subSubModuleList, 'Sub-SubModule');
+          dbSubModule.questionList = await this.mergeQuestions(dbSubModule?.questionList, excelSubModule?.questionList);
 
-          excelSubModuleList[matchIndex] = dbSubModule;
+          if (this.isValidList(dbSubModule?.subSubModuleList) || this.isValidList(excelSubModule?.subSubModuleList)) {
+            dbSubModule.subSubModuleList = await this.mergeSubSubModules(dbSubModule?.subSubModuleList, excelSubModule?.subSubModuleList, 'Sub-SubModule');
+          }
         } else {
-          excelSubModuleList.push(dbSubModule);
+          dbList.push(excelSubModule);
         }
       }
-      return excelSubModuleList;
+      return dbList;
+    } catch (error) {
+      throw error;
     }
-    else if (!this.validationService.validateNullUndefinedEmptyList(dbSubModuleList) && this.validationService.validateNullUndefinedEmptyList(excelSubModuleList)) {
-      return excelSubModuleList;
+  }
+
+  async getSubSubModuleList(projectInsightSubSubModuleList: any[], projectInsightMilestoneList: any[]): Promise<any> {
+    for (const milestone of projectInsightMilestoneList) {
+      if (this.validationService.validateNullUndefinedEmptyList(milestone?.moduleList)) {
+        for (const module of milestone?.moduleList) {
+          if (this.validationService.validateNullUndefinedEmptyList(module?.subModuleList)) {
+            for (const subModule of module?.subModuleList) {
+              if (this.validationService.validateNullUndefinedEmptyList(subModule?.subSubModuleList)) {
+                subModule.subSubModuleList = await this.traverseAndMergeSubSubModules(subModule.subSubModuleList, projectInsightSubSubModuleList, subModule.subModuleId);
+              }
+            }
+          }
+        }
+      }
     }
-    else if (!this.validationService.validateNullUndefinedEmptyList(dbSubModuleList) && !this.validationService.validateNullUndefinedEmptyList(excelSubModuleList)) {
-      return [];
+  }
+
+  async traverseAndMergeSubSubModules(dbSubSubModuleList: any, projectInsightSubSubModuleList: any[], moduleIdObj: any): Promise<any> {
+    if (this.validationService.validateNullUndefinedEmptyList(dbSubSubModuleList)) {
+      for (const subSubModule of dbSubSubModuleList) {
+        subSubModule.subSubModuleList = await this.traverseAndMergeSubSubModules(subSubModule?.subSubModuleList, projectInsightSubSubModuleList, subSubModule.moduleId);
+      }
     }
+    const filteredModuleList = projectInsightSubSubModuleList.filter(subModuleObj => moduleIdObj == subModuleObj.moduleId);
+    dbSubSubModuleList = await this.mergeSubSubModules(dbSubSubModuleList, filteredModuleList, "Sub-SubModule");
+    return dbSubSubModuleList;
+  }
+
+  async mergeSubSubModules(dbList: any[], excelList: any[], subModuleType: any): Promise<any[]> {
+    try {
+      if (!this.isValidList(dbList)) {
+        return this.isValidList(excelList) ? excelList : [];
+      }
+      if (!this.isValidList(excelList)) {
+        return dbList;
+      }
+
+      for (const excelSubSubModule of excelList) {
+        const dbSubSubModule = dbList.find(subSubModule => subSubModule.subSubModuleId === excelSubSubModule.subSubModuleId && excelSubSubModule.actionType != 'Add');
+        if (dbSubSubModule) {
+          dbSubSubModule.actionType = excelSubSubModule.actionType;
+          dbSubSubModule.subModule = excelSubSubModule.subModule;
+          dbSubSubModule.description = excelSubSubModule.description;
+          dbSubSubModule.moduleId = excelSubSubModule.moduleId;
+          dbSubSubModule.assignedToUserId = excelSubSubModule.assignedToUserId;
+          dbSubSubModule.redmineId = excelSubSubModule.redmineId;
+          if (!this.isValidList(excelSubSubModule?.questionList)) {
+            excelSubSubModule.questionList = [];
+          }
+          dbSubSubModule.questionList = await this.mergeQuestions(dbSubSubModule?.questionList, excelSubSubModule?.questionList);
+          if (this.isValidList(dbSubSubModule?.subSubModuleList) || this.isValidList(excelSubSubModule?.subSubModuleList)) {
+            dbSubSubModule.subSubModuleList = await this.mergeSubSubModules(dbSubSubModule?.subSubModuleList, excelSubSubModule?.subSubModuleList, 'Sub-SubModule');
+          }
+        } else {
+          dbList.push(excelSubSubModule);
+        }
+      }
+      return dbList;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async mergeQuestions(dbList: any[], excelList: any[]): Promise<any> {
+    if (!this.isValidList(dbList)) {
+      return this.isValidList(excelList) ? excelList : [];
+    }
+    if (!this.isValidList(excelList)) {
+      return dbList;
+    }
+    for (const excelQ of excelList) {
+      const dbQ = dbList.find(q => q.questionId === excelQ.questionId && excelQ.actionType != 'Add' );
+      if (dbQ) {
+        dbQ.question = excelQ.question;
+        dbQ.description = excelQ.description;
+        dbQ.optionType = excelQ.optionType;
+        dbQ.options = excelQ.options;
+        dbQ.entityId = excelQ.entityId;
+        dbQ.entityType = excelQ.entityType;
+        dbQ.actionType = excelQ.ActionType;
+      } else {
+        dbList.push(excelQ);
+      }
+    }
+    return dbList;
   }
 
 }

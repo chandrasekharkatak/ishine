@@ -163,12 +163,39 @@
           </div>
           <div class="card-body">
               <div class="col-md-12">
-                <div class="col d-flex justify-content-between align-items-center search-toggle">
-                  <a href="javascript:void(0)" (click)="toggleSearch('projectInsight')">
-                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                  </a>
+                <div class="row mb-1">
+                  <div class="col d-flex justify-content-between align-items-center search-toggle">
+                    <div>
+                      <a href="javascript:void(0)" (click)="toggleSearch('projectInsight')">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                      </a>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end align-items-center flex-wrap">
+                      <label *ngIf="!file" class="btn btn-sm btn-outline-primary mr-2 mb-0" for="project-data-input-file">
+                        <span>Upload Excel File</span>
+                        <input id="project-data-input-file" type="file" class="d-none" #fileInput accept=".xlsx, .xls"
+                          (change)="onFileChange($event);uploadFile()" [disabled]="file">
+                      </label>
+                  
+                      <span *ngIf="fileName" class="small mr-2">
+                        {{fileName}}
+                      </span>
+                  
+                      <button *ngIf="file" type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
+                        (click)="clearFileInput()">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                  
+                      <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel"
+                        [disabled]="!file" (click)="uploadXcelData(insight_response_template)">
+                        <i class="fa fa-upload" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
                 </div>
+                
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInsightInfo'"
                   [tableTHeadId]="'projectInsightInfoTHead'" [tableTHeadTrId]="'projectInsightInfoTHeadTr'">
                   <table class="table" matSort (matSortChange)="sortData($event)">
@@ -222,7 +249,7 @@
           </div>
           <div class="card-body">
             <div class="col-md-12">
-              <div class="row">
+              <div class="row mb-1">
                 <div class="col d-flex justify-content-between align-items-center search-toggle">
                   <div>
                     <a href="javascript:void(0)" (click)="toggleSearch('contribution')">
@@ -614,7 +641,7 @@
 <ng-template #insight_response_template>
   <div class="col-md-12">
     <app-project-insights [actionType]="actionType" [subActionType]="subActionType" [projectId]="projectId"
-      [responseByEmpId]="responseByEmpId"
+      [responseByEmpId]="responseByEmpId" [projectInsightExcelObj]="projectInsightExcelObj" [isExcelUploaded]="isExcelUploaded"
       (closeProjectInsightResponseModalEvent)="closeProjectInsightResponseModal()"></app-project-insights>
   </div>
 </ng-template>

@@ -1042,7 +1042,7 @@ public class ProjectInsightService {
 					
 					
 					if (subModuleDTO.getSubModuleId() != null) {
-						ProjectInsightSubModule submoduleDbResponse = projectInsightSubModuleRepository.getById(subModuleDTO.getSubModuleId());
+						ProjectInsightSubModule submoduleDbResponse = projectInsightSubModuleRepository.findById(subModuleDTO.getSubModuleId()).orElse(null);
 						if (submoduleDbResponse != null) {
 							submoduleDbResponse.setModuleId(moduleId);
 							submoduleDbResponse.setDescription(subModuleDTO.getDescription());
@@ -1161,7 +1161,7 @@ public class ProjectInsightService {
 					if (subModuleDTO.getSubModuleId() == null || (subModuleDTO.getActionType() != null && subModuleDTO.getActionType().equalsIgnoreCase("Add"))) {
 						projectInsightSubModule = saveSubModule(projectInsightSubModule, subModuleDTO, moduleId, subModuleType, combinedText, createdBy, updatedBy);
 					} else if (subModuleDTO.getSubModuleId() != null) {
-						ProjectInsightSubModule submoduleDbResponse = projectInsightSubModuleRepository.getById(subModuleDTO.getSubModuleId());
+						ProjectInsightSubModule submoduleDbResponse = projectInsightSubModuleRepository.findById(subModuleDTO.getSubModuleId()).orElse(null);
 						if (submoduleDbResponse != null) {
 							projectInsightSubModule = saveSubModule(submoduleDbResponse, subModuleDTO, moduleId, subModuleType, combinedText, createdBy, updatedBy);
 						} else {

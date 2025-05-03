@@ -247,7 +247,7 @@ export class ValidationService {
 
   validateNullUndefinedEmptyString(text: any): boolean {
 
-    if (text === undefined || text === null || text === "") {
+    if (text === undefined || text === null || text === "" || (text && text.toString().trim() === "")) {
       return false;
     }
     return true;

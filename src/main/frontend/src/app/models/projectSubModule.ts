@@ -8,6 +8,7 @@ export class ProjectSubModule {
     description: any;
     redmineId: any;
     assignedToUserId: any[] = [];
+    assignedToEmployeementId: any[] = [];
     assignedToUserNames: any;
     taggedToUserId: any[] = [];
     taggedToUserNames: any;
@@ -19,9 +20,9 @@ export class ProjectSubModule {
     indexName: any;
     isQuestionCollapsed: boolean = true;
     badgePathList = [
-        { name: 'Details' },
-        { name: 'Questions' },
-        { name: 'Sub-SubModules' },
+        { name: 'Details', isUpdatedFromExcelUpload: 'No' },
+        { name: 'Questions', isUpdatedFromExcelUpload: 'No' },
+        { name: 'Sub-SubModules', isUpdatedFromExcelUpload: 'No' },
     ];
     currentActiveBadgeLevel = 'Details';
     actionType: any;

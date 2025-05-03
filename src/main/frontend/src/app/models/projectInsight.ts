@@ -15,6 +15,7 @@ export class ProjectInsight {
     performanceTabName: any;
     toAssignEmployeeList: any[] = [];
     assignedToUserId: any[] = [];
+    assignedToEmployeementId: any[] = [];
     assignedToUserNames: any;
     toTagEmployeeList: any[] = [];
     taggedToUserId: any[] = [];
@@ -29,9 +30,9 @@ export class ProjectInsight {
     updatedOn: any;
     updatedBy: any;
     badgePathList = [
-        { name: 'Details' },
-        { name: 'Questions' },
-        { name: 'Milestones' },
+        { name: 'Details', isUpdatedFromExcelUpload: 'No' },
+        { name: 'Questions', isUpdatedFromExcelUpload: 'No' },
+        { name: 'Milestones' , isUpdatedFromExcelUpload: 'No'},
     ];
     currentActiveBadgeLevel = 'Details';
     pointsBy: any;

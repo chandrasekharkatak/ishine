@@ -45,7 +45,7 @@
           type="submit" class="btn btn-outline-primary btn-sm mx-1" (click)="saveReviewRemarks(true,false)">Draft Transfer To
           Knowledge Hub</button> -->
         <button
-          
+          *ngIf="subActionType == 'Review Response' && isCurrentEmployeeRoleGreaterThanManager && !isResponsePointFinalSubmitted"
           type="submit" class="btn btn-outline-primary btn-sm mx-1" (click)="saveReviewRemarks(false,true)">Transfer To
           Knowledge Hub</button>
         <button
@@ -86,7 +86,7 @@
     <!-- Project Milestone -->
     <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Milestones'" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="milestone_card_template"
-        [ngTemplateOutletContext]="milestoneTemplateContext">
+        [ngTemplateOutletContext]="{ entityList: isValidList(entityObj.projectInsightMilestoneList) ? entityObj.projectInsightMilestoneList : []}">
       </ng-container>
     </div>
   </div>
@@ -109,7 +109,7 @@
     <!-- Milestone Modules -->
     <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Modules'" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="module_card_template"
-        [ngTemplateOutletContext]="moduleTemplateContext">
+        [ngTemplateOutletContext]="{ entityList: isValidList(entityObj.moduleList) ? entityObj.moduleList : []}">
       </ng-container>
 
     </div>
@@ -131,9 +131,11 @@
     </div>
 
     <!-- Module SubModules -->
-    <div *ngIf="entityObj?.currentActiveBadgeLevel == 'SubModules'" class="row m-1 mb-2">
+    <div
+      *ngIf="entityObj?.currentActiveBadgeLevel == 'SubModules' && entityObj?.currentActiveBadgeLevel != 'Sub-SubModules'"
+      class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="submodule_card_template"
-        [ngTemplateOutletContext]="subModuleTemplateContext">
+        [ngTemplateOutletContext]="{ entityList: isValidList(entityObj.subModuleList) ? entityObj.subModuleList : [] ,entityType:'SubModule'}">
       </ng-container>
     </div>
   </div>
@@ -158,7 +160,7 @@
       *ngIf="entityObj?.currentActiveBadgeLevel == 'SubModules' || entityObj?.currentActiveBadgeLevel == 'Sub-SubModules'"
       class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="submodule_card_template"
-        [ngTemplateOutletContext]="subModuleTemplateContext">
+        [ngTemplateOutletContext]="{ entityList:isValidList(entityObj.subSubModuleList)? entityObj.subSubModuleList :[],entityType:'Sub-SubModule'}">
       </ng-container>
     </div>
   </div>
@@ -183,14 +185,18 @@
       <div class="col-md-8">
         <div class="badge-container">
           <span *ngFor="let level of entity?.badgePathList" class="badge"
-            [ngClass]="{ 'active': entity?.currentActiveBadgeLevel == level.name}"
+            [ngClass]="{ 'active': entity?.currentActiveBadgeLevel == level.name, 'isUpdatedFromExcelUpload': entity?.isUpdatedFromExcelUpload == 'Yes'}"
             (click)="changeCurrentActiveBadgeLevel(entity,level.name,entityType,entityName,entityId)">
-            <span *ngIf="level.name != 'Sub-SubModules' && level.name != 'Questions' && level.name != 'Milestones' && level.name != 'Modules' && level.name != 'SubModules' && level.name != 'Sub-SubModules'">{{level.name}}</span>
+            <span
+              *ngIf="level.name != 'Sub-SubModules' && level.name != 'Questions' && level.name != 'Milestones' && level.name != 'Modules' && level.name != 'SubModules' && level.name != 'Sub-SubModules'">{{level.name}}</span>
             <span *ngIf="level.name == 'Questions'">{{level.name}}({{entity?.questionList?.length || 0}}) </span>
-            <span *ngIf="level.name == 'Milestones'">{{level.name}}({{entity?.projectInsightMilestoneList?.length || 0}})</span>
+            <span *ngIf="level.name == 'Milestones'">{{level.name}}({{entity?.projectInsightMilestoneList?.length ||
+              0}})</span>
             <span *ngIf="level.name == 'Modules'">{{level.name}}({{entity?.moduleList?.length || 0}})</span>
-            <span *ngIf="level.name == 'SubModules'">{{level.name}}({{entity?.subModuleList?.length || entity?.subSubModuleList?.length}})</span>
-            <span *ngIf="level.name == 'Sub-SubModules'">{{level.name}}({{entity?.subSubModuleList?.length || 0}})</span>
+            <span *ngIf="level.name == 'SubModules'">{{level.name}}({{entity?.subModuleList?.length ||
+              entity?.subSubModuleList?.length}})</span>
+            <span *ngIf="level.name == 'Sub-SubModules'">{{level.name}}({{entity?.subSubModuleList?.length ||
+              0}})</span>
           </span>
         </div>
       </div>
@@ -208,16 +214,22 @@
           </mat-select>
         </div>
       </div>
-      <div *ngIf="actionType == 'Configuration' && subActionType != 'Creation' && subActionType != 'Search' && subActionType != 'Preview' && (entity?.currentActiveBadgeLevel == 'Details' || entity?.currentActiveBadgeLevel == 'Questions')" class="col-md-4">
+      <div
+        *ngIf="actionType == 'Configuration' && subActionType != 'Creation' && subActionType != 'Search' && subActionType != 'Preview' && (entity?.currentActiveBadgeLevel == 'Details' || entity?.currentActiveBadgeLevel == 'Questions')"
+        class="col-md-4">
         <div class=" d-flex justify-content-end">
-          <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download {{entity.currentActiveBadgeLevel}}"
+          <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary"
+            title="Download {{entity.currentActiveBadgeLevel}}"
             (click)="exportProjectToExcel(entity,entityType,entityName,entityParentId,entity?.currentActiveBadgeLevel)">
           </button>
         </div>
       </div>
-      <div *ngIf="actionType == 'Contribution' && subActionType != 'Search' && subActionType != 'Preview' && entity?.currentActiveBadgeLevel == 'Questions'" class="col-md-4">
+      <div
+        *ngIf="actionType == 'Contribution' && subActionType != 'Search' && subActionType != 'Preview' && entity?.currentActiveBadgeLevel == 'Questions'"
+        class="col-md-4">
         <div class=" d-flex justify-content-end">
-          <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download {{entity.currentActiveBadgeLevel}}"
+          <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary"
+            title="Download {{entity.currentActiveBadgeLevel}}"
             (click)="exportProjectInsightEntityQuestionsToExcel(entity,entityType,entityName,entityParentId,entity?.currentActiveBadgeLevel)">
           </button>
         </div>
@@ -272,8 +284,7 @@
       <div class="col-md-12">
         <div class="form-group mb-0">
           <label class="info-label">Project Manager</label>
-          <input type="text" class="form-control" autocomplete="none" [(ngModel)]="entity.projectManagerName"
-            disabled>
+          <input type="text" class="form-control" autocomplete="none" [(ngModel)]="entity.projectManagerName" disabled>
         </div>
       </div>
     </div>
@@ -375,25 +386,25 @@
       <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
         class="col-md-8 d-flex justify-content-end align-items-center flex-wrap">
         <label *ngIf="!file" class="btn btn-sm btn-outline-primary mr-2 mb-0" for="project-data-input-file">
-          <span>Upload Excel File</span>
+          <span>Upload Questions File</span>
           <input id="project-data-input-file" type="file" class="d-none" #fileInput accept=".xlsx, .xls"
             (change)="onFileChange($event);" [disabled]="file">
         </label>
-    
+
         <span *ngIf="fileName" class="small mr-2">
           {{fileName}}
         </span>
-    
+
         <button *ngIf="file" type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
           (click)="clearFileInput()">
           <i class="fa-solid fa-xmark"></i>
         </button>
-    
+
         <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel" [disabled]="!file"
           (click)="uploadXcelData('Question',entity)">
           <i class="fa fa-upload" aria-hidden="true"></i>
         </button>
-    
+
         <button type="button" class="btn btn-outline-primary btn-sm" (click)="addQuestion(entity)"><em
             class="fa-solid fa-plus"></em>&nbsp;Add Questions</button>
       </div>
@@ -402,6 +413,7 @@
       <ng-container *ngFor="let question of entity.questionList; let questionIndex = index">
         <div class="col-md-4 p-2 d-flex">
           <div class="card w-100 card-hover"
+            [ngClass]="{ 'isUpdatedFromExcelUpload': question?.isUpdatedFromExcelUpload == 'Yes'}"
             (click)="navigateTo(question,'Question',question?.questionId,question.question)">
             <div class="row m-0">
               <div class="col-10">
@@ -550,26 +562,27 @@
                       </span>
                     </span>
                   </div>
-            
+
                   <input type="text" class="form-control" [(ngModel)]="response.newTag"
                     [disabled]="projectInsightObj.isFinalSubmitted == 'Y'" placeholder="Type and press Enter to add tag"
                     (keyup.enter)="addManualTag(response)" />
                 </div>
               </div>
-            
+
               <div class="form-group mb-3">
                 <label><span class="text-danger">*</span>Enter Response Here</label>
                 <div (contextmenu)="handleContextMenu($event)">
                   <angular-editor id="myEditor" [(ngModel)]="response.response" [config]="editorConfig">
                   </angular-editor>
                 </div>
-            
-                <div *ngIf="showContextMenu" class="context-menu" [style.left.px]="contextMenuX" [style.top.px]="contextMenuY">
+
+                <div *ngIf="showContextMenu" class="context-menu" [style.left.px]="contextMenuX"
+                  [style.top.px]="contextMenuY">
                   <div class="list-group">
                     <button class="list-group-item" (click)="addTag(response)">Add tag</button>
                   </div>
                 </div>
-            
+
                 <div *ngIf="showContextMenu" class="context-menu-backdrop" (click)="closeContextMenu()">
                 </div>
               </div>
@@ -587,26 +600,27 @@
                       </span>
                     </span>
                   </div>
-            
+
                   <input type="text" class="form-control" [(ngModel)]="response.newTag"
                     [disabled]="projectInsightObj.isFinalSubmitted == 'Y'" placeholder="Type and press Enter to add tag"
                     (keyup.enter)="addManualTag(response)" />
                 </div>
               </div>
-            
+
               <div class="form-group mb-3">
                 <label><span class="text-danger">*</span>Enter Response Here</label>
                 <div (contextmenu)="handleContextMenu($event)">
                   <angular-editor id="myEditor" [config]="editorConfig">
                   </angular-editor>
                 </div>
-            
-                <div *ngIf="showContextMenu" class="context-menu" [style.left.px]="contextMenuX" [style.top.px]="contextMenuY">
+
+                <div *ngIf="showContextMenu" class="context-menu" [style.left.px]="contextMenuX"
+                  [style.top.px]="contextMenuY">
                   <div class="list-group">
                     <button class="list-group-item" (click)="addTag(response)">Add tag</button>
                   </div>
                 </div>
-            
+
                 <div *ngIf="showContextMenu" class="context-menu-backdrop" (click)="closeContextMenu()">
                 </div>
               </div>
@@ -732,20 +746,20 @@
       <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
         class="col-md-8 d-flex justify-content-end align-items-center flex-wrap">
         <label *ngIf="!file" class="btn btn-sm btn-outline-primary mr-2 mb-0" for="project-data-input-file">
-          <span>Upload Excel File</span>
+          <span>Upload Milestones File</span>
           <input id="project-data-input-file" type="file" class="d-none" #fileInput accept=".xlsx, .xls"
             (change)="onFileChange($event);" [disabled]="file">
         </label>
-    
+
         <span *ngIf="fileName" class="small mr-2">
           {{fileName}}
         </span>
-    
+
         <button *ngIf="file" type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
           (click)="clearFileInput()">
           <i class="fa-solid fa-xmark"></i>
         </button>
-    
+
         <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel" [disabled]="!file"
           (click)="uploadXcelData('Milestone',null,entityList)">
           <i class="fa fa-upload" aria-hidden="true"></i>
@@ -769,9 +783,10 @@
                   (click)="exportProjectToExcel(milestone,'Milestone',milestone.milestone,milestone.projectId)">
                 </button>
               </div>
-              <div *ngIf="actionType == 'Contribution' && subActionType != 'Search' && subActionType != 'Preview'" 
+              <div *ngIf="actionType == 'Contribution' && subActionType != 'Search' && subActionType != 'Preview'"
                 class="col-1 d-flex align-items-start justify-content-end p-2" style="padding-right: 0% !important;">
-                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download Questions of {{milestone?.milestone || 'Milestone'}}"
+                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary"
+                  title="Download Questions of {{milestone?.milestone || 'Milestone'}}"
                   (click)="exportProjectInsightEntityQuestionsToExcel(milestone,'Milestone',milestone.milestone,milestone.projectId)">
                 </button>
               </div>
@@ -825,20 +840,20 @@
       <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
         class="col-md-8 d-flex justify-content-end align-items-center flex-wrap">
         <label *ngIf="!file" class="btn btn-sm btn-outline-primary mr-2 mb-0" for="project-data-input-file">
-          <span>Upload Excel File</span>
+          <span>Upload Modules File</span>
           <input id="project-data-input-file" type="file" class="d-none" #fileInput accept=".xlsx, .xls"
             (change)="onFileChange($event);" [disabled]="file">
         </label>
-    
+
         <span *ngIf="fileName" class="small mr-2">
           {{fileName}}
         </span>
-    
+
         <button *ngIf="file" type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
           (click)="clearFileInput()">
           <i class="fa-solid fa-xmark"></i>
         </button>
-    
+
         <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel" [disabled]="!file"
           (click)="uploadXcelData('Module',null,entityList)">
           <i class="fa fa-upload" aria-hidden="true"></i>
@@ -863,7 +878,8 @@
               </div>
               <div *ngIf="actionType == 'Contribution' && subActionType != 'Search' && subActionType != 'Preview'"
                 class="col-1 d-flex align-items-start justify-content-end p-2" style="padding-right: 0% !important;">
-                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download Questions of {{module?.module || 'Module'}}"
+                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary"
+                  title="Download Questions of {{module?.module || 'Module'}}"
                   (click)="exportProjectInsightEntityQuestionsToExcel(module,'Module',module?.module,module?.milestoneId)">
                 </button>
               </div>
@@ -909,7 +925,7 @@
 </ng-template>
 
 <!-- SubModule Card Template -->
-<ng-template #submodule_card_template let-entityList="entityList" let-subModuleType="subModuleType">
+<ng-template #submodule_card_template let-entityList="entityList" let-entityType="entityType">
   <div class="col-md-12 pr-0 pl-0">
     <div class="row m-1 justify-content-between align-items-center">
       <div class="col-md-4">
@@ -918,26 +934,26 @@
       <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
         class="col-md-8 d-flex justify-content-end align-items-center flex-wrap">
         <label *ngIf="!file" class="btn btn-sm btn-outline-primary mr-2 mb-0" for="project-data-input-file">
-          <span>Upload Excel File</span>
+          <span>Upload SubModules File</span>
           <input id="project-data-input-file" type="file" class="d-none" #fileInput accept=".xlsx, .xls"
             (change)="onFileChange($event);" [disabled]="file">
         </label>
-    
+
         <span *ngIf="fileName" class="small mr-2">
           {{fileName}}
         </span>
-    
+
         <button *ngIf="file" type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
           (click)="clearFileInput()">
           <i class="fa-solid fa-xmark"></i>
         </button>
-    
+
         <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel" [disabled]="!file"
-          (click)="uploadXcelData(subModuleType,null,entityList)">
+          (click)="uploadXcelData(entityType,null,entityList)">
           <i class="fa fa-upload" aria-hidden="true"></i>
         </button>
         <button type="button" class="btn btn-outline-primary btn-sm"
-          (click)="addSubModuleToList(entityList,subModuleType)"><em class="fa-solid fa-plus"></em>&nbsp;Add
+          (click)="addSubModuleToList(entityList,entityType)"><em class="fa-solid fa-plus"></em>&nbsp;Add
           SubModules</button>
       </div>
     </div>
@@ -945,34 +961,36 @@
       <ng-container *ngFor="let subModule of entityList; let subModuleIndex = index">
         <div class="col-md-4 p-2 d-flex">
           <div class="card w-100 card-hover"
-            (click)="navigateTo(subModule,subModuleType,subModule?.subModuleId,subModule?.subModule)">
+            (click)="navigateTo(subModule,entityType,subModule?.subModuleId,subModule?.subModule)">
             <div class="row m-0">
               <div class="col-10">
                 <h5 class="m-2">{{subModule.subModule}}</h5>
               </div>
               <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
                 class="col-1 d-flex align-items-start justify-content-end p-2" style="padding-right: 0% !important;">
-                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download {{subModuleType}}"
-                  (click)="exportProjectToExcel(subModule,subModuleType,subModule?.subModule,subModule?.moduleId)">
+                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" title="Download {{entityType}}"
+                  (click)="exportProjectToExcel(subModule,entityType,subModule?.subModule,subModule?.moduleId)">
                 </button>
               </div>
               <div *ngIf="actionType == 'Contribution' && subActionType != 'Search' && subActionType != 'Preview'"
                 class="col-1 d-flex align-items-start justify-content-end p-2" style="padding-right: 0% !important;">
-                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary"  title="Download Questions of {{subModule?.subModule || subModuleType}}"
-                  (click)="exportProjectInsightEntityQuestionsToExcel(subModule,subModuleType,subModule?.subModule,subModule?.moduleId)">
+                <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary"
+                  title="Download Questions of {{subModule?.subModule || entityType}}"
+                  (click)="exportProjectInsightEntityQuestionsToExcel(subModule,entityType,subModule?.subModule,subModule?.moduleId)">
                 </button>
               </div>
               <div *ngIf="actionType == 'Configuration' && subActionType != 'Search' && subActionType != 'Preview'"
                 class="col-1 d-flex align-items-start justify-content-end p-2">
                 <button type="button" class="btn btn-outline-danger btn-sm"
-                  (click)="deleteSubModule(entityList,subModuleIndex,subModuleType)" title="Delete {{subModuleType}}">
+                  (click)="deleteSubModule(entityList,subModuleIndex,entityType)" title="Delete SubModule">
                   <em class="fa fa-trash"></em>
                 </button>
               </div>
             </div>
             <div class="row m-2 mb-2">
               <div class="col-10">
-                <span>{{subModule.subSubModuleList?.length ? subModule.subSubModuleList?.length : 0}} SubModules</span>,
+                <span>{{subModule.subSubModuleList?.length ? subModule.subSubModuleList?.length : 0}}
+                  Sub-SubModules</span>,
                 &nbsp;
                 <span>{{subModule.questionList?.length ? subModule.questionList?.length : 0}} questions</span>
               </div>
@@ -1003,6 +1021,7 @@
     </ng-container>
   </div>
 </ng-template>
+
 
 <!-- Alert Template -->
 <ng-template #alert_message>

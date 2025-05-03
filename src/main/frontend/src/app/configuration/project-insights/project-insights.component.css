@@ -187,3 +187,13 @@
     height: 100vh;
     z-index: 9998;
   }
+
+  .card.isUpdatedFromExcelUpload {
+    border-color: #007BFF;
+    box-shadow: 0 0 2px rgba(0, 123, 255, 0.5);
+  }
+
+  .badge.isUpdatedFromExcelUpload {
+    border-color: #007BFF;
+    box-shadow: 0 0 2px rgba(0, 123, 255, 0.5);
+  }
