@@ -185,6 +185,13 @@ public class ResourceManagementController {
 	    public ServiceResponse combinedPOINTERNALList(@RequestBody ProjectFilterDTO projectFilterDTO) {
 	        return resourceManagementService.combinedPOINTERNALList(projectFilterDTO);
 	    }
+	@RequestMapping(value = "/deleteTeamsByIdsBulk", method = RequestMethod.POST)
+	public ServiceResponse deleteTeamsByIdsBulk(@RequestBody List<TeamDTO> teamDTO) {
+		
+		ServiceResponse response = resourceManagementService.deleteTeamsByIdsBulk(teamDTO);
+		return response;
+	}
+	
 
 
 	

@@ -3,13 +3,10 @@ package com.apmosys.employeeportal.model;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Table;
 
 import org.hibernate.envers.Audited;
 
@@ -19,36 +16,23 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+@Entity
 @Getter
 @Setter
 @ToString
-@Entity
-@Table(name = "teams")
 @Audited
-public class Team {
+public class ProjectManagerMapping {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long teamId;
-	
-	private String teamName;
-	private Long teamLeadId;
-	private Integer projectId;
-	private String teamLeadName;
-	private String isActive;
-	private Long poTeamId;
-	private String description;
-	private String deptIds;
-	private Long spocId;
- 
-	
+	private Long projectManagerMappingId;
+	private Long projectId;
+	private Long projectManagerId;
+	private Integer active;
+	private Long createdBy;
 	private Timestamp createdOn;
-	
+	private Long updatedBy;
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
-	private Long updatedBy;
-	private Long createdBy;
-//	@Embedded
-//	public CommonProperties commonProperty = new CommonProperties();
-
+	
 }

@@ -251,7 +251,8 @@ public class TeamsService {
 			newTeam.setTeamLeadId(teamDTO.getTeamLeadId());
 			newTeam.setProjectId(teamDTO.getProjectId());
 			newTeam.setTeamLeadName(teamLeadName);
-			newTeam.getCommonProperty().setCreatedBy(teamDTO.getCreatedBy());
+			newTeam.setCreatedBy(teamDTO.getCreatedBy());
+			newTeam.setCreatedOn(new Timestamp(System.currentTimeMillis())); 
 			newTeam.setIsActive("Y");
 			newTeam.setDeptIds(department.toString());
 			
@@ -1655,7 +1656,8 @@ public class TeamsService {
 					newTeam.setTeamLeadId(team.getTeamLeadId());
 					newTeam.setProjectId(projectPresent.getProjectId());
 					newTeam.setTeamLeadName(teamLeadName);
-					newTeam.getCommonProperty().setCreatedBy(team.getCreatedBy());
+					newTeam.setCreatedBy(team.getCreatedBy());
+					newTeam.setCreatedOn(new Timestamp(System.currentTimeMillis())); 
 
 					Team teamCreated = teamRepository.save(newTeam);
 

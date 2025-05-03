@@ -6,12 +6,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-@ToString
 @Getter
 @Setter
-public class ProjectFilterDTO {
+@ToString
+public class ProjectManagersDTO {
 	
-	private String approvalStatus;
-	private Long currentUserEmpId;
+	private Long projectManagerId;
+	private String projectManagerName;
 
 }

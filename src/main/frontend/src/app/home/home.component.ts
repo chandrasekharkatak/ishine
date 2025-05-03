@@ -52,7 +52,7 @@ interface LmsRediredtion{
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit, AfterViewInit {
- private lmsurl:any = '';
+ private lmsbaseurl:any = '';
   lines:any=[];
 
  
@@ -254,7 +254,7 @@ obj = { email: this.currentUser.email,token:sessionStorage.getItem('token')};
      window.open(response.serviceResponse, '_blank');
    }
   else{
-     window.open(`${this.lmsurl}home/sign_up`,'_blank');
+     window.open(`${this.lmsbaseurl}home/sign_up`,'_blank');
    }
  })
 

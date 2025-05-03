@@ -28,6 +28,12 @@ public class ReimbursementController {
 		
 	}
 	
+	@PostMapping("/fetchReimbursementDataforApproval")
+	public ServiceResponse fetchReimbursementDataforApproval(@RequestBody ReimbursementDTO reimbursementObj) {
+		return reimbursementService.fetchReimbursementDataforApproval(reimbursementObj.getEmpId());
+		
+	}
+	
 	@PostMapping("/saveReimbursementData")
 	public ServiceResponse saveReimbursementData(@RequestBody ReimbursementDTO reimbursementObj) {
 		return reimbursementService.saveReimbursementData(reimbursementObj);

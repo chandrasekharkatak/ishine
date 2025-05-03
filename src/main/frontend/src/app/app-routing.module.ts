@@ -11,6 +11,7 @@ import { LeaveConfigComponent } from './configuration/leave-config/leave-config.
 import { NewsletterConfigComponent } from './configuration/newsletter-config/newsletter-config.component';
 import { OnBoardingComponent } from './configuration/on-boarding/on-boarding.component';
 import { OthersComponent } from './configuration/others/others.component';
+import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
 import { PortalConfigComponent } from './configuration/portal-config/portal-config.component';
 import { RewardsConfigComponent } from './configuration/rewards-config/rewards-config.component';
 import { RoleConfigComponent } from './configuration/role-config/role-config.component';
@@ -24,16 +25,29 @@ import { Employee360ProjectComponent } from './employee360/employee360-project/e
 import { Employee360RewardsComponent } from './employee360/employee360-rewards/employee360-rewards.component';
 import { Employee360TimesheetComponent } from './employee360/employee360-timesheet/employee360-timesheet.component';
 import { Employee360Component } from './employee360/employee360.component';
+import { Employee360Resolver } from './employee360/Employee360Resolver';
+import { LMSComponent } from './employee360/lms/lms.component';
 import { AuthGuard } from './guards/auth.guard';
 import { HelpdeskComponent } from './helpdesk/helpdesk.component';
 import { HomeComponent } from './home/home.component';
 import { HrPoliciesComponent } from './hr-policies/hr-policies.component';
+import { LmstabComponent } from './lmstab/lmstab.component';
 import { LoginComponent } from './login/login.component';
 import { NewsletterComponent } from './newsletter/newsletter.component';
+import { ProjectViewComponent } from './project-view/project-view.component';
+import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
 import { RecruitmentComponent } from './recruitment/recruitment.component';
+import { MyReimbursementComponent } from './reimbursement/my-reimbursement/my-reimbursement.component';
+import { ReimbursementComponent } from './reimbursement/reimbursement.component';
+import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapproval/reimbursementapproval.component';
+import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/view-reimbursement.component';
 import { AppreciationComponent } from './rewards/appreciation/appreciation.component';
 import { RewardsAndRecognisationComponent } from './rewards/rewards-and-recognisation/rewards-and-recognisation.component';
 import { RewardsComponent } from './rewards/rewards.component';
+import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
+import { TravelAllowanceComponent } from './travel-allowance/travel-allowance.component';
+import { TravelrequestapprovalComponent } from './travel-allowance/travelrequestapproval/travelrequestapproval.component';
+import { ViewTravelrequestComponent } from './travel-allowance/view-travelrequest/view-travelrequest.component';
 import { UserAppreciationComponent } from './user-appreciation/user-appreciation.component';
 import { UserAttendanceComponent } from './user-attendance/user-attendance.component';
 import { MyResignationComponent } from './user-exit/my-resignation/my-resignation.component';
@@ -60,6 +74,7 @@ import { ResourceManagementComponent } from './user-team/resource-management/res
 import { TeamConfigComponent } from './user-team/team-config/team-config.component';
 import { TeamMemberComponent } from './user-team/team-member/team-member.component';
 import { UserTeamComponent } from './user-team/user-team.component';
+import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 import { MyTimesheetComponent } from './user-timesheet/my-timesheet/my-timesheet.component';
 import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-timesheet.component';
 import { UserTimesheetComponent } from './user-timesheet/user-timesheet.component';
@@ -67,21 +82,6 @@ import { DocumentUploadComponent } from './user-update-info/document-upload/docu
 import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
-import { ProjectViewComponent } from './project-view/project-view.component';
-import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
-import { TravelAllowanceComponent } from './travel-allowance/travel-allowance.component';
-import { ReimbursementComponent } from './reimbursement/reimbursement.component';
-import { MyReimbursementComponent } from './reimbursement/my-reimbursement/my-reimbursement.component';
-import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/view-reimbursement.component';
-import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapproval/reimbursementapproval.component';
-import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
-import { ViewTravelrequestComponent } from './travel-allowance/view-travelrequest/view-travelrequest.component';
-import { TravelrequestapprovalComponent } from './travel-allowance/travelrequestapproval/travelrequestapproval.component';
-import { LMSComponent } from './employee360/lms/lms.component';
-import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
-
-import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
-import { Employee360Resolver } from './employee360/Employee360Resolver';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -201,6 +201,7 @@ const routes: Routes = [
   },
   
   {path:'project-view', component: ProjectViewComponent},
+  {path:'lms-tab', component: LmstabComponent, canActivate: [AuthGuard]},
   {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
   {path:'user-survey/:id', component: UserSurveyComponent, canActivate: [AuthGuard]},
@@ -241,6 +242,8 @@ const routes: Routes = [
   },
   {path:'qr-code', component: QrCodeGeneratorComponent, canActivate: [AuthGuard]},
   {path:'**', redirectTo:'home', pathMatch:'full'},
+  
+  //  {path:'**', redirectTo:'home', pathMatch:'full'},
 ];
 
 @NgModule({
