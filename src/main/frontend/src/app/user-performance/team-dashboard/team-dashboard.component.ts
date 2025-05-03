@@ -696,7 +696,8 @@ export class TeamDashboardComponent implements OnInit {
         empId: this.selectedEmployee.empId,
         templateId: Number(goal.templateId),
         expectedCompletionDate: this.datePipe.transform(goal.expectedCompletionDate, 'yyyy-MM-dd'),
-        quarterId: Number(this.selectedQuarter) 
+        quarterId: Number(this.selectedQuarter),
+        assignById: this.currentUser.empId
       };
       
       return this.http.post<GoalResponse>(`${environment.baseUrl}api/EmployeeGoals/assign`, requestBody)

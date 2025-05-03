@@ -43,9 +43,9 @@ public class EmployeeGoalService {
     @Autowired
     private GoalRemarksRepository goalRemarksRepository;
     
-    public EmployeeGoalDTO assignGoalToEmployee(Long empId, Long templateId, LocalDate expectedCompletionDate, Long quarterId) {
+    public EmployeeGoalDTO assignGoalToEmployee(Long empId, Long templateId, LocalDate expectedCompletionDate, Long quarterId,Long assignById) {
         Long tid = employeeGoalRepository.findByTemplateId(templateId, empId);
-        
+        String assignedBy = employeeRepository.findNameByEmpID(assignById);
         if(templateId != tid || tid == null) {
             Optional<GoalTemplates> vopt = goalTemplateRepo.findById(templateId);
             GoalTemplates template = null;
@@ -83,7 +83,7 @@ public class EmployeeGoalService {
             
             employeeGoalDTO.setEmpId(empId);
             employeeGoalDTO.setTemplateId(templateId);
-            employeeGoalDTO.setAssignedBy(template.getCreatedBy());
+            employeeGoalDTO.setAssignedBy(assignedBy);
             employeeGoalDTO.setDescription(template.getDescription());
             employeeGoalDTO.setGoalTitle(template.getTitle());
             employeeGoalDTO.setGoalProgress(iniprogress); // Default status
@@ -99,7 +99,7 @@ public class EmployeeGoalService {
         }
     }
     
-    public List<EmployeeGoalDTO> assignGoalToMultipleEmployees(List<Long> empIds, Long templateId, LocalDate expectedCompletionDate, Long quarterId) {
+    public List<EmployeeGoalDTO> assignGoalToMultipleEmployees(List<Long> empIds, Long templateId, LocalDate expectedCompletionDate, Long quarterId,Long assignById) {
         List<EmployeeGoalDTO> assignedGoals = new ArrayList<>();
         
         for (Long empId : empIds) {
@@ -139,10 +139,11 @@ public class EmployeeGoalService {
                     employeeGoalDTO.setQuarter("Unknown Quarter");
                 }
                 
+                String assignedBy = employeeRepository.findNameByEmpID(assignById);
                 Integer iniprogress = 0;
                 employeeGoalDTO.setEmpId(empId);
                 employeeGoalDTO.setTemplateId(templateId);
-                employeeGoalDTO.setAssignedBy(template.getCreatedBy());
+                employeeGoalDTO.setAssignedBy(assignedBy);
                 employeeGoalDTO.setDescription(template.getDescription());
                 employeeGoalDTO.setGoalTitle(template.getTitle());
                 employeeGoalDTO.setGoalProgress(iniprogress);
@@ -236,11 +237,11 @@ public class EmployeeGoalService {
         return response;
     }
     
-    public ServiceResponse bulkAssignGoals(List<Long> empIds, Long templateId, LocalDate expectedCompletionDate, Long quarterId) {
+    public ServiceResponse bulkAssignGoals(List<Long> empIds, Long templateId, LocalDate expectedCompletionDate, Long quarterId, Long assignById) {
         ServiceResponse response = new ServiceResponse();
         
         try {
-            List<EmployeeGoalDTO> assignedGoals = assignGoalToMultipleEmployees(empIds, templateId, expectedCompletionDate, quarterId);
+            List<EmployeeGoalDTO> assignedGoals = assignGoalToMultipleEmployees(empIds, templateId, expectedCompletionDate, quarterId,assignById);
             
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse(assignedGoals);
@@ -413,6 +414,7 @@ public class EmployeeGoalService {
 
     // Method to convert entity to DTO including all remarks
     private EmployeeGoalDTO convertToDTO(EmployeeGoals goal) {
+    	
         EmployeeGoalDTO dto = new EmployeeGoalDTO();
         dto.setGoalId(goal.getGoalId());
         dto.setGoalTitle(goal.getGoalTitle());
@@ -505,6 +507,7 @@ public class EmployeeGoalService {
     }
     
     private EmployeeGoalDTO convertToDTOWithLatestRemark(EmployeeGoals entity) {
+    	
         EmployeeGoalDTO dto = new EmployeeGoalDTO();
         dto.setGoalId(entity.getGoalId());
         dto.setEmpId(entity.getEmpId());
@@ -625,7 +628,7 @@ public class EmployeeGoalService {
             if (row[7] != null) dto.setGoalProgress(Integer.parseInt(row[7].toString()));
             if (row[8] != null) dto.setGoalStatus(row[8].toString());
             if (row[9] != null) dto.setGoalTitle(row[9].toString());
-            if (row[5] != null) dto.setAssignedBy((Long) row[5]);
+            if (row[5] != null) dto.setAssignedBy( row[5].toString());
             if (row[4] != null) dto.setDescription(row[4].toString());
             if (row[12] != null) dto.setQuarter(row[12].toString());
             if (row[13] != null) dto.setQuarterId(Long.parseLong(row[13].toString()));

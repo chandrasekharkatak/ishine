@@ -3,6 +3,8 @@ package com.apmosys.employeeportal.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.apmosys.employeeportal.model.Kresponse;
+
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,6 +28,7 @@ public class EmployeeKpiMappingDTO {
     private Long managerRating;
     private String managerRemark;
     private String employeeRole;
+   
 	public void addKpi(EmployeeKpisDTO kpiDto) {
 		// TODO Auto-generated method stub
 		

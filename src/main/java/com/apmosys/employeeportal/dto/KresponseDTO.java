@@ -16,5 +16,5 @@ public class KresponseDTO {
 //    private Long rating;
     private String remark; 
     private Long progress;
-    
+   
 }

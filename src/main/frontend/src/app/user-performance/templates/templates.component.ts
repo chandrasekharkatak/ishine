@@ -15,8 +15,6 @@ import { User } from 'src/app/models/user';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { Sort } from '@angular/material/sort';
 
-
-
 import { Log } from 'src/app/models/log';
 import { Feature } from 'src/app/models/feature';
 import { LogService } from 'src/app/services/log.service';
@@ -48,22 +46,21 @@ export class TemplatesComponent implements OnInit {
   selectedQuarterId: number | null = null;
   selectdepartmentId:number| null= null;
   isSearchEnabled: boolean = false;
-selectedDepartmentId: number | null = null;
+  selectedDepartmentId: number | null = null;
   selectedQuarterIdForKpi: number | null = null;
-quarterCyclesList: any;
-selectedQuarter1: any;
-selectedQuarter: any;
+  quarterCyclesList: any;
+  selectedQuarter1: any;
+  selectedQuarter: any;
   errorMessage: any;
   currentEmployeeInfo:Employee = new Employee();
-quarter: any;
-alertMessage: any;
-modalRef?: BsModalRef;
-jobRoleObj: any;
-template: any;
+  quarter: any;
+  alertMessage: any;
+  modalRef?: BsModalRef;
+  jobRoleObj: any;
+  template: any;
   templateIdToDelete: number;
   kraKpiIdToDelete: number;
   questionnaireIdToDelete: number;
-// jobRoleObj: any;
   filters: any = {};
   sortDirection = 'asc';
   sortColumn: any;
@@ -184,9 +181,6 @@ template: any;
         this.errorMessage = error.message || 'Error fetching quarters.';
       }
     });
-
-  
-
   }
 
   createQuestionField(): FormGroup {
@@ -246,10 +240,6 @@ template: any;
         response: null,
         departmentId: this.questionnaireForm.value.departmentId,
       };
-      
-      // console.log('Form data to submit:', questionnaireData);
-      // console.log('Quarter ID:', this.selectedQuarterId);
-      // console.log('Department ID:', this.selectedDepartmentId);
       
       if (this.isEditing && this.editingTemplateId) {
         this.updateQuestionnaireTemplate(this.editingTemplateId, questionnaireData,this.alert_message);
@@ -311,7 +301,6 @@ template: any;
 
 
   createKraKpiTemplate(formData: KpiTemplate, template: TemplateRef<any>) {
-    // console.log('Sending KPI template data:', formData);
     this.kraKpiService.createKpiTemplate(formData,formData.quarterId,formData.departmentId,formData.employee_role)
       .pipe(first())
       .subscribe({
@@ -413,7 +402,10 @@ template: any;
 
   setActiveTab(tab: string) {
     this.activeTab = tab;
-    this.isSearchEnabled=false;
+    this.isSearchEnabled = false;
+    // Reset department selection when switching tabs
+    this.selectedDept = null;
+    
     if (tab === 'goals') this.fetchGoalTemplates();
     if (tab === 'kra-kpi') {
       this.fetchKraKpiTemplates(); 
@@ -728,8 +720,6 @@ template: any;
     }
   }
   
-  
-
   onKraKpiSubmit() {
     if (this.kpikraForm.valid) {
       const formData = this.kpikraForm.value;
@@ -787,7 +777,6 @@ template: any;
         }
       });
   }
-  
 
   resetForm() {
     this.templateForm.reset();

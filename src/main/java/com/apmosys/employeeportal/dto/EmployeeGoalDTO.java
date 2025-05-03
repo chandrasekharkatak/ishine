@@ -23,11 +23,12 @@ public class EmployeeGoalDTO {
     private String managerRemark;
     private String employeeRemark;
     private Long templateId;
-    private Long assignedBy;
+    private String assignedBy;
     private String quarter;
     private Long quarterId;
     private String expectedCompletionDate;
     private String createdDate;
+    private Long assignById;
     private List<GoalRemarksDTO> remarks;
     
     // Getters and setters

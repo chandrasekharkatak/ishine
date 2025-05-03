@@ -281,6 +281,7 @@ public class KpiService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         "KPI mapping not found for employee ID: " + empId + " and quarter ID: " + quarterId));
     }
+    
     // Helper method to convert EmployeeKpiMapping entity to DTO
     private EmployeeKpiMappingDTO toEmployeeKpiMappingDTO(EmployeeKpiMapping mapping) {
         EmployeeKpiMappingDTO dto = new EmployeeKpiMappingDTO();
@@ -316,6 +317,34 @@ public class KpiService {
         }
         
         return dto;
+    }
+    
+    public EmployeeKpiMappingDTO addKpiToEmployeeMapping(Long empId, Long quarterId, EmployeeKpisDTO kpiDetails) {
+        // Find existing mapping for the employee and quarter
+        Optional<EmployeeKpiMapping> mappingOptional = employeeKpiMappingRepository
+                .findByEmpIdAndQuarterId(empId, quarterId);
+        
+        // Throw exception if mapping doesn't exist
+        EmployeeKpiMapping mapping = mappingOptional.orElseThrow(() -> 
+                new EntityNotFoundException("KPI mapping not found for employee ID: " + empId + 
+                        " and quarter ID: " + quarterId));
+        
+        // Create new KPI for the employee
+        EmployeeKpis employeeKpi = new EmployeeKpis();
+        employeeKpi.setDescription(kpiDetails.getDescription());
+        employeeKpi.setEmployeeKpiMapping(mapping);
+        
+        // Add the KPI to the mapping's list
+        if (mapping.getKpis() == null) {
+            mapping.setKpis(new ArrayList<>());
+        }
+        mapping.getKpis().add(employeeKpi);
+        
+        // Save the updated mapping
+        EmployeeKpiMapping updatedMapping = employeeKpiMappingRepository.save(mapping);
+        
+        // Convert to DTO and return
+        return toEmployeeKpiMappingDTO(updatedMapping);
     }
     
     

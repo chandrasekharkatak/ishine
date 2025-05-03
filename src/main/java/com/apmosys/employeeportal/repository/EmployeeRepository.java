@@ -541,4 +541,7 @@ List<Object[]> findEmployeesInSameDepartmentAsCurrentUser(Long hodId);
 		+ "WHERE e.employmentstatus not like 'InActive' AND ((e.managerId =:empId AND (e.approvalsTo = 'Manager' OR e.approvalsTo IS NULL)) OR (e.reportingManagerId =:empId AND e.approvalsTo = 'Reporting Manager'))")
 List<Object> findexample(@Param("empId") Long empId);
 
+@Query(value = "Select name from Employee where empId = :empId")
+public String findNameByEmpID(Long empId);
+	
 }

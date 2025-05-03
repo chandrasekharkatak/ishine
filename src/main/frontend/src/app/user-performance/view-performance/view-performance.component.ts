@@ -548,7 +548,7 @@ export class ViewPerformanceComponent implements OnInit {
                 });
               } else {
                 // No responses found, initialize all questions
-                this.initializeQuestions();
+                this.initializeQuestionnaireData();
               }
             },
             error: (error) => {
@@ -610,56 +610,44 @@ export class ViewPerformanceComponent implements OnInit {
   loadKpiList(): void {
     const quarterId = this.selectedQuarter;
     const departmentId = this.currentEmployeeInfo.departmentId;
-    const employeeRole = this.currentUser.employeeRole;
     let currentEmp = new Employee();
     currentEmp.empId = this.viewPerformanceEmpId;
     
     this.kpiList = [];
     
-    if (!quarterId || !departmentId) return;
+    if (!quarterId || !this.viewPerformanceEmpId) return;
     
     this.performanceService.getKraKpi(currentEmp.empId,quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
-          // Store the KPI template
-          this.kpiList = response.serviceResponse[0].kpis;
+          this.kpiList = response.serviceResponse.kpis.map(kpi => ({
+            id: kpi.id, 
+            description: kpi.description, 
+            progress: kpi.progress || 0,
+            response: 0,
+            remark: '',
+          }));
           console.log('KPI list loaded:', this.kpiList);
           
-          // Now fetch the saved KPI responses
           this.performanceService.showresponse(currentEmp.empId, quarterId).subscribe({
             next: (responseData: any) => {
               console.log('Saved KPI responses:', responseData);
               
               if (responseData && Array.isArray(responseData) && responseData.length > 0) {
-                // Map the saved responses to the KPIs
                 this.kpiList.forEach(kpi => {
                   const savedResponse = responseData.find((resp: any) => 
-                    resp.kpiId === kpi.id
+                    resp.description === kpi.description
                   );
                   
-                  if (savedResponse) {
-                    // Store the database record ID for update operations
-                    
+                  if (savedResponse) {                    
                     kpi.response = savedResponse.response || 0;
-                    kpi.description = savedResponse.description || '';
-                    kpi.managerRating = savedResponse.managerRating;
-                    kpi.managerRemark = savedResponse.managerRemark;
+                    kpi.progress = savedResponse.progress || 0;
+                    kpi.remark = savedResponse.remark;
                     
                     console.log(`Found saved response for KPI ${kpi.id}:`, kpi.response);
-                  } else {
-                    // No saved response found, initialize
-                    
-                    kpi.response = 0;
-                    kpi.description = '';
-                    kpi.managerRating = null;
-                    kpi.managerRemark = null;
-                    
-                  }
+                  } 
                 });
-              } else {
-                // No responses found, initialize all KPIs
-                this.initializeQuestions();
-              }
+              } 
             },
             error: (error) => {
               console.error('Error fetching saved KPI responses:', error);
@@ -679,18 +667,16 @@ export class ViewPerformanceComponent implements OnInit {
   saveKpiResponses(template: TemplateRef<any>): void {
     console.log("Response ======> " + JSON.stringify(this.kpiList));
   
-    const response = this.kpiList;
     let currentEmp = new Employee();
     currentEmp.empId = this.viewPerformanceEmpId;
     const quarterId = this.selectedQuarter;
   
-    this.performanceService.submitKpiResponses(response, currentEmp.empId, quarterId).subscribe({
+    this.performanceService.submitKpiResponses(this.kpiList, currentEmp.empId, quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.alertMessage = "KPI responses submitted successfully!";
           this.openAlertMod(template, this.alertMessage);
-          
-          // Reload the KPI list to refresh with the latest data
+          this.loadPerformanceStats();
           this.loadKpiList();
         } else {
           this.alertMessage = `Failed to submit responses: ${response.serviceMessage}`;

@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.controller;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeKpiMappingDTO;
+import com.apmosys.employeeportal.dto.EmployeeKpisDTO;
 import com.apmosys.employeeportal.dto.EmployeeKpiMappingDTO;
 import com.apmosys.employeeportal.dto.KpiDTO;
 import com.apmosys.employeeportal.dto.QuestionnaireDTO;
@@ -281,5 +282,27 @@ public class KpiController {
         }
         return response;
     }
+    
+    @PostMapping("/employee/{empId}/quarter/{quarterId}/addkpiList")
+    public ServiceResponse addKpiDetails(
+            @PathVariable Long empId, 
+            @PathVariable Long quarterId, 
+            @RequestBody EmployeeKpisDTO kpiDetails) {
+        
+        ServiceResponse response = new ServiceResponse();
+        try {
+            EmployeeKpiMappingDTO updatedMapping = kpiService.addKpiToEmployeeMapping(empId, quarterId, kpiDetails);
+            response.setServiceResponse(updatedMapping);
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceMessage("KPI detail added successfully to employee ID " + empId + 
+                    " for quarter ID " + quarterId);
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceMessage(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceError(e.getMessage());
+        }
+        return response;
+    }
+
 }
 

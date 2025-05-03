@@ -272,7 +272,7 @@
                           min="0"
                           max="100" 
                           step="1" 
-                          value="{{kpi.progress || 0}}"
+                          value="{{kpi.progress}}"
                            
                           class="form-range flex-grow-1"
                           disabled
@@ -280,7 +280,7 @@
                         <span class="ms-2">100</span>
                       </div>
                     </div>
-                    <div class="col-md-3 mb-2" *ngIf="kpi.progress==100" >
+                    <div class="col-md-3 mb-2"  >
                       <div class="d-flex align-items-center mb-2">
                         <label class="form-label me-2 mb-0">Rating:</label>
                         <span>{{kpi.response}}</span>
@@ -295,18 +295,25 @@
                           [(ngModel)]="kpi.response"
                           [ngModelOptions]="{ standalone: true }"
                           class="form-range flex-grow-1"
+                          [disabled]="kpi.progress < 100"
                            />
                         <span class="ms-2">10</span>
                       </div>
                     </div>
                     <div class="col-md-3">
-                      <textarea class="form-control" placeholder="Justify your ratings" [value]="kpi.remark || '' " ></textarea>
+                      <textarea
+                        class="form-control"
+                        placeholder="Justify your ratings"
+                        [(ngModel)]="kpi.remark"
+                        [ngModelOptions]="{ standalone: true }"
+                        required
+                      ></textarea>
                     </div>
                   </div>
                 </div>
                 
                 <!-- Manager Review Section -->
-                <div class="list-group-item p-3 mb-2 bg-light">
+                <!-- <div class="list-group-item p-3 mb-2 bg-light">
                   <div class="row">
                     <div class="col-md-4 mb-2">
                       <label class="form-label fw-bold">Review by:</label>
@@ -319,7 +326,7 @@
                       <textarea class="form-control" readonly>Employee's remark</textarea>
                     </div>
                   </div>
-                </div>
+                </div> -->
               </div>
               
               <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
@@ -364,7 +371,7 @@
                           step="0.5" 
                           [(ngModel)]="question.managerRating" 
                           [ngModelOptions]="{ standalone: true }"
-                          [value]="question.managerRating || 0"
+                          [value]="question.managerRating "
                           class="form-range flex-grow-1"
                            />
                         <span class="ms-2">10</span>
@@ -383,14 +390,14 @@
                 </div>
                 
                 <!-- Manager Review Section -->
-                <div class="list-group-item p-3 mb-2 bg-light">
+                <!-- <div class="list-group-item p-3 mb-2 bg-light">
                   <div class="row">
                     <div class="col-md-4 mb-2">
                       <label class="form-label fw-bold">Review by:</label>
                     </div>
                    
                   </div>
-                </div>
+                </div> -->
               </div>
               
               <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">

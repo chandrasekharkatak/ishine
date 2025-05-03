@@ -30,7 +30,8 @@ public class EmployeeGoalController {
             		   request.getEmpId(),
             		    request.getTemplateId(),
             		    completionDate,
-            		    request.getQuarterId()
+            		    request.getQuarterId(),
+            		    request.getAssignById()
             );
 
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -53,7 +54,8 @@ public class EmployeeGoalController {
                 request.getEmpIds(), 
                 request.getTemplateId(), 
                 completionDate,
-                request.getQuarterId()
+                request.getQuarterId(),
+                request.getAssignById()
             );
 
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

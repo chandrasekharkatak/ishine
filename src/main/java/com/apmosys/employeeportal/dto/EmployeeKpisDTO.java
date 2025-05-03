@@ -14,6 +14,7 @@ public class EmployeeKpisDTO {
     private String review;
     private Long kpiMappingId; 
     private Long progress;
+    private Long kresponseId;
     
 	
 		

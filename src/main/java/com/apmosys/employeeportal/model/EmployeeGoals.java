@@ -20,7 +20,7 @@ public class EmployeeGoals {
  
     private Long empId;
    
-    private Long assignedBy;
+    private String assignedBy;
     private Long templateId;
     
     private String goalTitle;

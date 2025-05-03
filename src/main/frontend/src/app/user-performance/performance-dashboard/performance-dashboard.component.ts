@@ -87,10 +87,16 @@ interface kpiList{
   managerRemark: any;
   managerRating: any;
   progress: number;
-  remark: any;
+  remark: String;
   response:any;
   id:number;
   description: string;
+}
+
+interface NewKRA {
+  description: string;
+  progress: number;
+  isEnabled: boolean;
 }
 
 interface awards{
@@ -149,6 +155,8 @@ export class PerformanceDashboardComponent implements OnInit {
   selectedGoal?: Goal;
   modalRef?: BsModalRef;
   modalRef1?: BsModalRef;
+  newKRAList: NewKRA[] = [];
+  modalRef2?: BsModalRef;
   errorMessage: string;
   currentQuestionnaireId: any;
 
@@ -567,12 +575,11 @@ export class PerformanceDashboardComponent implements OnInit {
 
   loadKpiList(): void {
     const quarterId = this.selectedQuarter;
-    const departmentId = this.currentEmployeeInfo.departmentId;
     const empId = this.currentUser.empId;
     
     this.kpiList = [];
     
-    if (!quarterId || !departmentId) return;
+    if (!quarterId || !empId) return;
     
     this.performanceService.getKraKpi(empId, quarterId).subscribe({
       next: (response: any) => {
@@ -582,7 +589,7 @@ export class PerformanceDashboardComponent implements OnInit {
             description: kpi.description, 
             progress: kpi.progress || 0,
             response: 0,
-            remark: ''
+            remark: '',
           }));
           
           this.kpiList.forEach(kpi => {
@@ -598,7 +605,7 @@ export class PerformanceDashboardComponent implements OnInit {
               if (responseData && Array.isArray(responseData) && responseData.length > 0) {
                 this.kpiList.forEach(kpi => {
                   const savedResponse = responseData.find((resp: any) => 
-                    resp.id === kpi.id
+                    resp.description === kpi.description
                   );
                   
                   if (savedResponse) {
@@ -625,20 +632,21 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
   saveKpiResponses(template: TemplateRef<any>): void {
-    const payload = this.kpiList.map(kpi => ({
-      id: kpi.id,
-      description: kpi.description,
-      progress: kpi.progress,
-      response: kpi.response, 
-      remark: kpi.remark 
-    }));
+    // Create payload with properly formatted KPI responses
+    // const payload = this.kpiList.map(kpi => ({
+    //   id: kpi.id,
+    //   description: kpi.description,
+    //   progress: kpi.progress,
+    //   response: kpi.response, // Include the response rating
+    //   remark: kpi.remark // Include any remarks if needed
+    // }));
     
     const empId = this.currentEmployeeInfo.empId;
     const quarterId = this.selectedQuarter;
 
-    console.log("Sending KPI responses:", payload);
+    // console.log("Sending KPI responses:", payload);
 
-    this.performanceService.submitKpiResponses(payload, empId, quarterId).subscribe({
+    this.performanceService.submitKpiResponses(this.kpiList, empId, quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.alertMessage = "KPI responses submitted successfully!";
@@ -660,12 +668,6 @@ export class PerformanceDashboardComponent implements OnInit {
   
 
   saveUpdates(template: TemplateRef<any>) {
-  const newRemark = {
-    remarkBy: this.currentUser.empId,
-    remarkByName: this.currentUser.name, 
-    remarkText: this.selectedGoal.managerRemark || this.selectedGoal.employeeRemark, 
-    date: new Date() 
-  };
 
   const payload = {
     goalProgress: this.selectedGoal.goalProgress,
@@ -774,6 +776,83 @@ export class PerformanceDashboardComponent implements OnInit {
     this.selectedGoal.remarks = this.goalRemarks;
 
     this.newRemarkText = '';
+  }
+
+  openAddKRAModal(template: TemplateRef<any>): void {
+    // Initialize with one empty KRA
+    this.newKRAList = [{
+      description: '',
+      progress: 0,
+      isEnabled: false
+    }];
+    
+    this.modalRef2 = this.modalService.show(template, { 
+      class: 'modal-lg',
+      backdrop: 'static',
+      keyboard: false
+    });
+  }
+
+  addAnotherKRA(): void {
+    this.newKRAList.push({
+      description: '',
+      progress: 0,
+      isEnabled: false
+    });
+  }
+
+  deleteKRA(index: number): void {
+    this.newKRAList.splice(index, 1);
+  }
+
+  toggleEnableKRA(index: number): void {
+    this.newKRAList[index].isEnabled = !this.newKRAList[index].isEnabled;
+  }
+
+  submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
+    const empId = this.currentEmployeeInfo.empId;
+    const quarterId = this.selectedQuarter;
+    
+    if (!kra.description.trim()) {
+      this.alertMessage = "Description cannot be empty";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    
+    this.performanceService.addNewKRA(kra, empId, quarterId).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.alertMessage = "KRA added successfully!";
+          this.openAlertMod(template, this.alertMessage);
+          kra.isEnabled = true;
+          this.loadKpiList();
+        } else {
+          this.alertMessage = `Failed to add KRA: ${response.serviceMessage}`;
+          this.openAlertMod(template, this.alertMessage);
+        }
+      },
+      error: (error) => {
+        console.error('Error adding new KRA:', error);
+        this.alertMessage = `Error adding new KRA: ${error.message || error}`;
+        this.openAlertMod(template, this.alertMessage);
+      }
+    });
+  }
+
+  saveAllKRAs(template: TemplateRef<any>): void {
+    const unenabled = this.newKRAList.filter(kra => !kra.isEnabled && kra.description.trim());
+    
+    if (unenabled.length > 0) {
+      this.alertMessage = "You have unsaved KRAs. Please enable them or remove them before closing.";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    
+    if (this.modalRef2) {
+      this.modalRef2.hide();
+    }
+    
+    this.loadKpiList();
   }
 
 

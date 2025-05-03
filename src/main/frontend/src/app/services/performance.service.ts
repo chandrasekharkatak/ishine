@@ -193,54 +193,20 @@ export class PerformanceService {
       })
     );
   }
-  // submitQuestionnaireResponses(
-  //   questions: any[],
-  //   employeeId: number,
-  //   quarterId: number
-  // ): Observable<any> {
-  //   // Create a clean payload with explicit structure
-  //   const payload = {
-  //     employeeId: employeeId,
-  //     quarterId: quarterId,
-  //     questions: questions.map(q => ({
-  //       id: q.id || null,
-  //       questionText: q.questionText,
-  //       response: q.response || 0,
-  //       managerRating: q.managerRating || 0,
-  //       managerRemark: q.managerRemark || ''
-  //     }))
-  //   };
-  
-  //   // Log the final payload
-  //   console.log('API payload:', JSON.stringify(payload));
-  
-  //   return this.http.post<any>(
-  //     `${this.baseUrl}/appraisal/submit-questionnaire`, 
-  //     payload
-  //   ).pipe(
-  //     tap(response => console.log('API response:', response)),
-  //     catchError(err => {
-  //       console.error('API error details:', err);
-  //       return throwError(() => err);
-  //     })
-  //   );
-  // }
-
+ 
   submitKpiResponses(responses: any[], empId: number, quarterId: number) {
-    // Format the responses as DTOs for backend processing
-    const dtos = responses.map(kpi => ({
-      id: kpi.id,
-      description: kpi.description,
-      response: kpi.response,
-      review: kpi.review,
-      isFixed: kpi.isFixed,
-      managerRating: kpi.managerRating,
-      managerRemark: kpi.managerRemark,
-      progress : kpi.progress
-      // Include any other fields needed
-    }));
     
-    return this.http.post<any>(`${this.baseUrl}api/kpi-responses/save/${empId}/quarter/${quarterId}`, dtos);
+    return this.http.post<any>(`${this.baseUrl}api/kpi-responses/save/${empId}/quarter/${quarterId}`, responses);
+  }
+
+  addNewKRA(kra: any, empId: number, quarterId: number) {
+    const payload = {
+      
+      description: kra.description,
+      progress: kra.progress
+    };
+    
+    return this.http.post<any>(`${this.baseUrl}api/kpi/employee/${empId}/quarter/${quarterId}/addkpiList`, payload);
   }
 }
 

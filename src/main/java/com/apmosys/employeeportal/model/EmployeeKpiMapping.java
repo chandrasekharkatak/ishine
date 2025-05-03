@@ -37,6 +37,9 @@ public class EmployeeKpiMapping {
     @OneToMany(mappedBy = "employeeKpiMapping", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EmployeeKpis> kpis = new ArrayList<>();
 
+    
+   
+    
     private String approvedBy;
     private String createdBy;
 
