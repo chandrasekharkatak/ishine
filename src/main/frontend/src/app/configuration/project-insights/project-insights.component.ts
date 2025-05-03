@@ -258,7 +258,7 @@ export class ProjectInsightsComponent implements OnInit {
           question.currentActiveBadgeLevel = 'Details';
         });
       }
-      if (submoduleObj.subSubModuleList != undefined && submoduleObj.subSubModuleList != null && submoduleObj.subSubModuleList?.length != 0) {
+      if (this.isValidList(submoduleObj.subSubModuleList)) {
         this.addAllSubModuleBreadCrumbs(submoduleObj.subSubModuleList, 'Sub-SubModule');
       }
     });
@@ -275,8 +275,8 @@ export class ProjectInsightsComponent implements OnInit {
     } else {
       this.breadCrumbs.push(this.createBreadCrumbObj(entityType, entityId, entityObj, !entityName ? entityType : entityName));
     }
-    this.changeCurrentActiveBadgeLevel(entityObj, entityObj?.currentActiveBadgeLevel, entityType, entityName, entityId);
-    this.clearFileInput();
+    this.file = null;
+    this.fileName = null;
   }
 
   // Badge Change
@@ -295,6 +295,7 @@ export class ProjectInsightsComponent implements OnInit {
       milestoneList = [];
     }
     milestoneList.push(milestone);
+    this.entityObj.projectInsightMilestoneList = milestoneList;
     this.entityObj = null;
     this.viewType = 'Milestone';
     this.entityObj = milestone;
@@ -322,6 +323,7 @@ export class ProjectInsightsComponent implements OnInit {
       moduleList = [];
     }
     moduleList.push(module);
+    this.entityObj.moduleList = moduleList;
     this.entityObj = null;
     this.viewType = 'Module';
     this.entityObj = module;
@@ -350,6 +352,7 @@ export class ProjectInsightsComponent implements OnInit {
     }
     subModule.subSubModuleList = [];
     subModuleList.push(subModule);
+    this.entityObj.subSubModuleList = subModuleList;
     this.entityObj = null;
     this.viewType = subModuleType;
     this.entityObj = subModule;
@@ -423,78 +426,37 @@ export class ProjectInsightsComponent implements OnInit {
     return crumb;
   }
 
-  checkForIsValueUpdatedFromExcelUpload(entityType: any, entity: any, badgeLevel: any) {
-    let isValueUpdatedFromExcelUpload = 'No';
-    if (entityType == 'Project') {
-      if (badgeLevel == 'Questions') {
-        if (this.isValidList(entity?.questionList)) {
-          entity?.questionList.forEach((question) => {
-            if (question.isUpdatedFromExcelUpload == 'Yes') {
-              isValueUpdatedFromExcelUpload = 'Yes';
-              return isValueUpdatedFromExcelUpload;
-            }
-          })
-        }
-      }
-    }
-    else if (badgeLevel == 'Milestones') {
-
-    }
-    else if (badgeLevel == 'Modules') {
-
-    }
-    else if (badgeLevel == 'SubModules') {
-
-    }
-    else if (badgeLevel == 'Sub-SubModules') {
-
-    }
-    else {
-      isValueUpdatedFromExcelUpload = 'No'
-    }
-    return isValueUpdatedFromExcelUpload;
-  }
 
   getBadgePathList(entityType: any, entity: any, subModuleType?: any) {
     if (entityType == 'Project') {
       return [
         { name: 'Details', isUpdatedFromExcelUpload: 'No' },
-        { name: 'Questions', isUpdatedFromExcelUpload: 'Yes' },
-        { name: 'Milestones', isUpdatedFromExcelUpload: this.checkForIsValueUpdatedFromExcelUpload(entityType, entity, 'Milestones') },
+        { name: 'Questions', isUpdatedFromExcelUpload: this.computeFlagsForQuestions(entity?.questionList) },
+        { name: 'Milestones', isUpdatedFromExcelUpload: this.computeFlagsForMilestones(entity?.projectInsightMilestoneList) },
       ];
     }
     else if (entityType == 'Milestone') {
       return [
         { name: 'Details', isUpdatedFromExcelUpload: 'No' },
-        { name: 'Questions', isUpdatedFromExcelUpload: 'No' },
-        { name: 'Modules', isUpdatedFromExcelUpload: 'No' },
+        { name: 'Questions', isUpdatedFromExcelUpload: this.computeFlagsForQuestions(entity?.questionList) },
+        { name: 'Modules', isUpdatedFromExcelUpload: this.computeFlagsForModules(entity?.moduleList) },
       ];
     }
     else if (entityType == 'Module') {
       return [
         { name: 'Details', isUpdatedFromExcelUpload: 'No' },
-        { name: 'Questions', isUpdatedFromExcelUpload: 'No' },
-        { name: 'SubModules', isUpdatedFromExcelUpload: 'No' },
+        { name: 'Questions', isUpdatedFromExcelUpload: this.computeFlagsForQuestions(entity?.questionList) },
+        { name: 'SubModules', isUpdatedFromExcelUpload: this.computeFlagsForSubModules(entity?.subModuleList) },
       ];
     }
-    else if (entityType == 'SubModule') {
+    else if (entityType == 'SubModule' || entityType == 'Sub-SubModule') {
       if (!subModuleType) {
         subModuleType = 'SubModule'
       }
       return [
         { name: 'Details', isUpdatedFromExcelUpload: 'No' },
-        { name: 'Questions', isUpdatedFromExcelUpload: 'No' },
-        { name: subModuleType + 's', isUpdatedFromExcelUpload: 'No' },
-      ];
-    }
-    else if (entityType == 'Sub-SubModule') {
-      if (!subModuleType) {
-        subModuleType = 'SubModule'
-      }
-      return [
-        { name: 'Details', isUpdatedFromExcelUpload: 'No' },
-        { name: 'Questions', isUpdatedFromExcelUpload: 'No' },
-        { name: 'Sub-SubModules', isUpdatedFromExcelUpload: 'No' },
+        { name: 'Questions', isUpdatedFromExcelUpload: this.computeFlagsForQuestions(entity?.questionList) },
+        { name: subModuleType + 's', isUpdatedFromExcelUpload: this.computeFlagsForSubModules(entity?.subSubModuleList) },
       ];
     }
     else if (entityType == 'Question') {
@@ -521,13 +483,13 @@ export class ProjectInsightsComponent implements OnInit {
   convertJSONToStringSubModuleNodesOption(subModuleList: ProjectSubModule[]) {
     subModuleList.forEach((submoduleObj: any) => {
       submoduleObj.toTagEmployeeList = [];
-      if (submoduleObj.questionList != undefined && submoduleObj.questionList != null && submoduleObj.questionList?.length != 0) {
+      if (this.isValidList(submoduleObj.questionList)) {
         submoduleObj.questionList.forEach((questionObj: ProjectQuestion) => {
           questionObj.toTagEmployeeList = [];
           questionObj.options = JSON.stringify(questionObj.optionsList);
         });
       }
-      if (submoduleObj.subSubModuleList != undefined && submoduleObj.subSubModuleList != null && submoduleObj.subSubModuleList?.length != 0) {
+      if (this.isValidList(submoduleObj.subSubModuleList)) {
         this.convertJSONToStringSubModuleNodesOption(submoduleObj.subSubModuleList);
       }
     });
@@ -536,7 +498,7 @@ export class ProjectInsightsComponent implements OnInit {
   convertStringToJSONSubModuleNodesOption(subModuleList: ProjectSubModule[]) {
     subModuleList.forEach((submoduleObj: any) => {
       this.parseOptionsOfQuestionToList(submoduleObj.questionList);
-      if (submoduleObj.subSubModuleList != undefined && submoduleObj.subSubModuleList != null && submoduleObj.subSubModuleList.length != 0) {
+      if (this.isValidList(submoduleObj.subSubModuleList)) {
         this.convertStringToJSONSubModuleNodesOption(submoduleObj.subSubModuleList);
       }
     });
@@ -562,12 +524,12 @@ export class ProjectInsightsComponent implements OnInit {
     question.badgePathList = this.getBadgePathList(entityType, question);
     question.toTagEmployeeList = this.getToTagEmployeeList(assignedToUserIds);
     let projectResponseList: ProjectResponse[] = question?.projectResponseList || [];
-    if (projectResponseList != null && projectResponseList?.length != 0) {
+    if (this.isValidList(projectResponseList)) {
       projectResponseList.forEach((response: ProjectResponse, index) => {
         if (recommendedResponseId != undefined && recommendedResponseId != null && response.projectInsightResponseId == recommendedResponseId) {
           response.isRecommendedChecked = true;
         }
-        if (response.projectInsightResponsePointList != undefined && response.projectInsightResponsePointList != null && response.projectInsightResponsePointList?.length > 0) {
+        if (this.isValidList(response.projectInsightResponsePointList)) {
           let responsePointsByUserIdList = response?.projectInsightResponsePointList.map(responsePoint => responsePoint.pointsBy);
           if (!responsePointsByUserIdList.includes(this.currentUser.empId)) {
             this.isResponsePointFinalSubmitted = false;
@@ -591,7 +553,7 @@ export class ProjectInsightsComponent implements OnInit {
         response.optionsList = JSON.parse(response.options);
         if (optionType == 'checkbox') {
           response.responseList = JSON.parse(response.response || '[]');
-          if (response.optionsList?.length) {
+          if (this.isValidList(response.optionsList)) {
             response.optionsList.forEach((option, index) => {
               if (response?.responseList.includes(option?.optionValue)) {
                 option.isChecked = true
@@ -624,7 +586,7 @@ export class ProjectInsightsComponent implements OnInit {
     this.projectInsightObj.badgePathList = this.getBadgePathList('Project', this.projectInsightObj);
     this.projectInsightObj.currentActiveBadgeLevel = 'Details';
     this.projectInsightObj.toTagEmployeeList = this.getToTagEmployeeList(this.projectInsightObj.assignedToUserId);
-    if (this.projectInsightObj.questionList != null && this.projectInsightObj.questionList?.length != 0) {
+    if (this.isValidList(this.projectInsightObj.questionList)) {
       this.projectInsightObj.questionList.forEach((question: ProjectQuestion, index) => {
         this.mapQuestionsResponseList(question, question.optionType, question.options, question.recommendedResponseId, 'Question', this.projectInsightObj.assignedToUserId);
       });
@@ -634,24 +596,24 @@ export class ProjectInsightsComponent implements OnInit {
       milestone.badgePathList = this.getBadgePathList('Milestone', milestone);
       milestone.currentActiveBadgeLevel = 'Details';
       milestone.toTagEmployeeList = this.getToTagEmployeeList(milestone.assignedToUserId);
-      if (milestone.questionList != null && milestone.questionList?.length != 0) {
+      if (this.isValidList(milestone.questionList)) {
         milestone.questionList.forEach((question: ProjectQuestion, index) => {
           this.mapQuestionsResponseList(question, question.optionType, question.options, question.recommendedResponseId, 'Question', milestone.assignedToUserId);
         });
       }
 
-      if (milestone.moduleList != null && milestone.moduleList?.length != 0) {
+      if (this.isValidList(milestone.moduleList)) {
         milestone.moduleList.forEach((module: any, modIndex) => {
           module.badgePathList = this.getBadgePathList('Module', module);
           module.currentActiveBadgeLevel = 'Details';
           module.toTagEmployeeList = this.getToTagEmployeeList(module.assignedToUserId);
-          if (module.questionList != null && module.questionList?.length != 0) {
+          if (this.isValidList(module.questionList)) {
             module.questionList.forEach((question: ProjectQuestion, index) => {
               this.mapQuestionsResponseList(question, question.optionType, question.options, question.recommendedResponseId, 'Question', module.assignedToUserId);
             });
           }
 
-          if (module.subModuleList != null && module.subModuleList?.length != 0) {
+          if (this.isValidList(module.subModuleList)) {
             this.createSubModuleListObject(module.subModuleList, "SubModule");
           }
         });
@@ -663,14 +625,14 @@ export class ProjectInsightsComponent implements OnInit {
     for (let submoduleIndex = 0; submoduleIndex < (subModuleList?.length || 0); submoduleIndex++) {
       subModuleList[submoduleIndex].toTagEmployeeList = [];
       let submodule = subModuleList[submoduleIndex];
-      if (submodule.questionList?.length) {
+      if (this.isValidList(submodule.questionList)) {
         for (let index = 0; index < submodule.questionList?.length; index++) {
           let question = submodule.questionList[index];
           question.toTagEmployeeList = [];
           this.mapQuestionResponseAndFile(question.projectResponseList, question.optionType, files);
         }
       }
-      if (submodule.subSubModuleList != undefined && submodule.subSubModuleList != null && submodule.subSubModuleList?.length != 0) {
+      if (this.isValidList(submodule.subSubModuleList)) {
         this.convertSubModuleListResponseAndRenameFile(submodule.subSubModuleList, files)
       }
     }
@@ -678,22 +640,22 @@ export class ProjectInsightsComponent implements OnInit {
 
   createSubModuleListObject(subModuleList: ProjectSubModule[], subModuleType: any) {
     subModuleList.forEach((submodule: any, submodIndex) => {
-      submodule.badgePathList = this.getBadgePathList(subModuleType, subModuleType);
+      submodule.badgePathList = this.getBadgePathList(subModuleType,submodule, subModuleType);
       submodule.currentActiveBadgeLevel = 'Details';
       submodule.toTagEmployeeList = this.getToTagEmployeeList(submodule.assignedToUserId);
-      if (submodule.questionList != null && submodule.questionList?.length != 0) {
+      if (this.isValidList(submodule.questionList)) {
         submodule.questionList.forEach((question: ProjectQuestion, index) => {
           this.mapQuestionsResponseList(question, question.optionType, question.options, question.recommendedResponseId, 'Question', submodule.assignedToUserId);
         });
       }
-      if (submodule.subSubModuleList != null && submodule.subSubModuleList?.length != 0) {
+      if (this.isValidList(submodule.subSubModuleList)) {
         this.createSubModuleListObject(submodule.subSubModuleList, "Sub-SubModule");
       }
     });
   }
 
   parseOptionsOfQuestionToList(questionList: ProjectQuestion[]) {
-    if (questionList != null && questionList?.length != 0) {
+    if (this.isValidList(questionList)) {
       questionList.forEach((questionObj: ProjectQuestion) => {
         if (questionObj.optionType == "checkbox" || questionObj.optionType == "radio") {
           questionObj.optionsList = JSON.parse(questionObj.options || '[]');
@@ -703,7 +665,7 @@ export class ProjectInsightsComponent implements OnInit {
   }
 
   getToTagEmployeeList(assignedToUserId: any[]) {
-    if (assignedToUserId != undefined && assignedToUserId != null && assignedToUserId?.length > 0) {
+    if (this.isValidList(assignedToUserId)) {
       return this.allEmployeeList.filter(emp => !assignedToUserId.includes(emp.empId));
     } else {
       return this.allEmployeeList;
@@ -1007,7 +969,7 @@ export class ProjectInsightsComponent implements OnInit {
           return false;
         }
 
-        if (milestone.questionList != null && milestone.questionList?.length != 0) {
+        if (this.isValidList(milestone.questionList)) {
           flag = this.questionValidation(milestone.questionList, mileIndex, template, 'Milestone');
         }
 
@@ -1027,11 +989,11 @@ export class ProjectInsightsComponent implements OnInit {
               return;
             }
 
-            if (module.questionList != null && module.questionList?.length != 0) {
+            if (this.isValidList(module.questionList)) {
               flag = this.questionValidation(module.questionList, modIndex, template, 'Module');
             }
 
-            if (module.subModuleList != null && module.subModuleList?.length != 0) {
+            if (this.isValidList(module.subModuleList)) {
               module.subModuleList.forEach((submodule: any, submodIndex) => {
                 if (!this.validationService.validateNullUndefinedEmptyString(submodule.subModule)) {
                   this.alertMessage = `Please enter sub-module ${submodIndex + 1} !!`;
@@ -1047,7 +1009,7 @@ export class ProjectInsightsComponent implements OnInit {
                   return;
                 }
 
-                if (submodule.questionList != null && submodule.questionList?.length != 0) {
+                if (this.isValidList(submodule.questionList)) {
                   flag = this.questionValidation(submodule.questionList, submodIndex, template, 'sub-module');
                 }
               });
@@ -1181,38 +1143,39 @@ export class ProjectInsightsComponent implements OnInit {
     if (!inputValidated) return;
 
     this.projectInsightObj.toTagEmployeeList = [];
-    if (this.projectInsightObj.questionList != null && this.projectInsightObj.questionList?.length != 0) {
+    if (this.isValidList(this.projectInsightObj.questionList)) {
       this.projectInsightObj.questionList.forEach((questionObj: ProjectQuestion) => {
         questionObj.toTagEmployeeList = [];
         questionObj.options = JSON.stringify(questionObj.optionsList);
       });
     }
+    if (this.isValidList(this.projectInsightObj.projectInsightMilestoneList)) {
+      this.projectInsightObj.projectInsightMilestoneList.forEach((proj: ProjectMilestone) => {
+        proj.toTagEmployeeList = [];
+        if (proj.questionList != null && proj.questionList?.length != 0) {
+          proj.questionList.forEach((questionObj: ProjectQuestion) => {
+            questionObj.toTagEmployeeList = [];
+            questionObj.options = JSON.stringify(questionObj.optionsList);
+          });
+        }
 
-    this.projectInsightObj.projectInsightMilestoneList.forEach((proj: ProjectMilestone) => {
-      proj.toTagEmployeeList = [];
-      if (proj.questionList != null && proj.questionList?.length != 0) {
-        proj.questionList.forEach((questionObj: ProjectQuestion) => {
-          questionObj.toTagEmployeeList = [];
-          questionObj.options = JSON.stringify(questionObj.optionsList);
-        });
-      }
+        if (proj.moduleList != null && proj.moduleList?.length != 0) {
+          proj.moduleList.forEach((moduleObj: any) => {
+            moduleObj.toTagEmployeeList = [];
+            if (moduleObj.questionList != null && moduleObj.questionList?.length != 0) {
+              moduleObj.questionList.forEach((questionObj: ProjectQuestion) => {
+                questionObj.toTagEmployeeList = [];
+                questionObj.options = JSON.stringify(questionObj.optionsList);
+              });
+            }
 
-      if (proj.moduleList != null && proj.moduleList?.length != 0) {
-        proj.moduleList.forEach((moduleObj: any) => {
-          moduleObj.toTagEmployeeList = [];
-          if (moduleObj.questionList != null && moduleObj.questionList?.length != 0) {
-            moduleObj.questionList.forEach((questionObj: ProjectQuestion) => {
-              questionObj.toTagEmployeeList = [];
-              questionObj.options = JSON.stringify(questionObj.optionsList);
-            });
-          }
-
-          if (moduleObj.subModuleList != null && moduleObj.subModuleList?.length != 0) {
-            this.convertJSONToStringSubModuleNodesOption(moduleObj.subModuleList);
-          }
-        });
-      }
-    });
+            if (moduleObj.subModuleList != null && moduleObj.subModuleList?.length != 0) {
+              this.convertJSONToStringSubModuleNodesOption(moduleObj.subModuleList);
+            }
+          });
+        }
+      });
+    }
 
     this.projectInsightObj.createdBy = this.currentUser.empId;
     this.projectInsightService.createProjectInsightQuestion(this.projectInsightObj).pipe(first()).subscribe((response: any) => {
@@ -1229,33 +1192,35 @@ export class ProjectInsightsComponent implements OnInit {
     let inputValidated: boolean = this.validateProjectInsight(template, this.projectInsightObj);
     if (!inputValidated) return;
 
-    if (this.projectInsightObj.questionList != null && this.projectInsightObj.questionList?.length != 0) {
+    if (this.isValidList(this.projectInsightObj.questionList)) {
       this.projectInsightObj.questionList.forEach((questionObj: ProjectQuestion) => {
         questionObj.options = JSON.stringify(questionObj.optionsList);
       });
     }
 
-    this.projectInsightObj.projectInsightMilestoneList.forEach((proj: ProjectMilestone) => {
-      if (proj.questionList != null && proj.questionList?.length != 0) {
-        proj.questionList.forEach((questionObj: ProjectQuestion) => {
-          questionObj.options = JSON.stringify(questionObj.optionsList);
-        });
-      }
+    if (this.isValidList(this.projectInsightObj.projectInsightMilestoneList)) {
+      this.projectInsightObj.projectInsightMilestoneList.forEach((proj: ProjectMilestone) => {
+        if (proj.questionList != null && proj.questionList?.length != 0) {
+          proj.questionList.forEach((questionObj: ProjectQuestion) => {
+            questionObj.options = JSON.stringify(questionObj.optionsList);
+          });
+        }
 
-      if (proj.moduleList != null && proj.moduleList?.length != 0) {
-        proj.moduleList.forEach((moduleObj: any) => {
-          if (moduleObj.questionList != null && moduleObj.questionList?.length != 0) {
-            moduleObj.questionList.forEach((questionObj: ProjectQuestion) => {
-              questionObj.options = JSON.stringify(questionObj.optionsList);
-            });
-          }
+        if (this.isValidList(proj.moduleList)) {
+          proj.moduleList.forEach((moduleObj: any) => {
+            if (moduleObj.questionList != null && moduleObj.questionList?.length != 0) {
+              moduleObj.questionList.forEach((questionObj: ProjectQuestion) => {
+                questionObj.options = JSON.stringify(questionObj.optionsList);
+              });
+            }
 
-          if (moduleObj.subModuleList != null && moduleObj.subModuleList?.length != 0) {
-            this.convertJSONToStringSubModuleNodesOption(moduleObj.subModuleList);
-          }
-        });
-      }
-    });
+            if (this.isValidList(moduleObj.subModuleList)) {
+              this.convertJSONToStringSubModuleNodesOption(moduleObj.subModuleList);
+            }
+          });
+        }
+      });
+    }
 
     this.projectInsightObj.updatedBy = this.currentUser.empId;
     this.projectInsightObj.isExcelUploaded = this.isExcelUploaded;
@@ -1279,15 +1244,15 @@ export class ProjectInsightsComponent implements OnInit {
           this.projectInsightObj = response.serviceResponse;
           this.projectInsightObj.deletedProjectInsightEntityList = [];
           this.parseOptionsOfQuestionToList(this.projectInsightObj.questionList);
-          if (this.projectInsightObj.projectInsightMilestoneList != null && this.projectInsightObj.projectInsightMilestoneList?.length != 0) {
+          if (this.isValidList(this.projectInsightObj.projectInsightMilestoneList)) {
             this.projectInsightObj.projectInsightMilestoneList.forEach((proj: ProjectMilestone) => {
               this.parseOptionsOfQuestionToList(proj.questionList);
 
-              if (proj.moduleList != null && proj.moduleList?.length != 0) {
+              if (this.isValidList(proj.moduleList)) {
                 proj.moduleList.forEach((moduleObj: any) => {
                   this.parseOptionsOfQuestionToList(moduleObj.questionList);
 
-                  if (moduleObj.subModuleList != null && moduleObj.subModuleList?.length != 0) {
+                  if (this.isValidList(moduleObj.subModuleList)) {
                     this.convertStringToJSONSubModuleNodesOption(moduleObj.subModuleList);
                   }
                 });
@@ -1307,7 +1272,7 @@ export class ProjectInsightsComponent implements OnInit {
   saveProjectInsightResponse(template: TemplateRef<any>, finalSubmit: any) {
     let files: File[] = [];
 
-    if (this.projectInsightObj.questionList?.length) {
+    if (this.isValidList(this.projectInsightObj.questionList)) {
       let applicationQuestionList = this.projectInsightObj.questionList;
       for (let index = 0; index < applicationQuestionList?.length; index++) {
         let question = applicationQuestionList[index];
@@ -1317,7 +1282,7 @@ export class ProjectInsightsComponent implements OnInit {
 
     for (let milestoneIndex = 0; milestoneIndex < this.projectInsightObj.projectInsightMilestoneList?.length; milestoneIndex++) {
       let milestone = this.projectInsightObj.projectInsightMilestoneList[milestoneIndex];
-      if (milestone.questionList?.length) {
+      if (this.isValidList(milestone.questionList)) {
         let questionList = milestone.questionList;
         for (let index = 0; index < questionList?.length; index++) {
           let question = questionList[index];
@@ -1327,7 +1292,7 @@ export class ProjectInsightsComponent implements OnInit {
 
       for (let moduleIndex = 0; moduleIndex < (milestone.moduleList?.length || 0); moduleIndex++) {
         let module = milestone.moduleList[moduleIndex];
-        if (module.questionList?.length) {
+        if (this.isValidList(module.questionList)) {
           let moduleQuestionList = module.questionList;
           for (let index = 0; index < moduleQuestionList?.length; index++) {
             let question = moduleQuestionList[index];
@@ -1867,4 +1832,62 @@ export class ProjectInsightsComponent implements OnInit {
     }
   }
 
+  computeFlagsForSubModules(subModuleList: ProjectSubModule[]) {
+    let hasFlag = 'No';
+    if (this.isValidList(subModuleList)) {
+      subModuleList.forEach(subModule => {
+        const questionFlag = subModule.questionList.some(q => q.isUpdatedFromExcelUpload);
+        let subModuleFlag = 'No';
+        if(this.isValidList(subModule.subSubModuleList)){
+          subModuleFlag = this.computeFlagsForSubModules(subModule.subSubModuleList);
+        }
+        if (questionFlag || subModuleFlag == 'Yes') {
+          subModule.isUpdatedFromExcelUpload = 'Yes';
+          hasFlag = 'Yes';
+        }
+      });
+    }
+    return hasFlag;
+  }
+
+  computeFlagsForModules(moduleList: any[]) {
+    let hasFlag = 'No';
+    if (this.isValidList(moduleList)) {
+      moduleList.forEach(module => {
+        const questionFlag = module.questionList.some(q => q.isUpdatedFromExcelUpload);
+        const subModuleFlag = this.computeFlagsForSubModules(module.subModuleList);
+        if (questionFlag || subModuleFlag == 'Yes') {
+          module.isUpdatedFromExcelUpload = 'Yes';
+          hasFlag = 'Yes';
+        }
+      });
+    }
+    return hasFlag;
+  }
+
+  computeFlagsForMilestones(milestones: any[]) {
+    let hasFlag = 'No';
+    if (this.isValidList(milestones)) {
+      milestones.forEach(milestone => {
+        const questionFlag = milestone.questionList.some(q => q.isUpdatedFromExcelUpload);
+        const moduleFlag = this.computeFlagsForModules(milestone.moduleList);
+        if (questionFlag || moduleFlag == 'Yes') {
+          milestone.isUpdatedFromExcelUpload = 'Yes';
+          hasFlag = 'Yes';
+        }
+      });
+    }
+    return hasFlag;
+  }
+
+  computeFlagsForQuestions(questionList: any[]) {
+    let hasFlag = 'No';
+    if (this.isValidList(questionList)) {
+      const questionFlag = questionList.some(q => q.isUpdatedFromExcelUpload);
+      if (questionFlag) {
+        hasFlag = 'Yes';
+      }
+    }
+    return hasFlag;
+  }
 } 

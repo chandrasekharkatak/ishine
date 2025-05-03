@@ -33,5 +33,6 @@ export class ProjectMilestone {
     ];
     currentActiveBadgeLevel = 'Details';
     actionType: any;
+    isUpdatedFromExcelUpload:any;
 }
 

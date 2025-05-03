@@ -86,7 +86,7 @@
     <!-- Project Milestone -->
     <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Milestones'" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="milestone_card_template"
-        [ngTemplateOutletContext]="{ entityList: isValidList(entityObj.projectInsightMilestoneList) ? entityObj.projectInsightMilestoneList : []}">
+        [ngTemplateOutletContext]="{ entityList: entityObj.projectInsightMilestoneList}">
       </ng-container>
     </div>
   </div>
@@ -109,7 +109,7 @@
     <!-- Milestone Modules -->
     <div *ngIf="entityObj?.currentActiveBadgeLevel == 'Modules'" class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="module_card_template"
-        [ngTemplateOutletContext]="{ entityList: isValidList(entityObj.moduleList) ? entityObj.moduleList : []}">
+        [ngTemplateOutletContext]="{ entityList: entityObj.moduleList }">
       </ng-container>
 
     </div>
@@ -135,7 +135,7 @@
       *ngIf="entityObj?.currentActiveBadgeLevel == 'SubModules' && entityObj?.currentActiveBadgeLevel != 'Sub-SubModules'"
       class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="submodule_card_template"
-        [ngTemplateOutletContext]="{ entityList: isValidList(entityObj.subModuleList) ? entityObj.subModuleList : [] ,entityType:'SubModule'}">
+        [ngTemplateOutletContext]="{ entityList: entityObj.subModuleList,entityType:'SubModule'}">
       </ng-container>
     </div>
   </div>
@@ -160,7 +160,7 @@
       *ngIf="entityObj?.currentActiveBadgeLevel == 'SubModules' || entityObj?.currentActiveBadgeLevel == 'Sub-SubModules'"
       class="row m-1 mb-2">
       <ng-container [ngTemplateOutlet]="submodule_card_template"
-        [ngTemplateOutletContext]="{ entityList:isValidList(entityObj.subSubModuleList)? entityObj.subSubModuleList :[],entityType:'Sub-SubModule'}">
+        [ngTemplateOutletContext]="{ entityList:entityObj.subSubModuleList,entityType:'Sub-SubModule'}">
       </ng-container>
     </div>
   </div>
@@ -185,7 +185,7 @@
       <div class="col-md-8">
         <div class="badge-container">
           <span *ngFor="let level of entity?.badgePathList" class="badge"
-            [ngClass]="{ 'active': entity?.currentActiveBadgeLevel == level.name, 'isUpdatedFromExcelUpload': entity?.isUpdatedFromExcelUpload == 'Yes'}"
+            [ngClass]="{ 'active': entity?.currentActiveBadgeLevel == level.name, 'isUpdatedFromExcelUpload': level?.isUpdatedFromExcelUpload == 'Yes'}"
             (click)="changeCurrentActiveBadgeLevel(entity,level.name,entityType,entityName,entityId)">
             <span
               *ngIf="level.name != 'Sub-SubModules' && level.name != 'Questions' && level.name != 'Milestones' && level.name != 'Modules' && level.name != 'SubModules' && level.name != 'Sub-SubModules'">{{level.name}}</span>
@@ -772,6 +772,7 @@
       <ng-container *ngFor="let milestone of entityList; let milestoneIndex = index">
         <div class="col-md-4 p-2 d-flex">
           <div class="card w-100 card-hover"
+          [ngClass]="{ 'isUpdatedFromExcelUpload': milestone?.isUpdatedFromExcelUpload == 'Yes'}"
             (click)="navigateTo(milestone,'Milestone',milestone?.milestoneId,milestone.milestone)">
             <div class="row m-0">
               <div class="col-10">
@@ -865,7 +866,9 @@
     <div *ngIf="entityList?.length > 0" class="row m-1 pl-3">
       <ng-container *ngFor="let module of entityList; let moduleIndex = index">
         <div class="col-md-4 p-2 d-flex">
-          <div class="card w-100 card-hover" (click)="navigateTo(module,'Module',module?.moduleId,module?.module)">
+          <div class="card w-100 card-hover"
+          [ngClass]="{ 'isUpdatedFromExcelUpload': module?.isUpdatedFromExcelUpload == 'Yes'}"
+          (click)="navigateTo(module,'Module',module?.moduleId,module?.module)">
             <div class="row m-0">
               <div class="col-10">
                 <h5 class="m-2">{{module.module}}</h5>
@@ -961,6 +964,7 @@
       <ng-container *ngFor="let subModule of entityList; let subModuleIndex = index">
         <div class="col-md-4 p-2 d-flex">
           <div class="card w-100 card-hover"
+          [ngClass]="{ 'isUpdatedFromExcelUpload': subModule?.isUpdatedFromExcelUpload == 'Yes'}"
             (click)="navigateTo(subModule,entityType,subModule?.subModuleId,subModule?.subModule)">
             <div class="row m-0">
               <div class="col-10">

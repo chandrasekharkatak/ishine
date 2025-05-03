@@ -26,4 +26,5 @@ export class ProjectSubModule {
     ];
     currentActiveBadgeLevel = 'Details';
     actionType: any;
+    isUpdatedFromExcelUpload:any;
 }
