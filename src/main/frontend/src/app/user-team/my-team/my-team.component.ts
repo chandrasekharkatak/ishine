@@ -1485,6 +1485,7 @@ export class MyTeamComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+    
   }
 
   openRevokeReporteeLeaveModal(template: TemplateRef<any>, leaveHistory: any){
@@ -1719,6 +1720,7 @@ export class MyTeamComponent implements OnInit {
   handlePageChanges(event) {
     this.pageNo = event;
   }
+
 
   getAllLeavesByEmpId(teamObj){
     //console.log("method call",teamObj)
