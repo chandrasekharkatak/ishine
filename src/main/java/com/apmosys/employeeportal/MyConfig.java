@@ -7,6 +7,7 @@ import javax.servlet.MultipartConfigElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
+import com.apmosys.employeeportal.EmployeePortalInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -29,8 +30,8 @@ public class MyConfig implements WebMvcConfigurer{
         registry.addMapping("/**")
         		.allowedOrigins("*")
         		.allowedMethods("POST","GET","PUT","DELETE", "OPTIONS")
-        		.allowedHeaders("Content-Type", "Accept", "X-Requested-With", "loader", "Authorization", "X-FORWARDED-FOR","Sw8")
-				.exposedHeaders("Content-Type", "Accept", "X-Requested-With", "loader", "Authorization", "X-FORWARDED-FOR","Sw8");
+        		.allowedHeaders("Content-Type", "Accept", "X-Requested-With", "loader", "Authorization", "X-FORWARDED-FOR")
+				.exposedHeaders("Content-Type", "Accept", "X-Requested-With", "loader", "Authorization", "X-FORWARDED-FOR");
         }
 	
 	public void addInterceptors(InterceptorRegistry registry) {

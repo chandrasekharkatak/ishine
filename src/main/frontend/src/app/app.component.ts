@@ -36,19 +36,19 @@ interface SideNavToggle{
   ){
 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      if (ClientMonitor?.setPerformance) {
-        ClientMonitor.setPerformance({
-          collector: 'http://localhost:8080',
-          service: 'Ishine::ui',
-          serviceVersion: '1.0.0',
-          pagePath: location.href,
-          useWebVitals: true
-        });
-      }
-    });
+    // this.router.events.pipe(
+    //   filter(event => event instanceof NavigationEnd)
+    // ).subscribe(() => {
+    //   if (ClientMonitor?.setPerformance) {
+    //     ClientMonitor.setPerformance({
+    //       collector: 'http://192.168.21.175:8081/employeeportal',
+    //       service: 'Ishine::ui',
+    //       serviceVersion: '1.0.0',
+    //       pagePath: location.href,
+    //       useWebVitals: true
+    //     });
+    //   }
+    // });
   }
 
   ngOnInit():void{
@@ -62,7 +62,7 @@ interface SideNavToggle{
     //       useWebVitals:true,
     //       autoTracePerf:true,
     //       enableSPA:true,
-    //       collector: "http://localhost:8080"
+    //       collector: "http://192.168.21.175:8081/employeeportal"
     //     });
     //     console.log('skywalking initialized successfully');
     //   } else {
