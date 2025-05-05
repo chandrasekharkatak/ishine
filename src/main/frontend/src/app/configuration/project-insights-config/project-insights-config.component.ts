@@ -36,17 +36,17 @@ import { ProjectInsightImportExportService } from 'src/app/services/project-insi
 })
 
 export class ProjectInsightsConfigComponent implements OnInit {
-  @ViewChild('alert_message') alertMessageTempalte:TemplateRef<any>;
-  @ViewChild('insight_response_template') insightResponseTemplate:TemplateRef<any>;
+  @ViewChild('alert_message') alertMessageTempalte: TemplateRef<any>;
+  @ViewChild('insight_response_template') insightResponseTemplate: TemplateRef<any>;
   @ViewChild('fileInput') fileInput: ElementRef;
-  
+
   feature = "Survey Config";
   currentUser: User;
   userMapping: any = {};
 
   sortDirection = 'asc';
   sortColumn: any;
-  sortColumnType:any;
+  sortColumnType: any;
 
   accordionState = {
     project: {},
@@ -59,17 +59,17 @@ export class ProjectInsightsConfigComponent implements OnInit {
   //search
   searchTerm: string = '';
   backupsearchTerm: string = '';
-  searchResults:any[] = [];
-  tagList:any[] = [];
+  searchResults: any[] = [];
+  tagList: any[] = [];
   treeData: any[] = [];
   selectedObject: any = null;
-  userContributionList:any[] = [];
+  userContributionList: any[] = [];
   isLeftPanelOpen = true;
   collapsedProjects: { [projectId: string]: boolean } = {};
-  searchOptionList:any[] = [];
-  allFilterList:any[] = [];
-  allFilterOptionList:any[] = [];
-  finalFilterList:any[] = [];
+  searchOptionList: any[] = [];
+  allFilterList: any[] = [];
+  allFilterOptionList: any[] = [];
+  finalFilterList: any[] = [];
 
   // tab clicked
   projectInsightTabClick: boolean = false;
@@ -83,52 +83,52 @@ export class ProjectInsightsConfigComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
   projectResponseModalRef: BsModalRef = new BsModalRef();
   documentPreviewModalRef: BsModalRef = new BsModalRef();
-  
-  isQuestionForm:boolean = false;
-  isCreation:boolean = false;
 
-  isProjectInsightList:boolean = false;
-  isProjectInsightResponseList:boolean = false;
-  isResponsePreview:boolean = true;
-  isSearchEnabled:boolean = false;
-  isFinalResponseSubmitted:boolean = false;
+  isQuestionForm: boolean = false;
+  isCreation: boolean = false;
+
+  isProjectInsightList: boolean = false;
+  isProjectInsightResponseList: boolean = false;
+  isResponsePreview: boolean = true;
+  isSearchEnabled: boolean = false;
+  isFinalResponseSubmitted: boolean = false;
   blockUpdateButton: boolean = true;
-  isExcelUploaded:boolean = false;
+  isExcelUploaded: boolean = false;
 
-  projectInsight:ProjectInsight = new ProjectInsight();
+  projectInsight: ProjectInsight = new ProjectInsight();
   projectInsightObj: ProjectInsight = new ProjectInsight();
   projectInsightExcelObj: ProjectInsight = new ProjectInsight();
 
-  employeeList:any[] = [];
-  allProjectList:any[] = [];
+  employeeList: any[] = [];
+  allProjectList: any[] = [];
   allProjectInsightList: any[] = [];
-  surveyColumns:any[] = ['surveyName','description','isActive','createdByName','createdOn'];
-  projectInsightMilestoneList:ProjectMilestone[] = [new ProjectMilestone()];
-  projectInsightResponseList:ProjectMilestone[] = [new ProjectMilestone()];
+  surveyColumns: any[] = ['surveyName', 'description', 'isActive', 'createdByName', 'createdOn'];
+  projectInsightMilestoneList: ProjectMilestone[] = [new ProjectMilestone()];
+  projectInsightResponseList: ProjectMilestone[] = [new ProjectMilestone()];
 
   page = 1;
-  filters:any = {};
+  filters: any = {};
 
-  projectId:any;
-  actionType:any='Configuration';
-  subActionType:any='Creation';
-  responseByEmpId:any;
+  projectId: any;
+  actionType: any = 'Configuration';
+  subActionType: any = 'Creation';
+  responseByEmpId: any;
 
   file: any;
-  fileName:any;
+  fileName: any;
 
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
     private authenticationService: AuthenticationService,
-    private surveyService : SurveyService,
+    private surveyService: SurveyService,
     private exportExcelService: ExportExcelService,
     private locationStrategy: LocationStrategy,
     private clipboardService: ClipboardService,
     private router: Router,
     private utilityService: UtilityService,
     private projectService: ProjectService,
-    private projectInsightService:ProjectInsightService,
+    private projectInsightService: ProjectInsightService,
     private projectInsightImportExportService: ProjectInsightImportExportService,
     private employeeService: EmployeeService,
   ) {
@@ -144,18 +144,18 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.preventBackButton();
   }
 
-  preventBackButton(){
+  preventBackButton() {
     history.pushState(null, null, location.href);
-    this.locationStrategy.onPopState(()=>{
+    this.locationStrategy.onPopState(() => {
       history.pushState(null, null, location.href);
     })
   }
 
-  sectionViewInit(){
+  sectionViewInit() {
     this.getEmployeeList();
   }
 
-  isSearchTabClick(){
+  isSearchTabClick() {
     this.searchTabClick = true;
 
     this.projectInsightTabClick = false;
@@ -165,7 +165,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.getFilterList();
   }
 
-  isProjectInsightTabClick(){
+  isProjectInsightTabClick() {
     this.projectInsightTabClick = true;
     this.showProjectInsight();
     this.getAllProjects();
@@ -173,15 +173,15 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.searchTabClick = false;
   }
 
-  showProjectInsightForm(){
+  showProjectInsightForm() {
     this.projectInsightExcelObj = null;
     this.isQuestionForm = true;
     this.isCreation = true;
-    this.subActionType='Creation';
+    this.subActionType = 'Creation';
     this.isExcelUploaded = false;
     this.isProjectInsightList = false;
     this.isProjectInsightResponseList = false;
-    this.projectInsight = new ProjectInsight(); 
+    this.projectInsight = new ProjectInsight();
   }
 
   showProjectInsight() {
@@ -189,7 +189,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.isQuestionForm = false;
     this.isCreation = false;
     this.isExcelUploaded = false;
-    this.subActionType='Creation';
+    this.subActionType = 'Creation';
     this.isProjectInsightResponseList = false;
     this.clearFileInput();
     this.getAllProjectInsightList();
@@ -197,9 +197,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   // --------------------------------- Search :: start-----------------------------
 
-  goBack(){
+  goBack() {
     this.isSearchPreviewClicked = false;
-    if(this.searchTerm == undefined || this.searchTerm == null){
+    if (this.searchTerm == undefined || this.searchTerm == null) {
       this.searchTerm = this.backupsearchTerm;
     }
     this.onSearchTerm();
@@ -211,7 +211,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.isOptionsExpanded = !this.isOptionsExpanded;
   }
 
-  getFilterList(){
+  getFilterList() {
     this.searchOptionList = [];
     this.projectInsightService.getFilterList().pipe(first()).subscribe(
       (response: any) => {
@@ -223,12 +223,12 @@ export class ProjectInsightsConfigComponent implements OnInit {
     );
   }
 
-  onFilterCheckBoxClick(){
+  onFilterCheckBoxClick() {
     this.allFilterOptionList = [];
     this.allFilterOptionList = [];
-    if(this.allFilterList.length > 0){
+    if (this.allFilterList.length > 0) {
       this.allFilterList.forEach((object) => {
-        if(object.isSelected != undefined && object.isSelected != null && object.isSelected == true){
+        if (object.isSelected != undefined && object.isSelected != null && object.isSelected == true) {
           object.optionList.forEach(element => {
             element.filterName = object.filterName;
             this.allFilterOptionList.push(element);
@@ -240,19 +240,19 @@ export class ProjectInsightsConfigComponent implements OnInit {
     }
   }
 
-  onFilterOptionCheckBoxClick(optionObject: any){
-    if(optionObject?.isSelected == true){
+  onFilterOptionCheckBoxClick(optionObject: any) {
+    if (optionObject?.isSelected == true) {
       this.finalFilterList.push(optionObject);
-    }else{
+    } else {
       let findOptionObj = this.finalFilterList.findIndex(x => x.optionId == optionObject.optionId);
-            if (findOptionObj >= 0) {
-              this.finalFilterList.splice(findOptionObj, 1);
-            }
+      if (findOptionObj >= 0) {
+        this.finalFilterList.splice(findOptionObj, 1);
+      }
     }
     console.log(this.finalFilterList);
   }
 
-  suggestSearchOption(event:any){
+  suggestSearchOption(event: any) {
     this.searchOptionList = [];
     this.projectInsightService.suggestSearchOption(this.searchTerm).pipe(first()).subscribe(
       (response: any) => {
@@ -264,7 +264,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     );
   }
 
-  selectSuggestion(suggestedTerm: any){
+  selectSuggestion(suggestedTerm: any) {
     this.searchTerm = suggestedTerm;
     this.searchOptionList = [];
     this.onSearchTerm();
@@ -370,7 +370,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
         // Recursive for milestones
         const buildTaggedMilestones = (milestones) => {
           console.log(milestones, " --milestones");
-          
+
           if (!milestones) return [];
           return milestones
             .map(milestone => {
@@ -413,7 +413,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.selectedObject = node.object;
   }
 
-  searchTagTerm(tag:any){
+  searchTagTerm(tag: any) {
     this.searchTerm = tag;
     this.onSearchTerm();
   }
@@ -422,7 +422,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.searchTerm = '';
   }
 
-  onProjectClick(projectObj:any){
+  onProjectClick(projectObj: any) {
     this.projectId = projectObj.projectId;
     this.subActionType = 'Search';
     this.responseByEmpId = this.currentUser.empId;
@@ -430,7 +430,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.backupsearchTerm = this.searchTerm;
   }
 
-// --------------------------------- Search :: end-----------------------------
+  // --------------------------------- Search :: end-----------------------------
 
 
   showProjectInsightUpdate(projectObj: any, template: TemplateRef<any>) {
@@ -473,23 +473,23 @@ export class ProjectInsightsConfigComponent implements OnInit {
     });
   }
 
-  getAllProjectInsightList(){
-    this.sortColumn=[];
-    this.sortColumnType=[];
-    this.sortDirection='';
+  getAllProjectInsightList() {
+    this.sortColumn = [];
+    this.sortColumnType = [];
+    this.sortDirection = '';
     this.allProjectInsightList = [];
     let insightObj = {
-      employeeRole:this.currentUser.employeeRole,
-      empId:this.currentUser.empId
+      employeeRole: this.currentUser.employeeRole,
+      empId: this.currentUser.empId
     };
 
     this.projectInsightService.getAllProjectInsightList(insightObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-       this.allProjectInsightList = response.serviceResponse;
-       this.allProjectInsightList.forEach(project => {
-        project.createdOn = (project.createdOn)? moment(project.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-       });
-      }else{
+        this.allProjectInsightList = response.serviceResponse;
+        this.allProjectInsightList.forEach(project => {
+          project.createdOn = (project.createdOn) ? moment(project.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+      } else {
         console.error(response.serviceResponse);
       }
     });
@@ -521,23 +521,23 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.page = event;
   }
 
-  toggleSearch(){
+  toggleSearch() {
     this.isSearchEnabled = !this.isSearchEnabled;
-    if(!this.isSearchEnabled){
+    if (!this.isSearchEnabled) {
       this.filters = {};
     }
   }
 
-  sortData(sort: Sort){
-    if(sort.active){
-      let sortParams:any[] = sort.active?.split("|");
+  sortData(sort: Sort) {
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;
     }
   }
 
-  onSearch(searchData){
+  onSearch(searchData) {
     this.filters = searchData;
   }
 
@@ -551,7 +551,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
   openProjectInsightResponeMod(insightResponseTemplate: TemplateRef<any>) {
     this.projectResponseModalRef = this.modalService.show(insightResponseTemplate, { class: 'modal-xl', ignoreBackdropClick: true, keyboard: false });
   }
-  
+
   closeProjectInsightResponseModal() {
     this.projectResponseModalRef.hide();
   }
@@ -652,6 +652,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
     return this.validationService.validateNullUndefinedEmptyList(list);
   }
 
+  isValidString(value: any): boolean {
+    return this.validationService.validateNullUndefinedEmptyString(value);
+  }
+
   async mergeMilestones(dbList: any[], excelList: any[]): Promise<any> {
     try {
       if (!this.isValidList(dbList)) {
@@ -664,6 +668,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
       for (const excelMilestone of excelList) {
         const dbMilestone = dbList.find(milestone => milestone.milestoneId === excelMilestone.milestoneId && excelMilestone.actionType != 'Add');
         if (dbMilestone) {
+          if (dbMilestone.milestone != excelMilestone.milestone && this.isValidString(dbMilestone.milestone) ||
+            dbMilestone.description != excelMilestone.description && this.isValidString(dbMilestone.description)) {
+            dbMilestone.isUpdatedFromExcelUpload = 'Yes';
+          }
           dbMilestone.milestone = excelMilestone.milestone;
           dbMilestone.description = excelMilestone.description;
           dbMilestone.projectId = excelMilestone.projectId;
@@ -676,6 +684,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
           dbMilestone.questionList = await this.mergeQuestions(dbMilestone?.questionList, excelMilestone?.questionList);
           dbMilestone.moduleList = await this.mergeModules(dbMilestone?.moduleList, excelMilestone?.moduleList);
         } else {
+          excelMilestone.isUpdatedFromExcelUpload = 'Yes';
           dbList.push(excelMilestone);
         }
       }
@@ -697,6 +706,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
       for (const excelModule of excelList) {
         const dbModule = dbList.find(module => module.moduleId === excelModule.moduleId && excelModule.actionType != 'Add');
         if (dbModule) {
+          if (dbModule.module != excelModule.module && this.isValidString(dbModule.module) ||
+            dbModule.description != excelModule.description && this.isValidString(dbModule.description)) {
+            dbModule.isUpdatedFromExcelUpload = 'Yes';
+          }
           dbModule.module = excelModule.module;
           dbModule.description = excelModule.description;
           dbModule.milestoneId = excelModule.milestoneId;
@@ -709,6 +722,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
           dbModule.questionList = await this.mergeQuestions(dbModule?.questionList, excelModule?.questionList);
           dbModule.subModuleList = await this.mergeSubModules(dbModule?.subModuleList, excelModule?.subModuleList, 'SubModule');
         } else {
+          excelModule.isUpdatedFromExcelUpload = 'Yes';
           dbList.push(excelModule);
         }
       }
@@ -730,6 +744,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
       for (const excelSubModule of excelList) {
         const dbSubModule = dbList.find(subModule => subModule.subModuleId === excelSubModule.subModuleId && excelSubModule.actionType != 'Add');
         if (dbSubModule) {
+          if (dbSubModule.subModule != excelSubModule.subModule && this.isValidString(dbSubModule.subModule) ||
+            dbSubModule.description != excelSubModule.description && this.isValidString(dbSubModule.description)) {
+            dbSubModule.isUpdatedFromExcelUpload = 'Yes';
+          }
           dbSubModule.subModule = excelSubModule.subModule;
           dbSubModule.description = excelSubModule.description;
           dbSubModule.moduleId = excelSubModule.moduleId;
@@ -746,6 +764,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
             dbSubModule.subSubModuleList = await this.mergeSubSubModules(dbSubModule?.subSubModuleList, excelSubModule?.subSubModuleList, 'Sub-SubModule');
           }
         } else {
+          excelSubModule.isUpdatedFromExcelUpload = 'Yes';
           dbList.push(excelSubModule);
         }
       }
@@ -794,6 +813,10 @@ export class ProjectInsightsConfigComponent implements OnInit {
       for (const excelSubSubModule of excelList) {
         const dbSubSubModule = dbList.find(subSubModule => subSubModule.subSubModuleId === excelSubSubModule.subSubModuleId && excelSubSubModule.actionType != 'Add');
         if (dbSubSubModule) {
+          if (dbSubSubModule.subModule != excelSubSubModule.subModule && this.isValidString(dbSubSubModule.subModule) ||
+            dbSubSubModule.description != excelSubSubModule.description && this.isValidString(dbSubSubModule.description)) {
+            dbSubSubModule.isUpdatedFromExcelUpload = 'Yes';
+          }
           dbSubSubModule.actionType = excelSubSubModule.actionType;
           dbSubSubModule.subModule = excelSubSubModule.subModule;
           dbSubSubModule.description = excelSubSubModule.description;
@@ -808,6 +831,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
             dbSubSubModule.subSubModuleList = await this.mergeSubSubModules(dbSubSubModule?.subSubModuleList, excelSubSubModule?.subSubModuleList, 'Sub-SubModule');
           }
         } else {
+          excelSubSubModule.isUpdatedFromExcelUpload = 'Yes';
           dbList.push(excelSubSubModule);
         }
       }
@@ -825,8 +849,17 @@ export class ProjectInsightsConfigComponent implements OnInit {
       return dbList;
     }
     for (const excelQ of excelList) {
-      const dbQ = dbList.find(q => q.questionId === excelQ.questionId && excelQ.actionType != 'Add' );
+      const dbQ = dbList.find(q => q.questionId === excelQ.questionId && excelQ.actionType != 'Add');
       if (dbQ) {
+        if (dbQ.question != excelQ.question && this.isValidString(dbQ.question) ||
+          dbQ.description != excelQ.description && this.isValidString(dbQ.description) ||
+          dbQ.optionType != excelQ.optionType && this.isValidString(dbQ.optionType) ||
+          dbQ.options != excelQ.options && this.isValidString(dbQ.options) ||
+          dbQ.entityId != excelQ.entityId && this.isValidString(dbQ.entityId) ||
+          dbQ.entityType != excelQ.entityType && this.isValidString(dbQ.entityType)
+        ) {
+          dbQ.isUpdatedFromExcelUpload = 'Yes';
+        }
         dbQ.question = excelQ.question;
         dbQ.description = excelQ.description;
         dbQ.optionType = excelQ.optionType;
@@ -834,7 +867,11 @@ export class ProjectInsightsConfigComponent implements OnInit {
         dbQ.entityId = excelQ.entityId;
         dbQ.entityType = excelQ.entityType;
         dbQ.actionType = excelQ.ActionType;
+        if((excelQ.optionType == 'radio' || excelQ.optionType == 'checkbox')){
+          dbQ.optionsList = excelQ?.optionType != 'text' ? JSON.parse(excelQ?.options) : [];
+        }
       } else {
+        excelQ.isUpdatedFromExcelUpload = 'Yes';
         dbList.push(excelQ);
       }
     }

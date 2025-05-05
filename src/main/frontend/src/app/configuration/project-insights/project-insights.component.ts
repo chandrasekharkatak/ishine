@@ -23,6 +23,7 @@ import { AngularEditorConfig } from '@kolkov/angular-editor';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as XLSX from 'xlsx';
 import { ProjectInsightImportExportService } from 'src/app/services/project-insight-import-export.service';
+import { DomainService } from 'src/app/services/domain.service';
 
 @Component({
   selector: 'app-project-insights',
@@ -67,6 +68,7 @@ export class ProjectInsightsComponent implements OnInit {
   displayedResponseUserId: any[] = [];
   rolesGreaterThanManager: any[] = ['HOD', 'SuperAdmin', 'HR', 'RMG'];
   tagList: any[] = [];
+  allParadigmList:any[]=[];
 
   // Variables
   alertMessage: any = '';
@@ -117,11 +119,13 @@ export class ProjectInsightsComponent implements OnInit {
     private employeeService: EmployeeService,
     private exportExcelService: ExportExcelService,
     private projectInsightImportExportService: ProjectInsightImportExportService,
+    private domainService:DomainService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   async ngOnInit(): Promise<void> {
     this.isCurrentEmployeeRoleGreaterThanManager = this.rolesGreaterThanManager.includes(this.currentUser?.employeeRole);
     await this.getAllProjects();
+    await this.getAllDomain();
 
     if (this.validationService.validateNullUndefinedEmptyString(this.projectId)) {
       await this.getEmployeeListByProjectId(this.projectId);
@@ -199,6 +203,15 @@ export class ProjectInsightsComponent implements OnInit {
       this.allBreadCrumbs.push(this.createBreadCrumbObj('Project', this.projectInsightObj.projectId, this.projectInsightObj, this.projectInsightObj.projectName));
       if (!this.projectInsightObj.badgePathList) {
         this.projectInsightObj.badgePathList = this.getBadgePathList('Project', this.projectInsightObj);
+      }
+      if (this.isExcelUploaded && this.projectInsightObj.badgePathList) {
+        this.projectInsightObj.badgePathList.forEach((badge)=>{
+          if(badge.name == 'Questions'){
+            badge.isUpdatedFromExcelUpload = this.computeFlagsForQuestions(this.projectInsightObj?.questionList);
+          } else if(badge.name == 'Milestones'){
+            badge.isUpdatedFromExcelUpload =  this.computeFlagsForMilestones(this.projectInsightObj?.projectInsightMilestoneList);
+          }
+        })
       }
       this.projectInsightObj.currentActiveBadgeLevel = 'Details';
       if (this.projectInsightObj.questionList) {
@@ -640,7 +653,7 @@ export class ProjectInsightsComponent implements OnInit {
 
   createSubModuleListObject(subModuleList: ProjectSubModule[], subModuleType: any) {
     subModuleList.forEach((submodule: any, submodIndex) => {
-      submodule.badgePathList = this.getBadgePathList(subModuleType,submodule, subModuleType);
+      submodule.badgePathList = this.getBadgePathList(subModuleType, submodule, subModuleType);
       submodule.currentActiveBadgeLevel = 'Details';
       submodule.toTagEmployeeList = this.getToTagEmployeeList(submodule.assignedToUserId);
       if (this.isValidList(submodule.questionList)) {
@@ -1073,6 +1086,27 @@ export class ProjectInsightsComponent implements OnInit {
   }
 
   // APIs
+  async getAllDomain(): Promise<any> {
+    this.allParadigmList = [];
+    return this.domainService.getAllDomain().pipe(first())
+      .toPromise()
+      .then((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.allParadigmList = response.serviceResponse;
+          this.allParadigmList.forEach((domain) => {
+            domain.createdOn = (domain.createdOn) ? moment(domain.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          });
+        } else {
+          this.openAlertMod(this.alertModal, 'Something went wrong.');
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        this.openAlertMod(this.alertModal, 'Error fetching Domain List');
+      });
+    ;
+  }
+
   getAllProjects() {
     this.allProjectList = [];
     return this.projectService.getAllProjects().pipe(first())
@@ -1838,10 +1872,10 @@ export class ProjectInsightsComponent implements OnInit {
       subModuleList.forEach(subModule => {
         const questionFlag = subModule.questionList.some(q => q.isUpdatedFromExcelUpload);
         let subModuleFlag = 'No';
-        if(this.isValidList(subModule.subSubModuleList)){
+        if (this.isValidList(subModule.subSubModuleList)) {
           subModuleFlag = this.computeFlagsForSubModules(subModule.subSubModuleList);
         }
-        if (questionFlag || subModuleFlag == 'Yes') {
+        if (questionFlag || subModuleFlag == 'Yes' || subModule?.isUpdatedFromExcelUpload == 'Yes') {
           subModule.isUpdatedFromExcelUpload = 'Yes';
           hasFlag = 'Yes';
         }
@@ -1856,7 +1890,7 @@ export class ProjectInsightsComponent implements OnInit {
       moduleList.forEach(module => {
         const questionFlag = module.questionList.some(q => q.isUpdatedFromExcelUpload);
         const subModuleFlag = this.computeFlagsForSubModules(module.subModuleList);
-        if (questionFlag || subModuleFlag == 'Yes') {
+        if (questionFlag || subModuleFlag == 'Yes' || module?.isUpdatedFromExcelUpload == 'Yes') {
           module.isUpdatedFromExcelUpload = 'Yes';
           hasFlag = 'Yes';
         }
@@ -1871,7 +1905,7 @@ export class ProjectInsightsComponent implements OnInit {
       milestones.forEach(milestone => {
         const questionFlag = milestone.questionList.some(q => q.isUpdatedFromExcelUpload);
         const moduleFlag = this.computeFlagsForModules(milestone.moduleList);
-        if (questionFlag || moduleFlag == 'Yes') {
+        if (questionFlag || moduleFlag == 'Yes' || milestone?.isUpdatedFromExcelUpload == 'Yes') {
           milestone.isUpdatedFromExcelUpload = 'Yes';
           hasFlag = 'Yes';
         }
@@ -1883,7 +1917,7 @@ export class ProjectInsightsComponent implements OnInit {
   computeFlagsForQuestions(questionList: any[]) {
     let hasFlag = 'No';
     if (this.isValidList(questionList)) {
-      const questionFlag = questionList.some(q => q.isUpdatedFromExcelUpload);
+      const questionFlag = questionList.some(q => q.isUpdatedFromExcelUpload == 'Yes');
       if (questionFlag) {
         hasFlag = 'Yes';
       }

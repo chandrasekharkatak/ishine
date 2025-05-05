@@ -1390,7 +1390,7 @@ export class ProjectInsightImportExportService {
   parseOptionsOfQuestionToList(questionList: ProjectQuestion[]) {
     if (this.isValidList(questionList)) {
       questionList.forEach((questionObj: ProjectQuestion) => {
-        if (questionObj.optionType == "checkbox") {
+        if (questionObj.optionType == "radio" || questionObj.optionType == "checkbox") {
           questionObj.optionsList = JSON.parse(questionObj.options || '[]');
         }
       });

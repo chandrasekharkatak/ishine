@@ -214,8 +214,7 @@
           </mat-select>
         </div>
       </div>
-      <div
-        *ngIf="actionType == 'Configuration' && subActionType != 'Creation' && subActionType != 'Search' && subActionType != 'Preview' && (entity?.currentActiveBadgeLevel == 'Details' || entity?.currentActiveBadgeLevel == 'Questions')"
+      <div *ngIf="actionType == 'Configuration' && subActionType != 'Creation' && subActionType != 'Search' && subActionType != 'Preview' && (entity?.currentActiveBadgeLevel == 'Details' || entity?.currentActiveBadgeLevel == 'Questions')"
         class="col-md-4">
         <div class=" d-flex justify-content-end">
           <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary"
@@ -224,8 +223,7 @@
           </button>
         </div>
       </div>
-      <div
-        *ngIf="actionType == 'Contribution' && subActionType != 'Search' && subActionType != 'Preview' && entity?.currentActiveBadgeLevel == 'Questions'"
+      <div *ngIf="actionType == 'Contribution' && subActionType != 'Search' && subActionType != 'Preview' && entity?.currentActiveBadgeLevel == 'Questions'"
         class="col-md-4">
         <div class=" d-flex justify-content-end">
           <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary"
@@ -374,6 +372,23 @@
       </ng-container>
     </div>
   </div>
+
+  <!-- <div *ngIf="entity?.currentActiveBadgeLevel == 'Details'" class="col-md-4 pr-0 pl-0">
+    <div class="row m-1 mb-2">
+      <div class="col-md-12">
+        <div class="form-group mb-0">
+          <label>Paradigm</label>
+          <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" [displayMember]="'name'"
+            [valueMember]="'empId'" [source]="allParadigmList" [useInfiniteScroll]="true" [multiple]="true"
+            [(ngModel)]="entity.selectedParadigmIdList">
+            <mat-option [value]="paradigm.domainId" *ngFor="let paradigm of allParadigmList">
+              {{paradigm.domainName}}
+            </mat-option>
+          </mat-select>
+        </div>
+      </div>
+    </div>
+  </div> -->
 </ng-template>
 
 <!-- Questions Card Template -->
