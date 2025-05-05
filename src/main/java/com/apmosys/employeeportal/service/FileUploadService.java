@@ -468,79 +468,59 @@ public class FileUploadService {
 	@Async
 	@Scheduled(cron = "${VP_mails}")
 	public void execute() {
-		try {
-			List<Object[]> employees = employeeRepository.getEmployeesWithBillableType();
-			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
-			List<Object[]> findVpEmail = employeeRepository.findAllVPsEmail();
-			List<Employee> vpMails = new ArrayList<Employee>();
-			
-			findVpEmail.forEach((object)->{
-				Employee vpDto = new Employee();
-				vpDto.setEmail(object[0] != null ? object[0].toString() : null);
-				
-				vpMails.add(vpDto);
-				
-			});
-			
+	    try {
+	        List<Object[]> findVpEmail = employeeRepository.findAllVPsEmail();
 
-			StringBuilder mails = new StringBuilder("");
-//			vpMails.forEach(object ->{
-//				mails.append(object).append(",");
-//			});
-			vpMails.forEach(object -> {
-                if (object.getEmail() != null && !object.getEmail().isEmpty()) {
-                    if (mails.length() > 0) {
-                        mails.append(",");
-                    }
-                    mails.append(object.getEmail());
-                }
-            });
-			
-			employees.forEach((object)->{
-				EmployeeDTO dto = new EmployeeDTO();
-				
-//				dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-				dto.setEmployeementId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
-				dto.setEmployeeName(object[2] != null ? object[2].toString() : null);
-				dto.setEmail(object[3] != null ? object[3].toString() : null);
-				dto.setBillable(object[4] != null ? object[4].toString() : null);
-				dto.setBillableType(object[5] != null ? object[5].toString() : null);				
-				dto.setDepartmentName(object[6] != null ? object[6].toString() : null);
-				dto.setManagerName(object[7] != null ? object[7].toString() : null);
-				dto.setHodName(object[8] != null ? object[8].toString() : null);
-				dto.setProjectName(object[9] != null ? object[9].toString() : null);
-				dto.setClientName(object[10] != null ? object[10].toString() : null);
-				
-				dtoList.add(dto);
-				});
-			
-			 String filePath = "EmployeeBillableData.xlsx";
+	        for (Object[] vpObj : findVpEmail) {
+	            String email = vpObj[0] != null ? vpObj[0].toString() : null;
+	            Long deptId = vpObj[1] != null ? Long.parseLong(vpObj[1].toString()) : null;
+
+	            if (email == null || deptId == null) continue;
+
+	            List<Object[]> employees = employeeRepository.getEmployeesWithBillableType(deptId);
+	            List<EmployeeDTO> dtoList = new ArrayList<>();
+
+	            for (Object[] object : employees) {
+	                EmployeeDTO dto = new EmployeeDTO();
+	                dto.setEmployeementId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+	                dto.setEmployeeName(object[2] != null ? object[2].toString() : null);
+	                dto.setEmail(object[3] != null ? object[3].toString() : null);
+	                dto.setBillable(object[4] != null ? object[4].toString() : null);
+	                dto.setBillableType(object[5] != null ? object[5].toString() : null);
+	                dto.setDepartmentName(object[6] != null ? object[6].toString() : null);
+	                dto.setManagerName(object[7] != null ? object[7].toString() : null);
+	                dto.setHodName(object[8] != null ? object[8].toString() : null);
+	                dto.setProjectName(object[9] != null ? object[9].toString() : null);
+	                dto.setClientName(object[10] != null ? object[10].toString() : null);
+	                dtoList.add(dto);
+	            }
+
+	            // Export to Excel
+	            String filePath = "EmployeeBillableData_" + deptId + ".xlsx";
 	            writeToExcel(dtoList, filePath);
-
-	            // Prepare email body and attachment
-	            String subject = "Regarding Billable non Billable data";
 	            File file = new File(filePath);
-	            
-//	            iterate mail
-	            for (Employee employee : vpMails) {
-	            	mailService.sendMailWithoutAttachment(employee.getEmail(),subject,"Dear Vice Presidents, <br><br>"
-	                        + "I hope this email finds you well. Please find attached the " + subject + " document containing the latest billable employee data.<br><br>"
-	                        		+ "Thank you for your attention to this matter.<br><br>"
-	                        		+ "Best regards,<br>",file);
-	                System.out.println("Data exported and email sent successfully!");
-	                logger.info("Data export to VPs successfully", employee.getEmail());
-				}
-	            logger.info("Data exported to VPs");
-		} catch (Exception e) {
-	        e.printStackTrace();
-	        
-	        logger.error("Error occurred in VP_mails billable and non billable data", e);
-        }
 
-        logger.info("Finished VP_mails billable and non billable data");
+	            String subject = "Regarding billable and non-billable employees data";
+	            mailService.sendMailWithoutAttachment(
+	                email,
+	                subject,
+	                "Dear Vice Presidents, <br><br>" 
+	                        + "Hope this email finds you well. Please find the attached document containing the latest billable and non billable employee data.<br><br>"
+	                        		+ "Thank you for your attention to this matter.<br><br>"
+	                        		+ "Best regards,<br>",
+
+	                file
+	            );
+
+	            logger.info("Email sent to VP: {}", email);
+	        }
+	    } catch (Exception e) {
+	        logger.error("Error occurred in VP_mails billable and non billable data", e);
+	    }
+
+	    logger.info("Finished VP_mails billable and non billable data");
 	}
-	
-	
+
 	// added report feature only for directors
 	
 	public static void writeToExcelBillableReport(List<EmployeeDTO> employeeList, String filePath) throws IOException {

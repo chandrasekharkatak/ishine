@@ -291,12 +291,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
 			+ "where etm.active !=0\n"
 			+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
-			+ "where e.employmentstatus != 'InActive'")
-	public List<Object[]> getEmployeesWithBillableType();
+			+ "where e.employmentstatus != 'InActive' AND d.dept_id = :deptId ")
+	public List<Object[]> getEmployeesWithBillableType(Long deptId);
 
-	@Query(nativeQuery = true , value = "select e.email from employee e \n"
-			+ "inner join job_role jr ON jr.job_role_id = e.job_role_id\n"
-			+ "where jr.name like '%VP%' and e.employmentstatus != 'InActive'")
+	@Query(nativeQuery = true , value = "select e.email, d.dept_id from employee e \n"
+			+ "inner join job_role jr ON jr.job_role_id = e.job_role_id \n"
+			+ "inner join department d on d.dept_id = jr.dept_id \n"
+			+ "where jr.name like '%VP%' and jr.employee_role='HOD' and e.employmentstatus != 'InActive'")
 	public List<Object[]> findAllVPsEmail();
 
 //	@Query(nativeQuery = true , value = "select e.employeement_id,e.email,e.name , em.name as managerName,d.name as departmentName, hd.name as hodName,e.billable,e.billable_type,"
