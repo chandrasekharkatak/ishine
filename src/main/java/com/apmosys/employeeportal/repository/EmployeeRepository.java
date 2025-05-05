@@ -297,7 +297,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true , value = "select e.email from employee e \n"
 			+ "inner join job_role jr ON jr.job_role_id = e.job_role_id\n"
-			+ "where jr.name like '%VP%' and jr.name not like '%AVP%' and e.employmentstatus != 'InActive'")
+			+ "where jr.name like '%VP%' and jr.employee_role='HOD' and e.employmentstatus != 'InActive'")
 	public List<Object[]> findAllVPsEmail();
 
 //	@Query(nativeQuery = true , value = "select e.employeement_id,e.email,e.name , em.name as managerName,d.name as departmentName, hd.name as hodName,e.billable,e.billable_type,"
