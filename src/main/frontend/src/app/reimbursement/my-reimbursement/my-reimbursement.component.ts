@@ -337,6 +337,10 @@ reimbursementObj: any = {
           foodAllowanceType:null,
           file : ''
         };
+        const fileInput: HTMLInputElement | null = document.querySelector('input[type="file"]');
+        if (fileInput) {
+          fileInput.value = ''; // Clear the file input value
+        }
        
       }
   

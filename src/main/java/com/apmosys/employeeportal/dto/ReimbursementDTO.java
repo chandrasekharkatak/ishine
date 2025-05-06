@@ -36,6 +36,7 @@ public class ReimbursementDTO {
     private String level1approveremail;
     private String level2approveremail;
     private String level3approveremail;
+    private String level3approvername;
     private String status;
     private String docId;
     private String finalStatus;

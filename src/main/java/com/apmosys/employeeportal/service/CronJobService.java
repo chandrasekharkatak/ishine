@@ -5734,6 +5734,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		
 		@Async
 		@Scheduled(cron = "0 0/5 * ? * *")
+		//@Scheduled(cron = "0 9 12 * * ?")
 		@Transactional
 		public void getProjectCloneFromPoPortal() {
 			
@@ -5837,7 +5838,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		                    project.setApmosysRM(dto.getApmosysRM());	
 		                    project.setIsRenewable(dto.getIsRenewable());
 		                    project.setClientRM(dto.getClientRM());
-		                    
+		                    project.setApmosysRmEmail(dto.getApmosysRmEmail());                    
 		                    projectRepository.save(project);
 
 		    		        logBuilder.append("Updated Project: ID=" + dto.getId() + ", PoNo=" + dto.getPoNo());
@@ -5858,7 +5859,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		    }
 		}
 
-		@Scheduled(cron = "0 30 14 * * ?")
+		//@Scheduled(cron = "0 30 14 * * ?")
 		public void sendMailForExpiryProjects() {
 		    LogDTO apiLogInfo = new LogDTO();
 		    apiLogInfo.setSubFeatureName("sendMailForExpiryProjects");

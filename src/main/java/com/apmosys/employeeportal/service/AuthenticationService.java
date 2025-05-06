@@ -220,6 +220,11 @@ public class AuthenticationService {
 	public ServiceResponse authenticateUserWithOTP(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+		
+//		String inputEmail = employeedto.getEmail();
+//		if (!inputEmail.contains("@")) {
+//		    employeedto.setEmail(inputEmail + "@apmosysemp.com");
+//		}
 		/* FOR SESSION LOG INFO */
 		LogDTO logInfo = new LogDTO();
 		logInfo.setEmpId(employeedto.getEmpId());
