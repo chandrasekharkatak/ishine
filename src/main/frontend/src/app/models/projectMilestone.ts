@@ -11,6 +11,7 @@ export class ProjectMilestone {
     description: any;
     redmineId: any;
     assignedToUserId: any[] = [];
+    assignedToEmployeementId: any[] = [];
     assignedToUserNames: any;
     taggedToUserId: any[] = [];
     taggedToUserNames: any;
@@ -26,11 +27,12 @@ export class ProjectMilestone {
     toAssignEmployeeList: any[] = [];
     isQuestionCollapsed: boolean = true;
     badgePathList = [
-        { name: 'Details' },
-        { name: 'Questions' },
-        { name: 'Modules' },
+        { name: 'Details', isUpdatedFromExcelUpload: 'No' },
+        { name: 'Questions', isUpdatedFromExcelUpload: 'No' },
+        { name: 'Modules', isUpdatedFromExcelUpload: 'No' },
     ];
     currentActiveBadgeLevel = 'Details';
     actionType: any;
+    isUpdatedFromExcelUpload:any;
 }
 

@@ -595,7 +595,7 @@ public class ProjectInsightService {
 		logBuilder.append("ProjectId : " + projectInsightDTO.getProjectId());
 		try {
 
-			if (!validationService.validateProjectId(projectInsightDTO.getProjectId())) {
+			if (projectInsightDTO.getProjectId() == null ) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project Id does not exists.");
 				apiLogInfo.setApiResponse("Project Id does not exists");
@@ -608,15 +608,27 @@ public class ProjectInsightService {
 				throw new RuntimeException("Project Not Found!!");
 			}
 			
+			List<ProjectQuestionDTO> projectQuestionList = getQuestion(projectInsightDTO.getProjectId(), "Project");
+			List<ProjectInsightMilestone> mileStoneList = projectInsightMilestoneRepository.getByProjectId(projectInsightDTO.getProjectId());
+			if ((projectQuestionList == null || projectQuestionList.isEmpty())
+					&& (mileStoneList == null || mileStoneList.isEmpty())) {
+				response.setServiceResponse("No Questions or Milestone Found for Project.");
+				apiLogInfo.setApiResponse("No Questions or Milestone Found for Project.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				return response;
+			}
+
+			
 			ProjectInsightDTO responseObject = new ProjectInsightDTO();
 			responseObject.setProjectId(projectInsightDTO.getProjectId());
 			responseObject.setProjectName(project.getProjectName());
 			responseObject.setProjectManagerId(project.getProjectManagerId());
 			responseObject.setProjectManagerName(getProjectManagerName(project.getProjectManagerId()));
 			responseObject.setCreatedBy(project.getCreatedBy());
-			responseObject.setQuestionList(getQuestion(projectInsightDTO.getProjectId(), "Project"));
+			responseObject.setQuestionList(projectQuestionList);
 			
-			List<ProjectInsightMilestone> mileStoneList = projectInsightMilestoneRepository.getByProjectId(projectInsightDTO.getProjectId());
+			
 			if (mileStoneList != null && !mileStoneList.isEmpty()) {
 					List<ProjectInsightMilestoneDTO> projectInsightQuestion = new ArrayList<>();
 					mileStoneList.forEach((mileStone) -> {
@@ -637,11 +649,12 @@ public class ProjectInsightService {
 						projectInsightQuestion.add(mileStoneProjObject);
 					});
 					responseObject.setProjectInsightMilestoneList(projectInsightQuestion);
-					response.setServiceResponse(responseObject);
-					apiLogInfo.setApiResponse("All Questions By MilestoneId Fetched");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			} 
+			}
+			
+			response.setServiceResponse(responseObject);
+			apiLogInfo.setApiResponse("All Questions By MilestoneId Fetched");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			e.printStackTrace();
 			apiLogInfo.setLogLevel("ERROR");
@@ -1042,7 +1055,7 @@ public class ProjectInsightService {
 					
 					
 					if (subModuleDTO.getSubModuleId() != null) {
-						ProjectInsightSubModule submoduleDbResponse = projectInsightSubModuleRepository.getById(subModuleDTO.getSubModuleId());
+						ProjectInsightSubModule submoduleDbResponse = projectInsightSubModuleRepository.findById(subModuleDTO.getSubModuleId()).orElse(null);
 						if (submoduleDbResponse != null) {
 							submoduleDbResponse.setModuleId(moduleId);
 							submoduleDbResponse.setDescription(subModuleDTO.getDescription());
@@ -1161,7 +1174,7 @@ public class ProjectInsightService {
 					if (subModuleDTO.getSubModuleId() == null || (subModuleDTO.getActionType() != null && subModuleDTO.getActionType().equalsIgnoreCase("Add"))) {
 						projectInsightSubModule = saveSubModule(projectInsightSubModule, subModuleDTO, moduleId, subModuleType, combinedText, createdBy, updatedBy);
 					} else if (subModuleDTO.getSubModuleId() != null) {
-						ProjectInsightSubModule submoduleDbResponse = projectInsightSubModuleRepository.getById(subModuleDTO.getSubModuleId());
+						ProjectInsightSubModule submoduleDbResponse = projectInsightSubModuleRepository.findById(subModuleDTO.getSubModuleId()).orElse(null);
 						if (submoduleDbResponse != null) {
 							projectInsightSubModule = saveSubModule(submoduleDbResponse, subModuleDTO, moduleId, subModuleType, combinedText, createdBy, updatedBy);
 						} else {

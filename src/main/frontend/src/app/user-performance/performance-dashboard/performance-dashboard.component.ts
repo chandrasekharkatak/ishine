@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -26,6 +26,7 @@ import { ProjectService } from 'src/app/services/project.service';
 import { Observable } from 'rxjs';
 import { HttpEvent, HttpResponse } from '@angular/common/http';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { ProjectInsightImportExportService } from 'src/app/services/project-insight-import-export.service';
 
 interface Goal {
   goalStatus: string;
@@ -56,22 +57,23 @@ interface AppraisalSummary {
 }
 
 interface QuestionDTO {
-remark: any;
-response: any;
+  remark: any;
+  response: any;
   id: number;
   questionText: string;
 }
 
-interface kpiList{
+interface kpiList {
   remark: any;
-  response:any;
-  id:number;
+  response: any;
+  id: number;
   description: string;
 }
 
 interface UploadResponse {
   imageUrl: string;
 }
+
 
 @Component({
   selector: 'app-performance-dashboard',
@@ -81,10 +83,11 @@ interface UploadResponse {
 export class PerformanceDashboardComponent implements OnInit {
 
   @ViewChild('alert_message') alertModal: TemplateRef<any>;
+  @ViewChild('fileInput') fileInput: ElementRef;
 
-  feature="performance_dashboard";
-  userMapping:any = {};
-  log:Log;
+  feature = "performance_dashboard";
+  userMapping: any = {};
+  log: Log;
   responses = [];
   currentUser: User;
   activeTab: string = 'kra-kpi';
@@ -93,7 +96,7 @@ export class PerformanceDashboardComponent implements OnInit {
   selectedQuarter1: any;
   kraKpiMetrics: any[] = [];
   questionnaireQuestions: QuestionDTO[] = [];
-  kpiList:kpiList[] = [];
+  kpiList: kpiList[] = [];
   selectedgoalProgress: any;
 
   showContextMenu = false;
@@ -101,7 +104,7 @@ export class PerformanceDashboardComponent implements OnInit {
   contextMenuY = 0;
   selectedText = '';
   newTag: string = '';
-  
+
   //Text Editor
   editorConfig: AngularEditorConfig = {
     editable: true,
@@ -120,7 +123,7 @@ export class PerformanceDashboardComponent implements OnInit {
     uploadWithCredentials: false,
     sanitize: false,
     toolbarPosition: 'top',
-    fonts: [{class: 'arial', name: 'Arial'}],
+    fonts: [{ class: 'arial', name: 'Arial' }],
     upload: (file: File): Observable<HttpEvent<UploadResponse>> => {
       return new Observable(observer => {
         if (this.isValidFileType(file)) {
@@ -160,79 +163,85 @@ export class PerformanceDashboardComponent implements OnInit {
   minRating = 3;
   goals: Goal[] = [];
   summary: AppraisalSummary = {
-    finalRating: 0,        
-    finalRemarks: '',      
-    appraisalScore: 0      
+    finalRating: 0,
+    finalRemarks: '',
+    appraisalScore: 0
   };
 
   currentEmployeeInfo: Employee = new Employee();
-  userContributionObj:UserContribution = new UserContribution();
+  userContributionObj: UserContribution = new UserContribution();
   selectedGoal?: Goal;
   modalRef?: BsModalRef;
   docModalRef?: BsModalRef;
   errorMessage: string;
   currentQuestionnaireId: any;
 
-  alertMessage:any;
+  alertMessage: any;
 
   // Project Insight
-  isQuestionForm:boolean = false;
-  isCreation:boolean = false;
-  isUpdation:boolean = false;
-  isProjectInsightList:boolean = false;
-  isSurveyResponseList:boolean = false;
-  isProjectInsightResponseList:boolean = false;
-  isResponsePreview:boolean = true;
-  isSearchEnabled:boolean = false;
-  isFinalResponseSubmitted:boolean = false;
-  showReviewButton:boolean = false;
-  toggleReviewView:boolean = false;
-  showPreReviewerSelection:boolean = false;
+  isQuestionForm: boolean = false;
+  isCreation: boolean = false;
+  isUpdation: boolean = false;
+  isProjectInsightList: boolean = false;
+  isSurveyResponseList: boolean = false;
+  isProjectInsightResponseList: boolean = false;
+  isResponsePreview: boolean = true;
+  isSearchEnabled: boolean = false;
+  isFinalResponseSubmitted: boolean = false;
+  showReviewButton: boolean = false;
+  toggleReviewView: boolean = false;
+  showPreReviewerSelection: boolean = false;
   showValidationErrors: boolean = false;
-  showPreviewDiv:boolean = false;
+  showPreviewDiv: boolean = false;
 
   validationErrors: string = '';
-  selectedPreReviewer:any = '';
+  selectedPreReviewer: any = '';
 
-  filters:any = {};
-  contributionFilters:any = {};
-  isContributionSearchEnabled:boolean = false;
+  filters: any = {};
+  contributionFilters: any = {};
+  isContributionSearchEnabled: boolean = false;
   myContributionPage = 1;
   page = 1;
   sortDirection = 'asc';
   sortColumn: any;
-  sortColumnType:any;
+  sortColumnType: any;
 
-  projectInsight:ProjectInsight = new ProjectInsight();
+  projectInsight: ProjectInsight = new ProjectInsight();
 
-  allProjectInsightList:any[] = [];
-  projectInsightColumnColumns:any[] = ['projectName','description','isActive','createdByName','createdOn'];
-  projectInsightContributionColumns:any[] = ['projectName','status','createdOn', 'blank']
-  employeeList:any[] = [];
-  myProjectInsightContributionList:any[] = [];
-  getUserContributionForReviewList:any[] = [];
-  finalContributionList:any[] = [];
-  allProjectList:any[] = [];
+  allProjectInsightList: any[] = [];
+  projectInsightColumnColumns: any[] = ['projectName', 'description', 'isActive', 'createdByName', 'createdOn'];
+  projectInsightContributionColumns: any[] = ['projectName', 'status', 'createdOn', 'blank']
+  employeeList: any[] = [];
+  myProjectInsightContributionList: any[] = [];
+  getUserContributionForReviewList: any[] = [];
+  finalContributionList: any[] = [];
+  allProjectList: any[] = [];
 
   projectResponseModalRef: BsModalRef = new BsModalRef();
   documentPreviewModalRef: BsModalRef = new BsModalRef();
 
-  projectId:any;
-  actionType:any='Contribution';
-  subActionType:any='Submit/View Response';
-  responseByEmpId:any;
+  projectId: any;
+  actionType: any = 'Contribution';
+  subActionType: any = 'Submit/View Response';
+  responseByEmpId: any;
+
+  file: any;
+  fileName: any;
+  projectInsightExcelObj: ProjectInsight = new ProjectInsight();
+  isExcelUploaded: boolean = false;
 
   constructor(
     private employeeService: EmployeeService,
     private modalService: BsModalService,
-    private authenticationService : AuthenticationService,
-    private performanceService:PerformanceService,
-    private goalService:GoalService,
-    private logService:LogService,
-    private projectInsightService:ProjectInsightService,
+    private authenticationService: AuthenticationService,
+    private performanceService: PerformanceService,
+    private goalService: GoalService,
+    private logService: LogService,
+    private projectInsightService: ProjectInsightService,
     private validationService: ValidationService,
     private projectService: ProjectService,
     private exportExcelService: ExportExcelService,
+    private projectInsightImportExportService: ProjectInsightImportExportService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -248,8 +257,8 @@ export class PerformanceDashboardComponent implements OnInit {
     this.getUserContributionForReview();
     this.getAllProjects();
     this.getEmployeeList();
-    
-    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
@@ -280,7 +289,7 @@ export class PerformanceDashboardComponent implements OnInit {
           this.selectedQuarter = this.quarterCyclesList[0].quarterId;
           this.selectedQuarter1 = this.quarterCyclesList[0].quarterId;
           // console.log('list of quarters:', this.quarterCyclesList);
-          
+
           this.onQuarterChange();
           this.quarterChange2();
         } else {
@@ -295,19 +304,19 @@ export class PerformanceDashboardComponent implements OnInit {
 
   onQuarterChange(): void {
     if (!this.selectedQuarter) return;
-    
-    this.loadPerformanceStats(); 
+
+    this.loadPerformanceStats();
     this.fetchGoals();
     this.loadAppraisalSummary();
-    
+
   }
 
 
 
 
-  loadAppraisalSummary(): void { 
+  loadAppraisalSummary(): void {
     const empId = this.currentEmployeeInfo.empId;
-    console.log('emp id: ',this.currentEmployeeInfo.empId);
+    console.log('emp id: ', this.currentEmployeeInfo.empId);
     if (!empId) return;
 
     this.performanceService.getAppraisalSummary(empId).subscribe({
@@ -323,14 +332,14 @@ export class PerformanceDashboardComponent implements OnInit {
 
   fetchGoals(): void {
 
-    this.errorMessage = ''; 
+    this.errorMessage = '';
     const empId = this.currentEmployeeInfo.empId;
     if (!empId) return;
     const quarter = Number(this.selectedQuarter);
     this.goalService.getGoalsByEmployeeAndQuarter(empId, quarter).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
-          this.goals = response.serviceResponse; 
+          this.goals = response.serviceResponse;
           // console.log('list of goals',this.goals);
         } else {
           this.errorMessage = response.serviceMessage || 'No goals found for this employee.';
@@ -362,7 +371,7 @@ export class PerformanceDashboardComponent implements OnInit {
 
   setActiveTab(tab: string) {
     this.activeTab = tab;
-    
+
   }
 
   openModal(template: TemplateRef<any>, goal: any): void {
@@ -371,26 +380,26 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
 
-quarterChange2(): void{
-  this.loadKpiList();
-  this.loadQuestionnaireQuestions();
-}
+  quarterChange2(): void {
+    this.loadKpiList();
+    this.loadQuestionnaireQuestions();
+  }
 
-loadQuestionnaireQuestions(): void {
-  
-  const quarterId = this.selectedQuarter1;
-  const departmentId = this.currentEmployeeInfo.departmentId;
+  loadQuestionnaireQuestions(): void {
 
-  this.questionnaireQuestions = [];
-  this.currentQuestionnaireId = null;
-  
-  if (!quarterId || !departmentId) return;
+    const quarterId = this.selectedQuarter1;
+    const departmentId = this.currentEmployeeInfo.departmentId;
+
+    this.questionnaireQuestions = [];
+    this.currentQuestionnaireId = null;
+
+    if (!quarterId || !departmentId) return;
 
     this.performanceService.getQuestionnares(departmentId, quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.questionnaireQuestions = response.serviceResponse[0].questions;
-          console.log('Questionnaire response:',this.questionnaireQuestions);
+          console.log('Questionnaire response:', this.questionnaireQuestions);
 
         } else {
           console.error('Failed to load questionnaire questions:', response.serviceMessage);
@@ -400,17 +409,17 @@ loadQuestionnaireQuestions(): void {
         console.error('Error fetching questionnaire questions:', error);
       }
     });
-}
+  }
 
 
-loadKpiList(): void {
-  const quarterId = this.selectedQuarter1;
-  const departmentId = this.currentEmployeeInfo.departmentId;
+  loadKpiList(): void {
+    const quarterId = this.selectedQuarter1;
+    const departmentId = this.currentEmployeeInfo.departmentId;
 
-  this.kpiList = [];
-  
-  if (!quarterId || !departmentId) return;
-  
+    this.kpiList = [];
+
+    if (!quarterId || !departmentId) return;
+
     this.performanceService.getKraKpi(departmentId, quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
@@ -425,35 +434,35 @@ loadKpiList(): void {
       }
     });
 
-}
+  }
 
 
 
-saveKpiResponses(template: TemplateRef<any>): void {
-  
-  console.log("Response ======> "+ JSON.stringify(this.kpiList));
+  saveKpiResponses(template: TemplateRef<any>): void {
 
-  const response = this.kpiList;
-  const empId = this.currentEmployeeInfo.empId;
-  const quarterId = this.selectedQuarter1;
+    console.log("Response ======> " + JSON.stringify(this.kpiList));
 
-  this.performanceService.submitKpiResponses(response,empId,quarterId).subscribe({
-    next: (response: any) => {
-      if (response.serviceStatus === 'Success') {
-        this.alertMessage = "KPI responses submitted successfully!"
-        this.openAlertMod(template, this.alertMessage);
-      } else {
-        this.alertMessage = `Failed to submit responses: ${response.serviceMessage}`
+    const response = this.kpiList;
+    const empId = this.currentEmployeeInfo.empId;
+    const quarterId = this.selectedQuarter1;
+
+    this.performanceService.submitKpiResponses(response, empId, quarterId).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.alertMessage = "KPI responses submitted successfully!"
+          this.openAlertMod(template, this.alertMessage);
+        } else {
+          this.alertMessage = `Failed to submit responses: ${response.serviceMessage}`
+          this.openAlertMod(template, this.alertMessage);
+        }
+      },
+      error: (error) => {
+        console.error('Error submitting KPI responses:', error);
+        this.alertMessage = `Error submitting KPI responses: ${error}`
         this.openAlertMod(template, this.alertMessage);
       }
-    },
-    error: (error) => {
-      console.error('Error submitting KPI responses:', error);
-      this.alertMessage = `Error submitting KPI responses: ${error}`
-      this.openAlertMod(template, this.alertMessage);
-    }
-  });
-}
+    });
+  }
 
 
   saveUpdates(template: TemplateRef<any>) {
@@ -461,14 +470,14 @@ saveKpiResponses(template: TemplateRef<any>): void {
       goalProgress: this.selectedgoalProgress,
       employeeRemark: this.selectedGoal.employeeRemark,
     };
-  
+
     this.goalService.updateGoal(this.selectedGoal.goalId, payload).subscribe(
       (response) => {
         if (response.serviceStatus === 'Success') {
           this.alertMessage = "Updates saved successfully!"
           this.openAlertMod(template, this.alertMessage);
         }
-       
+
       },
       (error) => {
         console.error('Error saving updates:', error);
@@ -479,14 +488,14 @@ saveKpiResponses(template: TemplateRef<any>): void {
   }
 
   saveQuestionnaireResponses(template: TemplateRef<any>): void {
- 
+
     const empId = this.currentEmployeeInfo.empId;
     const quarterId = this.selectedQuarter1;
 
     console.log('question response:', this.questionnaireQuestions);
-  
-  
-    this.performanceService.submitQuestionnaireResponses(this.questionnaireQuestions,empId,quarterId).subscribe({
+
+
+    this.performanceService.submitQuestionnaireResponses(this.questionnaireQuestions, empId, quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.alertMessage = "Questionnaire responses submitted successfully!"
@@ -510,30 +519,30 @@ saveKpiResponses(template: TemplateRef<any>): void {
     const selection = window.getSelection();
     if (selection && selection.toString().trim().length > 0) {
       this.selectedText = selection.toString();
-      
+
       // Cast event.target to HTMLElement
       const element = event.target as HTMLElement;
       const rect = element.getBoundingClientRect();
-      
+
       // Get click coordinates
       this.contextMenuX = event.clientX;
       this.contextMenuY = event.clientY;
-      
+
       // Ensure menu stays within viewport
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       const menuWidth = 200; // Approximate width of context menu
       const menuHeight = 160; // Approximate height of context menu
-      
+
       // Adjust if menu would go outside viewport
       if (this.contextMenuX + menuWidth > viewportWidth) {
         this.contextMenuX = viewportWidth - menuWidth;
       }
-      
+
       if (this.contextMenuY + menuHeight > viewportHeight) {
         this.contextMenuY = viewportHeight - menuHeight;
       }
-      
+
       this.showContextMenu = true;
     }
   }
@@ -561,7 +570,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
       this.newTag = '';
     }
   }
-  
+
   removeTag(index: number) {
     if (this.userContributionObj.tags) {
       this.userContributionObj.tags.splice(index, 1);
@@ -593,13 +602,13 @@ saveKpiResponses(template: TemplateRef<any>): void {
     });
   }
 
-  getMyContributionList(){
+  getMyContributionList() {
     this.myProjectInsightContributionList = [];
     this.finalContributionList = [];
 
     let insightObj = {
       employeeRole: this.currentUser.employeeRole,
-      empId: this.currentUser.empId   
+      empId: this.currentUser.empId
     };
 
     this.projectInsightService.getContibutionByEmpId(insightObj).pipe(first()).subscribe({
@@ -619,7 +628,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
     tempElement.innerHTML = htmlContent;
     return tempElement.textContent?.trim() || '';
   }
-  
+
 
   createUserContribution() {
     this.cancelRequest();
@@ -632,26 +641,26 @@ saveKpiResponses(template: TemplateRef<any>): void {
     const newFiles = [];
 
     if (this.userContributionObj.attachments && this.userContributionObj.attachments.length > 0) {
-        this.userContributionObj.attachments.forEach(attachment => {
-            if ('isExisting' in attachment) {
-                existingDocs.push({
-                    documentId: attachment.documentId,
-                    documentName: attachment.name
-                });
-            } else {
-                newFiles.push(attachment);
-            }
-        });
+      this.userContributionObj.attachments.forEach(attachment => {
+        if ('isExisting' in attachment) {
+          existingDocs.push({
+            documentId: attachment.documentId,
+            documentName: attachment.name
+          });
+        } else {
+          newFiles.push(attachment);
+        }
+      });
     }
 
     contributionData.userDocument = existingDocs;
     delete contributionData.attachments;
 
     formData.append('userContribution', new Blob([JSON.stringify(contributionData)], {
-        type: 'application/json'
+      type: 'application/json'
     }));
     newFiles.forEach(file => {
-        formData.append('attachments', file);
+      formData.append('attachments', file);
     });
 
     this.projectInsightService.createUserContribution(formData).pipe(first()).subscribe({
@@ -692,7 +701,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
             setTimeout(() => {
               URL.revokeObjectURL(objectUrl);
             }, 100);
-          } else{
+          } else {
             if (response.serviceStatus === 'Success' && response.serviceResponse?.body) {
 
               const base64Data = response?.serviceResponse?.body;
@@ -717,8 +726,8 @@ saveKpiResponses(template: TemplateRef<any>): void {
         }
       });
   }
-  
-  getUserContributionForReview(){
+
+  getUserContributionForReview() {
     this.getUserContributionForReviewList = [];
     this.finalContributionList = [];
 
@@ -728,11 +737,11 @@ saveKpiResponses(template: TemplateRef<any>): void {
       next: (response: any) => {
         this.getUserContributionForReviewList = response;
 
-        if(this.getUserContributionForReviewList != undefined
+        if (this.getUserContributionForReviewList != undefined
           && this.getUserContributionForReviewList != null &&
-          this.getUserContributionForReviewList.length > 0){
-            this.showReviewButton = true;
-        }else{
+          this.getUserContributionForReviewList.length > 0) {
+          this.showReviewButton = true;
+        } else {
           this.showReviewButton = false;
           this.toggleReviewView = false;
         }
@@ -757,7 +766,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
     this.showPreReviewerSelection = false;
   }
 
-  processUserContribution(statusType: any, projectUSerContributionObj: any){
+  processUserContribution(statusType: any, projectUSerContributionObj: any) {
 
     if (statusType != 'preReviewer') {
       let errors: string[] = [];
@@ -785,7 +794,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
         return;
       }
       projectUSerContributionObj.assignTo = this.selectedPreReviewer;
-    }else{
+    } else {
       projectUSerContributionObj.assignTo = this.currentUser.empId;
     }
 
@@ -813,7 +822,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
     });
   }
 
-  openAddContributionModal(template: TemplateRef<any>){
+  openAddContributionModal(template: TemplateRef<any>) {
     this.userContributionObj = new UserContribution();
     this.showPreviewDiv = false;
     this.showReviewButton = false;
@@ -882,19 +891,19 @@ saveKpiResponses(template: TemplateRef<any>): void {
 
   onSearch(searchData, type: any) {
     if (type == 'projectInsight') {
-      this.filters = searchData; 
-    }else{
+      this.filters = searchData;
+    } else {
       this.contributionFilters = searchData;
     }
   }
-  
+
   handlePageChange(event: number, table: string): void {
     if (table === 'projectInsight') {
       this.page = event;
     } else if (table === 'contribution') {
       this.myContributionPage = event;
     }
-  }  
+  }
 
   getAllProjectInsightContributionList() {
     this.sortColumn = [];
@@ -905,7 +914,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
     let insightObj = {
       employeeRole: this.currentUser.employeeRole,
       empId: this.currentUser.empId,
-      performanceTabName : 'Performance Dashboard'      
+      performanceTabName: 'Performance Dashboard'
     };
 
     this.projectInsightService.getAllProjectInsightContributionList(insightObj).pipe(first()).subscribe((response: any) => {
@@ -927,7 +936,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
   openUserContributionModal(projectObj: any, contributionModal: TemplateRef<any>) {
     this.userContributionObj = projectObj;
 
-    if(this.showReviewButton){
+    if (this.showReviewButton) {
       this.editorConfig = {
         ...this.editorConfig,
         editable: !this.showReviewButton,
@@ -951,6 +960,8 @@ saveKpiResponses(template: TemplateRef<any>): void {
   }
 
   getAllProjectInsightResponsesByProjectId(projectObj: any, alertTemplate: TemplateRef<any>, insightResponseTemplate: TemplateRef<any>, isPreview: any) {
+    this.projectInsightExcelObj = null;
+    this.isExcelUploaded = false;
     this.projectId = projectObj.projectId;
     this.subActionType = 'Submit/View Response';
     this.responseByEmpId = this.currentUser.empId;
@@ -966,7 +977,7 @@ saveKpiResponses(template: TemplateRef<any>): void {
     this.modalRef.hide();
     this.modalService.hide();
   }
- 
+
   getEmployeeList() {
     this.employeeList = [];
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
@@ -979,10 +990,252 @@ saveKpiResponses(template: TemplateRef<any>): void {
     });
   }
 
-  async getAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj: any) :Promise<any> {
-    let status = await this.exportExcelService.callGetAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj.projectId,this.currentUser.empId, 'Performance Dashboard',this.currentUser.employeeRole);
-    if(!status || (status && status !== 'Success')){
-      this.openAlertMod(this.alertModal,'Something went Wrong, while downloading excel.');
+  isValidList(list: any[]): boolean {
+    return this.validationService.validateNullUndefinedEmptyList(list);
+  }
+
+  isValidString(value: any): boolean {
+    return this.validationService.validateNullUndefinedEmptyString(value);
+  }
+
+  async getAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj: any): Promise<any> {
+    let projectInsightObj: any = await this.projectInsightImportExportService.callGetAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj.projectId, this.currentUser.empId, 'Performance Dashboard', this.currentUser.employeeRole, true);
+    if (!projectInsightObj) {
+      this.openAlertMod(this.alertModal, 'Something went Wrong, while downloading excel.');
     }
   }
+
+  clearFileInput(): void {
+    this.file = null;
+    this.fileName = null;
+    const fileInput = document.getElementById('project-data-input-file') as HTMLInputElement;
+    if (fileInput)
+      fileInput.value = '';
+  }
+
+  uploadFile(): void {
+    const fileInput = this.fileInput.nativeElement;
+    fileInput.click();
+  }
+
+  onFileChange(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.file = file;
+      this.fileName = file.name;
+      const fileExtension = this.fileName.split(".").pop();
+      let elem = document.getElementById('project-data-input-file') as HTMLInputElement;
+      if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
+        this.alertMessage = "Only .xlsx file is allowed.";
+        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+        this.clearFileInput();
+        return false;
+      }
+    } else {
+      this.clearFileInput();
+    }
+  }
+
+  async uploadXcelData(insightResponseTemplate: TemplateRef<any>): Promise<any> {
+    try {
+      let projectId: any[] = await this.projectInsightImportExportService.getProjectIdFromExcel(this.file);
+      if (!projectId) {
+        this.openAlertMod(this.alertModal, "Project Id Not Found in the Uploaded Excel file.");
+        return false;
+      }
+
+      let excelQuestionList = await this.projectInsightImportExportService.convertJsonDataToEntityQuestionList(this.file);
+      let projectInsightObj: any = await this.projectInsightImportExportService.callGetAllProjectInsightQuestionsByProjectIdAndEmpId(projectId, this.currentUser.empId, 'Performance Dashboard', this.currentUser.employeeRole, false);
+      if (!projectInsightObj) {
+        this.openAlertMod(this.alertModal, 'Something went Wrong, while downloading excel.');
+      }
+      let dbQuestionList: any = await this.projectInsightImportExportService.getQuestionListByEntityForResponseExcel(projectInsightObj, 'Project');
+      let flag = await this.validateQuestionsAndResponseExcelFile(dbQuestionList, excelQuestionList);
+      if (!flag) {
+        return false;
+      }
+      let mergedQuestionList = await this.mergeQuestionResponses(dbQuestionList, excelQuestionList);
+      console.log(mergedQuestionList);
+
+      this.projectInsightExcelObj = await this.assignMergedQuestionsToParent(projectInsightObj, mergedQuestionList);
+
+      this.isExcelUploaded = true;
+      this.subActionType = 'Submit/View Response';
+      this.openProjectInsightResponeMod(insightResponseTemplate);
+      this.clearFileInput();
+    } catch (error) {
+      console.log(error);
+      this.openAlertMod(this.alertModal, "Failed to process Excel file");
+      return false;
+    }
+  }
+
+  convertToProjectQuestion(dbQuestionListTemp: any[]) {
+    let dbQuestionList: ProjectQuestion[] = [];
+    if (this.isValidList(dbQuestionListTemp)) {
+      for (let question of dbQuestionListTemp) {
+        let dbQuestion: ProjectQuestion = new ProjectQuestion();
+        dbQuestion.questionId = question.QuestionId;
+        dbQuestion.question = question.Question;
+        dbQuestion.description = question.Description;
+        dbQuestion.optionType = question.OptionType;
+        dbQuestion.options = question.Options;
+        dbQuestion.entityId = question.EntityId;
+        dbQuestion.entityType = question.EntityType;
+        dbQuestion.optionsList = question.OptionsList;
+        dbQuestion.response = question.Response;
+        dbQuestionList.push(dbQuestion);
+      }
+    }
+    return dbQuestionList;
+  }
+
+  async validateQuestionsAndResponseExcelFile(dbQuestionList: any[], excelQuestionList: any[]): Promise<any> {
+    let excelValidated: any;
+    if (!this.isValidList(excelQuestionList)) {
+      this.openAlertMod(this.alertModal, "Questions sheet in the Excel file cannot be empty.");
+      return false;
+    }
+
+    if (!this.isValidList(dbQuestionList)) {
+      this.openAlertMod(this.alertModal, "Questions not found for the project ID provided in the uploaded Excel file.");
+      return false;
+    }
+
+    let questionIdList: any[] = [];
+    questionIdList = excelQuestionList.map(question => question?.questionId);
+    const duplicates = questionIdList.filter((id, index, self) =>
+      id !== null && self.indexOf(id) !== index && self.lastIndexOf(id) === index
+    );
+    if (this.isValidList(duplicates)) {
+      this.openAlertMod(this.alertModal, `Kindly enter unique values for the Question ID in the Questions sheet for ${duplicates}`);
+      return false;
+    }
+
+    for (let questionIndex = 0; questionIndex < excelQuestionList?.length; questionIndex++) {
+      const question = excelQuestionList[questionIndex];
+      if (!this.validationService.validateNullUndefinedEmptyString(question?.questionId)) {
+        this.openAlertMod(this.alertModal, `Kindly enter the Question ID in the Questions sheet for ${questionIndex + 1}`);
+        return false;
+      }
+      if (!this.validationService.validateNullUndefinedEmptyString(question?.entityId)) {
+        this.openAlertMod(this.alertModal, `Kindly enter the Parent ID in the Questions sheet for ${questionIndex + 1}`);
+        return false;
+      }
+      if (!this.validationService.validateNullUndefinedEmptyString(question?.entityType)) {
+        this.openAlertMod(this.alertModal, `Kindly enter the Parent Type in the Questions sheet for ${questionIndex + 1}`);
+        return false;
+      }
+
+      const dbQuestionObjEntityTypeList = dbQuestionList.filter(dbQuestionObj => {
+        if (dbQuestionObj?.entityId == question?.entityId && dbQuestionObj?.entityType == question?.entityType) {
+          return dbQuestionObj;
+        }
+      });
+
+      if (!this.isValidList(dbQuestionObjEntityTypeList) && !dbQuestionObjEntityTypeList.includes(question?.questionId)) {
+        this.openAlertMod(this.alertModal, `Question with the Question ID ${question?.questionId} in the Questions sheet for ${questionIndex + 1} was not found for the project ID specified in the uploaded Excel file.`);
+        return false;
+      }
+
+      const dbQuestionObjList = dbQuestionObjEntityTypeList.filter(dbQuestionObj => {
+        if (dbQuestionObj.questionId == question?.questionId) {
+          return dbQuestionObj;
+        }
+      });
+
+      const dbQuestion = dbQuestionObjList[0];
+      if (dbQuestion?.optionType == 'checkbox') {
+        if (this.validationService.validateNullUndefinedEmptyString(question?.response) && question?.response != '[]') {
+          let responseList = this.projectInsightImportExportService.parseListToOptions(dbQuestion?.optionType, question?.response);
+          if (!this.isValidList(responseList)) {
+            this.openAlertMod(this.alertModal, `Kindly provide valid Response in the Questions sheet for ${questionIndex + 1}`);
+            return false;
+          }
+          for (let response of responseList) {
+            if (this.isValidList(dbQuestion.optionsList)) {
+              let optionsList = dbQuestion.optionsList.map(optionsValue => optionsValue?.optionValue);
+              if (!optionsList?.includes(response.optionValue)) {
+                this.openAlertMod(this.alertModal, `Kindly provide Response from one of the Provided Options in the Questions sheet for ${questionIndex + 1}`);
+                return false;
+              }
+            }
+          }
+        }
+        if (question?.response == '[]') {
+          question.response = null;
+        }
+      }
+    }
+    return true;
+  }
+
+  async mergeQuestionResponses(dbList: any[], excelList: any[]): Promise<any> {
+    if (!this.isValidList(dbList)) {
+      return this.isValidList(excelList) ? excelList : [];
+    }
+    if (!this.isValidList(excelList)) {
+      return dbList;
+    }
+    for (const excelQ of excelList) {
+      const dbQ = dbList.find(q => q.questionId === excelQ.questionId);
+      if (dbQ) {
+        if (this.isValidList(dbQ.projectResponseList)) {
+          let dbR = dbQ.projectResponseList[0];
+          if (dbR.response != excelQ.response && this.isValidString(dbR.response)) {
+            dbQ.isUpdatedFromExcelUpload = 'Yes';
+            dbR.response = excelQ.response;
+          }
+        } else {
+          if (this.isValidString(excelQ.response)) {
+            dbQ.isUpdatedFromExcelUpload = 'Yes';
+          }
+          dbQ.projectResponseList = [];
+          let projectResponse = new ProjectResponse();
+          let options = this.projectInsightImportExportService.parseListToOptions(dbQ.optionType, dbQ.options);
+          projectResponse.options = dbQ.optionType != 'text' && options != null ? JSON.stringify(options) : null;
+          projectResponse.response = excelQ.response;
+          projectResponse.showDocDiv = true;
+          dbQ.projectResponseList.push(projectResponse);
+        }
+        dbQ.actionType = excelQ.ActionType;
+      }
+    }
+    return dbList;
+  }
+
+  async assignMergedQuestionsToParent(projectInsightObj: any, mergedQuestionList: any[]): Promise<any> {
+    const assignQuestions = (entityList: any[], entityIdKey: string, entityType: string) => {
+      entityList?.forEach(entity => {
+        entity.questionList = mergedQuestionList?.filter(q => q.entityId === entity[entityIdKey] && q.entityType === entityType) || [];
+      });
+    };
+
+    projectInsightObj.questionList = mergedQuestionList?.filter(q => q.entityId === projectInsightObj?.projectId && q.entityType === 'Project') || [];
+
+    assignQuestions(projectInsightObj.projectInsightMilestoneList, 'milestoneId', 'Milestone');
+
+    projectInsightObj.projectInsightMilestoneList.forEach(milestone => {
+      assignQuestions(milestone.moduleList, 'moduleId', 'Module');
+
+      milestone.moduleList?.forEach(module => {
+        assignQuestions(module.subModuleList, 'subModuleId', 'SubModule');
+
+        module.subModuleList?.forEach(subModule => {
+          this.assignSubSubModuleQuestionsToParent(subModule.subSubModuleList, 'subModuleId', 'Sub-SubModule', mergedQuestionList);
+        });
+      });
+    });
+    return projectInsightObj;
+  }
+
+  assignSubSubModuleQuestionsToParent(subSubModuleList: any[], entityIdKey: any, entityType: any, mergedQuestionList: any[]) {
+    subSubModuleList?.forEach(entity => {
+      entity.questionList = mergedQuestionList?.filter(q => q.entityId === entity[entityIdKey] && q.entityType === entityType) || [];
+      if (entity?.subSubModuleList) {
+        this.assignSubSubModuleQuestionsToParent(entity?.subSubModuleList, 'subModuleId', 'Sub-SubModule', mergedQuestionList)
+      }
+    });
+  }
+
 }
