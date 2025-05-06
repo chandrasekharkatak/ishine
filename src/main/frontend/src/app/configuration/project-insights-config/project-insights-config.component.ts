@@ -61,6 +61,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
     subSubModule: {}
   };
 
+  accordionStateForUserContribution: { [key: string]: boolean } = {};
+  showPreviewDiv: boolean = false;
+
   //search
   searchTerm: string = '';
   backupsearchTerm: string = '';
@@ -317,12 +320,23 @@ export class ProjectInsightsConfigComponent implements OnInit {
         this.searchResults = response.projectList;
         this.tagList = response.tagList;
         this.userContributionList = response.userContributionList;
+        console.log(this.userContributionList, " : this.userContributionList");
         this.buildTaggedTreeData();
       },
       (error) => {
         console.error(error);
       }
     );
+  }
+
+  toggleAccordionForUserContribution(type: string, id: number): void {
+    const key = `${type}-${id}`;
+    this.showPreviewDiv = false;
+    this.accordionState[key] = !this.accordionState[key];
+  }
+  
+  isAccordionOpenForUserContribution(type: string, id: number): boolean {
+    return this.accordionState[`${type}-${id}`] || false;
   }
 
   toggleAccordion(level: string, id: string | number) {
@@ -485,6 +499,7 @@ export class ProjectInsightsConfigComponent implements OnInit {
 
   onHighlightClick(event: MouseEvent, object: any, type: any): void {
     const target = event.target as HTMLElement
+    console.log("onHighlightClick", " :onHighlightClick clicked");
 
     if (target.classList.contains("clickable-highlight")) {
       const value = target.getAttribute("data-value")
@@ -495,18 +510,75 @@ export class ProjectInsightsConfigComponent implements OnInit {
   handleHighlightedTextClick(value: string | null, object:any, type:any) {
     this.projectInsightSpecificViewType = type;
     this.projectInsightSpecificViewObject = object;
-    console.log(this.projectInsightSpecificViewType);
-    console.log(this.projectInsightSpecificViewObject);
     this.projectResponseModalRef = this.modalService.show(this.previewProjectInsightSection, { class: 'modal-xl' });
-    console.log(this.projectResponseModalRef);
-    console.log(this.modalService);
-    console.log(this.previewProjectInsightSection);
+  }
+
+  openViewFullProjectModal(projectId:any){
+    this.actionType = "Configuration";
+    this.subActionType = "Search";
+    this.projectId = projectId;
+    this.projectResponseModalRef = this.modalService.show(this.insightResponseTemplate, { class: 'modal-xl' });
+  }
+
+  previewUploadedUserContribution(docObject: any, contributionObj:any, previewTemplate:any){
+    let documentObj = new Document();
+    documentObj.empId = this.currentUser.empId;
+    documentObj.documentName = docObject.documentName;
+    this.showPreviewDiv = true;
+
+    this.projectInsightService.getUserUploadedFileForQuestion(documentObj)
+      .subscribe({
+        next: (response: any) => {
+          const previewContainer = document.getElementById(previewTemplate);
+          if (docObject instanceof File) {
+            const objectUrl = URL.createObjectURL(docObject);
+
+            if (docObject.type === 'application/pdf') {
+              previewContainer.innerHTML = `
+                      <iframe src="${objectUrl}" type="application/pdf" width="100%" height="800px"></iframe>`;
+            }
+            else if (docObject.type.startsWith('image/')) {
+              previewContainer.innerHTML = `
+                      <img src="${objectUrl}" class="img-fluid" style="max-height:800px;" />`;
+            }
+            setTimeout(() => {
+              URL.revokeObjectURL(objectUrl);
+            }, 100);
+          } else {
+            if (response.serviceStatus === 'Success' && response.serviceResponse?.body) {
+
+              const base64Data = response?.serviceResponse?.body;
+              let contentTypeList = response?.serviceResponse?.headers["Content-Type"];
+              let contentType = contentTypeList[0]
+              if (contentType == 'application/pdf') {
+                previewContainer.innerHTML = `<embed src="data:application/pdf;base64,${base64Data}" type="application/pdf" width="100%" height="800px" />`;
+              }
+              else if (contentType.startsWith('image/')) {
+                previewContainer.innerHTML = `<img src="data:${contentType};base64,${base64Data}" class="img-fluid" style="max-height:800px;" />`;
+              }
+            } else {
+              this.alertMessage = "Failed to load document";
+              this.modalRef = this.modalService.show(this.alertMessageTempalte, { class: 'modal-sm' });
+            }
+          }
+        },
+        error: (error) => {
+          this.alertMessage = "Error loading document";
+          this.modalRef = this.modalService.show(this.alertMessageTempalte, { class: 'modal-sm' });
+          console.error('Error loading document:', error);
+        }
+      });
   }
   
 
   searchTagTerm(tag: any) {
     this.searchTerm = tag;
     this.onSearchTerm();
+  }
+
+  cancelRequestSearchResultModal(){
+    this.projectResponseModalRef.hide();
+    this.modalService.hide();
   }
 
   clearSearch() {

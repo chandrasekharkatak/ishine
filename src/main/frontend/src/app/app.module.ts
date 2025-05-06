@@ -134,6 +134,7 @@ import { PerformanceConfigComponent } from './configuration/performance-config/p
 import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
 import { QuestionComponent } from './configuration/project-insights-config/question/question.component';
 import { ProjectInsightsComponent } from './configuration/project-insights/project-insights.component';
+import { HighlightPipe } from './highlight.pipe';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -235,7 +236,8 @@ import { ProjectInsightsComponent } from './configuration/project-insights/proje
      PerformanceConfigComponent,
      ProjectInsightsConfigComponent,
      QuestionComponent,
-     ProjectInsightsComponent
+     ProjectInsightsComponent,
+     HighlightPipe
 
     //TestComponent
   ],
