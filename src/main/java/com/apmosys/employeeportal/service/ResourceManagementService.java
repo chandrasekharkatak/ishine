@@ -255,7 +255,10 @@ public class ResourceManagementService {
 			    newProject.setPoProjectId(resourceManagementDTO.getId());
 			    newProject.setActive("true");
 			    newProject.setSyncProject("true");
-			    newProject.setPoProjectType(resourceManagementDTO.getProjectType());
+			    newProject.setPoProjectType(
+			    	    "Internal".equalsIgnoreCase(resourceManagementDTO.getProjectType()) ? null : resourceManagementDTO.getProjectType()
+			    	);
+
 			    newProject.setPoNo(resourceManagementDTO.getPoNo());
 			    newProject.setPoStartDate(resourceManagementDTO.getStartDate());
 			    newProject.setPoEndDate(resourceManagementDTO.getEndDate());
@@ -957,7 +960,8 @@ public class ResourceManagementService {
 		    project.setPoNo(dto.getPoNo());
 		    project.setPoStartDate(dto.getStartDate());
 		    project.setPoEndDate(dto.getEndDate());
-		    project.setPoProjectType(dto.getProjectType());
+		    project.setPoProjectType("Internal".equalsIgnoreCase(dto.getProjectType()) ? null : dto.getProjectType());
+
 		    project.setApmosysRM(dto.getApmosysRM());
 		    project.setIsRenewable(dto.getIsRenewable());
 		    project.setClientRM(dto.getClientRM());
