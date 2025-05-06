@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -28,6 +28,8 @@ import { Document } from 'src/app/models/document';
 import { ProjectResponse } from 'src/app/models/projectResponse';
 import { ProjectMilestone } from 'src/app/models/projectMilestone';
 import * as XLSX from 'xlsx';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { AngularEditorConfig } from '@kolkov/angular-editor';
 @Component({
   selector: 'app-project-insights-config',
   templateUrl: './project-insights-config.component.html',
@@ -38,6 +40,9 @@ export class ProjectInsightsConfigComponent implements OnInit {
   @ViewChild('alert_message') alertMessageTempalte:TemplateRef<any>;
   @ViewChild('insight_response_template') insightResponseTemplate:TemplateRef<any>;
   @ViewChild('fileInput') fileInput: ElementRef;
+  // @ViewChild('preview_project_insight_section') previewProjectInsightSection:TemplateRef<any>;
+  @ViewChild('preview_project_insight_section', { static: true }) previewProjectInsightSection: TemplateRef<any>;
+
   
   feature = "Survey Config";
   currentUser: User;
@@ -113,8 +118,40 @@ export class ProjectInsightsConfigComponent implements OnInit {
   subActionType:any='Creation';
   responseByEmpId:any;
 
+  searchResultActionType:any='Contribution';
+  searchResultSubActionType:any='Review Response';
+
+  projectInsightSpecificViewType:any;
+  projectInsightSpecificViewObject:any;
+
   file: any;
   fileName:any;
+
+  editorConfig: AngularEditorConfig = {
+    editable: true,
+    spellcheck: true,
+    height: '20rem',
+    minHeight: '5rem',
+    width: 'auto',
+    minWidth: '0',
+    translate: 'yes',
+    enableToolbar: true,
+    showToolbar: true,
+    placeholder: 'Enter Response here...',
+    defaultParagraphSeparator: '',
+    defaultFontName: '',
+    defaultFontSize: '',
+    uploadWithCredentials: false,
+    sanitize: false,
+    toolbarPosition: 'top',
+    fonts: [{ class: 'arial', name: 'Arial' }],
+    toolbarHiddenButtons: [
+      [
+        'insertImage',
+        'insertVideo'
+      ]
+    ]
+  };
 
   constructor(
     private validationService: ValidationService,
@@ -129,6 +166,8 @@ export class ProjectInsightsConfigComponent implements OnInit {
     private projectService: ProjectService,
     private projectInsightService:ProjectInsightService,
     private employeeService: EmployeeService,
+    private sanitizer: DomSanitizer,
+    private renderer: Renderer2
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -141,6 +180,18 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.getEmployeeList();
     this.preventBackButton();
   }
+
+  ngAfterViewInit() {
+    // Now it's safe to access this.previewProjectInsightSection
+    console.log(this.insightResponseTemplate);
+    console.log(this.alertMessageTempalte);
+    console.log(this.previewProjectInsightSection);
+    
+    if (this.previewProjectInsightSection) {
+      console.log('Template is ready:', this.previewProjectInsightSection);
+    }
+  }
+  
 
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -320,29 +371,37 @@ export class ProjectInsightsConfigComponent implements OnInit {
     this.treeData = (this.searchResults || [])
       .map(project => {
         const projectTags = (this.tagList || []).filter(tag => tag.projectId === project.projectId);
-
+  
         // Recursive for submodules
-        const buildTaggedSubModules = (subModules) => {
+        const buildTaggedSubModules = (subModules, type?) => {
           if (!subModules) return [];
           return subModules
             .map(subModule => {
-              const subModuleTag = projectTags.find(tag => tag.entityType === 'SubModule' && tag.entityId === subModule.subModuleId);
-              const taggedSubSubModules = buildTaggedSubModules(subModule.subSubModuleList);
-              if (subModuleTag || taggedSubSubModules.length) {
+              let subModuleTag;
+              if(type == undefined || type == null){
+                subModuleTag = projectTags.find(tag => tag.entityType === 'SubModule' && tag.entityId === subModule.subModuleId);
+              }else{
+                subModuleTag = projectTags.find(tag => tag.entityType === 'Sub-SubModule' && tag.entityId === subModule.subModuleId);
+              }
+              const taggedSubSubModules = buildTaggedSubModules(subModule.subSubModuleList, 'Sub-SubModule');
+
+              if(subModuleTag){
                 return {
                   type: 'SubModule',
                   id: subModule.subModuleId,
                   label: subModule.subModule,
                   object: subModule,
                   tags: subModuleTag ? [subModuleTag] : [],
+                  isVisible: !!subModuleTag,
                   children: taggedSubSubModules
                 };
+              }else{
+                return null;
               }
-              return null;
             })
             .filter(Boolean);
         };
-
+  
         // Recursive for modules
         const buildTaggedModules = (modules) => {
           if (!modules) return [];
@@ -350,66 +409,108 @@ export class ProjectInsightsConfigComponent implements OnInit {
             .map(module => {
               const moduleTag = projectTags.find(tag => tag.entityType === 'Module' && tag.entityId === module.moduleId);
               const taggedSubModules = buildTaggedSubModules(module.subModuleList);
-              if (moduleTag || taggedSubModules.length) {
+
+              if(moduleTag){
                 return {
                   type: 'Module',
                   id: module.moduleId,
                   label: module.module,
                   object: module,
                   tags: moduleTag ? [moduleTag] : [],
+                  isVisible: !!moduleTag,
                   children: taggedSubModules
                 };
+              }else{
+                return null;
               }
-              return null;
             })
             .filter(Boolean);
         };
-
+  
         // Recursive for milestones
         const buildTaggedMilestones = (milestones) => {
-          console.log(milestones, " --milestones");
-          
           if (!milestones) return [];
           return milestones
             .map(milestone => {
               const milestoneTag = projectTags.find(tag => tag.entityType === 'Milestone' && tag.entityId === milestone.milestoneId);
               const taggedModules = buildTaggedModules(milestone.moduleList);
-              if (milestoneTag || taggedModules.length) {
+
+              if(milestoneTag){
                 return {
                   type: 'Milestone',
                   id: milestone.milestoneId,
                   label: milestone.milestone,
                   object: milestone,
                   tags: milestoneTag ? [milestoneTag] : [],
+                  isVisible: !!milestoneTag,
                   children: taggedModules
                 };
+              }else{
+                return null;
               }
-              return null;
             })
             .filter(Boolean);
         };
-
+  
         const projectTag = projectTags.find(tag => tag.entityType === 'Project' && tag.entityId === project.projectId);
         const taggedMilestones = buildTaggedMilestones(project.projectInsightMilestoneList);
+  
+        return {
+          type: 'Project',
+          id: project.projectId,
+          label: project.projectName,
+          object: project,
+          tags: projectTag ? [projectTag] : [],
+          isVisible: !!projectTag,
+          children: taggedMilestones
+        };
+      });
+  }  
 
-        if (projectTag || taggedMilestones.length) {
-          return {
-            type: 'Project',
-            id: project.projectId,
-            label: project.projectName,
-            object: project,
-            tags: projectTag ? [projectTag] : [],
-            children: taggedMilestones
-          };
-        }
-        return null;
-      })
-      .filter(Boolean);
+  getHighlightedMatches(object: any): SafeHtml {
+    const searchTerm = this.searchTerm?.toLowerCase();
+    if (!searchTerm) return '';
+  
+    const result: string[] = [];
+
+    const highlight = (text: string): string => {
+      const regex = new RegExp(`(${searchTerm})`, 'gi');
+      return text.replace(
+        regex,
+        `<span class="clickable-highlight" data-value="$1" style="background-color: #cce5ff; color: #004085; cursor: pointer;">$1</span>`
+      );
+    };
+  
+    for (const key of Object.keys(object)) {
+      const value = object[key];
+      if (typeof value === 'string' && value.toLowerCase().includes(searchTerm)) {
+        result.push(`<b>${key}</b>: ${highlight(value)}`);
+      }
+    }
+  
+    return this.sanitizer.bypassSecurityTrustHtml(result.join('<br>'));
   }
 
-  onSelectNode(node: any) {
-    this.selectedObject = node.object;
+  onHighlightClick(event: MouseEvent, object: any, type: any): void {
+    const target = event.target as HTMLElement
+
+    if (target.classList.contains("clickable-highlight")) {
+      const value = target.getAttribute("data-value")
+      this.handleHighlightedTextClick(value, object, type)
+    }
   }
+
+  handleHighlightedTextClick(value: string | null, object:any, type:any) {
+    this.projectInsightSpecificViewType = type;
+    this.projectInsightSpecificViewObject = object;
+    console.log(this.projectInsightSpecificViewType);
+    console.log(this.projectInsightSpecificViewObject);
+    this.projectResponseModalRef = this.modalService.show(this.previewProjectInsightSection, { class: 'modal-xl' });
+    console.log(this.projectResponseModalRef);
+    console.log(this.modalService);
+    console.log(this.previewProjectInsightSection);
+  }
+  
 
   searchTagTerm(tag:any){
     this.searchTerm = tag;

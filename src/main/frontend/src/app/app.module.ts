@@ -235,7 +235,7 @@ import { ProjectInsightsComponent } from './configuration/project-insights/proje
      PerformanceConfigComponent,
      ProjectInsightsConfigComponent,
      QuestionComponent,
-     ProjectInsightsComponent,
+     ProjectInsightsComponent
 
     //TestComponent
   ],

@@ -45,7 +45,7 @@
           type="submit" class="btn btn-outline-primary btn-sm mx-1" (click)="saveReviewRemarks(true,false)">Draft Transfer To
           Knowledge Hub</button> -->
         <button
-          
+         *ngIf="subActionType == 'Review Response' && isCurrentEmployeeRoleGreaterThanManager && !isResponsePointFinalSubmitted"
           type="submit" class="btn btn-outline-primary btn-sm mx-1" (click)="saveReviewRemarks(false,true)">Transfer To
           Knowledge Hub</button>
         <button

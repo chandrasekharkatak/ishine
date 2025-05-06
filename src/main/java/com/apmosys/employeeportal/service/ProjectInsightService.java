@@ -2403,41 +2403,58 @@ public class ProjectInsightService {
 		return projectInsightQuestionList;
 	}
 	
-	public ProjectInsightDTO getAllMilestoneInfoByProjectId(Long projectId){
+	public ProjectInsightDTO getAllMilestoneInfoByProjectId(Long projectId) {
 		ProjectInsightDTO response = new ProjectInsightDTO();
 		try {
-			//projectinfo + Milestone .....
+			// projectinfo + Milestone .....
 			Project project = projectRepository.findByProjectId(projectId.intValue());
-			
-			if(project != null) {
-				
+
+			if (project != null) {
+				// basic project info
+				List<Object[]> deptData = departmentRepository.getMappedDepartment(project.getProjectId());
+				List<String> departmentNames = deptData.stream().map(obj -> obj[0] != null ? obj[0].toString() : null)
+						.filter(Objects::nonNull).collect(Collectors.toList());
+				Employee empObject = employeeRepository.findByEmpId(project.getProjectManagerId());
+				List<TagMaster> tagMasterList = tagMasterRepository.findByProjectId(project.getProjectId().longValue());
+
 				response.setQuestionList(getProjectQuestionDTOListForSearchResult(projectId, "Project"));
 				response.setProjectId(projectId);
 				response.setProjectManagerId(project.getProjectManagerId());
 				response.setProjectManagerName(getProjectManagerName(project.getProjectManagerId()));
 				response.setProjectName(project.getProjectName());
 				
-				List<ProjectInsightMilestone> projectMilestoneListByProjectId = projectInsightMilestoneRepository.getByProjectId(projectId);
-				if(!projectMilestoneListByProjectId.isEmpty()) {
+				//addtional info
+				response.setDepartmentList(departmentNames.toArray(new String[0]));
+				response.setState(project.getState());
+				response.setTagList(
+						tagMasterList.stream().map(TagMaster::getTag).limit(8).collect(Collectors.toList()));
+				response.setCreatedOn(project.getCreatedOn() != null ? project.getCreatedOn().toString() : null);
+				response.setUpdatedOn(project.getUpdatedOn() != null ? project.getUpdatedOn().toString() : null);
+
+				List<ProjectInsightMilestone> projectMilestoneListByProjectId = projectInsightMilestoneRepository
+						.getByProjectId(projectId);
+				if (!projectMilestoneListByProjectId.isEmpty()) {
 					List<ProjectInsightMilestoneDTO> milestoneList = new ArrayList<>();
 					projectMilestoneListByProjectId.forEach((object) -> {
 						ProjectInsightMilestoneDTO projectInsightMilestoneDTO = new ProjectInsightMilestoneDTO();
-						
+
 						projectInsightMilestoneDTO.setMilestoneId(object.getMilestoneId());
 						projectInsightMilestoneDTO.setMilestone(object.getMilestone());
 						projectInsightMilestoneDTO.setDescription(object.getDescription());
 						projectInsightMilestoneDTO.setDeptId(object.getDeptId());
-						
-						projectInsightMilestoneDTO.setQuestionList(getProjectQuestionDTOListForSearchResult(object.getMilestoneId(), "Milestone"));
-						projectInsightMilestoneDTO.setModuleList(getAllModuleInfoByMilestoneId(object.getMilestoneId()).getModuleList());
-						
+
+						projectInsightMilestoneDTO.setQuestionList(
+								getProjectQuestionDTOListForSearchResult(object.getMilestoneId(), "Milestone"));
+						projectInsightMilestoneDTO
+								.setModuleList(getAllModuleInfoByMilestoneId(object.getMilestoneId()).getModuleList());
+
 						milestoneList.add(projectInsightMilestoneDTO);
-				});
-					
+					});
+
 					response.setProjectInsightMilestoneList(milestoneList);
 				}
 			}
-		}catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return response;

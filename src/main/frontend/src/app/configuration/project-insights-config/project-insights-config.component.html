@@ -47,101 +47,134 @@
   <div class="accordion-tree" style="margin-top: 28px;">
     <ul class="vscode-tree">
       <ng-container *ngFor="let project of treeData">
-        <li>
-          <!-- Project Accordion Header -->
-          <div class="accordion-header" (click)="toggleAccordion('project', project.id)">
-            <i class="fa-solid" [ngClass]="isAccordionOpen('project', project.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-            <span [class.highlight]="project.tags.length" [class.selected]="isSelectedObject(project.object)">
-              <i class="fa-solid fa-folder-tree mr-2 text-vscode-folder"></i>
-              <span class="project-label">{{ project.label }}</span>
-            </span>
-          </div>
-          <!-- Project Details (Accordion Body) - visible only on click -->
-          <div class="accordion-body" *ngIf="isAccordionOpen('project', project.id)">
-            <div class="details-card">
-              <pre>{{ project.object | json }}</pre>
+        <div class="card shadow-sm p-3 mb-3 bg-white rounded">
+          <!-- Project Info -->
+          <div class="project-info">
+            <div class="mb-2 tag-container">
+              <ng-container *ngFor="let tag of project.object.tagList">
+                <span class="badge custom-badge">{{ tag }}</span>
+              </ng-container>
+            </div>
+  
+            <div class="info-row mb-1">
+              <div><span class="label">Project Manager:</span> {{ project.object.projectManagerName }}</div>
+              <div><span class="label">State:</span> {{ project.object.state }}</div>
+              <div><span class="label">Department:</span> {{ project.object.departmentList?.join(', ') || 'N/A' }}</div>
+            </div>
+  
+            <div class="info-row d-flex justify-content-between align-items-center mt-3">
+              <div><span class="label">Created on:</span> {{ project.object.createdOn }}</div>
+              <div>
+                <button class="btn btn-link p-0 text-decoration-none"><em>View Full Project</em></button>
+              </div>
             </div>
           </div>
-          <!-- Milestones Accordion (always visible) -->
-          <ul *ngIf="project.children?.length">
-            <ng-container *ngFor="let milestone of project.children">
-              <li>
-                <div class="accordion-header" (click)="toggleAccordion('milestone', milestone.id)">
-                  <i class="fa-solid" [ngClass]="isAccordionOpen('milestone', milestone.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-                  <span [class.highlight]="milestone.tags.length" [class.selected]="isSelectedObject(milestone.object)">
-                    <i class="fa-solid fa-flag-checkered mr-2 text-vscode-milestone"></i> {{ milestone.label }}
-                  </span>
-                </div>
-                <!-- Milestone Details -->
-                <div class="accordion-body" *ngIf="isAccordionOpen('milestone', milestone.id)">
-                  <div class="details-card">
-                    <pre>{{ milestone.object | json }}</pre>
-                  </div>
-                </div>
-                <!-- Modules Accordion (always visible) -->
-                <ul *ngIf="milestone.children?.length">
-                  <ng-container *ngFor="let module of milestone.children">
+  
+          <!-- Project Accordion -->
+          <li>
+            <div class="accordion-header" (click)="toggleAccordion('project', project.id)">
+              <i class="fa-solid" [ngClass]="isAccordionOpen('project', project.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+              <span [class.highlight]="project.tags.length" [class.selected]="isSelectedObject(project.object)">
+                <i class="fa-solid fa-folder-tree mr-2 text-vscode-folder"></i>
+                <span class="project-label">{{ project.label }}</span>
+              </span>
+            </div>
+  
+            <!-- Project Accordion Body -->
+            <div class="accordion-body" *ngIf="isAccordionOpen('project', project.id)">
+              <div class="details-card">
+                <div [innerHTML]="getHighlightedMatches(project.object)" (click)="onHighlightClick($event, project.object, 'Project')" class="highlight-container"></div>
+  
+                <!-- Milestones inside Project -->
+                <ul *ngIf="project.children?.length">
+                  <ng-container *ngFor="let milestone of project.children">
                     <li>
-                      <div class="accordion-header" (click)="toggleAccordion('module', module.id)">
-                        <i class="fa-solid" [ngClass]="isAccordionOpen('module', module.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-                        <span [class.highlight]="module.tags.length" [class.selected]="isSelectedObject(module.object)">
-                          <i class="fa-solid fa-cubes-stacked mr-2 text-vscode-module"></i> {{ module.label }}
+                      <div class="accordion-header" (click)="toggleAccordion('milestone', milestone.id)">
+                        <i class="fa-solid" [ngClass]="isAccordionOpen('milestone', milestone.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                        <span [class.highlight]="milestone.tags.length" [class.selected]="isSelectedObject(milestone.object)">
+                          <i class="fa-solid fa-flag-checkered mr-2 text-vscode-milestone"></i> {{ milestone.label }}
                         </span>
                       </div>
-                      <!-- Module Details -->
-                      <div class="accordion-body" *ngIf="isAccordionOpen('module', module.id)">
-                        <div class="details-card">
-                          <pre>{{ module.object | json }}</pre>
+  
+                      <!-- Milestone Body -->
+                      <div class="accordion-body" *ngIf="isAccordionOpen('milestone', milestone.id)">
+                        <div>
+                          <div [innerHTML]="getHighlightedMatches(milestone.object)" (click)="onHighlightClick($event, milestone.object, 'Milestone')" class="highlight-container"></div>
+  
+                          <!-- Modules inside Milestone -->
+                          <ul *ngIf="milestone.children?.length">
+                            <ng-container *ngFor="let module of milestone.children">
+                              <li>
+                                <div class="accordion-header" (click)="toggleAccordion('module', module.id)">
+                                  <i class="fa-solid" [ngClass]="isAccordionOpen('module', module.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                                  <span [class.highlight]="module.tags.length" [class.selected]="isSelectedObject(module.object)">
+                                    <i class="fa-solid fa-cubes-stacked mr-2 text-vscode-module"></i> {{ module.label }}
+                                  </span>
+                                </div>
+  
+                                <!-- Module Body -->
+                                <div class="accordion-body" *ngIf="isAccordionOpen('module', module.id)">
+                                  <div>
+                                    <div [innerHTML]="getHighlightedMatches(module.object)" (click)="onHighlightClick($event, module.object, 'Module')" class="highlight-container"></div>
+  
+                                    <!-- SubModules inside Module -->
+                                    <ul *ngIf="module.children?.length">
+                                      <ng-container *ngFor="let subModule of module.children">
+                                        <li>
+                                          <div class="accordion-header" (click)="toggleAccordion('subModule', subModule.id)">
+                                            <i class="fa-solid" [ngClass]="isAccordionOpen('subModule', subModule.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                                            <span [class.highlight]="subModule.tags.length" [class.selected]="isSelectedObject(subModule.object)">
+                                              <i class="fa-solid fa-puzzle-piece mr-2 text-vscode-submodule"></i> {{ subModule.label }}
+                                            </span>
+                                          </div>
+  
+                                          <!-- SubModule Body -->
+                                          <div class="accordion-body" *ngIf="isAccordionOpen('subModule', subModule.id)">
+                                            <div>
+                                              <div [innerHTML]="getHighlightedMatches(subModule.object)" (click)="onHighlightClick($event, subModule.object, 'SubModule')" class="highlight-container"></div>
+  
+                                              <!-- SubSubModules inside SubModule -->
+                                              <ul *ngIf="subModule.children?.length">
+                                                <ng-container *ngFor="let subSubModule of subModule.children">
+                                                  <li>
+                                                    <div class="accordion-header" (click)="toggleAccordion('subSubModule', subSubModule.id)">
+                                                      <i class="fa-solid" [ngClass]="isAccordionOpen('subSubModule', subSubModule.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                                                      <span [class.highlight]="subSubModule.tags.length" [class.selected]="isSelectedObject(subSubModule.object)">
+                                                        <i class="fa-solid fa-layer-group mr-2 text-vscode-subsubmodule"></i> {{ subSubModule.label }}
+                                                      </span>
+                                                    </div>
+  
+                                                    <!-- SubSubModule Body -->
+                                                    <div class="accordion-body" *ngIf="isAccordionOpen('subSubModule', subSubModule.id)">
+                                                      <div>
+                                                        <div [innerHTML]="getHighlightedMatches(subSubModule.object)" (click)="onHighlightClick($event, subSubModule.object, 'Sub-SubModule')" class="highlight-container"></div>
+                                                      </div>
+                                                    </div>
+                                                  </li>
+                                                </ng-container>
+                                              </ul>
+                                            </div>
+                                          </div>
+                                        </li>
+                                      </ng-container>
+                                    </ul>
+                                  </div>
+                                </div>
+                              </li>
+                            </ng-container>
+                          </ul>
                         </div>
                       </div>
-                      <!-- SubModules Accordion (always visible) -->
-                      <ul *ngIf="module.children?.length">
-                        <ng-container *ngFor="let subModule of module.children">
-                          <li>
-                            <div class="accordion-header" (click)="toggleAccordion('subModule', subModule.id)">
-                              <i class="fa-solid" [ngClass]="isAccordionOpen('subModule', subModule.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-                              <span [class.highlight]="subModule.tags.length" [class.selected]="isSelectedObject(subModule.object)">
-                                <i class="fa-solid fa-puzzle-piece mr-2 text-vscode-submodule"></i> {{ subModule.label }}
-                              </span>
-                            </div>
-                            <!-- SubModule Details -->
-                            <div class="accordion-body" *ngIf="isAccordionOpen('subModule', subModule.id)">
-                              <div class="details-card">
-                                <pre>{{ subModule.object | json }}</pre>
-                              </div>
-                            </div>
-                            <!-- SubSubModules Accordion (always visible) -->
-                            <ul *ngIf="subModule.children?.length">
-                              <ng-container *ngFor="let subSubModule of subModule.children">
-                                <li>
-                                  <div class="accordion-header" (click)="toggleAccordion('subSubModule', subSubModule.id)">
-                                    <i class="fa-solid" [ngClass]="isAccordionOpen('subSubModule', subSubModule.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-                                    <span [class.highlight]="subSubModule.tags.length" [class.selected]="isSelectedObject(subSubModule.object)">
-                                      <i class="fa-solid fa-layer-group mr-2 text-vscode-subsubmodule"></i> {{ subSubModule.label }}
-                                    </span>
-                                  </div>
-                                  <!-- SubSubModule Details -->
-                                  <div class="accordion-body" *ngIf="isAccordionOpen('subSubModule', subSubModule.id)">
-                                    <div class="details-card">
-                                      <pre>{{ subSubModule.object | json }}</pre>
-                                    </div>
-                                  </div>
-                                </li>
-                              </ng-container>
-                            </ul>
-                          </li>
-                        </ng-container>
-                      </ul>
                     </li>
                   </ng-container>
                 </ul>
-              </li>
-            </ng-container>
-          </ul>
-        </li>
+              </div>
+            </div>
+          </li>
+        </div>
       </ng-container>
     </ul>
-  </div>
+  </div>  
 
 </div>  
 <!------------------------------------ end :: Search  -------------------------->
@@ -262,4 +295,213 @@
 <ng-template #insight_response_template>
   <app-project-insights [actionType]="actionType" [subActionType]="subActionType" [projectId]="projectId"
   (showProjectInsightConfigListEvent)="showProjectInsight()" (closeProjectInsightResponseModalEvent)="closeProjectInsightResponseModal()"></app-project-insights>
+</ng-template>
+
+<ng-template #preview_project_insight_section>
+  <div class="modal-body text-center">
+    <div class="col-md-12 pr-0 pl-0">
+      <!-- Entity Name -->
+      <div class="row m-1 mb-2">
+        <div class="col-md-12">
+          <div class="form-group mb-0">
+            <label *ngIf="projectInsightSpecificViewType" class="info-label">
+              {{ projectInsightSpecificViewType === 'Project' ? 'Project Name' :
+              projectInsightSpecificViewType === 'Milestone' ? 'Milestone Title' :
+              projectInsightSpecificViewType === 'Module' ? 'Module Title' :
+              projectInsightSpecificViewType === 'SubModule' ? 'SubModule Title' :
+              projectInsightSpecificViewType === 'Sub-SubModule' ? 'Sub-SubModule Title' :
+              projectInsightSpecificViewType === 'Question' ? 'Question' : ''
+              }}</label><span class="text-danger">*</span>
+
+            <input *ngIf="projectInsightSpecificViewType == 'Project'" type="text" class="form-control" autocomplete="none"
+              [(ngModel)]="projectInsightSpecificViewObject.projectName" disabled>
+            <input *ngIf="projectInsightSpecificViewType == 'Milestone'" type="text" class="form-control" autocomplete="none"
+              [(ngModel)]="projectInsightSpecificViewObject.milestone" disabled>
+            <input *ngIf="projectInsightSpecificViewType == 'Module'" type="text" class="form-control" autocomplete="none"
+              [(ngModel)]="projectInsightSpecificViewObject.module" disabled>
+            <input *ngIf="projectInsightSpecificViewType == 'Sub-SubModule' || projectInsightSpecificViewType == 'SubModule'" type="text" class="form-control"
+              autocomplete="none" [(ngModel)]="projectInsightSpecificViewObject.subModule" disabled>
+            <input *ngIf="projectInsightSpecificViewType == 'Question'" type="text" class="form-control" autocomplete="none"
+              [(ngModel)]="projectInsightSpecificViewObject.question" disabled>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Project Manager -->
+      <div *ngIf="projectInsightSpecificViewType == 'Project'" class="row m-1 mb-2">
+        <div class="col-md-12">
+          <div class="form-group mb-0">
+            <label class="info-label">Project Manager</label>
+            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="projectInsightSpecificViewObject.projectManagerName"
+              disabled>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Description -->
+      <div
+        *ngIf="(projectInsightSpecificViewType != 'Project')
+         || (projectInsightSpecificViewType != 'Project' && projectInsightSpecificViewObject?.description)"
+        class="row m-1 mb-2">
+        <div class="col-md-12">
+          <div class="form-group mb-0">
+            <label class="info-label">Description</label>
+            <textarea type="text" class="form-control" autocomplete="none" [(ngModel)]="projectInsightSpecificViewObject.description" disabled></textarea>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Assign To -->
+      <!-- <div
+        *ngIf="projectInsightSpecificViewType != 'Question' && projectInsightSpecificViewType != 'Project' "
+        class="row m-1 mb-2">
+        <div class="col-md-12">
+          <div class="form-group mb-0">
+            <label> Assign To</label>
+            <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" [displayMember]="'name'"
+              [valueMember]="'empId'" [source]="employeeList" [useInfiniteScroll]="true" [multiple]="true"
+              [(ngModel)]="projectInsightSpecificViewObject.assignedToUserId">
+              <mat-option [value]="employee.empId" *ngFor="let employee of employeeList">
+                {{employee.name}}
+              </mat-option>
+            </mat-select>
+          </div>
+        </div>
+      </div> -->
+  
+      <div
+        *ngIf="projectInsightSpecificViewType != 'Question' && projectInsightSpecificViewType != 'Project'"
+        class="row m-1 mb-2">
+        <div class="col-md-12">
+          <div class="user-info py-2 border-bottom">
+            <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+            <span>Assigned To: {{projectInsightSpecificViewObject.assignedToUserNames || ''}}</span>
+          </div>
+        </div>
+      </div>
+  
+      <div
+        *ngIf="projectInsightSpecificViewObject.taggedToUserNames"
+        class="row m-1 mb-2">
+        <div class="col-md-12">
+          <div class="user-info py-2 border-bottom">
+            <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+            <span>Tagged For Help To: {{projectInsightSpecificViewObject?.taggedToUserNames || ''}}</span>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Question -->
+      <div *ngIf="projectInsightSpecificViewType == 'Question'" class="row m-1 mb-2">
+        <ng-container [ngTemplateOutlet]="questions_template"
+          [ngTemplateOutletContext]="{ entity:projectInsightSpecificViewObject ,entityType:'Question'}">
+        </ng-container>
+      </div>
+    </div>
+
+
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+  </div>
+</ng-template>
+
+<ng-template #questions_template let-entityType="entityType" let-entity="entity">
+  <div class="col-md-12">
+    <div class="responses-section">
+      <div
+        *ngIf="entity.projectResponseList != undefined && entity.projectResponseList != null && entity.projectResponseList?.length > 0">
+        <div *ngFor="let response of entity.projectResponseList; let responseIndex = index">
+          <div class="response-container p-2 mt-2">
+            <div class="user-info d-flex align-items-center flex-wrap gap-3">
+              <div class="d-flex align-items-center mr-3">
+                <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+                <span class="small font-weight-bold">Response By:
+                  {{response.responseByEmpName || ''}}</span>
+              </div>
+            </div>
+
+            <div class="marks-section mt-2">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="small font-weight-bold">Points (out of 10): </span>
+                <div class="d-flex flex-wrap gap-3">
+                  <div
+                    *ngFor="let responsePoint of response.projectInsightResponsePointList; let responsePointIndex = index"
+                    class="d-flex flex-column align-items-center my-2 pr-2">
+                    <input class="form-control response-marking text-center mb-1" type="number" min="0" max="10"
+                      oninput="this.value = this.value.replace(/\D/g, '')"
+                      onkeydown="if(event.key==='-' || event.key==='+' || event.key==='e' || event.key==='E')return false;" disabled
+                      [(ngModel)]="responsePoint.points" placeholder="0 - 10" />
+                    <span class="small text-center">{{responsePoint.pointsByName || ''}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="entity.optionType == 'text'" class="mt-2">
+              <div class="form-group mb-3">
+                <label>Tags</label>
+                <div class="tags-container">
+                  <div class="d-flex flex-wrap gap-2 mb-2">
+                    <span *ngFor="let tag of response.tags; let i = index" class="badge active mr-1">
+                      {{tag}}&nbsp;&nbsp;
+                    </span>
+                  </div>
+                </div>
+              </div>
+            
+              <div class="form-group mb-3">
+                <label><span class="text-danger">*</span>Enter Response Here</label>
+                <div>
+                  <angular-editor id="myEditor" [(ngModel)]="response.response" [config]="editorConfig">
+                  </angular-editor>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="entity.optionType == 'checkbox'" class="mt-2">
+              <div *ngFor="let option of response.optionsList; let mileQuestionOptionIndex = index"
+                class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input"
+                  [id]="'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex"
+                  [(ngModel)]="option.isChecked"
+                  disabled>
+                <label class="custom-control-label"
+                  [for]="'checkbox' + mileQuestionOptionIndex + '-response-' + responseIndex">
+                  {{option.optionValue}}
+                </label>
+              </div>
+            </div>
+            <div *ngIf="response.showDocDiv" class="mt-3">
+              <div class="d-flex align-items-center">
+                <span *ngIf="response.documentFileName" class="small mr-2">
+                  {{response.documentFileName}}
+                </span>
+
+                <!-- (click)="previewUploadedFile(response, response.document, response.documentFileName, 'document-preview-container', document_preview_template, alert_message, true, response)" -->
+
+                <button *ngIf="response.documentFileName" type="button" class="btn btn-sm btn-outline-primary"
+                  title="Preview File"
+                  >
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        *ngIf="entity.projectResponseList == undefined || entity.projectResponseList == null || entity.projectResponseList?.length == 0"
+        class="m-2">
+        <span class="text-center info-label"><strong>No Response to display...</strong></span>
+      </div>
+    </div>
+  </div>
 </ng-template>

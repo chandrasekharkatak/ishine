@@ -42,5 +42,10 @@ public class ProjectInsightDTO {
 	private String tagType;
 	private boolean isExcelUploaded;
 	private String actionType;
+	
+	//addtional info
+	private String[] departmentList;
+	private String State;
+	private List<String> tagList;
 
 }
