@@ -339,7 +339,8 @@ export class ResourceManagementComponent implements OnInit {
 
             
             const deptName = String(this.currentUser.departmentName).trim();
-            if(!deptName.includes("Admin") || !deptName.includes("Resource Management Group") || !deptName.includes("Director")){
+            const empRole = String(this.currentUser.employeeRole).trim();""
+            if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("Super Admin")){
               this.allProject_Po_Internal = this.allProject_Po_Internal.filter(data => {
                 return String(data.department).includes(deptName);
                 });
