@@ -1,9 +1,9 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { User } from './models/user';
 import { AuthenticationService } from './services/authentication.service';
-import { first } from 'rxjs/operators';
-// import ClientMonitor from 'skywalking-client-js';
+import { filter, first } from 'rxjs/operators';
+import ClientMonitor from 'skywalking-client-js';
 
 
 interface SideNavToggle{
@@ -36,6 +36,19 @@ interface SideNavToggle{
   ){
 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    // this.router.events.pipe(
+    //   filter(event => event instanceof NavigationEnd)
+    // ).subscribe(() => {
+    //   if (ClientMonitor?.setPerformance) {
+    //     ClientMonitor.setPerformance({
+    //       collector: 'http://192.168.21.175:8081/employeeportal',
+    //       service: 'Ishine::ui',
+    //       serviceVersion: '1.0.0',
+    //       pagePath: location.href,
+    //       useWebVitals: true
+    //     });
+    //   }
+    // });
   }
 
   ngOnInit():void{
@@ -47,6 +60,7 @@ interface SideNavToggle{
     //       pagePath: window.location.pathname,
     //       serviceVersion: '1.0.0',
     //       useWebVitals:true,
+    //       autoTracePerf:true,
     //       enableSPA:true,
     //       collector: "http://192.168.21.175:8081/employeeportal"
     //     });

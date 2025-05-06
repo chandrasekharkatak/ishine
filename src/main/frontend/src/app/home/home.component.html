@@ -176,7 +176,7 @@
                     </a>
                     <div class="dropdown-menu dropdown-menu-right user-menu" aria-labelledby="user-dropdown">
                         <!-- <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a> -->
-                        <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a>
+                        <!-- <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a> -->
                      
                         <a class="dropdown-item" (click)="openChangePassword(change_password)"><i
                                 class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
@@ -811,8 +811,8 @@
                             <th scope="col" class="info-label">Sr No.</th>
                             <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
                             <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
-                            <th scope="col" class="info-label" mat-sort-header="teamName|string">Team Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="clientName|string">Client Name</th>
+                            <!-- <th scope="col" class="info-label" mat-sort-header="teamName|string">Team Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="clientName|string">Client Name</th> -->
                             <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
                             <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
                             <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>
@@ -854,7 +854,7 @@
                             <td id="clickablefor360"*ngIf="userMapping.home_employee_360" (click)="cancelRequest()" [navigateToEmployee360]="leaveApplication.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.employeeName}}</td>
                             <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.employeeName}}</td>
                             <td>{{leaveApplication.leaveType}}</td>
-                            <td>
+                            <!-- <td>
                                 <ng-container *ngIf="leaveApplication.clientName">
                                   {{ (show === i) ? leaveApplication.clientName : (leaveApplication.clientName | slice: 0:20) }}
                                   <a *ngIf="leaveApplication.clientName.length > 20" (click)="show = (show === i ? -1 : i)" >
@@ -869,7 +869,7 @@
                                     ..{{ (show === i) ? '▲' : '▼' }}
                                   </a>
                                 </ng-container>
-                            </td>
+                            </td> -->
                             <td>{{leaveApplication.fromDate}} &nbsp;<em class="fa fa-eye eye-img"
                                     (click)="onUpdateLeave(leave_success_method,leaveApplication)"></em></td>
                             <td>{{leaveApplication.toDate }} &nbsp;<em class="fa fa-eye eye-img"

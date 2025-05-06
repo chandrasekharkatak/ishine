@@ -1521,7 +1521,12 @@ public class TimesheetService {
 						dto.setTotalWorkingHours(object[3] != null ? Float.parseFloat(object[3].toString()) : 0);
 						dto.setStatus(object[4] != null ? object[4].toString() : null);
 						dto.setDayType(object[5] != null ? object[5].toString() : null);
-						dto.setDescription(object[6] != null ? object[6].toString() : null);
+						dto.setDescription(
+							    object[6] != null 
+							        ? object[6].toString().replaceAll("(?i)<br>\\s*$", "").trim() 
+							        : null
+							);
+
 						dto.setActivity(object[7] != null ? object[7].toString() : null);
 						dtoList.add(dto);
 					});

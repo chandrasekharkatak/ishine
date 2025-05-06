@@ -81,8 +81,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 //		    if (request.getRequestURI().startsWith(proxyPath)) {
 //		        return true;
 //		    }
-//		}
-		
+//		}	
 		
 		final String requestTokenHeader = request.getHeader("Authorization");
 

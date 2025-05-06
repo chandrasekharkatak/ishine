@@ -225,7 +225,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   onLogin() {
     this.isError = false;
     this.errorMsg = '';
-
+    if (this.userName && !this.userName.includes('@')) {
+      this.userName += '@apmosys.com';
+    }
+    
     if (!this.validationService.validateNullUndefinedEmptyString(this.userName)) {
       this.isError = true;
       this.errorMsg = 'Please enter username !!';
