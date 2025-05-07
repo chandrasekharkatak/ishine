@@ -14,5 +14,6 @@ public class BulkBillableUpdateDTO {
 	private List<Long> empIds;
     private String billableType;
     private String billable;
+    private Long updatedBy;
 
 }

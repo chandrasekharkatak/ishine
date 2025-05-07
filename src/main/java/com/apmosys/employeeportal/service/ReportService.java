@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -56,6 +57,9 @@ public class ReportService {
 	
 	@Autowired
 	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
+	
+	@Autowired
+	CronJobService cronJobService;
 	
 	
 	@Autowired
@@ -508,8 +512,12 @@ public class ReportService {
 	public ServiceResponse updateBillableType(EmployeeDTO dto) {
 	    ServiceResponse response = new ServiceResponse();
 	    try {
-	        int result = employeeRepository.updateBillableInfo(dto.getEmpId(), dto.getBillableType(), dto.getBillable());
-	        if (result > 0) {
+	    	String oldBillableType = employeeRepository.findBillableTypeByEmpId(dto.getEmpId());
+	    	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	        String updatedOn = LocalDateTime.now().format(formatter);
+	        int result = employeeRepository.updateBillableInfo(dto.getEmpId(), dto.getBillableType(), dto.getBillable(), dto.getUpdatedBy(),updatedOn);
+	        		if (result > 0) {
+	        			cronJobService.triggerBillableTypeChangeMail(dto.getEmpId(), dto.getBillableType(), oldBillableType, dto.getUpdatedBy());
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            response.setServiceResponse("Billable Type Of Employee Updated successfully");
 	        } else {
@@ -530,10 +538,23 @@ public class ReportService {
 	    ServiceResponse response = new ServiceResponse();
 
 	    try {
+	    	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	        String updatedOn = LocalDateTime.now().format(formatter);
+	        
+	        Map<Long, String> oldBillableTypes = new HashMap<>();
+	        for (Long empId : bulkBillableUpdateDTO.getEmpIds()) {
+	            String oldType = employeeRepository.findBillableTypeByEmpId(empId);
+	            oldBillableTypes.put(empId, oldType);
+	        }
 	        int updatedRows = employeeRepository.updateBillableTypeForMultiple(
-	        		bulkBillableUpdateDTO.getEmpIds(), bulkBillableUpdateDTO.getBillableType(), bulkBillableUpdateDTO.getBillable());
-
+	        		bulkBillableUpdateDTO.getEmpIds(), bulkBillableUpdateDTO.getBillableType(), bulkBillableUpdateDTO.getBillable(),bulkBillableUpdateDTO.getUpdatedBy(),updatedOn);
 	        if (updatedRows > 0) {
+	        	cronJobService.triggerBulkBillableChangeEmails(
+	                    bulkBillableUpdateDTO.getEmpIds(),
+	                    oldBillableTypes,
+	                    bulkBillableUpdateDTO.getBillableType(),
+	                    bulkBillableUpdateDTO.getUpdatedBy()
+	                );
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            response.setServiceResponse("Updated Billable Type of " + updatedRows + " employees successfully.");
 	        } else {
@@ -615,6 +636,8 @@ public class ReportService {
 
 	        return response;
 	    }
+	
+	
 	}
 
 

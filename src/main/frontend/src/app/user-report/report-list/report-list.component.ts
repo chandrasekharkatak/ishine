@@ -493,7 +493,8 @@ export class ReportListComponent implements OnInit {
     const payload = {
       empId: employee.empId,
       billableType: employee.billableType,
-      billable: updatedBillable
+      billable: updatedBillable,
+      updatedBy: this.currentUser.empId
     };
 
     console.log(payload);
@@ -646,7 +647,8 @@ export class ReportListComponent implements OnInit {
     const payload = {
       empIds: empIds, 
       billableType: this.selectedBillableTypeForBulk,
-      billable: updatedBillable
+      billable: updatedBillable,
+      updatedBy: this.currentUser.empId
     };
     console.log(payload);
     this.employeeService.updateBulkBillableEmployeeReport(payload).subscribe(
