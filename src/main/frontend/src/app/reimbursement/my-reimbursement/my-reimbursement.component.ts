@@ -23,6 +23,7 @@ isTravel:boolean = false;
 alertMessage:any;
 modalRef: BsModalRef = new BsModalRef();
 
+
  reimbursementInfo:MyReimbursement = new MyReimbursement();
 
 currentEmployeeInfo:Employee = new Employee();
@@ -272,6 +273,9 @@ reimbursementObj: any = {
      
        const response: any = await this.reimbursementService.saveReimbursementData(reimbursementData).toPromise();
        if (response.serviceStatus == "Success") {
+
+        this.resetAfterSubmit();
+
         this.openAlertMod(template, "Success! Your request was processed successfully!");
 
         //  alert("Success! Your request was processed successfully.");
@@ -295,10 +299,15 @@ reimbursementObj: any = {
         this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
         this.alertMessage = message;
       }
+
       
       cancelRequest() {
         this.modalRef.hide();
        // location.reload();
+      }
+
+      cancelRequest2() {
+        this.modalRef.hide();
       }
 
       cancelRequest1() {
