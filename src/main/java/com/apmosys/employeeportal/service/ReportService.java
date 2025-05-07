@@ -25,11 +25,13 @@ import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.EmployeeRole;
+import com.apmosys.employeeportal.model.FieldAlteration;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeRoleMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.FieldAlterationRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -60,6 +62,9 @@ public class ReportService {
 	
 	@Autowired
 	CronJobService cronJobService;
+	
+	@Autowired
+	FieldAlterationRepository fieldAlterationRepository;
 	
 	
 	@Autowired
@@ -518,6 +523,13 @@ public class ReportService {
 	        int result = employeeRepository.updateBillableInfo(dto.getEmpId(), dto.getBillableType(), dto.getBillable(), dto.getUpdatedBy(),updatedOn);
 	        		if (result > 0) {
 	        			cronJobService.triggerBillableTypeChangeMail(dto.getEmpId(), dto.getBillableType(), oldBillableType, dto.getUpdatedBy());
+	        			 FieldAlteration alterationLog = new FieldAlteration();
+	        	            alterationLog.setEmpId(dto.getEmpId());
+	        	            alterationLog.setField("Billable Type");
+	        	            alterationLog.setValue(dto.getBillableType());
+	        	            alterationLog.setAlteredBy(dto.getUpdatedBy());
+	        	            alterationLog.setUpdatedOn(LocalDateTime.now());
+	        	            fieldAlterationRepository.save(alterationLog); 
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            response.setServiceResponse("Billable Type Of Employee Updated successfully");
 	        } else {
@@ -555,6 +567,20 @@ public class ReportService {
 	                    bulkBillableUpdateDTO.getBillableType(),
 	                    bulkBillableUpdateDTO.getUpdatedBy()
 	                );
+	        	List<FieldAlteration> alterationLogs = new ArrayList<>();
+
+	            for (Long empId : bulkBillableUpdateDTO.getEmpIds()) {
+	                FieldAlteration alterationLog = new FieldAlteration();
+	                alterationLog.setEmpId(empId);
+	                alterationLog.setField("Billable Type");
+	                alterationLog.setValue(bulkBillableUpdateDTO.getBillableType());
+	                alterationLog.setAlteredBy(bulkBillableUpdateDTO.getUpdatedBy());
+	                alterationLog.setUpdatedOn(LocalDateTime.now());
+	                alterationLogs.add(alterationLog);
+	            }
+
+	          
+	            fieldAlterationRepository.saveAll(alterationLogs);
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            response.setServiceResponse("Updated Billable Type of " + updatedRows + " employees successfully.");
 	        } else {

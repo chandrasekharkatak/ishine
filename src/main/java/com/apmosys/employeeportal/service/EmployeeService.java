@@ -76,6 +76,7 @@ import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeNotificationConsent;
 import com.apmosys.employeeportal.model.EmployeeSpecializationMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.FieldAlteration;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
@@ -108,6 +109,7 @@ import com.apmosys.employeeportal.repository.EmployeeOnBoardingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeSpecializationMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.FieldAlterationRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
@@ -165,6 +167,10 @@ public class EmployeeService {
 	
 	@Autowired
 	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
+	
+	@Autowired
+	FieldAlterationRepository fieldAlterationRepository;
+	
 
 	@Value("${default.password}")
 	String defaultPaswword;
@@ -523,6 +529,17 @@ public class EmployeeService {
 			}
 
 			Employee newEmployee = employeeRepository.save(employee);
+			
+			if (employeedto.getBillableType() != null && !employeedto.getBillableType().trim().isEmpty()) {
+			    FieldAlteration billableTypeAlteration = new FieldAlteration();
+			    billableTypeAlteration.setEmpId(newEmployee.getEmpId());
+			    billableTypeAlteration.setField("Billable Type");
+			    billableTypeAlteration.setValue(employeedto.getBillableType());
+			    billableTypeAlteration.setAlteredBy(employeedto.getCreatedBy().longValue());
+			    billableTypeAlteration.setUpdatedOn(LocalDateTime.now());
+
+			    fieldAlterationRepository.save(billableTypeAlteration);
+			}
 
 			if (newEmployee.getEmpId() != null) {
 
@@ -2149,6 +2166,19 @@ public class EmployeeService {
 			if (employeeObject.isPresent()) {
 				Employee employee = employeeObject.get();
 //				System.out.println("Employee 1 : " + employee);
+				
+				if (employee.getBillableType() != null && !employee.getBillableType().equals(employeedto.getBillableType())
+					    || (employee.getBillableType() == null && employeedto.getBillableType() != null)) {
+					    
+					    FieldAlteration fieldAlteration = new FieldAlteration();
+					    fieldAlteration.setEmpId(employeedto.getEmpId());
+					    fieldAlteration.setField("Billable Type");			    
+					    fieldAlteration.setValue(employeedto.getBillableType());
+					    fieldAlteration.setUpdatedOn(LocalDateTime.now());	
+					    fieldAlteration.setAlteredBy(employeedto.getUpdatedBy());			
+
+					    fieldAlterationRepository.save(fieldAlteration);
+					}
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setEmployeementId(employeedto.getEmployeementId());
 				employee.setName(employeedto.getName());
