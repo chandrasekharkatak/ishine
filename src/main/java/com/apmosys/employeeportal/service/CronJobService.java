@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -253,6 +254,9 @@ public class CronJobService {
 	
 	@Value("${timesheet.reconcile.days}")
 	private Long timesheetReconcileDays;
+	
+	@Value("${billablechange.mail}")
+	private String billablechangeMailAddress;
 	
 	@Value("${finance.mail}")
 	private String financeMail;
@@ -6102,5 +6106,130 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 					+ "<p>RMG Team</p>"
 					+ "</body></html>";
 		}
+		
+		public void triggerBillableTypeChangeMail(Long empId, String newBillableType, String oldBillableType, Long updatedById) {
+		    try {
+		        Object[] details = (Object[]) employeeRepository.findEmployeeDepartmentDetails(empId);
+		        if (details == null) return;
+
+		        Long empIdd = ((Number) details[0]).longValue();
+		        String empName = (String) details[1];
+		        String departmentName = (String) details[2];
+		        Long hodId = ((Number) details[3]).longValue();
+
+		        String updatedByName = employeeRepository.findEmployeeNameById(updatedById);
+		        String hodEmail = employeeRepository.findHodEmailById(hodId);
+
+		        StringBuilder html = new StringBuilder();
+		        html.append("<html><body>");
+		        html.append("<p>Dear HOD,</p>");
+		        html.append("<p>The following billable type change has been made by <b>")
+		            .append(updatedByName)
+		            .append("</b>:</p>");
+
+		        html.append("<div style='overflow-x:auto;'>");
+		        html.append("<table border='1' style='border-collapse: collapse; width: 100%; table-layout: auto;'>");
+		        html.append("<tr>");
+		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Employee ID</th>");
+		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Name</th>");
+		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Billable Type</th>");
+		        html.append("</tr>");
+
+		        html.append("<tr>");
+		        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>A-").append(empIdd).append("</td>");
+		        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>").append(empName).append("</td>");
+		        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>")
+		            .append(oldBillableType).append(" &rarr; ").append(newBillableType).append("</td>");
+		        html.append("</tr>");
+		        html.append("</table>");
+		        html.append("</div>");
+
+		        html.append("<p>Regards,<br/>Ishine Team</p>");
+		        html.append("</body></html>");
+
+		        String subject = "Billable Type Change Notification for " + departmentName + " Department";
+
+		        mailService.sendMailWithCC(hodEmail, billablechangeMailAddress, subject, html.toString());
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        // Optionally log or handle the error here
+		    }
+		}
+
+
+		
+		public void triggerBulkBillableChangeEmails(List<Long> empIds, Map<Long, String> oldBillableTypes, String newBillableType, Long updatedById) {
+		    Map<Long, List<Object[]>> deptToEmployeeDetails = new HashMap<>();
+
+		    for (Long empId : empIds) {
+		        Object[] details = (Object[]) employeeRepository.findEmployeeDepartmentDetails(empId);
+		        if (details == null) continue;
+
+		        Long empIdd = ((Number) details[0]).longValue();
+		        String empName = (String) details[1];
+		        String departmentName = (String) details[2];
+		        Long hodId = ((Number) details[3]).longValue();
+
+		        deptToEmployeeDetails.computeIfAbsent(hodId, k -> new ArrayList<>())
+		            .add(new Object[]{empIdd, empName, departmentName, oldBillableTypes.get(empId), newBillableType});
+		    }
+
+		    String updatedByName = employeeRepository.findEmployeeNameById(updatedById);
+
+		    for (Map.Entry<Long, List<Object[]>> entry : deptToEmployeeDetails.entrySet()) {
+		        Long hodId = entry.getKey();
+		        List<Object[]> employees = entry.getValue();
+		        String hodEmail = employeeRepository.findHodEmailById(hodId);
+
+		        // Get department name from first employee (they're all from the same department)
+		        String departmentName = (String) employees.get(0)[2];
+
+		        StringBuilder html = new StringBuilder();
+		        html.append("<html><body>");
+		        html.append("<p>Dear HOD,</p>");
+		        html.append("<p>The following billable type changes have been made by <b>")
+		            .append(updatedByName)
+		            .append("</b>:</p>");
+
+		        html.append("<div style='overflow-x:auto;'>");
+		        html.append("<table border='1' style='border-collapse: collapse; width: 100%; table-layout: auto;'>");
+		        html.append("<tr>");
+		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Employee ID</th>");
+		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Name</th>");
+		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Billable Type</th>");
+		        html.append("</tr>");
+
+		        for (Object[] emp : employees) {
+		            html.append("<tr>");
+		            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>A-").append(emp[0]).append("</td>");
+		            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>").append(emp[1]).append("</td>");
+		            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>")
+		                .append(emp[3]).append(" &rarr; ").append(emp[4]).append("</td>");
+		            html.append("</tr>");
+		        }
+
+		        html.append("</table>");
+		        html.append("</div>");
+		        html.append("<p>Regards,<br/>Ishine Team</p>");
+		        html.append("</body></html>");
+
+		        String subject = "Billable Type Change Notification for " + departmentName + " Department";
+
+		        try {
+		            mailService.sendMailWithCC(hodEmail, billablechangeMailAddress, subject, html.toString());
+		        } catch (MessagingException e) {
+		            e.printStackTrace();
+		            // log or notify failure to send email
+		        }
+		    }
+		}
+
+
+
+
+
+
+
 
 }	
