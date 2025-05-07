@@ -113,6 +113,7 @@ export class ResourceManagementComponent implements OnInit {
   poProjectListFromIshine: any[] = [];
   flagDialogueBox: boolean = false;
   tableName: string;
+  isAccounts: boolean = false;
 
   constructor(
     private departmentService: DepartmentService,
@@ -158,6 +159,10 @@ export class ResourceManagementComponent implements OnInit {
     //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
     // });
     // console.log('userMapping',this.userMapping);
+    const deptName = String(this.currentUser.departmentName).trim();
+    if(deptName === "Accounts" ){
+      this.isAccounts = true;
+    }
    
   }
    
@@ -341,7 +346,7 @@ export class ResourceManagementComponent implements OnInit {
             const deptName = String(this.currentUser.departmentName).trim();
             const empRole = String(this.currentUser.employeeRole).trim();
             console.log(empRole);
-            if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")){
+            if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts")){
               this.allProject_Po_Internal = this.allProject_Po_Internal.filter(data => {
                 return String(data.department).includes(deptName);
                 });

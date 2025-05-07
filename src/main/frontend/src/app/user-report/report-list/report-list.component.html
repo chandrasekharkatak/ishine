@@ -392,7 +392,7 @@
       </select>
     </div> -->
 
-    <div class="d-flex justify-content-end " *ngIf="showDetails">
+    <div class="d-flex justify-content-end " *ngIf="showDetails && !isAccounts">
       <button class="btn btn-outline-primary btn-sm" (click)="poProjectSync(alert_message_sync)">
         <i class="fa fa-sync-alt me-1"></i> Sync PO
       </button>
@@ -533,7 +533,7 @@
           <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
               <tr>
-                <th *ngIf="changeTable">
+                <th *ngIf="changeTable && !isAccounts">
                   <input type="checkbox" [(ngModel)]="masterSelected" (change)="selectAllEmployees()" />
                 </th>
                 <th scope="col" class="info-label">Sr No.</th>
@@ -550,7 +550,7 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">
                   <div style="display: flex; flex-direction: column; align-items: start;">
                     <span>Billable Type</span>
-                    <div *ngIf="selectedEmployees.length > 0 && changeTable" style="margin-top: 5px;">
+                    <div *ngIf="selectedEmployees.length > 0 && changeTable && !isAccounts" style="margin-top: 5px;">
                       <select [(ngModel)]="selectedBillableTypeForBulk"
                         (change)="openBulkUpdateModal(bulk_update_template)" style="width: 170px; padding: 2px;">
                         <option value="" disabled selected>Select Billable Type</option>
@@ -577,7 +577,7 @@
                 <th *ngIf="changeTable" scope="col" class="info-label wide-col"
                   mat-sort-header="primaryProjectName|string">Default
                   Project Assigned</th>
-                <th *ngIf="changeTable" scope="col" class="info-label wide-wide-col"
+                <th *ngIf="changeTable && !isAccounts" scope="col" class="info-label wide-wide-col"
                   mat-sort-header="defaultProject|string">
                   Select Default Project</th>
               </tr>
@@ -592,7 +592,7 @@
               </tr>
               <tr
                 *ngFor="let employee of employeeList | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                <td *ngIf="changeTable">
+                <td *ngIf="changeTable && !isAccounts">
                   <input type="checkbox" [(ngModel)]="employee.isSelected" (change)="checkIfAllSelected()" />
                 </td>
                 <th class="info-label">{{20*(page-1)+i+1}}</th>
@@ -622,11 +622,11 @@
                       <span style="display: inline-block; width: 170px; overflow: hidden; text-overflow: ellipsis;">
                         {{ employee.billableType }}
                       </span>
-                      <i class="fa-sharp-duotone fa-solid fa-pencil" style="cursor: pointer; color: rgb(17, 15, 77);"
+                      <i class="fa-sharp-duotone fa-solid fa-pencil" *ngIf="!isAccounts" style="cursor: pointer; color: rgb(17, 15, 77);"
                         (click)="editIndex = i"></i>
                     </div>
 
-                    <div *ngIf="editIndex === i" style="display: flex; align-items: center; gap: 8px;">
+                    <div *ngIf="editIndex === i " style="display: flex; align-items: center; gap: 8px;">
                       <select [(ngModel)]="employee.billableType"
                         (change)="updateBillableType(employee, alert_message_sync)" style="width: 170px;">
                         <option *ngFor="let type of billableTypes" [value]="type">
@@ -634,7 +634,7 @@
                         </option>
                       </select>
 
-                      <i class="fa-solid fa-xmark" (click)="editIndex = -1" style="cursor: pointer; color: red;"></i>
+                      <i class="fa-solid fa-xmark" *ngIf="!isAccounts" (click)="editIndex = -1" style="cursor: pointer; color: red;"></i>
                     </div>
                   </ng-container>
 
@@ -757,7 +757,7 @@
                     Not Assigned
                   </ng-container>
                 </td>
-                <td *ngIf="changeTable">
+                <td *ngIf="changeTable && !isAccounts">
                   <div class="col d-flex align-items-center m-0 p-0">
                     <ng-container *ngIf="employee.projectName">
                       <div>
@@ -770,7 +770,7 @@
                         </select>
                       </div>
                       <div>
-                        <button type="button" class="btn btn-sm btn-outline-primary ml-2 "
+                        <button  type="button" class="btn btn-sm btn-outline-primary ml-2 "
                           style="float: right; margin-top: 1px;" (click)="updateDefaultProject(employee)">
                           Submit
                         </button>

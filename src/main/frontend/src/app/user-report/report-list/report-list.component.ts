@@ -206,7 +206,7 @@ export class ReportListComponent implements OnInit {
   show: number = -1;
   filteredTimesheets: any;
   toastr: any;
-
+  isAccounts: boolean = false;
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -242,6 +242,10 @@ export class ReportListComponent implements OnInit {
     this.sectionViewInit();
     this.preventBackButton();
 
+    const deptName = String(this.currentUser.departmentName).trim();
+    if(deptName === "Accounts" ){
+      this.isAccounts = true;
+    }
   }
 
   getSlicedProjects(projectList: Project[], count: number): Project[] {
