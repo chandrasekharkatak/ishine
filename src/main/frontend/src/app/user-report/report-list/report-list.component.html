@@ -2,17 +2,17 @@
   <div class="col-md-12 px-0">
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.employee_report"
       [ngClass]="{'active' : isEmployeeReportTable}" (click)="showEmployeeReportTable()">View Employee Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.leave_report"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.leave_report && !isAccounts"
       [ngClass]="{'active' : isLeaveReportTable}" (click)="showLeaveReportTable()">View Leave Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.timesheet_report"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.timesheet_report && !isAccounts"
       [ngClass]="{'active' : isTimesheetReportTable}" (click)="showTimesheetReportTable()">View Timesheet
       Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}" *ngIf="!isAccounts"
       (click)="showAccessControlListTable()">ACL(Access Control List)</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isAccounts"
       [ngClass]="{'active' : isLeaveTimesheetReportTable}" (click)="showLeaveTimesheetReportTable()">Leave Timesheet
       Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQueryForm}"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQueryForm}" *ngIf="!isAccounts"
       (click)="showCustomQueryForm()">Custom Query Data</button>
   </div>
 </div>

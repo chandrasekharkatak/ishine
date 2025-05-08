@@ -248,7 +248,7 @@ export class ReportListComponent implements OnInit {
       this.isAccounts = true;
     }
     const empRole = String(this.currentUser.employeeRole).trim();
-    if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts")){
+    if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts")&& !deptName.includes("HR")){
       this.isDeptFilter = true;
     }
     // const deptName = String(this.currentUser.departmentName).trim();
@@ -544,7 +544,7 @@ export class ReportListComponent implements OnInit {
         console.log(empRole);
         console.log(deptName);
         console.log(this.departments);
-        if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts")){
+        if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts")&& !deptName.includes("HR")){
           this.employeeList = this.employeeList.filter(data => {
             return String(data.departmentName).includes(deptName);
             });
