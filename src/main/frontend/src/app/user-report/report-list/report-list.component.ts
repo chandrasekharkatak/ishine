@@ -207,7 +207,8 @@ export class ReportListComponent implements OnInit {
   filteredTimesheets: any;
   toastr: any;
   isAccounts: boolean = false;
-
+  isDeptFilter: boolean = false;
+  dept:any;
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -246,6 +247,13 @@ export class ReportListComponent implements OnInit {
     if(deptName === "Accounts" ){
       this.isAccounts = true;
     }
+    const empRole = String(this.currentUser.employeeRole).trim();
+    if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts")){
+      this.isDeptFilter = true;
+    }
+    // const deptName = String(this.currentUser.departmentName).trim();
+    
+    this.onDepartmentSelectionChange();
   }
 
   getSlicedProjects(projectList: Project[], count: number): Project[] {
@@ -525,10 +533,22 @@ export class ReportListComponent implements OnInit {
       if (response.serviceStatus === "Success") {
         const res = response.serviceResponse;
         this.employeeList = res.getEmployeeProjectReportForEmployeeDTO || [];
+        // console.log(this.employeeList,"Employee_List");
         this.projectList = res.getProjectToEmployeeReportForProjectDTO || [];
+        // console.log(this.projectList,"projectList");departmentName
         this.projectSummary = res.projectSummary || {};
         console.log("employeeList", this.employeeList);
         console.log("projectList", this.projectList);
+        const empRole = String(this.currentUser.employeeRole).trim();
+        const deptName = String(this.currentUser.departmentName).trim();
+        console.log(empRole);
+        console.log(deptName);
+        console.log(this.departments);
+        if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts")){
+          this.employeeList = this.employeeList.filter(data => {
+            return String(data.departmentName).includes(deptName);
+            });
+        }
         this.flattenProjectList();
         this.editIndex = -1
       } else {
