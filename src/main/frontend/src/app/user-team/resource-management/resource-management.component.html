@@ -85,7 +85,7 @@
                                     <td>{{project.poNo}}</td>
 
                                     <!-- <td *ngIf="project.projectId"style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details">{{project.name}}</td> -->
-                                    <td id="clickablefor360" *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName" [navigateToEmployee360]="project.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{project.projectManagerName}}</td>
+                                    <td id="clickablefor360" *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName && !isAccounts" [navigateToEmployee360]="project.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{project.projectManagerName}}</td>
                                     <td *ngIf="!userMapping.my_team_resource_management_employee_360 || !project.projectManagerName">{{project.projectManagerName}}</td>
                                     <td>{{project.clientName}}</td>
                                     <td>{{project.apmosysRM}}</td>
