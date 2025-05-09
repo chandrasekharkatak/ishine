@@ -16,11 +16,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.AppreciationAndRewardsCountDto;
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.AppreciationRequest;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -526,4 +528,18 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.setReportingManagerToNewManager(employeeDto);
 		return response;
 	}
+	
+	@RequestMapping(value = "/getRewardsAndAppreciationCount", method = RequestMethod.POST)
+	public ServiceResponse getRewardsAndAppreciationCount(@RequestBody AppreciationAndRewardsCountDto employeeDto) {
+		
+		ServiceResponse response = employeeService.getRewardsAndAppreciationCount(employeeDto);
+		return response;
+	}
+	@RequestMapping(value = "/getAllEmployeesForPerformance", method = RequestMethod.POST)
+	public ServiceResponse getAllEmployeesForPerformance(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance) {
+
+		ServiceResponse response = employeeService.getAllEmployeesForPerformance(hrHodHrViewPerformance);
+		return response;
+	}
+	
 }

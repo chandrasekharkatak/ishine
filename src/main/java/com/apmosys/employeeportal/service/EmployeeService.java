@@ -40,6 +40,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
+import com.apmosys.employeeportal.dto.AppreciationAndRewardsCountDto;
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
@@ -48,6 +49,7 @@ import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
@@ -6609,6 +6611,113 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	return response;
 }
+	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
+	      ServiceResponse response = new ServiceResponse();
+			
+			try {
+				
+				List<Object[]> EmployeeRewardsAndAppreciationCount = employeeRepository.getRewardsAndAppreciationCount(employeeDto.getEmpId());
+				List<AppreciationAndRewardsCountDto> listOfRewardsAndAppreciation = new ArrayList<AppreciationAndRewardsCountDto>();
+
+		        if (EmployeeRewardsAndAppreciationCount != null) {
+		            for (Object[] object : EmployeeRewardsAndAppreciationCount) {
+
+		            	AppreciationAndRewardsCountDto employeeDetail = new AppreciationAndRewardsCountDto();
+		            	    employeeDetail.setEmpId(employeeDto.getEmpId());	                    
+		            	    employeeDetail.setAppreciationCount(object[1] != null ? object[1].toString() : null);
+		                    employeeDetail.setRewardsCount(object[0] != null ? object[0].toString() : null);	          
+		                    listOfRewardsAndAppreciation.add(employeeDetail);
+		                    
+		            }
+		        }
+		        
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(listOfRewardsAndAppreciation);
+					
+		        
+			
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+				
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(e.getMessage());
+			}
+			
+			return response;
+	}
+	
+	public ServiceResponse getAllEmployeesForPerformance(HrHodHrViewPerformance hrHodHrViewPerformance) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Object[]> allEmployeeListForPerformance=new ArrayList<Object[]>();
+			if(hrHodHrViewPerformance.getHrvalidate()) {
+				allEmployeeListForPerformance=employeeRepository.getAllEmployeesForPerformanceForHr();
+			}else {
+				allEmployeeListForPerformance = employeeRepository.getAllEmployeesForPerformance(hrHodHrViewPerformance.getEmpId());
+				
+			}
+			
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+
+			if (allEmployeeListForPerformance != null) {
+				allEmployeeListForPerformance.forEach((object) -> {
+					EmployeeDTO empDTO = new EmployeeDTO();
+					
+					empDTO.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					empDTO.setDateOfJoining(object[1] != null ? stringToDateTimeParser.formatDateToString(object[1].toString())
+									: null);
+					empDTO.setEmail(object[2] != null ? object[2].toString() : null);
+					empDTO.setEmploymentstatus(object[3] != null ? object[3].toString() : null);
+					empDTO.setJobRoleId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+					empDTO.setManagerId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+					empDTO.setName(object[6] != null ? object[6].toString() : null);
+					empDTO.setDepartmentId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+					empDTO.setJobRoleName(object[8] != null ? object[8].toString() : null);
+					empDTO.setDepartmentName(object[9] != null ? object[9].toString() : null);
+					empDTO.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					empDTO.setManagerName(object[11] != null ? object[11].toString() : null);
+					empDTO.setExperience(object[12] != null ? object[12].toString() : null);
+					empDTO.setBillable(object[13] != null ? (object[13].toString()) : null);
+					empDTO.setTotalExperience(object[14] != null ? Float.parseFloat(object[14].toString()) : null);
+					empDTO.setJobRoleName(object[15] != null ? (object[15].toString()) : null);	
+					empDTO.setBillableType(object[16] != null ? object[16].toString() : null );	
+					empDTO.setDesignationName(object[17] != null ? object[17].toString() : null);
+                    empDTO.setReportingManagerId(object[18] != null ? Long.parseLong(object[18].toString()) : null)	;
+                    empDTO.setReportingManagerName(object[19] != null ? object[19].toString() : null);
+                    empDTO.setEmployeeRole(object[20] != null ? object[20].toString() : null);                
+					empDTO.setHodId(object[21] != null ? Long.parseLong(object[21].toString()) : null );
+				    empDTO.setHodName(object[22] != null ? object[22].toString() : null);
+				    empDTO.setHodDepartmentName(object[23] != null ? object[23].toString() : null);
+					 int totalEnabledQuarters = quarterCycleRepository.countByIsEnableAndIsActive();
+					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn(empDTO.getEmpId(), quarterCycleRepository.findAllEnabledQuarterIds());
+					 
+					 double performanceStatus = (totalEnabledQuarters > 0) 
+							    ? ((double) completedQuarters / totalEnabledQuarters) * 100 
+							    : 0.0;
+					 performanceStatus = Double.parseDouble(String.format("%.2f", performanceStatus));
+					 empDTO.setPerformanceStatusPercentage(performanceStatus);
+					  //empDTO.setApprovalsTo(object[24] != null ? object[24].toString() : null);
+						
+					 dtoList.add(empDTO);
+				});
+				 
+
+	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                response.setServiceResponse(dtoList);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee List is null.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
 	
 	
 }

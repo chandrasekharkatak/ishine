@@ -354,8 +354,8 @@ export class TeamDashboardComponent implements OnInit {
     this.filters1 = searchData;
   }
 
-  getEmployeePerformance(viewTeamMember) {
-    this.employeeService.setEmployee(viewTeamMember);
+  getEmployeePerformance(viewTeamMember: any) {
+    this.performanceService.setPreviousRoute(this.router.url); 
     this.router.navigate(['/user-performance/view-performance', viewTeamMember.empId]);
   }
 

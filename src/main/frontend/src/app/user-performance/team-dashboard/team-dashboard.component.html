@@ -91,11 +91,9 @@
         </table>
       </div>
       <pagination-controls class="my-pagination" [hidden]="viewTeamMemberList.length == 0"
-            (pageChange)="handlePageChange($event)"></pagination-controls>
-          
+            (pageChange)="handlePageChange($event)"></pagination-controls> 
       </div>
       </div>
-
       <div
         *ngIf="!loading && viewTeamMemberList.length === 0"
         class="alert alert-info"

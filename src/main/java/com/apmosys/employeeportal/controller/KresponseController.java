@@ -15,11 +15,11 @@ public class KresponseController {
     @Autowired
     private KresponseService kresponseService;
     
-    @PostMapping("/save/{empId}/quarter/{quarterId}")
-    public ServiceResponse saveResponses(@RequestBody List<KresponseDTO> responses, @PathVariable Long empId, @PathVariable Long quarterId) {
+    @PostMapping("/save/{empId}/quarter/{quarterId}/reviewer/{currentUser}")
+    public ServiceResponse saveResponses(@RequestBody List<KresponseDTO> responses, @PathVariable Long empId, @PathVariable Long quarterId,@PathVariable Long currentUser) {
         ServiceResponse response = new ServiceResponse();
         try {
-            boolean flag = kresponseService.saveResponses(responses, empId, quarterId);
+            boolean flag = kresponseService.saveResponses(responses, empId, quarterId,currentUser);
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceMessage("Responses saved successfully!");
         } catch (Exception e) {
@@ -31,7 +31,7 @@ public class KresponseController {
     }
     
     @GetMapping("/show/kresponse/{empId}/{quarterId}")
-    public List<Kresponse> showResponse(@PathVariable Long empId, @PathVariable Long quarterId) {
+    public List<KresponseDTO> showResponse(@PathVariable Long empId, @PathVariable Long quarterId) {
         return kresponseService.showResponse(empId, quarterId);
     }
 }

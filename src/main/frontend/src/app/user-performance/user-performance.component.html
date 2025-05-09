@@ -6,11 +6,11 @@
     <div class="col-md-12">
         <div class="card">
           <ul class="nav nav-tabs team__tabs" id="teamTab" >
-              <li  class="nav-item team__tab-item"  >
-                  <a class="nav-link team__tab-item__link" 
-                  aria-controls="employee" aria-selected="true"  routerLink="performance-dashboard" routerLinkActive="active" 
-                  [routerLinkActiveOptions]="{ exact: true }">Performance dashboard</a>
-              </li>
+            <li  class="nav-item team__tab-item"  >
+              <a class="nav-link team__tab-item__link" 
+              aria-controls="employee" aria-selected="true"  routerLink="performance-dashboard" routerLinkActive="active" 
+              [routerLinkActiveOptions]="{ exact: true }">Performance dashboard</a>
+          </li>
               <li  class="nav-item team__tab-item" >
                   <a class="nav-link team__tab-item__link" 
                   aria-controls="employee" aria-selected="true" *ngIf="mappTeamDashboard" routerLink="team-dashboard" routerLinkActive="active">Team dashboard </a>
@@ -23,11 +23,13 @@
                 <a class="nav-link team__tab-item__link" 
                 aria-controls="employee" aria-selected="true" *ngIf="userMapping.quarter_cycle" routerLink="quarter-cycle" routerLinkActive="active">Quarter cycle </a>
               </li>
-
-             
+              <li  class="nav-item team__tab-item"  >
+                <a class="nav-link team__tab-item__link" 
+                aria-controls="employee" aria-selected="true"  routerLink="performance-management-system" routerLinkActive="active" 
+                >Performance Management System</a>
+                </li>  
           </ul>
       
-         
           <div class="tab-content" id="userTabContent">
               <div class="team__tab-container">
                   <router-outlet class="tab-pane fade" role="tabpanel"></router-outlet>

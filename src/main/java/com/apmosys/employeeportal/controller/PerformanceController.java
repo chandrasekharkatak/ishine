@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.EmployeeteamDto;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.NotificationDTO;
 import com.apmosys.employeeportal.dto.PerformanceDTO;
 import com.apmosys.employeeportal.dto.QuarterCycleDTO;
@@ -179,6 +180,23 @@ public class PerformanceController {
 	@RequestMapping(value="/getTeamEmployeeListInTeamDashboard", method = RequestMethod.POST)
 	public ResponseEntity<List<EmployeeteamDto>> getTeamEmployeeListInTeamDashboard(@RequestBody PerformanceDTO performanceDTO) {
 		return performanceService.getTeamEmployeeListInTeamDashboard(performanceDTO);
+	}
+	@RequestMapping(value = "/currentStatusForPerformanceTableView", method = RequestMethod.GET)
+	public ServiceResponse currentStatusForPerformanceTableView() {
+	    ServiceResponse response = performanceService.currentStatusForPerformanceTableView();
+	    return response;
+	}
+	
+	@RequestMapping(value = "/exportExcelForHodAndManger", method = RequestMethod.POST)
+	public ServiceResponse exportExcelForHodAndManger(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance) {
+	    ServiceResponse response = performanceService.exportExcelForHodAndManger(hrHodHrViewPerformance);
+	    return response;
+	}
+	
+	@RequestMapping(value = "/getAllDepartmentbyEmployeecont", method = RequestMethod.POST)
+	public ServiceResponse DepartmentbyEmployeecont(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance ) {
+	    ServiceResponse response = performanceService.DepartmentbyEmployeecont(hrHodHrViewPerformance);
+	    return response;
 	}
 	
 	

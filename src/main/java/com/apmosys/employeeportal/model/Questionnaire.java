@@ -51,4 +51,9 @@ public class Questionnaire {
         questions.remove(question);
         question.setQuestionnaire(null);
     }
+
+	public void setQuestionTitle(String questionTitle2) {
+		// TODO Auto-generated method stub
+		
+	}
 }

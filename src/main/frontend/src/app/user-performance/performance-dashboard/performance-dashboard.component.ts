@@ -84,6 +84,7 @@ interface AppraisalSummary {
 
 
 interface kpiList{
+remarks: any;
   managerRemark: any;
   managerRating: any;
   progress: number;
@@ -103,6 +104,23 @@ interface awards{
   id: number;
   reward_type_name: string;
   remark: string;
+}
+
+interface KpiItem {
+  id: number;
+  description: string;
+  progress: number;
+  response: number;
+  remark: string;
+  remarks?: KpiRemark[];
+}
+
+interface KpiRemark {
+  id: number;
+  remark: string;
+  createdBy: string;  // This now contains the full name directly
+  createdDate: string;
+  kresponseId: number;
 }
 
 @Component({
@@ -155,8 +173,7 @@ export class PerformanceDashboardComponent implements OnInit {
   selectedGoal?: Goal;
   modalRef?: BsModalRef;
   modalRef1?: BsModalRef;
-  newKRAList: NewKRA[] = [];
-  modalRef2?: BsModalRef;
+
   errorMessage: string;
   currentQuestionnaireId: any;
 
@@ -238,8 +255,8 @@ export class PerformanceDashboardComponent implements OnInit {
   
     // Prepare chart data
     const chartData = [
-      { name: 'Goals Completed', y: goalsCompleted },
-      { name: 'Goals Remaining', y: goalsRemaining }
+      { name: 'Goals Remaining', y: goalsRemaining },
+      { name: 'Goals Completed', y: goalsCompleted }
     ];
   
     Highcharts.chart(chartId, {
@@ -575,13 +592,14 @@ export class PerformanceDashboardComponent implements OnInit {
 
   loadKpiList(): void {
     const quarterId = this.selectedQuarter;
-    const empId = this.currentUser.empId;
+    const departmentId = this.currentEmployeeInfo.departmentId;
+    // const emloyeeRole = this.currentEmployeeInfo.employeeRole;
     
     this.kpiList = [];
     
-    if (!quarterId || !empId) return;
+    if (!quarterId || !this.currentUser.empId) return;
     
-    this.performanceService.getKraKpi(empId, quarterId).subscribe({
+    this.performanceService.getKraKpi(this.currentEmployeeInfo.empId, quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.kpiList = response.serviceResponse.kpis.map(kpi => ({
@@ -590,15 +608,14 @@ export class PerformanceDashboardComponent implements OnInit {
             progress: kpi.progress || 0,
             response: 0,
             remark: '',
+            remarks: [] 
           }));
-          
           this.kpiList.forEach(kpi => {
             this.originalProgressValues[kpi.id] = kpi.progress;
           });
-          
           console.log('KPI list loaded:', this.kpiList);
           
-          this.performanceService.showresponse(empId, quarterId).subscribe({
+          this.performanceService.showresponse(this.currentEmployeeInfo.empId, quarterId).subscribe({
             next: (responseData: any) => {
               console.log('Saved KPI responses:', responseData);
               
@@ -608,17 +625,27 @@ export class PerformanceDashboardComponent implements OnInit {
                     resp.description === kpi.description
                   );
                   
-                  if (savedResponse) {
+                  if (savedResponse) {                    
                     kpi.response = savedResponse.response || 0;
-                    kpi.progress = savedResponse.progress || kpi.progress;
-                    kpi.remark = savedResponse.remark || '';
+                    kpi.progress = savedResponse.progress || 0;
+                    kpi.remark = savedResponse.remark;
+                    this.originalProgressValues[kpi.id] = kpi.progress;
+                    // Add remarks history if available
+                    if (savedResponse.remarks && Array.isArray(savedResponse.remarks)) {
+                      kpi.remarks = savedResponse.remarks.sort((a, b) => {
+                        // Sort by date descending (newest first)
+                        return new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime();
+                      });
+                    }
+                    
                     console.log(`Found saved response for KPI ${kpi.id}:`, kpi.response);
-                  }
+                  } 
                 });
-              }
+              } 
             },
             error: (error) => {
               console.error('Error fetching saved KPI responses:', error);
+              this.initializeQuestions();
             }
           });
         } else {
@@ -630,23 +657,13 @@ export class PerformanceDashboardComponent implements OnInit {
       }
     });
   }
-
   saveKpiResponses(template: TemplateRef<any>): void {
-    // Create payload with properly formatted KPI responses
-    // const payload = this.kpiList.map(kpi => ({
-    //   id: kpi.id,
-    //   description: kpi.description,
-    //   progress: kpi.progress,
-    //   response: kpi.response, // Include the response rating
-    //   remark: kpi.remark // Include any remarks if needed
-    // }));
-    
     const empId = this.currentEmployeeInfo.empId;
     const quarterId = this.selectedQuarter;
 
     // console.log("Sending KPI responses:", payload);
 
-    this.performanceService.submitKpiResponses(this.kpiList, empId, quarterId).subscribe({
+    this.performanceService.submitKpiResponses(this.kpiList, empId, quarterId, this.currentUser.empId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.alertMessage = "KPI responses submitted successfully!";
@@ -740,15 +757,19 @@ export class PerformanceDashboardComponent implements OnInit {
     this.alertMessage = message;
   }
 
-  onProgressChange(kpi: kpiList, event: Event): void {
+  onKpiProgressChange(kpi: kpiList, event: Event): void {
     const newValue = +(event.target as HTMLInputElement).value;
+    
+    if (this.originalProgressValues[kpi.id] === undefined) {
+      this.originalProgressValues[kpi.id] = kpi.progress;
+    }
     
     const previousValue = this.originalProgressValues[kpi.id];
     
     if (newValue < previousValue) {
       kpi.progress = previousValue;
       (event.target as HTMLInputElement).value = previousValue.toString();
-    }
+    } 
   }
 
   onGoalProgressChange(goal : Goal, event: Event): void {
@@ -776,83 +797,6 @@ export class PerformanceDashboardComponent implements OnInit {
     this.selectedGoal.remarks = this.goalRemarks;
 
     this.newRemarkText = '';
-  }
-
-  openAddKRAModal(template: TemplateRef<any>): void {
-    // Initialize with one empty KRA
-    this.newKRAList = [{
-      description: '',
-      progress: 0,
-      isEnabled: false
-    }];
-    
-    this.modalRef2 = this.modalService.show(template, { 
-      class: 'modal-lg',
-      backdrop: 'static',
-      keyboard: false
-    });
-  }
-
-  addAnotherKRA(): void {
-    this.newKRAList.push({
-      description: '',
-      progress: 0,
-      isEnabled: false
-    });
-  }
-
-  deleteKRA(index: number): void {
-    this.newKRAList.splice(index, 1);
-  }
-
-  toggleEnableKRA(index: number): void {
-    this.newKRAList[index].isEnabled = !this.newKRAList[index].isEnabled;
-  }
-
-  submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
-    const empId = this.currentEmployeeInfo.empId;
-    const quarterId = this.selectedQuarter;
-    
-    if (!kra.description.trim()) {
-      this.alertMessage = "Description cannot be empty";
-      this.openAlertMod(template, this.alertMessage);
-      return;
-    }
-    
-    this.performanceService.addNewKRA(kra, empId, quarterId).subscribe({
-      next: (response: any) => {
-        if (response.serviceStatus === 'Success') {
-          this.alertMessage = "KRA added successfully!";
-          this.openAlertMod(template, this.alertMessage);
-          kra.isEnabled = true;
-          this.loadKpiList();
-        } else {
-          this.alertMessage = `Failed to add KRA: ${response.serviceMessage}`;
-          this.openAlertMod(template, this.alertMessage);
-        }
-      },
-      error: (error) => {
-        console.error('Error adding new KRA:', error);
-        this.alertMessage = `Error adding new KRA: ${error.message || error}`;
-        this.openAlertMod(template, this.alertMessage);
-      }
-    });
-  }
-
-  saveAllKRAs(template: TemplateRef<any>): void {
-    const unenabled = this.newKRAList.filter(kra => !kra.isEnabled && kra.description.trim());
-    
-    if (unenabled.length > 0) {
-      this.alertMessage = "You have unsaved KRAs. Please enable them or remove them before closing.";
-      this.openAlertMod(template, this.alertMessage);
-      return;
-    }
-    
-    if (this.modalRef2) {
-      this.modalRef2.hide();
-    }
-    
-    this.loadKpiList();
   }
 
 

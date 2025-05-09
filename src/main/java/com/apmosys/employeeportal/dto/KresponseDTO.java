@@ -1,20 +1,24 @@
 package com.apmosys.employeeportal.dto;
-import lombok.*;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class KresponseDTO {
-
-	private Long id;
-	private Long empId;
-	private Long quarterId;
-	private String description;
-	private Float response;
-//	private String review;
-	private Boolean isFixed;
-//    private Long rating;
-    private String remark; 
+    private Long id;
+    private Float response;
+    private String description;
+    private Boolean isFixed;
+    private String remark; // Temporary field for adding initial remark
     private Long progress;
-   
+    private Long empId;
+    private Long quarterId;
+    
+    private List<KresponseRemarkDTO> remarks = new ArrayList<>();
 }

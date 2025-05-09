@@ -75,6 +75,7 @@ import { ViewPerformanceComponent } from './user-performance/view-performance/vi
 import { ProjectViewComponent } from './project-view/project-view.component';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
 import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
+import { PerformanceManagementSystemComponent } from './user-performance/performance-management-system/performance-management-system.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -189,13 +190,19 @@ const routes: Routes = [
   {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
   {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},
   {path:'user-requests', component: UserRequestsComponent, canActivate: [AuthGuard]},
-  {path:'user-performance', component: UserPerformanceComponent, canActivate: [AuthGuard],
+  {
+    path: 'user-performance', 
+    component: UserPerformanceComponent, 
+    canActivate: [AuthGuard],
     children: [
-      { path: 'performance-dashboard', component: PerformanceDashboardComponent, },
-      { path: 'team-dashboard', component: TeamDashboardComponent, },
-      { path: 'templates', component: TemplatesComponent,  },
-      {path: 'quarter-cycle', component: QuarterCycleComponent},
-      {path:'view-performance/:id',component: ViewPerformanceComponent}
+      
+      { path: '', redirectTo: 'performance-dashboard', pathMatch: 'full' },
+      { path: 'performance-dashboard', component: PerformanceDashboardComponent },
+      { path: 'team-dashboard', component: TeamDashboardComponent },
+      { path: 'templates', component: TemplatesComponent },
+      { path: 'quarter-cycle', component: QuarterCycleComponent },
+      { path: 'view-performance/:id', component: ViewPerformanceComponent },
+      { path: 'performance-management-system', component: PerformanceManagementSystemComponent },
     ]
   },
   {path:'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard]},

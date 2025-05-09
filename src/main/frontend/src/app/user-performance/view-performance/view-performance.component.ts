@@ -64,6 +64,7 @@ interface AppraisalSummary {
 }
 
 interface kpiList{
+  remarks: any;
   isFixed: any;
   review: any;
   managerRemark: any;
@@ -73,6 +74,12 @@ interface kpiList{
   response:any;
   id:number;
   description: string;
+}
+
+interface NewKRA {
+  description: string;
+  progress: number;
+  isEnabled: boolean;
 }
 interface awards{
   id: number;
@@ -86,6 +93,22 @@ interface questions {
   managerRating: number;
   managerRemark: string;
    
+}
+interface KpiItem {
+  id: number;
+  description: string;
+  progress: number;
+  response: number;
+  remark: string;
+  remarks?: KpiRemark[];
+}
+
+interface KpiRemark {
+  id: number;
+  remark: string;
+  createdBy: string;  // This now contains the full name directly
+  createdDate: string;
+  kresponseId: number;
 }
 
 
@@ -132,6 +155,8 @@ export class ViewPerformanceComponent implements OnInit {
   subscription!: Subscription;
   modalRef?: BsModalRef;
   modalRef1?: BsModalRef;
+  modalRef2?: BsModalRef;
+  newKRAList: NewKRA[] = [];
   errorMessage: string;
   kpiList:kpiList[] = [];
   alertMessage: any;
@@ -172,6 +197,7 @@ export class ViewPerformanceComponent implements OnInit {
 
     this.setActiveTab('kra-kpi');
     this.loadAwards();
+    this.domainSpecializationList = [];
     
 
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -405,11 +431,11 @@ export class ViewPerformanceComponent implements OnInit {
     }
 
     let domainObj = new Domain();
-            domainObj.empId = this.currentUser.empId;
+            domainObj.empId = currentEmp.empId;
             const domainResponse:any = await this.domainService.getDomainSpecializationByEmpId(domainObj).toPromise();
               if (domainResponse.serviceStatus == "Success") {
+                
                 this.domainSpecializationList = domainResponse.serviceResponse;
-        
                 this.domainSpecializationList.forEach((object:Domain) =>{
         
                   var letters = 'BCDEF'.split('');
@@ -603,21 +629,81 @@ export class ViewPerformanceComponent implements OnInit {
   }
 
 
-  navigateToteam(): void{
-    this.router.navigate(['/user-performance/team-dashboard']);
+  goBack() {
+    const previous = this.performanceService.getPreviousRoute();
+    if (previous) {
+      this.router.navigateByUrl(previous);
+    } else {
+      return
+    }
   }
+
+  // loadKpiList(): void {
+  //   const quarterId = this.selectedQuarter;
+  //   const departmentId = this.currentEmployeeInfo.departmentId;
+  //   // let currentEmp = new Employee();
+  //   // currentEmp.empId = this.viewPerformanceEmpId;
+    
+  //   this.kpiList = [];
+    
+  //   if (!quarterId || !this.viewPerformanceEmpId) return;
+    
+  //   this.performanceService.getKraKpi(this.currentEmployeeInfo.empId,quarterId).subscribe({
+  //     next: (response: any) => {
+  //       if (response.serviceStatus === 'Success') {
+  //         this.kpiList = response.serviceResponse.kpis.map(kpi => ({
+  //           id: kpi.id, 
+  //           description: kpi.description, 
+  //           progress: kpi.progress || 0,
+  //           response: 0,
+  //           remark: '',
+  //         }));
+  //         console.log('KPI list loaded:', this.kpiList);
+          
+  //         this.performanceService.showresponse(this.currentEmployeeInfo.empId, quarterId).subscribe({
+  //           next: (responseData: any) => {
+  //             console.log('Saved KPI responses:', responseData);
+              
+  //             if (responseData && Array.isArray(responseData) && responseData.length > 0) {
+  //               this.kpiList.forEach(kpi => {
+  //                 const savedResponse = responseData.find((resp: any) => 
+  //                   resp.description === kpi.description
+  //                 );
+                  
+  //                 if (savedResponse) {                    
+  //                   kpi.response = savedResponse.response || 0;
+  //                   kpi.progress = savedResponse.progress || 0;
+  //                   kpi.remark = savedResponse.remark;
+                    
+  //                   console.log(`Found saved response for KPI ${kpi.id}:`, kpi.response);
+  //                 } 
+  //               });
+  //             } 
+  //           },
+  //           error: (error) => {
+  //             console.error('Error fetching saved KPI responses:', error);
+  //             this.initializeQuestions();
+  //           }
+  //         });
+  //       } else {
+  //         console.error('Failed to load KPI list:', response.serviceMessage);
+  //       }
+  //     },
+  //     error: (error) => {
+  //       console.error('Error fetching KPI list:', error);
+  //     }
+  //   });
+  // }
 
   loadKpiList(): void {
     const quarterId = this.selectedQuarter;
     const departmentId = this.currentEmployeeInfo.departmentId;
-    let currentEmp = new Employee();
-    currentEmp.empId = this.viewPerformanceEmpId;
     
     this.kpiList = [];
     
     if (!quarterId || !this.viewPerformanceEmpId) return;
     
-    this.performanceService.getKraKpi(currentEmp.empId,quarterId).subscribe({
+    this.performanceService.getKraKpi(this.currentEmployeeInfo.empId, quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.kpiList = response.serviceResponse.kpis.map(kpi => ({
@@ -626,10 +712,11 @@ export class ViewPerformanceComponent implements OnInit {
             progress: kpi.progress || 0,
             response: 0,
             remark: '',
+            remarks: [] // Initialize empty remarks array
           }));
           console.log('KPI list loaded:', this.kpiList);
           
-          this.performanceService.showresponse(currentEmp.empId, quarterId).subscribe({
+          this.performanceService.showresponse(this.currentEmployeeInfo.empId, quarterId).subscribe({
             next: (responseData: any) => {
               console.log('Saved KPI responses:', responseData);
               
@@ -643,6 +730,14 @@ export class ViewPerformanceComponent implements OnInit {
                     kpi.response = savedResponse.response || 0;
                     kpi.progress = savedResponse.progress || 0;
                     kpi.remark = savedResponse.remark;
+                    
+                    // Add remarks history if available
+                    if (savedResponse.remarks && Array.isArray(savedResponse.remarks)) {
+                      kpi.remarks = savedResponse.remarks.sort((a, b) => {
+                        // Sort by date descending (newest first)
+                        return new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime();
+                      });
+                    }
                     
                     console.log(`Found saved response for KPI ${kpi.id}:`, kpi.response);
                   } 
@@ -671,7 +766,7 @@ export class ViewPerformanceComponent implements OnInit {
     currentEmp.empId = this.viewPerformanceEmpId;
     const quarterId = this.selectedQuarter;
   
-    this.performanceService.submitKpiResponses(this.kpiList, currentEmp.empId, quarterId).subscribe({
+    this.performanceService.submitKpiResponses(this.kpiList, currentEmp.empId, quarterId, this.currentUser.empId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.alertMessage = "KPI responses submitted successfully!";
@@ -768,8 +863,82 @@ addRemark(): void {
   this.selectedGoal.remarks = this.goalRemarks;
 
   this.newRemarkText = '';
-
-
 }
+
+openAddKRAModal(template: TemplateRef<any>): void {
+  this.newKRAList = [{
+    description: '',
+    progress: 0,
+    isEnabled: false
+  }];
+  
+  this.modalRef2 = this.modalService.show(template, { 
+    class: 'modal-lg',
+    backdrop: 'static',
+    keyboard: false
+  });
+}
+
+  submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
+    const empId = this.currentEmployeeInfo.empId;
+    const quarterId = this.selectedQuarter;
+    
+    if (!kra.description.trim()) {
+      this.alertMessage = "Description cannot be empty";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    
+    this.performanceService.addNewKRA(kra, empId, quarterId).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.alertMessage = "KRA added successfully!";
+          this.openAlertMod(template, this.alertMessage);
+          kra.isEnabled = true;
+          this.loadKpiList();
+        } else {
+          this.alertMessage = `Failed to add KRA: ${response.serviceMessage}`;
+          this.openAlertMod(template, this.alertMessage);
+        }
+      },
+      error: (error) => {
+        console.error('Error adding new KRA:', error);
+        this.alertMessage = `Error adding new KRA: ${error.message || error}`;
+        this.openAlertMod(template, this.alertMessage);
+      }
+    });
+  }
+
+  deleteKRA(index: number): void {
+    this.newKRAList.splice(index, 1);
+  }
+
+  toggleEnableKRA(index: number): void {
+    this.newKRAList[index].isEnabled = !this.newKRAList[index].isEnabled;
+  }
+
+  addAnotherKRA(): void {
+    this.newKRAList.push({
+      description: '',
+      progress: 0,
+      isEnabled: false
+    });
+  }
+
+  saveAllKRAs(template: TemplateRef<any>): void {
+    const unenabled = this.newKRAList.filter(kra => !kra.isEnabled && kra.description.trim());
+    
+    if (unenabled.length > 0) {
+      this.alertMessage = "You have unsaved KRAs. Please enable them or remove them before closing.";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    
+    if (this.modalRef2) {
+      this.modalRef2.hide();
+    }
+    
+    this.loadKpiList();
+  }
 
 }

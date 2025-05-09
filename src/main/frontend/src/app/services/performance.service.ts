@@ -14,6 +14,8 @@ export class PerformanceService {
   // }
 
   private baseUrl: any = environment.baseUrl;
+  previousRoute: string;
+  getPreviousRoute: any;
 
   constructor(private http: HttpClient) { }
 
@@ -194,9 +196,9 @@ export class PerformanceService {
     );
   }
  
-  submitKpiResponses(responses: any[], empId: number, quarterId: number) {
+  submitKpiResponses(responses: any[], empId: number, quarterId: number, empID:number) {
     
-    return this.http.post<any>(`${this.baseUrl}api/kpi-responses/save/${empId}/quarter/${quarterId}`, responses);
+    return this.http.post<any>(`${this.baseUrl}api/kpi-responses/save/${empId}/quarter/${quarterId}/reviewer/${empID}`, responses);
   }
 
   addNewKRA(kra: any, empId: number, quarterId: number) {
@@ -208,6 +210,21 @@ export class PerformanceService {
     
     return this.http.post<any>(`${this.baseUrl}api/kpi/employee/${empId}/quarter/${quarterId}/addkpiList`, payload);
   }
+
+  getRewardsAndAppreciationCount(employeeDetails: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getRewardsAndAppreciationCount`, employeeDetails);
+  }
+
+  getAllEmployeesForPerformanceExcell(details:any){
+    return this.http.post(`${this.baseUrl}` + `api/exportExcelForHodAndManger`, details);
+  }
+  getAllEmployeesCurrentStatus(){
+    return this.http.get(`${this.baseUrl}` + `api/currentStatusForPerformanceTableView`);
+  }
+  setPreviousRoute(route: string): void {
+    this.previousRoute = route;
+  }
+
 }
 
 

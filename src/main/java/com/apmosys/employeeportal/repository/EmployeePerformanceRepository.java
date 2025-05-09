@@ -23,6 +23,25 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 			+ "INNER JOIN review_type rt ON rt.quarter_id = qc.quarter_id \n"
 			+ "INNER JOIN employee_rating_performance erp ON erp.review_type_id = rt.review_type_id")
 	List<Object[]> getEmployeePerformanceHOD();
+	
+	@Query(nativeQuery = true , value="SELECT  \n"
+			+ "    d.name AS department_name,\n"
+			+ "    COUNT(DISTINCT e.emp_id) AS eligible_employees, \n"
+			+ "    COUNT(em.emp_id) AS filled_employees, \n"
+			+ "    (COUNT(DISTINCT e.emp_id) - COUNT(em.emp_id)) AS unfilled_employees,\n"
+			+ "    e7.name AS hod_name\n"
+			+ "FROM employee e\n"
+			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
+			+ "LEFT JOIN employee_performance em ON e.emp_id = em.emp_id\n"
+			+ "WHERE e.employmentstatus = 'Confirmed'\n"
+			+"AND d.dept_id = :deptId\n"
+			+ "AND e.date_of_joining <= DATE_FORMAT(NOW(), '%Y-12-31') - INTERVAL 1 YEAR\n"
+			+ "GROUP BY d.name, e7.name")
+	List<Object[]> DepartmentbyEmployeecontqueryForEachDepartment(Long deptId);
+	
+	
     
 	@Query(nativeQuery = true , value="SELECT  \n"
 			+ "			    ep.emp_id,\n"
@@ -78,7 +97,7 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 		            "FROM employee e " +
 		            "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id " +
 		            "INNER JOIN department d ON d.dept_id = jr.dept_id " +
-		            "WHERE d.dept_id IN (:deptIds)"
+		            "WHERE d.dept_id IN (:deptIds) and e.employmentstatus != \"InActive\";"
 		)
 	List<Object[]> getAllEmployeeForTeamMemberByDepartment(@Param("deptIds") List<Long> deptIds);
 
@@ -93,7 +112,7 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 	@Query(
 		    nativeQuery = true,
 		    value = "SELECT e.emp_id,e.name,e.employeement_id FROM employee e \n"
-		    		+ "WHERE e.reporting_manager_id=:empId OR e.manager_id=:empId "
+		    		+ "WHERE e.reporting_manager_id=:empId OR e.manager_id=:empId and e.employmentstatus != \"InActive\";"
 		)	
 	List<Object[]> getAllEmployeeReportByEmpId(Long empId);
 
@@ -105,6 +124,119 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 		    		+ "GROUP BY e.emp_id,e.name,e.employeement_id"
 		)
 	List<Object[]> getEmployeeUnderReviewByEmpId(Long empId);
+	
+	@Query(value="SELECT completion_status,emp_id FROM employee_performance epm inner join quater_cycle qc on epm.quarter_id = qc.quarter_id where qc.is_enable =1 and qc.is_active=1",nativeQuery = true)
+	List<Object[]>currentStatusForPerformanceTableView();
+	
+	@Query(nativeQuery = true , value="    SELECT DISTINCT\n"
+			+ "    e.employeement_id,\n"
+			+ "    e.date_of_joining,\n"
+			+ "    e.email,\n"
+			+ "    e.employmentstatus,\n"
+			+ "    e.name,\n"
+			+ "    d.name AS departmentname,\n"
+			+ "    e2.name AS manager,\n"
+			+ "    e.billable,\n"
+			+ "    e.total_experience,\n"
+			+ "    e.billable_type,\n"
+			+ "    e5.name AS reportingManger,\n"
+			+ "    e7.name AS hodName,\n"
+			+ "    ep.completion_status,\n"
+			+ "    qc.quarter_cycle,\n"
+			+ "    qc.financial_year,\n"
+			+ "    ep.hod_remarks,\n"
+			+ "    ep.final_rating,\n"
+			+ "    ep.hr_remarks,\n"
+			+ "    ep.hr_review_status\n"
+			+ "FROM \n"
+			+ "    employee e\n"
+			+ "INNER JOIN \n"
+			+ "    job_role jr ON jr.job_role_id = e.job_role_id\n"
+			+ "INNER JOIN \n"
+			+ "    department d ON d.dept_id = jr.dept_id\n"
+			+ "LEFT JOIN \n"
+			+ "    employee e3 ON e.updated_by = e3.emp_id\n"
+			+ "LEFT JOIN \n"
+			+ "    employee e4 ON e.created_by = e4.emp_id\n"
+			+ "INNER JOIN \n"
+			+ "    employee e2 ON e.manager_id = e2.emp_id\n"
+			+ "INNER JOIN \n"
+			+ "    employee e7 ON d.hod_id = e7.emp_id\n"
+			+ "LEFT JOIN \n"
+			+ "    employee e5 ON e.reporting_manager_id = e5.emp_id\n"
+			+ "LEFT JOIN \n"
+			+ "    designation des ON des.designation_id = e.designation_id\n"
+			+ "LEFT JOIN \n"
+			+ "    employee_performance ep ON e.emp_id = ep.emp_id\n"
+			+ "LEFT JOIN \n"
+			+ "    employee_rating_performance erp ON ep.quarter_id = erp.quarter_id AND ep.emp_id = erp.emp_id\n"
+			+ "LEFT JOIN \n"
+			+ "    quater_cycle qc ON ep.quarter_id = qc.quarter_id\n"
+			+ "WHERE \n"
+			+ "    e.employmentstatus != 'InActive'\n"
+			+ "ORDER BY \n"
+			+ "    e.name")
+	List<Object[]> ExcelExportQueryForPerformnaceHr();
+	
+	@Query(nativeQuery = true,value="SELECT DISTINCT\n"
+			+ "    e.employeement_id,\n"
+			+ "    e.date_of_joining,\n"
+			+ "    e.email,\n"
+			+ "    e.employmentstatus,\n"
+			+ "    e.name,\n"
+			+ "    d.name AS departmentname,\n"
+			+ "    e2.name AS manager,\n"
+			+ "    e.billable,\n"
+			+ "    e.total_experience,\n"
+			+ "    e.billable_type,\n"
+			+ "    e5.name AS reportingManger,\n"
+			+ "    e7.name AS hodName,\n"
+			+ "    ep.completion_status,\n"
+			+ "    qc.quarter_cycle,\n"
+			+ "    qc.financial_year,\n"
+			+ "    ep.hod_remarks,\n"
+			+ "    ep.final_rating,\n"
+			+ "    ep.hr_remarks,\n"
+			+ "    ep.hr_review_status\n"
+			+ "FROM \n"
+			+ "    employee e\n"
+			+ "INNER JOIN \n"
+			+ "    job_role jr ON jr.job_role_id = e.job_role_id\n"
+			+ "INNER JOIN \n"
+			+ "    department d ON d.dept_id = jr.dept_id\n"
+			+ "LEFT JOIN \n"
+			+ "    employee e3 ON e.updated_by = e3.emp_id\n"
+			+ "LEFT JOIN \n"
+			+ "    employee e4 ON e.created_by = e4.emp_id\n"
+			+ "INNER JOIN \n"
+			+ "    employee e2 ON e.manager_id = e2.emp_id\n"
+			+ "INNER JOIN \n"
+			+ "    employee e7 ON d.hod_id = e7.emp_id\n"
+			+ "LEFT JOIN \n"
+			+ "    employee e5 ON e.reporting_manager_id = e5.emp_id\n"
+			+ "LEFT JOIN \n"
+			+ "    designation des ON des.designation_id = e.designation_id\n"
+			+ "LEFT JOIN \n"
+			+ "    employee_performance ep ON e.emp_id = ep.emp_id\n"
+			+ "LEFT JOIN \n"
+			+ "    employee_rating_performance erp ON ep.quarter_id = erp.quarter_id AND ep.emp_id = erp.emp_id\n"
+			+ "LEFT JOIN \n"
+			+ "    quater_cycle qc ON ep.quarter_id = qc.quarter_id\n"
+			+ "WHERE \n"
+			+ "    e.employmentstatus != 'InActive' \n"
+			+ "    AND (\n"
+			+ "        d.hod_id = :empId\n"
+			+ "        OR (\n"
+			+ "            CASE \n"
+			+ "                WHEN e.approvals_to = 'Manager' THEN e.manager_id = :empId\n"
+			+ "                WHEN e.approvals_to = 'Reporting Manager' THEN e.reporting_manager_id = :empId\n"
+			+ "                ELSE (d.hod_id = :empId)\n"
+			+ "            END\n"
+			+ "        )\n"
+			+ "    )\n"
+			+ "ORDER BY \n"
+			+ "    e.name")
+	List<Object[]> ExcelExportQueryForPerformnaceHODManager(Long empId);
 
 	
 	
