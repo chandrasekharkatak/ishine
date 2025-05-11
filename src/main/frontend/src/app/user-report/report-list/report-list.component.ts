@@ -1869,8 +1869,10 @@ export class ReportListComponent implements OnInit {
     this.jobRoleService.updateJobRoleSubFeatureMapping(jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
+        this.updatedRoleSubFeature = [];
       } else {
         this.openAlertMod(template, response.serviceResponse);
+        this.updatedRoleSubFeature = [];
       }
     });
   }

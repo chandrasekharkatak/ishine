@@ -294,6 +294,8 @@ onEmployeeUpload(event: any, template: TemplateRef<any>) {
 
   const formData = new FormData();
   formData.append('file', this.file);
+  formData.append('uploadedBy', this.currentUser.empId.toString());
+
 
   this.domainService.employeeBulkUpload(formData).pipe(first()).subscribe(
     (response: any) => {
