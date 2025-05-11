@@ -87,7 +87,7 @@ export class ViewReimbursementComponent implements OnInit {
    }
 
    openAlertMod2(template: TemplateRef<any>, message: any) {
-    this.modalRef2 = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef2 = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -205,7 +205,8 @@ export class ViewReimbursementComponent implements OnInit {
        const response: any = await this.reimbursementService.revokeReimbursement(reimbursementData).toPromise();
        
        if (response.serviceStatus === "Success") {
-         alert("Success! Your Data is deleted successfully.");
+        this.openAlertMod2(template, "Success! Your Data is deleted successfully .. !!");
+         //alert("Success! Your Data is deleted successfully.");
          this.onGetReimbursementInfo();
          
        } else {

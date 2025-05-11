@@ -145,11 +145,11 @@ export class ReimbursementapprovalComponent implements OnInit {
 
         if(this.selectedReimbursementRequest.approverStatus === "Rejected"){
           this.modalRef.hide();
-          this.alertMessage = `Success! Your request was Rejected successfully ..!!!!`;
+          this.alertMessage = `Success! This request is Rejected successfully ..!!!!`;
           this.openAlertMod(template, this.alertMessage);
         }else{
           this.modalRef.hide();
-        this.alertMessage = `Success! Your request was approved successfully ..!!!!`;
+        this.alertMessage = `Success! This request is approved successfully ..!!!!`;
         this.openAlertMod(template, this.alertMessage);
 
         console.log('Updated Travel Request:', this.selectedReimbursementRequest);

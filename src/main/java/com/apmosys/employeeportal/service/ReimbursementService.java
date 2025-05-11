@@ -162,6 +162,10 @@ public class ReimbursementService {
 			}
 			BigInteger approver1 = BigInteger.valueOf((reimbursementObj.getLevelOneApprover()));
 			Employee level1 = employeeRepository.findByEmpId(Long.valueOf(reimbursementObj.getLevelOneApprover()));
+			Employee level2 = employeeRepository.findByEmpId(Long.valueOf(level2Approver));
+			Employee level3 = employeeRepository.findByEmpId(Long.valueOf(level3Approver));
+			reimbursementData.setLevel2approverName(level2.getName());
+			reimbursementData.setLevel3approverName(level3.getName());
 			reimbursementData.setApprover2(level2Approver); 
 			reimbursementData.setApprover3(level3Approver);
 			reimbursementData.setLevel2ApproverEmail(level2ApproverMail);

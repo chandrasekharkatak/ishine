@@ -240,7 +240,7 @@ export class ReportListComponent implements OnInit {
     });
     //console.log(this.feature, this.userMapping);
     await this.getAllDepartments();
-    this.sectionViewInit();
+    
     this.preventBackButton();
 
     const deptName = String(this.currentUser.departmentName).trim();
@@ -249,10 +249,13 @@ export class ReportListComponent implements OnInit {
     }
     const empRole = String(this.currentUser.employeeRole).trim();
     if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts")&& !deptName.includes("HR")){
-      this.isDeptFilter = true;
-    }
+      await this.getAllDepartmentsFromId();
+     }
+     else{
+       await this.getAllDepartments();
+     }
     // const deptName = String(this.currentUser.departmentName).trim();
-    
+    this.sectionViewInit();
     this.onDepartmentSelectionChange();
   }
 
@@ -544,11 +547,6 @@ export class ReportListComponent implements OnInit {
         console.log(empRole);
         console.log(deptName);
         console.log(this.departments);
-        if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts")&& !deptName.includes("HR")){
-          this.employeeList = this.employeeList.filter(data => {
-            return String(data.departmentName).includes(deptName);
-            });
-        }
         this.flattenProjectList();
         this.editIndex = -1
       } else {
@@ -1152,6 +1150,25 @@ export class ReportListComponent implements OnInit {
   //     }
   //   );
   // }
+
+  getAllDepartmentsFromId(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            this.departments = response.serviceResponse;
+            this.filteredDepartments = this.departments;
+            resolve(response.serviceResponse);
+          } else {
+            reject("Failed to fetch departments");
+          }
+        },
+        error: (error) => {
+          reject(error);
+        }
+      });
+    });
+  }
 
   getAllDepartments(): Promise<any> {
     return new Promise((resolve, reject) => {

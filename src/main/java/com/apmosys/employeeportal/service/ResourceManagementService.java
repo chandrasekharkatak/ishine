@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -3424,6 +3425,73 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 
 		    return response;
 		}
+	 
+	public ServiceResponse updateProjectStartAndEndDate(ResourceManagementDTO resourceManagementDTO) {
+    ServiceResponse response = new ServiceResponse();
+    try {
+    	Long empid = resourceManagementDTO.getEmpId();
+    	Long teamid = resourceManagementDTO.getTeamId();
+        EmployeeTeamMap findResource = employeeTeamMapRepository.findByEmpIdAndTeamId(empid,teamid);
+        Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
 
+        System.out.println("findResource: " + findResource);
+
+        if (findResource != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+            if (resourceManagementDTO.getEndDate() != null) {
+//                String str = resourceManagementDTO.getEndDate();
+//                LocalDate date = LocalDate.parse(str, formatter);
+//                LocalDateTime endDateTime = date.atStartOfDay();
+//                findResource.setEndDate(endDateTime); 
+            	 String str = resourceManagementDTO.getEndDate();
+            	    LocalDateTime endDateTime;
+
+            	    if (str.contains("T")) {
+            	        endDateTime = LocalDateTime.parse(str);
+            	    } else {
+            	        LocalDate date = LocalDate.parse(str);
+            	        endDateTime = date.atTime(LocalTime.now().getHour(), LocalTime.now().getMinute(), LocalTime.now().getSecond());
+            	    }
+            	    findResource.setEndDate(endDateTime);
+            } else if (resourceManagementDTO.getStartDate() != null) {
+
+            	String str = resourceManagementDTO.getStartDate();
+                LocalDateTime startDateTime;
+
+                if (str.contains("T")) {
+                    startDateTime = LocalDateTime.parse(str);
+                } else {
+                	 LocalDate date = LocalDate.parse(str);
+                     startDateTime = date.atTime(LocalTime.now().getHour(), LocalTime.now().getMinute(), LocalTime.now().getSecond());             
+                   }
+
+                findResource.setStartDate(Timestamp.valueOf(startDateTime));
+//                String str = resourceManagementDTO.getStartDate(); 
+//                LocalDate date = LocalDate.parse(str, formatter);
+//                LocalDateTime startDateTime = date.atStartOfDay();
+                //findResource.setStartDate(Timestamp.valueOf(startDateTime)); 
+            } else {
+                findResource.setEndDate(LocalDateTime.now()); 
+            }
+
+            employeeTeamMapRepository.save(findResource);
+
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse("Project StartDate/EndDate updated successfully, from Team Name - " + findTeam.getTeamName());
+        } else {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Resource not found for given empId and teamId.");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceResponse("Error occurred while updating StartDate/EndDate: " + e.getMessage());
+    }
+    return response;
+}
+
+		
 	
 }

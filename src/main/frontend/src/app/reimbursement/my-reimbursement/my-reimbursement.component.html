@@ -196,7 +196,7 @@
                 <div class="col-md-12 px-0 text-center">
                     <!-- Reset and Submit buttons -->
                     <button type="button" class="btn btn-secondary btn-lg mx-1" (click)="resetForm(alert_message)">Reset</button>
-                    <button type="submit" class="btn btn-primary btn-lg mx-1" (click)="submitForm(alert_message1)">Submit</button>
+                    <button type="submit" class="btn btn-primary btn-lg mx-1" (click)="submitForm(alert_messagevalidation)">Submit</button>
                 </div>
             </div>
         </div>
@@ -214,5 +214,12 @@
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest1()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alert_messagevalidation>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest2()">OK</button>&nbsp;
     </div>
 </ng-template>
