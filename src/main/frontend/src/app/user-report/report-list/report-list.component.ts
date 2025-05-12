@@ -250,6 +250,7 @@ export class ReportListComponent implements OnInit {
     const empRole = String(this.currentUser.employeeRole).trim();
     if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts")&& !deptName.includes("HR")){
       await this.getAllDepartmentsFromId();
+      this.isDeptFilter = true;
      }
      else{
        await this.getAllDepartments();
