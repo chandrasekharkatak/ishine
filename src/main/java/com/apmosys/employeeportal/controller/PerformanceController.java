@@ -146,14 +146,6 @@ public class PerformanceController {
 	    ServiceResponse response = performanceService.updateEmployeePerformanceHOD(employeePerformanceDTO);
 	    return response;
 	}
-
-	
-
-	@RequestMapping(value = "/getAllDepartmentbyEmployeecont", method = RequestMethod.POST)
-	public ServiceResponse DepartmentbyEmployeecont(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance ) {
-	    ServiceResponse response = performanceService.DepartmentbyEmployeecont(hrHodHrViewPerformance);
-	    return response;
-	}
 	
 	@RequestMapping(value = "/getReviewLabelForEveryDepartment", method = RequestMethod.GET)
 	public ServiceResponse getReviewLabelForEveryDepartment() {
@@ -179,11 +171,6 @@ public class PerformanceController {
 	@RequestMapping(value="/getTeamEmployeeListInTeamDashboard", method = RequestMethod.POST)
 	public ResponseEntity<List<EmployeeteamDto>> getTeamEmployeeListInTeamDashboard(@RequestBody PerformanceDTO performanceDTO) {
 		return performanceService.getTeamEmployeeListInTeamDashboard(performanceDTO);
-	}
-	@RequestMapping(value = "/currentStatusForPerformanceTableView", method = RequestMethod.GET)
-	public ServiceResponse currentStatusForPerformanceTableView() {
-	    ServiceResponse response = performanceService.currentStatusForPerformanceTableView();
-	    return response;
 	}
 	
 	@RequestMapping(value = "/exportExcelForHodAndManger", method = RequestMethod.POST)

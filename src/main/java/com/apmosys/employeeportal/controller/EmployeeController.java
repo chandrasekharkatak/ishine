@@ -553,14 +553,6 @@ public class EmployeeController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getAllEmployeesForPerformance", method = RequestMethod.POST)
-	public ServiceResponse getAllEmployeesForPerformance(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance) {
-
-		ServiceResponse response = employeeService.getAllEmployeesForPerformance(hrHodHrViewPerformance);
-		return response;
-	}
-	
-	
 	@PostMapping("/sendExpiredPoEmail")
 	public ServiceResponse sendExpiredPoEmail(@RequestBody ExpiredPOMailSendDTO employeeDTO) {
 		ServiceResponse response = employeeService.sendExpiredPoEmail(employeeDTO);

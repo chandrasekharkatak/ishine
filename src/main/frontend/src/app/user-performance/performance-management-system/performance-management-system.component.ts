@@ -324,7 +324,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   getAllEmployee1() {
   this.userDetailsForPerformanceView.empId = this.currentUser.empId;
   this.userDetailsForPerformanceView.hrvalidate = this.userMapping.performance_action_by_hr;
-   this.performanceSerive.getAllEmployeesForPerformance().subscribe
+   this.performanceSerive.getAllEmployeesForPerformance(this.userDetailsForPerformanceView).subscribe
       ((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allEmployee = response.serviceResponse;
@@ -403,9 +403,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
   async getALLdepartmentByEmployee1() {
     try {
-     
-     
-      const response: any = await this.performanceSerive.getALLdepartmentByEmployee().toPromise();
+      let payload = null;
+      const response: any = await this.performanceSerive.getALLdepartmentByEmployee(payload).toPromise();
 
       if (response.serviceStatus === "Success") {
         this.departmentData = response.serviceResponse;
