@@ -37,4 +37,5 @@ public class ProjectPoPortalDTO {
 	private String clientRM;
 	private Boolean isRenewable;
 	private String deptId;
+	private String apmosysRmEmail; 
 }

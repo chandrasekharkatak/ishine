@@ -56,6 +56,10 @@ export class ProjectService {
   updateProjectResourceAsInActive(project: Project){
     return this.http.post(`${this.baseUrl}` + `api/updateProjectResourceAsInActive`, project);
   }
+
+  updateProjectStartAndEndDate(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/updateProjectStartAndEndDate`, project);
+  }
   
   deleteTeam(project: Project){
     return this.http.post(`${this.baseUrl}` + `api/deleteTeamByTeamId`, project);

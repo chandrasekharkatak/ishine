@@ -151,5 +151,8 @@ public class ReimbursementData {
 	@Column(name = "doc_id")
 	private String docId;
 	
+	@Column(name = "level3_approver_Name")
+	private String level3approverName;
+	
 }
 

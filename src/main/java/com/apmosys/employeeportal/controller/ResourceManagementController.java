@@ -117,6 +117,8 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	
+	
 	@RequestMapping(value = "/deleteTeamByTeamId", method = RequestMethod.POST)
 	public ServiceResponse deleteTeamByTeamId(@RequestBody TeamDTO teamDto) {
 		
@@ -193,12 +195,18 @@ public class ResourceManagementController {
 	}
 	
 
-
 	
 	@RequestMapping(value = "/updateProjectResourcesAsInActiveBulk", method = RequestMethod.POST)
 	public ServiceResponse updateProjectResourcesAsInActiveBulk(@RequestBody List<ResourceManagementDTO> resourceManagementDTOList) {
 	    ServiceResponse response = resourceManagementService.updateProjectResourcesAsInActiveBulk(resourceManagementDTOList);
 	    return response;
+	}
+	
+	@RequestMapping(value = "/updateProjectStartAndEndDate", method = RequestMethod.POST)
+	public ServiceResponse updateProjectStartAndEndDate(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.updateProjectStartAndEndDate(resourceManagementDTO);
+		return response;
 	}
 
 }

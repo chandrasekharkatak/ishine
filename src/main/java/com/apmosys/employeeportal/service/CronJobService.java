@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -104,6 +105,7 @@ import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
+import com.apmosys.employeeportal.model.ProjectPo;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UserSession;
@@ -252,6 +254,9 @@ public class CronJobService {
 	
 	@Value("${timesheet.reconcile.days}")
 	private Long timesheetReconcileDays;
+	
+	@Value("${billablechange.mail}")
+	private String billablechangeMailAddress;
 	
 	@Value("${finance.mail}")
 	private String financeMail;
@@ -4536,7 +4541,7 @@ try {
 					    		  userSessionRepository.deleteById(session.getUserSessionId());
 					    	  }else if(elapsedMinsAfterLastCheck >= SESSION_CHECK_INACTIVE_LIMIT){
 					    		  user = session.getEmpId() + " - "+ " Time elapsed After Last Check : "+ elapsedMinsAfterLastCheck + " min.";
-//					    		  userSessionRepository.deleteById(session.getUserSessionId());
+					    		  userSessionRepository.deleteById(session.getUserSessionId());
 					    	  }
 					    	  
 					    	  if(user != null) {
@@ -5733,6 +5738,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		
 		@Async
 		@Scheduled(cron = "0 0/5 * ? * *")
+		//@Scheduled(cron = "0 9 12 * * ?")
 		@Transactional
 		public void getProjectCloneFromPoPortal() {
 			
@@ -5836,7 +5842,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		                    project.setApmosysRM(dto.getApmosysRM());	
 		                    project.setIsRenewable(dto.getIsRenewable());
 		                    project.setClientRM(dto.getClientRM());
-		                    
+		                    project.setApmosysRmEmail(dto.getApmosysRmEmail());                    
 		                    projectRepository.save(project);
 
 		    		        logBuilder.append("Updated Project: ID=" + dto.getId() + ", PoNo=" + dto.getPoNo());
@@ -5857,215 +5863,212 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		    }
 		}
 
-		
-		@Async
-//		@Scheduled(cron = "0 0 10 ? * *")
+		//@Scheduled(cron = "0 30 14 * * ?")
 		public void sendMailForExpiryProjects() {
-			
-			LogDTO apiLogInfo = new LogDTO();
-	        apiLogInfo.setSubFeatureName("sendMailForExpiryProjects");
-	        apiLogInfo.setApiUrl("/api/sendMailForExpiryProjects");
-	        apiLogInfo.setLogLevel("INFO");
-	        StringBuilder logBuilder = new StringBuilder();
-	        logBuilder.append("Cron to send expiry po mail notification to still mapped resources projects in Ishine started! ");
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("sendMailForExpiryProjects");
+		    apiLogInfo.setApiUrl("/api/sendMailForExpiryProjects");
+		    apiLogInfo.setLogLevel("INFO");
 
-			List<Object[]> expiredProjects = projectRepository.getExpiredPoProjects();
+		    StringBuilder logBuilder = new StringBuilder();
+		    logBuilder.append("Cron to send expiry PO mail notification started! ");
 
-			if (expiredProjects.isEmpty()) {
-				logBuilder.append("No expired PO projects found.");
-				return;
-			}
+		    List<Object[]> expiredProjectRows = projectRepository.getExpiredPoProjects();
+		    System.out.println("Total Records Fetched: " + expiredProjectRows.size());
 
-			SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-			SimpleDateFormat sourceFormatter = new SimpleDateFormat("yyyy-MM-dd");
-			SimpleDateFormat targetFormatter = new SimpleDateFormat("dd-MM-yyyy");
-
-
-			for (Object[] projects : expiredProjects) {
-			
-				Set<String> uniqueEmails = new HashSet<>();
-				
-				String employeeName = (String) projects[0];
-				String projectName = (String) projects[1];
-				String teamName = (String) projects[2];
-
-				
-				Timestamp allocationTimestamp = (Timestamp) projects[5];
-				String allocationStartDate = allocationTimestamp != null ? dateFormat.format(new Date(allocationTimestamp.getTime())) : "N/A";
-				
-				String poStartDate = "N/A";
-				String poEndDate = "N/A";
-				try {
-					if (projects[3] != null) {
-						poStartDate = targetFormatter.format(sourceFormatter.parse((String) projects[3]));
+		    if (expiredProjectRows.isEmpty()) {
+		        logBuilder.append("No expired PO projects found.");
+		        return;
+		    }
+		    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		    List<ProjectPo> projectPoList = new ArrayList<>();
+		    for (Object[] row : expiredProjectRows) {
+		        ProjectPo po = new ProjectPo();
+		        po.setPoNo((String) row[0]);
+		        po.setDepartment((String) row[1]);
+		        po.setProjectName((String) row[2]);
+//		        po.setPoStartDate(row[3] instanceof Date ? (Date) row[3] : null);
+//		        po.setPoEndDate(row[4] instanceof Date ? (Date) row[4] : null);
+		        if (row[3] instanceof Date) {
+		            po.setPoStartDate((Date) row[3]);
+		        } else if (row[3] instanceof Timestamp) {
+		            po.setPoStartDate(new Date(((Timestamp) row[3]).getTime()));
+		        } else if (row[3] instanceof String) {
+		            try {
+						po.setPoStartDate(formatter.parse((String) row[3]));
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-					if (projects[4] != null) {
-						poEndDate = targetFormatter.format(sourceFormatter.parse((String) projects[4]));
+		        }
+		        // Handle End Date
+		        if (row[4] instanceof Date) {
+		            po.setPoEndDate((Date) row[4]);
+		        } else if (row[4] instanceof Timestamp) {
+		            po.setPoEndDate(new Date(((Timestamp) row[4]).getTime()));
+		        } else if (row[4] instanceof String) {
+		            try {
+						po.setPoEndDate(formatter.parse((String) row[4]));
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-				} catch (ParseException e) {
-					e.printStackTrace();
-				}
-				
-				Integer projectId = (Integer) projects[6];
-				
-				String hodEmail = (String) projects[7];
-				
-				String empEmail = (String) projects[8];
-				
-				if (hodEmail != null && !hodEmail.isEmpty()) {
-					uniqueEmails.add(hodEmail);
-				}
-				
-				StringBuilder ccEmailBuilder = new StringBuilder();
+		        }
+		        po.setApmosysRm((String) row[5]);
+		        po.setPoProjectType((String) row[7]);
+		        po.setRenewable((row[6] instanceof Integer && (Integer) row[6] == 1));
+		        po.setHodEmail((String) row[8]);
+//		        po.setPoProjectId((String)row[9]);
+		        po.setPoProjectId(((BigInteger) row[9]).toString());
+		        projectPoList.add(po);
+		    }
 
-				if (rmgMail != null && !rmgMail.trim().isEmpty()) {
-					String[] rmgEmails = rmgMail.split(",");
-					for (String email : rmgEmails) {
-						if (email != null && !email.trim().isEmpty()) {
-							uniqueEmails.add(email.trim()); 
-						}
-					}
-				}
-				
-				if (adminMail != null && !adminMail.trim().isEmpty()) {
-					String[] adminMails = adminMail.split(",");
-					for (String email : adminMails) {
-						if (email != null && !email.trim().isEmpty()) {
-							uniqueEmails.add(email.trim()); 
-						}
-					}
-				}
+		    for (ProjectPo po : projectPoList) {
+		    	Set<String> uniqueEmails = new HashSet<>();
+		        String hodEmail = po.getHodEmail();
+		    	//String hodEmail = "sakti.das@apmosys.com";
+		        String department = po.getDepartment();
+		        
+		        StringBuilder ccEmailBuilder = new StringBuilder();
 
-				for (String email : uniqueEmails) {
-					if (ccEmailBuilder.length() > 0) {
-						ccEmailBuilder.append(","); 
-					}
-					ccEmailBuilder.append(email);
-				}
+		        if (rmgMail != null && !rmgMail.trim().isEmpty()) {
+		            String[] rmgEmails = rmgMail.split(",");
+		            for (String email : rmgEmails) {
+		                if (email != null && !email.trim().isEmpty()) {
+		                    uniqueEmails.add(email.trim());
+		                }
+		            }
+		        }
 
-				String ccEmails = ccEmailBuilder.toString();
+		        if (adminMail != null && !adminMail.trim().isEmpty()) {
+		            String[] adminMails = adminMail.split(",");
+		            for (String email : adminMails) {
+		                if (email != null && !email.trim().isEmpty()) {
+		                    uniqueEmails.add(email.trim());
+		                }
+		            }
+		        }
 
-				if (!empEmail.isEmpty()) {
-					
-						String emailBody = buildEmailContent(employeeName, projectName, teamName, poStartDate, poEndDate, allocationStartDate);
+		        for (String email : uniqueEmails) {
+		            if (ccEmailBuilder.length() > 0) {
+		                ccEmailBuilder.append(",");
+		            }
+		            ccEmailBuilder.append(email);
+		        }
 
-						try {
-//                                    mailService.sendMailWithoutAttachmentWithMailBody2( 
-//                                    		"anyush.panda@apmosys.com",
-//                                            "Project PO Expiry Notification", 
-//                                            emailBody,
-//                                    		"priyadarshini.singh@apmosys.com"
-//                                    );
-							mailService.sendMailWithoutAttachmentWithMailBody2( 
-									empEmail,
-									"Project PO Expiry Notification", 
-									emailBody,  
-									ccEmails
-							);
-							logBuilder.append("Mail sent to " + empEmail + " for expired PO: " + projectName);
-						} catch (MessagingException e) {
-							logBuilder.append("Error sending mail to " + empEmail + " for PO: " + projectName + " - " + e.getMessage());
-						}
-										
-					} else {
-						logBuilder.append("No employees found for project ID: " + projectId);
-				}
-			}
-			List<Object[]> expiredProjectsWithoutInterval = projectRepository.getExpiredPoProjectsWithoutInterval();
+		        String ccEmails = ccEmailBuilder.toString();
 
-			if (expiredProjectsWithoutInterval.isEmpty()) {
-				logBuilder.append("No expired PO projects found previous to 5 days interval from current date.");
-				return;
-			}
 
-			for (Object[] projects : expiredProjectsWithoutInterval) {
+		        if (hodEmail != null && !hodEmail.isEmpty()) {
+		            try {
+		            	SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+		                // Fetch employees for this PO
+		                List<Object[]> employeeRows = projectRepository.getEmployeesByPoProjectId(po.getPoProjectId());
 
-				Set<String> uniqueEmails = new HashSet<>();
-				
-				String employeeName = (String) projects[0];
-				String projectName = (String) projects[1];
-				String teamName = (String) projects[2];
+		                // Generate Project HTML table
+		                StringBuilder projectHtmlTable = new StringBuilder();
+		                projectHtmlTable.append("<table border='1' style='border-collapse: collapse;'>")
+                        .append("<tr><th>Project Name</th><th>Po Start Date</th><th>Po End Date</th><th>Apmosys RM</th>"
+                        		+ "<th>Is Renewable</th><th>Po Project Type</th></tr>");
 
-				Timestamp allocationTimestamp = (Timestamp) projects[5];
-				String allocationStartDate = allocationTimestamp != null ? dateFormat.format(new Date(allocationTimestamp.getTime())) : "N/A";
+		                projectHtmlTable.append("<tr>")
+		                .append("<td>").append(po.getProjectName()).append("</td>")
+		                .append("<td>").append(po.getPoStartDate() != null ? sdf.format(po.getPoStartDate()) : "").append("</td>")
+		                .append("<td>").append(po.getPoEndDate() != null ? sdf.format(po.getPoEndDate()) : "").append("</td>")
+		                .append("<td>").append(po.getApmosysRm()).append("</td>")
+		                .append("<td>").append(po.isRenewable()).append("</td>") 
+		                .append("<td>").append(po.getPoProjectType()).append("</td>")
+		                .append("</tr>");
+		                
+		                projectHtmlTable.append("</table>");
+		                // Generate employee HTML table
+		                StringBuilder empHtmlTable = new StringBuilder();
+		                empHtmlTable.append("<table border='1' style='border-collapse: collapse;'>")
+		                            .append("<tr><th>Name</th><th>Employeement Id</th><th>Email</th></tr>");
+		                for (Object[] empRow : employeeRows) {
+		                    empHtmlTable.append("<tr>")
+		                                .append("<td>").append(empRow[0]).append("</td>")
+		                                .append("<td>").append(empRow[1]).append("</td>")
+		                                .append("<td>").append(empRow[2]).append("</td>")
+		                                .append("</tr>");
+		                }
+		                empHtmlTable.append("</table>");
 
-				String poStartDate = "N/A";
-				String poEndDate = "N/A";
-				try {
-					if (projects[3] != null) {
-						poStartDate = targetFormatter.format(sourceFormatter.parse((String) projects[3]));
-					}
-					if (projects[4] != null) {
-						poEndDate = targetFormatter.format(sourceFormatter.parse((String) projects[4]));
-					}
-				} catch (ParseException e) {
-					e.printStackTrace();
-				}
+		                // Generate Excel report for this department (group same dept POs)
+		                List<ProjectPo> deptProjects = projectPoList.stream()
+		                        .filter(p -> department.equals(p.getDepartment()))
+		                        .collect(Collectors.toList());
 
-				Integer projectId = (Integer) projects[6];
+//		                File report = generateDepartmentPoReport(department, deptProjects);
 
-				String hodEmail = (String) projects[7];
-				
-				String empEmail = (String) projects[8];
+		                String mailBody = "<p>Dear HOD,</p>"
+		                        + "<p>Please find attached the expired PO report for your department: <strong>" + department + "</strong>.</p>"
+		                        + "<p>Below is the details of the project for this PO: <strong>" + po.getPoNo() + "</strong>.</p>"
+		                        + projectHtmlTable.toString()
+		                        + "<p>Below is the list of employees mapped to PO: <strong>" + po.getPoNo() + "</strong>.</p>"
+		                        + empHtmlTable.toString()
+		                        + "<br/><p>Regards,<br/>IShine Team</p>";
 
-				if (hodEmail != null && !hodEmail.isEmpty()) {
-					uniqueEmails.add(hodEmail);
-				}
+		                mailService.sendMailWithCC(
+		                        hodEmail,
+		                        ccEmails,
+		                        "Expired PO Report - " + department,
+		                        mailBody
+		                        );
 
-				StringBuilder ccEmailBuilder = new StringBuilder();
-				if (rmgMail != null && !rmgMail.trim().isEmpty()) {
-					String[] rmgEmails = rmgMail.split(",");
-					for (String email : rmgEmails) {
-						if (email != null && !email.trim().isEmpty()) {
-							uniqueEmails.add(email.trim());
-						}
-					}
-				}
-				
-				if (adminMail != null && !adminMail.trim().isEmpty()) {
-					String[] adminMails = adminMail.split(",");
-					for (String email : adminMails) {
-						if (email != null && !email.trim().isEmpty()) {
-							uniqueEmails.add(email.trim()); 
-						}
-					}
-				}
+		                logBuilder.append("Report sent to HOD: ").append(hodEmail).append("\n");
 
-				for (String email : uniqueEmails) {
-					if (ccEmailBuilder.length() > 0) {
-						ccEmailBuilder.append(",");
-					}
-					ccEmailBuilder.append(email);
-				}
+		            } catch (Exception e) {
+		                e.printStackTrace();
+		                logBuilder.append("Error sending report to HOD (").append(hodEmail).append("): ")
+		                        .append(e.getMessage()).append("\n");
+		            }
+		        } else {
+		            logBuilder.append("No HOD email found for department: ").append(department).append("\n");
+		        }
+		    }
 
-				String ccEmails = ccEmailBuilder.toString();
-
-				if (!empEmail.isEmpty()) {
-					
-						String emailBody = buildEmailContent2(employeeName, projectName, teamName, poStartDate, poEndDate, allocationStartDate);
-
-						try {
-//                                	mailService.sendMailWithoutAttachmentWithMailBody2( 
-//                                    		"anyush.panda@apmosys.com",
-//                                            "Project PO Expiry Notification", 
-//                                            emailBody,
-//                                    		"priyadarshini.singh@apmosys.com"
-//                                    );
-							mailService.sendMailWithoutAttachmentWithMailBody2(
-									empEmail,
-									"Project Expiry Notification",
-									emailBody,
-									ccEmails
-							);
-							logBuilder.append("Mail sent to " + empEmail + " for expired PO: " + projectName);
-						} catch (MessagingException e) {
-							logBuilder.append("Error sending mail to " + empEmail + " for PO: " + projectName + " - " + e.getMessage());
-						}
-				}
-			}
-		    
+		    System.out.println(logBuilder.toString()); // Final log output
 		}
 		
+//		public File generateDepartmentPoReport(String department, List<ProjectPo> projectList) throws IOException {
+//		    String fileName = department.replaceAll("\\s+", "_") + "_Expired_PO_Report.xlsx";
+//		    File file = new File("/home/apmosys/Desktop/FILE_MAIL", fileName);
+//
+//		    try (FileOutputStream fos = new FileOutputStream(file)) {
+//		        var wb = new Workbook(fos, "Expired PO Report", "1.0");
+//		        Worksheet ws = wb.newWorksheet(department + "_POs");
+//
+//		        // Headers
+//		        String[] headers = {
+//		            "PO No", "Department", "Project Name", "PO Start Date",
+//		            "PO End Date", "APMOSYS RM", "Is Renewable", "PO Project Type"
+//		        };
+//		        for (int i = 0; i < headers.length; i++) {
+//		            ws.value(0, i, headers[i]);
+//		        }
+//
+//		        // Data
+//		        int row = 1;
+//		        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+//		        for (ProjectPo po : projectList) {
+//		            ws.value(row, 0, po.getPoNo());
+//		            ws.value(row, 1, po.getDepartment());
+//		            ws.value(row, 2, po.getProjectName());
+//		            ws.value(row, 3, po.getPoStartDate() != null ? sdf.format(po.getPoStartDate()) : "N/A");
+//		            ws.value(row, 4, po.getPoEndDate() != null ? sdf.format(po.getPoEndDate()) : "N/A");
+//		            ws.value(row, 5, po.getApmosysRm());
+//		          //  ws.value(row, 6, po.getIsRenewable() ? "Yes" : "No");
+//		            ws.value(row, 7, po.getPoProjectType());
+//		            row++;
+//		        }
+//
+//		        wb.finish();
+//		    }
+//
+//		    return null;
+//		}
+				
 		private String buildEmailContent(String employeeName, String projectName, String teamName, 
                  String poStartDate, String poEndDate, String allocationStartDate) {
 			return  "<html><body>"
@@ -6104,5 +6107,130 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 					+ "<p>RMG Team</p>"
 					+ "</body></html>";
 		}
+		
+		public void triggerBillableTypeChangeMail(Long empId, String newBillableType, String oldBillableType, Long updatedById) {
+		    try {
+		        Object[] details = (Object[]) employeeRepository.findEmployeeDepartmentDetails(empId);
+		        if (details == null) return;
+
+		        Long empIdd = ((Number) details[0]).longValue();
+		        String empName = (String) details[1];
+		        String departmentName = (String) details[2];
+		        Long hodId = ((Number) details[3]).longValue();
+
+		        String updatedByName = employeeRepository.findEmployeeNameById(updatedById);
+		        String hodEmail = employeeRepository.findHodEmailById(hodId);
+
+		        StringBuilder html = new StringBuilder();
+		        html.append("<html><body>");
+		        html.append("<p>Dear HOD,</p>");
+		        html.append("<p>The following billable type change has been made by <b>")
+		            .append(updatedByName)
+		            .append("</b>:</p>");
+
+		        html.append("<div style='overflow-x:auto;'>");
+		        html.append("<table border='1' style='border-collapse: collapse; width: 100%; table-layout: auto;'>");
+		        html.append("<tr>");
+		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Employee ID</th>");
+		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Name</th>");
+		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Billable Type</th>");
+		        html.append("</tr>");
+
+		        html.append("<tr>");
+		        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>A-").append(empIdd).append("</td>");
+		        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>").append(empName).append("</td>");
+		        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>")
+		            .append(oldBillableType).append(" &rarr; ").append(newBillableType).append("</td>");
+		        html.append("</tr>");
+		        html.append("</table>");
+		        html.append("</div>");
+
+		        html.append("<p>Regards,<br/>Ishine Team</p>");
+		        html.append("</body></html>");
+
+		        String subject = "Billable Type Change Notification for " + departmentName + " Department";
+
+		        mailService.sendMailWithCC(hodEmail, billablechangeMailAddress, subject, html.toString());
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        // Optionally log or handle the error here
+		    }
+		}
+
+
+		
+		public void triggerBulkBillableChangeEmails(List<Long> empIds, Map<Long, String> oldBillableTypes, String newBillableType, Long updatedById) {
+		    Map<Long, List<Object[]>> deptToEmployeeDetails = new HashMap<>();
+
+		    for (Long empId : empIds) {
+		        Object[] details = (Object[]) employeeRepository.findEmployeeDepartmentDetails(empId);
+		        if (details == null) continue;
+
+		        Long empIdd = ((Number) details[0]).longValue();
+		        String empName = (String) details[1];
+		        String departmentName = (String) details[2];
+		        Long hodId = ((Number) details[3]).longValue();
+
+		        deptToEmployeeDetails.computeIfAbsent(hodId, k -> new ArrayList<>())
+		            .add(new Object[]{empIdd, empName, departmentName, oldBillableTypes.get(empId), newBillableType});
+		    }
+
+		    String updatedByName = employeeRepository.findEmployeeNameById(updatedById);
+
+		    for (Map.Entry<Long, List<Object[]>> entry : deptToEmployeeDetails.entrySet()) {
+		        Long hodId = entry.getKey();
+		        List<Object[]> employees = entry.getValue();
+		        String hodEmail = employeeRepository.findHodEmailById(hodId);
+
+		        // Get department name from first employee (they're all from the same department)
+		        String departmentName = (String) employees.get(0)[2];
+
+		        StringBuilder html = new StringBuilder();
+		        html.append("<html><body>");
+		        html.append("<p>Dear HOD,</p>");
+		        html.append("<p>The following billable type changes have been made by <b>")
+		            .append(updatedByName)
+		            .append("</b>:</p>");
+
+		        html.append("<div style='overflow-x:auto;'>");
+		        html.append("<table border='1' style='border-collapse: collapse; width: 100%; table-layout: auto;'>");
+		        html.append("<tr>");
+		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Employee ID</th>");
+		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Name</th>");
+		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Billable Type</th>");
+		        html.append("</tr>");
+
+		        for (Object[] emp : employees) {
+		            html.append("<tr>");
+		            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>A-").append(emp[0]).append("</td>");
+		            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>").append(emp[1]).append("</td>");
+		            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>")
+		                .append(emp[3]).append(" &rarr; ").append(emp[4]).append("</td>");
+		            html.append("</tr>");
+		        }
+
+		        html.append("</table>");
+		        html.append("</div>");
+		        html.append("<p>Regards,<br/>Ishine Team</p>");
+		        html.append("</body></html>");
+
+		        String subject = "Billable Type Change Notification for " + departmentName + " Department";
+
+		        try {
+		            mailService.sendMailWithCC(hodEmail, billablechangeMailAddress, subject, html.toString());
+		        } catch (MessagingException e) {
+		            e.printStackTrace();
+		            // log or notify failure to send email
+		        }
+		    }
+		}
+
+
+
+
+
+
+
 
 }	

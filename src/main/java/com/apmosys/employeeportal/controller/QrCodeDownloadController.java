@@ -40,8 +40,8 @@ public class QrCodeDownloadController {
 	@Value("${qr.storage.path}")
 	private String qrStoragePath;
 	
-	@GetMapping("/downloadFileFromQrCode/{id}")
-	public ResponseEntity<?> getQRCodeDataById(@PathVariable Long id, HttpServletResponse response) throws IOException {Optional<FilePath> optionalFilePath = filePathRepo.findById(id);
+	@GetMapping("/downloadFileFromQrCode/textImg")
+	public ResponseEntity<?> getQRCodeDataById(@RequestParam("id") Long id, HttpServletResponse response) throws IOException {Optional<FilePath> optionalFilePath = filePathRepo.findById(id);
 
     if (optionalFilePath.isEmpty()) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(" Error: QR Code record not found.");
@@ -79,8 +79,8 @@ public class QrCodeDownloadController {
             .body(responseText);}
 
 	
-	@GetMapping("/downloadFileFromQrCode/pdf/{id}")
-	public ResponseEntity<?> getPdfById(@PathVariable Long id) {
+	@GetMapping("/downloadFileFromQrCode/pdf")
+	public ResponseEntity<?> getPdfById(@RequestParam("id") Long id) {
 		 Optional<FilePath> optionalFilePath = filePathRepo.findById(id);
 
 		    if (optionalFilePath.isEmpty()) {

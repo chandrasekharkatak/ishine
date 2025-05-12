@@ -1,16 +1,13 @@
 package com.apmosys.employeeportal.model;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Table;
-
-import org.hibernate.envers.Audited;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -18,34 +15,20 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+@Entity
 @Getter
 @Setter
 @ToString
-@Entity
-@Audited
-@Table(name = "EmployeeTeamMapping")
-public class EmployeeTeamMap {
+public class FieldAlteration {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long employeeTeamMapId;
-	
+	private Long alterationId;
 	private Long empId;
-	private Long teamId;
-	
-	private Long jobRoleId;
-	private Long active;
-	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = true ,updatable = true)
-	private Timestamp startDate;
-	
-	private String employeeRole;
-	
-	private LocalDateTime endDate;
-	
+	private String field;
+	private String value;
+	private Long alteredBy;
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
-	
-    private Long updatedBy;
-	//added by rahul singh
-	
+
 }

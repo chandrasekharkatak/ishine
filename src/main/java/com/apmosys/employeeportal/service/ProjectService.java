@@ -49,6 +49,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjectSummaryDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeDashboardCountDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportForEmployeeDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
@@ -1617,6 +1618,7 @@ public class ProjectService {
 	                    project.setClientId(clientId);
 	                    project.setPoNo(dto.getPoNo());
 	                    project.setApmosysRM(dto.getApmosysRM());
+	                    project.setApmosysRmEmail(dto.getApmosysRmEmail());               
 	                    project.setIsRenewable(dto.getIsRenewable());
 	                    project.setClientRM(dto.getClientRM());
 
@@ -2207,7 +2209,7 @@ public class ProjectService {
 	    apiLogInfo.setSubFeatureName("Employee Report");
 	    apiLogInfo.setApiUrl("/api/getEmployeeProjectReport");
 	    apiLogInfo.setLogLevel("INFO");
-	
+
 	    StringBuilder logBuilder = new StringBuilder();
 	    logBuilder.append("Category: ").append(dto.getCategory()).append(", ");
 	    logBuilder.append("Report Type: ").append(dto.getReport());

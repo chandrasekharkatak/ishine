@@ -33,9 +33,10 @@
                   <th scope="col" class="info-label">Level 1 Approver Name</th>
                   <th scope="col" class="info-label">Level 1 Approver Status</th>
                   <th scope="col" class="info-label">Level 1 Approver Remarks</th>
-                  <!-- <th scope="col" class="info-label">Level 2 Approver Name</th> -->
+                  <th scope="col" class="info-label">Level 2 Approver Name</th>
                   <th scope="col" class="info-label">Level 2 Approver Status</th>
                   <th scope="col" class="info-label">Level 2 Approver Remarks</th>
+                  <th scope="col" class="info-label">Level 3 Approver Name</th>
                   <th scope="col" class="info-label">Level 3 Approver Status</th>
                   <th scope="col" class="info-label">Level 3 Approver Remarks</th>
                   <th scope="col" class="info-label">Final Status</th>
@@ -77,7 +78,7 @@
                     {{ row.status || 'NA'}}
                   </td>  
                   <td>{{ row.level1approverRemarks || 'NA'}}</td>
-                  <!-- <td>{{ row.level2approverName }}</td> -->
+                  <td>{{ row.level2approverName }}</td>
                   <td [ngClass]="{
                     'text-danger': row.level2approverStatus === 'Rejected',
                     'text-success': row.level2approverStatus === 'Approved',
@@ -86,6 +87,7 @@
                     {{ row.level2approverStatus || 'NA'}}
                   </td>
                   <td>{{ row.level2approverRemarks || 'NA'}}</td>
+                  <td>{{ row.level3approverName }}</td>
                   <td [ngClass]="{
                     'text-danger': row.level3approverStatus === 'Rejected',
                     'text-success': row.level3approverStatus === 'Approved',

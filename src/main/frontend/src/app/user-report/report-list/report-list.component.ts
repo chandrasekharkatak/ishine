@@ -163,7 +163,8 @@ export class ReportListComponent implements OnInit {
   employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
   leaveReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
-  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'dateOfJoining', 'aadhar', 'aboutMe', 'address', 'permanentAddress', 'city', 'bloodGroup', 'dateOfBirth', 'gender', 'fatherName', 'panNumber', 'placeOfBirth', 'workLocation', 'probationPeriod', 'noticePeriod', 'country', 'totalExperience', 'emergencyContactMobile', 'emergencyContactPerson', 'landline', 'maritalStatus', 'motherTongue', 'alternateMobileNo', 'pincode', 'relation', 'state', 'viewsOnOrganisation', 'passportNumber', 'bankAccountNo', 'bankIFSCCode', 'bankName', 'pfAccountNumber', 'previousPfAccountNumber', 'uan', 'esicNumber', 'graduationType', 'pursuing', 'passingGrade', 'yearOfPassing', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
+  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
+  // 'dateOfJoining', 'aadhar', 'aboutMe', 'address', 'permanentAddress', 'city', 'bloodGroup', 'dateOfBirth', 'gender', 'fatherName', 'panNumber', 'placeOfBirth', 'workLocation', 'probationPeriod', 'noticePeriod', 'country', 'totalExperience', 'emergencyContactMobile', 'emergencyContactPerson', 'landline', 'maritalStatus', 'motherTongue', 'alternateMobileNo', 'pincode', 'relation', 'state', 'viewsOnOrganisation', 'passportNumber', 'bankAccountNo', 'bankIFSCCode', 'bankName', 'pfAccountNumber', 'previousPfAccountNumber', 'uan', 'esicNumber', 'graduationType', 'pursuing', 'passingGrade', 'yearOfPassing',
   leaveTimesheetReportColumn: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   defaultMappingColumns: any[] = ['tabName', 'featureName', 'subFeatureName'];
   employeeReportColumnForDetailedProjecttttView: any[] = ['blank',
@@ -205,8 +206,9 @@ export class ReportListComponent implements OnInit {
   show: number = -1;
   filteredTimesheets: any;
   toastr: any;
-
-
+  isAccounts: boolean = false;
+  isDeptFilter: boolean = false;
+  dept:any;
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -238,9 +240,24 @@ export class ReportListComponent implements OnInit {
     });
     //console.log(this.feature, this.userMapping);
     await this.getAllDepartments();
-    this.sectionViewInit();
+    
     this.preventBackButton();
 
+    const deptName = String(this.currentUser.departmentName).trim();
+    if(deptName === "Accounts" ){
+      this.isAccounts = true;
+    }
+    const empRole = String(this.currentUser.employeeRole).trim();
+    if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts")&& !deptName.includes("HR")){
+      await this.getAllDepartmentsFromId();
+      this.isDeptFilter = true;
+     }
+     else{
+       await this.getAllDepartments();
+     }
+    // const deptName = String(this.currentUser.departmentName).trim();
+    this.sectionViewInit();
+    this.onDepartmentSelectionChange();
   }
 
   getSlicedProjects(projectList: Project[], count: number): Project[] {
@@ -492,7 +509,8 @@ export class ReportListComponent implements OnInit {
     const payload = {
       empId: employee.empId,
       billableType: employee.billableType,
-      billable: updatedBillable
+      billable: updatedBillable,
+      updatedBy: this.currentUser.empId
     };
 
     console.log(payload);
@@ -503,6 +521,38 @@ export class ReportListComponent implements OnInit {
       }
     });
 
+  }
+
+  selectedSingleEmployee: any;
+  selectedBillableTypeForSingle: any;
+  
+
+  showSingleUpdateModal(employee: any, template: TemplateRef<any>) {
+    this.selectedBillableTypeForSingle = employee.billableType; 
+    this.selectedSingleEmployee = {
+      ...employee,
+      oldBillableType: employee.originalBillableType || employee.billableTypeBeforeChange || ''
+    };
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl modal-dialog-centered' });
+  }
+  
+
+  onConfirmSingleBillableUpdate() {
+    const updatedBillable = this.selectedBillableTypeForSingle === 'TNM' ? 'Yes' : 'No';
+  
+    const payload = {
+      empId: this.selectedSingleEmployee.empId,
+      billableType: this.selectedBillableTypeForSingle,
+      billable: updatedBillable,
+      updatedBy: this.currentUser.empId
+    };
+  
+    this.employeeService.updateEmployeeReportBillableType(payload).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.openAlertMod(this.alertModalSync, response.serviceResponse);
+      }
+      this.modalRef?.hide();
+    });
   }
 
 
@@ -519,10 +569,17 @@ export class ReportListComponent implements OnInit {
       if (response.serviceStatus === "Success") {
         const res = response.serviceResponse;
         this.employeeList = res.getEmployeeProjectReportForEmployeeDTO || [];
+        // console.log(this.employeeList,"Employee_List");
         this.projectList = res.getProjectToEmployeeReportForProjectDTO || [];
+        // console.log(this.projectList,"projectList");departmentName
         this.projectSummary = res.projectSummary || {};
         console.log("employeeList", this.employeeList);
         console.log("projectList", this.projectList);
+        const empRole = String(this.currentUser.employeeRole).trim();
+        const deptName = String(this.currentUser.departmentName).trim();
+        console.log(empRole);
+        console.log(deptName);
+        console.log(this.departments);
         this.flattenProjectList();
         this.editIndex = -1
       } else {
@@ -633,7 +690,7 @@ export class ReportListComponent implements OnInit {
 
   openBulkUpdateModal(template: TemplateRef<any>) {
     if (this.selectedEmployees.length > 0 && this.selectedBillableTypeForBulk) {
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl modal-dialog-centered' });
     }
   }
 
@@ -645,7 +702,8 @@ export class ReportListComponent implements OnInit {
     const payload = {
       empIds: empIds, 
       billableType: this.selectedBillableTypeForBulk,
-      billable: updatedBillable
+      billable: updatedBillable,
+      updatedBy: this.currentUser.empId
     };
     console.log(payload);
     this.employeeService.updateBulkBillableEmployeeReport(payload).subscribe(
@@ -1125,6 +1183,25 @@ export class ReportListComponent implements OnInit {
   //     }
   //   );
   // }
+
+  getAllDepartmentsFromId(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            this.departments = response.serviceResponse;
+            this.filteredDepartments = this.departments;
+            resolve(response.serviceResponse);
+          } else {
+            reject("Failed to fetch departments");
+          }
+        },
+        error: (error) => {
+          reject(error);
+        }
+      });
+    });
+  }
 
   getAllDepartments(): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -1825,8 +1902,10 @@ export class ReportListComponent implements OnInit {
     this.jobRoleService.updateJobRoleSubFeatureMapping(jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
+        this.updatedRoleSubFeature = [];
       } else {
         this.openAlertMod(template, response.serviceResponse);
+        this.updatedRoleSubFeature = [];
       }
     });
   }
@@ -2256,45 +2335,45 @@ export class ReportListComponent implements OnInit {
             "Po Start Date": x.poStartDate,
             "Po End Date": x.poEndDate,
             "Po Project Type": x.poProjectType,
-            "Aadhar": x.aadhar,
-            "About Me": x.aboutMe,
-            "address": x.address,
-            "permanentAddress": x.permanentAddress,
-            "city": x.city,
-            "Manager Name": x.managerName,
-            "Blood Group": x.bloodGroup,
-            "date Of Birth": x.dateOfBirth,
-            "gender": x.gender,
-            "fatherName": x.fatherName,
-            "mobileNo": x.mobileNo,
-            "panNumber": x.panNumber,
-            "placeOfBirth": x.placeOfBirth,
-            "workLocation": x.workLocation,
-            "Probation Period": x.probationPeriod,
-            "noticePeriod": x.noticePeriod,
-            "country": x.country,
-            "emergencyContactMobile": x.emergencyContactMobile,
-            "emergencyContactPerson": x.emergencyContactPerson,
-            "landline": x.landline,
-            "maritalStatus": x.maritalStatus,
-            "motherTongue": x.motherTongue,
-            "alternateMobileNo": x.alternateMobileNo,
-            "pincode": x.pincode,
-            "relation": x.relation,
-            "State": x.state,
-            "viewsOnOrganisation": x.viewsOnOrganisation,
-            "passportNumber": x.passportNumber,
-            "bankAccountNo": x.bankAccountNo,
-            "bankIFSCCode": x.bankIFSCCode,
-            "bankName": x.bankName,
-            "pfAccountNumber": x.pfAccountNumber,
-            "previousPfAccountNumber": x.previousPfAccountNumber,
-            "uan": x.uan,
-            "esicNumber": x.esicNumber,
-            "graduationType": x.graduationType,
-            "pursuing": x.pursuing,
-            "passingGrade": x.passingGrade,
-            "yearOfPassing": x.yearOfPassing,
+            // "Aadhar": x.aadhar,
+            // "About Me": x.aboutMe,
+            // "address": x.address,
+            // "permanentAddress": x.permanentAddress,
+            // "city": x.city,
+            // "Manager Name": x.managerName,
+            // "Blood Group": x.bloodGroup,
+            // "date Of Birth": x.dateOfBirth,
+            // "gender": x.gender,
+            // "fatherName": x.fatherName,
+            // "mobileNo": x.mobileNo,
+            // "panNumber": x.panNumber,
+            // "placeOfBirth": x.placeOfBirth,
+            // "workLocation": x.workLocation,
+            // "Probation Period": x.probationPeriod,
+            // "noticePeriod": x.noticePeriod,
+            // "country": x.country,
+            // "emergencyContactMobile": x.emergencyContactMobile,
+            // "emergencyContactPerson": x.emergencyContactPerson,
+            // "landline": x.landline,
+            // "maritalStatus": x.maritalStatus,
+            // "motherTongue": x.motherTongue,
+            // "alternateMobileNo": x.alternateMobileNo,
+            // "pincode": x.pincode,
+            // "relation": x.relation,
+            // "State": x.state,
+            // "viewsOnOrganisation": x.viewsOnOrganisation,
+            // "passportNumber": x.passportNumber,
+            // "bankAccountNo": x.bankAccountNo,
+            // "bankIFSCCode": x.bankIFSCCode,
+            // "bankName": x.bankName,
+            // "pfAccountNumber": x.pfAccountNumber,
+            // "previousPfAccountNumber": x.previousPfAccountNumber,
+            // "uan": x.uan,
+            // "esicNumber": x.esicNumber,
+            // "graduationType": x.graduationType,
+            // "pursuing": x.pursuing,
+            // "passingGrade": x.passingGrade,
+            // "yearOfPassing": x.yearOfPassing,
             "createdBy": x.createdBy,
             "createdOn": x.createdOn,
             "Proile Completion Perecentage": x.profileCompletedPercent,
@@ -2305,6 +2384,7 @@ export class ReportListComponent implements OnInit {
         if (this.employeeReportObj.category === 'Employee') {
           this.excelName = 'EmployeeDetailedReport.xlsx';
           if (this.changeTable) {
+            console.log(this.employeeList);
             const onlySpecificDataArr = this.employeeList.map(
               x => ({
                 "Employee Id": x.employeementId,
@@ -2320,7 +2400,7 @@ export class ReportListComponent implements OnInit {
                 "Team Name": x.teamName,
                 "Project Name": x.projectName,
                 "Po No": x.poNo,
-                "Po Type": x.poType,
+                "Po Type": x.poProjectType,
                 "Po Start Date": x.poStartDate,
                 "Po End Date": x.poEndDate,
                 "Effective Start Date": x.effectiveStartDate,

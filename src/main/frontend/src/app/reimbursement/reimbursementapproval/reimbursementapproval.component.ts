@@ -105,6 +105,10 @@ export class ReimbursementapprovalComponent implements OnInit {
 
   async actionRequest(template: TemplateRef<any>) {
 
+    if (!this.selectedReimbursementRequest.approverStatus) {
+      this.openAlertMod(template, "Please select an Approver Status .");
+      return;
+    }
     this.reimbursementInfo = new MyReimbursement();
       let reimbursementData = new MyReimbursement();
 
@@ -135,16 +139,17 @@ export class ReimbursementapprovalComponent implements OnInit {
 
       console.log('AResponse Data :::::::::::::::::', response);
    
+      console.log('Service Response data ::::::::',response.serviceResponse) ;
 
       if (response.serviceStatus === "Success") {
 
-        if(response.serviceResponse.status === "Rejected"){
+        if(this.selectedReimbursementRequest.approverStatus === "Rejected"){
           this.modalRef.hide();
-          this.alertMessage = `Success! Your request was Rejected successfully ..!!!!`;
+          this.alertMessage = `Success! This request is Rejected successfully ..!!!!`;
           this.openAlertMod(template, this.alertMessage);
         }else{
           this.modalRef.hide();
-        this.alertMessage = `Success! Your request was approved successfully ..!!!!`;
+        this.alertMessage = `Success! This request is approved successfully ..!!!!`;
         this.openAlertMod(template, this.alertMessage);
 
         console.log('Updated Travel Request:', this.selectedReimbursementRequest);

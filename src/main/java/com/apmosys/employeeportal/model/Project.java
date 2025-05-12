@@ -63,4 +63,5 @@ public class Project {
 	private Boolean isRenewable;
 	private String deptId;
 	private String status;
+	private String apmosysRmEmail;
 }

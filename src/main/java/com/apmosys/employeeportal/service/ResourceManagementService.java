@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -276,7 +277,10 @@ public class ResourceManagementService {
 			    newProject.setPoProjectId(resourceManagementDTO.getId());
 			    newProject.setActive("true");
 			    newProject.setSyncProject("true");
-			    newProject.setPoProjectType(resourceManagementDTO.getProjectType());
+			    newProject.setPoProjectType(
+			    	    "Internal".equalsIgnoreCase(resourceManagementDTO.getProjectType()) ? null : resourceManagementDTO.getProjectType()
+			    	);
+
 			    newProject.setPoNo(resourceManagementDTO.getPoNo());
 			    newProject.setPoStartDate(resourceManagementDTO.getStartDate());
 			    newProject.setPoEndDate(resourceManagementDTO.getEndDate());
@@ -284,7 +288,10 @@ public class ResourceManagementService {
                 newProject.setApmosysRM(resourceManagementDTO.getApmosysRM());	
 			    newProject.setIsRenewable(resourceManagementDTO.getIsRenewable());
 			    newProject.setClientRM(resourceManagementDTO.getClientRM());
-				
+			    newProject.setApmosysRmEmail(resourceManagementDTO.getApmosysRmEmail());
+			    
+			    
+			    
 				  	if (resourceManagementDTO.getIsHOD().equals("true")) {
 				 	newProject.setIsDraftProject("false"); 
 				 	} else {
@@ -970,7 +977,8 @@ public class ResourceManagementService {
 		    project.setPoNo(dto.getPoNo());
 		    project.setPoStartDate(dto.getStartDate());
 		    project.setPoEndDate(dto.getEndDate());
-		    project.setPoProjectType(dto.getProjectType());
+		    project.setPoProjectType("Internal".equalsIgnoreCase(dto.getProjectType()) ? null : dto.getProjectType());
+
 		    project.setApmosysRM(dto.getApmosysRM());
 		    project.setIsRenewable(dto.getIsRenewable());
 		    project.setClientRM(dto.getClientRM());
@@ -2807,6 +2815,7 @@ public class ResourceManagementService {
 			dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
 			dto.setPoStartDate(obj[11] != null ? obj[11].toString().toString() : null);
 			dto.setPoEndDate(obj[12] != null ? obj[12].toString().toString() : null);
+			dto.setStatus(obj[13] != null ? obj[13].toString() : null);
 			
 			allData.add(dto);
 		});
@@ -3830,7 +3839,6 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 			            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				        response.setServiceResponse("Team and Its Resources are Set Inactive");
 			        } else {
-			            
 	
 			            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			            response.setServiceResponse("Team and Its Resources are NOt Set Inactive");
@@ -3859,5 +3867,71 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		   
 
 		    return response;
+		}
+
+		public ServiceResponse updateProjectStartAndEndDate(ResourceManagementDTO resourceManagementDTO) {
+			ServiceResponse response = new ServiceResponse();
+			try {
+				Long empid = resourceManagementDTO.getEmpId();
+				Long teamid = resourceManagementDTO.getTeamId();
+				EmployeeTeamMap findResource = employeeTeamMapRepository.findByEmpIdAndTeamId(empid,teamid);
+				Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
+		
+				System.out.println("findResource: " + findResource);
+		
+				if (findResource != null) {
+					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		
+					if (resourceManagementDTO.getEndDate() != null) {
+		//                String str = resourceManagementDTO.getEndDate();
+		//                LocalDate date = LocalDate.parse(str, formatter);
+		//                LocalDateTime endDateTime = date.atStartOfDay();
+		//                findResource.setEndDate(endDateTime); 
+						 String str = resourceManagementDTO.getEndDate();
+							LocalDateTime endDateTime;
+		
+							if (str.contains("T")) {
+								endDateTime = LocalDateTime.parse(str);
+							} else {
+								LocalDate date = LocalDate.parse(str);
+								endDateTime = date.atTime(LocalTime.now().getHour(), LocalTime.now().getMinute(), LocalTime.now().getSecond());
+							}
+							findResource.setEndDate(endDateTime);
+					} else if (resourceManagementDTO.getStartDate() != null) {
+		
+						String str = resourceManagementDTO.getStartDate();
+						LocalDateTime startDateTime;
+		
+						if (str.contains("T")) {
+							startDateTime = LocalDateTime.parse(str);
+						} else {
+							 LocalDate date = LocalDate.parse(str);
+							 startDateTime = date.atTime(LocalTime.now().getHour(), LocalTime.now().getMinute(), LocalTime.now().getSecond());             
+						   }
+		
+						findResource.setStartDate(Timestamp.valueOf(startDateTime));
+		//                String str = resourceManagementDTO.getStartDate(); 
+		//                LocalDate date = LocalDate.parse(str, formatter);
+		//                LocalDateTime startDateTime = date.atStartOfDay();
+						//findResource.setStartDate(Timestamp.valueOf(startDateTime)); 
+					} else {
+						findResource.setEndDate(LocalDateTime.now()); 
+					}
+		
+					employeeTeamMapRepository.save(findResource);
+		
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Project StartDate/EndDate updated successfully, from Team Name - " + findTeam.getTeamName());
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Resource not found for given empId and teamId.");
+				}
+		
+			} catch (Exception e) {
+				e.printStackTrace();
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Error occurred while updating StartDate/EndDate: " + e.getMessage());
+			}
+			return response;
 		}
 }

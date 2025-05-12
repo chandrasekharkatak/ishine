@@ -79,6 +79,15 @@ export class BodyComponent implements OnInit {
 
   ngOnInit(): void {
     this.extractFeatures();
+    this.isHome = this.router.url === '/home';
+
+    // Also handle navigation events
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.isHome = event.urlAfterRedirects === '/home';
+      }
+    });
+  
   }
 
   extractFeatures() {

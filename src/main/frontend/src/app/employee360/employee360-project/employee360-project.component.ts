@@ -40,6 +40,8 @@ isProjectTeamMemberVisible:boolean=false;
   getBillableType: any;
   newMemberInProject: any;
   lastDate: any;
+  startDate: any;
+  endDate: any;
   page = 1;
   copyDepartment : any = [];
   currentBreadcrumbList: any[] = [];
@@ -55,7 +57,7 @@ isProjectTeamMemberVisible:boolean=false;
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  projectColumns:any[] = ['blank','projectName' ,'teamName' , 'clientName', 'billableType', 'startDate', 'updatedOn'];
+  projectColumns:any[] = ['blank','projectName' ,'teamName' , 'clientName', 'billableType', 'startDate', 'updatedOn','poStartDate','poEndDate','status'];
   employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -278,6 +280,8 @@ async getTeamEmployeeByTeamId(teamId: any) {
     this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectList = response.serviceResponse;
+
+        console.log("dekhauchi re project details ::::::::",this.allProjectList);
         console.log("this.projectDetails ", this.allProjectList);
 
         console.log("Existing project detauls fetched for employee",this.allProjectList);
@@ -474,6 +478,84 @@ async getTeamEmployeeByTeamId(teamId: any) {
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  editStartdateModal(template: TemplateRef<any>, projObj) {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); 
+    const yyyy = today.getFullYear();
+    this.lastDate = `${yyyy}-${mm}-${dd}`;
+    // let projectObj = Object.assign({},this.projectObj); for copy object
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.projectObj = projObj;
+  }
+
+  editEnddateModal(template: TemplateRef<any>, projObj) {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); 
+    const yyyy = today.getFullYear();
+    this.lastDate = `${yyyy}-${mm}-${dd}`;
+    // let projectObj = Object.assign({},this.projectObj); for copy object
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.projectObj = projObj;
+  }
+
+
+  editStartdate(template: TemplateRef<any>) {
+    this.cancelRequest();
+
+    let projectObj = new Project();
+    projectObj.teamId = this.projectObj.teamId;
+    projectObj.empId = this.projectObj.empId;
+    projectObj.startDate = this.startDate;
+    
+    
+    console.log("team details ", projectObj)
+    this.projectService.updateProjectStartAndEndDate(projectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.startDate = '';
+        this.getExistingProjectsByUser();
+        this.getTeamByProjectId(this.projectObj.projectId);
+       // this.getTeamByProjectId(this.projectObj.projectId);
+      }
+    })
+  }
+
+
+  editEnddate(template: TemplateRef<any>) {
+    this.cancelRequest();
+
+    let projectObj = new Project();
+    projectObj.teamId = this.projectObj.teamId;
+    projectObj.empId = this.projectObj.empId;
+    projectObj.endDate = this.endDate;
+    
+    
+    console.log("team details ", projectObj)
+    this.projectService.updateProjectStartAndEndDate(projectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.endDate='';
+        this.getExistingProjectsByUser();
+        this.getTeamByProjectId(this.projectObj.projectId);
+       // this.getTeamByProjectId(this.projectObj.projectId);
+      }
+    })
+  }
+
+  isFutureDate(dateString: string | Date): boolean {
+    if (!dateString) return false;
+    const today = new Date();
+    const inputDate = new Date(dateString);
+    // Set time to 0:00:00 to compare only by date (optional)
+    today.setHours(0, 0, 0, 0);
+    inputDate.setHours(0, 0, 0, 0);
+    return inputDate > today;
+  }
+
+
 
 
 }

@@ -2,17 +2,17 @@
   <div class="col-md-12 px-0">
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.employee_report"
       [ngClass]="{'active' : isEmployeeReportTable}" (click)="showEmployeeReportTable()">View Employee Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.leave_report"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.leave_report && !isAccounts"
       [ngClass]="{'active' : isLeaveReportTable}" (click)="showLeaveReportTable()">View Leave Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.timesheet_report"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.timesheet_report && !isAccounts"
       [ngClass]="{'active' : isTimesheetReportTable}" (click)="showTimesheetReportTable()">View Timesheet
       Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}" *ngIf="!isAccounts"
       (click)="showAccessControlListTable()">ACL(Access Control List)</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isAccounts"
       [ngClass]="{'active' : isLeaveTimesheetReportTable}" (click)="showLeaveTimesheetReportTable()">Leave Timesheet
       Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQueryForm}"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQueryForm}" *ngIf="!isAccounts"
       (click)="showCustomQueryForm()">Custom Query Data</button>
   </div>
 </div>
@@ -392,7 +392,7 @@
       </select>
     </div> -->
 
-    <div class="d-flex justify-content-end " *ngIf="showDetails">
+    <div class="d-flex justify-content-end " *ngIf="showDetails && !isAccounts">
       <button class="btn btn-outline-primary btn-sm" (click)="poProjectSync(alert_message_sync)">
         <i class="fa fa-sync-alt me-1"></i> Sync PO
       </button>
@@ -461,99 +461,7 @@
 
 
     <div *ngIf="showDetails">
-      <!-- <div class="row justify-content-center">
-        <div class="col-md-4">
-          <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
-            <h4>TNM ({{tnmProjectCount}})</h4>
-            <div class="mb-2">
-              <strong>Active PO:</strong>{{tnmPOProjectActiveCount}}&nbsp;&nbsp;&nbsp;
-              <strong>Expired PO:</strong>{{tnmPoProjectExpiredCount}}
-            </div> -->
-      <!-- <div class="mb-2">
-              <strong>Active PO:</strong>&nbsp;&nbsp;&nbsp;
-              <strong>Expired PO:</strong>
-            </div> -->
-
-      <!-- Employees mapped to -->
-      <!-- <div class="mb-1">
-            </div>
-            <div class="mb-1">
-              <strong>Employees mapped to:</strong>
-            </div>
-            <div class="row mt-2 flex-grow-1">
-              <div title="Click to View TNM-Active" class="col-6 d-flex"
-                [ngClass]="{'clicked': activeBox === 'TNM-Active', 'hover': isHovering === 'TNM-Active'}"
-                (click)="onBoxClickDataChange('TNM-Active')" (mouseover)="onMouseOver('TNM-Active')"
-                (mouseleave)="onMouseLeave()">
-                <div
-                  class="branch bg-success text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
-                  <h5>Active PO</h5>
-                  <p>{{ tnmPOValidCount }}</p>
-                </div>
-              </div>
-              <div title="Click to View TNM-Expired" class="col-6 d-flex"
-                [ngClass]="{ 'clicked': activeBox === 'TNM-Expired', 'hover': isHovering === 'TNM-Expired' }"
-                (click)="onBoxClickDataChange('TNM-Expired')" (mouseover)="onMouseOver('TNM-Expired')"
-                (mouseleave)="onMouseLeave()">
-                <div
-                  class="branch bg-danger text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
-                  <h5>Expired PO</h5>
-                  <p>{{ tnmPoExpiredCount }}</p>
-            <h4>Fixed Cost</h4>
-              <strong>Active PO:</strong>{{fixedCostPoProjectActiveCount}}&nbsp;&nbsp;&nbsp;
-              <strong>Expired PO:</strong>{{fixedCostPoProjectExpiredCount}}
-            </div>
-            <div class="mb-1">
-              <strong>Employees mapped to:</strong>
-            </div> 
-            <div class="row mt-2 flex-grow-1">
-              <div title="Click to View FC-Active" class="col-6 d-flex"
-                [ngClass]="{ 'clicked': activeBox === 'FC-Active', 'hover': isHovering === 'FC-Active' }"
-                (click)="onBoxClickDataChange('FC-Active')" (mouseover)="onMouseOver('FC-Active')"
-                (mouseleave)="onMouseLeave()">
-                <div
-                  class="branch bg-success text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
-                  <h5>Active PO</h5>
-                  <p>{{ fixedCostPoValidCount }}</p>
-                </div>
-              </div>
-              <div title="Click to View FC-Expired" class="col-6 d-flex"
-                [ngClass]="{ 'clicked': activeBox === 'FC-Expired', 'hover': isHovering === 'FC-Expired' }"
-                (click)="onBoxClickDataChange('FC-Expired')" (mouseover)="onMouseOver('FC-Expired')"
-                (mouseleave)="onMouseLeave()">
-                <div
-                  class="branch bg-danger text-white p-3 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center">
-                  <h5>Expired PO</h5>
-                  <p>{{ fixedCostPoExpiredCount }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="box border border-primary p-4 rounded text-center h-100 d-flex flex-column">
-            <h4>Internal</h4>
-        
-           
-             <div class="mb-1">
-            <h4>Internal ({{internalProjectCount}})</h4>
-                <div title="Click to View Internal"
-                  class="branch bg-warning text-white p-4 rounded w-100 h-100 d-flex flex-column align-items-center justify-content-center"
-                  (click)="onBoxClickDataChange('Internal')" (mouseover)="onMouseOver('Internal')"
-                  (mouseleave)="onMouseLeave()">
-                  <h5>Internal</h5>
-                  <p>{{ internalCount }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div> -->
-
-
-
-      <div class="dashboard-container">
+       <div class="dashboard-container">
         <div class="card" *ngFor="let box of ['TNM', 'Fixed Cost', 'Monitoring', 'Internal']"
           [ngClass]="{ 'active-box': activeBox === box }">
           <div class="card-header">
@@ -625,7 +533,7 @@
           <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
               <tr>
-                <th *ngIf="changeTable">
+                <th *ngIf="changeTable && !isAccounts">
                   <input type="checkbox" [(ngModel)]="masterSelected" (change)="selectAllEmployees()" />
                 </th>
                 <th scope="col" class="info-label">Sr No.</th>
@@ -639,18 +547,10 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Employment Status
                 </th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="billable|string">Billable</th>
-                <!-- <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type
-                  <div *ngIf="selectedEmployees.length > 0 && changeTable" style="margin-top: 5px;">
-                    <select [(ngModel)]="selectedBillableTypeForBulk" (change)="bulkUpdateBillableType()" style="width: 170px;">
-                      <option value="" disabled selected>Select Billable Type</option>
-                      <option *ngFor="let type of billableTypes" [value]="type">{{ type }}</option>
-                    </select>
-                  </div>
-                </th> -->
                 <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">
                   <div style="display: flex; flex-direction: column; align-items: start;">
                     <span>Billable Type</span>
-                    <div *ngIf="selectedEmployees.length > 0 && changeTable" style="margin-top: 5px;">
+                    <div *ngIf="selectedEmployees.length > 0 && changeTable && !isAccounts" style="margin-top: 5px;">
                       <select [(ngModel)]="selectedBillableTypeForBulk"
                         (change)="openBulkUpdateModal(bulk_update_template)" style="width: 170px; padding: 2px;">
                         <option value="" disabled selected>Select Billable Type</option>
@@ -677,7 +577,7 @@
                 <th *ngIf="changeTable" scope="col" class="info-label wide-col"
                   mat-sort-header="primaryProjectName|string">Default
                   Project Assigned</th>
-                <th *ngIf="changeTable" scope="col" class="info-label wide-wide-col"
+                <th *ngIf="changeTable && !isAccounts" scope="col" class="info-label wide-wide-col"
                   mat-sort-header="defaultProject|string">
                   Select Default Project</th>
               </tr>
@@ -692,7 +592,7 @@
               </tr>
               <tr
                 *ngFor="let employee of employeeList | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                <td *ngIf="changeTable">
+                <td *ngIf="changeTable && !isAccounts">
                   <input type="checkbox" [(ngModel)]="employee.isSelected" (change)="checkIfAllSelected()" />
                 </td>
                 <th class="info-label">{{20*(page-1)+i+1}}</th>
@@ -722,19 +622,19 @@
                       <span style="display: inline-block; width: 170px; overflow: hidden; text-overflow: ellipsis;">
                         {{ employee.billableType }}
                       </span>
-                      <i class="fa-sharp-duotone fa-solid fa-pencil" style="cursor: pointer; color: rgb(17, 15, 77);"
+                      <i class="fa-sharp-duotone fa-solid fa-pencil" *ngIf="!isAccounts" style="cursor: pointer; color: rgb(17, 15, 77);"
                         (click)="editIndex = i"></i>
                     </div>
 
-                    <div *ngIf="editIndex === i" style="display: flex; align-items: center; gap: 8px;">
-                      <select [(ngModel)]="employee.billableType"
-                        (change)="updateBillableType(employee, alert_message_sync)" style="width: 170px;">
+                    <div *ngIf="editIndex === i " style="display: flex; align-items: center; gap: 8px;">
+                      <select [(ngModel)]="employee.billableType"  (focus)="employee.billableTypeBeforeChange = employee.billableType"
+                        (change)="showSingleUpdateModal(employee, singleBillableTemplate)" style="width: 170px;">
                         <option *ngFor="let type of billableTypes" [value]="type">
                           {{ type }}
                         </option>
                       </select>
 
-                      <i class="fa-solid fa-xmark" (click)="editIndex = -1" style="cursor: pointer; color: red;"></i>
+                      <i class="fa-solid fa-xmark" *ngIf="!isAccounts" (click)="editIndex = -1" style="cursor: pointer; color: red;"></i>
                     </div>
                   </ng-container>
 
@@ -857,7 +757,7 @@
                     Not Assigned
                   </ng-container>
                 </td>
-                <td *ngIf="changeTable">
+                <td *ngIf="changeTable && !isAccounts">
                   <div class="col d-flex align-items-center m-0 p-0">
                     <ng-container *ngIf="employee.projectName">
                       <div>
@@ -870,7 +770,7 @@
                         </select>
                       </div>
                       <div>
-                        <button type="button" class="btn btn-sm btn-outline-primary ml-2 "
+                        <button  type="button" class="btn btn-sm btn-outline-primary ml-2 "
                           style="float: right; margin-top: 1px;" (click)="updateDefaultProject(employee)">
                           Submit
                         </button>
@@ -997,155 +897,7 @@
 
       </div>
     </div>
-    <!--<div class="row mt-2" *ngIf="showDetails && employeeReportObj.category === 'Project'">
-      <div class="col-md-12">
-       
-        <div class="selector-toggle" style="width: 10px;" (click)="toggleSearch()">
-          <a href="javascript:void(0)">
-            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-          </a>
-        </div>
-    
-      
-        <div class="export-button mb-3">
-          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-            [hidden]="projectList.length == 0" (click)="exportToExcel()">
-            <em class="fa fa-file-arrow-down fa-2x"></em>
-          </button>
-        </div>
-    
-        
-        <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
-          [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
-    
-          <table class="table" matSort>
-            <thead class="thead-light">
-              <tr>
-                <th>Sr No.</th>
-                <th>Project Name</th>
-                <th>Project Manager</th>
-                <th>Apmosys RM</th>
-                <th>Client RM</th>
-                <th>PO Start Date</th>
-                <th>PO End Date</th>
-                <th>PO No</th>
-                <th>PO Type</th>
-                <th>Team Name</th>
-                <th>Employee Name</th>
-                <th>Job Role</th>
-                <th>Department</th>
-                <th>Mobile No</th>
-                <th>Email</th>
-                <th>Billable</th>
-                <th>Billable Type</th>
-                <th>Effective Start Date</th>
-              </tr>
-    
-             
-              <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled"
-                [columnList]="employeeReportColumnForDetailedProjecttttView"
-                (onSearch)="onSearch($event); page = 1">
-              </tr>
-            </thead>
-    
-           
-            <tbody *ngIf="isSearchEnabled">
-              <tr *ngIf="flatProjectList.length === 0 || (flatProjectList | colFilter:filters:false).length === 0">
-                <th colspan="20" class="text-center info-label">No details to display...</th>
-              </tr>
-              <tr *ngFor="let emp of flatProjectList | colFilter:filters:false | paginate: { itemsPerPage: 5, currentPage: page }; let i = index">
-                <td>{{ 5 * (page - 1) + i + 1 }}</td>
-                <td>{{ emp.projectName }}</td>
-                <td>{{ emp.projectManager }}</td>
-                <td>{{ emp.apmosysRM }}</td>
-                <td>{{ emp.clientRM }}</td>
-                <td>{{ emp.poStartDate | date: 'dd-MM-yyyy' }}</td>
-                <td>{{ emp.poEndDate | date: 'dd-MM-yyyy' }}</td>
-                <td>{{ emp.poNo }}</td>
-                <td>{{ emp.poProjectType }}</td>
-                <td>{{ emp.teamName }}</td>
-                <td>{{ emp.employeeName }}</td>
-                <td>{{ emp.jobRole }}</td>
-                <td>{{ emp.deptName }}</td>
-                <td>{{ emp.mobileNo }}</td>
-                <td>{{ emp.email }}</td>
-                <td>{{ emp.billable }}</td>
-                <td>{{ emp.billableType }}</td>
-                <td>{{ emp.effectiveStartDate | date: 'dd-MM-yyyy' }}</td>
-              </tr>
-            </tbody>
-    
-           
-            <tbody *ngIf="!isSearchEnabled">
-              <tr *ngIf="paginatedProjectList.length === 0">
-                <th colspan="20" class="text-center info-label">No details to display...</th>
-              </tr>
-    
-              <ng-container *ngFor="let project of paginatedProjectList | paginate: { itemsPerPage: 5, currentPage: page }; let pIndex = index">
-                <ng-container *ngFor="let team of project.teamDetails; let tIndex = index">
-                  <ng-container *ngFor="let emp of team.mappedEmployeeDetails; let eIndex = index">
-                    <tr>
-                      <td>{{ getHierarchicalSrNo(pIndex, tIndex, eIndex) }}</td>
-    
-                     
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.projectName }}
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.projectManager }}
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.apmosysRM || '—' }}
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.clientRM || '—' }}
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.poStartDate | date: 'dd-MM-yyyy' }}
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.poEndDate | date: 'dd-MM-yyyy' }}
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.poNo }}
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.poProjectType }}
-                      </td>
-    
-                      
-                      <td *ngIf="eIndex === 0" [attr.rowspan]="team.mappedEmployeeDetails.length">
-                        {{ team.teamName }}
-                      </td>
-    
-                      
-                      <td>{{ emp.employeeName }}</td>
-                      <td>{{ emp.jobRole }}</td>
-                      <td>{{ emp.deptName }}</td>
-                      <td>{{ emp.mobileNo }}</td>
-                      <td>{{ emp.email }}</td>
-                      <td>{{ emp.billable }}</td>
-                      <td>{{ emp.billableType }}</td>
-                      <td>{{ emp.effectiveStartDate | date: 'dd-MM-yyyy' }}</td>
-                    </tr>
-                  </ng-container>
-                </ng-container>
-              </ng-container>
-            </tbody>
-          </table>
-        </div>
-    
-        
-        <pagination-controls class="my-pagination" [hidden]="projectList.length == 0"
-          (pageChange)="handlePageChange($event)">
-        </pagination-controls>
-      </div>
-    </div> -->
-
-
-
-
+   
     <!-- existing -->
     <div class="row" *ngIf="!showDetails">
       <div class="col-md-12">
@@ -1189,7 +941,7 @@
                 <th scope="col" class="info-label " mat-sort-header="billableType|string">Billable Type</th>
                 <!-- end -->
 
-                <th scope="col" class="info-label md-wide-col" mat-sort-header="dateOfJoining|date">Date of Joining</th>
+                <!-- <th scope="col" class="info-label md-wide-col" mat-sort-header="dateOfJoining|date">Date of Joining</th>
                 <th scope="col" class="info-label " mat-sort-header="aadhar|number">Aadhar Card</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="aboutMe|string">About Me</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="address|string">Address</th>
@@ -1238,7 +990,7 @@
                 </th>
                 <th scope="col" class="info-label " mat-sort-header="pursuing|string">Pursuing</th>
                 <th scope="col" class="info-label " mat-sort-header="passingGrade|string">Passing Grade</th>
-                <th scope="col" class="info-label " mat-sort-header="yearOfPassing|number">Year of Passing</th>
+                <th scope="col" class="info-label " mat-sort-header="yearOfPassing|number">Year of Passing</th> -->
                 <th scope="col" class="info-label wide-col" mat-sort-header="updatedOn|datetime">Updated on</th>
                 <th scope="col" class="info-label md-wide-col" mat-sort-header="updatedByName|string">Updated By</th>
                 <th scope="col" class="info-label " mat-sort-header="createdByName|string">Created By</th>
@@ -1346,7 +1098,7 @@
                 <td>{{employee.billableType}}</td> -->
 
                 <!-- ended -->
-                <td>{{employee.dateOfJoining}}</td>
+                <!-- <td>{{employee.dateOfJoining}}</td>
                 <td>{{employee.aadhar}}</td>
                 <td>
                   <ng-container *ngIf="employee.aboutMe">
@@ -1427,7 +1179,7 @@
                 <td>{{employee.graduationType}}</td>
                 <td>{{employee.pursuing}}</td>
                 <td>{{employee.passingGrade}}</td>
-                <td>{{employee.yearOfPassing}}</td>
+                <td>{{employee.yearOfPassing}}</td> -->
                 <td>{{employee.updatedOn}}</td>
                 <td *ngIf="employee.updatedByName && userMapping.reports_employee_360" id="clickablefor360"
                   [navigateToEmployee360]="employee.emp360UpdatedBy" style="cursor: pointer;"
@@ -1878,11 +1630,95 @@
   </div>
 </ng-template>
 
-<ng-template #bulk_update_template>
+<!-- <ng-template #bulk_update_template>
   <div class="modal-body text-center">
     <p>Are you sure you want to update Billable Type for the selected employees?</p>
     <button type="button" class="btn btn-success"
       (click)="cancelRequest();onConfirmBulkBillableUpdate(alert_message_sync)">Yes, proceed</button>&nbsp;
     <button type="button" class="btn btn-danger" (click)="cancelRequest();">No, Cancel</button>&nbsp;
   </div>
+</ng-template> -->
+
+<ng-template #bulk_update_template>
+  <div class="modal-header">
+    <h5 class="modal-title">Confirm Billable Type Update</h5>
+  </div>
+  <div class="modal-body">
+    <p>
+      Are you sure you want to update <b>Billable Type</b> for the selected employees to
+      <b>{{ selectedBillableTypeForBulk }}</b>?
+    </p>
+
+    <div style="max-height: 400px; overflow-y: auto; margin-top: 15px;">
+      <table class="table table-bordered table-striped table-sm text-center">
+        <thead style="position: sticky; top: 0; background-color: white; z-index: 1;">
+          <tr>
+            <th class="text-center">Employee Id</th>
+            <th class="text-center">Employee Name</th>
+            <th class="text-center">Billable Type</th>
+            <th class="text-center">Department</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let emp of selectedEmployees">
+            <td class="text-center">A-{{ emp.employeementId }}</td>
+            <td class="text-center">{{ emp.name }}</td>
+            <td class="text-center">{{ emp.billableType }} → {{ selectedBillableTypeForBulk }}</td>
+            <td class="text-center">{{ emp.departmentName }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="text-center mt-3">
+      <button type="button" class="btn btn-success"
+        (click)="cancelRequest(); onConfirmBulkBillableUpdate(alert_message_sync)">
+        Yes, Proceed
+      </button>
+      &nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest();">No, Cancel</button>
+    </div>
+  </div>
 </ng-template>
+<!-- Single Billable Type Update Modal -->
+<ng-template #singleBillableTemplate>
+  <div class="modal-header">
+    <h5 class="modal-title">Confirm Billable Type Update</h5>
+  </div>
+  <div class="modal-body">
+    <p>
+      Are you sure you want to update <b>Billable Type</b> for the below employee to
+      <b>{{ selectedBillableTypeForSingle }}</b>?
+    </p>
+
+    <table class="table table-bordered table-striped table-sm text-center mt-3">
+      <thead>
+        <tr>
+          <th>Employee Id</th>
+          <th>Employee Name</th>
+          <th>Billable Type</th>
+          <th>Department</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="selectedSingleEmployee">
+          <td>A-{{ selectedSingleEmployee.employeementId }}</td>
+          <td>{{ selectedSingleEmployee.name }}</td>
+          <td>{{ selectedSingleEmployee.oldBillableType }} → {{ selectedBillableTypeForSingle }}</td>
+          <td>{{ selectedSingleEmployee.departmentName }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="text-center mt-3">
+      <button type="button" class="btn btn-success" (click)="onConfirmSingleBillableUpdate();cancelRequest()">
+        Yes, Proceed
+      </button>
+      &nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>
+    </div>
+  </div>
+</ng-template>
+
+
+

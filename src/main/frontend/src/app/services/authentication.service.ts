@@ -90,7 +90,7 @@ export class AuthenticationService {
         } else {
         console.error(response.serviceResponse);
         this.stopUserSessionCheck();
-        // this.userLogout();   
+        this.userLogout();   
         }
       });
   }

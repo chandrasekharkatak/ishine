@@ -551,20 +551,34 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     @Modifying
     @Transactional
-    @Query(value = "UPDATE employee SET billable_type = :billableType, billable = :billable WHERE emp_id = :empId", nativeQuery = true)
-    int updateBillableInfo(@Param("empId") Long empId, @Param("billableType") String billableType, @Param("billable") String billable);
+    @Query(value = "UPDATE employee SET billable_type = :billableType, billable = :billable, updated_by = :updatedBy, updated_on = :updatedOn WHERE emp_id = :empId", nativeQuery = true)
+    int updateBillableInfo(@Param("empId") Long empId, @Param("billableType") String billableType, @Param("billable") String billable, @Param("updatedBy") Long updatedBy,
+    	    @Param("updatedOn") String updatedOn);
     
     @Modifying
     @Transactional
-    @Query(value = "UPDATE employee SET billable_type = :billableType, billable = :billable WHERE emp_id IN (:empIds)", nativeQuery = true)
+    @Query(value = "UPDATE employee SET billable_type = :billableType, billable = :billable, updated_by = :updatedBy, updated_on = :updatedOn WHERE emp_id IN (:empIds)", nativeQuery = true)
     int updateBillableTypeForMultiple(@Param("empIds") List<Long> empIds,
                                       @Param("billableType") String billableType,
-                                      @Param("billable") String billable);
+                                      @Param("billable") String billable,@Param("updatedBy") Long updatedBy,@Param("updatedOn") String updatedOn);
     
     @Query(value ="select DISTINCT emp_id from employee where employmentstatus !='Inactive'",nativeQuery=true)
     List<Long>findAllActiveEmployees();
     
     @Query(nativeQuery = true)
     public List<Object[]> getEmployeeByNameAndEmpld();
+	
+    @Query(value="select billable_type from employee where emp_id = :empId",nativeQuery=true)
+    String findBillableTypeByEmpId(@Param("empId") Long empId);
+    
+    
+    @Query(value = "select e.employeement_id,e.name,d.name as departmentName,d.hod_id from employee e inner join job_role jr on  jr.job_role_id = e.job_role_id inner join department d on d.dept_id = jr.dept_id where e.emp_id = :empId",nativeQuery=true)
+    Object findEmployeeDepartmentDetails(@Param("empId") Long empId);
+    
+    @Query(value="SELECT e.name FROM employee e WHERE e.emp_id = :empId",nativeQuery=true)
+    String findEmployeeNameById(@Param("empId") Long empId);
+    
+    @Query(value="SELECT e.email FROM employee e WHERE e.emp_id = :hodId",nativeQuery=true)
+    String findHodEmailById(@Param("hodId") Long hodId);
 
 }

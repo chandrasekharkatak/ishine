@@ -94,4 +94,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmpIdAndEmployeeRoleForLinkedPoTeams(Long teamId);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeesByPoProjectId(String poProjectId);
+	
 }

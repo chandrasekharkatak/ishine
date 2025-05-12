@@ -358,7 +358,7 @@
                             <ng-container
                                 *ngFor="let project of allProject_Po_Internal | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <tr>
-                                    <td><span
+                                    <td *ngIf="!isAccounts"><span
                                             *ngIf="project.isDraftProject == 'Approved' && project.projectType != 'Internal'"><input
                                                 class="sync-project-checkbox" id="{{i}}" type="checkbox"
                                                 (change)="onSelectProjectForSync(project,$event)"></span></td>
@@ -380,7 +380,7 @@
                                                             <!-- Dropdown Menu -->
                                                             <ul *ngIf="openMenuIndex === i" class="custom-dropdown">
                                                               <li (click)="onAction('Preview', project)"><i class="fas fa-eye"></i> Preview</li>
-                                                              <li (click)="onAction('Edit', project)"><i class="fas fa-pen"></i> Edit</li>
+                                                              <li (click)="onAction('Edit', project);showEditProjectForm(project)"><i class="fas fa-pen"></i> Edit</li>
                                                               <li (click)="onAction('Audit', project)"><i class="fas fa-clock"></i> Audit</li>
                                                               <li (click)="onAction('Complete', project)"><i class="fas fa-check-double"></i> Mark as Complete</li>
                                                               <li (click)="onAction('Approve', project)"><i class="fas fa-square-check"></i> Approve</li>
@@ -424,7 +424,7 @@
                                     <td>{{project.poNo}}</td>
 
                                     <!-- <td *ngIf="project.projectId"style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details">{{project.name}}</td> -->
-                                    <td id="clickablefor360" *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName" [navigateToEmployee360]="project.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{project.projectManagerName}}</td>
+                                    <td id="clickablefor360" *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName && !isAccounts" [navigateToEmployee360]="project.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{project.projectManagerName}}</td>
                                     <td *ngIf="!userMapping.my_team_resource_management_employee_360 || !project.projectManagerName">{{project.projectManagerName}}</td>
                                     <td>{{project.clientName}}</td>
                                     <td>{{project.apmosysRM}}</td>
@@ -437,7 +437,7 @@
                                         [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isActive == 2) ? 'orange': (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
                                         <em>{{project.isDraftProject}}</em></td> -->
                                         <td [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}"><em>{{project.isDraftProject}}</em></td>
-                                    <td>
+                                    <td *ngIf="!isAccounts">
                                         <!-- <button class="btn btn-sm btn-outline-primary mb-1"
                                             *ngIf="!project.isSynced && project.isDraftProject != 'NA'"
                                             (click)="syncPoProjectDetailsByProjectId(alert_message_sync, project);"
