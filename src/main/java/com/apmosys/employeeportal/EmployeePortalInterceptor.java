@@ -96,8 +96,8 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 				return true;
 			}
 			
-			boolean isUserAuthenticated = true;
-//					authenticationService.checkUserToken(SESSION_TOKEN);
+			boolean isUserAuthenticated = 
+					authenticationService.checkUserToken(SESSION_TOKEN);
 
 			if (isUserAuthenticated) {
 				return true;
