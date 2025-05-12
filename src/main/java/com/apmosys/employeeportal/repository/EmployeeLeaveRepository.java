@@ -148,7 +148,7 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 	public List<Object[]> getDepartmentPendingLeaveHistory(Long deptId);
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getDepartmentLeaveHistoryAndNotIn(Long deptId, LocalDate fromDate, LocalDate toDate,
+	public List<Object[]> getDepartmentLeaveHistoryAndNotIn(Long empId, LocalDate fromDate, LocalDate toDate,
 			List<String> jobRoles);
 	
 	@Query(nativeQuery = true)
