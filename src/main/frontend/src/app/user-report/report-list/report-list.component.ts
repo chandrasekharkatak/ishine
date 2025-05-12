@@ -523,6 +523,38 @@ export class ReportListComponent implements OnInit {
 
   }
 
+  selectedSingleEmployee: any;
+  selectedBillableTypeForSingle: any;
+  
+
+  showSingleUpdateModal(employee: any, template: TemplateRef<any>) {
+    this.selectedBillableTypeForSingle = employee.billableType; 
+    this.selectedSingleEmployee = {
+      ...employee,
+      oldBillableType: employee.originalBillableType || employee.billableTypeBeforeChange || ''
+    };
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl modal-dialog-centered' });
+  }
+  
+
+  onConfirmSingleBillableUpdate() {
+    const updatedBillable = this.selectedBillableTypeForSingle === 'TNM' ? 'Yes' : 'No';
+  
+    const payload = {
+      empId: this.selectedSingleEmployee.empId,
+      billableType: this.selectedBillableTypeForSingle,
+      billable: updatedBillable,
+      updatedBy: this.currentUser.empId
+    };
+  
+    this.employeeService.updateEmployeeReportBillableType(payload).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.openAlertMod(this.alertModalSync, response.serviceResponse);
+      }
+      this.modalRef?.hide();
+    });
+  }
+
 
   employeeList: any[] = [];
   projectList: any[] = [];
@@ -658,7 +690,7 @@ export class ReportListComponent implements OnInit {
 
   openBulkUpdateModal(template: TemplateRef<any>) {
     if (this.selectedEmployees.length > 0 && this.selectedBillableTypeForBulk) {
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl modal-dialog-centered' });
     }
   }
 
