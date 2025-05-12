@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { LOCALE_ID, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { DragDropModule } from '@angular/cdk/drag-drop';
@@ -104,7 +104,24 @@ import { UserSalaryComponent } from './user-salary/user-salary.component';
 import { UserSurveyComponent } from './user-survey/user-survey.component';
 import { MyTeamComponent } from './user-team/my-team/my-team.component';
 
+import { registerLocaleData } from '@angular/common';
+import localeGb from '@angular/common/locales/en-GB';
+import { OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
+import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
+import { LMSComponent } from './employee360/lms/lms.component';
+import { ExpiedPoAndProjectComponent } from './home/expied-po-and-project/expied-po-and-project.component';
+import { NavigateToProjectViewDirective } from './navigate-to-project-view.directive';
+import { ProjectViewComponent } from './project-view/project-view.component';
+import { QrCodeGeneratorComponent } from './qr-code-generator/qr-code-generator.component';
+import { MyReimbursementComponent } from './reimbursement/my-reimbursement/my-reimbursement.component';
+import { ReimbursementComponent } from './reimbursement/reimbursement.component';
+import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapproval/reimbursementapproval.component';
+import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/view-reimbursement.component';
 import { AppreciationComponent } from './rewards/appreciation/appreciation.component';
+import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
+import { TravelAllowanceComponent } from './travel-allowance/travel-allowance.component';
+import { TravelrequestapprovalComponent } from './travel-allowance/travelrequestapproval/travelrequestapproval.component';
+import { ViewTravelrequestComponent } from './travel-allowance/view-travelrequest/view-travelrequest.component';
 import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes.component';
 import { AttendanceReconciliationComponent } from './user-report/attendance-reconciliation/attendance-reconciliation.component';
 import { QueryMasterComponent } from './user-report/query-master/query-master/query-master.component';
@@ -127,15 +144,24 @@ import { TeamDashboardComponent } from './user-performance/team-dashboard/team-d
 import { TemplatesComponent } from './user-performance/templates/templates.component';
 import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-cycle.component';
 import { ViewPerformanceComponent } from './user-performance/view-performance/view-performance.component';
-import { NavigateToProjectViewDirective } from './navigate-to-project-view.directive';
-import { ProjectViewComponent } from './project-view/project-view.component';
-import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
-import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
 import { QuestionComponent } from './configuration/project-insights-config/question/question.component';
 import { PerformanceManagementSystemComponent } from './user-performance/performance-management-system/performance-management-system.component';
-//import { TestComponent } from './user-report/test/test.component';
-  // Import Owl DateTime modules
+import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
+import { LmstabComponent } from './lmstab/lmstab.component';
+import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
 
+registerLocaleData(localeGb);
+
+  export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
+    parseInput: 'DD/MM/YYYY hh:mm A',
+    fullPickerInput: 'DD/MM/YYYY hh:mm A',
+    datePickerInput: 'DD/MM/YYYY',
+    timePickerInput: 'hh:mm A',
+    monthYearLabel: 'MMM YYYY',
+    dateA11yLabel: 'DD/MM/YYYY',
+    monthYearA11yLabel: 'MMMM YYYY',
+  };
+  
 @NgModule({
   declarations: [
     
@@ -234,9 +260,23 @@ import { PerformanceManagementSystemComponent } from './user-performance/perform
      PerformanceConfigComponent,
      ProjectInsightsConfigComponent,
      QuestionComponent,
-     PerformanceManagementSystemComponent
-
-    //TestComponent
+     PerformanceManagementSystemComponent,
+     QrCodeGeneratorComponent,
+     ExpiedPoAndProjectComponent,
+     NavigateToProjectViewDirective,
+     ProjectViewComponent,
+     PerformanceConfigComponent,
+     TravelAllowanceComponent,
+     ReimbursementComponent,
+     MyReimbursementComponent,
+     ViewReimbursementComponent,
+     ReimbursementapprovalComponent,
+     MyTravelrequestComponent,
+     TravelrequestapprovalComponent,
+     ViewTravelrequestComponent, 
+     LMSComponent,
+     BiomaxApprovalComponent,
+     LmstabComponent
   ],
   imports: [
     BrowserModule,
@@ -284,6 +324,8 @@ import { PerformanceManagementSystemComponent } from './user-performance/perform
     MatInputModule,
     MatFormFieldModule,
     MatOptionModule,
+    OwlNativeDateTimeModule,
+    OwlDateTimeModule
   ],
   providers: [
     BsModalService,
@@ -291,6 +333,10 @@ import { PerformanceManagementSystemComponent } from './user-performance/perform
     { provide: LocationStrategy, useClass: HashLocationStrategy },
     { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: EmployeePortalInterceptor, multi: true },
+    { provide: OWL_DATE_TIME_FORMATS, useValue: MY_CUSTOM_FORMATS },
+    { provide: LOCALE_ID, useValue: 'en-GB' } // Force UK locale for DD/MM/YYYY
+
+   
   ],
   bootstrap: [AppComponent]
 })

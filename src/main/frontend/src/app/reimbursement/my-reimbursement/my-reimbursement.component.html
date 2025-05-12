@@ -1,0 +1,225 @@
+<div class="row">
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase">
+            <strong>Create New Reimbursement Request</strong>
+        </div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-3">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Full Name
+                    </label>
+                    <input type="text" class="form-control" name="fullName"  [(ngModel)]="currentEmployeeInfo.name" disabled/>
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Employee Id
+                    </label>
+                    <input type="text" class="form-control" name="fullName" [(ngModel)]="currentEmployeeInfo.employeementId" disabled />
+                </div>
+               
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Designation
+                    </label>
+                    <input type="text" class="form-control" name="fullName" [(ngModel)]="currentEmployeeInfo.designationName" disabled />
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Department
+                    </label>
+                    <input type="text" class="form-control" name="fullName"  [(ngModel)]="currentEmployeeInfo.departmentName" disabled />
+                </div>
+
+
+                    <div class="col-md-3 mb-0">
+                        <label class="info-label">
+                            <span class="text-danger">*</span>HOD Name
+                        </label>
+                        <input type="text" class="form-control" name="fullName"  [(ngModel)]="currentUser.hodName" disabled />
+                    </div>
+                
+            
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Mobile No
+                    </label>
+                    <input type="text" class="form-control" name="fullName" [(ngModel)]="currentEmployeeInfo.mobileNo" disabled />
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Expenditure Type</label>
+                        <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="reimbursementObj.expenditureType"
+                            (change)="onReasonSelect()">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option value="Travel">Travel</option>
+                            <option value="Food">Food</option>
+                            <option value="Business Meetings">Business Meetings</option>
+                            <option value="Project Allowance">Project Allowance</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+               
+                
+             
+           <!-- Travel related fields -->
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Travel'">
+                    <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
+                    <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="reimbursementObj.travelMode">
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option value="Flight">Flight</option>
+                        <option value="Train">Train</option>
+                        <option value="Local Train/Metro">Local Train/Metro</option>
+                        <option value="Bus">Bus</option>
+                        <option value="CAB">CAB</option>
+                        <option value="Rickshaw">Rickshaw</option>
+                        <option value="Personal Vehicle">Personal Vehicle</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.travelMode === 'Personal Vehicle' && isTravel">
+                    <label class="info-label"><span class="text-danger">*</span>Vehicle Type</label>
+                    <select class="form-control" [(ngModel)]="reimbursementObj.vehicleType">
+                      <option value="" disabled selected>Select Vehicle</option>
+                      <option value="Car">Car</option>
+                      <option value="Bike">Bike</option>
+                    </select>
+                  </div>
+                  
+
+                <div class="col-md-3 mb-0" *ngIf="isTravel && reimbursementObj.travelMode === 'Personal Vehicle'">
+                    <label class="info-label">
+                        <span class="text-danger">*</span> Distance (In KM)
+                    </label>
+                    <!-- <input type="number" class="form-control" name="fullName" [(ngModel)]="reimbursementObj.distance" required /> -->
+                    <input type="number" class="form-control"
+                    [(ngModel)]="reimbursementObj.distance"
+                    (ngModelChange)="onKilometersChange()"
+                    name="distance" min="1" [disabled]="!reimbursementObj.vehicleType"/>
+                </div>
+                <!-- Travel related fields end -->
+
+                <!-- Food related fields -->
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Food' ">
+                    <label class="info-label"><span class="text-danger">*</span>Food Allowance Type</label>
+                    <select class="form-control" [(ngModel)]="reimbursementObj.foodAllowanceType">
+                      <option value="" disabled selected>Select Type</option>
+                      <option value="Out Station Travel">On Out Station Travel</option>
+                      <option value="Extra Time">On Extra Time</option>
+                      <option value="Team Dinner/Lunch">Team Dinner/Lunch</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Food'">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Fooding Date</label>
+                            <input class="form-control" [(ngModel)]="reimbursementObj.dateOfFood" id="toDate" type="date" [min]="fromDate" [max]="toDate" placeholder="Choose to date" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+                <!-- Food related fields end -->
+                <!-- Common fields  -->
+                 <!-- <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span> Currency
+                    </label>
+                    <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="reimbursementObj.currencyType">
+                        <option selected="selected" value="" disabled>Select</option>
+                        <option value="Rupees">Rupees</option>
+                        <option value="Dollar">Dollar</option>
+                        <option value="Euro">Euro</option>
+                        <option value="Dhiram">Dhiram</option>
+                        <option value="Australian Dollar">Australian Dollar</option>
+                        <option value="Yen">Yen</option>
+                    </select>
+                </div> -->
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span> Total Amount
+                    </label>
+                    <input type="number" class="form-control" name="fullName" [(ngModel)]="reimbursementObj.amount" required [disabled]="reimbursementObj.travelMode === 'Personal Vehicle'"/>
+                </div>
+
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType != 'Food'">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>From Date</label>
+                            <input class="form-control" [(ngModel)]="reimbursementObj.fromDate" id="fromDate" type="date" 
+                                [min]="fromDate" [max]="toDate" placeholder="Choose from date" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType != 'Food'">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>To Date</label>
+                            <input class="form-control" [(ngModel)]="reimbursementObj.toDate" id="toDate" type="date" [min]="reimbursementObj.fromDate" [max]="toDate" placeholder="Choose to date" [disabled]="reimbursementObj.fromDate == null" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+                              
+                    <div class="col-md-3 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label for="leaveDesc"><span class="text-danger">*</span>Purpose</label>
+                                <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="reimbursementObj.purpose"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 mb-0">
+                            <div class="info-wrapper">
+                               <div class="form-group">
+                                    <label for="fileUpload" class="info-label"><span class="text-danger">*</span>Supporting Document/GST Bill</label>
+                                    <input type="file" id="fileUpload" class="form-control" (change)="onFileChange($event)" />
+                                </div>   
+                            </div>
+                    </div>
+                
+
+
+                    <!-- Common fields  end-->
+
+
+                <!-- </div> -->
+
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-12 px-0 text-center">
+                    <!-- Reset and Submit buttons -->
+                    <button type="button" class="btn btn-secondary btn-lg mx-1" (click)="resetForm(alert_message)">Reset</button>
+                    <button type="submit" class="btn btn-primary btn-lg mx-1" (click)="submitForm(alert_messagevalidation)">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alert_message1>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest1()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alert_messagevalidation>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest2()">OK</button>&nbsp;
+    </div>
+</ng-template>

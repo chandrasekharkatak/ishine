@@ -50,11 +50,13 @@ public class Employee360Controller {
 	
 	@RequestMapping(value = "/get360TimesheetDetails", method = RequestMethod.GET)
 	public ServiceResponse get360TimesheetDetails(@RequestParam String status, @RequestParam long empId,
-			@RequestParam long projectId,@RequestParam String teamName,@RequestParam(required = false) long managerId,
+			@RequestParam long projectId,@RequestParam long teamName,
+//			@RequestParam(required = false) long managerId,
 	        @RequestParam(required = false) String startDate,
 	        @RequestParam(required = false) String endDate 
 			) {
 //			startDate = null;
+//		managerId = 0;
 
 		 if (startDate == null || startDate.isEmpty()) {
 		        System.out.println("startDate is null or undefined");
@@ -68,7 +70,7 @@ public class Employee360Controller {
 		        System.out.println("End Date: " + endDate);
 		    }
 		    
-		ServiceResponse response = employee360Service.get360TimesheetDetails(status,empId,projectId,teamName,managerId,startDate,endDate);
+		ServiceResponse response = employee360Service.get360TimesheetDetails(status,empId,projectId,teamName,startDate,endDate);
 		return response;
 	}
 	

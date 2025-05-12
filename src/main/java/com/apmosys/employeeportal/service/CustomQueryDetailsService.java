@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,11 +26,13 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.CustomQueryDetails;
 import com.apmosys.employeeportal.model.Designation;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.FieldAlteration;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.repository.CustomQueryDetailsRepository;
 import com.apmosys.employeeportal.repository.DesignationDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.DesignationRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.FieldAlterationRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -57,6 +60,10 @@ public class CustomQueryDetailsService {
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
+	
+	@Autowired
+	FieldAlterationRepository fieldAlterationRepository;
+
 
 //	 @Transactional
 //	    public ServiceResponse saveCustomQueryDetails(CustomQueryDetailsDTO customQueryDTO) {
@@ -208,7 +215,7 @@ public class CustomQueryDetailsService {
 	    return response;
 	}
 	
-	public ServiceResponse bulkUpload(MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
+	public ServiceResponse bulkUpload(MultipartFile file,Long uploadedBy) throws EncryptedDocumentException, InvalidFormatException {
 	    ServiceResponse response = new ServiceResponse();
 	    List<Long> inactiveEmployees = new ArrayList<>();
 	    List<String> errorMessages = new ArrayList<>();
@@ -218,7 +225,7 @@ public class CustomQueryDetailsService {
 	        Iterator<Row> rows = sheet.iterator();
 
 	        Row headerRow = rows.next();
-	        Set<String> availableColumns = new HashSet<>(Arrays.asList("Employee Id", "Billable", "Billable Type", "Gender", "Manager Name", "Designation Name"));
+	        Set<String> availableColumns = new HashSet<>(Arrays.asList("Employee Id","Employee Name", "Billable", "Billable Type", "Gender", "Manager Name", "Designation Name"));
 
 	        Map<String, Integer> columnIndexMap = new HashMap<>();
 	        for (Cell cell : headerRow) {
@@ -246,6 +253,16 @@ public class CustomQueryDetailsService {
 	                errorMessages.add("Row " + rowNum + ": Invalid EmployeeId.");
 	                continue;
 	            }
+	            
+	            String employeeName = null;
+	            if (columnIndexMap.containsKey("Employee Name")) {
+	                Cell employeeNameCell = currentRow.getCell(columnIndexMap.get("Employee Name"));
+	                if (employeeNameCell == null || employeeNameCell.getStringCellValue().trim().isEmpty()) {
+	                    errorMessages.add("Row " + rowNum + ": Employee Name is missing.");
+	                    continue;
+	                }
+	                employeeName = employeeNameCell.getStringCellValue().trim();
+	            }
 
 	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employeeId));
 	            if (!optionalEmployee.isPresent()) {
@@ -254,6 +271,12 @@ public class CustomQueryDetailsService {
 	            }
 
 	            Employee employee = optionalEmployee.get();
+	            
+	            
+	            if (!employee.getName().equalsIgnoreCase(employeeName)) {
+	                errorMessages.add("Row " + rowNum + ": Employee Name does not correspond to Employee ID '" + employeeId + "'.");
+	                continue;
+	            }
 
 	            // Check for InActive employees
 	            if ("InActive".equalsIgnoreCase(employee.getEmploymentstatus())) {
@@ -279,33 +302,84 @@ public class CustomQueryDetailsService {
 	            }
 
 	            // Check for null or empty Billable Type field and normalize
+//	            if (columnIndexMap.containsKey("Billable Type")) {
+//	                Cell billableTypeCell = currentRow.getCell(columnIndexMap.get("Billable Type"));
+//	                if (billableTypeCell == null || billableTypeCell.getStringCellValue().trim().isEmpty()) {
+//	                    errorMessages.add("Row " + rowNum + ": Billable Type field is null or empty.");
+//	                } else {
+//	                    String billableType = billableTypeCell.getStringCellValue().trim();
+//	                    switch (billableType.toLowerCase()) {
+//	                        case "internalrndproducts":
+//	                            employee.setBillableType("InternalRNDProducts");
+//	                            break;
+//	                        case "fixed cost":
+//	                            employee.setBillableType("Fixed Cost");
+//	                            break;
+//	                        case "tnm":
+//	                            employee.setBillableType("TNM");
+//	                            break;
+//	                        case "shadow":
+//	                            employee.setBillableType("Shadow");
+//	                            break;
+//	                        case "bench":    
+//	                        	employee.setBillableType("Bench");
+//	                        	break;
+//	                        default:
+//	                            errorMessages.add("Row " + rowNum + ": Invalid Billable Type. Allowed values are 'InternalRNDProducts', 'Fixed Cost', 'TNM', 'Bench', 'Shadow'.");
+//	                    }
+//	                }
+//	            }
+	            
 	            if (columnIndexMap.containsKey("Billable Type")) {
 	                Cell billableTypeCell = currentRow.getCell(columnIndexMap.get("Billable Type"));
 	                if (billableTypeCell == null || billableTypeCell.getStringCellValue().trim().isEmpty()) {
 	                    errorMessages.add("Row " + rowNum + ": Billable Type field is null or empty.");
 	                } else {
-	                    String billableType = billableTypeCell.getStringCellValue().trim();
-	                    switch (billableType.toLowerCase()) {
+	                	String inputValue = billableTypeCell.getStringCellValue().trim();
+	                    String oldBillableType = employee.getBillableType();
+	                    String newBillableType = null;
+	                    String billableFlag = null;
+
+	                    switch (inputValue.toLowerCase()) {
 	                        case "internalrndproducts":
-	                            employee.setBillableType("InternalRNDProducts");
+	                        	newBillableType = "InternalRNDProducts";
+	                            billableFlag = "No";
 	                            break;
 	                        case "fixed cost":
-	                            employee.setBillableType("Fixed Cost");
+	                        	newBillableType = "Fixed Cost";
+	                            billableFlag = "No";
 	                            break;
 	                        case "tnm":
-	                            employee.setBillableType("TNM");
+	                        	newBillableType = "TNM";
+	                            billableFlag = "Yes";
 	                            break;
 	                        case "shadow":
-	                            employee.setBillableType("Shadow");
+	                        	newBillableType = "Shadow";
+	                            billableFlag = "No";
 	                            break;
-	                        case "bench":    
-	                        	employee.setBillableType("Bench");
-	                        	break;
+	                        case "bench":
+	                            newBillableType = "Bench";
+	                            billableFlag = "No";
+	                            break;
 	                        default:
 	                            errorMessages.add("Row " + rowNum + ": Invalid Billable Type. Allowed values are 'InternalRNDProducts', 'Fixed Cost', 'TNM', 'Bench', 'Shadow'.");
 	                    }
+	                    if (newBillableType != null) {
+	                        if (!newBillableType.equals(oldBillableType)) {
+	                            FieldAlteration fa = new FieldAlteration();
+	                            fa.setEmpId(employee.getEmpId());
+	                            fa.setField("Billable Type");
+	                            fa.setValue(newBillableType);
+	                            fa.setAlteredBy(uploadedBy);
+	                            fa.setUpdatedOn(LocalDateTime.now());
+	                            fieldAlterationRepository.save(fa);
+	                        }
+
+	                        employee.setBillableType(newBillableType);
+	                        employee.setBillable(billableFlag);
+	                    }
 	                }
-	            }
+	                }
 
 	            // Check for null or empty Gender field and normalize
 	            if (columnIndexMap.containsKey("Gender")) {

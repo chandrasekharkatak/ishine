@@ -24,8 +24,8 @@ export class PerformanceService {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
 
-  getAllEmployeesForPerformance() {
-    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesForPerformance`);
+  getAllEmployeesForPerformance(details:any){
+    return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesForPerformance`, details);
   }
 
   createQuarterCycle(quarterCycle: QuarterCycle) {
@@ -94,9 +94,9 @@ export class PerformanceService {
     return this.http.post(`${this.baseUrl}` + `api/updateEmployeePerformanceHOD`, performance);
   }
 
-  getALLdepartmentByEmployee() {
-    return this.http.get(`${this.baseUrl}` + `api/getAllDepartmentbyEmployeecont`);
-  }
+  // getALLdepartmentByEmployee() {
+  //   return this.http.get(`${this.baseUrl}` + `api/getAllDepartmentbyEmployeecont`);
+  // }
 
   getAvailableQuarters() {
     return this.http.get(`${this.baseUrl}` + `api/getAllQuarters`);
@@ -124,7 +124,6 @@ export class PerformanceService {
     return this.http.post(`${this.baseUrl}` + `api/submitReview`, payload);
   }
 
-
   getQuestionnares(departmentId: number, quarterId: number) {
     return this.http.get<any>(`${this.baseUrl}api/questionnaires/department/${departmentId}/quarter/${quarterId}`);
   }
@@ -132,10 +131,6 @@ export class PerformanceService {
   getKraKpi(currentEmp:number,quarterId:number) {
     return this.http.get<any>(`${this.baseUrl}api/kpi/employee/${currentEmp}/quarter/${quarterId}`);
   }
-
-
-
-
 
   getReviewLabelForEveryDepartment() {
     return this.http.get(`${this.baseUrl}` + `api/getReviewLabelForEveryDepartment`);
@@ -151,6 +146,10 @@ export class PerformanceService {
 
   loadKpiList(quarterId: any, departmentId:any, employeeRole: String){
     return this.http.get(`${this.baseUrl}` +  `api/kpi/getKpisByQuarter/${quarterId}/Department/${departmentId}/EmployeeRole/${employeeRole}`)
+  }
+
+  getALLdepartmentByEmployee(details: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllDepartmentbyEmployeecont`, details);
   }
 
 
@@ -215,14 +214,16 @@ export class PerformanceService {
     return this.http.post(`${this.baseUrl}` + `api/getRewardsAndAppreciationCount`, employeeDetails);
   }
 
+  setPreviousRoute(route: string): void {
+    this.previousRoute = route;
+  }
+
   getAllEmployeesForPerformanceExcell(details:any){
     return this.http.post(`${this.baseUrl}` + `api/exportExcelForHodAndManger`, details);
   }
+
   getAllEmployeesCurrentStatus(){
     return this.http.get(`${this.baseUrl}` + `api/currentStatusForPerformanceTableView`);
-  }
-  setPreviousRoute(route: string): void {
-    this.previousRoute = route;
   }
 
 }

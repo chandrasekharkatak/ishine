@@ -1,11 +1,11 @@
 <div class="row" *ngIf="document">
     <div class="col-md-12 table-header">
-            <strong class="table-header-title">Documents</strong>
+            <strong class="table-header-title">Document(s)</strong>
         </div>
 </div>
 <div class="row" *ngIf="type">
     <div class="col-md-12 table-header">
-            <strong class="table-header-title">Types Table</strong>
+            <strong class="table-header-title">Type(s) Table</strong>
         </div>
 </div>
 <div class="row mb-4 text-right">
@@ -36,6 +36,7 @@
               </div>
             </div>
             </div>
+            <div class="overflow-auto">
         <table class="table type-table" matSort (matSortChange)="sortData($event)"  style="table-layout: fixed;">
             <thead class="thead-light">
                 <tr>
@@ -61,8 +62,8 @@
                     <td *ngIf="userMapping.employee360_view_document_config" id="clickablefor360" [navigateToEmployee360]="type.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{type.name}}</td>
                     <td *ngIf="!userMapping.employee360_view_document_config">{{type.name}}</td>
                     <td>{{type.updatedOn}}</td>
-                    <td *ngIf="userMapping.employee360_view_document_config"id="clickablefor360" [navigateToEmployee360]="type.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{type.updatedByName}}</td>
-                    <td *ngIf="!userMapping.employee360_view_document_config">{{type.updatedByName}}</td>
+                    <td *ngIf="userMapping.employee360_view_document_config && type.updatedByName"id="clickablefor360" [navigateToEmployee360]="type.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{type.updatedByName}}</td>
+                    <td *ngIf="!userMapping.employee360_view_document_config || !type.updatedByName">{{type.updatedByName}}</td>
                     <td>
                         <button *ngIf="userMapping.delete_newsletter" class="btn btn-outline-primary" type="button" (click)="showUpdateForm(type)"><em class="fa fa-edit"></em></button>&nbsp;
                             <button class="btn btn-outline-danger" type="button"  (click)="openDeleteModal(delete_type_modal,type)"><em class="fa fa-trash"></em></button>&nbsp;
@@ -73,6 +74,7 @@
             <pagination-controls class="my-pagination" [hidden]="allTypeList.length == 0"
             (pageChange)="handlePageChange($event)"></pagination-controls>
         </table>
+    </div>
     </div>
 
 
@@ -85,7 +87,7 @@
                 </a>
             </div>
            </div>
-        
+           <div class="overflow-auto">
         <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
                 <tr>
@@ -112,8 +114,8 @@
                     <td>{{doc.fileName}}</td>
                     <td>{{doc.typeName}}</td>
                     <td>{{doc.createdOn}}</td>
-                    <td *ngIf="!userMapping.employee360_view_document_config">{{doc.createdByName}}</td>
-                    <td *ngIf="userMapping.employee360_view_document_config" id="clickablefor360" [navigateToEmployee360]="doc.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{doc.createdByName}}</td>
+                    <td *ngIf="!userMapping.employee360_view_document_config || !doc.createdByName">{{doc.createdByName}}</td>
+                    <td *ngIf="userMapping.employee360_view_document_config && doc.createdByName" id="clickablefor360" [navigateToEmployee360]="doc.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{doc.createdByName}}</td>
                     <!-- <td>{{doc.updatedOn}}</td>
                     <td id="clickablefor360" [navigateToEmployee360]="doc.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{doc.updatedByName}}</td>
                     <td>{{doc.updatedByName}}</td> -->
@@ -129,6 +131,7 @@
         </table>
         <pagination-controls class="my-pagination" [hidden]="documents.length == 0"
             (pageChange)="handlePageChange($event)"></pagination-controls>
+    </div>
     </div>
     
 

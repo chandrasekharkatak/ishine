@@ -28,7 +28,7 @@ export class Project{
 	isDraftProject:any;
 	bulkSyncList: any[] = [];
 	id:any;
-
+	teamsApprovedList:any;
 	//Project from Po
 	name:any;
 	status:any;
@@ -50,4 +50,15 @@ export class Project{
 
 	endDate: any;
 	isAllProj: any;
+
+	isSynced: any;
+	poNo: any;
+	startDate:any;
+	poStartDate:any;
+	poEndDate:any;
+	projectType:any;
+	poProjectType:any;
+	isMail:any;
+	apmosysRM:any;
+	clientRM:any;
 }

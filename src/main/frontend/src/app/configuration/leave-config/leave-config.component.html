@@ -31,13 +31,15 @@
                                 <option value="Festival">Festival</option>
                                 <option value="WeekOff">Week-Off</option>
                                 <option value="nonWorking">Non-Working</option>
+                             
                               </select>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
-                        <div class="form-group" *ngIf="holidayObj.holidayType !== 'WeekOff'">
+                        <div class="form-group">
+                            <!-- *ngIf="holidayObj.holidayType !== 'WeekOff'" -->
                             <label><span class="text-danger">*</span>Occasion</label>
                             <input type="text" class="form-control" (blur)="checkOccasion(alert_message)" autocomplete="none" [(ngModel)]="holidayObj.occasion">
                         </div>
@@ -98,7 +100,7 @@
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Holidays</h1>
+                <h1 class="table-header-title">Holiday(s)</h1>
             </div>
         </div>
         <div class="row">
@@ -150,10 +152,15 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                        [hidden]="holidayListFilter.length == 0" (click)="exportToExcel()"><em
+                            class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
                
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
                     [tableTHeadTrId]="'holidayInfoTHeadTr'">
-                    <table class="table table-responsive" id="holidayInfo" matSort (matSortChange)="sortData($event)">	
+                    <table class="table" id="holidayInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="holidayInfoTHead">	
                           <tr id="holidayInfoTHeadTr">	
                             <th scope="col" class="info-label" >Sr. No</th>	
@@ -185,8 +192,8 @@
                                 <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="holiday.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{holiday.createdbyName}}</td>
                                 <td *ngIf="!userMapping.employee360_view_leave_config">{{holiday.createdbyName}}</td>
                                 <td>{{holiday.updatedOn}}</td>
-                                <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="holiday.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{holiday.updatedByName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_leave_config">{{holiday.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_leave_config && holiday.updatedByName" id="clickablefor360" [navigateToEmployee360]="holiday.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{holiday.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_leave_config || !holiday.updatedByName">{{holiday.updatedByName}}</td>
                                 <td>
                                     <button *ngIf="userMapping.update_holidays" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateHolidayForm(holiday)"><em class="fa fa-edit"></em></button>&nbsp;
                                     <button *ngIf="userMapping.delete_holiday" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteHoliday(delete_template,holiday)"><em class="fa fa-trash"></em></button>
@@ -196,7 +203,9 @@
                       </table>   
                 </div>    
                   <pagination-controls class="my-pagination" [hidden]="holidayListFilter.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-                  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="holidayListFilter.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="holidayListFilter.length == 0" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button> -->
             </div>
         </div>
     </div>
@@ -287,7 +296,7 @@
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Leave Types</h1>
+                <h1 class="table-header-title">Leave Type(s)</h1>
             </div>
         </div>
         <div class="row">
@@ -308,9 +317,13 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="leaveTypes.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeBucketInfo'" [tableTHeadId]="'employeeBucketInfoTHead'"
                     [tableTHeadTrId]="'employeeBucketInfoTHeadTr'">
-                    <table class="table table-responsive" id="employeeBucketInfo" matSort (matSortChange)="sortData($event)">	
+                    <table class="table" id="employeeBucketInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="employeeBucketInfoTHead">	
                           <tr id="employeeBucketInfoTHeadTr">	
                             <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>	
@@ -341,8 +354,8 @@
                                 <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="leaveType.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leaveType.createdByName}}</td>
                                 <td *ngIf="!userMapping.employee360_view_leave_config">{{leaveType.createdByName}}</td>
                                 <td>{{leaveType.updatedOn}}</td>
-                                <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="leaveType.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leaveType.updatedByName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_leave_config">{{leaveType.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_leave_config && leaveType.updatedByName" id="clickablefor360" [navigateToEmployee360]="leaveType.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leaveType.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_leave_config || !leaveType.updatedByName">{{leaveType.updatedByName}}</td>
                                 <td>{{leaveType.description}}</td>
                                 <td>
                                     <button *ngIf="userMapping.update_leave_type" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeaveTypeForm(leaveType)"><em class="fa fa-edit"></em></button>&nbsp;
@@ -353,8 +366,9 @@
                       </table> 
                 </div>
                   <pagination-controls class="my-pagination" [hidden]="leaveTypes.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-                  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="leaveTypes.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>   
-            </div>
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="leaveTypes.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
+                </div>
         </div>
     </div>     
 </div>
@@ -455,7 +469,7 @@
                                 <option value="Probation">Probation</option>
                                 <option value="Confirmed">Confirmed</option>
                                 <option value="Resigned">Resigned</option>
-                                <!-- <option value="InActive">In-Active</option> -->
+                                <option value="Retain">Retain</option>
                             </select>
                         </div>
                     </div>
@@ -750,9 +764,14 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="leavePolicyList.length == 0" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'" [tableTHeadId]="'employeeInfoTHead'"
                         [tableTHeadTrId]="'employeeInfoTHeadTr'">
-                        <table class="table table-responsive" matSort (matSortChange)="sortData($event)">	
+                        <table class="table" id="leaveInfo" matSort (matSortChange)="sortData($event)">	
                             <thead class="thead-light">	
                               <tr>	
                                 <th scope="col" class="info-label">Sr No.</th>	
@@ -782,8 +801,8 @@
                                     <td *ngIf="!userMapping.employee360_view_leave_config" >{{leavePolicy.createdByName}}</td>
                                     <td>{{leavePolicy.createdOn}}</td>
                                     <td>{{leavePolicy.updatedOn}}</td>
-                                    <td *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="leavePolicy.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leavePolicy.updatedByName}}</td>
-                                    <td *ngIf="!userMapping.employee360_view_leave_config" >{{leavePolicy.updatedByName}}</td>
+                                    <td *ngIf="userMapping.employee360_view_leave_config && leavePolicy.updatedByName" id="clickablefor360" [navigateToEmployee360]="leavePolicy.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{leavePolicy.updatedByName}}</td>
+                                    <td *ngIf="!userMapping.employee360_view_leave_config || !leavePolicy.updatedByName" >{{leavePolicy.updatedByName}}</td>
                                     <td>
                                         <button *ngIf="userMapping.update_leave_policy" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateLeavePolicyForm(leavePolicy)"><em class="fa fa-edit"></em></button>&nbsp;
                                         <button *ngIf="userMapping.delete_leave_policy" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeavePolicy(delete_leave_policy, leavePolicy)"><em class="fa fa-trash"></em></button>
@@ -793,8 +812,10 @@
                           </table> 
                     </div>                         
                   <pagination-controls class="my-pagination" [hidden]="leavePolicyList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
-                  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="leavePolicyList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>    
-            </div>
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="leavePolicyList.length == 0" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button> -->
+                </div>
         </div>
     </div>   
 </div>

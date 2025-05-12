@@ -26,17 +26,19 @@
 
 .scrollable-table{
     width: 92vw;
-    height: 70vh;
+    height: 80vh;
 } 
 
 .wide-col{
     min-width: 300px;
 }
 
-.thead-light th{
+.thead-light {
     position: sticky;
     top: -0.7px;
-}
+    z-index: 10;
+    background: #e9ecef;
+  }
 
 .info-label{
     width: 300px;
@@ -51,3 +53,41 @@
     font-weight: 600;
     color: var(--middle-grey);
 }
+
+.scrollable-table{
+    width: 92vw;
+    height: 70vh;
+}
+
+.thead-light th{
+    position: sticky;
+    top: -0.7px;
+}
+
+.table-container {
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: auto;
+    position: relative;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+thead {
+    position: sticky;
+    top: -0.7px;
+    z-index: 100;
+}
+.export-button{
+    position:absolute;
+    right: 0%;
+    top:-25px;
+  }

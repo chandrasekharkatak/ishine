@@ -1345,6 +1345,10 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					dto.setMaternityLeaveDays(object[27] != null ? Long.parseLong(object[27].toString()) : null);
 					
 					dto.setEmployeeName(object[28] != null ? object[28].toString() : null);
+					dto.setEmpId(object[29] != null ? Long.parseLong(object[29].toString()) : null);
+					dto.setApproverEmpId(object[30] != null ? Long.parseLong(object[30].toString()) : null);			
+					
+					
 					
 					dtoList.add(dto);
 				});
@@ -1426,7 +1430,9 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					dto.setFinalApprovalLevel(object[27] != null ? Integer.parseInt(object[27].toString()) : null);
 					dto.setLeaveEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
 					dto.setManagerId(object[29] != null ? Integer.parseInt(object[29].toString()) : null);
-				
+					dto.setClientName(object[30] != null ? object[30].toString() : null);
+					dto.setTeamName(object[31] != null ? object[31].toString() : null);
+					
 					dtoList.add(dto);
 				});
 
@@ -1884,15 +1890,18 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 									+"<br>"+" Reason -: "+leaveDTO.getRejectReason());
 						}
 					}
-					 //Autofill timesheet delete on rejecting leave 
-				    
-					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-				    DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-				    
-				    String start =  LocalDate.parse(leaveDTO.getFromDate(), formatter).format(formatter2);
-				    String end =  LocalDate.parse(leaveDTO.getToDate(), formatter).format(formatter2);
 					
-				    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),start,end);
+				    
+					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy"); 
+
+					String start = LocalDate.parse(leaveDTO.getFromDate(), formatter)
+					                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+					String end = LocalDate.parse(leaveDTO.getToDate(), formatter)
+					                       .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+					List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(), start, end);
+
+					//
 
 					if (empTimeSheet != null) {
 

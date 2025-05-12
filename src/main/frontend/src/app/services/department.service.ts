@@ -27,7 +27,9 @@ export class DepartmentService {
   getAllDepartments() {
     return this.http.get(`${this.baseUrl}` + `api/getAllDepartments`);
   }
-
+  getAllDepartmentsFromId(data:any){
+    return this.http.get(`${this.baseUrl}` + `api/getAllDepartmentsFromId/${data}`);
+  }
   updateDepartmentHolidayMappings(deptObj: Department) {
     return this.http.post(`${this.baseUrl}` + `api/updateDepartmentHolidayMappings`, deptObj);
   }

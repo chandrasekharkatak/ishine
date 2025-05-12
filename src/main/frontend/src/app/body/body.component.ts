@@ -1,12 +1,12 @@
-import { Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { User } from '../models/user';
+import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import * as CryptoJS from 'crypto-js';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { EmployeeService } from '../services/employee.service';
 import { ValidationService } from '../services/validation.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import * as CryptoJS from 'crypto-js';
 
 @Component({
   selector: 'app-body',
@@ -40,7 +40,8 @@ export class BodyComponent implements OnInit {
   //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
-
+  resourceManagementFeature: any;
+  reportsFeature: any;
   // stop modal to close
   config = {
     backdrop: true,
@@ -59,8 +60,10 @@ export class BodyComponent implements OnInit {
       this.currentUser = x;
 
       if(this.currentUser){
+        console.log("n jsvsdv",this.currentUser);
         this.currentUserName = this.currentUser.name.split(" ")[0];
       this.currentUserName = this.currentUserName[0].toUpperCase() + this.currentUserName.slice(1).toLowerCase();
+      this.extractFeatures();
       }
     });
     this.router.events.subscribe((e) => {
@@ -75,8 +78,30 @@ export class BodyComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.extractFeatures();
+    this.isHome = this.router.url === '/home';
+
+    // Also handle navigation events
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.isHome = event.urlAfterRedirects === '/home';
+      }
+    });
+  
   }
 
+  extractFeatures() {
+    // Loop through userMapping to find the required features
+    this.currentUser.userMapping.forEach(feature => {
+      if (feature.featureName === 'Resource Management') {
+        this.resourceManagementFeature = feature.featureName;
+       
+      } else if (feature.featureName === 'Reports') {
+        this.reportsFeature = feature.featureName;
+       
+      }
+    });
+  }
   getBreadcrumbClass(): string{
     let styleClass = '';
 
@@ -307,5 +332,28 @@ export class BodyComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
+  
+  public openMenu: boolean = false;
+  isOver = false;
 
+  // routingFunction(message: string) {
+  //      this.router.navigate(['/'+message]);
+  //     this.clickMenu();
+       
+  // }
+
+  routingFunction(message: string) {
+    const url = `${window.location.origin}/#/${message}`;
+    window.open(url, '_blank');
+       //this.router.navigate(['/'+message]);
+      this.clickMenu();
+       
+  }
+  
+  
+  clickMenu() {
+    this.openMenu = !this.openMenu;
+  }
+ 
+ 
 }

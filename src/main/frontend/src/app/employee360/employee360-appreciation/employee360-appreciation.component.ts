@@ -11,6 +11,8 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { HelpService } from 'src/app/services/help.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 @Component({
   selector: 'app-employee360-appreciation',
   templateUrl: './employee360-appreciation.component.html',
@@ -47,6 +49,7 @@ export class Employee360AppreciationComponent implements OnInit {
 
   isTeam:boolean = true;
 
+
   constructor(
     private authenticationService: AuthenticationService,
     private employeeService: EmployeeService,
@@ -61,17 +64,12 @@ export class Employee360AppreciationComponent implements OnInit {
     }
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
-    this.getDateRanges();
+    // this.getDateRanges();
     // this.getEmployeeInfo();
   }
 
   async ngOnInit(): Promise<void> {
-    try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
-    } catch (error) {
-      console.error("Error fetching employee details for 360 view", error);
-    }
+   
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Appreciation");
     if (findbreadcrumbObject >= 0) {
       this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
@@ -84,14 +82,33 @@ export class Employee360AppreciationComponent implements OnInit {
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
-    let employeeData = localStorage.getItem('employee360Data');
+    let employeeData = sessionStorage.getItem('employee360Data');
     let employeeObject = JSON.parse(employeeData);
      this.currentEId = employeeObject.empId;
      this.currentEmpId = Number(employeeObject.employeementId.replace(/\D/g, ''));
-    this.calculateFinancialYear();
+    // this.calculateFinancialYear();
+    this.appreciation.startDate = null;
+    this.appreciation.endDate = null;
     this.getEmployeeAppreciationDetails();
-    this.getTeamAppreciationDetails();
+    // this.getTeamAppreciationDetails();
    
+  }
+  exportToExcel(id:any): void {
+   let exportToExcelTeamfile=id+".xlsx";
+    const table = document.getElementById(''+id); // Get table by ID
+    if (!table) {
+      console.error('Table not found');
+      return;
+    }
+  
+    const worksheet: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table); // Convert table to worksheet
+    const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Project Data');
+  
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const data: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  
+    saveAs(data, exportToExcelTeamfile);
   }
   ngAfterViewInit() {
     this.setActiveTab();
@@ -114,9 +131,14 @@ export class Employee360AppreciationComponent implements OnInit {
 
   getTeamAppreciationList(){
     this.isTeam = false;
-    this.accortoselectedList = [];
-    this.accortoselectedList = this.teamAppreciationList;
+    // this.accortoselectedList = [];
+    // this.accortoselectedList = this.teamAppreciationList;
+    this.getTeamAppreciationDetails();
 
+  }
+  getTeamOrEmployeeDetails(){
+    this.getTeamAppreciationDetails();
+    this.getEmployeeAppreciationDetails();
   }
 
   getEmployeeAppreciationList(){
@@ -125,48 +147,53 @@ export class Employee360AppreciationComponent implements OnInit {
     this.getEmployeeAppreciationDetails();
   }
  
-  getDateRanges() {
-    this.employeeService.getDateRangesForDropdown(this.currentEmpId).subscribe(
-      (data: any) => {
-        this.formattedDateRanges = data.map((range: any) => {
-          console.log(range.fromDate, "==", range.toDate);
-          const fromYear = new Date(range.fromDate).getFullYear() - 1;
-          const toYear = new Date(range.toDate).getFullYear();
-          // if(toYear==fromYear){
-          //   return `${fromYear}`;
-          // }else{
-          //   return `${fromYear}-${toYear}`;
-          // }
-          return `${fromYear}-${toYear}`;
+  // getDateRanges() {
+  //   this.employeeService.getDateRangesForDropdown(this.currentEmpId).subscribe(
+  //     (data: any) => {
+  //       this.formattedDateRanges = data.map((range: any) => {
+  //         console.log(range.fromDate, "==", range.toDate);
+  //         const fromYear = new Date(range.fromDate).getFullYear() - 1;
+  //         const toYear = new Date(range.toDate).getFullYear();
+  //         // if(toYear==fromYear){
+  //         //   return `${fromYear}`;
+  //         // }else{
+  //         //   return `${fromYear}-${toYear}`;
+  //         // }
+  //         return `${fromYear}-${toYear}`;
 
-        });
-      },
-      (error) => {
-        console.error('Error fetching date ranges', error);
-      }
-    );
-  }
+  //       });
+  //     },
+  //     (error) => {
+  //       console.error('Error fetching date ranges', error);
+  //     }
+  //   );
+  // }
 
   financialYear: string = '';
   appreciation: Appreciation = new Appreciation();
 
-  calculateFinancialYear() {
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth() + 1;
-    let startYear, endYear;
-    if (currentMonth >= 4) {
-      startYear = currentYear;
-      endYear = currentYear + 1;
-    } else {
-      startYear = currentYear - 1;
-      endYear = currentYear;
-    }
-    this.financialYear = `${startYear}-${endYear}`;
-    this.appreciation.startDate = `${startYear}-04-01`;
-    this.appreciation.endDate = `${endYear}-03-31`;
-  }
+  // calculateFinancialYear() {
+  //   const today = new Date();
+  //   const currentYear = today.getFullYear();
+  //   const currentMonth = today.getMonth() + 1;
+  //   let startYear, endYear;
+  //   if (currentMonth >= 4) {
+  //     startYear = currentYear;
+  //     endYear = currentYear + 1;
+  //   } else {
+  //     startYear = currentYear - 1;
+  //     endYear = currentYear;
+  //   }
+  //   this.financialYear = `${startYear}-${endYear}`;
+  //   this.appreciation.startDate = `${startYear}-04-01`;
+  //   this.appreciation.endDate = `${endYear}-03-31`;
+  // }
+  
 
+  accToDateRangeSelect(){
+    this.getEmployeeAppreciationDetails();
+    this.getTeamAppreciationDetails();
+  }
 
   getEmployeeAppreciationDetails() {
     this.appreciation.employeementId = this.currentEmpId;
@@ -174,12 +201,10 @@ export class Employee360AppreciationComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.accortoselectedList = response.serviceResponse;
         this.accortoselectedList.forEach(appObj => {
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === appObj.appreciationByByEmpId);
-          console.log("matchingEmployee ", matchingEmployee);
-          appObj.emp360AppreciationBy = matchingEmployee ? matchingEmployee : {};
-          appObj.appreciationDate = (appObj.appreciationDate)
-            ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT)
-            : null;
+          appObj.emp360AppreciationBy =  appObj.appreciationByByEmpId;
+          // appObj.appreciationDate = (appObj.appreciationDate)
+          //   ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT)
+          //   : null;
         });
       } else {
         console.error(response.serviceResponse);
@@ -195,15 +220,11 @@ export class Employee360AppreciationComponent implements OnInit {
         this.teamAppreciationList= response.serviceResponse;
         this.teamAppreciationList.forEach(appObj => {
           console.log("appObj.appreciationByByEmpId ", appObj.appreciationBy);
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === appObj.appreciationByByEmpId);
-          console.log("matchingEmployee ", matchingEmployee);
-          appObj.emp360AppreciationBy = matchingEmployee ? matchingEmployee : {};
-          let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === appObj.appreciationToByEmpId);
-          console.log("matchingEmployee ", matchingEmployee2);
-          appObj.emp360AppreciationTo = matchingEmployee2 ? matchingEmployee2 : {};
-          appObj.appreciationDate = (appObj.appreciationDate) 
-              ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT) 
-              : null;
+          appObj.emp360AppreciationBy = appObj.appreciationByByEmpId;
+          appObj.emp360AppreciationTo = appObj.appreciationToByEmpId;
+          // appObj.appreciationDate = (appObj.appreciationDate) 
+          //     ? moment(appObj.appreciationDate).format(AppComponent.DATETIME_FORMAT) 
+          //     : null;
         });
       } else {
         console.error(response.serviceResponse);

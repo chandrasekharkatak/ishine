@@ -34,6 +34,7 @@ export class DeptConfigComponent implements OnInit {
   isForm: boolean = false;
   isTable: boolean = false;
   data:string;
+  DepartmentTableHeader :any=[];
 
   sortDirection = 'asc';
   sortColumn: any;
@@ -68,6 +69,8 @@ export class DeptConfigComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   departmentColumns:any[] = ['blank','name','hodName','createdByName','createdOn','updatedOn','updatedByName'];
+  excelName: string;
+  tableName: string;
 
   constructor(
     private validationService: ValidationService,
@@ -81,11 +84,13 @@ export class DeptConfigComponent implements OnInit {
     private utilityService: UtilityService,
 ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    
+
   }
 
   async ngOnInit(): Promise<void> {
     try {
-      this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
+      //this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
       // console.log("Priyadarshini ", this.employeesFor360);
     } catch (error) {
       console.error("Error fetching employee details for 360 view", error);
@@ -320,22 +325,12 @@ export class DeptConfigComponent implements OnInit {
         this.allDeptList.forEach(dept => {
           dept.createdOn = (dept.createdOn)? moment(dept.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           dept.updatedOn = (dept.updatedOn)? moment(dept.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+          dept.emp360HodId = dept.hodId;
+          dept.emp360CreatedBy = dept.createdBy;
+          dept.emp360UpdatedBy = dept.updatedBy;
+       
         });
-        this.allDeptList.forEach((employee) => {
-          // console.log("employee.hodId ", employee.hodId);
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.hodId);
-          // console.log("hodId ", matchingEmployee);
-          employee.emp360HodId = matchingEmployee ? matchingEmployee : {};
-          // console.log("employee.createdBy ", employee.createdBy);
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.createdBy);
-          // console.log("createdby ", matchingEmployee3);
-          employee.emp360CreatedBy = matchingEmployee3 ? matchingEmployee3 : {};
-          // console.log("employee.updatedBy ", employee.updatedBy);
-          let matchingEmployee4 = this.employeesFor360.find(emp => emp.empId === employee.updatedBy);
-          // console.log("updatedBy ", matchingEmployee4);
-          employee.emp360UpdatedBy = matchingEmployee4 ? matchingEmployee4 : {};
-        });
-        // console.log("allDeptList : ", this.allDeptList)
+        
       } else {
         alert(response.serviceResponse)
       }
@@ -386,12 +381,16 @@ export class DeptConfigComponent implements OnInit {
   }
   checkDepartmentName(deptName:any, template: TemplateRef<any>){
 
-    const regex = /^(?:[a-zA-Z]{2,8}|[a-zA-Z]{1,7}[0-9]{1,7})$/;
+    // const regex = /^(?:[a-zA-Z]{2,8}|[a-zA-Z]{1,7}[0-9]{1,7})$/;
+    const regex = /^[a-zA-Z]+(?:\s[a-zA-Z]+)*\d*$/;
     let check = regex.test(deptName);
 
     if (check) {
       console.log('');
-    } else {
+    } else if(this.deptObj.name == null) {
+      this.openAlertMod(template, "Department name is empty!");
+      this.deptObj.name = '';
+    } else{
       this.openAlertMod(template, "Invalid department name");
       this.deptObj.name = '';
     }
@@ -437,6 +436,15 @@ export class DeptConfigComponent implements OnInit {
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
     });
   }
+
+ // download excel
+  // exportToExcel(id:any): void {
+  //   const tableId = id; // Replace with your actual table ID
+  //   this.excelName = "DepartementInfoSheet.xlsx";
+  //   this.tableName= 'Department Info';
+  
+  //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
+  // }
 
 
   // Modals

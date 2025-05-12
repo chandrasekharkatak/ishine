@@ -42,5 +42,6 @@ public class PerformanceDTO {
     private String employeeRole;
     private Long departmentId;
     private String tabType;
+    private Boolean rejectStatus;
     
 }

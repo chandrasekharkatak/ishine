@@ -1,50 +1,86 @@
 .table-header {
-    width: 100%;
-    height: 50px;
-    background: var(--ghost-white);
-    margin-bottom: 1em;
+  width: 100%;
+  height: 50px;
+  background: var(--ghost-white);
+  margin-bottom: 1em;
 }
 
 .table-header-title {
-    font-size: 2rem;
-    padding: .2em;
-    margin-bottom: 0;
-    color: var(--raisin-black);
+  font-size: 2rem;
+  padding: .2em;
+  margin-bottom: 0;
+  color: var(--raisin-black);
 }
 
 .scrollable-table {
-    width: 88vw;
-    height: 70vh;
-    margin-right: 0px !important;
+  width: 88vw;
+  height: 70vh;
+  margin-right: 0px !important;
 }
+
+
+
+
+.overflow-auto {
+  position: relative;
+  overflow-y: auto;
+  max-height: 80vh;
+}
+
+#employeeReport {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+}
+
+#employeeReportInfoTHead {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--ghost-white);
+}
+
 
 /* .table-scroll{
     font-size: 0.9rem;
 } */
 
 .wide-col {
-    min-width: 250px;
+  min-width: 250px;
 }
+
+.wide-wide-col {
+  min-width: 400px;
+
+}
+
+.md-wide-col {
+  min-width: 180px;
+}
+
 
 /* .table{
     overflow-x: auto;
 } */
 
 .my-pagination::ng-deep .ngx-pagination .current {
-    background: #193d8a !important;
+  background: #193d8a !important;
 }
 
 .my-pagination::ng-deep {
-    padding-top: 10px;
+  padding-top: 10px;
 }
 
-.thead-light th {
-    position: sticky;
-    top: -0.7px;
+.thead-light {
+  position: sticky;
+  top: -0.7px;
+  z-index: 10;
+  background: #e9ecef;
 }
 
 .info-label {
-    width: 200px !important;
+  max-width: 200px !important;
 }
 
 /* .form-control{
@@ -52,108 +88,340 @@
 } */
 
 #buttonPosition {
-    margin-right: 40px !important;
+  margin-right: 40px !important;
 }
 
 .list-header {
-    background: var(--dark-cornflower-blue);
-    color: white;
+  background: var(--dark-cornflower-blue);
+  color: white;
 }
 
 .cell-checkbox span {
-    display: block;
-    height: 28px;
-    position: relative;
-    width: 28px;
-    padding: 0
+  display: block;
+  height: 28px;
+  position: relative;
+  width: 28px;
+  padding: 0
 }
 
 .cell-checkbox {
-    background-color: #fff;
-    display: inline-block;
-    height: 28px;
-    margin: 0 .25em;
-    width: 28px;
-    border-radius: 4px;
-    border: 1px solid var(--dark-cornflower-blue);
+  background-color: #fff;
+  display: inline-block;
+  height: 28px;
+  margin: 0 .25em;
+  width: 28px;
+  border-radius: 4px;
+  border: 1px solid var(--dark-cornflower-blue);
 }
 
 .cell-checkbox span:after {
-    -moz-transform: scaleX(-1) rotate(135deg);
-    -ms-transform: scaleX(-1) rotate(135deg);
-    -webkit-transform: scaleX(-1) rotate(135deg);
-    transform: scaleX(-1) rotate(135deg);
-    -moz-transform-origin: left top;
-    -ms-transform-origin: left top;
-    -webkit-transform-origin: left top;
-    transform-origin: left top;
-    border-right: 4px solid #fff;
-    border-top: 4px solid #fff;
-    content: '';
-    display: block;
-    height: 20px;
-    left: 3px;
-    position: absolute;
-    top: 15px;
-    width: 10px
+  -moz-transform: scaleX(-1) rotate(135deg);
+  -ms-transform: scaleX(-1) rotate(135deg);
+  -webkit-transform: scaleX(-1) rotate(135deg);
+  transform: scaleX(-1) rotate(135deg);
+  -moz-transform-origin: left top;
+  -ms-transform-origin: left top;
+  -webkit-transform-origin: left top;
+  transform-origin: left top;
+  border-right: 4px solid #fff;
+  border-top: 4px solid #fff;
+  content: '';
+  display: block;
+  height: 20px;
+  left: 3px;
+  position: absolute;
+  top: 15px;
+  width: 10px
 }
 
 .cell-checkbox span:hover:after {
-    border-color: #999
+  border-color: #999
 }
 
 .cell-checkbox input {
-    display: none
+  display: none
 }
 
 .cell-checkbox input:checked+span:after {
-    -webkit-animation: check .8s;
-    -moz-animation: check .8s;
-    -o-animation: check .8s;
-    animation: check .8s;
-    border-color: #555
+  -webkit-animation: check .8s;
+  -moz-animation: check .8s;
+  -o-animation: check .8s;
+  animation: check .8s;
+  border-color: #555
 }
 
 .cell-checkbox input:checked+.primary:after {
-    height: 30px;
-    border-color: #006400;
+  height: 30px;
+  border-color: #006400;
 }
 
 .progress-bar-success {
-    color: #fff;
-    background-color: #28a745;
+  color: #fff;
+  background-color: #28a745;
 
-    font-size: 0.825rem;
+  font-size: 0.825rem;
 }
 
 .profileCompleted-value {
-    margin-top: 0.6rem;
-    color: #193d8a;
-    font-weight: bold;
+  margin-top: 0.6rem;
+  color: #193d8a;
+  font-weight: bold;
 }
 
-.acl-header{
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background-color: var(--ghost-white);
+.acl-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: var(--ghost-white);
 }
 
 .sticky-col {
-    position: -webkit-sticky;
-    position: sticky;
-    background-color: white;
-    left: 0;
-    z-index: 1;
+  position: -webkit-sticky;
+  position: sticky;
+  background-color: white;
+  left: 0;
+  z-index: 1;
 }
 
 #BassScrollBar {
-    overflow-x: hidden !important;
+  overflow-x: hidden !important;
 }
 
-.acl-table{
-    cursor: move;
-    border-collapse: separate;
-    border-spacing: 0;
+.acl-table {
+  cursor: move;
+  border-collapse: separate;
+  border-spacing: 0;
 }
-  
+
+
+
+
+/* Shivtosh */
+
+.branch {
+
+  cursor: pointer;
+}
+
+
+.branch.hover {
+
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+}
+
+/* .branch.clicked {
+    border: 2px solid #007bff; 
+    transform: scale(1.1); 
+  } */
+
+h5,
+p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.box {
+  min-height: 200px;
+}
+
+.button {
+  float: right;
+  margin-top: 1px;
+}
+
+.clicked {
+  border: 3px solid #162330;
+  box-shadow: 0 0 15px rgba(24, 32, 41, 0.7);
+  /* Add shadow for emphasis */
+}
+
+.hover {
+  background-color: rgba(0, 123, 255, 0.1);
+  /* Change background on hover */
+}
+
+
+.table-container {
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: auto;
+  position: relative;
+}
+
+table {
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+}
+
+thead {
+  position: sticky;
+  top: -5px;
+  z-index: 1;
+}
+
+.export-button {
+  position: absolute;
+  right: 0%;
+  top: -25px;
+}
+
+td {
+  padding: 8px;
+}
+
+.dashboard-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5.79px;
+  padding: 1rem;
+}
+
+.card {
+  flex: 1 1 calc(25% - 1rem);
+  min-width: 260px;
+  max-width: 300px;
+  height: 420px;
+  padding: 1rem;
+  background-color: #e1e1e6;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  transition: box-shadow 0.3s ease;
+  height: 420px;
+}
+
+.card-header {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  position: relative;
+  background-color: #c6c6cb;
+}
+
+.count-badge {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: #21295c;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.toggle-buttons,
+.status-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+}
+
+.toggle-btn,
+.status-btn {
+  width: 48%;
+  background-color: #e0e0e0;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.toggle-btn {
+  width: 48%;
+  background-color: #888b8e;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  color: white;
+  transition: 0.2s ease-in-out;
+}
+
+.toggle-btn.active-btn {
+  background-color: #1d2d44;
+  color: white;
+  box-shadow: 0px 3px 8px rgb(0 0 0 / 90%);
+}
+
+.status-btn {
+  width: 48%;
+  background-color: #aeb1b5;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  color: white;
+  transition: 0.2s ease-in-out;
+}
+
+.status-btn.active-btn {
+  background-color: #3e5c76;
+  color: white;
+  box-shadow: 0px 3px 8px rgb(0 0 0 / 90%);
+}
+
+.status-btn.active-flag {
+  background-color: #218380;
+  color: white;
+  box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+.status-btn.inactive-flag {
+  background-color: #772f1a;
+  color: white;
+  box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+
+.count-boxes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.count-box {
+  background-color: #fff;
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+  font-size: 14px;
+  box-shadow: 0 0 0 transparent;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.count-box.active-btn {
+  background-color: #7371fc;
+  color: white;
+  box-shadow: 0px 3px 8px rgba(0, 123, 255, 0.4);
+}
+
+.active-box {
+  /* box-shadow: 0px 4px 12px rgba(0, 6, 12, 0.6); */
+  border: 2px solid black;
+}
+
+.full-width {
+  grid-column: span 2;
+}
+
+/* ::ng-deep .mat-option.non-selectable {
+    pointer-events: none;
+  } */
+
+::ng-deep .mat-option.non-selectable .mat-pseudo-checkbox {
+  display: none;
+}

@@ -1,22 +1,38 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.BulkBillableUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.FeatureMasterDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.EmployeeRole;
+import com.apmosys.employeeportal.model.FieldAlteration;
+import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeRoleMasterRepository;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.FieldAlterationRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -33,7 +49,30 @@ public class ReportService {
 	EmployeeRoleMasterRepository employeeRoleMasterRepository;
 	
 	@Autowired
+	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	ProjectRepository projectRepository;
+	
+	@Autowired
+	EmployeeTeamMapRepository employeeTeamMapRepository;
+	
+	@Autowired
+	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
+	
+	@Autowired
+	CronJobService cronJobService;
+	
+	@Autowired
+	FieldAlterationRepository fieldAlterationRepository;
+	
+	
+	@Autowired
 	private LogService logService;
+	
+	
+	
+	
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
@@ -424,5 +463,206 @@ public class ReportService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	public ServiceResponse getPoProjectDetailsBOthPOAndInternal() {
+		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("getPoProjectDetailsForPoProjects");
+        apiLogInfo.setApiUrl("/api/getPoProjectDetailsForPoProjects");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("getPoProjectDetailsForPoProjects "+projectRepository.getPoProjectDetailsBOthPOAndInternal().size());
 
-}
+		try {
+			List<Object[]> projectInfoList = projectRepository.getPoProjectDetailsBOthPOAndInternal();
+			List<ProjectInfoDTO> projectObjList = new ArrayList<ProjectInfoDTO>();
+			
+		    if (projectInfoList != null || !projectInfoList.isEmpty()) {
+		    	projectInfoList.forEach((projectInfo) -> {
+		    	ProjectInfoDTO projectObj = new ProjectInfoDTO();
+		    	
+		    	projectObj.setProjectId(projectInfo[0]!=null ? Integer.parseInt(projectInfo[0].toString()) : null);
+		    	projectObj.setProjectName(projectInfo[1]!=null ? projectInfo[1].toString() : null);
+		        projectObj.setPoNo(projectInfo[2]!=null ? projectInfo[2].toString() : null);
+		        projectObj.setStartDate(projectInfo[3]!=null ? projectInfo[3].toString() : null);
+		        projectObj.setEndDate(projectInfo[4]!=null ? projectInfo[4].toString() : null);
+		        projectObj.setProjectType(projectInfo[5]!=null ? projectInfo[5].toString() : null);
+		        projectObj.setId(projectInfo[6]!=null ? Long.parseLong(projectInfo[6].toString()) : null);
+		        
+		        projectObjList.add(projectObj);
+		    	});
+	    	}
+	        if(projectObjList != null || !projectObjList.isEmpty()) {
+	        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(projectObjList);
+	        }else {
+	        	response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Data not present !");
+	        }
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
+	
+	public ServiceResponse updateBillableType(EmployeeDTO dto) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	    	String oldBillableType = employeeRepository.findBillableTypeByEmpId(dto.getEmpId());
+	    	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	        String updatedOn = LocalDateTime.now().format(formatter);
+	        int result = employeeRepository.updateBillableInfo(dto.getEmpId(), dto.getBillableType(), dto.getBillable(), dto.getUpdatedBy(),updatedOn);
+	        		if (result > 0) {
+	        			cronJobService.triggerBillableTypeChangeMail(dto.getEmpId(), dto.getBillableType(), oldBillableType, dto.getUpdatedBy());
+	        			 FieldAlteration alterationLog = new FieldAlteration();
+	        	            alterationLog.setEmpId(dto.getEmpId());
+	        	            alterationLog.setField("Billable Type");
+	        	            alterationLog.setValue(dto.getBillableType());
+	        	            alterationLog.setAlteredBy(dto.getUpdatedBy());
+	        	            alterationLog.setUpdatedOn(LocalDateTime.now());
+	        	            fieldAlterationRepository.save(alterationLog); 
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Billable Type Of Employee Updated successfully");
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Update failed");
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceError(e.getMessage());
+	        response.setServiceResponse("Something went wrong");
+	    }
+	    return response;
+	}
+	
+	
+	public ServiceResponse updateBulkBillableEmployeeReport(BulkBillableUpdateDTO bulkBillableUpdateDTO) {
+	    ServiceResponse response = new ServiceResponse();
+
+	    try {
+	    	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	        String updatedOn = LocalDateTime.now().format(formatter);
+	        
+	        Map<Long, String> oldBillableTypes = new HashMap<>();
+	        for (Long empId : bulkBillableUpdateDTO.getEmpIds()) {
+	            String oldType = employeeRepository.findBillableTypeByEmpId(empId);
+	            oldBillableTypes.put(empId, oldType);
+	        }
+	        int updatedRows = employeeRepository.updateBillableTypeForMultiple(
+	        		bulkBillableUpdateDTO.getEmpIds(), bulkBillableUpdateDTO.getBillableType(), bulkBillableUpdateDTO.getBillable(),bulkBillableUpdateDTO.getUpdatedBy(),updatedOn);
+	        if (updatedRows > 0) {
+	        	cronJobService.triggerBulkBillableChangeEmails(
+	                    bulkBillableUpdateDTO.getEmpIds(),
+	                    oldBillableTypes,
+	                    bulkBillableUpdateDTO.getBillableType(),
+	                    bulkBillableUpdateDTO.getUpdatedBy()
+	                );
+	        	List<FieldAlteration> alterationLogs = new ArrayList<>();
+
+	            for (Long empId : bulkBillableUpdateDTO.getEmpIds()) {
+	                FieldAlteration alterationLog = new FieldAlteration();
+	                alterationLog.setEmpId(empId);
+	                alterationLog.setField("Billable Type");
+	                alterationLog.setValue(bulkBillableUpdateDTO.getBillableType());
+	                alterationLog.setAlteredBy(bulkBillableUpdateDTO.getUpdatedBy());
+	                alterationLog.setUpdatedOn(LocalDateTime.now());
+	                alterationLogs.add(alterationLog);
+	            }
+
+	          
+	            fieldAlterationRepository.saveAll(alterationLogs);
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Updated Billable Type of " + updatedRows + " employees successfully.");
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No records were updated.");
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong while updating.");
+	        response.setServiceError(e.getMessage());
+	    }
+
+	    return response;
+	}
+
+	
+	public ServiceResponse updateDefaultProjectMappings() {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	    	 List<Long> activeEmployees = employeeRepository.findAllActiveEmployees();
+	    	 for(Long empId : activeEmployees) {
+	    		 List<Long> activeProjectIds = employeeTeamMapRepository.findDistinctActiveProjectIdsByEmpId(empId);
+	    		
+	    		 if (activeProjectIds.isEmpty()) {
+	    			 EmpPrimaryProjectMapping existing = empPrimaryProjectMappingRepository.findByEmpId(empId);
+	    			    if (existing != null) {
+	    			    	 empPrimaryProjectMappingRepository.updateIsMappedOnlyTON(empId, "N", new Date());
+	    			    }
+	    			    continue;
+	    		 }
+	    		 
+	    	
+	    		 if (activeProjectIds.size() > 1) {
+	                    continue; 
+	                }
+	    		 
+	    		 Long projectId = activeProjectIds.get(0);
+	             String projectName = employeeTeamMapRepository.getProjectNameById(projectId);
+	             
+	             Optional<EmpPrimaryProjectMapping> existingMappingOpt =
+	            		 empPrimaryProjectMappingRepository.findByEmpIdd(empId);
+	             if (existingMappingOpt.isPresent()) {
+	                    EmpPrimaryProjectMapping existingMapping = existingMappingOpt.get();
+	             
+	             if (Objects.equals(existingMapping.getPrimaryProjectId(), projectId)
+                         && Objects.equals(existingMapping.getPrimaryProjectName(), projectName)
+                         && "Y".equalsIgnoreCase(existingMapping.getIsMapped())) {
+                     continue;
+                 }
+
+                 
+                 empPrimaryProjectMappingRepository.updateMappingDetails(
+                         empId, projectId, projectName, "Y", new Date()
+                 );
+                 
+                 
+	             } else {
+	                    
+	                    EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
+	                    newMapping.setEmpId(empId);
+	                    newMapping.setPrimaryProjectId(projectId);
+	                    newMapping.setPrimaryProjectName(projectName);
+	                    newMapping.setIsMapped("Y");
+	                    newMapping.setUpdatedOn(LocalDateTime.now());
+	                    empPrimaryProjectMappingRepository.save(newMapping);
+	                }
+	            }
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Employee default project mapping updated successfully.");
+	        } catch (Exception e) {
+	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            response.setServiceResponse("Error while updating mapping.");
+	            response.setServiceError(e.getMessage());
+	            e.printStackTrace();
+	        }
+
+	        return response;
+	    }
+	
+	
+	}
+
+

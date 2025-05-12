@@ -74,3 +74,21 @@ input[type=checkbox]:hover, input[type=radio]:hover {
 #dayTypeCursor{
     cursor:pointer;
 }
+
+.overflow-auto {
+    position: relative;
+    max-height: 500px; /* Set a max height for the scrollable area */
+    overflow-y: auto;
+  }
+  .thead-light{
+    position: sticky;
+    top: 0.7;
+    z-index: 100;
+    background: var(--ghost-white);
+  }
+
+  .export-button{
+    position:absolute;
+    right: 0%;
+    top:-25px;
+  }

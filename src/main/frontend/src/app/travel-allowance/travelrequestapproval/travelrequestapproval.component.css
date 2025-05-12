@@ -1,0 +1,14 @@
+.button{
+    width: 85px;
+}
+.text-danger {
+    color: red;
+  }
+  
+  .text-success {
+    color: green;
+  }
+  
+  .text-warning {
+    color: yellow;
+  }

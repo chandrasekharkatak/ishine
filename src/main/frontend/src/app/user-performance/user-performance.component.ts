@@ -1,5 +1,5 @@
+import { ActivatedRoute, Router } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, Params } from '@angular/router';
 import { Log } from '../models/log';
 import { User } from '../models/user';
 import { Feature } from '../models/feature';

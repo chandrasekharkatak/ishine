@@ -1,8 +1,11 @@
 package com.apmosys.employeeportal.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -112,6 +115,8 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	
+	
 	@RequestMapping(value = "/deleteTeamByTeamId", method = RequestMethod.POST)
 	public ServiceResponse deleteTeamByTeamId(@RequestBody TeamDTO teamDto) {
 		
@@ -126,6 +131,13 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getPoProjectInfo", method = RequestMethod.POST)
+	public ServiceResponse getPoProjectInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.getPoProjectInfo(resourceManagementDTO);
+		return response;
+	}
+	
 	@RequestMapping(value = "/getTeamInfo", method = RequestMethod.POST)
 	public ServiceResponse getTeamInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
@@ -136,6 +148,46 @@ public class ResourceManagementController {
 	public ServiceResponse getTeamMemberByTeamId(@PathVariable("teamId") Long teamId) {
 		
 		ServiceResponse response = resourceManagementService.getTeamMemberByTeamId(teamId);
+		return response;
+	}
+
+	@RequestMapping(value = "/syncPoProjectDetailsByProjectId", method = RequestMethod.POST)
+	public ServiceResponse syncPoProjectDetailsByProjectId(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.syncPoProjectDetailsByProjectId(resourceManagementDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getPoProjectDetailsForPoProjects", method = RequestMethod.GET)
+	public ServiceResponse getPoProjectDetailsForPoProjects() {
+		
+		ServiceResponse response = resourceManagementService.getPoProjectDetailsForPoProjects();
+		return response;
+	}
+//	
+//	@RequestMapping(value = "/sendEmailNotificationToBDTeam", method = RequestMethod.POST)
+//	public ServiceResponse sendEmailNotificationToBDTeam(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+//		
+//		ServiceResponse response = resourceManagementService.sendEmailNotificationToBDTeam(resourceManagementDTO);
+//		return response;
+//	}
+	
+	@PostMapping("/sendEmailNotificationToBDTeam")
+	public ServiceResponse sendEmailNotificationToBDTeam(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+	    return resourceManagementService.sendEmailNotificationToBDTeam(resourceManagementDTO);
+	}
+
+	
+	@RequestMapping(value = "/updateProjectResourcesAsInActiveBulk", method = RequestMethod.POST)
+	public ServiceResponse updateProjectResourcesAsInActiveBulk(@RequestBody List<ResourceManagementDTO> resourceManagementDTOList) {
+	    ServiceResponse response = resourceManagementService.updateProjectResourcesAsInActiveBulk(resourceManagementDTOList);
+	    return response;
+	}
+	
+	@RequestMapping(value = "/updateProjectStartAndEndDate", method = RequestMethod.POST)
+	public ServiceResponse updateProjectStartAndEndDate(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.updateProjectStartAndEndDate(resourceManagementDTO);
 		return response;
 	}
 

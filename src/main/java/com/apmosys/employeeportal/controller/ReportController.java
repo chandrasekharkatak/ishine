@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.controller;
 import java.sql.SQLException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.BulkBillableUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.service.BioMaxService;
@@ -87,5 +89,30 @@ public class ReportController {
 			   ServiceResponse response=bioMaxService.getEmpBioDataById(empId,date);
 			   return response;
 		   }
-
+		
+		@RequestMapping(value = "/getPoProjectDetailsBOthPOAndInternal", method = RequestMethod.GET)
+		public ServiceResponse getPoProjectDetailsForPoProjects() {
+			
+			ServiceResponse response = reportService.getPoProjectDetailsBOthPOAndInternal();
+			return response;
+		}
+		
+		@RequestMapping(value ="/updateEmployeeReportBillableType", method = RequestMethod.POST)
+		public ServiceResponse updateBillableType(@RequestBody EmployeeDTO employeeDTO) {
+			ServiceResponse response = reportService.updateBillableType(employeeDTO);
+			return response;
+		}
+		
+		@RequestMapping(value="/updateBulkBillableEmployeeReport",method = RequestMethod.POST)
+		public ServiceResponse updateBulkBillableEmployeeReport(@RequestBody BulkBillableUpdateDTO bulkBillableUpdateDTO) {
+			ServiceResponse response = reportService.updateBulkBillableEmployeeReport(bulkBillableUpdateDTO);
+			return response;
+		}
+		
+		
+		
+		@Scheduled(cron = "0 59 23 * * ?")
+		public ServiceResponse runDefaultProjectMappingCron() {
+		    return reportService.updateDefaultProjectMappings();
+		}
 }

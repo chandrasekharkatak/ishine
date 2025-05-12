@@ -1,0 +1,31 @@
+ /* Set the container to allow scrolling */
+ .exparedPoadata {
+    max-height: 500px; /* Adjust as needed */
+    overflow-y: auto; /* Enables vertical scrolling */
+    display: block;
+}
+
+/* Fix the header to the top */
+thead{
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+#auditInfo thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: #f8f9fa; /* Adjust the background to make it stand out */
+}
+
+/* Optional: Make sure the table has a border for clarity */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+    min-width: 130px;
+}

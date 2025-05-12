@@ -1,10 +1,10 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
-import { Employee } from '../models/employee';
-import { User } from '../models/user';
-import { Query } from '../models/query';
 import { environment } from 'src/environments/environment';
+import { Employee } from '../models/employee';
+import { Query } from '../models/query';
+import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +12,14 @@ import { environment } from 'src/environments/environment';
 export class EmployeeService {
   
   private baseUrl:any = environment.baseUrl;
+  private employeeSubject = new BehaviorSubject<Employee | null>(null);
+  employee$: Observable<Employee | null> = this.employeeSubject.asObservable();
   
   constructor(private http: HttpClient) { }
+
+  setEmployee(employee: Employee) {
+    this.employeeSubject.next(employee);
+  }
 
   createEmployee(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/createEmployee`, employeeObj);
@@ -102,6 +108,10 @@ export class EmployeeService {
 
   getAllEmployeesBirthDayToday() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesBirthDayToday`);
+  }
+
+  getAllEmployeesWorkAnniversaryToday() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeesWorkAnniversaryToday`);
   }
 
   getHierarchyByEmpId(employeeObj: Employee) {
@@ -331,12 +341,46 @@ setReportingManagerToNewManager(employee : any){
   return this.http.post(`${this.baseUrl}`+`api/setReportingManagerToNewManager`,employee);
 }
 
-  private employeeSubject = new BehaviorSubject<Employee | null>(null);
-  
-  employee$: Observable<Employee | null> = this.employeeSubject.asObservable();
-  
-  setEmployee(employee: Employee) {
-    this.employeeSubject.next(employee);
-  }
+getAllEmployeesReportByProjectTypeInConsolidated():Observable<any[]>{
+  return this.http.get<any[]>(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectTypeInConsolidated`);
+}
+
+getPoProjectDetailsBOthPOAndInternal(){
+  return this.http.get(`${this.baseUrl}`+`api/getPoProjectDetailsBOthPOAndInternal`);
+}
+
+getAllEmployeesReportByProjectType(){
+  return this.http.get(`${this.baseUrl}`+`api/getAllEmployeesReportByProjectType`);
+}
+
+//Update Default ProjectName for employee
+updateDefaultProject(newemployeeObj : any){
+  return this.http.post(`${this.baseUrl}` + `api/updateDefaultProject`, newemployeeObj);
+ }
+
+ getExpiredPo(){
+  return this.http.get(`${this.baseUrl}` + `api/getExpiredPo`);
+ }
+
+ sendExpiredPoEmail(employeeDTO:any){
+  return this.http.post(`${this.baseUrl}` + `api/sendExpiredPoEmail`,employeeDTO);
+ }
+
+ getEmployeeProjectReport(employeeReport:any){
+  return this.http.post(`${this.baseUrl}` + `api/getEmployeeProjectReport`,employeeReport);
+
+ }
+
+ getPoProjectSync(){
+  return this.http.get(`${this.baseUrl}` + `api/poprojectclone`);
+ }
+
+ updateEmployeeReportBillableType(employee:any){
+  return this.http.post(`${this.baseUrl}` + `api/updateEmployeeReportBillableType`,employee);
+ }
+
+ updateBulkBillableEmployeeReport(payload:any){
+   return this.http.post(`${this.baseUrl}` + `api/updateBulkBillableEmployeeReport`,payload);
+ }
 
 }

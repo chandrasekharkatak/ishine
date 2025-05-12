@@ -129,7 +129,7 @@
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Surveys</h1>
+                <h1 class="table-header-title">Survey(s)</h1>
             </div>
         </div>
 
@@ -210,29 +210,41 @@
         <div class="row">
             <div class="col-md-12">
               <div class="selector-toggle" >
-                <a href="javascript:void(0)" (click)="toggleSearch()">
-                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                <a href="javascript:void(0)" (click)="toggleSearchResponse()">
+                    <i *ngIf="!isSearchEnabledResponse" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabledResponse" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
+            
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'surveyResponseInfo'" [tableTHeadId]="'surveyResponseInfoTHead'"
                 [tableTHeadTrId]="'surveyResponseInfoTHeadTr'">
-                    <table class="table">
-                        <thead class="thead-light">
+                <table class="table">
+                    <thead class="thead-light">
                         <tr>
-                            <th scope="col" class="info-label" *ngFor="let columnHeader of responseListTableHeaders">{{columnHeader}}</th>
+                            <th scope="col" class="info-label">#</th> 
+                            <th scope="col" class="info-label" *ngFor="let columnHeader of responseListTableHeaders">
+                                {{ columnHeader }}
+                            </th>
                         </tr>
-                        <tr app-column-filter-bar *ngIf="isSurveyResponseList && isSearchEnabled" [columnList]="surveyResponseColumns" (onSearch)="onSearch($event);page=1" ></tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngIf="allSurveyResponseList.length == 0 ||(allSurveyResponseList| colFilter:filters:false).length == 0">
-                                <th colspan="columnHeader.length" class="text-center info-label">No Responses to display...</th>
-                            </tr>
-                        <tr *ngFor="let response of allSurveyResponseList| colFilter:filters:false | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                            <td *ngFor="let colValue of response">{{colValue}}</td>
+                        <tr app-column-filter-bar *ngIf="isSurveyResponseList && isSearchEnabledResponse"
+                            [columnList]="surveyResponseColumns" (onSearch)="onSearch($event); page = 1">
                         </tr>
-                        </tbody>
-                    </table>
+                    </thead>
+                    <tbody>
+                        <!-- Display when no data is available -->
+                        <tr *ngIf="!allSurveyResponseList || allSurveyResponseList.length === 0 || (allSurveyResponseList | colFilter:filters:false).length === 0">
+                            <td [attr.colspan]="responseListTableHeaders.length + 1" class="text-center info-label">
+                                No Responses to display...
+                            </td>
+                        </tr>
+                
+                        <!-- Data rows with indexing -->
+                        <tr *ngFor="let response of allSurveyResponseList | colFilter:filters:false | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                            <td>{{ (page - 1) * 20 + i + 1 }}</td> <!-- Proper row numbering -->
+                            <td *ngFor="let colValue of response">{{ colValue }}</td>
+                        </tr>
+                    </tbody>
+                </table>
                 </div>
             </div>
             <pagination-controls class="my-pagination" [hidden]="allSurveyResponseList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>

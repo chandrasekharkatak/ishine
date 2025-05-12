@@ -35,7 +35,7 @@ public class EmployeeTeamMap {
 	
 	private Long jobRoleId;
 	private Long active;
-	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
+	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = true ,updatable = true)
 	private Timestamp startDate;
 	
 	private String employeeRole;
@@ -45,7 +45,7 @@ public class EmployeeTeamMap {
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	
-
+    private Long updatedBy;
 	//added by rahul singh
 	
 }

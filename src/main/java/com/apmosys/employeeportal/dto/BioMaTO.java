@@ -1,5 +1,12 @@
 package com.apmosys.employeeportal.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
 public class BioMaTO {
 	private String logDate;
     private String employeeCode;
@@ -18,8 +25,25 @@ public class BioMaTO {
     private String shiftDuration;
     private String totalOverTime;
     private String totalUnderTimeE;
+    private String attendanceDate;
+    private String deduct;
+    private Long employementId;
+    private Long departmentId;
+    private Long empId;
     
     
+    public void setDeduct(String deduct) {
+    	this.deduct = deduct;
+    }
+    public String getDeduct() {
+    	return deduct;
+    }
+    public void setAttendanceDate(String attendanceDate) {
+    	this.attendanceDate = attendanceDate;
+    }
+    public String getAttendanceDate() {
+    	return attendanceDate;
+    }
 	public String getLogDate() {
 		return logDate;
 	}
@@ -121,6 +145,24 @@ public class BioMaTO {
 	}
 	public void setTotalUnderTimeE(String totalUnderTimeE) {
 		this.totalUnderTimeE = totalUnderTimeE;
+	}
+	public Long getEmployementId() {
+		return employementId;
+	}
+	public void setEmployementId(Long employementId) {
+		this.employementId = employementId;
+	}
+	public Long getDepartmentId() {
+		return departmentId;
+	}
+	public void setDepartmentId(Long departmentId) {
+		this.departmentId = departmentId;
+	}
+	public Long getEmpId() {
+		return empId;
+	}
+	public void setEmpId(Long empId) {
+		this.empId = empId;
 	}
     
     

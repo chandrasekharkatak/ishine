@@ -5,13 +5,15 @@
         <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"
             [ngClass]="{'active' : isRewards}" (click)="isRewardsfuc()">Rewards</button>
         <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"
+            [ngClass]="{'active' : isRewardsExcel}" (click)="isRewardsExcelfuc()">Rewards Excel</button>
+        <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"
             [ngClass]="{'active' : isRewardshitory}" (click)="rewardsHistoryfun()">Rewards History</button>
         <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"
             [ngClass]="{'active' : iswalloffame}" (click)="wallOffame()">Wall Of Fame</button>
     </div>
 </div>
 
-<div class="row p-3" style="margin-left: 5px; margin-right: 5px;" *ngIf="isRewards || isEditing">
+<div class="row p-3" style="margin-left: 5px; margin-right: 5px;" *ngIf="isRewards || isEditing || isRewardsExcel">
     <div class="col-md-12 table-header ">
         <h1 class="table-header-title">Rewards</h1>
     </div>
@@ -21,13 +23,19 @@
 
     <div *ngIf="!isEditing" class="row mb-2 p-3">
         <div class="col-md-12 px-7" style="padding-left: 2rem;">
+        <label>Reward Category</label></div>
+        <div class="col-md-12 px-7" style="padding-left: 2rem;">
+            
             <button *ngFor="let category of rewardsCategories" type="button"
-                class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"
+                class="btn btn-outline-primary btn-sm  ng-star-inserted mx-1"
                 [ngClass]="{'active': category.rewardCategoryId === activeCategoryId}"
                 (click)="getRewardsByCategoryId(category.rewardCategoryId, alertMessageTemplate)">{{category.categoryName}}
             </button>
+          
+
         </div>
         <div class="col-md-12 px-7" style="padding-left: 2rem; margin-top: 1rem;">
+           
             <button *ngFor="let reward of rewards" type="button"
                 class="btn btn-outline-primary btn-sm ng-star-inserted mx-1"
                 [ngClass]="{'active': selectedReward === reward}"
@@ -55,10 +63,15 @@
         <div class="col-md-4 px-7" style="padding-left: 3rem;">
             <div class="info-wrapper">
                 <div class="form-group">
-                    <label class="info-label"><span class="text-danger">*</span>Of Month-Year</label>
+                    <label class="info-label"  *ngIf="activeCategoryId==1"><span class="text-danger">*</span>Of Month-Year</label>
+                    <label class="info-label"  *ngIf="activeCategoryId==2"><span class="text-danger">*</span>Half Yearly MonthYear</label>
+                    <label class="info-label"  *ngIf="activeCategoryId==3"><span class="text-danger">*</span>Annual award MonthYear</label>
+                 
+                   
                     <input id="startMonth" type="month" class="form-control" [(ngModel)]="ofmonthyear"
                         style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;" />
                 </div>
+               
             </div>
         </div>
     </div>
@@ -87,7 +100,7 @@
 
     <div class="row mb-1" *ngIf="selectedReward">
         <div class="col-md-12 mt-4" style="padding-left: 3rem;">
-            <h5>Reward Types for {{ selectedReward.rewardName }}</h5>
+            <h5><span class="text-danger">*</span> Reward Types for {{ selectedReward.rewardName }}</h5>
             <div *ngFor="let type of selectedReward.rewardTypes" class="form-check">
                 <input type="radio" class="form-check-input" [id]="'type-' + type" [name]="selectedReward.rewardName"
                     [value]="type" [(ngModel)]="selectedReward.selectedType">
@@ -108,7 +121,7 @@
         <div class="col-md-12 mt-4" style="padding-left: 3rem;">
             <div class="info-wrapper">
                 <div class="form-group">
-                    <label for="leaveDesc"><span class="text-danger">*</span> <strong>Remarks</strong></label>
+                    <label for="leaveDesc">Remarks</label>
                     <textarea class="form-control" [(ngModel)]="remarks" id="Desc" rows="3"
                         style="width: 31%;"></textarea>
                 </div>
@@ -149,13 +162,6 @@
             </div>
         </div>
 
-
-        <div class="row p-3">
-            <div class="col-md-12">
-                <h3>Monthly History</h3>
-            </div>
-        </div>
-
         <div class="col-md-6 d-flex justify-content-start align-items-center">
             <div class="form-inline">
                 <small>View</small>
@@ -173,23 +179,31 @@
         <div class="row">
 
             <div class="col-md-12">
-                <div class="selector-toggle" >
+                <div class="selector-toggle">
                     <a href="javascript:void(0)" (click)="toggleSearch()">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
+                <div class="export-button">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                        [hidden]="rewardHistoryList.length == 0" (click)="exportToExcel()">
+                        <em class="fa fa-file-arrow-down fa-2x"></em>
+                    </button>
+                </div>
 
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'rewardHistoryInfo'"
+                <div class="table-container" bassHorizontalScroll [tableId]="'rewardHistoryInfo'"
                     [tableTHeadId]="'rewardHistoryInfoTHead'" [tableTHeadTrId]="'rewardHistoryInfoTHeadTr'">
-                    <table class="table table-responsive" id="rewardHistoryInfo" matSort
+                    <table class="table" id="rewardHistoryInfo" matSort
                         (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="rewardHistoryInfoTHead">
                             <tr id="rewardHistoryInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
                                 <th scope="col" class="info-label" mat-sort-header="rewardedToByName|string">Employee
                                 </th>
-                                <th scope="col" class="info-label" mat-sort-header="rewardTypeName|string">Reward Type
+                                <th scope="col" class="info-label" mat-sort-header="rewardCategoryName|string">Category
+                                </th>
+                                <th scope="col" class="info-label" mat-sort-header="rewardTypeName|string">Type
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Reward By</th>
                                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Rewarded On</th>
@@ -213,28 +227,47 @@
                             <tr
                                 *ngFor="let rewardHistory of rewardHistoryList  | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page },  let i = index">
                                 <th class="info-label">{{items *(page-1)+i+1}}</th>
-                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360" [navigateToEmployee360]="rewardHistory.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{rewardHistory.rewardedToByName}}</td>
+                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360"
+                                    [navigateToEmployee360]="rewardHistory.emp360" style="cursor: pointer;"
+                                    title="Click to view Employee 360">{{rewardHistory.rewardedToByName}}</td>
                                 <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.rewardedToByName}}</td>
+                                <td>{{rewardHistory.rewardCategoryName}}</td>
                                 <td>{{rewardHistory.rewardTypeName}}</td>
-                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360" [navigateToEmployee360]="rewardHistory.emp360RewardBy" style="cursor: pointer;" title="Click to view Employee 360">{{rewardHistory.createdByName}}</td>
-                                <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.createdByName}}</td>
+
+                            
+
+                                <td id="clickablefor360" *ngIf="rewardHistory.createdByName&& userMapping.reward_employee_360"
+
+                                    [navigateToEmployee360]="rewardHistory.emp360RewardBy" style="cursor: pointer;"
+                                    title="Click to view Employee 360">{{rewardHistory.createdByName}}</td>
+                                <td *ngIf="!userMapping.reward_employee_360 || !rewardHistory.createdByName">{{rewardHistory.createdByName || 'N/A'}}</td>
                                 <td>{{rewardHistory.createdOn}}</td>
-                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360" [navigateToEmployee360]="rewardHistory.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{rewardHistory.managerName}}</td>
-                                <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.managerName}}</td>
-                                <td>{{rewardHistory.ofmonthyear}}
-                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360" [navigateToEmployee360]="rewardHistory.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{rewardHistory.updatedByName || 'N/A'}}</td>
-                                <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.updatedByName || 'N/A'}}</td>
+
+                                <td id="clickablefor360" *ngIf="rewardHistory.managerName && userMapping.reward_employee_360"
+
+                                    [navigateToEmployee360]="rewardHistory.emp360Manager" style="cursor: pointer;"
+                                    title="Click to view Employee 360">{{rewardHistory.managerName || 'N/A'}}</td>
+                                <td *ngIf="!userMapping.reward_employee_360 || !rewardHistory.managerName">{{rewardHistory.managerName || 'N/A'}}</td>
+                                <td>{{rewardHistory.ofmonthyear | date: 'MMMM yyyy'}}
+
+                    
+                                <td id="clickablefor360" *ngIf="rewardHistory.updatedByName && userMapping.reward_employee_360"
+
+                                    [navigateToEmployee360]="rewardHistory.emp360UpdatedBy" style="cursor: pointer;"
+                                    title="Click to view Employee 360">{{rewardHistory.updatedByName || 'N/A'}}</td>
+                                <td *ngIf="!userMapping.reward_employee_360 || !rewardHistory.updatedByName">{{rewardHistory.updatedByName || 'N/A'}}
+                                </td>
                                 <td>{{rewardHistory.updatedOn}}</td>
                                 <td>{{rewardHistory.remark}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" type="submit"
                                         (click)="editReward(rewardHistory.rewardId)"><em
                                             class="fa fa-edit"></em></button>&nbsp;
-                                            <button class="btn btn-sm btn-outline-danger" type="button"
-                                            (click)="openConfirmDeleteModal(confirmDelete, rewardHistory.rewardId)">
-                                            <em class="fa fa-trash"></em>
-                                          </button>
-                                          
+                                    <button class="btn btn-sm btn-outline-danger" type="button"
+                                        (click)="openConfirmDeleteModal(confirmDelete, rewardHistory.rewardId)">
+                                        <em class="fa fa-trash"></em>
+                                    </button>
+
                                     <button *ngIf="rewardHistory.isActive === 0" class="btn btn-sm btn-outline-success"
                                         type="button" (click)="Approve(rewardHistory.rewardId, alert_message)"><em
                                             class="fa fa-check"></em></button>
@@ -247,10 +280,7 @@
                     </table>
                     <pagination-controls class="my-pagination" [hidden]="rewardHistoryList.length == 0"
                         (pageChange)="handlePageChange($event)"></pagination-controls>
-                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                        [hidden]="rewardHistoryList.length == 0" (click)="exportToExcel()">
-                        <em class="fa fa-file-arrow-down fa-2x"></em>
-                    </button>
+                    
                 </div>
             </div>
         </div>
@@ -273,27 +303,60 @@
                 <div class="info-wrapper">
                     <div *ngFor="let monthYear of wallOfFameMonths; let index = index"
                         class="d-flex align-items-center mb-2">
-                        <input type="month" class="form-control" [(ngModel)]="wallOfFameMonths[index]"
-                        style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px; width: 500px; flex-shrink: 0;" />
-                        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="addMonthYear()"
-                           >
+                        <input type="month" class="form-control" [(ngModel)]="wallOfFameMonths[index]" (change)="checkDuplicateMonthYearr(index, alert_message)"
+                            style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px; width: 500px; flex-shrink: 0;" />
+                        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="addMonthYear(alert_message)">
                             <i class="fa fa-plus"></i>
                         </button>
-                        <button  *ngIf="wallOfFameMonths.length > 1" type="button" class="btn btn-outline-danger btn-sm mx-1"
-                            (click)="removeMonthYear(index)">
+                        <button *ngIf="wallOfFameMonths.length > 1" type="button"
+                            class="btn btn-outline-danger btn-sm mx-1" (click)="removeMonthYear(index,alert_message)">
                             <i class="fa fa-trash"></i>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-        <div  class="row mb-3">
-            <div class="col-md-12 mt-4" >
-                <button type="submit" class="btn btn-primary btn-sm mx-1"
-                   (click)="bulkEnable(alert_message)" >Bulk Enable</button>
+        <div class="row mb-3">
+            <div class="col-md-12 mt-4">
+                <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="bulkEnable(alert_message)">Bulk
+                    Enable</button>
             </div>
         </div>
     </div>
+</div>
+
+
+<div class="row" style="margin-left: 5px; margin-right: 5px;" *ngIf="isRewardsExcel">
+    <div class="col-md-12">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Upload Rewards
+                                </label><br>
+                            <small class="text-danger">Kindly ensure to fill appropriate data according to
+                                template</small>
+                            <input type="file" class="form-control p-1" #fileInput (change)="onRewardFileSelect($event, alert_message)" >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Download Sheet Format</label>
+                            <button class="btn btn-outline-danger" ><em
+                                    class="fa fa-download" (click)="downloadRewardFileTemplatee()"></em></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
 </div>
 
 <ng-template #alert_message>
@@ -306,8 +369,8 @@
 <ng-template #confirmDelete let-modal>
     <div class="modal-body text-center">
         <p>Are you sure you want to delete this reward?</p>
-        <button type="button" class="btn btn-success" (click)="confirmDeleteReward(alert_message)">Yes</button>&nbsp;&nbsp;
+        <button type="button" class="btn btn-success"
+            (click)="confirmDeleteReward(alert_message)">Yes</button>&nbsp;&nbsp;
         <button type="button" class="btn btn-danger" (click)="modalRef?.hide()">No</button>
     </div>
 </ng-template>
-  

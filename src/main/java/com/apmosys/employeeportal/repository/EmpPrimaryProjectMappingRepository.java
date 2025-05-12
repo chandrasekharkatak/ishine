@@ -1,0 +1,36 @@
+package com.apmosys.employeeportal.repository;
+
+import java.util.Date;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
+
+public interface EmpPrimaryProjectMappingRepository extends JpaRepository<EmpPrimaryProjectMapping, Long>{
+
+	EmpPrimaryProjectMapping findByEmpId(Long empId);
+	
+	    @Modifying
+	    @Transactional
+	    @Query(value = "UPDATE emp_primary_project_mapping SET is_mapped = :isMapped, updated_on = :updatedOn WHERE emp_id = :empId", nativeQuery = true)
+	    void updateIsMappedOnlyTON(@Param("empId") Long empId,
+	                            @Param("isMapped") String isMapped,	                            
+	                            @Param("updatedOn") Date updatedOn);
+	    
+	    @Query(value = "SELECT * FROM emp_primary_project_mapping WHERE emp_id = :empId", nativeQuery = true)
+	    Optional<EmpPrimaryProjectMapping> findByEmpIdd(@Param("empId") Long empId);
+	    
+	    @Modifying
+	    @Transactional
+	    @Query(value = "UPDATE emp_primary_project_mapping SET primary_project_id = :projectId, primary_project_name = :projectName, is_mapped = :isMapped, updated_on = :updatedOn WHERE emp_id = :empId", nativeQuery = true)
+	    void updateMappingDetails(@Param("empId") Long empId,
+	                              @Param("projectId") Long projectId,
+	                              @Param("projectName") String projectName,
+	                              @Param("isMapped") String isMapped,
+	                              @Param("updatedOn") Date updatedOn);
+}

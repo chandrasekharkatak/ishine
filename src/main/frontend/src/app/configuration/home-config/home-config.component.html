@@ -99,7 +99,7 @@
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'eventInfo'" [tableTHeadId]="'eventInfoTHead'"
                     [tableTHeadTrId]="'eventInfoTHeadTr'">
-                    <table class="table table-responsive scrollable-table" matSort (matSortChange)="sortData($event)">
+                    <table class="table scrollable-table" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light">
                           <tr>
                             <th scope="col" class="info-label" mat-sort-header="eventName|string">Event Name</th>
@@ -266,7 +266,7 @@
                 </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'notificationInfo'" [tableTHeadId]="'notificationInfoTHead'"
                     [tableTHeadTrId]="'notificationInfoTHeadTr'">
-                    <table class="table table-responsive" id="notificationInfo" matSort (matSortChange)="sortData($event)">
+                    <table class="table" id="notificationInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="notificationInfoTHead">
                           <tr id="notificationInfoTHeadTr">
                             <th scope="col" class="info-label">Sr No.</th>
@@ -293,8 +293,8 @@
                             <td *ngIf="userMapping.employee360_view_home_config"id="clickablefor360" [navigateToEmployee360]="notification.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{notification.createdByName}}</td>
                             <td *ngIf="!userMapping.employee360_view_home_config">{{notification.createdByName}}</td>
                             <td>{{notification.createdOn}}</td>
-                            <td *ngIf="userMapping.employee360_view_home_config" id="clickablefor360" [navigateToEmployee360]="notification.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{notification.updatedByName}}</td>
-                            <td *ngIf="!userMapping.employee360_view_home_config">{{notification.updatedByName}}</td>
+                            <td *ngIf="userMapping.employee360_view_home_config && notification.updatedByName" id="clickablefor360" [navigateToEmployee360]="notification.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{notification.updatedByName}}</td>
+                            <td *ngIf="!userMapping.employee360_view_home_config || !notification.updatedByName">{{notification.updatedByName}}</td>
                             <td>{{notification.updatedOn}}</td>
                             <td>
                                 <button *ngIf="userMapping.update_notification && notification.isActive == 'true'" class="btn btn-sm btn-outline-primary" type="submit" title="Update Notification" (click)="showUpdateNotificationForm(notification)"><em class="fa fa-edit"></em></button>&nbsp;

@@ -21,7 +21,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Job Role Name</label>
-                            <input type="text" class="form-control" maxlength="255" (keyup)="checkJobRole(alert_message)" autocomplete="none"
+                            <input type="text" class="form-control" maxlength="255" (blur)="checkJobRole(alert_message)" autocomplete="none"
                                [(ngModel)]="jobRoleObj.name">
                         </div>
                     </div>
@@ -116,7 +116,7 @@
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Job Role</h1>
+                <h1 class="table-header-title">Job Role(s)</h1>
             </div>
         </div>
         <div class="row">
@@ -144,9 +144,14 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
+                <div class="button-export mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="allJobRoleList.length == 0" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'roleInfo'" [tableTHeadId]="'roleInfoTHead'"
                     [tableTHeadTrId]="'roleInfoTHeadTr'">
-                    <table class="table table-responsive" id="roleInfo" matSort (matSortChange)="sortData($event)">
+                    <table class="table" id="roleInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="roleInfoTHead">
                             <tr id="roleInfoTHeadTr">
                                 <th scope="col" class="info-label">Sr No.</th>
@@ -175,8 +180,8 @@
                                 <td *ngIf="userMapping.employee360_view_role_config" id="clickablefor360" [navigateToEmployee360]="jobRole.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{jobRole.createdByName}}</td>
                                 <td *ngIf="!userMapping.employee360_view_role_config" >{{jobRole.createdByName}}</td>
                                 <td>{{jobRole.createdOn}}</td>
-                                <td *ngIf="userMapping.employee360_view_role_config" id="clickablefor360" [navigateToEmployee360]="jobRole.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{jobRole.updatedByName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_role_config" >{{jobRole.updatedByName}}</td>
+                                <td *ngIf="userMapping.employee360_view_role_config && jobRole.updatedByName" id="clickablefor360" [navigateToEmployee360]="jobRole.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{jobRole.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_role_config || !jobRole.updatedByName" >{{jobRole.updatedByName}}</td>
                                 <td>{{jobRole.updatedOn}}</td>
                                 <td
                                     *ngIf="userMapping.update_role || userMapping.update_role_feature_mapping || userMapping.delete_role">
@@ -193,9 +198,9 @@
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="allJobRoleList.length == 0"
                     (pageChange)="handlePageChange($event)"></pagination-controls>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="allJobRoleList.length == 0" (click)="exportToExcel()"><em
-                        class="fa fa-file-arrow-down fa-2x"></em></button>
+                        class="fa fa-file-arrow-down fa-2x"></em></button> -->
             </div>
         </div>
     </div>

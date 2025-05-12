@@ -1,0 +1,290 @@
+<!-- start :: Another Table for Approval -->
+<!-- <div class="row">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Approval Requests</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll>
+                    <table class="table table-responsive">	
+                        <thead class="thead-light">	
+                            <tr>
+                                <th scope="col" class="info-label">Sr No.</th>
+                                <th scope="col" class="info-label">Name</th>
+                                <th scope="col" class="info-label">Request Type</th>	
+                                <th scope="col" class="info-label">From Date</th>	
+                                <th scope="col" class="info-label">To Date</th>	
+                                <th scope="col" class="info-label">Status</th>	
+                                <th scope="col" class="info-label">Applied By</th>	
+                                <th scope="col" class="info-label">Applied On</th>	
+                                <th scope="col" class="info-label">Purpose of Travel</th>
+                                <th scope="col" class="info-label">Action</th> 
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Sakti Swarup Das</td>
+                                <td>Client Visit</td>
+                                <td>2025-03-01</td>
+                                <td>2025-03-05</td>
+                                <td>Pending</td>
+                                <td>Sakti Swarup Das</td>
+                                <td>2025-02-25</td>
+                                <td>Business Meeting</td>
+                               
+                                <td>
+                                   
+                                    <button type="button" class="btn btn-success btn-sm btn-action button" >
+                                        Approve
+                                    </button>
+                                    <br>
+                                    <button type="button" class="btn btn-danger btn-sm btn-action button">
+                                        Reject
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+                <pagination-controls class="my-pagination"></pagination-controls>
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2">
+                    <em class="fa fa-file-arrow-down fa-2x"></em>
+                </button>
+            </div>
+        </div>
+    </div>        
+</div> -->
+<!-- end :: Another Table for Approval -->
+
+<!-- Travel History Table -->
+<div class="row">
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-12 table-header">
+          <h1 class="table-header-title">Pending Travel Request </h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="overflow-auto" bassHorizontalScroll>
+            <table class="table table-responsive">
+              <thead class="thead-light">
+                <tr>
+                   
+                  <th scope="col" class="info-label">Sr No.</th>
+                  <th scope="col" class="info-label">Name</th>
+                  <th scope="col" class="info-label">Request Type</th>
+                  <th scope="col" class="info-label">From Date</th>
+                  <th scope="col" class="info-label">To Date</th>
+                  <th scope="col" class="info-label">From Location</th>
+                  <th scope="col" class="info-label">To Location</th>
+                  <th scope="col" class="info-label">Hotel Category</th>
+                  <th scope="col" class="info-label">City Category</th>
+                  <th scope="col" class="info-label">City Name</th>
+                  <!-- <th scope="col" class="info-label">Status</th> -->
+                  <th scope="col" class="info-label">Applied By</th>
+                  <th scope="col" class="info-label">Applied On</th>
+                  <th scope="col" class="wide-col">Purpose Of Travel</th>
+                  <th scope="col" class="info-label">Current Approval Level</th>
+                  <th scope="col" class="info-label">Level 1 Approver Name</th>
+                  <th scope="col" class="info-label">Level 1 Approver Status</th>
+                  <th scope="col" class="info-label">Level 2 Approver Name</th>
+                  <th scope="col" class="info-label">Level 2 Approver Status</th>
+                  <th scope="col" class="info-label">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Loop over travelRequests and render each row -->
+                <tr *ngFor="let row of travelRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                  <td>{{ i + 1}}</td>
+                  <td>{{ row.name }}</td>
+                  <td>{{ row.requestType }}</td>
+                  <td>{{ row.fromDate | date }}</td>
+                  <td>{{ row.toDate | date }}</td>
+                  <td>{{ row.hotelCategory || 'NA' }}</td>
+                  <td>{{ row.cityCategory || 'NA' }}</td>
+                  <td>{{ row.city || 'NA' }}</td>
+                  <td>{{ row.fromLocation || 'NA' }}</td>
+                  <td>{{ row.toLocation || 'NA' }}</td>
+                  <!-- <td [ngClass]="{
+                    'text-danger': row.status === 'Rejected',
+                    'text-success': row.status === 'Approved',
+                    'text-warning': row.status === 'Pending'
+                                }">
+                    {{ row.status }}
+                  </td> -->
+                  <td>{{ row.empId }}</td>
+                  <td>{{ row.appliedOn | date }}</td>
+                  <td>{{ row.purpose }}</td>
+                  <td>{{ row.level }}</td>
+                  <td>{{ row.hodName }}</td>
+                  <td [ngClass]="{
+                    'text-danger': row.status === 'Rejected',
+                    'text-success': row.status === 'Approved',
+                    'text-warning': row.status === 'Pending'
+                                }">
+                    {{ row.status }}
+                  </td>
+                  <td>{{ row.level2approverName }}</td>
+                  <td [ngClass]="{
+                    'text-danger': row.level2approverStatus === 'Rejected',
+                    'text-success': row.level2approverStatus === 'Approved',
+                    'text-warning': row.level2approverStatus === 'Pending'
+                                }"> 
+                    {{ row.level2approverStatus }}
+                  </td>
+                  <td>
+                    
+                    <button *ngIf="row.level2approverStatus === 'Pending'" type="button" class="btn btn-success btn-sm btn-action button" (click)="openEditModal(approveRequest,row)">
+                      <em class="fa fa-edit"></em> Take Action
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <pagination-controls class="my-pagination" [hidden]="travelRequests.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+          <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2">
+            <em class="fa fa-file-arrow-down fa-2x"></em>
+          </button> -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+
+  
+  <ng-template #approveRequest>
+    <div class="modal-body text-center">
+      <div class="modal-dialog modal-lg" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="approveRequestModalLabel">Approve Travel Request</h5>
+              <button type="button" class="close" (click)="closeModal()" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form #approveForm="ngForm">
+                <div class="form-group">
+                  <label for="requestId">Requester Name</label>
+                  <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedTravelRequest.name" name="requestId" readonly />
+                </div>
+                <div class="form-group">
+                  <label for="approverRemarks">Approver Remarks</label>
+                  <textarea class="form-control" id="approverRemarks" [(ngModel)]="selectedTravelRequest.approverRemarks" name="approverRemarks" rows="4" placeholder="Enter your remarks..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="status">Approve Status</label>
+                  <select class="form-control" id="status" [(ngModel)]="selectedTravelRequest.approverStatus" name="approverStatus">
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+
+                <button type="button" class="btn btn-primary" (click)="actionRequest(alert_message)">Submit Response</button>
+                <!-- <button type="button" class="btn btn-primary" (click)="approveRequest()">Approve</button>
+                <button type="button" class="btn btn-danger" (click)="closeModal()">Cancel</button> -->
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+
+  <ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+  
+  
+
+
+
+
+  <!-- <ng-template #travel_desk>
+   
+    <div class="modal-body text-center">
+      <div class="" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editTravelRequestModalLabel">Edit Travel Request</h5>
+              <button type="button" class="close"  aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form #editForm="ngForm">
+                <div class="form-group">
+                  <label for="requestId">Request ID</label>
+                  <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedTravelRequest.requestId" name="requestId" readonly />
+                </div>
+                <div class="form-group">
+                  <label for="name">Name</label>
+                  <input type="text" class="form-control" id="name" [(ngModel)]="selectedTravelRequest.name" name="name" />
+                </div>
+                <div class="form-group">
+                  <label for="requestType">Request Type</label>
+                  <input type="text" class="form-control" id="requestType" [(ngModel)]="selectedTravelRequest.requestType" name="requestType" />
+                </div>
+                <div class="form-group">
+                  <label for="fromDate">From Date</label>
+                  <input type="text" class="form-control" id="fromDate" [(ngModel)]="selectedTravelRequest.fromDate" name="fromDate" disabled />
+                </div>
+                <div class="form-group">
+                  <label for="toDate">To Date</label>
+                  <input type="text" class="form-control" id="toDate" [(ngModel)]="selectedTravelRequest.toDate" name="toDate" disabled />
+                </div>
+                <div class="form-group">
+                  <label for="fromLocation">From Location</label>
+                  <input type="text" class="form-control" id="fromLocation" [(ngModel)]="selectedTravelRequest.fromLocation" name="fromLocation" />
+                </div>
+                <div class="form-group">
+                  <label for="toLocation">To Location</label>
+                  <input type="text" class="form-control" id="toLocation" [(ngModel)]="selectedTravelRequest.toLocation" name="toLocation" />
+                </div>
+                <div class="form-group">
+                  <label for="status">Status</label>
+                  <input type="text" class="form-control" id="status" [(ngModel)]="selectedTravelRequest.status" name="status" />
+                </div>
+                <div class="form-group">
+                  <label for="appliedBy">Applied By</label>
+                  <input type="text" class="form-control" id="appliedBy" [(ngModel)]="selectedTravelRequest.appliedBy" name="appliedBy" />
+                </div>
+                <div class="form-group">
+                  <label for="appliedOn">Applied On</label>
+                  <input type="date" class="form-control" id="appliedOn" [(ngModel)]="selectedTravelRequest.appliedOn" name="appliedOn" disabled />
+                </div>
+                <div class="form-group">
+                  <label for="purpose">Purpose of Travel</label>
+                  <textarea class="form-control" id="purpose" [(ngModel)]="selectedTravelRequest.purpose" name="purpose"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="approver">Level 1 Approver</label>
+                  <input type="text" class="form-control" id="approver" [(ngModel)]="selectedTravelRequest.approver" name="approver" />
+                </div>
+                <div class="form-group">
+                  <label for="approverStatus">Level 1 Approver Status</label>
+                  <input type="text" class="form-control" id="approverStatus" [(ngModel)]="selectedTravelRequest.status" name="approverStatus" />
+                </div>
+                <button type="button" class="btn btn-primary" (click)="updateTravelRequest()">Save Changes</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</ng-template> -->

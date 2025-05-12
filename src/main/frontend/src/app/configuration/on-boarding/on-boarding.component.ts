@@ -27,7 +27,7 @@ export class OnBoardingComponent implements OnInit {
 
   modalRef: BsModalRef = new BsModalRef();
 
-  employeesFor360: any[] = [];
+  
 
   userMapping: any = {};
   feature = "Onboarding Config";
@@ -43,12 +43,7 @@ export class OnBoardingComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-      try {
-        this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-        // console.log("Priyadarshini ", this.employeesFor360);
-      } catch (error) {
-        console.error("Error fetching employee details for 360 view", error);
-      }
+      
 
       // Dynamic Subfeature Flags
       let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -137,16 +132,9 @@ export class OnBoardingComponent implements OnInit {
         this.employeeOnBoardingDetailList = response.serviceResponse;
         this.employeeDetailList = response.serviceResponse1;
         this.employeeDetailList.forEach((employee) => {
-          console.log("employee.empId ", employee.empId);
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
-          console.log("empId ", matchingEmployee);
-          employee.emp360 = matchingEmployee ? matchingEmployee : {};
-          console.log("employee.managerId ", employee.managerId);
-          let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === employee.managerId);
-          console.log("managerId ", matchingEmployee3);
-          employee.emp360ManagerId = matchingEmployee3 ? matchingEmployee3 : {};
+           employee.emp360 = employee.empId;
+           employee.emp360ManagerId = employee.managerId;
         });
-        console.log(this.employeeOnBoardingDetailList, ' : employeeOnBoardingDetailList');
         const key = "deptId";
         this.departmentList = [...new Map(this.employeeOnBoardingDetailList.map((employee:Asset) => [employee[key], employee])).values()].map((employee:Asset) => {
           return { departmentName: employee.departmentName, deptId: employee.deptId}

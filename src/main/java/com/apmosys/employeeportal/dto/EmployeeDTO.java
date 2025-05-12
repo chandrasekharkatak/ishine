@@ -19,6 +19,7 @@ import lombok.ToString;
 public class EmployeeDTO {
 
 	private Long empId;
+	
 	private Long employeementId;
 	private Long draftEmpId;
 	private String name;
@@ -144,6 +145,10 @@ public class EmployeeDTO {
 	private Long teamLeadId;
 	private Integer projectId;
 	private String projectName;
+	private String poStartDate;
+	private String poEndDate;
+	private String poNo;
+	private String poProjectType;
 	private String startDate;
 	private String updatedOn;
 	private String teamLeadName;
@@ -264,6 +269,9 @@ public class EmployeeDTO {
     private Long reporteeCountManager;
     private Long reporteeCountReportingManager;
     
+    private String projectIds;
+    private String selectedProjectId;
     private String hodDepartmentName;
+    private String teamIds;
 	
 }
