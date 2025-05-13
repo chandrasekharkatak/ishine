@@ -36,6 +36,11 @@ export class TeamDashboardComponent implements OnInit {
 
   
 
+  //Tabs
+  isMyTeamView:boolean = false;
+  isTeamUnderReview:boolean = false;
+  tabType: any;
+
   viewPerformanceEmpId: any;
 
   currentUser: User;
@@ -101,6 +106,7 @@ export class TeamDashboardComponent implements OnInit {
   goals: any[] = [];
 
   ngOnInit() {
+    this.showMyTeam();
     this.logService.updateLogInfo(this.log);
     const today = new Date();
     console.log('today date: ', today);
@@ -115,6 +121,9 @@ export class TeamDashboardComponent implements OnInit {
     } else {
       console.error('Current user or HOD ID is undefined');
     }
+    
+    this.loadGoalTemplates();
+    this.loadQuarters();
     this.fetchQuarters();
 
     let featureMap: Feature = this.currentUser.userMapping.find(
@@ -124,7 +133,22 @@ export class TeamDashboardComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] =
         sub.isActive;
     });
+  }
 
+  showMyTeam(){
+    this.tabType = "myTeam";
+    this.isMyTeamView = true;
+    this.isTeamUnderReview = false;
+
+    this.getTeamEmployeeListInTeamDashboard();
+  }
+
+  showMyTeamUnderReview(){
+    this.tabType = "reviewTeam";
+    this.isTeamUnderReview = true;
+    this.isMyTeamView = false;
+
+    this.getTeamEmployeeListInTeamDashboard();
   }
 
   fetchQuarters(): void {
@@ -197,7 +221,8 @@ export class TeamDashboardComponent implements OnInit {
     let empObj = {
       empId: this.currentUser.empId,
       employeeRole: this.currentUser.employeeRole,
-      departmentId: this.currentUser.departmentId
+      departmentId: this.currentUser.departmentId,
+      tabType: this.tabType
     };
   
     this.performanceService.getTeamEmployeeListInTeamDashboard(empObj).subscribe(

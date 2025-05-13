@@ -8,7 +8,7 @@ import { Project } from '../models/project';
 })
 export class ProjectService {
 
-  private baseUrl:any = environment.baseUrl;
+  private baseUrl: any = environment.baseUrl;
 
 
   constructor(private http: HttpClient) { }
@@ -25,51 +25,55 @@ export class ProjectService {
     return this.http.get(`${this.baseUrl}` + `api/getAllProjects`);
   }
 
-  createProject(projectObj: Project){
+  createProject(projectObj: Project) {
     return this.http.post(`${this.baseUrl}` + `api/createProject`, projectObj);
   }
 
-  updateProject(projectObj: Project){
+  updateProject(projectObj: Project) {
     return this.http.post(`${this.baseUrl}` + `api/updateProject`, projectObj);
   }
 
-  deleteProject(projectObj: Project){
+  deleteProject(projectObj: Project) {
     return this.http.post(`${this.baseUrl}` + `api/deleteProject`, projectObj);
   }
 
-  getProjectByProjectId(project: Project){
+  getProjectByProjectId(project: Project) {
     return this.http.post(`${this.baseUrl}` + `api/getProjectByProjectId`, project);
   }
 
-  checkProjectName(project: Project){
+  checkProjectName(project: Project) {
     return this.http.post(`${this.baseUrl}` + `api/checkProjectName`, project);
   }
 
-  getAllMyProjectByEmpId(project: Project){
+  getAllMyProjectByEmpId(project: Project) {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyProjectByEmpId`, project);
   }
 
-  getExistingProjectsAndTeamsByEmployee(project: Project){
+  getExistingProjectsAndTeamsByEmployee(project: Project) {
     return this.http.post(`${this.baseUrl}` + `api/getExistingProjectsAndTeamsByEmployee`, project);
   }
 
-  updateProjectResourceAsInActive(project: Project){
+  updateProjectResourceAsInActive(project: Project) {
     return this.http.post(`${this.baseUrl}` + `api/updateProjectResourceAsInActive`, project);
   }
 
-  updateProjectStartAndEndDate(project: Project){
+  updateProjectStartAndEndDate(project: Project) {
     return this.http.post(`${this.baseUrl}` + `api/updateProjectStartAndEndDate`, project);
   }
-  
-  deleteTeam(project: Project){
+
+  deleteTeam(project: Project) {
     return this.http.post(`${this.baseUrl}` + `api/deleteTeamByTeamId`, project);
   }
+  
   //added by rahul for project
-getTeamMemberByTeamId(teamId:any){
-  return this.http.get(`${this.baseUrl}`+`api/getTeamMemberByTeamId/`+teamId);
-} 
-updateProjectResourcesAsInActiveBulk(project: any){
-  return this.http.post(`${this.baseUrl}` + `api/updateProjectResourcesAsInActiveBulk`, project);
-}
+  getTeamMemberByTeamId(teamId: any) {
+    return this.http.get(`${this.baseUrl}` + `api/getTeamMemberByTeamId/` + teamId);
+  }
+  updateProjectResourcesAsInActiveBulk(project: any) {
+    return this.http.post(`${this.baseUrl}` + `api/updateProjectResourcesAsInActiveBulk`, project);
+  }
 
+  getProjectByName(project: Project) {
+    return this.http.post(`${this.baseUrl}` + `api/getProjectByName`, project);
+  }
 }

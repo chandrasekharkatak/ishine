@@ -25,6 +25,8 @@ public class ProjectInsightMilestone {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long milestoneId;
 	private String milestone;
+	
+	@Column(length = 3000)
 	private String description;
 	
 	private Long deptId;

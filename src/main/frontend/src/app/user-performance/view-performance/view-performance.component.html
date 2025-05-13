@@ -122,6 +122,8 @@
                   <th scope="col" class="text-center">Status</th>
                   <th scope="col" class="text-center" style="width: 60px;">Action</th>
                 </tr>
+                <tr app-column-filter-bar *ngIf="isProjectInsightList && isSearchEnabled"
+                  [columnList]="projectInsightColumnColumns" (onSearch)="onSearch($event, null);page=1"></tr>
               </thead>
               <tbody>
                 <tr *ngFor="let goal of goals let i = index">
@@ -143,6 +145,8 @@
               </tbody>
             </table>
           </div>
+          <pagination-controls class="my-pagination" [hidden]="allProjectInsightList.length == 0"
+            (pageChange)="handlePageChange($event, null)"></pagination-controls>
         </div>
         <div *ngIf="goals.length === 0" class=" text-muted d-flex justify-content-center align-items-center h-100">
           No Goals Assigned for this Quarter !!
@@ -150,7 +154,7 @@
       </div>
     </div>
   </div>
-</div>
+</div>-->
 
 <!-- Summary Cards -->
 <div class="container-fluid mb-2">
@@ -679,6 +683,166 @@
 <ng-template #alert_message>
   <div class="modal-body text-center">
     <p>{{alertMessage}}</p>
-    <button type="button" class="btn btn-primary" (click)="this.modalRef1.hide();">OK</button>
+    <button type="button" class="btn btn-primary" (click)="this.modalRef.hide();">OK</button>&nbsp;
+  </div>
+</ng-template>
+
+
+<!-- Project Insight -->
+
+<ng-template #insight_response_template>
+  <div class="col-md-12">
+    <app-project-insights [actionType]="actionType" [subActionType]="subActionType" [projectId]="projectId"
+      [responseByEmpId]="responseByEmpId"
+      (closeProjectInsightResponseModalEvent)="closeProjectInsightResponseModal()"></app-project-insights>
+  </div>
+</ng-template>
+
+<ng-template #user_contribution>
+  <div class="modal-body px-4 py-3">
+    <h5 class="text-center mb-3">{{ currentEmployeeInfo.name }} Contribution</h5>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Tag Project</label>
+      <select class="form-control form-control-sm" [(ngModel)]="userContributionObj.projectId" name="tagProj">
+        <option selected value="" disabled>Select</option>
+        <option *ngFor="let proj of allProjectList" [value]="proj.projectId">
+          {{proj.projectName}}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Project Name</label>
+      <input
+        type="text"
+        disabled
+        class="form-control"
+        [(ngModel)]="userContributionObj.userDefinedProjectName"
+        placeholder="Enter project name"
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Title</label>
+      <input
+        type="text"
+        disabled
+        class="form-control"
+        [(ngModel)]="userContributionObj.title"
+        placeholder="Enter Title"
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label> Team members</label>
+      <mat-select disabled ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" [displayMember]="'name'"
+        [valueMember]="'empId'" [source]="employeeList" [useInfiniteScroll]="true" [multiple]="true"
+        [(ngModel)]="userContributionObj.teamMembers">
+        <mat-option [value]="employee.empId" *ngFor="let employee of employeeList">
+          {{employee.name}}
+        </mat-option>
+      </mat-select>
+    </div>
+
+    <div class="form-group mb-3">
+      <label> Parent Contribution</label>
+      <input
+        type="text"
+        disabled
+        class="form-control"
+        [(ngModel)]="userContributionObj.parentContributionName"
+        placeholder="Enter Parent Contribution"
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label>Tags</label>
+      <div class="tags-container">
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <span *ngFor="let tag of userContributionObj.tags; let i = index" 
+                class="badge bg-primary d-flex align-items-center">
+            {{tag}}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Contribution</label>
+      <angular-editor disabled id="myEditor" [(ngModel)]="userContributionObj.response" [config]="editorConfig">
+      </angular-editor>
+    </div>
+
+    <div class="form-group mb-3">
+      <div class="form-group mb-3">
+        <label>Attachments</label>
+        <div class="d-flex flex-column gap-2">
+          <div class="d-flex flex-wrap gap-2" *ngIf="userContributionObj.attachments?.length">
+            <span *ngFor="let file of userContributionObj.attachments; let i = index"
+                class="badge bg-secondary d-flex align-items-center">
+                <span style="cursor: pointer;" (click)="previewDocument(file, 'document-preview-container')">{{file.name}}</span>
+            </span>
+        </div>
+        </div>
+      </div>
+    </div>  
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Remark</label>
+      <input
+        type="textarea"
+        class="form-control"
+        [(ngModel)]="userContributionObj.remark"
+        placeholder="Enter Remark"
+      />
+    </div>
+
+    <div class="text-danger me-auto" *ngIf="validationErrors">
+      <small>{{validationErrors}}</small>
+    </div>
+
+    <div class="d-flex justify-content-end gap-3 mt-4">
+      <ng-container *ngIf="!showPreReviewerSelection">
+        <button type="button" class="btn btn-sm btn-outline-success me-2 ml-1"
+          (click)="processUserContribution('Approve', userContributionObj)">
+          Approve
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger me-2 ml-1"
+          (click)="processUserContribution('Reject', userContributionObj)">
+          Reject
+        </button>
+        <button type="button" class="btn btn-sm btn-info ml-1"
+          (click)="processUserContribution('preReviewer', userContributionObj)">
+          Add Pre-Reviewer
+        </button>
+      </ng-container>
+    
+      <ng-container *ngIf="showPreReviewerSelection">
+        <div class="d-flex align-items-center gap-3">
+          <select class="form-control form-control-sm" style="width: 200px;" [(ngModel)]="selectedPreReviewer">
+            <option value="" disabled selected>Select Pre-Reviewer</option>
+            <option *ngFor="let employee of employeeList" [value]="employee.empId">
+              {{employee.name}}
+            </option>
+          </select>
+          <button type="button" class="btn btn-sm btn-primary ml-1"
+            (click)="processUserContribution('preReviewer', userContributionObj)">
+            Proceed
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary ml-1" (click)="cancelRequestPreReviewer()">
+            Cancel
+          </button>
+        </div>
+      </ng-container>
+    
+      <button type="button" class="btn btn-sm btn-outline-secondary ml-1" *ngIf="!showPreReviewerSelection"
+        (click)="cancelRequest()">
+        Cancel
+      </button>
+    </div>
+
+    <div *ngIf="showPreviewDiv" class="d-flex justify-content-center align-items-center text-danger" id="document-preview-container"
+      style="border: 1px solid black; padding: 10px; margin-bottom: 15px;margin-top: 20px;"></div>
   </div>
 </ng-template>

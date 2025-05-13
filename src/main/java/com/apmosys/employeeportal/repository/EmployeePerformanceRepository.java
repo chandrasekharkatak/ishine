@@ -285,6 +285,7 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 			+ "  );\n"
 			+ "")
 	List<Object[]> getEmployeesWithoutPerformance(@Param("lastDate") LocalDate lastDate, @Param("quarterIds") List<Long> quarterIds);
+
 	
 	
 	@Query(nativeQuery = true,value = "select email,name from employee where emp_id = :empId")

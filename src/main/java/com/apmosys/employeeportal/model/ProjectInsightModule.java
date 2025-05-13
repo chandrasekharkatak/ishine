@@ -26,6 +26,9 @@ public class ProjectInsightModule {
 	private Long moduleId;
 	private Long milestoneId;
 	private String module;
+	
+	
+	@Column(length = 3000)
 	private String description;
 	private Long assignedTo;
 	private Long redmineId;

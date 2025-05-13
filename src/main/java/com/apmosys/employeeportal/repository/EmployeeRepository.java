@@ -578,7 +578,14 @@ List<Object[]> findEmployeesInSameDepartmentAsCurrentUser(Long hodId);
 	       nativeQuery = true)
 	List<Object[]> findEmployeeGoalsByEmpIdAndQuarterId(@Param("employeeId") Long employeeId,
 	                                                  @Param("quarterId") Long quarterId);
-		
+	
+	
+	@Query(value="SELECT jb.employee_role \n"
+			+ "FROM employee e \n"
+			+ "INNER JOIN job_role jb ON jb.job_role_id = e.job_role_id \n"
+			+ "WHERE e.emp_id=:employeeId \n"
+			+ "LIMIT 1 \n",nativeQuery = true)
+	String getJobRoleByEmployeeId(Long employeeId);
 
 @Query(value = "SELECT e.empId, e.name, e.email, jr.name as jobrolename, e.mobileNo, em.name as manager, e.employeementId, \n"
 		+ "e.invalidAccessAttempt, e.isTimesheetLockCheckEnable, e.employmentstatus, e.dateOfRelieving, e.pipFlag,p.pipId,e.isConsultant,e.isApprenticeship from Employee e \n"
@@ -587,6 +594,7 @@ List<Object[]> findEmployeesInSameDepartmentAsCurrentUser(Long hodId);
 		+ "INNER JOIN Employee em ON em.empId =:empId \n"
 		+ "WHERE e.employmentstatus not like 'InActive' AND ((e.managerId =:empId AND (e.approvalsTo = 'Manager' OR e.approvalsTo IS NULL)) OR (e.reportingManagerId =:empId AND e.approvalsTo = 'Reporting Manager'))")
 List<Object> findexample(@Param("empId") Long empId);
+
 	@Query(nativeQuery = true)
 	public List<Object[]> getTeamProjectMappingsByEmpId(Long empId );
 	
@@ -642,4 +650,7 @@ public String findNameByEmpID(@Param("empId")Long empId);
 @Query(value = "select j.employeeRole from JobRole j inner join Employee e on j.jobRoleId = e.jobRoleId where e.empId = :empId")
 public String findemployeerole(@Param("empId")Long empId);
 	
+	
+	List<Employee> findByEmpIdIn(List<Long> empIds);
+
 }

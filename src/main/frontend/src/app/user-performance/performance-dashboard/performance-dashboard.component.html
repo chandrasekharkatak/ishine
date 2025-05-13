@@ -100,21 +100,56 @@
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Charts and Goals Section -->
-<div class="container-fluid mb-4">
-  <div class="row">
-    <!-- Goal Chart -->
-    <div class="col-lg-6 col-md-12 mb-4 mb-lg-0">
-      <div class="card h-100">
-        <div class="card-header">
-          <h5 class="card-title">Goal Progress</h5>
+    <div class="row mt-4">
+      <div class="col-md-4">
+        <div class="card shadow border-0 info">
+          <div class="card-header ">
+            <h5 class="card-title mb-0 text-center">Appraisal Summary</h5>
+          </div>
+          <div class="card-body">
+            <p class="card-text px-1">
+              <strong>Final Rating:</strong> 
+              <!-- <span > {{ summary.finalRating }}/10</span> -->
+            </p>
+            <p class="card-text px-1">
+              <strong>Appraisal Score:</strong> 
+              <!-- <span > {{ summary.appraisalScore }}%</span> -->
+            </p>
+            <p class="card-text px-1">
+              <strong>Final Remarks:</strong>
+              <!-- <span class="text-muted d-block mt-1"> {{ summary.finalRemarks }}</span> -->
+            </p>
+          </div>
+          
         </div>
-        <div class="card-body d-flex justify-content-center align-items-center">
-          <div id="goalChart"></div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="card shadow border-0 info">
+          <div class="card-header ">
+            <h5 class="card-title mb-0 text-center">Skills</h5>
+          </div>
+          <div class="card-body">
+            
+          </div>
         </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow border-0 info">
+          <div class="card-header ">
+            <h5 class="card-title mb-0 text-center">Awards</h5>
+          </div>
+          <div class="card-body">
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="graph-placeholder p-4 border rounded text-center">[Graphs Here]</div>
       </div>
     </div>
 
@@ -179,71 +214,90 @@
         </div>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- Summary Cards -->
-<div class="container-fluid mb-2">
-  <div class="row">
-    <!-- Appraisal Summary Card -->
-    <div class="col-lg-4 col-md-6 mb-4">
-      <div class="card info h-100">
-        <div class="card-header">
-          <h5 class="card-title text-center">Appraisal Summary</h5>
-        </div>
-        <div class="card-body" >
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="font-weight-bold">Final Rating:</span>
-            <span class="badge bg-primary text-white p-2"
-              >{{ summary?.finalRating || 0 }} /10</span
-            >
+    
+    <div class="row mt-4" *ngIf="isProjectInsightList">
+      <div class="col-md-6">
+        <div class="card shadow border-0">
+          <div class="card-header">
+            <h5 class="card-title mb-0 text-center fw-bold">Project Insights Contribution</h5>
           </div>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="font-weight-bold">Appraisal Score:</span>
-            <span class="badge bg-success text-white p-2"
-              >{{ summary?.appraisalScore || 0 }} %</span
-            >
-          </div>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="font-weight-bold">Final Remarks:</span>
-            <p class="text-muted p-2">{{ summary?.finalRemarks || "None" }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Skills Card -->
-    <div class="col-lg-4 col-md-6 mb-4">
-      <div class="card info h-100">
-        <div class="card-header">
-          <h5 class="card-title text-center">Skills</h5>
-        </div>
-        <div class="card-body p-0" *ngIf="domainSpecializationList.length > 0">
-          <div class="mb-3" >
-            <p class="font-weight-bold mb-2">Domain:</p>
-            <div class="d-flex flex-wrap">
-              <div *ngFor="let cat of domainSpecializationList">
-                <h6
-                  class="badge badge-pill"
-                  [ngStyle]="{ 'background-color': cat.colorCode }"
-                >
-                  {{ cat.domainName }}
-                </h6>
+          <div class="card-body">
+              <div class="col-md-12">
+                <div class="row mb-1">
+                  <div class="col d-flex justify-content-between align-items-center search-toggle">
+                    <div>
+                      <a href="javascript:void(0)" (click)="toggleSearch('projectInsight')">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                      </a>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end align-items-center flex-wrap">
+                      <label *ngIf="!file" class="btn btn-sm btn-outline-primary mr-2 mb-0" for="project-data-input-file">
+                        <span>Upload Excel File</span>
+                        <input id="project-data-input-file" type="file" class="d-none" #fileInput accept=".xlsx, .xls"
+                          (change)="onFileChange($event);uploadFile()" [disabled]="file">
+                      </label>
+                  
+                      <span *ngIf="fileName" class="small mr-2">
+                        {{fileName}}
+                      </span>
+                  
+                      <button *ngIf="file" type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
+                        (click)="clearFileInput()">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                  
+                      <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel"
+                        [disabled]="!file" (click)="uploadXcelData(insight_response_template)">
+                        <i class="fa fa-upload" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInsightInfo'"
+                  [tableTHeadId]="'projectInsightInfoTHead'" [tableTHeadTrId]="'projectInsightInfoTHeadTr'">
+                  <table class="table" matSort (matSortChange)="sortData($event)">
+                    <thead class="thead-light">
+                      <tr>
+                        <th scope="col" class="info-label" mat-sort-header="surveyName|string">Project Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="description|string">Project Manager</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                        <th scope="col" class="info-label">Actions</th>
+                      </tr>
+                      <tr app-column-filter-bar *ngIf="isProjectInsightList && isSearchEnabled"
+                        [columnList]="projectInsightColumnColumns" (onSearch)="onSearch($event, 'projectInsight');page=1"></tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        *ngIf="allProjectInsightList.length == 0|| (allProjectInsightList| colFilter:filters:false).length == 0">
+                        <th colspan="6" class="text-center info-label">No Details to display...</th>
+                      </tr>
+                      <tr *ngFor="let project of allProjectInsightList 
+              | colFilter:filters:false 
+              | sort : [sortColumn, sortColumnType, sortDirection] 
+              | paginate: { id: 'projectInsightPagination', itemsPerPage: 2, currentPage: page }">
+                        <td>{{project.projectName}}</td>
+                        <td>{{project.projectManagerName}}</td>
+                        <td>{{project.createdByName}}</td>
+                        <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
+                        <td>
+                          <button class="fa-solid fas fa-tasks btn btn-sm btn-outline-primary" type="submit" title="Add / View Response"
+                            (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)">
+                          </button>&nbsp;
+                          <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" type="submit" title="Download Questions Excel"
+                            (click)="getAllProjectInsightQuestionsByProjectIdAndEmpId(project)">
+                          </button>&nbsp;
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <pagination-controls class="my-pagination" id="projectInsightPagination" [hidden]="allProjectInsightList.length == 0"
+                  (pageChange)="handlePageChange($event, 'projectInsight')"></pagination-controls>
               </div>
-            </div>
-          </div>
-          <div >
-            <p class="font-weight-bold mb-2">Specialization:</p>
-            <div class="d-flex flex-wrap">
-              <h6 *ngFor="let cat of domainSpecializationList; let i = index">
-                <span
-                  class="badge badge-pill"
-                  *ngFor="let sub of cat.allSpecializationList"
-                  [ngStyle]="{ 'background-color': cat.colorCode }"
-                  >{{ sub.specializationName }}</span
-                >
-              </h6>
-            </div>
           </div>
           
         </div>
@@ -251,23 +305,102 @@
           No Specialization found
         </div>
       </div>
-    </div>
 
-    <!-- Awards Card -->
-    <div class="col-lg-4 col-md-12 mb-4">
-      <div class="card info h-100">
-        <div class="card-header">
-          <h5 class="card-title text-center">Awards</h5>
-        </div>
-        <div class="card-body p-0">
-          <ul class="award-list p-3">
-            <li *ngFor="let award of awards">
-              <span class="award-name">{{ award[0] }}:</span>
-              <span class="award-remark">{{ award[1] }}</span>
-            </li>
-          </ul>
-          <div *ngIf="awards.length === 0" class="text-center text-muted p-3">
-            No awards found
+      <div class="col-md-6">
+        <div class="card shadow border-0">
+          <div class="card-header">
+            <h5 class="card-title mb-0 text-center fw-bold">{{!toggleReviewView ? 'My Contribution' : 'Review Contribution'}}</h5>
+          </div>
+          <div class="card-body">
+            <div class="col-md-12">
+              <div class="row mb-1">
+                <div class="col d-flex justify-content-between align-items-center search-toggle">
+                  <div>
+                    <a href="javascript:void(0)" (click)="toggleSearch('contribution')">
+                      <i *ngIf="!isContributionSearchEnabled" class="fa fa-search"></i>
+                      <i *ngIf="isContributionSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                  </div>
+
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary" (click)="openAddContributionModal(user_contribution)">
+                      <i class="fa-solid fa-plus"></i> &nbsp; Add contribution
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" *ngIf="!toggleReviewView"
+                      (click)="switchToReviewView()">
+                      Review contribution(s)
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" *ngIf="toggleReviewView"
+                      (click)="switchToReviewView()">
+                      My Contribution(s)
+                    </button>
+                  </div>
+                </div>                
+              </div>
+      
+              <!-- Table container -->
+              <div class="table-responsive overflow-auto" bassHorizontalScroll 
+                   [tableId]="'myContributionInfo'"
+                   [tableTHeadId]="'myContributionInfoTHead'" 
+                   [tableTHeadTrId]="'myContributionInfoTHeadTr'">
+                <table class="table" matSort (matSortChange)="sortData($event)">
+                  <thead class="thead-light">
+                    <tr>
+                      <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>
+                      <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                      <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                      <th scope="col" *ngIf="showReviewButton" class="info-label" mat-sort-header="createdOn|string">Contribution by</th>
+                      <th scope="col" class="info-label">Actions</th>
+                    </tr>
+                    <tr app-column-filter-bar 
+                        *ngIf="finalContributionList && isContributionSearchEnabled"
+                        [columnList]="projectInsightContributionColumns" 
+                        (onSearch)="onSearch($event, 'contribution');myContributionPage=1">
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- No data message -->
+                    <tr *ngIf="finalContributionList.length == 0 || (finalContributionList | colFilter:contributionFilters:false).length == 0">
+                      <td colspan="4" class="text-center info-label">No Details to display...</td>
+                    </tr>
+                    <!-- Data rows -->
+                    <tr *ngFor="let project of finalContributionList 
+                                  | colFilter:contributionFilters:false 
+                                  | sort : [sortColumn, sortColumnType, sortDirection] 
+                                  | paginate: { id: 'contributionPagination', itemsPerPage: 4, currentPage: myContributionPage }">
+                      <td>{{project.userDefinedProjectName}}</td>
+                      <td>{{project.status}}</td>
+                      <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
+                      <td *ngIf="showReviewButton">{{project.contributionBy }}</td>
+                      <td>
+                        <button class="btn btn-sm btn-outline-primary" 
+                                type="button" 
+                                *ngIf="!showReviewButton"
+                                (click)="openUserContributionModal(project,user_contribution)">
+                          <em>View / Update</em>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" 
+                                type="button" 
+                                *ngIf="showReviewButton"
+                                (click)="openUserContributionModal(project,user_contribution)">
+                          <em>View</em>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+      
+              <!-- Pagination -->
+              <div class="mt-3">
+                <pagination-controls 
+                  id="contributionPagination"
+                  class="my-pagination" 
+                  [hidden]="finalContributionList.length == 0"
+                  (pageChange)="handlePageChange($event, 'contribution')">
+                </pagination-controls>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -501,11 +634,11 @@
           </form>
         </div>
       </div>
-    </div>
+      </div>
   </div>
 </div>
 
-<!-- Modal Templates -->
+<!-- Modals Template -->
 <ng-template #viewGoalTemplate>
   <div class="modal-content rounded-lg shadow-lg">
     <div class="modal-header px-4 py-2">
@@ -747,5 +880,218 @@
     >
       OK</button
     >&nbsp;
+  </div>
+</ng-template>
+
+<!-- Project Insight -->
+
+<ng-template #insight_response_template>
+  <div class="col-md-12">
+    <app-project-insights [actionType]="actionType" [subActionType]="subActionType" [projectId]="projectId"
+      [responseByEmpId]="responseByEmpId" [projectInsightExcelObj]="projectInsightExcelObj" [isExcelUploaded]="isExcelUploaded"
+      (closeProjectInsightResponseModalEvent)="closeProjectInsightResponseModal()"></app-project-insights>
+  </div>
+</ng-template>
+
+<!-- User contribution -->
+
+<ng-template #user_contribution>
+  <div class="modal-body px-4 py-3">
+    <h5 class="text-center mb-3">Add/View Your Contribution</h5>
+
+    <div *ngIf="showReviewButton" class="form-group mb-3">
+      <label><span class="text-danger">*</span> Tag Project</label>
+      <select class="form-control form-control-sm" [(ngModel)]="userContributionObj.projectId" name="tagProj">
+        <option selected value="" disabled>Select</option>
+        <option *ngFor="let proj of allProjectList" [value]="proj.projectId">
+          {{proj.projectName}}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Project Name</label>
+      <input
+        type="text"
+        class="form-control"
+        [(ngModel)]="userContributionObj.userDefinedProjectName"
+        placeholder="Enter project name"
+        [disabled]="showReviewButton"
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Title</label>
+      <input
+        type="text"
+        class="form-control"
+        [(ngModel)]="userContributionObj.title"
+        placeholder="Enter Title"
+        [disabled]="showReviewButton"
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label> Team members</label>
+      <mat-select ngxMatSelect 
+        class="form-control" 
+        #approvalSelect="ngxMatSelect" 
+        [displayMember]="'name'"
+        [valueMember]="'empId'" 
+        [source]="employeeList" 
+        [useInfiniteScroll]="true" 
+        [multiple]="true"
+        [(ngModel)]="userContributionObj.teamMembers"
+        [disabled]="showReviewButton">
+        <mat-option [value]="employee.empId" *ngFor="let employee of employeeList">
+          {{employee.name}}
+        </mat-option>
+      </mat-select>
+    </div>
+
+    <div class="form-group mb-3">
+      <label> Parent Contribution</label>
+      <select class="form-control form-control-sm" 
+        [(ngModel)]="userContributionObj.parentContribution" 
+        name="parentContro"
+        [disabled]="showReviewButton">
+        <option selected value="" disabled>Select</option>
+        <option *ngFor="let parent of myProjectInsightContributionList" [value]="parent.userContributionId">
+          {{parent.userDefinedProjectName}}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group mb-3">
+      <label>Tags</label>
+      <div class="tags-container">
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <span *ngFor="let tag of userContributionObj.tags; let i = index" 
+                class="badge bg-primary d-flex align-items-center">
+            {{tag}}
+            <span class="btn-close btn-close-white ms-2" *ngIf="!showReviewButton" style="cursor: pointer;" aria-label="Close" (click)="removeTag(i)">
+              <i class="fa-solid fa-xmark"></i>
+            </span>
+          </span>
+        </div>
+
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="newTag"
+          placeholder="Type and press Enter to add tag"
+          (keyup.enter)="addManualTag()"
+          [disabled]="showReviewButton"
+        />
+      </div>
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> {{showReviewButton ? 'User Contribution' : 'Your Contribution'}}</label>
+      <div (contextmenu)="handleContextMenu($event)">
+        <angular-editor id="myEditor" 
+          [(ngModel)]="userContributionObj.response" 
+          [config]="editorConfig">
+        </angular-editor>
+      </div>
+    
+      <div *ngIf="showContextMenu && !showReviewButton" class="context-menu" [style.left.px]="contextMenuX" [style.top.px]="contextMenuY">
+        <div class="list-group">
+          <button class="list-group-item" (click)="addTag()">Add tag</button>
+        </div>
+      </div>
+    
+      <div *ngIf="showContextMenu" class="context-menu-backdrop" (click)="closeContextMenu()">
+      </div>
+    </div>
+
+    <div class="form-group mb-3">
+      <div class="form-group mb-3">
+        <label>Attachments</label>
+        <div class="d-flex flex-column gap-2">
+          <div class="input-group">
+            <input type="file" [disabled]="showReviewButton" class="form-control" #fileInput (change)="onFileSelected($event)"
+              accept=".png,.jpg,.jpeg,.pdf" multiple />
+          </div>
+    
+          <div class="d-flex flex-wrap gap-2" *ngIf="userContributionObj.attachments?.length">
+            <span *ngFor="let file of userContributionObj.attachments; let i = index"
+                class="badge bg-secondary d-flex align-items-center">
+                <span style="cursor: pointer;" (click)="previewDocument(file, 'document-preview-container')">{{file.name}}</span>
+                <span *ngIf="!showReviewButton" class="btn-close btn-close-white ms-2" style="cursor: pointer;" aria-label="Close" 
+                    (click)="$event.stopPropagation(); removeFile(i)">
+                    <i class="fa-solid fa-xmark"></i>
+                </span>
+            </span>
+        </div>
+        </div>
+      </div>
+    </div>  
+
+    <div *ngIf="showReviewButton || userContributionObj?.responseRemarkList?.length > 0" class="form-group mb-3">
+      <label><span class="text-danger">*</span> Remark</label>
+      <div *ngIf="userContributionObj?.responseRemarkList?.length > 0">
+        <div *ngFor="let obj of userContributionObj?.responseRemarkList, let i = index">
+          Review-{{i+1}} <input disabled type="textarea" class="form-control" [(ngModel)]="obj.remark"
+            placeholder="Enter Remark" />
+        </div>
+      </div>
+      <input
+        *ngIf="showReviewButton"
+        type="textarea"
+        class="form-control"
+        [(ngModel)]="userContributionObj.remark"
+        placeholder="Enter Remark"
+      />
+    </div>
+
+    <div class="text-danger me-auto" *ngIf="validationErrors">
+      <small>{{validationErrors}}</small>
+    </div>
+
+    <div class="d-flex justify-content-end gap-3 mt-4">
+      <ng-container *ngIf="showReviewButton">
+        <ng-container *ngIf="!showPreReviewerSelection">
+          <button type="button" class="btn btn-sm btn-outline-success me-2 ml-1" (click)="processUserContribution('Approve', userContributionObj)">
+            Approve
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-danger me-2 ml-1" (click)="processUserContribution('Reject', userContributionObj)">
+            Reject
+          </button>
+          <button type="button" *ngIf="userContributionObj.status !== 'Approve' || userContributionObj.reviewType === 'preReviewer'" class="btn btn-sm btn-info ml-1" (click)="processUserContribution('preReviewer', userContributionObj)">
+            Add Pre-Reviewer
+          </button>
+        </ng-container>
+    
+        <ng-container *ngIf="showPreReviewerSelection">
+          <div class="d-flex align-items-center gap-3">
+            <select class="form-control form-control-sm" style="width: 200px;" 
+                    [(ngModel)]="selectedPreReviewer">
+              <option value="" disabled selected>Select Pre-Reviewer</option>
+              <option *ngFor="let employee of employeeList" [value]="employee.empId">
+                {{employee.name}}
+              </option>
+            </select>
+            <button type="button" class="btn btn-sm btn-primary ml-1" 
+                    (click)="processUserContribution('preReviewer', userContributionObj)">
+              Proceed
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary ml-1" (click)="cancelRequestPreReviewer()">
+              Cancel
+            </button>
+          </div>
+        </ng-container>
+      </ng-container>
+    
+      <button type="button" class="btn btn-sm btn-primary ml-1" *ngIf="!showReviewButton && (userContributionObj.status != 'Approve' && userContributionObj.reviewType != 'preReviewer')"
+       [disabled]="userContributionObj.userDefinedProjectName == null && userContributionObj.response == null"
+        (click)="createUserContribution()"> Yes, Submit</button>
+      <button type="button" class="btn btn-sm btn-outline-secondary ml-1" *ngIf="!showPreReviewerSelection" (click)="cancelRequest()">
+        Cancel
+      </button>
+    </div>
+
+    <div *ngIf="showPreviewDiv" class="d-flex justify-content-center align-items-center text-danger" id="document-preview-container"
+      style="border: 1px solid black; padding: 10px; margin-bottom: 15px;margin-top: 20px;"></div>
   </div>
 </ng-template>

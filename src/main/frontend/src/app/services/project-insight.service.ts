@@ -1,7 +1,7 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { ProjectInsightQuestion } from '../models/projectInsightQuestion';
+import { ProjectInsight } from '../models/projectInsight';
 import { Document } from '../models/document';
 
 @Injectable({
@@ -14,11 +14,11 @@ export class ProjectInsightService {
   constructor(private http: HttpClient) { }
 
 
-  createProjectInsightQuestion(projObj: ProjectInsightQuestion){
+  createProjectInsightQuestion(projObj: ProjectInsight){
     return this.http.post(`${this.baseUrl}` + `api/createProjectInsightQuestion`, projObj);
   }
 
-  updateProjectInsightQuestion(projObj: ProjectInsightQuestion){
+  updateProjectInsightQuestion(projObj: ProjectInsight){
     return this.http.post(`${this.baseUrl}` + `api/updateProjectInsightQuestion`, projObj);
   }
 
@@ -47,4 +47,51 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/getUserUploadedFileForQuestion`, documentObj);
   }
 
+  getAllProjectInsightContributionList(projectObj: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightContributionList`, projectObj);
+  }
+
+  onSearchTerm(searchTerm: string) {
+    const params = new HttpParams().set('search', searchTerm);
+    return this.http.get(`${this.baseUrl}` + `api/onSearchTerm`, { params });
+  }
+
+  suggestSearchOption(searchTerm: string){
+    const params = new HttpParams().set('search', searchTerm);
+    return this.http.get(`${this.baseUrl}` + `api/suggestSearchOption`, { params });
+  }
+
+  getFilterList(){
+    return this.http.get(`${this.baseUrl}` + `api/getFilterList`);
+  }
+  saveReviewPoints(projObj: ProjectInsight){
+    const formData = new FormData();
+    const blob = new Blob([JSON.stringify(projObj)], { type: 'application/json' });
+    formData.append('projectInsightDTO', blob);
+    return this.http.post(`${this.baseUrl}` + `api/saveReviewPoints`, formData);
+  }
+  
+  /*
+  User contribution apis
+  */ 
+
+  createUserContribution(contributionObject: any){
+    return this.http.post(`${this.baseUrl}` + `api/createUserContribution`, contributionObject);
+  }
+
+  getContibutionByEmpId(contributionObject: any){
+    return this.http.post(`${this.baseUrl}` + `api/getContibutionByEmpId`, contributionObject);
+  }
+
+  getUserContributionForReview(contributionObject: any){
+    return this.http.post(`${this.baseUrl}` + `api/getUserContributionForReview`, contributionObject);
+  }
+
+  processUserContribution(contributionObject: any){
+    return this.http.post(`${this.baseUrl}` + `api/processUserContribution`, contributionObject);
+  }
+  
+  getAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightQuestionsByProjectIdAndEmpId`, projectObj);
+  }
 }

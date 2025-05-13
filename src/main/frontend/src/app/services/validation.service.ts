@@ -247,7 +247,7 @@ export class ValidationService {
 
   validateNullUndefinedEmptyString(text: any): boolean {
 
-    if (text === undefined || text === null || text === "") {
+    if (text === undefined || text === null || text === "" || (text && text.toString().trim() === "")) {
       return false;
     }
     return true;
@@ -832,5 +832,13 @@ export class ValidationService {
     else {
       return false;
     }
+  }
+
+  validateNullUndefinedEmptyList(list: any[]): boolean {
+
+    if (list === undefined || list === null || !list || (list && list.length == 0)) {
+      return false;
+    }
+    return true;
   }
 }

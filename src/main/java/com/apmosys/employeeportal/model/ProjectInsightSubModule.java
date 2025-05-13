@@ -26,9 +26,11 @@ public class ProjectInsightSubModule {
 	private Long submoduleId;
 	private Long moduleId;
 	private String submodule;
+	@Column(length = 3000)
 	private String description;
 	private Long assignedTo;
 	private Long redmineId;
+	private String subModuleType;
 	
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;

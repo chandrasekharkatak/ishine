@@ -158,6 +158,7 @@ export class PerformanceService {
   checkUserHaveTeam(userObj: any){
     return this.http.post(`${this.baseUrl}` + `api/checkUserHaveTeam`, userObj);
   }
+
   getawards(empId:number):Observable<any> {
     return this.http.get(`${this.baseUrl}api/getEmployeeRewardByOnlyEmpId/empId/${empId}`);
   }
@@ -226,6 +227,9 @@ export class PerformanceService {
     return this.http.get(`${this.baseUrl}` + `api/currentStatusForPerformanceTableView`);
   }
 
+  addRemarkAsPerQuestion(marksObject: any){
+    return this.http.post(`${this.baseUrl}` + `api/addRemarkAsPerQuestion`, marksObject);
+  }
 }
 
 

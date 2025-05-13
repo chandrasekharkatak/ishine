@@ -1,3 +1,10 @@
+<div class="row mb-3">
+  <div class="col-md-12 px-0">
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isMyTeamView}" (click)="showMyTeam()">My Team</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTeamUnderReview}" (click)="showMyTeamUnderReview()">My Team Review</button>
+  </div>
+</div>
+
 <div class="container mt-0">
   <div class="px-0">
     <div class="col-md-12 table-header">
@@ -74,6 +81,7 @@
                   class="btn btn-success btn-sm mx-2"
                   title="Assign Multiple Goals"
                   (click)="openMultiGoalModal(viewTeamMember)"
+                  *ngIf="isMyTeamView"
                 >
                   <i class="fa fa-tasks"></i> Assign Goals
                 </button>

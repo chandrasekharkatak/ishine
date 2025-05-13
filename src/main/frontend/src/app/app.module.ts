@@ -12,6 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -149,6 +150,10 @@ import { PerformanceManagementSystemComponent } from './user-performance/perform
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 import { LmstabComponent } from './lmstab/lmstab.component';
 import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
+import { ProjectInsightsComponent } from './configuration/project-insights/project-insights.component';
+import { HighlightPipe } from './highlight.pipe';
+//import { TestComponent } from './user-report/test/test.component';
+  // Import Owl DateTime modules
 
 registerLocaleData(localeGb);
 
@@ -276,7 +281,11 @@ registerLocaleData(localeGb);
      ViewTravelrequestComponent, 
      LMSComponent,
      BiomaxApprovalComponent,
-     LmstabComponent
+     LmstabComponent,
+     ProjectInsightsComponent,
+     HighlightPipe
+
+    //TestComponent
   ],
   imports: [
     BrowserModule,
@@ -289,6 +298,7 @@ registerLocaleData(localeGb);
     ModalModule.forRoot(),
     BrowserAnimationsModule,
     MatSelectModule,
+    MatCheckboxModule,
     MatDatepickerModule,
     MatNativeDateModule,
     MatFormFieldModule,

@@ -256,7 +256,21 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getEmployeeProjectReport`,
     `${this.baseUrl}` + `api/updateEmployeeReportBillableType`,
     `${this.baseUrl}` + `api/updateBulkBillableEmployeeReport`,
-    `${this.baseUrl}` + `api/updateProjectResourcesAsInActiveBulk`
+    `${this.baseUrl}` + `api/updateProjectResourcesAsInActiveBulk`,
+   
+    `${this.baseUrl}` + `api/biomax`,
+    
+    `${this.baseUrl}` + `api/createProjectInsightQuestion`,
+    `${this.baseUrl}` + `api/updateProjectInsightQuestion`,
+    `${this.baseUrl}` + `api/getAllProjectInsightList`,
+    `${this.baseUrl}` + `api/getAllQuestionsByProjectId`,
+    `${this.baseUrl}` + `api/getAllProjectInsightResponsesByProjectId`,
+    `${this.baseUrl}` + `api/saveProjectInsightResponse`,
+    `${this.baseUrl}` + `api/getUserUploadedFileForQuestion`,
+    `${this.baseUrl}` + `api/getAllProjectInsightContributionList`,
+    `${this.baseUrl}` + `api/saveReviewPoints`,
+    `${this.baseUrl}` + `api/getAllProjectInsightQuestionsByProjectIdAndEmpId`,
+
   ]
 
   constructor(private loaderService: LoaderService) { }

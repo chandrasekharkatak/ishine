@@ -23,4 +23,8 @@ public class ProjectInsightAssignees {
     private String entityType;
 	private Long assignedTo;
 	
+	private Long taggedBy;
+    private String assignType;
+	private Double contributionPercentage;
+	
 }

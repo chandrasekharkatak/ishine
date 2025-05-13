@@ -232,7 +232,7 @@ public class ProjectService {
 					projectDto.setClientName(object[5] != null ? object[5].toString() : null);
 					projectDto.setClientLocation(object[6] != null ? object[6].toString() : null);
 					projectDto.setCreatedByName(object[9] != null ? object[9].toString() : null);
-					projectDto.setCreatedOn(Timestamp.valueOf(object[10] != null ? object[10].toString() : null));
+					projectDto.setCreatedOn(object[10] != null ? Timestamp.valueOf(object[10].toString()) : null);
 					projectDto.setUpdatedOn(object[11] != null ? object[11].toString() : null);
 					projectDto.setUpdatedByName(object[12] != null ? object[12].toString() : null);
 					projectDto.setEmpId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
@@ -2486,4 +2486,37 @@ public class ProjectService {
 	     logService.logMyInfo(httpRequest, apiLogInfo);
 	     return response;
 	 }
+	public ServiceResponse getProjectByName(ProjectDTO projectDto) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getProjectByName");
+		apiLogInfo.setApiUrl("/api/getProjectByName");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("ProjectName : " + projectDto.getProjectName());
+		try {
+			Project project = projectRepository.findByProjectName(projectDto.getProjectName());
+			if (project != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(project);
+				apiLogInfo.setApiResponse("Project Found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				apiLogInfo.setApiResponse("Project with the Given Name Not Exists.");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
 }
