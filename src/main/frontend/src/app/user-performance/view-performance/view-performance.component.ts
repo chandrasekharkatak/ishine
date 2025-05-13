@@ -274,6 +274,11 @@ export class ViewPerformanceComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    // featureMap.subFeatures?.forEach(sub => {
+    //   this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    // });
+
     this.logService.updateLogInfo(this.log);
     this.isProjectInsightList = true;
     this.route.params.subscribe((params:Params) => {
@@ -293,11 +298,6 @@ export class ViewPerformanceComponent implements OnInit {
     this.getEmployeeList();
     this.getUserContributionForReview();
     this.getAllProjects();
-    
-    let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-    featureMap.subFeatures?.forEach(sub => {
-      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-    });
   }
   
   setChart():void{

@@ -100,56 +100,21 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
 
-    <div class="row mt-4">
-      <div class="col-md-4">
-        <div class="card shadow border-0 info">
-          <div class="card-header ">
-            <h5 class="card-title mb-0 text-center">Appraisal Summary</h5>
-          </div>
-          <div class="card-body">
-            <p class="card-text px-1">
-              <strong>Final Rating:</strong> 
-              <!-- <span > {{ summary.finalRating }}/10</span> -->
-            </p>
-            <p class="card-text px-1">
-              <strong>Appraisal Score:</strong> 
-              <!-- <span > {{ summary.appraisalScore }}%</span> -->
-            </p>
-            <p class="card-text px-1">
-              <strong>Final Remarks:</strong>
-              <!-- <span class="text-muted d-block mt-1"> {{ summary.finalRemarks }}</span> -->
-            </p>
-          </div>
-          
+<!-- Charts and Goals Section -->
+<div class="container-fluid mb-4">
+  <div class="row">
+    <!-- Goal Chart -->
+    <div class="col-lg-6 col-md-12 mb-4 mb-lg-0">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="card-title">Goal Progress</h5>
         </div>
-      </div>
-      
-      <div class="col-md-4">
-        <div class="card shadow border-0 info">
-          <div class="card-header ">
-            <h5 class="card-title mb-0 text-center">Skills</h5>
-          </div>
-          <div class="card-body">
-            
-          </div>
+        <div class="card-body d-flex justify-content-center align-items-center">
+          <div id="goalChart"></div>
         </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card shadow border-0 info">
-          <div class="card-header ">
-            <h5 class="card-title mb-0 text-center">Awards</h5>
-          </div>
-          <div class="card-body">
-            
-          </div>
-        </div>
-      </div>
-    </div>
-  
-    <div class="row mt-4">
-      <div class="col-md-6">
-        <div class="graph-placeholder p-4 border rounded text-center">[Graphs Here]</div>
       </div>
     </div>
 
@@ -214,90 +179,71 @@
         </div>
       </div>
     </div>
-    
-    <div class="row mt-4" *ngIf="isProjectInsightList">
-      <div class="col-md-6">
-        <div class="card shadow border-0">
-          <div class="card-header">
-            <h5 class="card-title mb-0 text-center fw-bold">Project Insights Contribution</h5>
+  </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="container-fluid mb-2">
+  <div class="row">
+    <!-- Appraisal Summary Card -->
+    <div class="col-lg-4 col-md-6 mb-4">
+      <div class="card info h-100">
+        <div class="card-header">
+          <h5 class="card-title text-center">Appraisal Summary</h5>
+        </div>
+        <div class="card-body" >
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="font-weight-bold">Final Rating:</span>
+            <span class="badge bg-primary text-white p-2"
+              >{{ summary?.finalRating || 0 }} /10</span
+            >
           </div>
-          <div class="card-body">
-              <div class="col-md-12">
-                <div class="row mb-1">
-                  <div class="col d-flex justify-content-between align-items-center search-toggle">
-                    <div>
-                      <a href="javascript:void(0)" (click)="toggleSearch('projectInsight')">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                      </a>
-                    </div>
-                    
-                    <div class="d-flex justify-content-end align-items-center flex-wrap">
-                      <label *ngIf="!file" class="btn btn-sm btn-outline-primary mr-2 mb-0" for="project-data-input-file">
-                        <span>Upload Excel File</span>
-                        <input id="project-data-input-file" type="file" class="d-none" #fileInput accept=".xlsx, .xls"
-                          (change)="onFileChange($event);uploadFile()" [disabled]="file">
-                      </label>
-                  
-                      <span *ngIf="fileName" class="small mr-2">
-                        {{fileName}}
-                      </span>
-                  
-                      <button *ngIf="file" type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
-                        (click)="clearFileInput()">
-                        <i class="fa-solid fa-xmark"></i>
-                      </button>
-                  
-                      <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel"
-                        [disabled]="!file" (click)="uploadXcelData(insight_response_template)">
-                        <i class="fa fa-upload" aria-hidden="true"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInsightInfo'"
-                  [tableTHeadId]="'projectInsightInfoTHead'" [tableTHeadTrId]="'projectInsightInfoTHeadTr'">
-                  <table class="table" matSort (matSortChange)="sortData($event)">
-                    <thead class="thead-light">
-                      <tr>
-                        <th scope="col" class="info-label" mat-sort-header="surveyName|string">Project Name</th>
-                        <th scope="col" class="info-label" mat-sort-header="description|string">Project Manager</th>
-                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
-                        <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
-                        <th scope="col" class="info-label">Actions</th>
-                      </tr>
-                      <tr app-column-filter-bar *ngIf="isProjectInsightList && isSearchEnabled"
-                        [columnList]="projectInsightColumnColumns" (onSearch)="onSearch($event, 'projectInsight');page=1"></tr>
-                    </thead>
-                    <tbody>
-                      <tr
-                        *ngIf="allProjectInsightList.length == 0|| (allProjectInsightList| colFilter:filters:false).length == 0">
-                        <th colspan="6" class="text-center info-label">No Details to display...</th>
-                      </tr>
-                      <tr *ngFor="let project of allProjectInsightList 
-              | colFilter:filters:false 
-              | sort : [sortColumn, sortColumnType, sortDirection] 
-              | paginate: { id: 'projectInsightPagination', itemsPerPage: 2, currentPage: page }">
-                        <td>{{project.projectName}}</td>
-                        <td>{{project.projectManagerName}}</td>
-                        <td>{{project.createdByName}}</td>
-                        <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
-                        <td>
-                          <button class="fa-solid fas fa-tasks btn btn-sm btn-outline-primary" type="submit" title="Add / View Response"
-                            (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)">
-                          </button>&nbsp;
-                          <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" type="submit" title="Download Questions Excel"
-                            (click)="getAllProjectInsightQuestionsByProjectIdAndEmpId(project)">
-                          </button>&nbsp;
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <pagination-controls class="my-pagination" id="projectInsightPagination" [hidden]="allProjectInsightList.length == 0"
-                  (pageChange)="handlePageChange($event, 'projectInsight')"></pagination-controls>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="font-weight-bold">Appraisal Score:</span>
+            <span class="badge bg-success text-white p-2"
+              >{{ summary?.appraisalScore || 0 }} %</span
+            >
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="font-weight-bold">Final Remarks:</span>
+            <p class="text-muted p-2">{{ summary?.finalRemarks || "None" }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills Card -->
+    <div class="col-lg-4 col-md-6 mb-4">
+      <div class="card info h-100">
+        <div class="card-header">
+          <h5 class="card-title text-center">Skills</h5>
+        </div>
+        <div class="card-body p-0" *ngIf="domainSpecializationList.length > 0">
+          <div class="mb-3" >
+            <p class="font-weight-bold mb-2">Domain:</p>
+            <div class="d-flex flex-wrap">
+              <div *ngFor="let cat of domainSpecializationList">
+                <h6
+                  class="badge badge-pill"
+                  [ngStyle]="{ 'background-color': cat.colorCode }"
+                >
+                  {{ cat.domainName }}
+                </h6>
               </div>
+            </div>
+          </div>
+          <div >
+            <p class="font-weight-bold mb-2">Specialization:</p>
+            <div class="d-flex flex-wrap">
+              <h6 *ngFor="let cat of domainSpecializationList; let i = index">
+                <span
+                  class="badge badge-pill"
+                  *ngFor="let sub of cat.allSpecializationList"
+                  [ngStyle]="{ 'background-color': cat.colorCode }"
+                  >{{ sub.specializationName }}</span
+                >
+              </h6>
+            </div>
           </div>
           
         </div>
@@ -305,102 +251,213 @@
           No Specialization found
         </div>
       </div>
+    </div>
 
-      <div class="col-md-6">
-        <div class="card shadow border-0">
-          <div class="card-header">
-            <h5 class="card-title mb-0 text-center fw-bold">{{!toggleReviewView ? 'My Contribution' : 'Review Contribution'}}</h5>
+    <!-- Awards Card -->
+    <div class="col-lg-4 col-md-12 mb-4">
+      <div class="card info h-100">
+        <div class="card-header">
+          <h5 class="card-title text-center">Awards</h5>
+        </div>
+        <div class="card-body p-0">
+          <ul class="award-list p-3">
+            <li *ngFor="let award of awards">
+              <span class="award-name">{{ award[0] }}:</span>
+              <span class="award-remark">{{ award[1] }}</span>
+            </li>
+          </ul>
+          <div *ngIf="awards.length === 0" class="text-center text-muted p-3">
+            No awards found
           </div>
-          <div class="card-body">
-            <div class="col-md-12">
-              <div class="row mb-1">
-                <div class="col d-flex justify-content-between align-items-center search-toggle">
-                  <div>
-                    <a href="javascript:void(0)" (click)="toggleSearch('contribution')">
-                      <i *ngIf="!isContributionSearchEnabled" class="fa fa-search"></i>
-                      <i *ngIf="isContributionSearchEnabled" class="fa-solid fa-xmark"></i>
-                    </a>
-                  </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-                  <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-primary" (click)="openAddContributionModal(user_contribution)">
-                      <i class="fa-solid fa-plus"></i> &nbsp; Add contribution
-                    </button>
-                    <button class="btn btn-sm btn-outline-primary" *ngIf="!toggleReviewView"
-                      (click)="switchToReviewView()">
-                      Review contribution(s)
-                    </button>
-                    <button class="btn btn-sm btn-outline-primary" *ngIf="toggleReviewView"
-                      (click)="switchToReviewView()">
-                      My Contribution(s)
-                    </button>
-                  </div>
-                </div>                
-              </div>
-      
-              <!-- Table container -->
-              <div class="table-responsive overflow-auto" bassHorizontalScroll 
-                   [tableId]="'myContributionInfo'"
-                   [tableTHeadId]="'myContributionInfoTHead'" 
-                   [tableTHeadTrId]="'myContributionInfoTHeadTr'">
-                <table class="table" matSort (matSortChange)="sortData($event)">
-                  <thead class="thead-light">
-                    <tr>
-                      <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>
-                      <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
-                      <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
-                      <th scope="col" *ngIf="showReviewButton" class="info-label" mat-sort-header="createdOn|string">Contribution by</th>
-                      <th scope="col" class="info-label">Actions</th>
-                    </tr>
-                    <tr app-column-filter-bar 
-                        *ngIf="finalContributionList && isContributionSearchEnabled"
-                        [columnList]="projectInsightContributionColumns" 
-                        (onSearch)="onSearch($event, 'contribution');myContributionPage=1">
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <!-- No data message -->
-                    <tr *ngIf="finalContributionList.length == 0 || (finalContributionList | colFilter:contributionFilters:false).length == 0">
-                      <td colspan="4" class="text-center info-label">No Details to display...</td>
-                    </tr>
-                    <!-- Data rows -->
-                    <tr *ngFor="let project of finalContributionList 
-                                  | colFilter:contributionFilters:false 
-                                  | sort : [sortColumn, sortColumnType, sortDirection] 
-                                  | paginate: { id: 'contributionPagination', itemsPerPage: 4, currentPage: myContributionPage }">
-                      <td>{{project.userDefinedProjectName}}</td>
-                      <td>{{project.status}}</td>
-                      <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
-                      <td *ngIf="showReviewButton">{{project.contributionBy }}</td>
-                      <td>
-                        <button class="btn btn-sm btn-outline-primary" 
-                                type="button" 
-                                *ngIf="!showReviewButton"
-                                (click)="openUserContributionModal(project,user_contribution)">
-                          <em>View / Update</em>
-                        </button>
-                        <button class="btn btn-sm btn-outline-primary" 
-                                type="button" 
-                                *ngIf="showReviewButton"
-                                (click)="openUserContributionModal(project,user_contribution)">
-                          <em>View</em>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-      
-              <!-- Pagination -->
-              <div class="mt-3">
-                <pagination-controls 
-                  id="contributionPagination"
-                  class="my-pagination" 
-                  [hidden]="finalContributionList.length == 0"
-                  (pageChange)="handlePageChange($event, 'contribution')">
-                </pagination-controls>
+<!-- Project Insight and my contribution -->
+<div class="row mt-4" *ngIf="isProjectInsightList">
+  <!-- project insight -->
+  <div class="col-md-6">
+    <div class="card border-0">
+      <div class="card-header">
+        <h5 class="card-title mb-0 text-center fw-bold">Project Insights Contribution</h5>
+      </div>
+      <div class="card-body">
+          <div class="col-md-12">
+            <div class="row mb-1">
+              <div class="col d-flex justify-content-between align-items-center search-toggle">
+                <div>
+                  <a href="javascript:void(0)" (click)="toggleSearch('projectInsight')">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                  </a>
+                </div>
+                
+                <div class="d-flex justify-content-end align-items-center flex-wrap">
+                  <label *ngIf="!file" class="btn btn-sm btn-outline-primary mr-2 mb-0" for="project-data-input-file">
+                    <span>Upload Excel File</span>
+                    <input id="project-data-input-file" type="file" class="d-none" #fileInput accept=".xlsx, .xls"
+                      (change)="onFileChange($event);uploadFile()" [disabled]="file">
+                  </label>
+              
+                  <span *ngIf="fileName" class="small mr-2">
+                    {{fileName}}
+                  </span>
+              
+                  <button *ngIf="file" type="button" class="btn btn-sm btn-outline-danger mr-2" title="Remove File"
+                    (click)="clearFileInput()">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+              
+                  <button type="button" class="btn btn-sm btn-outline-primary mr-2" title="Upload Excel"
+                    [disabled]="!file" (click)="uploadXcelData(insight_response_template)">
+                    <i class="fa fa-upload" aria-hidden="true"></i>
+                  </button>
+                </div>
               </div>
             </div>
+            
+            <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInsightInfo'"
+              [tableTHeadId]="'projectInsightInfoTHead'" [tableTHeadTrId]="'projectInsightInfoTHeadTr'">
+              <table class="table" matSort (matSortChange)="sortData($event)">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label" mat-sort-header="surveyName|string">Project Name</th>
+                    <th scope="col" class="info-label" mat-sort-header="description|string">Project Manager</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                  <tr app-column-filter-bar *ngIf="isProjectInsightList && isSearchEnabled"
+                    [columnList]="projectInsightColumnColumns" (onSearch)="onSearch($event, 'projectInsight');page=1"></tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngIf="allProjectInsightList.length == 0|| (allProjectInsightList| colFilter:filters:false).length == 0">
+                    <th colspan="6" class="text-center info-label">No Details to display...</th>
+                  </tr>
+                  <tr *ngFor="let project of allProjectInsightList 
+          | colFilter:filters:false 
+          | sort : [sortColumn, sortColumnType, sortDirection] 
+          | paginate: { id: 'projectInsightPagination', itemsPerPage: 2, currentPage: page }">
+                    <td>{{project.projectName}}</td>
+                    <td>{{project.projectManagerName}}</td>
+                    <td>{{project.createdByName}}</td>
+                    <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
+                    <td>
+                      <button class="fa-solid fas fa-tasks btn btn-sm btn-outline-primary" type="submit" title="Add / View Response"
+                        (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)">
+                      </button>&nbsp;
+                      <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" type="submit" title="Download Questions Excel"
+                        (click)="getAllProjectInsightQuestionsByProjectIdAndEmpId(project)">
+                      </button>&nbsp;
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <pagination-controls class="my-pagination" id="projectInsightPagination" [hidden]="allProjectInsightList.length == 0"
+              (pageChange)="handlePageChange($event, 'projectInsight')"></pagination-controls>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- project my contribution section -->
+  <div class="col-md-6">
+    <div class="card border-0">
+      <div class="card-header">
+        <h5 class="card-title mb-0 text-center fw-bold">{{!toggleReviewView ? 'My Contribution' : 'Review Contribution'}}</h5>
+      </div>
+      <div class="card-body">
+        <div class="col-md-12">
+          <div class="row mb-1">
+            <div class="col d-flex justify-content-between align-items-center search-toggle">
+              <div>
+                <a href="javascript:void(0)" (click)="toggleSearch('contribution')">
+                  <i *ngIf="!isContributionSearchEnabled" class="fa fa-search"></i>
+                  <i *ngIf="isContributionSearchEnabled" class="fa-solid fa-xmark"></i>
+                </a>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary" (click)="openAddContributionModal(user_contribution)">
+                  <i class="fa-solid fa-plus"></i> &nbsp; Add contribution
+                </button>
+                <button class="btn btn-sm btn-outline-primary" *ngIf="!toggleReviewView"
+                  (click)="switchToReviewView()">
+                  Review contribution(s)
+                </button>
+                <button class="btn btn-sm btn-outline-primary" *ngIf="toggleReviewView"
+                  (click)="switchToReviewView()">
+                  My Contribution(s)
+                </button>
+              </div>
+            </div>                
+          </div>
+  
+          <!-- Table container -->
+          <div class="table-responsive overflow-auto" bassHorizontalScroll 
+               [tableId]="'myContributionInfo'"
+               [tableTHeadId]="'myContributionInfoTHead'" 
+               [tableTHeadTrId]="'myContributionInfoTHeadTr'">
+            <table class="table" matSort (matSortChange)="sortData($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                  <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                  <th scope="col" *ngIf="showReviewButton" class="info-label" mat-sort-header="createdOn|string">Contribution by</th>
+                  <th scope="col" class="info-label">Actions</th>
+                </tr>
+                <tr app-column-filter-bar 
+                    *ngIf="finalContributionList && isContributionSearchEnabled"
+                    [columnList]="projectInsightContributionColumns" 
+                    (onSearch)="onSearch($event, 'contribution');myContributionPage=1">
+                </tr>
+              </thead>
+              <tbody>
+                <!-- No data message -->
+                <tr *ngIf="finalContributionList.length == 0 || (finalContributionList | colFilter:contributionFilters:false).length == 0">
+                  <td colspan="4" class="text-center info-label">No Details to display...</td>
+                </tr>
+                <!-- Data rows -->
+                <tr *ngFor="let project of finalContributionList 
+                              | colFilter:contributionFilters:false 
+                              | sort : [sortColumn, sortColumnType, sortDirection] 
+                              | paginate: { id: 'contributionPagination', itemsPerPage: 4, currentPage: myContributionPage }">
+                  <td>{{project.userDefinedProjectName}}</td>
+                  <td>{{project.status}}</td>
+                  <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
+                  <td *ngIf="showReviewButton">{{project.contributionBy }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" 
+                            type="button" 
+                            *ngIf="!showReviewButton"
+                            (click)="openUserContributionModal(project,user_contribution)">
+                      <em>View / Update</em>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" 
+                            type="button" 
+                            *ngIf="showReviewButton"
+                            (click)="openUserContributionModal(project,user_contribution)">
+                      <em>View</em>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+  
+          <!-- Pagination -->
+          <div class="mt-3">
+            <pagination-controls 
+              id="contributionPagination"
+              class="my-pagination" 
+              [hidden]="finalContributionList.length == 0"
+              (pageChange)="handlePageChange($event, 'contribution')">
+            </pagination-controls>
           </div>
         </div>
       </div>
@@ -409,7 +466,7 @@
 </div>
 
 <!-- Reviews and Ratings Section -->
-<div class="container-fluid">
+<div class="container-fluid mt-5">
   <div class="card shadow">
     <div class="card-body">
       <h2 class="text-center mb-4 fw-bold">Reviews and Ratings</h2>
@@ -634,7 +691,7 @@
           </form>
         </div>
       </div>
-      </div>
+    </div>
   </div>
 </div>
 

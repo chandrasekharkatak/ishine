@@ -343,10 +343,10 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-    featureMap.subFeatures?.forEach(sub => {
-      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-    });
+    // let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    // featureMap.subFeatures?.forEach(sub => {
+    //   this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    // });
 
     
     this.logService.updateLogInfo(this.log);
