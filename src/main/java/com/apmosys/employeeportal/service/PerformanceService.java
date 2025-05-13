@@ -75,9 +75,6 @@ public class PerformanceService {
 	@Autowired
 	private DepartmentRepository departmentRepository;
 
-//	@Autowired
-//	private EmployeeRepository employeeRepository;
-
 	@Autowired
 	LogService logService;
 
