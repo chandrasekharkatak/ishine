@@ -4,7 +4,7 @@ import { User } from './models/user';
 import { AuthenticationService } from './services/authentication.service';
 import { filter, first } from 'rxjs/operators';
 import ClientMonitor from 'skywalking-client-js';
-
+import { environment } from 'src/environments/environment';
 
 interface SideNavToggle{
   screenWidth: number;
@@ -41,7 +41,7 @@ interface SideNavToggle{
     ).subscribe(() => {
       if (ClientMonitor?.setPerformance) {
         ClientMonitor.setPerformance({
-          collector: 'http://192.168.21.175:8081/employeeportal',
+          collector: this.baseUrl,
           service: 'Ishine::ui',
           serviceVersion: '1.0.0',
           pagePath: location.href,
@@ -51,6 +51,7 @@ interface SideNavToggle{
     });
   }
 
+  private baseUrl: any = environment.baseUrl;
   ngOnInit():void{
     import('skywalking-client-js').then(ClientMonitor => {
       console.log('skywalking Client JS loaded:', ClientMonitor);
@@ -62,7 +63,7 @@ interface SideNavToggle{
           useWebVitals:true,
           autoTracePerf:true,
           enableSPA:true,
-          collector: "http://192.168.21.175:8081/employeeportal"
+          collector: this.baseUrl
         });
         console.log('skywalking initialized successfully');
       } else {
