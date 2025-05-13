@@ -3974,4 +3974,65 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 			}
 			return response;
 		}
+		
+		
+		public ServiceResponse completionDateOfProject(ResourceManagementDTO resourceManagementDTO) {
+			
+			ServiceResponse response = new ServiceResponse();
+		       LogDTO apiLogInfo = new LogDTO();
+		       apiLogInfo.setSubFeatureName("completionDateOfProject");
+		       apiLogInfo.setApiUrl("/api/completionDateOfProject");
+		       apiLogInfo.setLogLevel("INFO");
+		       StringBuilder logBuilder = new StringBuilder();
+		       logBuilder.append("ProjectType : " + resourceManagementDTO.getProjectType() + " ,ProjectId :" + resourceManagementDTO.getProjectId()
+		       + " ,ProjectName :" + resourceManagementDTO.getName() + " ,Department :" + resourceManagementDTO.getDeptName() + " ,State:" + 
+		       resourceManagementDTO.getClientState());
+
+				try {
+					Project projObj = null;
+				    if (resourceManagementDTO.getProjectType().equals("Internal")) {
+				        projObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+				     
+				    } else {
+				    	System.err.print(resourceManagementDTO.getId());
+				        projObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+				    }
+				    
+				    if(projObj == null) {
+				    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			            response.setServiceResponse("No Project Detais Is Present ");
+			            apiLogInfo.setApiResponse("No Project Detais Is Present");
+			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			            return response;
+				    }
+				    Project projectObj =projObj;
+				   
+				    projectObj.setProjectCompletionDate(resourceManagementDTO.getProjectCompletionDate());				    projectObj.setProjectStatus(resourceManagementDTO.getStatus());
+				    projectObj.setProjectStatus(resourceManagementDTO.getProjectStatus());
+				    Project projectDbResponse = projectRepository.save(projectObj);
+				    if(projectDbResponse != null) {
+				    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			            response.setServiceResponse("Project Status Updated As Completed !!");
+			            apiLogInfo.setApiResponse("Project Status Updated As Completed");
+			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						
+				    }else {
+				    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			            response.setServiceResponse("Project Status Not Updated");
+			            apiLogInfo.setApiResponse("Project Status Not Updated to Completed");
+			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				    }
+				    		    
+			}catch(Exception e) {
+				e.printStackTrace();
+				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Something Went Wrong.");
+				response.setServiceError(e.getMessage());
+	           apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	           apiLogInfo.setLogLevel("ERROR");
+				
+			}
+			return response;		
+		}
+		
 }

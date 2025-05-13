@@ -61,4 +61,6 @@ public class ResourceManagementDTO {
 	private List<TeamSpocDTO> teamSpocs;
 	private List<ProjectManagersDTO> projectManagers;
 	private String apmosysRmEmail;
+	private String projectCompletionDate;
+	private String projectStatus;
 }

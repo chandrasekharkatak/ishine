@@ -27,7 +27,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getAllProject();
 
 	public Project findByPoProjectId(Long poProjectId);
-
+	
 	public boolean existsProjectByProjectName(String projectName);
 
 	public List<Project> findBySyncProject(String sync);

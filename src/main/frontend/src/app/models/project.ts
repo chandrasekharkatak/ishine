@@ -61,4 +61,6 @@ export class Project{
 	isMail:any;
 	apmosysRM:any;
 	clientRM:any;
+    projectCompletionDate:any;
+	projectStatus:any;
 }

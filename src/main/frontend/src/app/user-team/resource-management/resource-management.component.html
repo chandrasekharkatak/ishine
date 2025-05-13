@@ -379,12 +379,12 @@
                                                           
                                                             <!-- Dropdown Menu -->
                                                             <ul *ngIf="openMenuIndex === i" class="custom-dropdown">
-                                                              <li (click)="onAction('Preview', project)"><i class="fas fa-eye"></i> Preview</li>
-                                                              <li (click)="onAction('Edit', project);showEditProjectForm(project)"><i class="fas fa-pen"></i> Edit</li>
-                                                              <li (click)="onAction('Audit', project)"><i class="fas fa-clock"></i> Audit</li>
-                                                              <li (click)="onAction('Complete', project)"><i class="fas fa-check-double"></i> Mark as Complete</li>
-                                                              <li (click)="onAction('Approve', project)"><i class="fas fa-square-check"></i> Approve</li>
-                                                              <li (click)="onAction('Reject', project)"><i class="fas fa-times"></i> Reject</li>
+                                                              <li (click)="onAction('Preview', project);closeMenu(i)"><i class="fas fa-eye"></i> Preview</li>
+                                                              <li (click)="onAction('Edit', project);showEditProjectForm(project);closeMenu(i)"><i class="fas fa-pen"></i> Edit</li>
+                                                              <li (click)="onAction('Audit', project);closeMenu(i)"><i class="fas fa-clock"></i> Audit</li>
+                                                              <li (click)="openDatePicker(customDatePickerTemplate,project);closeMenu(i)"><i class="fas fa-check-double"></i> Mark as Complete</li>
+                                                              <li (click)="onAction('Approve', project);closeMenu(i)"><i class="fas fa-square-check"></i> Approve</li>
+                                                              <li (click)="onAction('Reject', project);closeMenu(i)"><i class="fas fa-times"></i> Reject</li>
                                                             </ul>
                                                           </div>
                                                           
@@ -1385,3 +1385,30 @@
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
+
+<ng-template #customDatePickerTemplate>
+    <div class="modal-body text-center">
+      <h5>Please Select Date</h5>
+  
+      <div style="max-width: 300px; margin: auto;">
+        <!-- <label class="d-block text-left font-weight-bold">Select Date</label> -->
+  
+       
+        <input
+          #dateInput
+          type="date"
+          class="form-control"
+          [(ngModel)]="selectedDate"
+          autocomplete="off"
+          style="width: 100%; margin-top: 10px;"
+        />
+      </div>
+  
+      <br />
+      <button type="button" class="btn btn-primary" (click)="submitDate(alert_message);closeModal1()">Submit</button> &nbsp;&nbsp;&nbsp;
+      <button type="button" class="btn btn-outline-dark" (click)="closeModal1()">No Cancel</button>
+    </div>
+  </ng-template>
+  
+  
+
