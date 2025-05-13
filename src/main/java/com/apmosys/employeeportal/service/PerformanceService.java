@@ -95,9 +95,6 @@ public class PerformanceService {
 
 	@Autowired
 	ProjectInsightResponseRepository projectInsightResponseRepository;
-
-	@Autowired
-	ProjectInsightResponseRepository projectInsightResponseRepository;
 	
 	public ServiceResponse addReviewType(ReviewTypeDTO reviewTypeDTO) {
 		ServiceResponse response = new ServiceResponse();
