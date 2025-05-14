@@ -235,12 +235,13 @@ public class ProjectService {
 					projectDto.setCreatedOn(object[10] != null ? Timestamp.valueOf(object[10].toString()) : null);
 					projectDto.setUpdatedOn(object[11] != null ? object[11].toString() : null);
 					projectDto.setUpdatedByName(object[12] != null ? object[12].toString() : null);
-					projectDto.setEmpId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
+					projectDto.setProjectName(object[13] != null ? object[13].toString() : null);
+					projectDto.setEmpId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
 					//as per RMG requirement
-					projectDto.setRole(object[13] != null ? object[13].toString() : null);
-					projectDto.setCount(object[14] != null ? Integer.valueOf(object[14].toString()) : null);
-					projectDto.setExperience(object[15] != null ? object[15].toString() : null);
-					projectDto.setEmpId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
+//					projectDto.setRole(object[13] != null ? object[13].toString() : null);
+//					projectDto.setCount(object[14] != null ? Integer.valueOf(object[14].toString()) : null);
+//					projectDto.setExperience(object[15] != null ? object[15].toString() : null);
+//					projectDto.setEmpId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
 					dtoList.add(projectDto);
 					System.err.println("vhg"+projectDto);
 				});
