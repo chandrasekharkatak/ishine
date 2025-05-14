@@ -46,7 +46,8 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 				    "/browser/errorLog",
 				    "/browser/errorLogs",
 				    "/v3/segment",
-				    "/v3/segments"
+				    "/v3/segments",
+				    "/browser/perfData/webVitals"
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(

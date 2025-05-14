@@ -36,41 +36,41 @@ interface SideNavToggle{
   ){
 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      if (ClientMonitor?.setPerformance) {
-        ClientMonitor.setPerformance({
-          collector: this.baseUrl,
-          service: 'Ishine::ui',
-          serviceVersion: '1.0.0',
-          pagePath: location.href,
-          useWebVitals: true
-        });
-      }
-    });
+    // this.router.events.pipe(
+    //   filter(event => event instanceof NavigationEnd)
+    // ).subscribe(() => {
+    //   if (ClientMonitor?.setPerformance) {
+    //     ClientMonitor.setPerformance({
+    //       collector: "https://ishine.apmosys.com",
+    //       service: 'Ishine::local',
+    //       serviceVersion: '1.0.0',
+    //       pagePath: location.href,
+    //       useWebVitals: true
+    //     });
+    //   }
+    // });
   }
 
-  private baseUrl: any = environment.baseUrl;
+  
   ngOnInit():void{
-    import('skywalking-client-js').then(ClientMonitor => {
-      console.log('skywalking Client JS loaded:', ClientMonitor);
-      if (ClientMonitor.default && typeof ClientMonitor.default.register === 'function') {
-        ClientMonitor.default.register({
-          service: 'Ishine::ui',
-          pagePath: window.location.pathname,
-          serviceVersion: '1.0.0',
-          useWebVitals:true,
-          autoTracePerf:true,
-          enableSPA:true,
-          collector: this.baseUrl
-        });
-        console.log('skywalking initialized successfully');
-      } else {
-        console.error('skywalking Client JS register function not found.');
-      }
-    }).catch(err => {
-      console.error('Error loading skywalking Client JS:', err);    });
+    // import('skywalking-client-js').then(ClientMonitor => {
+    //   console.log('skywalking Client JS loaded:', ClientMonitor);
+    //   if (ClientMonitor.default && typeof ClientMonitor.default.register === 'function') {
+    //     ClientMonitor.default.register({
+    //       service: 'Ishine::local',
+    //       pagePath: location.href,
+    //       serviceVersion: '1.0.0',
+    //       useWebVitals:true,
+    //       autoTracePerf:true,
+    //       enableSPA:true,
+    //       collector: "https://ishine.apmosys.com"
+    //     });
+    //     console.log('skywalking initialized successfully');
+    //   } else {
+    //     console.error('skywalking Client JS register function not found.');
+    //   }
+    // }).catch(err => {
+    //   console.error('Error loading skywalking Client JS:', err);    });
 
   }
   onToggleSideNav(data: SideNavToggle){
