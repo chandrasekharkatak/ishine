@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Project } from '../models/project';
 import { environment } from 'src/environments/environment';
+import { ProjectFilterDTO } from '../models/projectFilterDTO';
 
 @Injectable({
   providedIn: 'root'
@@ -59,4 +60,7 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}` + `api/sendEmailNotificationToBDTeam`,project);
   }
   
+  combinedPOINTERNALList(ProjectFilterDTO:ProjectFilterDTO){
+    return this.http.post(`${this.baseUrl}` + `api/combinedPOINTERNALList`,ProjectFilterDTO);
+  }
 }

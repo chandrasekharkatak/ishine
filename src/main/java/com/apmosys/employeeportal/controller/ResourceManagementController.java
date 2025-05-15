@@ -183,10 +183,14 @@ public class ResourceManagementController {
 	public ServiceResponse getEmployeeByNameAndEmpld() {
 	    return resourceManagementService.getEmployeeByNameAndEmpld();
 	}
+	
+	
 	 @PostMapping("/combinedPOINTERNALList")
 	    public ServiceResponse combinedPOINTERNALList(@RequestBody ProjectFilterDTO projectFilterDTO) {
 	        return resourceManagementService.combinedPOINTERNALList(projectFilterDTO);
 	    }
+	 
+	 
 	@RequestMapping(value = "/deleteTeamsByIdsBulk", method = RequestMethod.POST)
 	public ServiceResponse deleteTeamsByIdsBulk(@RequestBody List<TeamDTO> teamDTO) {
 		

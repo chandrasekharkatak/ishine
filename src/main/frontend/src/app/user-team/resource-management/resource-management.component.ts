@@ -10,6 +10,7 @@ import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
 import { Project } from 'src/app/models/project';
+import { ProjectFilterDTO } from 'src/app/models/projectFilterDTO';
 import { Team } from 'src/app/models/team';
 import { TeamMember } from 'src/app/models/teamMember';
 import { User } from 'src/app/models/user';
@@ -131,7 +132,7 @@ export class ResourceManagementComponent implements OnInit {
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   filters: any = {};
   isSearchEnabled: boolean = false;
-  projectColumns: any[] = ["blank", "blank", "name", "poNo", "projectManagerName", "clientName", "apmosysRM", "clientRM", "startDate", "endDate", "clientState", "createdOn", "status", "isDraftProject"];
+  projectColumns: any[] = ["blank", "blank", "blank","isDraftProject", "name", "poNo", "projectManagerName", "clientName", "apmosysRM", "clientRM", "startDate", "endDate", "clientState", "createdOn", "status"];
 
   projectDetails: any = [];
   copyDepartment: any = [];
@@ -141,7 +142,7 @@ export class ResourceManagementComponent implements OnInit {
   flagDialogueBox: boolean = false;
   tableName: string;
   isAccounts: boolean = false;
-
+  tabCounts: any;
   searchQuery: any;
   selectedEmpId: any;
   employeeList: Employee[] = [];
@@ -157,7 +158,7 @@ export class ResourceManagementComponent implements OnInit {
     { role: 'Functional Tester', department: 'Functional Testing', experience: '1-2 years', assigned: 2, total: 2 },
     { role: 'Developer', department: 'Development', experience: '3-5 years', assigned: 0, total: 1 }
   ];
-
+  projectFilterDTO:ProjectFilterDTO = new ProjectFilterDTO();
   constructor(
     private departmentService: DepartmentService,
     public validationService: ValidationService,
@@ -216,6 +217,9 @@ export class ResourceManagementComponent implements OnInit {
     if(deptName === "Accounts" ){
       this.isAccounts = true;
     }
+    this.projectFilterDTO.approvalStatus = "All";
+    this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+    await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
    
   }
 
@@ -391,21 +395,21 @@ export class ResourceManagementComponent implements OnInit {
 
             // added in single list  
 
-            this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
+            // this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
 
-            console.log(this.allProject_Po_Internal, " this.allProject_Po_Internal");
+            // console.log(this.allProject_Po_Internal, " this.allProject_Po_Internal");
 
             
-            const deptName = String(this.currentUser.departmentName).trim();
-            const empRole = String(this.currentUser.employeeRole).trim();
-            console.log(empRole);
-            if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
-              this.allProject_Po_Internal = this.allProject_Po_Internal.filter(data => {
-                console.log(data.department)
-                return String(data.department).includes(deptName);
-                });
-                console.log('dept name ::',deptName);
-            }
+            // const deptName = String(this.currentUser.departmentName).trim();
+            // const empRole = String(this.currentUser.employeeRole).trim();
+            // console.log(empRole);
+            // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
+            //   this.allProject_Po_Internal = this.allProject_Po_Internal.filter(data => {
+            //     console.log(data.department)
+            //     return String(data.department).includes(deptName);
+            //     });
+            //     console.log('dept name ::',deptName);
+            // }
            
 
             // this.allProject_Po_Internal.filter(data =>{
@@ -739,11 +743,6 @@ export class ResourceManagementComponent implements OnInit {
           obj.departmentList = obj.departmentList?.map(x => +x);
           this.copyDepartment = obj.departmentList;
 
-          // obj.teamMemberList.forEach((member) => {
-          //   //console.log(" teamMemberList    ",obj.teamMemberList);
-          //   member.startDate = (member.startDate) ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
-          // });
-
           if (obj.teamMemberList) {
             obj.teamMemberList.forEach((member) => {
               if (member) { // Check if member is not null
@@ -1020,16 +1019,7 @@ export class ResourceManagementComponent implements OnInit {
     //console.log(this.allTeamList, " : this.allTeamList");
   }
 
-  // removeInputTeamField(teamObj) {
-  //   console.log("teamObj anurag   ",teamObj);
-  //   this.allTeamList.forEach((value, index) => {
-  //     if (value == teamObj) {
-  //       this.updatedTeamList.push(value);
-  //       this.allTeamList.splice(index, 1);
-  //       this.allTeamListCopy.splice(index, 1);
-  //     }
-  //   });
-  // }
+  
 
   tempTeam = new Project();
   projectdetails1: any[] = [];
@@ -1381,6 +1371,7 @@ onAction(action: string, project: any) {
     });
   }
 
+  
 
 
   changeDepartment(event: any): void {
@@ -1555,8 +1546,19 @@ onAction(action: string, project: any) {
     });
   }
   
-  
+  // alert_message template is to be passed
+ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO:ProjectFilterDTO){
+  this.resourceManagementService.combinedPOINTERNALList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.allProject_Po_Internal = response.serviceResponse.combinedProjects;
+      this.tabCounts = response.serviceResponse.counts;
+    }else {
+      this.openAlertMod(template, response.serviceResponse);
+    }
+  });
 
+ }
 
 
 
