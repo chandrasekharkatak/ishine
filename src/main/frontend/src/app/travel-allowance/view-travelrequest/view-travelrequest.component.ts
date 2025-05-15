@@ -1,13 +1,12 @@
 import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
-import { TravelDeskService } from 'src/app/services/travel-desk.service';
-import { MyTravelDesk } from 'src/app/models/travelDesk';
-import { Employee } from 'src/app/models/employee';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { DomSanitizer } from '@angular/platform-browser';
-import { EmployeeService } from 'src/app/services/employee.service';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { Employee } from 'src/app/models/employee';
+import { MyTravelDesk } from 'src/app/models/travelDesk';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { Conditional } from '@angular/compiler';
-import { formatDate } from '@angular/common';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { TravelDeskService } from 'src/app/services/travel-desk.service';
 declare var $: any; // Import jQuery if it's being used for DOM manipulation
 
 @Component({
@@ -32,6 +31,7 @@ export class ViewTravelrequestComponent implements OnInit {
   constructor(private travelDesk: TravelDeskService,
     private modalService: BsModalService,
     private sanitizer: DomSanitizer,
+    private exportExcelService: ExportExcelService,
     private employeeService : EmployeeService,
     private authenticationService: AuthenticationService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x) }
@@ -238,5 +238,53 @@ export class ViewTravelrequestComponent implements OnInit {
     this.modalRef.hide();
   }
 
+  isSearchEnabled: boolean = false;
+  filters: any = {};
 
+  travelActiveColumns: any[] = ['requestId', 'name','requestType', 'fromDate', 'toDate', 'hotelCategory', 'cityCategory', 'city', 'fromLocation', 'toLocation', 'empId', 'appliedOn', 'purpose'];
+  onSearch(searchData) {
+    if (this.isSearchEnabled == true) {
+      this.filters = searchData;
+      console.log("Updated Filter : ", this.filters);
+    }
+  }
+  toggleSearch() {
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if (!this.isSearchEnabled) {
+      this.filters = {};
+    }
+  }
+  name = 'TravelReport.xlsx';
+  exportToExcel(): void {
+
+    const onlySpecificDataArr = this.travelRequests.map(
+      x => ({
+        
+        "Request Id": x.requestId,
+        "Name": x.name,
+        "From Date": x.fromDate,
+        "To Date": x.toDate,
+        "Hotel Category":x.hotelCategory,
+        "City Category":x.cityCategory,
+        "City Name":x.city,
+        "From Location":x.fromLocation,
+        "To Location":x.toLocation,
+        "Applied By": x.empId,
+        "Applied On": x.appliedOn,
+        "Purpose Of Travel": x.purpose,
+        "Current Approval Level": x.level,
+        "Level 1 Approver Name": x.hodName,
+        "Level 1 Approver Status": x.status,
+        "Level 1 Approver Remarks": x.level1approverRemarks,
+        "Level 2 Approver Name": x.level2approverName,
+        "Level 2 Approver Status": x.level2approverStatus,
+        "Level 2 Approver Remarks": x.level2approverRemarks,
+        "Level 3 Approver Name": x.level3approverName,
+        "Level 3 Approver Status": x.level3approverStatus,
+        "Level 3 Approver Remarks": x.level3approverRemarks,
+        "Final Status": x.finalStatus
+      })
+    )
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
+  }
 }

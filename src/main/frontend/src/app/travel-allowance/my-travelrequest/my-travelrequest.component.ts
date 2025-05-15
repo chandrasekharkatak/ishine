@@ -1,16 +1,16 @@
+import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { DomSanitizer } from '@angular/platform-browser';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/internal/operators/first';
 import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
-import { AuthenticationService } from 'src/app/services/authentication.service';
-import { EmployeeService } from 'src/app/services/employee.service';
-import { ValidationService } from 'src/app/services/validation.service';
-import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
-import { TravelDeskService } from 'src/app/services/travel-desk.service';
 import { MyTravelDesk } from 'src/app/models/travelDesk';
-import { first } from 'rxjs/internal/operators/first';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DomainService } from 'src/app/services/domain.service';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { TravelDeskService } from 'src/app/services/travel-desk.service';
+import { ValidationService } from 'src/app/services/validation.service';
 
 
 @Component({
@@ -290,8 +290,8 @@ async submitForm(template: TemplateRef<any>) {
       this.openAlertMod(template, "Please enter the Purpose of Travel.");
       return;
     }
-    if (!this.travelDeskObj.supportingDocument) {
-      this.openAlertMod(template, "Please upload a file before submitting.");
+    if (!this.fileUploads || this.fileUploads.length === 0 || !this.fileUploads.some(f => f.file)) {
+      this.openAlertMod(template, "Please enter a valid document.");
       return;
     }
 
@@ -481,7 +481,40 @@ onSubCategoryChange(subCategory: string) {
     }
   }
 
+fileUploads: any[] = [{}]; 
 
+      onFileChange1(event: any, index: number,template: TemplateRef<any>) {
+        const file = event.target.files[0];
+        if (!file) {
+          
+          this.fileUploads[index].file = null;
+          return;
+        }
+        if (file) {
+          const maxSizeInBytes = 1 * 1024 * 1024; 
+      
+          if (file.size > maxSizeInBytes) {
+            this.openAlertMod(template, "File size should be less than or equal to 1MB.");
+            event.target.value = ''; 
+            return;
+          }
+      
+          this.fileUploads[index].file = file;
+          this.fileUploads[index].uploadedBy = this.currentEmployeeInfo.empId;
+          // this.reimbursementObj.supportingDocument = file;
+        }
+      }
+      
+      
+      addInputSpecializationField() {
+        if (this.fileUploads.length < 6) {
+          this.fileUploads.push({});
+        } 
+      }
+      
+      removeInputSpecializationField(index: number) {
+        this.fileUploads.splice(index, 1);
+      }
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

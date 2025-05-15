@@ -168,11 +168,25 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 mb-0">
+                <div class="col-md-3 mb-0" *ngFor="let file of fileUploads; let i = index">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label for="fileUpload" class="info-label"><span class="text-danger">*</span>Supporting Document</label>
-                            <input type="file" id="fileUpload" class="form-control" (change)="onFileChange($event)" />
+                            <label class="info-label" [for]="'fileUpload' + i">
+                                <span class="text-danger">*</span> Document/GST Bill {{ i + 1 }}
+                            </label>
+                            <div class="d-flex align-items-center">
+                                <input type="file" class="form-control" [id]="'fileUpload' + i"
+                                    (change)="onFileChange1($event, i,alert_message)" />
+                                <button type="button" class="btn btn-outline-primary ml-2"
+                                    (click)="addInputSpecializationField()" [hidden]="fileUploads.length >= 6"
+                                    [disabled]="!fileUploads[i]?.file || fileUploads.length >= 6">
+                                    <i class="fa fa-plus" aria-hidden="true"></i>
+                                </button>
+                                <button *ngIf="i > 0" type="button" class="btn btn-outline-danger ml-2"
+                                    (click)="removeInputSpecializationField(i)">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

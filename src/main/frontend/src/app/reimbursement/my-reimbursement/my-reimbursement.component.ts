@@ -1,12 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/internal/operators/first';
 import { Employee } from 'src/app/models/employee';
 import { MyReimbursement } from 'src/app/models/reimbursement';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
-import { SecurityContext, TemplateRef, ViewChild } from '@angular/core';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { first } from 'rxjs/internal/operators/first';
 
 
 
@@ -157,7 +156,7 @@ reimbursementObj: any = {
  
      // Logic to handle form submission
       if (this.isValidForm()) {
-        console.log('Document',this.reimbursementObj.supportingDocument);  
+        console.log("console",this.fileUploads); 
 
         if (!this.reimbursementObj.expenditureType) {
           this.openAlertMod(template, "Please select an Expenditure Type.");
@@ -217,10 +216,11 @@ reimbursementObj: any = {
           return;
         }
 
-        if (!this.reimbursementObj.supportingDocument) {
-          this.openAlertMod(template, "Please enter a valid Document .");
+        if (!this.fileUploads || this.fileUploads.length === 0 || !this.fileUploads.some(f => f.file)) {
+          this.openAlertMod(template, "Please upload a valid document.");
           return;
         }
+        
          // First upload the file
     const fileFormData = new FormData();
     fileFormData.append('file', this.reimbursementObj.supportingDocument);
@@ -230,6 +230,7 @@ reimbursementObj: any = {
 
 
     try {
+      
       const uploadResponse: any = await this.reimbursementService.uploadFileReimbursement(fileFormData).pipe(first()).toPromise();
 
       if (uploadResponse.serviceStatus === "Fail") {
@@ -354,11 +355,58 @@ reimbursementObj: any = {
       }
   
 
+      // fromDate: string = '2023-01-01'; // example minimum
+      // toDate: string = '2025-12-31';   // example maximum
+      invalidFromDate: boolean = false;
+      
+      onFromDateChange(value: string) {
+        if (!value) return;
+      
+        const selected = new Date(value);
+        const day = selected.getDate();
+      
+        if (day < 1 || day > 15) {
+          this.invalidFromDate = true;
+          this.reimbursementObj.fromDate = ''; 
+        } else {
+          this.invalidFromDate = false;
+        }
+      }
+      
+      fileUploads: any[] = [{}]; 
 
-
-
-
-
+      onFileChange1(event: any, index: number,template: TemplateRef<any>) {
+        const file = event.target.files[0];
+        if (!file) {
+          
+          this.fileUploads[index].file = null;
+          return;
+        }
+        if (file) {
+          const maxSizeInBytes = 1 * 1024 * 1024; 
+      
+          if (file.size > maxSizeInBytes) {
+            this.openAlertMod(template, "File size should be less than or equal to 1MB.");
+            event.target.value = ''; 
+            return;
+          }
+      
+          this.fileUploads[index].file = file;
+          this.fileUploads[index].uploadedBy = this.currentEmployeeInfo.empId;
+          // this.reimbursementObj.supportingDocument = file;
+        }
+      }
+      
+      
+      addInputSpecializationField() {
+        if (this.fileUploads.length < 6) {
+          this.fileUploads.push({});
+        } 
+      }
+      
+      removeInputSpecializationField(index: number) {
+        this.fileUploads.splice(index, 1);
+      }
 
      }
  

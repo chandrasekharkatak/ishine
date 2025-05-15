@@ -8,6 +8,23 @@
       </div>
       <div class="row">
         <div class="col-md-12">
+          <div class="d-flex align-items-center justify-content-between mt-3">
+          
+            <div class="selector-toggle">
+              <a href="javascript:void(0)">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
+              </a>
+            </div>
+  
+           
+            <div class="export-button">
+              <button type="button" class="btn btn-sm btn-outline-primary mt-2 mb-2 excel-button"
+                [hidden]="travelRequests.length == 0" (click)="exportToExcel()">
+                <em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;
+              </button>
+            </div>
+          </div>
           <div class="overflow-auto" bassHorizontalScroll>
             <table class="table table-responsive">
               <thead class="thead-light">
@@ -36,10 +53,12 @@
                   <th scope="col" class="info-label">Final Status</th>
                   <th scope="col" class="info-label">Action</th>
                 </tr>
+                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="travelActiveColumns"
+                (onSearch)="onSearch($event);page=1"></tr>
               </thead>
               <tbody>
                 
-                <tr *ngFor="let row of travelRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                <tr *ngFor="let row of travelRequests |colFilter:filters:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                   <td>{{ row.requestId }}</td>
                   <td>{{ row.name }}</td>
                   <td>{{ row.requestType }}</td>
