@@ -216,5 +216,22 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/rbacInternalProjects", method = RequestMethod.POST)
+	public ServiceResponse getAllInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
+		ServiceResponse response = resourceManagementService.getAllInternalProjectsNewRMG(projectFilterDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/rbacShankhProjects", method = RequestMethod.POST)
+	public ServiceResponse getAllShankhProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
+		ServiceResponse response = resourceManagementService.getAllShankhProjectsNewRMG(projectFilterDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/rbacShankhProjects", method = RequestMethod.POST)
+	public ServiceResponse getAllShankhInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
+		ServiceResponse response = resourceManagementService.getAllShankhInternalProjectsNewRMG(projectFilterDTO);
+		return response;
+	}
 
 }

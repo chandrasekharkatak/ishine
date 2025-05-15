@@ -116,5 +116,9 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	
 	@Query(value = "SELECT project_name FROM projects WHERE project_id = :projectId", nativeQuery = true)
 	String getProjectNameById(@Param("projectId") Long projectId);
+	
+	
+	@Query(value ="select etm.* from employee_team_mapping etm where etm.team_id =:teamId and active != 0",nativeQuery = true)
+	 List<EmployeeTeamMap> findByTeamIdWhereEmployeesAreActive(@Param("teamId") Long teamId);
 
 }
