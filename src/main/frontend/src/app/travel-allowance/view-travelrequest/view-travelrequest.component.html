@@ -12,7 +12,7 @@
             <table class="table table-responsive">
               <thead class="thead-light">
                 <tr>
-                  <th scope="col" class="info-label">Sr No.</th>
+                  <th scope="col" class="info-label">Reference Number</th>
                   <th scope="col" class="info-label">Name</th>
                   <th scope="col" class="info-label">Request Type</th>
                   <th scope="col" class="info-label">From Date</th>
@@ -90,7 +90,7 @@
                       <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button" class="btn btn-primary btn-sm ml-2" (click)="openEditModal(travel_desk,row)">
                         <em class="fa fa-edit"></em> Edit
                       </button>
-                      <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button" class="btn btn-danger btn-sm ml-2" (click)="deleteTraveldata(row)">
+                      <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button" class="btn btn-danger btn-sm ml-2" (click)="deleteTraveldata(row,alert_message1)">
                         <em class="fa fa-trash"></em> Delete
                       </button>
                     </div>
@@ -240,6 +240,13 @@
 </ng-template>
 
 <ng-template #alert_message>
+  <div class="modal-body text-center">
+      <p>{{alertMessage}}</p>
+      <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+  </div>
+</ng-template>
+
+<ng-template #alert_message1>
   <div class="modal-body text-center">
       <p>{{alertMessage}}</p>
       <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;

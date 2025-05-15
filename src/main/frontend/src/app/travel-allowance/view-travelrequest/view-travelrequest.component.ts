@@ -170,7 +170,7 @@ export class ViewTravelrequestComponent implements OnInit {
     }
   }
 
-  async deleteTraveldata(row : any) {
+  async deleteTraveldata(row : any,template: TemplateRef<any>) {
     if (this.isValidForm()) {
       this.travelDeskInfo = new MyTravelDesk();
       let travelData = new MyTravelDesk();
@@ -189,7 +189,8 @@ export class ViewTravelrequestComponent implements OnInit {
       if (response.serviceStatus === "Success") {
         //this.openAlertMod( "Success! Your Data is deleted successfully. !!");
         
-        alert("Success! Your Data is deleted successfully.");
+       // alert("Success! Your Data is deleted successfully.");
+        this.openAlertMod(template, "Success! Your data is deleted successfully. !!");
         this.onGetTravelInfo();
         
       } else {

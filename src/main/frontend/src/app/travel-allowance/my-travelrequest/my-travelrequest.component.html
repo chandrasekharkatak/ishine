@@ -58,13 +58,15 @@
                 </div>
 
                 <div class="col-md-3 mb-0">
-                    <label class="info-label"><span class="text-danger">*</span>Associated Travel Request</label>
+                    <label class="info-label"><span class="text-danger">*</span>Reason for Travel</label>
                     <select class="form-control" [(ngModel)]="travelDeskObj.associatedTravelRequest" name="associatedTravelRequest" required>
                         <option value="" disabled>Select</option>
                         <option value="Attend Client Interview">Attend Client Interview</option>
                         <option value="Client Visit">Client Visit</option>
-                        <option value="Office Tour">Office Tour</option>
+                        <option value="Office Tour">Official Tour</option>
                         <option value="Hotel">Hotel and Lodging</option>
+                        <option value="Campus"> Campus Requirement</option>
+                        <option value="Others">Others</option>
                     </select>
                 </div>
 
@@ -74,8 +76,8 @@
                     <label class="info-label"><span class="text-danger">*</span>Hotel Booking Category</label>
                     <select class="form-control" [(ngModel)]="travelDeskObj.hotelCategory" name="hotelCategory" required>
                         <option value="" disabled>Select Category</option>
-                        <option value="Above TL">Above TL</option>
-                        <option value="TL">TL & Below</option>
+                        <option value="Above TL">Above Team Lead</option>
+                        <option value="TL">Team Lead & Below</option>
                     </select>
                 </div>
 
@@ -85,8 +87,8 @@
                     <select class="form-control" [(ngModel)]="travelDeskObj.tlSubCategory" name="tlSubCategory" required (ngModelChange)="onSubCategoryChange($event)">    
                       <option value="" disabled>Select Sub Category</option>
                       <option value="Metros">Metros</option>
-                      <option value="Category A">Category A</option>
-                      <option value="Category B">Category B</option>
+                      <option value="Category A">Tier 1</option>
+                      <option value="Category B">Tier 2</option>
                     </select>
                   </div>
 
