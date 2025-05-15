@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Project } from '../models/project';
+import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { ProjectFilterDTO } from '../models/projectFilterDTO';
+import { Project } from '../models/project';
 
 @Injectable({
   providedIn: 'root'
@@ -58,6 +58,11 @@ export class ResourceManagementService {
 
   sendEmailNotificationToBDTeam(project: Project){
     return this.http.post(`${this.baseUrl}` + `api/sendEmailNotificationToBDTeam`,project);
+  }
+
+
+  completionDateOfProject(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/completionDateOfProject`,project);
   }
   
   combinedPOINTERNALList(ProjectFilterDTO:ProjectFilterDTO){

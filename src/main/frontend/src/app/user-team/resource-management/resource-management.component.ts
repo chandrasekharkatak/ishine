@@ -152,7 +152,10 @@ export class ResourceManagementComponent implements OnInit {
   total = 6;
   assigned = 3;
   pending = 3;
+  @ViewChild('customDatePickerTemplate') customDatePickerTemplate!: TemplateRef<any>;
 
+  selectedDate: String| null = null;
+  completedProjectDetails: Project = new Project();
   members = [
     { role: 'Automation Tester', department: 'Automation Testing', experience: '2-3 years', assigned: 1, total: 3 },
     { role: 'Functional Tester', department: 'Functional Testing', experience: '1-2 years', assigned: 2, total: 2 },
@@ -1615,5 +1618,44 @@ onAction(action: string, project: any) {
   
   openTeamMembersModal(template: any) {
     this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
+  }
+
+ 
+
+  openDatePicker(template: TemplateRef<any>,project:any) {
+    const today = new Date();
+    this.selectedDate = today.toISOString().split('T')[0];
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });  
+    this.completedProjectDetails = project;
+
+  }
+
+  submitDate(template: TemplateRef<any>) {
+    this.completedProjectDetails.projectCompletionDate =this.selectedDate;
+    this.completedProjectDetails.projectStatus = 'Completed'
+    if (!this.completedProjectDetails.projectCompletionDate) {
+      this.alertMessage = "Please Select Completion Date!!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+ 
+    this.resourceManagementService.completionDateOfProject(this.completedProjectDetails ).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.selectedDate ='';
+        this.modalRef.hide();
+        console.log('Selected Date:', response.serviceResponse);
+        this.openAlertMod(template, response.serviceResponse);
+      }else{
+        this.selectedDate ='';
+        this.modalRef.hide();
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    })
+   
+  }
+
+  closeModal1() {   
+    this.selectedDate ='';
+    this.modalRef.hide();
   }
 }

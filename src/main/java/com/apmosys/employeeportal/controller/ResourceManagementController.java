@@ -212,5 +212,13 @@ public class ResourceManagementController {
 		ServiceResponse response = resourceManagementService.updateProjectStartAndEndDate(resourceManagementDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/completionDateOfProject", method = RequestMethod.POST)
+	public ServiceResponse completionDateOfProject(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.completionDateOfProject(resourceManagementDTO);
+		return response;
+	}
+	
 
 }

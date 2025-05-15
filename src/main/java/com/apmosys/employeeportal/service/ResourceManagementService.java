@@ -3467,49 +3467,91 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                     combinedProjects.addAll(poPortalProjects);
 	                     combinedProjects.addAll(internalProjects);
 	                     
-	                     boolean isPMOrSpoc = teamCreatedProjects.stream().anyMatch(team ->
-	                     (team.getProjectManagers() != null && team.getProjectManagers().stream()
-	                         .anyMatch(pm -> pm.getProjectManagerId() != null && pm.getProjectManagerId().equals(currentUserEmpId)))
-	                     ||
-	                     (team.getTeamSpocs() != null && team.getTeamSpocs().stream()
-	                         .anyMatch(spoc -> spoc.getSpocId() != null && spoc.getSpocId().equals(currentUserEmpId)))
-	                 );
+	                     Employee currentUser = employeeRepository.findByEmpId(currentUserEmpId);
+	                     boolean isSuperAdminOrDirector = false;
+	                     boolean isSpoc = false;
+	                     boolean isHod = false;
 
-	                 if (isPMOrSpoc) {
-	                     Set<Long> poProjectIds = teamCreatedProjects.stream()
-	                         .filter(team ->
-	                             (team.getProjectManagers() != null && team.getProjectManagers().stream()
-	                                 .anyMatch(pm -> pm.getProjectManagerId() != null && pm.getProjectManagerId().equals(currentUserEmpId)))
-	                             ||
-	                             (team.getTeamSpocs() != null && team.getTeamSpocs().stream()
-	                                 .anyMatch(spoc -> spoc.getSpocId() != null && spoc.getSpocId().equals(currentUserEmpId)))
-	                         )
-	                         .map(ResourceManagementDTO::getPoProjectId)
-	                         .filter(Objects::nonNull)
-	                         .collect(Collectors.toSet());
+	                     if (currentUser != null && currentUser.getJobRoleId() != null) {
+	                         JobRole jobRole = jobRoleRepository.findByjobRoleId(currentUser.getJobRoleId());
+	                         if (jobRole != null) {
+	                             String role = jobRole.getEmployeeRole();
+	                             String name = jobRole.getName();
+	                             if ("SuperAdmin".equalsIgnoreCase(role) || "Director".equalsIgnoreCase(name) || "SuperAdmin".equalsIgnoreCase(name)) {
+	                                 isSuperAdminOrDirector = true;
+	                             }
+	                         }
+	                     }
 
-	                     Set<Integer> internalProjectIds = teamCreatedProjects.stream()
-	                         .filter(team ->
-	                             (team.getProjectManagers() != null && team.getProjectManagers().stream()
-	                                 .anyMatch(pm -> pm.getProjectManagerId() != null && pm.getProjectManagerId().equals(currentUserEmpId)))
-	                             ||
-	                             (team.getTeamSpocs() != null && team.getTeamSpocs().stream()
-	                                 .anyMatch(spoc -> spoc.getSpocId() != null && spoc.getSpocId().equals(currentUserEmpId)))
-	                         )
-	                         .map(ResourceManagementDTO::getProjectId)
-	                         .filter(Objects::nonNull)
-	                         .collect(Collectors.toSet());
+	                     // SPOC Check
+	                     isSpoc = teamCreatedProjects.stream()
+	                             .anyMatch(team -> team.getTeamSpocs() != null &&
+	                                     team.getTeamSpocs().stream()
+	                                             .anyMatch(spoc -> spoc.getSpocId() != null && spoc.getSpocId().equals(currentUserEmpId)));
 
-	                     combinedProjects = combinedProjects.stream()
-	                         .filter(project ->
-	                             "Not Started".equalsIgnoreCase(project.getIsDraftProject()) ||
-	                             "Internal".equalsIgnoreCase(project.getIsDraftProject()) ||
-	                             (project.getId() != null && poProjectIds.contains(project.getId())) ||
-	                             (project.getProjectId() != null && internalProjectIds.contains(project.getProjectId()))
-	                         )
-	                         .collect(Collectors.toList());
-	                 }
-	                     
+	                     // HOD Check
+	                     List<Long> hodDeptIds = departmentRepository.findByHodId(currentUserEmpId)
+	                             .stream().map(Department::getDeptId).collect(Collectors.toList());
+
+	                     isHod = !hodDeptIds.isEmpty();
+
+	                     // Now apply role-specific filtering
+	                     if (isSuperAdminOrDirector) {
+	                         // Super Admin, Director, and all remaining users → No filtering needed
+	                         // Return all combinedProjects as-is
+	                     }
+	                     else if (isSpoc && !isSuperAdminOrDirector) {
+	                         Set<Long> spocPoProjectIds = teamCreatedProjects.stream()
+	                                 .filter(team -> team.getTeamSpocs() != null &&
+	                                         team.getTeamSpocs().stream()
+	                                                 .anyMatch(spoc -> spoc.getSpocId() != null && spoc.getSpocId().equals(currentUserEmpId)))
+	                                 .map(ResourceManagementDTO::getPoProjectId)
+	                                 .filter(Objects::nonNull)
+	                                 .collect(Collectors.toSet());
+
+	                         Set<Integer> spocInternalProjectIds = teamCreatedProjects.stream()
+	                                 .filter(team -> team.getTeamSpocs() != null &&
+	                                         team.getTeamSpocs().stream()
+	                                                 .anyMatch(spoc -> spoc.getSpocId() != null && spoc.getSpocId().equals(currentUserEmpId)))
+	                                 .map(ResourceManagementDTO::getProjectId)
+	                                 .filter(Objects::nonNull)
+	                                 .collect(Collectors.toSet());
+
+	                         combinedProjects = combinedProjects.stream()
+	                                 .filter(project -> "Internal".equalsIgnoreCase(project.getIsDraftProject())
+	                                         || "Not Started".equalsIgnoreCase(project.getIsDraftProject())
+	                                         || (project.getId() != null && spocPoProjectIds.contains(project.getId()))
+	                                         || (project.getProjectId() != null && spocInternalProjectIds.contains(project.getProjectId())))
+	                                 .collect(Collectors.toList());
+	                     }
+	                     else if (isHod && !isSuperAdminOrDirector) {
+	                         Set<Long> hodPoProjectIds = teamCreatedProjects.stream()
+	                                 .filter(team -> team.getTeamSpocs() != null &&
+	                                         team.getTeamSpocs().stream().anyMatch(spoc ->
+	                                                 spoc.getDepartmentList() != null &&
+	                                                 Arrays.stream(spoc.getDepartmentList())
+	                                                         .anyMatch(deptId -> hodDeptIds.contains(Long.valueOf(deptId)))))
+	                                 .map(ResourceManagementDTO::getPoProjectId)
+	                                 .filter(Objects::nonNull)
+	                                 .collect(Collectors.toSet());
+
+	                         Set<Integer> hodInternalProjectIds = teamCreatedProjects.stream()
+	                                 .filter(team -> team.getTeamSpocs() != null &&
+	                                         team.getTeamSpocs().stream().anyMatch(spoc ->
+	                                                 spoc.getDepartmentList() != null &&
+	                                                 Arrays.stream(spoc.getDepartmentList())
+	                                                         .anyMatch(deptId -> hodDeptIds.contains(Long.valueOf(deptId)))))
+	                                 .map(ResourceManagementDTO::getProjectId)
+	                                 .filter(Objects::nonNull)
+	                                 .collect(Collectors.toSet());
+
+	                         combinedProjects = combinedProjects.stream()
+	                                 .filter(project -> "Internal".equalsIgnoreCase(project.getIsDraftProject())
+	                                         || "Not Started".equalsIgnoreCase(project.getIsDraftProject())
+	                                         || (project.getId() != null && hodPoProjectIds.contains(project.getId()))
+	                                         || (project.getProjectId() != null && hodInternalProjectIds.contains(project.getProjectId())))
+	                                 .collect(Collectors.toList());
+	                     }
 	                 
 	                 
 	                 
@@ -3537,8 +3579,6 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                 countsMap.put("approvedCount", approvedCount);
 	                 countsMap.put("notStartedCount", notStartedCount);
 	                 countsMap.put("rejectedCount", rejectedCount);
-
-
 	                
 	                 if ("Pending For Approval".equalsIgnoreCase(approvalStatus)) {
 	                     combinedProjects = combinedProjects.stream()
@@ -3934,4 +3974,65 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 			}
 			return response;
 		}
+		
+		
+		public ServiceResponse completionDateOfProject(ResourceManagementDTO resourceManagementDTO) {
+			
+			ServiceResponse response = new ServiceResponse();
+		       LogDTO apiLogInfo = new LogDTO();
+		       apiLogInfo.setSubFeatureName("completionDateOfProject");
+		       apiLogInfo.setApiUrl("/api/completionDateOfProject");
+		       apiLogInfo.setLogLevel("INFO");
+		       StringBuilder logBuilder = new StringBuilder();
+		       logBuilder.append("ProjectType : " + resourceManagementDTO.getProjectType() + " ,ProjectId :" + resourceManagementDTO.getProjectId()
+		       + " ,ProjectName :" + resourceManagementDTO.getName() + " ,Department :" + resourceManagementDTO.getDeptName() + " ,State:" + 
+		       resourceManagementDTO.getClientState());
+
+				try {
+					Project projObj = null;
+				    if (resourceManagementDTO.getProjectType().equals("Internal")) {
+				        projObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+				     
+				    } else {
+				    	System.err.print(resourceManagementDTO.getId());
+				        projObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+				    }
+				    
+				    if(projObj == null) {
+				    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			            response.setServiceResponse("No Project Detais Is Present ");
+			            apiLogInfo.setApiResponse("No Project Detais Is Present");
+			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			            return response;
+				    }
+				    Project projectObj =projObj;
+				   
+				    projectObj.setProjectCompletionDate(resourceManagementDTO.getProjectCompletionDate());				    projectObj.setProjectStatus(resourceManagementDTO.getStatus());
+				    projectObj.setProjectStatus(resourceManagementDTO.getProjectStatus());
+				    Project projectDbResponse = projectRepository.save(projectObj);
+				    if(projectDbResponse != null) {
+				    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			            response.setServiceResponse("Project Status Updated As Completed !!");
+			            apiLogInfo.setApiResponse("Project Status Updated As Completed");
+			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						
+				    }else {
+				    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			            response.setServiceResponse("Project Status Not Updated");
+			            apiLogInfo.setApiResponse("Project Status Not Updated to Completed");
+			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				    }
+				    		    
+			}catch(Exception e) {
+				e.printStackTrace();
+				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Something Went Wrong.");
+				response.setServiceError(e.getMessage());
+	           apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	           apiLogInfo.setLogLevel("ERROR");
+				
+			}
+			return response;		
+		}
+		
 }

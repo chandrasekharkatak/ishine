@@ -408,16 +408,16 @@
                                                             <!-- Dropdown Menu -->
                                                             <ul *ngIf="openMenuIndex === i" class="custom-dropdown">
                                                               <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
-                                                              (click)="openProjectPreviewModal(preview_team, project);isEditProject = false">
+                                                              (click)="openProjectPreviewModal(preview_team, project);closeMenu(i);isEditProject = false">
                                                               <i class="fas fa-eye"></i> Preview</li>
-                                                              <li *ngIf="!isHideButton" (click)="openEditModal(team_configuration_form,project);project.isEditProject = true">
+                                                              <li *ngIf="!isHideButton" (click)="openEditModal(team_configuration_form,project);closeMenu(i);project.isEditProject = true">
                                                                 <i class="fas fa-pen"></i> Edit</li>
-                                                              <li (click)="onAction('Audit', project)"><i class="fas fa-clock"></i> Audit</li>
-                                                              <li (click)="onAction('Complete', project)"><i class="fas fa-check-double"></i> Mark as Complete</li>
+                                                              <li (click)="onAction('Audit', project);closeMenu(i)"><i class="fas fa-clock"></i> Audit</li>
+                                                              <li (click)="openDatePicker(customDatePickerTemplate,project);closeMenu(i);closeMenu(i)"><i class="fas fa-check-double"></i> Mark as Complete</li>
                                                               <li  *ngIf="userMapping.rmg_approval_option && project.isActive == '2' || userMapping.rmg_approval_option && project.isDraftProject === 'Pending For Approval' && !isHideButton"
-                                                              (click)="onApproveProject(project)"><i class="fas fa-square-check"></i> Approve</li>
+                                                              (click)="onApproveProject(project);closeMenu(i)"><i class="fas fa-square-check"></i> Approve</li>
                                                               <li *ngIf="userMapping.rmg_approval_option &&  project.isActive == 2  || userMapping.rmg_approval_option && project.isDraftProject === 'Pending For Approval' && !isHideButton"
-                                                              (click)="openRejectModal(reject_project,project)"><i class="fas fa-times"></i> Reject</li>
+                                                              (click)="openRejectModal(reject_project,project);closeMenu(i)"><i class="fas fa-times"></i> Reject</li>
                                                             </ul>
                                                           </div>
                                                           
@@ -1418,3 +1418,30 @@
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
+
+<ng-template #customDatePickerTemplate>
+    <div class="modal-body text-center">
+      <h5>Please Select Date</h5>
+  
+      <div style="max-width: 300px; margin: auto;">
+        <!-- <label class="d-block text-left font-weight-bold">Select Date</label> -->
+  
+       
+        <input
+          #dateInput
+          type="date"
+          class="form-control"
+          [(ngModel)]="selectedDate"
+          autocomplete="off"
+          style="width: 100%; margin-top: 10px;"
+        />
+      </div>
+  
+      <br />
+      <button type="button" class="btn btn-primary" (click)="submitDate(alert_message);closeModal1()">Submit</button> &nbsp;&nbsp;&nbsp;
+      <button type="button" class="btn btn-outline-dark" (click)="closeModal1()">No Cancel</button>
+    </div>
+  </ng-template>
+  
+  
+
