@@ -34,5 +34,7 @@ export class MyReimbursement{
         approver2 : any;
         approver3 : any;
         docId:any;
+        multipleDocIds: string[] = [];
+        docIds: string[] = [];
 
 }

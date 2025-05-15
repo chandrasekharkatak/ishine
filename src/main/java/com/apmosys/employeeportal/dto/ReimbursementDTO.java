@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.dto;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.util.List;
 
 import lombok.Data;
 
@@ -39,6 +40,17 @@ public class ReimbursementDTO {
     private String level3approvername;
     private String status;
     private String docId;
+    private List<Long> docIds; // Add this field
+
+    // getters and setters
+    public List<Long> getDocIds() {
+        return docIds;
+    }
+
+    public void setDocIds(List<Long> docIds) {
+        this.docIds = docIds;
+    }
+//    private String docIds;
     private String finalStatus;
     private String vehicleType;
     private String foodAllowanceType;

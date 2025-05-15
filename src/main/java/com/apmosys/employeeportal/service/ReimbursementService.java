@@ -154,7 +154,12 @@ public class ReimbursementService {
 			reimbursementData.setAmount(reimbursementObj.getAmount());
 			reimbursementData.setLevel(1);
 			reimbursementData.setCurrency("Rupees");
-			reimbursementData.setDocId(reimbursementObj.getDocId());
+			   if (reimbursementObj.getDocIds() != null && !reimbursementObj.getDocIds().isEmpty()) {
+		            String docIdsString = String.join(",", reimbursementObj.getDocIds().stream().map(String::valueOf).toArray(String[]::new));
+		            reimbursementData.setDocId(docIdsString);
+		        }
+			//reimbursementData.setDocId(reimbursementObj.getDocId());
+			//reimbursementData.setDocIds(reimbursementObj.getDocIds());
 			reimbursementData.setExpenditureType(reimbursementObj.getExpenditureType());
 			if (reimbursementObj.getExpenditureType().equalsIgnoreCase("Travel")) {
 				reimbursementData.setTravelMode(reimbursementObj.getTravelMode());
@@ -203,11 +208,31 @@ public class ReimbursementService {
 				return serviceResponse;
 			} else {
 				
+//				File file = null;
+//				try {
+//				    Resource resource = getTemplateFile(Long.parseLong(savedReimbursementData.getDocId()));
+//				    if (resource != null && resource.exists()) {
+//				        file = resource.getFile(); 
+//				    }
+//				} catch (IOException e) {
+//				    e.printStackTrace();
+//				}
 				File file = null;
 				try {
-				    Resource resource = getTemplateFile(Long.parseLong(savedReimbursementData.getDocId()));
-				    if (resource != null && resource.exists()) {
-				        file = resource.getFile(); 
+				    String docIdsString = savedReimbursementData.getDocId();
+				    String[] docIdsArray = docIdsString.split(",");
+
+				    for (String docIdStr : docIdsArray) {
+				        try {
+				            Long docId = Long.parseLong(docIdStr.trim());
+				            Resource resource = getTemplateFile(docId);
+				            if (resource != null && resource.exists()) {
+				                file = resource.getFile();
+				                break;
+				            }
+				        } catch (NumberFormatException e) {
+				            System.out.println("Invalid docId: " + docIdStr);
+				        }
 				    }
 				} catch (IOException e) {
 				    e.printStackTrace();
