@@ -159,6 +159,9 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
+                            <!-- <input class="form-control" [(ngModel)]="reimbursementObj.fromDate"
+                                (ngModelChange)="onFromDateChange($event)" id="fromDate" type="date" [min]="fromDate"
+                                [max]="toDate" placeholder="Choose from date" autocomplete="off" /> -->
                             <input class="form-control" [(ngModel)]="reimbursementObj.fromDate"
                                 (ngModelChange)="onFromDateChange($event)" id="fromDate" type="date" [min]="fromDate"
                                 [max]="toDate" placeholder="Choose from date" autocomplete="off" />

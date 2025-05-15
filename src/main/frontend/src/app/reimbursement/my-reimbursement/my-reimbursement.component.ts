@@ -76,6 +76,7 @@ reimbursementObj: any = {
     today.setDate(today.getDate() - 60);
     this.fromDate = today.toISOString().split('T')[0];
     this.onGetEmployeeInfo();
+    this.setNextMonthDateRange();
   }
 
   onReasonSelect(){
@@ -406,6 +407,30 @@ reimbursementObj: any = {
       
       removeInputSpecializationField(index: number) {
         this.fileUploads.splice(index, 1);
+      }
+
+      setNextMonthDateRange() {
+        const today = new Date();
+        let nextMonth = today.getMonth() + 1;
+        let year = today.getFullYear();
+      
+        if (nextMonth > 11) {
+          nextMonth = 0; // January
+          year++;
+        }
+      
+        const minDate = new Date(year, nextMonth, 1);   // 1st of next month
+        const maxDate = new Date(year, nextMonth, 15);  // 15th of next month
+      
+        this.fromDate = this.formatDate(minDate);
+        this.toDate = this.formatDate(maxDate);
+      }
+      
+      formatDate(date: Date): string {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
       }
 
      }
