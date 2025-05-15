@@ -1,192 +1,205 @@
 <!-- Travel History Table -->
 <div class="row">
-    <div class="col-md-12">
-      <div class="row">
-        <div class="col-md-12 table-header">
-          <h1 class="table-header-title">My TravelRequest History</h1>
-        </div>
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h1 class="table-header-title">My TravelRequest History</h1>
       </div>
-      <div class="row">
-        <div class="col-md-12">
-          <div class="d-flex align-items-center justify-content-between mt-3">
-          
-            <div class="selector-toggle">
-              <a href="javascript:void(0)">
-                <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
-                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
-              </a>
-            </div>
-  
-           
-            <div class="export-button">
-              <button type="button" class="btn btn-sm btn-outline-primary mt-2 mb-2 excel-button"
-                [hidden]="travelRequests.length == 0" (click)="exportToExcel()">
-                <em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;
-              </button>
-            </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="d-flex align-items-center justify-content-between mt-3">
+
+          <div class="selector-toggle">
+            <a href="javascript:void(0)">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
+            </a>
           </div>
-          <div class="overflow-auto" bassHorizontalScroll>
-            <table class="table table-responsive">
-              <thead class="thead-light">
-                <tr>
-                  <th scope="col" class="info-label">Reference Number</th>
-                  <th scope="col" class="info-label">Name</th>
-                  <th scope="col" class="info-label">Request Type</th>
-                  <th scope="col" class="info-label">From Date</th>
-                  <th scope="col" class="info-label">To Date</th>
-                  <th scope="col" class="info-label">Hotel Category</th>
-                  <th scope="col" class="info-label">City Category</th>
-                  <th scope="col" class="info-label">City Name</th>
-                  <th scope="col" class="info-label">From Location</th>
-                  <th scope="col" class="info-label">To Location</th>
-                  
-                  <th scope="col" class="info-label">Applied By</th>
-                  <th scope="col" class="info-label">Applied On</th>
-                  <th scope="col" class="wide-col">Purpose Of Travel</th>
-                  <th scope="col" class="info-label">Current Approval Level</th>
-                  <th scope="col" class="info-label">Level 1 Approver Name</th>
-                  <th scope="col" class="info-label">Level 1 Approver Status</th>
-                  <th scope="col" class="info-label">Level 1 Approver Remarks</th>
-                  <th scope="col" class="info-label">Level 2 Approver Name</th>
-                  <th scope="col" class="info-label">Level 2 Approver Status</th>
-                  <th scope="col" class="info-label">Level 2 Approver Remarks</th>
-                  <th scope="col" class="info-label">Final Status</th>
-                  <th scope="col" class="info-label">Action</th>
-                </tr>
-                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="travelActiveColumns"
+
+
+          <div class="export-button">
+            <button type="button" class="btn btn-sm btn-outline-primary mt-2 mb-2 excel-button"
+              [hidden]="travelRequests.length == 0" (click)="exportToExcel()">
+              <em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;
+            </button>
+          </div>
+        </div>
+        <div class="overflow-auto" bassHorizontalScroll>
+          <table class="table table-responsive">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col" class="info-label">Reference Number</th>
+                <th scope="col" class="info-label">Name</th>
+                <th scope="col" class="info-label">Request Type</th>
+                <th scope="col" class="info-label">From Date</th>
+                <th scope="col" class="info-label">To Date</th>
+                <th scope="col" class="info-label">Hotel Category</th>
+                <th scope="col" class="info-label">City Category</th>
+                <th scope="col" class="info-label">City Name</th>
+                <th scope="col" class="info-label">From Location</th>
+                <th scope="col" class="info-label">To Location</th>
+
+                <th scope="col" class="info-label">Applied By</th>
+                <th scope="col" class="info-label">Applied On</th>
+                <th scope="col" class="wide-col">Purpose Of Travel</th>
+                <th scope="col" class="info-label">Current Approval Level</th>
+                <th scope="col" class="info-label">Level 1 Approver Name</th>
+                <th scope="col" class="info-label">Level 1 Approver Status</th>
+                <th scope="col" class="info-label">Level 1 Approver Remarks</th>
+                <th scope="col" class="info-label">Level 2 Approver Name</th>
+                <th scope="col" class="info-label">Level 2 Approver Status</th>
+                <th scope="col" class="info-label">Level 2 Approver Remarks</th>
+                <th scope="col" class="info-label">Final Status</th>
+                <th scope="col" class="info-label">Action</th>
+              </tr>
+              <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="travelActiveColumns"
                 (onSearch)="onSearch($event);page=1"></tr>
-              </thead>
-              <tbody>
-                
-                <tr *ngFor="let row of travelRequests |colFilter:filters:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                  <td>{{ row.requestId }}</td>
-                  <td>{{ row.name }}</td>
-                  <td>{{ row.requestType }}</td>
-                  <td>{{ row.fromDate | date }}</td>
-                  <td>{{ row.toDate | date }}</td>
-                  <td>{{ row.hotelCategory || 'NA' }}</td>
-                  <td>{{ row.cityCategory || 'NA' }}</td>
-                  <td>{{ row.city || 'NA' }}</td>
-                  <td>{{ row.fromLocation || 'NA' }}</td>
-                  <td>{{ row.toLocation || 'NA' }}</td>
-                  
-                  <td>{{ row.empId }}</td>
-                  <td>{{ row.appliedOn | date }}</td>
-                  <td>{{ row.purpose }}</td>
-                  <td>{{ row.level }}</td>
-                  <td>{{ row.hodName }}</td>
-                  <!-- <td>{{ row.status }}</td> -->
-                  <td [ngClass]="{
+            </thead>
+            <tbody>
+
+              <tr
+                *ngFor="let row of travelRequests |colFilter:filters:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                <td>{{ row.requestId }}</td>
+                <td>{{ row.name }}</td>
+                <td>{{ row.requestType }}</td>
+                <td>{{ row.fromDate | date }}</td>
+                <td>{{ row.toDate | date }}</td>
+                <td>{{ row.hotelCategory || 'NA' }}</td>
+                <td>{{ row.cityCategory || 'NA' }}</td>
+                <td>{{ row.city || 'NA' }}</td>
+                <td>{{ row.fromLocation || 'NA' }}</td>
+                <td>{{ row.toLocation || 'NA' }}</td>
+
+                <td>{{ row.empId }}</td>
+                <td>{{ row.appliedOn | date }}</td>
+                <td>{{ row.purpose }}</td>
+                <td>{{ row.level }}</td>
+                <td>{{ row.hodName }}</td>
+                <!-- <td>{{ row.status }}</td> -->
+                <td [ngClass]="{
                     'text-danger': row.status === 'Rejected',
                     'text-success': row.status === 'Approved',
                     'text-warning': row.status === 'Pending'
                                 }">
-                    {{ row.status }}
-                  </td>
-                  <td>{{ row.level1approverRemarks || 'NA' }}</td>
-                  <td>{{ 'ADMIN' }}</td>
-                  <!-- <td>{{ row.level2approverStatus }}</td> -->
-                  <td [ngClass]="{
+                  {{ row.status }}
+                </td>
+                <td>{{ row.level1approverRemarks || 'NA' }}</td>
+                <td>{{ 'ADMIN' }}</td>
+                <!-- <td>{{ row.level2approverStatus }}</td> -->
+                <td [ngClass]="{
                     'text-danger': row.level2approverStatus === 'Rejected',
                     'text-success': row.level2approverStatus === 'Approved',
                     'text-warning': row.level2approverStatus === 'Pending'
                                 }">
-                    {{ row.level2approverStatus }}
-                  </td>
-                  <td>{{ row.level2approverRemarks || 'NA' }}</td>
-                  <td [ngClass]="{
+                  {{ row.level2approverStatus }}
+                </td>
+                <td>{{ row.level2approverRemarks || 'NA' }}</td>
+                <td [ngClass]="{
                     'text-danger': row.finalStatus === 'Rejected',
                     'text-success': row.finalStatus === 'Approved',
                     'text-warning': row.finalStatus === 'Pending'
                                 }">
-                    {{ row.finalStatus || 'NA'}}
-                  </td>
-                  <td>
-                    <!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" >
+                  {{ row.finalStatus || 'NA'}}
+                </td>
+                <td>
+                  <!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" >
                       <em class="fa fa-edit"></em> Edit
                     </button> -->
-                    <div class="d-inline-flex">
-                      <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button" class="btn btn-primary btn-sm ml-2" (click)="openEditModal(travel_desk,row)">
-                        <em class="fa fa-edit"></em> Edit
-                      </button>
-                      <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button" class="btn btn-danger btn-sm ml-2" (click)="deleteTraveldata(row,alert_message1)">
-                        <em class="fa fa-trash"></em> Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <!-- <pagination-controls class="my-pagination"></pagination-controls> -->
-          <pagination-controls class="my-pagination" [hidden]="travelRequests.length == 0"
-                    (pageChange)="handlePageChange($event)"></pagination-controls>
-          <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2">
+                  <div class="d-inline-flex">
+                    <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button"
+                      class="btn btn-primary btn-sm ml-2" (click)="openEditModal(travel_desk,row)">
+                      <em class="fa fa-edit"></em> Edit
+                    </button>
+                    <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button"
+                      class="btn btn-danger btn-sm ml-2" (click)="deleteTraveldata(row,alert_message1)">
+                      <em class="fa fa-trash"></em> Delete
+                    </button>
+                    <button *ngIf="row.status === 'Approved'" type="button"
+                      (click)="reimbursmentModel(travelReimbursment,row)" class="btn btn-primary btn-sm ml-2">
+                      <em class="fa fa-success"></em> Apply Reimbursment
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- <pagination-controls class="my-pagination"></pagination-controls> -->
+        <pagination-controls class="my-pagination" [hidden]="travelRequests.length == 0"
+          (pageChange)="handlePageChange($event)"></pagination-controls>
+        <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2">
             <em class="fa fa-file-arrow-down fa-2x"></em>
           </button> -->
-        </div>
       </div>
     </div>
   </div>
-  
-
-  
-  
-  
+</div>
 
 
 
 
-  <ng-template #travel_desk>
-    <div class="modal-body text-center">
-      <div class="" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="editTravelRequestModalLabel">Edit Travel Request</h5>
-              <button type="button" class="close" (click)="closeModal()" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="modal-body">
-              <form #editForm="ngForm">
-                <div class="row">
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="requestId">Request ID</label>
-                      <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedTravelRequest.requestId" name="requestId" readonly />
-                    </div>
+
+
+
+
+
+<ng-template #travel_desk>
+  <div class="modal-body text-center">
+    <div class="" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editTravelRequestModalLabel">Edit Travel Request</h5>
+            <button type="button" class="close" (click)="closeModal()" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form #editForm="ngForm">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="requestId">Request ID</label>
+                    <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedTravelRequest.requestId"
+                      name="requestId" readonly />
                   </div>
-                
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="name">Name</label>
-                      <input type="text" class="form-control" id="name" [(ngModel)]="selectedTravelRequest.name" name="name" readonly/>
-                    </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" class="form-control" id="name" [(ngModel)]="selectedTravelRequest.name"
+                      name="name" readonly />
                   </div>
-                
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="requestType">Request Type</label>
-                      <input type="text" class="form-control" id="requestType" [(ngModel)]="selectedTravelRequest.requestType" name="requestType" />
-                    </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="requestType">Request Type</label>
+                    <input type="text" class="form-control" id="requestType"
+                      [(ngModel)]="selectedTravelRequest.requestType" name="requestType" />
                   </div>
-                
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="fromDate">From Date</label>
-                      <input type="date" class="form-control" id="fromDate" [(ngModel)]="selectedTravelRequest.fromDate" name="fromDate" />
-                    </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="fromDate">From Date</label>
+                    <input type="date" class="form-control" id="fromDate" [(ngModel)]="selectedTravelRequest.fromDate"
+                      name="fromDate" />
                   </div>
-                
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="toDate">To Date</label>
-                      <input type="date" class="form-control" id="toDate" [(ngModel)]="selectedTravelRequest.toDate" name="toDate" />
-                    </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="toDate">To Date</label>
+                    <input type="date" class="form-control" id="toDate" [(ngModel)]="selectedTravelRequest.toDate"
+                      name="toDate" />
                   </div>
-                
-                  <!-- <div class="col-md-6">
+                </div>
+
+                <!-- <div class="col-md-6">
                     <div class="form-group">
                       <label for="fromLocation">From Location</label>
                       <input type="text" class="form-control" id="fromLocation" [(ngModel)]="selectedTravelRequest.fromLocation" name="fromLocation" />
@@ -199,75 +212,262 @@
                       <input type="text" class="form-control" id="toLocation" [(ngModel)]="selectedTravelRequest.toLocation" name="toLocation" />
                     </div>
                   </div> -->
-                
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="status">Status</label>
-                      <input type="text" class="form-control" id="status" [(ngModel)]="selectedTravelRequest.status" name="status" readonly />
-                    </div>
-                  </div>
-                
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="appliedBy">Applied By</label>
-                      <input type="text" class="form-control" id="appliedBy" [(ngModel)]="selectedTravelRequest.empId" name="appliedBy" readonly/>
-                    </div>
-                  </div>
-                
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="appliedOn">Applied On</label>
-                      <input type="date" class="form-control" id="appliedOn" [(ngModel)]="selectedTravelRequest.appliedOn" name="appliedOn" readonly/>
-                    </div>
-                  </div>
-                
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="purpose">Purpose of Travel</label>
-                      <textarea class="form-control" id="purpose" [(ngModel)]="selectedTravelRequest.purpose" name="purpose"></textarea>
-                    </div>
-                  </div>
-                
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="approver">Level 1 Approver</label>
-                      <input type="text" class="form-control" id="approver" [(ngModel)]="selectedTravelRequest.hodName" name="approver" readonly/>
-                    </div>
-                  </div>
-                
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      <label for="approverStatus">Level 1 Approver Status</label>
-                      <input type="text" class="form-control" id="approverStatus" [(ngModel)]="selectedTravelRequest.status" name="approverStatus" readonly/>
-                    </div>
-                  </div>
-                
-                  <div class="col-md-12 text-center">
-                    <button type="button" class="btn btn-primary" (click)="updateTravelRequest(alert_message)">Save Changes</button>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="status">Status</label>
+                    <input type="text" class="form-control" id="status" [(ngModel)]="selectedTravelRequest.status"
+                      name="status" readonly />
                   </div>
                 </div>
-                
-              </form>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="appliedBy">Applied By</label>
+                    <input type="text" class="form-control" id="appliedBy" [(ngModel)]="selectedTravelRequest.empId"
+                      name="appliedBy" readonly />
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="appliedOn">Applied On</label>
+                    <input type="date" class="form-control" id="appliedOn" [(ngModel)]="selectedTravelRequest.appliedOn"
+                      name="appliedOn" readonly />
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="purpose">Purpose of Travel</label>
+                    <textarea class="form-control" id="purpose" [(ngModel)]="selectedTravelRequest.purpose"
+                      name="purpose"></textarea>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="approver">Level 1 Approver</label>
+                    <input type="text" class="form-control" id="approver" [(ngModel)]="selectedTravelRequest.hodName"
+                      name="approver" readonly />
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="approverStatus">Level 1 Approver Status</label>
+                    <input type="text" class="form-control" id="approverStatus"
+                      [(ngModel)]="selectedTravelRequest.status" name="approverStatus" readonly />
+                  </div>
+                </div>
+
+                <div class="col-md-12 text-center">
+                  <button type="button" class="btn btn-primary" (click)="updateTravelRequest(alert_message)">Save
+                    Changes</button>
+                </div>
               </div>
-            </div>
+
+            </form>
           </div>
         </div>
       </div>
-    
-    <!-- <p>{{alertMessage}}</p>
+    </div>
+  </div>
+
+  <!-- <p>{{alertMessage}}</p>
     <button type="button" class="btn btn-primary" >OK</button>&nbsp; -->
 </ng-template>
 
 <ng-template #alert_message>
   <div class="modal-body text-center">
-      <p>{{alertMessage}}</p>
-      <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
   </div>
 </ng-template>
 
 <ng-template #alert_message1>
   <div class="modal-body text-center">
-      <p>{{alertMessage}}</p>
-      <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+  </div>
+</ng-template>
+
+
+
+<ng-template #travelReimbursment>
+  <div class="row">
+    <div class="card col-md-12 px-0">
+      <div class="card-header text-center text-uppercase">
+        <strong>Apply reimbursment based on your travel request</strong>
+        <!-- <strong *ngIf="isUpdation">Update Timesheet</strong> -->
+      </div>
+      <div class="card-body">
+        <div class="row">
+
+          <div class="col-md-3">
+            <label class="info-label">
+              <span class="text-danger">*</span>Full Name
+            </label>
+            <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.name" name="fullName" disabled
+              required />
+          </div>
+
+          <div class="col-md-3 mb-0">
+            <label class="info-label">
+              <span class="text-danger">*</span>Employee Id
+            </label>
+            <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.employeementId" name="employeeId"
+              disabled required />
+          </div>
+
+          <div class="col-md-3 mb-0">
+            <label class="info-label">
+              <span class="text-danger">*</span>Department
+            </label>
+            <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.departmentName"
+              name="departmentName" disabled required />
+          </div>
+
+          <div class="col-md-3 mb-0">
+            <label class="info-label">
+              <span class="text-danger">*</span>Designation
+            </label>
+            <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.designationName"
+              name="designationName" disabled required />
+          </div>
+
+          <div class="col-md-3 mb-0">
+            <label class="info-label">
+              <span class="text-danger">*</span>Mail Id
+            </label>
+            <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.email" name="email" disabled
+              required />
+          </div>
+
+          <div class="col-md-3 mb-0">
+            <label class="info-label">
+              <span class="text-danger">*</span>Mobile No
+            </label>
+            <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.mobileNo" name="mobileNo" disabled
+              required />
+          </div>
+
+          <div class="col-md-3 mb-0">
+            <label class="info-label">
+              <span class="text-danger">*</span>Manager Name
+            </label>
+            <input type="text" class="form-control" [(ngModel)]="currentEmployeeInfo.managerName" name="managerName"
+              disabled required />
+          </div>
+
+
+
+          <div class="col-md-3 mb-0">
+            <label class="info-label">
+              <span class="text-danger">*</span>From Location
+            </label>
+            <input type="text" class="form-control" [(ngModel)]="selectedTravelRequest.fromLocation" name="fromLocation"
+              disabled required />
+          </div>
+
+          <div class="col-md-3 mb-0">
+            <label class="info-label">
+              <span class="text-danger">*</span>To Location
+            </label>
+            <input type="text" class="form-control" [(ngModel)]="selectedTravelRequest.toLocation" name="toLocation"
+              disabled required />
+          </div>
+
+          <div class="col-md-3 mb-0">
+            <div class="info-wrapper">
+              <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>From Date</label>
+                <input class="form-control" [(ngModel)]="selectedTravelRequest.fromDate" id="fromDate" type="date"
+                  placeholder="Choose from date" autocomplete="off" disabled>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3 mb-0">
+            <div class="info-wrapper">
+              <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>To Date</label>
+                <input class="form-control" id="toDate" type="date" [(ngModel)]="selectedTravelRequest.toDate"
+                  placeholder="Choose to date" autocomplete="off" disabled>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3 mb-0">
+            <div class="info-wrapper">
+              <div class="form-group">
+                <label for="purposeOfTravel"><span class="text-danger">*</span>Purpose of Travel</label>
+                <textarea class="form-control" [(ngModel)]="selectedTravelRequest.purpose" id="purposeOfTravel" rows="3"
+                  name="purposeOfTravel" disabled></textarea>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div *ngFor="let invoice of invoices; let i = index" class="row mb-3 align-items-end">
+          <div class="col-md-3">
+            <label class="info-label"><span class="text-danger">*</span>Invoice No</label>
+            <input type="text" class="form-control" [(ngModel)]="invoice.invoiceNo" name="invoiceNo{{i}}" required />
+          </div>
+        
+          <div class="col-md-3">
+            <label class="info-label"><span class="text-danger">*</span>Invoice Date</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="invoice.invoiceDate"
+              name="invoiceDate{{i}}"
+              [min]="selectedTravelRequest.fromDate"
+              [max]="selectedTravelRequest.toDate"
+              required
+            />
+          </div>
+          
+        
+          <div class="col-md-3">
+            <label class="info-label"><span class="text-danger">*</span>Amount</label>
+            <input type="number" class="form-control"  name="invoiceAmount{{i}}" required />
+          </div>
+        
+          <div class="col-md-2">
+            <label class="info-label"><span class="text-danger">*</span>Upload Invoice</label>
+            <input type="file" class="form-control" (change)="onInvoiceFileChange($event, i)" required />
+          </div>
+        
+          <div class="col-md-1 text-right">
+            
+            <button 
+              class="btn btn-outline-primary" 
+              (click)="addInvoiceRow()" 
+            
+              >
+              <i class="fa fa-plus"></i>
+            </button>
+        
+           
+            <button 
+              class="btn btn-outline-danger ml-2" 
+              (click)="removeInvoiceRow(i)" 
+              *ngIf="i > 0">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        
+        
+        <div class="row mb-3">
+          <div class="col-md-12 px-0 text-center">
+        
+            <button type="button" class="btn btn-primary btn-lg mx-1"(click)="submitInvoice()">Submit</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 </ng-template>

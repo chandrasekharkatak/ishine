@@ -231,7 +231,7 @@ reimbursementObj: any = {
 
     try {
       
-      const uploadResponse: any = await this.reimbursementService.uploadFileReimbursement(fileFormData).pipe(first()).toPromise();
+      const uploadResponse: any = await this.reimbursementService.uploadFileReimbursement(this.fileUploads).pipe(first()).toPromise();
 
       if (uploadResponse.serviceStatus === "Fail") {
         this.openAlertMod(template, `Error found: ${uploadResponse.serviceResponse}`);

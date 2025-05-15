@@ -287,4 +287,53 @@ export class ViewTravelrequestComponent implements OnInit {
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
   }
+  reimbursmentModel(template: TemplateRef<any> ,row :any) {
+
+    this.selectedTravelRequest = { ...row };
+
+    this.selectedTravelRequest.fromDate = this.formatDate(this.selectedTravelRequest.fromDate);
+    this.selectedTravelRequest.toDate = this.formatDate(this.selectedTravelRequest.toDate);
+    this.selectedTravelRequest.appliedOn = this.formatDate(this.selectedTravelRequest.appliedOn);
+
+    console.log('editpain asichi re ::::::::::::::::::::',this.selectedTravelRequest);
+
+    this.openAlertMod(template, "");
+
+  }
+
+
+
+  invoices = [
+    { invoiceNo: '', invoiceDate: '', amount: null, file: null }
+  ];
+  
+  addInvoiceRow() {
+    this.invoices.push({ invoiceNo: '', invoiceDate: '', amount: null, file: null });
+  }
+  
+  removeInvoiceRow(index: number) {
+    this.invoices.splice(index, 1);
+  }
+  
+  onInvoiceFileChange(event: any, index: number) {
+    const file = event.target.files[0];
+    if (file) {
+      this.invoices[index].file = file;
+    }
+  }
+  
+  
+  isInvoiceRowValid(invoice: any): boolean {
+    return (
+      invoice.invoiceNo?.trim() &&
+      invoice.invoiceDate &&
+      invoice.amount !== null &&
+      invoice.amount !== undefined &&
+      invoice.file
+    );
+  }
+  submitInvoice(){
+
+  }
+  
 }
