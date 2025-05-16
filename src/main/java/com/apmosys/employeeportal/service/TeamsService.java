@@ -2203,11 +2203,11 @@ public class TeamsService {
 			
 			if(leaveDTO.getEmployeeRole().equals("HOD")) {
 				 jobRoles = new ArrayList<String>(Arrays.asList("SuperAdmin"));
-				 objectList = employeeLeaveRepository.getDepartmentLeaveHistoryAndNotIn(leaveDTO.getDeptId(),start,end,jobRoles);
+				 objectList = employeeLeaveRepository.getDepartmentLeaveHistoryAndNotIn(leaveDTO.getEmpId(),start,end,jobRoles); 
 			}
 			if(leaveDTO.getEmployeeRole().equals("Manager")) {
 				 jobRoles = new ArrayList<String>(Arrays.asList("SuperAdmin","HOD"));
-				 objectList = employeeLeaveRepository.getDepartmentLeaveHistoryAndNotIn(leaveDTO.getDeptId(),start,end,jobRoles);
+				 objectList = employeeLeaveRepository.getDepartmentLeaveHistoryAndNotIn(leaveDTO.getEmpId(),start,end,jobRoles);
 			}
 			if(leaveDTO.getEmployeeRole().equals("SuperAdmin"))  {
 				 objectList = employeeLeaveRepository.getDepartmentLeaveHistory(leaveDTO.getDeptId(),start,end);

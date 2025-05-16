@@ -162,6 +162,8 @@ export class ResourceManagementComponent implements OnInit {
     { role: 'Developer', department: 'Development', experience: '3-5 years', assigned: 0, total: 1 }
   ];
   projectFilterDTO:ProjectFilterDTO = new ProjectFilterDTO();
+  departments: any[] = [];
+
   constructor(
     private departmentService: DepartmentService,
     public validationService: ValidationService,
@@ -223,6 +225,8 @@ export class ResourceManagementComponent implements OnInit {
     this.projectFilterDTO.approvalStatus = "All";
     this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
     await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+
+    await this.getAllDepartmentsFromId();
    
   }
 
@@ -399,20 +403,35 @@ export class ResourceManagementComponent implements OnInit {
             // added in single list  
 
             // this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
-
+            // let fileteredList : any[] = [];
+            // let unfilteredList : any[] = this.allProject_Po_Internal;
+            // console.log(unfilteredList,"unfilteredList");
             // console.log(this.allProject_Po_Internal, " this.allProject_Po_Internal");
 
             
             // const deptName = String(this.currentUser.departmentName).trim();
             // const empRole = String(this.currentUser.employeeRole).trim();
-            // console.log(empRole);
+            // console.log(empRole);55
             // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
-            //   this.allProject_Po_Internal = this.allProject_Po_Internal.filter(data => {
-            //     console.log(data.department)
-            //     return String(data.department).includes(deptName);
-            //     });
-            //     console.log('dept name ::',deptName);
-            // }
+            //   this.allProject_Po_Internal = [];
+            //   this.departments.forEach(data1=>{
+            //     console.log(data1,"data1");
+            //     fileteredList = unfilteredList.filter(data => {
+            //       return String(data.department).includes(data1.name);
+            //       });
+            //       console.log(fileteredList);
+            //       this.allProject_Po_Internal.push(...fileteredList);
+            //       console.log(this.allProject_Po_Internal,"this.allProject_Po_Internal");
+            //   })
+              // this.allProject_Po_Internal = this.allProject_Po_Internal.filter(data => {
+              //   console.log(data.department)
+              //   return String(data.department).includes(deptName);
+              //   });
+                // console.log('dept name ::',deptName);
+            }
+            else{
+
+            }
            
 
             // this.allProject_Po_Internal.filter(data =>{
@@ -426,12 +445,29 @@ export class ResourceManagementComponent implements OnInit {
           } else {
             console.error(response.serviceResponse);
           }
-        }
+        
       });
     });
   }
 
-
+   getAllDepartmentsFromId(): Promise<any> {
+      return new Promise((resolve, reject) => {
+        this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
+          next: (response: any) => {
+            if (response.serviceStatus === "Success") {
+              this.departments = response.serviceResponse;
+              console.log(this.departments,"this.departments")
+              resolve(response.serviceResponse);
+            } else {
+              reject("Failed to fetch departments");
+            }
+          },
+          error: (error) => {
+            reject(error);
+          }
+        });
+      });
+    }
   alreadyCreatedTeam() {
     this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

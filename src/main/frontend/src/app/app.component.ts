@@ -4,7 +4,7 @@ import { User } from './models/user';
 import { AuthenticationService } from './services/authentication.service';
 import { filter, first } from 'rxjs/operators';
 // import ClientMonitor from 'skywalking-client-js';
-
+import { environment } from 'src/environments/environment';
 
 interface SideNavToggle{
   screenWidth: number;
@@ -41,8 +41,8 @@ interface SideNavToggle{
     // ).subscribe(() => {
     //   if (ClientMonitor?.setPerformance) {
     //     ClientMonitor.setPerformance({
-    //       collector: 'http://192.168.21.175:8081/employeeportal',
-    //       service: 'Ishine::ui',
+    //       collector: "https://ishine.apmosys.com",
+    //       service: 'Ishine::local',
     //       serviceVersion: '1.0.0',
     //       pagePath: location.href,
     //       useWebVitals: true
@@ -51,18 +51,19 @@ interface SideNavToggle{
     // });
   }
 
+  
   ngOnInit():void{
     // import('skywalking-client-js').then(ClientMonitor => {
     //   console.log('skywalking Client JS loaded:', ClientMonitor);
     //   if (ClientMonitor.default && typeof ClientMonitor.default.register === 'function') {
     //     ClientMonitor.default.register({
-    //       service: 'Ishine::ui',
-    //       pagePath: window.location.pathname,
+    //       service: 'Ishine::local',
+    //       pagePath: location.href,
     //       serviceVersion: '1.0.0',
     //       useWebVitals:true,
     //       autoTracePerf:true,
     //       enableSPA:true,
-    //       collector: "http://192.168.21.175:8081/employeeportal"
+    //       collector: "https://ishine.apmosys.com"
     //     });
     //     console.log('skywalking initialized successfully');
     //   } else {
