@@ -3452,7 +3452,8 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	    	 
 	    	 String approvalStatus = projectFilterDTO.getApprovalStatus();
 	    	 Long currentUserEmpId = projectFilterDTO.getCurrentUserEmpId();
-	         List<ResourceManagementDTO> poPortalProjects = fetchPoPortalProjects();
+	    	 List<Long> departmentsids = projectFilterDTO.getDepartmentsids()  ;      
+	    	 List<ResourceManagementDTO> poPortalProjects = fetchPoPortalProjects();
 	         ServiceResponse internalProjectResponse = getInternalProject();
 
 	         if (internalProjectResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
@@ -3561,6 +3562,49 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                 
 	                 
 	             
+	              
+	                
+	                 if ("Pending For Approval".equalsIgnoreCase(approvalStatus)) {
+	                     combinedProjects = combinedProjects.stream()
+	                             .filter(project -> "Pending For Approval".equalsIgnoreCase(project.getIsDraftProject()))
+	                             .collect(Collectors.toList());
+	                 } else if ("Approved".equalsIgnoreCase(approvalStatus)) {
+	                     combinedProjects = combinedProjects.stream()
+	                             .filter(project -> "Approved".equalsIgnoreCase(project.getIsDraftProject()))
+	                             .collect(Collectors.toList());
+	                 } else if ("Not Started".equalsIgnoreCase(approvalStatus)) {
+	                     combinedProjects = combinedProjects.stream()
+	                             .filter(project -> "Not Started".equalsIgnoreCase(project.getIsDraftProject()) || "Internal".equalsIgnoreCase(project.getIsDraftProject()))
+	                             .collect(Collectors.toList());
+	                 } else if ("Rejected".equalsIgnoreCase(approvalStatus)) {
+	                     combinedProjects = combinedProjects.stream()
+	                             .filter(project -> "Rejected".equalsIgnoreCase(project.getIsDraftProject()))
+	                             .collect(Collectors.toList());
+	                 }
+
+	               
+	                 if ("All".equalsIgnoreCase(approvalStatus)) {
+	                	
+	                 }
+	                 
+	                 if (departmentsids != null && !departmentsids.isEmpty()) {
+	                	    List<String> departmentIdStrings = departmentsids.stream()
+	                	            .map(String::valueOf)
+	                	            .map(String::trim)
+	                	            .collect(Collectors.toList());
+
+	                	    combinedProjects = combinedProjects.stream()
+	                	            .filter(project -> project.getTeamSpocs() != null &&
+	                	                    project.getTeamSpocs().stream().anyMatch(spoc ->
+	                	                            spoc.getDepartmentList() != null &&
+	                	                            Arrays.stream(spoc.getDepartmentList())
+	                	                                    .anyMatch(deptId -> departmentIdStrings.contains(deptId.trim()))
+	                	                    )
+	                	            )
+	                	            .collect(Collectors.toList());
+	                	}
+
+	                 
 	                 int pendingForApprovalCount = (int) combinedProjects.stream()
 	                         .filter(project -> "Pending For Approval".equalsIgnoreCase(project.getIsDraftProject()))
 	                         .count();
@@ -3584,29 +3628,7 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                 countsMap.put("approvedCount", approvedCount);
 	                 countsMap.put("notStartedCount", notStartedCount);
 	                 countsMap.put("rejectedCount", rejectedCount);
-	                
-	                 if ("Pending For Approval".equalsIgnoreCase(approvalStatus)) {
-	                     combinedProjects = combinedProjects.stream()
-	                             .filter(project -> "Pending For Approval".equalsIgnoreCase(project.getIsDraftProject()))
-	                             .collect(Collectors.toList());
-	                 } else if ("Approved".equalsIgnoreCase(approvalStatus)) {
-	                     combinedProjects = combinedProjects.stream()
-	                             .filter(project -> "Approved".equalsIgnoreCase(project.getIsDraftProject()))
-	                             .collect(Collectors.toList());
-	                 } else if ("Not Started".equalsIgnoreCase(approvalStatus)) {
-	                     combinedProjects = combinedProjects.stream()
-	                             .filter(project -> "Not Started".equalsIgnoreCase(project.getIsDraftProject()) || "Internal".equalsIgnoreCase(project.getIsDraftProject()))
-	                             .collect(Collectors.toList());
-	                 } else if ("Rejected".equalsIgnoreCase(approvalStatus)) {
-	                     combinedProjects = combinedProjects.stream()
-	                             .filter(project -> "Rejected".equalsIgnoreCase(project.getIsDraftProject()))
-	                             .collect(Collectors.toList());
-	                 }
 
-	               
-	                 if ("All".equalsIgnoreCase(approvalStatus)) {
-	                	 combinedProjects = combinedProjects;
-	                 }
 
 	                
 	                 combinedProjects.sort((a, b) -> {

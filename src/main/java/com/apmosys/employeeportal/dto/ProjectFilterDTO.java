@@ -13,5 +13,6 @@ public class ProjectFilterDTO {
 	
 	private String approvalStatus;
 	private Long currentUserEmpId;
+	private List<Long> departmentsids;
 
 }
