@@ -62,6 +62,7 @@ import { ValidationService } from 'src/app/services/validation.service';
     supportingDocument: null, // File
     hotelCategory:'',
     tlSubCategory:'',
+    docIds: [],
 
   };
   locationStrategy: any;
@@ -157,102 +158,6 @@ import { ValidationService } from 'src/app/services/validation.service';
   }
 
 
-
-//   async submitForm(template: TemplateRef<any>) {
-//     if (this.isValidForm()) {
-
-//       console.log('1st ::::::::::::::::::::::',this.travelDeskObj.associatedTravelRequest);
-
-
-//         if (!this.travelDeskObj.associatedTravelRequest) {
-//             this.alertMessage = `Please select an Associated Travel Request.`;
-//             this.openAlertMod(template, this.alertMessage);
-//             return;
-//         }
-
-//         if (!this.travelDeskObj.travelMode) {
-            
-//             this.alertMessage = `Please select a Travel Mode.`;
-//             this.openAlertMod(template, this.alertMessage);
-//             return;
-//         }
-
-//         if (!this.travelDeskObj.travelClass) {
-//           this.alertMessage = `Please select a Travel Class.`;
-//           this.openAlertMod(template, this.alertMessage);
-//           return;
-//         }
-
-//         if (!this.travelDeskObj.fromLocation) {
-//           this.alertMessage = `Please Enter from location.`;
-//           this.openAlertMod(template, this.alertMessage);
-//           return;
-//         }
-
-//         if (!this.travelDeskObj.toLocation) {
-//           this.alertMessage = `Please Enter to location.`;
-//           this.openAlertMod(template, this.alertMessage);
-//           return;
-//         }
-
-//         if (!this.travelDeskObj.fromDate) {
-//           this.alertMessage = `Please Select from date.`;
-//           this.openAlertMod(template, this.alertMessage);
-//           return;
-//         }
-
-//         if (!this.travelDeskObj.toDate) {
-//           this.alertMessage = `Please Select to date.`;
-//           this.openAlertMod(template, this.alertMessage);
-//           return;
-//         }
-
-//         if (!this.travelDeskObj.purposeOfTravel) {
-//             this.alertMessage = `Please enter the Purpose of Travel.`;
-//           this.openAlertMod(template, this.alertMessage);
-//           return;
-//         }
-
-//         this.travelDeskInfo = new MyTravelDesk();
-//         let travelData = new MyTravelDesk();
-//         travelData.employeeId = this.currentEmployeeInfo.empId;
-//         travelData.fullName = this.currentEmployeeInfo.name;
-//         travelData.email = this.currentEmployeeInfo.email;
-//         travelData.departmentName = this.currentEmployeeInfo.departmentName;
-//         travelData.designationName = this.currentEmployeeInfo.designationName;
-//         travelData.mobileNo = this.currentEmployeeInfo.mobileNo;
-//         travelData.managerName = this.currentUser.hodName;
-//         travelData.associatedTravelRequest = this.travelDeskObj.associatedTravelRequest;
-//         travelData.travelMode = this.travelDeskObj.travelMode;
-//         travelData.travelClass = this.travelDeskObj.travelClass;
-//         travelData.fromDate = this.travelDeskObj.fromDate;
-//         travelData.toDate = this.travelDeskObj.toDate;
-//         travelData.fromLocation = this.travelDeskObj.fromLocation;
-//         travelData.toLocation = this.travelDeskObj.toLocation;
-//         travelData.purposeOfTravel = this.travelDeskObj.purposeOfTravel;
-//         travelData.supportingDocument = this.travelDeskObj.supportingDocument;
-//         travelData.levelOneApprover = this.currentUser.hodId;
-//         travelData.hodName = this.currentUser.hodName;
-
-//         console.log('Form Data:', travelData);
-
-//         try {
-//             this.onGetEmployeeInfo();
-
-//             const response: any = await this.travelDesk.saveTravelData(travelData).toPromise();
-//             if (response.serviceStatus == "Success") {
-//                 this.alertMessage = `Success! Your request was processed successfully!`;
-//                 this.openAlertMod(template, this.alertMessage);
-//             } else {
-//                 console.error(response.serviceResponse);
-//             }
-//         } catch (error) {
-//             console.error('Error submitting form:', error);
-//         }
-//     }
-// }
-
-
 async submitForm(template: TemplateRef<any>) {
   if (this.isValidForm()) {
     // All validations
@@ -296,21 +201,61 @@ async submitForm(template: TemplateRef<any>) {
     }
 
     // First upload the file
-    const fileFormData = new FormData();
-    fileFormData.append('file', this.travelDeskObj.supportingDocument);
-    fileFormData.append("displayName", this.travelDeskObj.supportingDocument.name);
-    fileFormData.append("uploadedBy", this.currentEmployeeInfo.empId);
+    // const fileFormData = new FormData();
+    // fileFormData.append('file', this.travelDeskObj.supportingDocument);
+    // fileFormData.append("displayName", this.travelDeskObj.supportingDocument.name);
+    // fileFormData.append("uploadedBy", this.currentEmployeeInfo.empId);
 
     try {
-      const uploadResponse: any = await this.travelDesk.uploadFile(fileFormData).pipe(first()).toPromise();
+      this.travelDeskObj.docIds = [];
+      
+     // let reimbursementData = new MyReimbursement();
 
-      if (uploadResponse.serviceStatus === "Fail") {
-        this.openAlertMod(template, `Error found: ${uploadResponse.serviceResponse}`);
-        return;
-      } else if (uploadResponse.serviceStatus !== "Success") {
-        this.openAlertMod(template, uploadResponse.serviceResponse || "Unexpected file upload response.");
-        return;
+      const uploadedDocs: { fileName: string, docId: string }[] = [];
+      let uploadResponse: any;
+
+      
+      for (const fileObj of this.fileUploads) {
+        if (fileObj.file) {
+          try {
+            const fileFormData = new FormData();
+            fileFormData.append('file', fileObj.file);
+            fileFormData.append("displayName", fileObj.file.name);
+            fileFormData.append("uploadedBy", this.currentEmployeeInfo.empId);
+      
+            uploadResponse = await this.travelDesk.uploadFile(fileFormData)
+              .pipe(first())
+              .toPromise();
+      
+            if (uploadResponse.serviceStatus !== "Success") {
+              this.openAlertMod(template, `File upload failed: ${uploadResponse.serviceResponse}`);
+              return;
+            }
+      
+            uploadedDocs.push({
+              fileName: fileObj.file.name,
+              docId: uploadResponse.serviceResponse.documentId
+            });
+      
+            // Push each document ID into the docIds array
+            this.travelDeskObj.docIds.push(uploadResponse.serviceResponse.documentId);
+      
+          } catch (error) {
+            console.error("Upload failed for file", fileObj.file.name, error);
+            this.openAlertMod(template, `File upload failed: ${error.message || error}`);
+            return;
+          }
+        }
       }
+      // const uploadResponse: any = await this.travelDesk.uploadFile(fileFormData).pipe(first()).toPromise();
+
+      // if (uploadResponse.serviceStatus === "Fail") {
+      //   this.openAlertMod(template, `Error found: ${uploadResponse.serviceResponse}`);
+      //   return;
+      // } else if (uploadResponse.serviceStatus !== "Success") {
+      //   this.openAlertMod(template, uploadResponse.serviceResponse || "Unexpected file upload response.");
+      //   return;
+      // }
 
       // If file uploaded successfully, proceed with travel form data
       const travelData: any = {
@@ -334,13 +279,13 @@ async submitForm(template: TemplateRef<any>) {
         hotelCategory:this.travelDeskObj.hotelCategory,
         cityCategory:this.travelDeskObj.tlSubCategory,
         city : this.travelDeskObj.selectedCity,
-        docId: uploadResponse.serviceResponse.documentId
+        docId: this.travelDeskObj.docIds
       };
 
       console.log('travel data         :::::::::::::',travelData);
-      const formData = new FormData();
-      formData.append('file', this.travelDeskObj.supportingDocument);
-      formData.append('travelData', new Blob([JSON.stringify(travelData)], { type: "application/json" }));
+      // const formData = new FormData();
+      // formData.append('file', this.travelDeskObj.supportingDocument);
+      // formData.append('travelData', new Blob([JSON.stringify(travelData)], { type: "application/json" }));
 
       const saveResponse: any = await this.travelDesk.saveTravelData(travelData).toPromise();
 

@@ -29,4 +29,5 @@ export class MyTravelDesk{
     hotelCategory :any;
     docId: any;
     city: any;
+    docIds: string[] = [];
 }

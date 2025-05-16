@@ -84,7 +84,11 @@ public class TravelDeskService {
 		travelDesk.setFromDate(travelData.getFromDate());
 		travelDesk.setToLocation(travelData.getToLocation());
 		travelDesk.setToDate(travelData.getToDate());
-		travelDesk.setDocId(travelData.getDocId());
+		   if (travelData.getDocId() != null && !travelData.getDocId().isEmpty()) {
+	            String docIdsString = String.join(",", travelData.getDocId().stream().map(String::valueOf).toArray(String[]::new));
+	            travelDesk.setDocId(docIdsString);
+	        }
+		//travelDesk.setDocId(travelData.getDocId());
 		Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
 		currentTimestamp.setNanos(currentTimestamp.getNanos() / 1000 * 1000);
 		System.out.println(currentTimestamp);
@@ -113,22 +117,39 @@ public class TravelDeskService {
 			serviceResponse.setServiceMessage("Failed to save...!!");
 			return serviceResponse;
 		}
-		else {
-			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			serviceResponse.setServiceResponse(savedTravelDesk);
-			serviceResponse.setServiceMessage("Saved Successfully..!!");
-			
-			this.getTemplateFile(Long.parseLong(travelDesk.getDocId())); 
+		else {		
+	//		this.getTemplateFile(Long.parseLong(travelDesk.getDocId())); 
 			//Resource resource = getTemplateFile(documentId);
+//			File file = null;
+//			try {
+//			    Resource resource = getTemplateFile(Long.parseLong(travelDesk.getDocId()));
+//			    if (resource != null && resource.exists()) {
+//			        file = resource.getFile(); 
+//			    }
+//			} catch (IOException e) {
+//			    e.printStackTrace();
+//			}
 			File file = null;
 			try {
-			    Resource resource = getTemplateFile(Long.parseLong(travelDesk.getDocId()));
-			    if (resource != null && resource.exists()) {
-			        file = resource.getFile(); 
+			    String docIdsString = savedTravelDesk.getDocId();
+			    String[] docIdsArray = docIdsString.split(",");
+
+			    for (String docIdStr : docIdsArray) {
+			        try {
+			            Long docId = Long.parseLong(docIdStr.trim());
+			            Resource resource = getTemplateFile(docId);
+			            if (resource != null && resource.exists()) {
+			                file = resource.getFile();
+			                break;
+			            }
+			        } catch (NumberFormatException e) {
+			            System.out.println("Invalid docId: " + docIdStr);
+			        }
 			    }
 			} catch (IOException e) {
 			    e.printStackTrace();
 			}
+			
             Employee emp = employeeRepository.findByEmpId(Long.valueOf(travelDesk.getEmpId().toString()));
             if(savedTravelDesk.getRequestType().equalsIgnoreCase("HOTEL")) {
             	mailService.sendMailWithAttachment(travelDesk.getLevel1ApproverEmail(),travelDesk.getEmail(),
@@ -146,6 +167,9 @@ public class TravelDeskService {
     	        		".<br> For this he requires a stay in : "+travelDesk.getTravelMode()+" and travel class is:"+travelDesk.getTravelClass()+" .<br>Kindly take action on this application .",file);
 
             }
+    		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(savedTravelDesk);
+			serviceResponse.setServiceMessage("Saved Successfully..!!");
 			
 			return serviceResponse;
 		}
