@@ -1,6 +1,7 @@
 import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { MyTravelDesk } from 'src/app/models/travelDesk';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -287,6 +288,8 @@ export class ViewTravelrequestComponent implements OnInit {
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
   }
+
+  travelId:any;
   reimbursmentModel(template: TemplateRef<any> ,row :any) {
 
     this.selectedTravelRequest = { ...row };
@@ -294,21 +297,30 @@ export class ViewTravelrequestComponent implements OnInit {
     this.selectedTravelRequest.fromDate = this.formatDate(this.selectedTravelRequest.fromDate);
     this.selectedTravelRequest.toDate = this.formatDate(this.selectedTravelRequest.toDate);
     this.selectedTravelRequest.appliedOn = this.formatDate(this.selectedTravelRequest.appliedOn);
-
+    this.travelId=row.requestId;
     console.log('editpain asichi re ::::::::::::::::::::',this.selectedTravelRequest);
 
     this.openAlertMod(template, "");
 
   }
-
+  restrictingAlphaAndCharacter(event){
+    const k = event.charCode;
+    if (k >= 48 && k <= 57) {
+      return true;
+    }
+    return false;
+  }
+  
 
 
   invoices = [
-    { invoiceNo: '', invoiceDate: '', amount: null, file: null }
+    { invoiceNo: '', invoiceDate: '', amount: null, file: null,travelId:null, 
+      uploadedBy: null}
   ];
   
   addInvoiceRow() {
-    this.invoices.push({ invoiceNo: '', invoiceDate: '', amount: null, file: null });
+    this.invoices.push({ invoiceNo: '', invoiceDate: '', amount: null, file: null,travelId: null,       
+      uploadedBy: null  });
   }
   
   removeInvoiceRow(index: number) {
@@ -319,6 +331,7 @@ export class ViewTravelrequestComponent implements OnInit {
     const file = event.target.files[0];
     if (file) {
       this.invoices[index].file = file;
+
     }
   }
   
@@ -333,7 +346,25 @@ export class ViewTravelrequestComponent implements OnInit {
     );
   }
   submitInvoice(){
-
+    const travelId = this.travelId;
+    const uploadedBy = this.currentUser.empId;
+  
+    const cleanedInvoices = this.invoices.map(invoice => ({
+      ...invoice,
+      travelId: travelId,
+      uploadedBy: uploadedBy
+    }));
+    console.error("API Response", cleanedInvoices);
+    this.travelDesk.submitReimbursmentBasedOnTravelRequest(cleanedInvoices).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            console.error("API Response", response.serviceResponse);
+          } else {  
+            console.error("API Response", response.serviceResponse);
+          }
+        });
+   
+   
+    
   }
   
 }

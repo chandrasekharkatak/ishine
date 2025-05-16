@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { MyTravelrequestComponent } from '../travel-allowance/my-travelrequest/my-travelrequest.component';
 import { MyTravelDesk } from '../models/travelDesk';
 
 @Injectable({
@@ -41,5 +40,8 @@ export class TravelDeskService {
 
   approveOrRejectTraveldesk(travelDeskObj: MyTravelDesk) {
     return this.http.post(`${this.baseUrl}` + `api/approveOrRejectTravel`, travelDeskObj);
+  }
+  submitReimbursmentBasedOnTravelRequest(travelDetails:any){
+    return this.http.post(`${this.baseUrl}` + `api/submitReimbursmentBasedOnTravelRequest`, travelDetails);
   }
 }

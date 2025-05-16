@@ -414,56 +414,43 @@
             <label class="info-label"><span class="text-danger">*</span>Invoice No</label>
             <input type="text" class="form-control" [(ngModel)]="invoice.invoiceNo" name="invoiceNo{{i}}" required />
           </div>
-        
+
           <div class="col-md-3">
             <label class="info-label"><span class="text-danger">*</span>Invoice Date</label>
-            <input
-              type="date"
-              class="form-control"
-              [(ngModel)]="invoice.invoiceDate"
-              name="invoiceDate{{i}}"
-              [min]="selectedTravelRequest.fromDate"
-              [max]="selectedTravelRequest.toDate"
-              required
-            />
+            <input type="date" class="form-control" [(ngModel)]="invoice.invoiceDate" name="invoiceDate{{i}}"
+              [min]="selectedTravelRequest.fromDate" [max]="selectedTravelRequest.toDate" required />
           </div>
-          
-        
+
+
           <div class="col-md-3">
             <label class="info-label"><span class="text-danger">*</span>Amount</label>
-            <input type="number" class="form-control"  name="invoiceAmount{{i}}" required />
+            <input type="number" class="form-control" (keypress)="restrictingAlphaAndCharacter($event)"
+             [(ngModel)]="invoice.amount" name="invoiceAmount{{i}}" required />
           </div>
-        
+
           <div class="col-md-2">
             <label class="info-label"><span class="text-danger">*</span>Upload Invoice</label>
             <input type="file" class="form-control" (change)="onInvoiceFileChange($event, i)" required />
           </div>
-        
+
           <div class="col-md-1 text-right">
-            
-            <button 
-              class="btn btn-outline-primary" 
-              (click)="addInvoiceRow()" 
-            
-              >
+
+            <button class="btn btn-outline-primary" (click)="addInvoiceRow()">
               <i class="fa fa-plus"></i>
             </button>
-        
-           
-            <button 
-              class="btn btn-outline-danger ml-2" 
-              (click)="removeInvoiceRow(i)" 
-              *ngIf="i > 0">
+
+
+            <button class="btn btn-outline-danger ml-2" (click)="removeInvoiceRow(i)" *ngIf="i > 0">
               <i class="fa fa-trash"></i>
             </button>
           </div>
         </div>
-        
-        
+
+
         <div class="row mb-3">
           <div class="col-md-12 px-0 text-center">
-        
-            <button type="button" class="btn btn-primary btn-lg mx-1"(click)="submitInvoice()">Submit</button>
+
+            <button type="button" class="btn btn-primary btn-lg mx-1" (click)="submitInvoice()">Submit</button>
           </div>
         </div>
 

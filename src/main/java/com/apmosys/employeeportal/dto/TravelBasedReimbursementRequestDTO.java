@@ -1,23 +1,19 @@
-package com.apmosys.employeeportal.model;
+package com.apmosys.employeeportal.dto;
 
 import java.sql.Timestamp;
 
-import javax.persistence.*;
+import javax.persistence.Column;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-@Entity
 @Getter
 @Setter
 @ToString
-@Table(name = "travel_based_reimbursement_request")
-public class TravelBasedReimbursementRequest {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer serialNo;
+public class TravelBasedReimbursementRequestDTO {
+	
+	private Integer serialNo;
 
     private Integer travelId;
 
