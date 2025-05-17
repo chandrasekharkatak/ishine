@@ -383,8 +383,13 @@ public class ResourceManagementService {
     			                    // TeamLead
     			                    if ((teamMember.getIsTeamLead() != null) && (teamMember.getIsTeamLead().equals("true"))) {
     			                        newEmpTeamMap.setEmpId(teamMember.getEmpId());
+    			                        newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));  			                        
+    			                        
+    			                        
     			                        newEmpTeamMap.setActive(2L); // Set Active to 2 for TeamLead
     			                        newEmpTeamMap.setEmployeeRole("TeamLead");
+    			                        
+    			                        newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));  			                        
     			                        newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
     			                        mapList.add(newEmpTeamMap);
     			                    } else {
@@ -394,7 +399,9 @@ public class ResourceManagementService {
     			                        }
 
     			                        newEmpTeamMap.setEmpId(teamMember.getEmpId());
+    			                        newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis())); 
     			                        newEmpTeamMap.setActive(2L); // Set Active to 2 for Team Member
+    			                        
     			                        newEmpTeamMap.setEmployeeRole(employeeRole.toString());
     			                        newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
     			                        mapList.add(newEmpTeamMap);
@@ -638,7 +645,8 @@ public class ResourceManagementService {
 						                	Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
 						                	
 						                    member.setActive(0L);
-						                   
+						                    member.setEndDate(LocalDateTime.now())	;
+						                    member.setUpdatedBy(resourceManagementDTO.getCreatedBy())	;			                    
 						                    member.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 						                    inActiveMember.add(member);
 						                    
@@ -704,6 +712,7 @@ public class ResourceManagementService {
 						                    newEmpTeamMap.setEmpId(teamMember.getEmpId());
 						                    newEmpTeamMap.setActive(1l);
 						                    newEmpTeamMap.setEmployeeRole("TeamLead");
+						                    newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));  
 						                    newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
 						                    mapList.add(newEmpTeamMap);
 						                } else {
@@ -715,6 +724,7 @@ public class ResourceManagementService {
 						                    newEmpTeamMap.setEmpId(teamMember.getEmpId());
 						                    newEmpTeamMap.setActive(2l); // Set active value as 2 for newly added team members
 						                    newEmpTeamMap.setEmployeeRole(employeeRole.toString());
+						                    newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));  
 						                    newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
 						                    mapList.add(newEmpTeamMap);
 						                }
@@ -818,6 +828,7 @@ public class ResourceManagementService {
 		                empTeamMap.setEmpId(newMember.getEmpId());
 		                empTeamMap.setEmployeeRole("TeamLead");
 		                empTeamMap.setTeamId(teamDbResponse.getTeamId());
+		                empTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
 		                mapList.add(empTeamMap);
 		            } else {
 		                StringBuilder employeeRole = new StringBuilder("");
@@ -826,6 +837,7 @@ public class ResourceManagementService {
 		                }
 		                empTeamMap.setEmpId(newMember.getEmpId());
 		                empTeamMap.setEmployeeRole(employeeRole.toString());
+		                empTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
 		                empTeamMap.setTeamId(teamDbResponse.getTeamId());
 		                mapList.add(empTeamMap);
 		            }
@@ -2891,7 +2903,9 @@ public class ResourceManagementService {
 		
 		findAllMappedEmp.forEach(emp ->{
 		
-			emp.setActive(0l);		
+			emp.setActive(0l);
+			emp.setEndDate(LocalDateTime.now());			
+			
 			employeeTeamMapRepository.save(emp);
 		});	
 		
