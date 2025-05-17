@@ -1,0 +1,181 @@
+<div class="container-fluid my-4">
+    <div class="row">
+        <div>
+            <h2 class="mb-0 text-primary">Total Reimbursement Request History</h2>
+            <!-- <small class="text-light">Track and manage your past travel reimbursement submissions</small> -->
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 table-responsive">
+            <table class="table table-bordered table-hover text-center align-middle">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Name</th>
+                        <th>From Date</th>
+                        <th>To Date</th>
+                        <th>Expenditure Type</th>
+                        <th>Travel Mode</th>
+                        <th>Distance</th>
+                        <th>Currency</th>
+                        <th>Food Allowance Type</th>
+                        <th>Fooding Date</th>
+                        <th>Amount</th>
+                        <th>Applied By</th>
+                        <th>Applied On</th>
+                        <th>Purpose of Travel</th>
+                        <th>Current Approval Level</th>
+
+                        <th>Level 1 Approver Name</th>
+                        <th>Level 1 Status</th>
+                        <th>Level 1 Remarks</th>
+
+                        <th>Level 2 Approver Name</th>
+                        <th>Level 2 Status</th>
+                        <th>Level 2 Remarks</th>
+
+                        <th>Level 3 Approver Name</th>
+                        <th>Level 3 Status</th>
+                        <th>Level 3 Remarks</th>
+
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let row of reimbursementRequests | paginate: { itemsPerPage: 10, currentPage: page }">
+                        <td>{{ row.requestId }}</td>
+                        <td>{{ row.fullName }}</td>
+                        <td>{{ row.fromDate | date }}</td>
+                        <td>{{ row.toDate | date }}</td>
+                        <td>{{ row.expenditureType }}</td>
+                        <td>{{ row.travelMode || 'NA' }}</td>
+                        <td>{{ row.distance || 'NA' }}</td>
+                        <td>{{ row.currency }}</td>
+                        <td>{{ row.foodAllowanceType || 'NA' }}</td>
+                        <td>{{ row.dateOfFood | date }}</td>
+                        <td>{{ row.amount }}</td>
+                        <td>{{ row.appliedBy }}</td>
+                        <td>{{ row.appliedOn | date }}</td>
+                        <td>{{ row.purpose }}</td>
+                        <td>{{ row.level }}</td>
+
+                        <!-- Level 1 -->
+                        <td>{{ row.hodName }}</td>
+                        <td>
+                            <span [ngClass]="{
+                    'badge badge-success': row.status === 'Approved',
+                    'badge badge-danger': row.status === 'Rejected',
+                    'badge badge-warning': row.status === 'Pending'
+                  }">
+                                {{ row.status || 'NA' }}
+                            </span>
+                        </td>
+                        <td>{{ row.level1approverRemarks || 'NA' }}</td>
+
+                        <!-- Level 2 -->
+                        <td>{{ row.level2approverName }}</td>
+                        <td>
+                            <span [ngClass]="{
+                    'badge badge-success': row.level2approverStatus === 'Approved',
+                    'badge badge-danger': row.level2approverStatus === 'Rejected',
+                    'badge badge-warning': row.level2approverStatus === 'Pending'
+                  }">
+                                {{ row.level2approverStatus || 'NA' }}
+                            </span>
+                        </td>
+                        <td>{{ row.level2approverRemarks || 'NA' }}</td>
+
+                        <!-- Level 3 -->
+                        <td>{{ row.level3approverName }}</td>
+                        <td>
+                            <span [ngClass]="{
+                    'badge badge-success': row.level3approverStatus === 'Approved',
+                    'badge badge-danger': row.level3approverStatus === 'Rejected',
+                    'badge badge-warning': row.level3approverStatus === 'Pending'
+                  }">
+                                {{ row.level3approverStatus || 'NA' }}
+                            </span>
+                        </td>
+                        <td>{{ row.level3approverRemarks || 'NA' }}</td>
+
+                        <td>
+                            <button *ngIf="shouldShowAction(row)" type="button" class="btn btn-success btn-sm"
+                            (click)="openEditModal(approveRequest, row)">
+                            <em class="fa fa-edit"></em> Take Action
+                        </button>
+
+                        <!-- View button -->
+                        <!-- <button type="button" class="btn btn-info btn-sm" (click)="viewRequestDetails(row)"> -->
+                            <button type="button" class="btn btn-info btn-sm">
+                            <em class="fa fa-eye"></em> View
+                        </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <pagination-controls
+          class="my-3 justify-content-center"
+          [hidden]="reimbursementRequests.length === 0"
+          (pageChange)="handlePageChange($event)">
+        </pagination-controls>
+        </div>
+    </div>
+</div>
+
+<ng-template #approveRequest>
+    <div class="modal-body text-center">
+      <div class="modal-dialog modal-lg" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="approveRequestModalLabel">Approve Travel Request</h5>
+              <button type="button" class="close" (click)="closeModal()" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form #approveForm="ngForm">
+                <div class="form-group">
+                  <label for="requestId">Requester Name</label>
+                  <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedReimbursementRequest.fullName" name="requestId" readonly />
+                </div>
+                <div class="form-group">
+                  <label for="requestId">Expenditure Type</label>
+                  <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedReimbursementRequest.expenditureType" name="expenditureType" readonly />
+                </div>
+                <div class="form-group">
+                  <label for="approverRemarks">Approver Remarks</label>
+                  <textarea class="form-control" id="approverRemarks" [(ngModel)]="selectedReimbursementRequest.approverRemarks" name="approverRemarks" rows="4" placeholder="Enter your remarks..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="status"><span class="text-danger">*</span>Approve Status</label>
+                  <select class="form-control" id="status" [(ngModel)]="selectedReimbursementRequest.approverStatus" name="approverStatus">
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+
+                <!-- <button type="button" class="btn btn-primary" (click)="actionRequest(alert_message)">Submit Response</button> -->
+                <!-- <button type="button" class="btn btn-primary" (click)="approveRequest()">Approve</button>
+                <button type="button" class="btn btn-danger" (click)="closeModal()">Cancel</button> -->
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+
+  <ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+
+
+

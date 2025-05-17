@@ -82,6 +82,8 @@ import { DocumentUploadComponent } from './user-update-info/document-upload/docu
 import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
+import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
+import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -228,7 +230,8 @@ const routes: Routes = [
       {path:'', redirectTo:'my-travelrequest', pathMatch:'full'},
       {path:'my-travelrequest', component:MyTravelrequestComponent},
       {path:'view-travelrequest', component:ViewTravelrequestComponent},
-      {path:'approve-travelrequest', component:TravelrequestapprovalComponent}
+      {path:'approve-travelrequest', component:TravelrequestapprovalComponent},
+      {path:'total-travelrequest', component:TotalTravelrequestComponent}
     ]
   },
   {path:'reimbursement', component: ReimbursementComponent, canActivate: [AuthGuard],
@@ -236,7 +239,8 @@ const routes: Routes = [
       {path:'', redirectTo:'my-reimbursement', pathMatch:'full'},
       {path:'my-reimbursement', component:MyReimbursementComponent},
       {path:'view-reimbursement', component:ViewReimbursementComponent},
-      {path:'approve-reimbursement', component:ReimbursementapprovalComponent}
+      {path:'approve-reimbursement', component:ReimbursementapprovalComponent},
+      {path:'total-reimbursement', component:TotalReimbursementrequestComponent}
       
     ]
   },
