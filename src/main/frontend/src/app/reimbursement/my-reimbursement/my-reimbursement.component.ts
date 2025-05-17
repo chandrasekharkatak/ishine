@@ -229,41 +229,41 @@ export class MyReimbursementComponent implements OnInit {
       try {
         let reimbursementData = new MyReimbursement();
 
-const uploadedDocs: { fileName: string, docId: string }[] = [];
-let uploadResponse: any;
+        const uploadedDocs: { fileName: string, docId: string }[] = [];
+        let uploadResponse: any;
 
-for (const fileObj of this.fileUploads) {
-  if (fileObj.file) {
-    try {
-      const fileFormData = new FormData();
-      fileFormData.append('file', fileObj.file);
-      fileFormData.append("displayName", fileObj.file.name);
-      fileFormData.append("uploadedBy", this.currentEmployeeInfo.empId);
+        for (const fileObj of this.fileUploads) {
+          if (fileObj.file) {
+            try {
+              const fileFormData = new FormData();
+              fileFormData.append('file', fileObj.file);
+              fileFormData.append("displayName", fileObj.file.name);
+              fileFormData.append("uploadedBy", this.currentEmployeeInfo.empId);
 
-      uploadResponse = await this.reimbursementService.uploadFileReimbursement(fileFormData)
-        .pipe(first())
-        .toPromise();
+              uploadResponse = await this.reimbursementService.uploadFileReimbursement(fileFormData)
+                .pipe(first())
+                .toPromise();
 
-      if (uploadResponse.serviceStatus !== "Success") {
-        this.openAlertMod(template, `File upload failed: ${uploadResponse.serviceResponse}`);
-        return;
-      }
+              if (uploadResponse.serviceStatus !== "Success") {
+                this.openAlertMod(template, `File upload failed: ${uploadResponse.serviceResponse}`);
+                return;
+              }
 
-      uploadedDocs.push({
-        fileName: fileObj.file.name,
-        docId: uploadResponse.serviceResponse.documentId
-      });
+              uploadedDocs.push({
+                fileName: fileObj.file.name,
+                docId: uploadResponse.serviceResponse.documentId
+              });
 
-      // Push each document ID into the docIds array
-      reimbursementData.docIds.push(uploadResponse.serviceResponse.documentId);
+              // Push each document ID into the docIds array
+              reimbursementData.docIds.push(uploadResponse.serviceResponse.documentId);
 
-    } catch (error) {
-      console.error("Upload failed for file", fileObj.file.name, error);
-      this.openAlertMod(template, `File upload failed: ${error.message || error}`);
-      return;
-    }
-  }
-}
+            } catch (error) {
+              console.error("Upload failed for file", fileObj.file.name, error);
+              this.openAlertMod(template, `File upload failed: ${error.message || error}`);
+              return;
+            }
+          }
+        }
         //   const uploadResponse: any = await this.reimbursementService.uploadFileReimbursement(this.fileUploads).pipe(first()).toPromise();
         //   if (uploadResponse.serviceStatus === "Fail") {
         //     this.openAlertMod(template, `Error found: ${uploadResponse.serviceResponse}`);
@@ -273,7 +273,7 @@ for (const fileObj of this.fileUploads) {
         //     return;
         //   }
         this.reimbursementInfo = new MyReimbursement();
-        
+
 
         reimbursementData.empId = this.currentEmployeeInfo.empId;
         reimbursementData.name = this.currentEmployeeInfo.name;
@@ -296,7 +296,7 @@ for (const fileObj of this.fileUploads) {
         reimbursementData.vehicleType = this.reimbursementObj.vehicleType;
         reimbursementData.foodAllowanceType = this.reimbursementObj.foodAllowanceType;
         reimbursementData.dateOfFood = this.reimbursementObj.dateOfFood;
-        reimbursementData.multipleDocIds = this.reimbursementObj.docIds ;
+        reimbursementData.multipleDocIds = this.reimbursementObj.docIds;
 
         console.log('reimbursementData Data::::::::::::::::::::::::::::', reimbursementData);
 

@@ -1,8 +1,11 @@
 package com.apmosys.employeeportal.dto;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 import javax.persistence.Column;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -22,7 +25,7 @@ public class TravelBasedReimbursementRequestDTO {
     private Timestamp invoiceDate;
 
     private Double amount;
-
+    
     private String uploadedBy;
 
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = true, updatable = true)
@@ -31,4 +34,7 @@ public class TravelBasedReimbursementRequestDTO {
     private String updatedBy;
 
     private Timestamp updatedOn;
+    
+//    private  List<MultipartFile> fileName;
+
 }

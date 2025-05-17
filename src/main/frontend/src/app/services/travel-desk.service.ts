@@ -44,4 +44,12 @@ export class TravelDeskService {
   submitReimbursmentBasedOnTravelRequest(travelDetails:any){
     return this.http.post(`${this.baseUrl}` + `api/submitReimbursmentBasedOnTravelRequest`, travelDetails);
   }
+
+  uploadFileTravelBased(formData:FormData){
+    return this.http.post(`${this.baseUrl}`+`api/uploadFiletravelBased`,formData);
+  }
+
+  checkInvoiceNumberPresentorNot(invoiceDetails:any){
+    return this.http.post(`${this.baseUrl}`+`api/checkInvoiceNumberPresentorNot`,invoiceDetails);
+  }
 }

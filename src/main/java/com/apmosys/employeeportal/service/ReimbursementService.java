@@ -373,7 +373,7 @@ public class ReimbursementService {
 		apiLogInfo.setSubFeatureName("Upload Newsletter");
 		apiLogInfo.setApiUrl("/api/newsletters/uploadNewsletter");
 		apiLogInfo.setLogLevel("INFO");
-
+       
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("Newsletter: ").append(displayName).append(", uploadedBy: ").append(uploadedBy);
 

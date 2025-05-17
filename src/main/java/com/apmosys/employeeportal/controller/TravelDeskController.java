@@ -66,8 +66,9 @@ public class TravelDeskController {
 	public ServiceResponse uploadFile(HttpServletRequest request,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam("displayName") String displayName,
-			@RequestParam("uploadedBy") Long uploadedBy) {
-		ServiceResponse serviceResponse = travelDeskService.uploadFile(file, displayName, uploadedBy);
+			@RequestParam("uploadedBy") Long uploadedBy,
+			@RequestParam("invoiceNo") String invoiceNo) {
+		ServiceResponse serviceResponse = travelDeskService.uploadFile(file, displayName, uploadedBy,invoiceNo);
 		return serviceResponse;
 	}
 }

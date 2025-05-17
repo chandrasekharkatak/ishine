@@ -33,7 +33,7 @@ export class ViewTravelrequestComponent implements OnInit {
     private modalService: BsModalService,
     private sanitizer: DomSanitizer,
     private exportExcelService: ExportExcelService,
-    private employeeService : EmployeeService,
+    private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x) }
 
@@ -47,15 +47,15 @@ export class ViewTravelrequestComponent implements OnInit {
       this.travelDeskInfo = new MyTravelDesk();
       let travelData = new MyTravelDesk();
 
-      console.log('currentEmployeeInfo ::::::::::::::::',this.currentEmployeeInfo);
-      travelData.employeeId = this.currentUser.empId;  
+      console.log('currentEmployeeInfo ::::::::::::::::', this.currentEmployeeInfo);
+      travelData.employeeId = this.currentUser.empId;
 
       console.log('Form Data:', travelData);
 
       const response: any = await this.travelDesk.fetchTravelData(travelData).toPromise();
-      
+
       if (response.serviceStatus === "Success") {
-        this.travelRequests = response.serviceResponse;  
+        this.travelRequests = response.serviceResponse;
         console.log('Fetched Travel Requests:', this.travelRequests);
         this.selectedTravelRequest = this.travelRequests;
       } else {
@@ -65,13 +65,13 @@ export class ViewTravelrequestComponent implements OnInit {
   }
 
   isValidForm() {
-    return true; 
+    return true;
   }
   //pagination
 
   page = 1;
   handlePageChange(event) {
-      this.page = event;
+    this.page = event;
   }
   //alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
@@ -79,7 +79,7 @@ export class ViewTravelrequestComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
     this.alertMessage = message;
   }
-  openEditModal(template: TemplateRef<any> ,row :any) {
+  openEditModal(template: TemplateRef<any>, row: any) {
 
     this.selectedTravelRequest = { ...row };
 
@@ -87,62 +87,62 @@ export class ViewTravelrequestComponent implements OnInit {
     this.selectedTravelRequest.toDate = this.formatDate(this.selectedTravelRequest.toDate);
     this.selectedTravelRequest.appliedOn = this.formatDate(this.selectedTravelRequest.appliedOn);
 
-    console.log('editpain asichi re ::::::::::::::::::::',this.selectedTravelRequest);
+    console.log('editpain asichi re ::::::::::::::::::::', this.selectedTravelRequest);
 
     this.openAlertMod(template, "");
 
   }
 
   formatDate(date: string | Date | null): string | null {
-    if (!date) return null; 
+    if (!date) return null;
     const d = new Date(date);
-  
+
     if (isNaN(d.getTime())) {
       console.error("Invalid date:", date);
       return null;
     }
-    
+
     const month = ('0' + (d.getMonth() + 1)).slice(-2);
     const day = ('0' + d.getDate()).slice(-2);
     const year = d.getFullYear();
-    
+
     return `${year}-${month}-${day}`;
   }
 
-  
+
 
   async updateTravelRequest(template: TemplateRef<any>) {
 
-      this.travelDeskInfo = new MyTravelDesk();
-      let travelData = new MyTravelDesk();
+    this.travelDeskInfo = new MyTravelDesk();
+    let travelData = new MyTravelDesk();
 
-      this.travelDeskInfo = new MyTravelDesk();
-      let newtravelData = new MyTravelDesk();
-      newtravelData.requestId=this.selectedTravelRequest.requestId;
-      newtravelData.employeeId = this.selectedTravelRequest.empId;
-      newtravelData.fullName = this.selectedTravelRequest.name;
-      newtravelData.email =this.selectedTravelRequest.email;
-      newtravelData.departmentName=this.selectedTravelRequest.department;
-      newtravelData.designationName=this.selectedTravelRequest.designationName;
-      newtravelData.mobileNo=this.selectedTravelRequest.mobileNo;
-      newtravelData.managerName=this.selectedTravelRequest.managerName;
-      newtravelData.associatedTravelRequest = this.selectedTravelRequest.requestType;
-      newtravelData.travelMode= this.selectedTravelRequest.travelMode ;
-      newtravelData.travelClass = this.selectedTravelRequest.travelClass;
-      newtravelData.fromDate =this.selectedTravelRequest.fromDate;
-      newtravelData.toDate = this.selectedTravelRequest.toDate;
-      newtravelData.fromLocation = this.selectedTravelRequest.fromLocation;
-      newtravelData.toLocation =this.selectedTravelRequest.toLocation;
-      newtravelData.purposeOfTravel = this.selectedTravelRequest.purpose;
-      newtravelData.levelOneApprover = this.selectedTravelRequest.approver1;
-      newtravelData.level2Approver = this.selectedTravelRequest.approver2;
-      newtravelData.supportingDocument = this.selectedTravelRequest.supportingDocument;
-      newtravelData.hotelCategory = this.selectedTravelRequest.hotelCategory;
-      newtravelData.cityCategory = this.selectedTravelRequest.cityCategory;
+    this.travelDeskInfo = new MyTravelDesk();
+    let newtravelData = new MyTravelDesk();
+    newtravelData.requestId = this.selectedTravelRequest.requestId;
+    newtravelData.employeeId = this.selectedTravelRequest.empId;
+    newtravelData.fullName = this.selectedTravelRequest.name;
+    newtravelData.email = this.selectedTravelRequest.email;
+    newtravelData.departmentName = this.selectedTravelRequest.department;
+    newtravelData.designationName = this.selectedTravelRequest.designationName;
+    newtravelData.mobileNo = this.selectedTravelRequest.mobileNo;
+    newtravelData.managerName = this.selectedTravelRequest.managerName;
+    newtravelData.associatedTravelRequest = this.selectedTravelRequest.requestType;
+    newtravelData.travelMode = this.selectedTravelRequest.travelMode;
+    newtravelData.travelClass = this.selectedTravelRequest.travelClass;
+    newtravelData.fromDate = this.selectedTravelRequest.fromDate;
+    newtravelData.toDate = this.selectedTravelRequest.toDate;
+    newtravelData.fromLocation = this.selectedTravelRequest.fromLocation;
+    newtravelData.toLocation = this.selectedTravelRequest.toLocation;
+    newtravelData.purposeOfTravel = this.selectedTravelRequest.purpose;
+    newtravelData.levelOneApprover = this.selectedTravelRequest.approver1;
+    newtravelData.level2Approver = this.selectedTravelRequest.approver2;
+    newtravelData.supportingDocument = this.selectedTravelRequest.supportingDocument;
+    newtravelData.hotelCategory = this.selectedTravelRequest.hotelCategory;
+    newtravelData.cityCategory = this.selectedTravelRequest.cityCategory;
 
 
-      console.log('selectedTravelRequest Data ::::::::::::::::', this.selectedTravelRequest);
-       const index = this.travelRequests.findIndex(request => request.requestId === this.selectedTravelRequest.requestId);
+    console.log('selectedTravelRequest Data ::::::::::::::::', this.selectedTravelRequest);
+    const index = this.travelRequests.findIndex(request => request.requestId === this.selectedTravelRequest.requestId);
 
     if (index !== -1) {
       // Update the travel request at the found index with the new data
@@ -150,15 +150,15 @@ export class ViewTravelrequestComponent implements OnInit {
 
       try {
         const response: any = await this.travelDesk.updateTravelData(newtravelData).toPromise();
-  
+
         if (response.serviceStatus === "Success") {
           this.modalRef.hide();
 
           this.openAlertMod(template, "Success! Your data was updated successfully. !!");
 
-         // alert("Success! Your data was updated successfully.");
+          // alert("Success! Your data was updated successfully.");
           console.log('Updated Travel Request:', this.selectedTravelRequest);
-          
+
         } else {
           console.error('Error updating travel request:', response.serviceResponse);
           this.openAlertMod(template, "There was an issue updating the data. !!");
@@ -167,33 +167,33 @@ export class ViewTravelrequestComponent implements OnInit {
         console.error('Error during API call:', error);
         this.openAlertMod(template, "An error occurred while updating the data. Please try again later.");
       }
- 
+
     }
   }
 
-  async deleteTraveldata(row : any,template: TemplateRef<any>) {
+  async deleteTraveldata(row: any, template: TemplateRef<any>) {
     if (this.isValidForm()) {
       this.travelDeskInfo = new MyTravelDesk();
       let travelData = new MyTravelDesk();
 
-      this.selectedTraveldataforDelete  = { ...row }; 
+      this.selectedTraveldataforDelete = { ...row };
 
-      console.log('delete pain asichi reee :::::::::::::::::',this.selectedTraveldataforDelete)
+      console.log('delete pain asichi reee :::::::::::::::::', this.selectedTraveldataforDelete)
 
-      console.log('currentEmployeeInfo ::::::::::::::::',this.currentEmployeeInfo);
-      travelData.requestId = this.selectedTraveldataforDelete.requestId;  
+      console.log('currentEmployeeInfo ::::::::::::::::', this.currentEmployeeInfo);
+      travelData.requestId = this.selectedTraveldataforDelete.requestId;
 
-     // console.log('Form data for delete :::::::::::::::::::::', this.travelRequests.requestId);
+      // console.log('Form data for delete :::::::::::::::::::::', this.travelRequests.requestId);
 
       const response: any = await this.travelDesk.revokeTravel(travelData).toPromise();
-      
+
       if (response.serviceStatus === "Success") {
         //this.openAlertMod( "Success! Your Data is deleted successfully. !!");
-        
-       // alert("Success! Your Data is deleted successfully.");
+
+        // alert("Success! Your Data is deleted successfully.");
         this.openAlertMod(template, "Success! Your data is deleted successfully. !!");
         this.onGetTravelInfo();
-        
+
       } else {
         console.error('Error fetching data:', response.serviceResponse);
       }
@@ -204,31 +204,31 @@ export class ViewTravelrequestComponent implements OnInit {
   }
 
 
- async onGetEmployeeInfo(){
+  async onGetEmployeeInfo() {
     this.domainSpecializationList = [];
     this.currentEmployeeInfo = new Employee();
     let currentEmp = new Employee();
     currentEmp.empId = this.currentUser.empId;
     currentEmp.isDraft = false;
     console.log("currentEmp :::::::::::::::::::::::: ", currentEmp);
-    
+
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
-    
+
       //console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
       //this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
 
     } else {
       console.error(response.serviceResponse);
     }
-    setTimeout(()=>{
+    setTimeout(() => {
       this.currentEmployeeInfo.documentList && this.currentEmployeeInfo.documentList.forEach((doc, index) => {
         if (doc.documentBytes) {
           let preview = document.getElementById(`docPreview${index + 1}`);
-            let objectURL = 'data:image/*;base64,' + doc.documentBytes;
-            let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
-            preview.setAttribute('src', src);
+          let objectURL = 'data:image/*;base64,' + doc.documentBytes;
+          let src: string = this.sanitizer.sanitize(SecurityContext.RESOURCE_URL, this.sanitizer.bypassSecurityTrustResourceUrl(objectURL));
+          preview.setAttribute('src', src);
         }
       });
     }, 500);
@@ -242,7 +242,7 @@ export class ViewTravelrequestComponent implements OnInit {
   isSearchEnabled: boolean = false;
   filters: any = {};
 
-  travelActiveColumns: any[] = ['requestId', 'name','requestType', 'fromDate', 'toDate', 'hotelCategory', 'cityCategory', 'city', 'fromLocation', 'toLocation', 'empId', 'appliedOn', 'purpose'];
+  travelActiveColumns: any[] = ['requestId', 'name', 'requestType', 'fromDate', 'toDate', 'hotelCategory', 'cityCategory', 'city', 'fromLocation', 'toLocation', 'empId', 'appliedOn', 'purpose'];
   onSearch(searchData) {
     if (this.isSearchEnabled == true) {
       this.filters = searchData;
@@ -260,16 +260,16 @@ export class ViewTravelrequestComponent implements OnInit {
 
     const onlySpecificDataArr = this.travelRequests.map(
       x => ({
-        
+
         "Request Id": x.requestId,
         "Name": x.name,
         "From Date": x.fromDate,
         "To Date": x.toDate,
-        "Hotel Category":x.hotelCategory,
-        "City Category":x.cityCategory,
-        "City Name":x.city,
-        "From Location":x.fromLocation,
-        "To Location":x.toLocation,
+        "Hotel Category": x.hotelCategory,
+        "City Category": x.cityCategory,
+        "City Name": x.city,
+        "From Location": x.fromLocation,
+        "To Location": x.toLocation,
         "Applied By": x.empId,
         "Applied On": x.appliedOn,
         "Purpose Of Travel": x.purpose,
@@ -289,82 +289,164 @@ export class ViewTravelrequestComponent implements OnInit {
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
   }
 
-  travelId:any;
-  reimbursmentModel(template: TemplateRef<any> ,row :any) {
+  travelId: any;
+  reimbursmentModel(template: TemplateRef<any>, row: any) {
 
     this.selectedTravelRequest = { ...row };
 
     this.selectedTravelRequest.fromDate = this.formatDate(this.selectedTravelRequest.fromDate);
     this.selectedTravelRequest.toDate = this.formatDate(this.selectedTravelRequest.toDate);
     this.selectedTravelRequest.appliedOn = this.formatDate(this.selectedTravelRequest.appliedOn);
-    this.travelId=row.requestId;
-    console.log('editpain asichi re ::::::::::::::::::::',this.selectedTravelRequest);
+    this.travelId = row.requestId;
+    console.log('editpain asichi re ::::::::::::::::::::', this.selectedTravelRequest);
 
     this.openAlertMod(template, "");
 
   }
-  restrictingAlphaAndCharacter(event){
+  restrictingAlphaAndCharacter(event) {
     const k = event.charCode;
     if (k >= 48 && k <= 57) {
       return true;
     }
     return false;
   }
-  
+
 
 
   invoices = [
-    { invoiceNo: '', invoiceDate: '', amount: null, file: null,travelId:null, 
-      uploadedBy: null}
+    {
+      invoiceNo: '', invoiceDate: '', amount: null, file1: null, travelId: null,
+      uploadedBy: null
+    }
   ];
-  
+
   addInvoiceRow() {
-    this.invoices.push({ invoiceNo: '', invoiceDate: '', amount: null, file: null,travelId: null,       
-      uploadedBy: null  });
+    this.invoices.push({
+      invoiceNo: '', invoiceDate: '', amount: null, file1: null, travelId: null,
+      uploadedBy: null
+    });
   }
-  
+
   removeInvoiceRow(index: number) {
     this.invoices.splice(index, 1);
   }
-  
+
   onInvoiceFileChange(event: any, index: number) {
     const file = event.target.files[0];
     if (file) {
-      this.invoices[index].file = file;
+      this.invoices[index].file1 = file;
 
     }
   }
-  
-  
+
+
   isInvoiceRowValid(invoice: any): boolean {
     return (
       invoice.invoiceNo?.trim() &&
       invoice.invoiceDate &&
       invoice.amount !== null &&
       invoice.amount !== undefined &&
-      invoice.file
+      invoice.file1
     );
   }
-  submitInvoice(){
+  getFileDetails() {
+    this.invoices.forEach(async (invoice, index) => {
+      if (invoice.file1) {
+
+        try {
+          const fileFormData = new FormData();
+          fileFormData.append('file', invoice.file1);
+          fileFormData.append("displayName", invoice.file1.name);
+          fileFormData.append("uploadedBy", this.currentEmployeeInfo.empId);
+          fileFormData.append("invoiceNo", invoice.invoiceNo);
+
+          const uploadResponse: any = await this.travelDesk.uploadFileTravelBased(fileFormData).pipe(first()).toPromise();
+
+          if (uploadResponse.serviceStatus === "Fail") {
+            // this.openAlertMod(template, `Error found: ${uploadResponse.serviceResponse}`);
+            return;
+          } else if (uploadResponse.serviceStatus !== "Success") {
+            // this.openAlertMod(template, uploadResponse.serviceResponse || "Unexpected file upload response.");
+            return;
+          }
+
+
+
+        } catch (error) {
+          // console.error("Upload failed for file", fileObj.file.name, error);
+          // this.openAlertMod(template, `File upload failed: ${error.message || error}`);
+          return;
+        }
+
+        console.log(`File details for Invoice #${index + 1}:`);
+        console.log("invoice number", invoice.invoiceNo)
+        console.log('File Name:', invoice.file1.name);      // Get the file name
+        console.log('File Size:', invoice.file1.size);      // Get the file size in bytes
+        console.log('File Type:', invoice.file1.type);      // Get the file type (MIME type)
+      } else {
+        console.log(`No file uploaded for Invoice #${index + 1}`);
+      }
+    });
+  }
+  modalRef1: BsModalRef = new BsModalRef();
+  openAlertMod1(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+  submitInvoice(template: TemplateRef<any>) {
     const travelId = this.travelId;
     const uploadedBy = this.currentUser.empId;
-  
+
     const cleanedInvoices = this.invoices.map(invoice => ({
       ...invoice,
       travelId: travelId,
-      uploadedBy: uploadedBy
+      uploadedBy: uploadedBy,
+      fileName: invoice.file1 || null
+
     }));
-    console.error("API Response", cleanedInvoices);
+
+
+    const hasInvalidInvoice = cleanedInvoices.some(invoice =>
+      !invoice.invoiceNo ||
+      !invoice.invoiceDate ||
+      invoice.amount == null ||
+      !invoice.travelId ||
+      !invoice.uploadedBy ||
+      !invoice.fileName
+    );
+
+    if (hasInvalidInvoice) {
+
+      this.openAlertMod1(template, "Please fill all required invoice fields before submitting.");
+      return;
+    }
+
+
     this.travelDesk.submitReimbursmentBasedOnTravelRequest(cleanedInvoices).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            console.error("API Response", response.serviceResponse);
-          } else {  
-            console.error("API Response", response.serviceResponse);
-          }
-        });
-   
-   
-    
+      if (response.serviceStatus == "Success") {
+        this.getFileDetails();
+        this.invoices = [];
+        this.modalRef.hide();
+        this.openAlertMod1(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
   }
-  
+
+  checkInvoiceNumberPresentorNot(template: TemplateRef<any>, invoiceNo) {
+    const invoice = {
+      invoiceNo: invoiceNo,
+
+    };
+    console.log("Test", this.invoices);
+    this.travelDesk.checkInvoiceNumberPresentorNot(invoice).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.invoices = [];
+        this.addInvoiceRow()
+        this.openAlertMod1(template, response.serviceResponse);
+      }
+    });
+  }
+
 }

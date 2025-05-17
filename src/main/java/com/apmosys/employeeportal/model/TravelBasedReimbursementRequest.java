@@ -35,4 +35,8 @@ public class TravelBasedReimbursementRequest {
     private String updatedBy;
 
     private Timestamp updatedOn;
+    
+    @Column(name = "doc_id")
+  	private Long docId;
+
 }

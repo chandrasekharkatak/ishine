@@ -68,7 +68,10 @@
                 (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
-
+              <tr
+              *ngIf="reimbursementRequests.length == 0 || (reimbursementRequests | colFilter:filters: false).length == 0">
+              <th colspan="12" class="text-center info-label">No details to display...</th>
+          </tr>
               <tr
                 *ngFor="let row of reimbursementRequests | colFilter:filters:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{ row.requestId }}</td>
