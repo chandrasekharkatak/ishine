@@ -124,6 +124,7 @@ export class ResourceManagementComponent implements OnInit {
   internalProjectList: any[] = [];
   poPortalProjectList: any[] = [];
   allProject_Po_Internal: any[] = [];
+  filteredDepartments: any[] = [];
 
   getBillableType: any;
   newMemberInProject: any;
@@ -142,13 +143,15 @@ export class ResourceManagementComponent implements OnInit {
   flagDialogueBox: boolean = false;
   tableName: string;
   isAccounts: boolean = false;
+  isAllSelected: boolean = false;
   tabCounts: any;
   searchQuery: any;
   selectedEmpId: any;
+  deptIdList: any[] = [];
   employeeList: Employee[] = [];
   filteredEmployees: Employee[] = [];
   employeeCtrl = new FormControl();
-
+  searchText : any = '';
   total = 6;
   assigned = 3;
   pending = 3;
@@ -193,6 +196,15 @@ export class ResourceManagementComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     //console.log(this.feature, this.userMapping);
+    const deptName = String(this.currentUser.departmentName).trim();
+    const empRole = String(this.currentUser.employeeRole).trim();
+    if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
+    !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
+      await this.getAllDepartmentsFromId();
+    }
+    else{
+      await this.getAllDepartments();
+    }
 
     this.route.params.subscribe((params: Params) => {
       this.currentProjectId = params['id'];
@@ -218,7 +230,7 @@ export class ResourceManagementComponent implements OnInit {
     //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
     // });
     // console.log('userMapping',this.userMapping);
-    const deptName = String(this.currentUser.departmentName).trim();
+    
     if(deptName === "Accounts" ){
       this.isAccounts = true;
     }
@@ -226,8 +238,15 @@ export class ResourceManagementComponent implements OnInit {
     this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
     await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
 
-    await this.getAllDepartmentsFromId();
-   
+    // const deptName = String(this.currentUser.departmentName).trim();
+    // const empRole = String(this.currentUser.employeeRole).trim();
+    // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
+    // !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
+    //   await this.getAllDepartmentsFromId();
+    // }
+    // else{
+    //   await this.getAllDepartments();
+    // }
   }
 
 
@@ -429,9 +448,9 @@ export class ResourceManagementComponent implements OnInit {
               //   });
                 // console.log('dept name ::',deptName);
             }
-            else{
+            // else{
 
-            }
+            // }
            
 
             // this.allProject_Po_Internal.filter(data =>{
@@ -450,12 +469,68 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
+  clearSelection(event: Event) {
+    event.stopPropagation(); // prevent dropdown from closing
+    // this.employeeReportObj.deptId = [];
+    this.deptIdList = [];
+    this.isAllSelected = false;
+    // Optionally: refresh data
+  }
+
+  filterDepartments() {
+    const lowerText = this.searchText.toLowerCase();
+    this.filteredDepartments = this.departments.filter(dept =>
+      dept.name.toLowerCase().includes(lowerText)
+    );
+  }
+
+  onDepartmentSelectionChange() {
+    if (!this.isAllSelected && this.deptIdList.length > 0) {
+      this.getEmployeeReportData();
+    }
+  }
+
+  toggleSelectAllDept() {
+    // this.employeeReportObj.deptId = [];
+    if (this.isAllSelected) {
+      // Deselect all if already selected
+      this.deptIdList = [];
+      this.isAllSelected = false;
+    } else {
+      // Select all departments
+      this.deptIdList  = this.filteredDepartments.map(dept => dept.deptId);
+      this.isAllSelected = true;
+      // this.getEmployeeReportData();
+    }
+    // this.getEmployeeReportData();
+
+  }
+  getAllDepartments(): Promise<any> {
+      return new Promise((resolve, reject) => {
+        this.departmentService.getAllDepartments().pipe(first()).subscribe({
+          next: (response: any) => {
+            if (response.serviceStatus === "Success") {
+              this.departments = response.serviceResponse;
+              this.filteredDepartments = this.departments;
+              resolve(response.serviceResponse);
+            } else {
+              reject("Failed to fetch departments");
+            }
+          },
+          error: (error) => {
+            reject(error);
+          }
+        });
+      });
+    }
+
    getAllDepartmentsFromId(): Promise<any> {
       return new Promise((resolve, reject) => {
         this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
           next: (response: any) => {
             if (response.serviceStatus === "Success") {
               this.departments = response.serviceResponse;
+              this.filteredDepartments = this.departments;
               console.log(this.departments,"this.departments")
               resolve(response.serviceResponse);
             } else {
@@ -467,6 +542,10 @@ export class ResourceManagementComponent implements OnInit {
           }
         });
       });
+    }
+
+    getEmployeeReportData(){
+      
     }
   alreadyCreatedTeam() {
     this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {

@@ -232,7 +232,7 @@ public class ResourceManagementController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/rbacShankhProjects", method = RequestMethod.POST)
+	@RequestMapping(value = "/rbacShankhInternalProjects", method = RequestMethod.POST)
 	public ServiceResponse getAllShankhInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
 		ServiceResponse response = resourceManagementService.getAllShankhInternalProjectsNewRMG(projectFilterDTO);
 		return response;
