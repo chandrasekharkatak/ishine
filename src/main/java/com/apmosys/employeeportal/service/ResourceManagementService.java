@@ -10,6 +10,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -3452,7 +3453,8 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	    	 
 	    	 String approvalStatus = projectFilterDTO.getApprovalStatus();
 	    	 Long currentUserEmpId = projectFilterDTO.getCurrentUserEmpId();
-	         List<ResourceManagementDTO> poPortalProjects = fetchPoPortalProjects();
+	    	 List<Long> departmentsids = projectFilterDTO.getDepartmentsids()  ;      
+	    	 List<ResourceManagementDTO> poPortalProjects = fetchPoPortalProjects();
 	         ServiceResponse internalProjectResponse = getInternalProject();
 
 	         if (internalProjectResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
@@ -3561,6 +3563,49 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                 
 	                 
 	             
+	              
+	                
+	                 if ("Pending For Approval".equalsIgnoreCase(approvalStatus)) {
+	                     combinedProjects = combinedProjects.stream()
+	                             .filter(project -> "Pending For Approval".equalsIgnoreCase(project.getIsDraftProject()))
+	                             .collect(Collectors.toList());
+	                 } else if ("Approved".equalsIgnoreCase(approvalStatus)) {
+	                     combinedProjects = combinedProjects.stream()
+	                             .filter(project -> "Approved".equalsIgnoreCase(project.getIsDraftProject()))
+	                             .collect(Collectors.toList());
+	                 } else if ("Not Started".equalsIgnoreCase(approvalStatus)) {
+	                     combinedProjects = combinedProjects.stream()
+	                             .filter(project -> "Not Started".equalsIgnoreCase(project.getIsDraftProject()) || "Internal".equalsIgnoreCase(project.getIsDraftProject()))
+	                             .collect(Collectors.toList());
+	                 } else if ("Rejected".equalsIgnoreCase(approvalStatus)) {
+	                     combinedProjects = combinedProjects.stream()
+	                             .filter(project -> "Rejected".equalsIgnoreCase(project.getIsDraftProject()))
+	                             .collect(Collectors.toList());
+	                 }
+
+	               
+	                 if ("All".equalsIgnoreCase(approvalStatus)) {
+	                	
+	                 }
+	                 
+	                 if (departmentsids != null && !departmentsids.isEmpty()) {
+	                	    List<String> departmentIdStrings = departmentsids.stream()
+	                	            .map(String::valueOf)
+	                	            .map(String::trim)
+	                	            .collect(Collectors.toList());
+
+	                	    combinedProjects = combinedProjects.stream()
+	                	            .filter(project -> project.getTeamSpocs() != null &&
+	                	                    project.getTeamSpocs().stream().anyMatch(spoc ->
+	                	                            spoc.getDepartmentList() != null &&
+	                	                            Arrays.stream(spoc.getDepartmentList())
+	                	                                    .anyMatch(deptId -> departmentIdStrings.contains(deptId.trim()))
+	                	                    )
+	                	            )
+	                	            .collect(Collectors.toList());
+	                	}
+
+	                 
 	                 int pendingForApprovalCount = (int) combinedProjects.stream()
 	                         .filter(project -> "Pending For Approval".equalsIgnoreCase(project.getIsDraftProject()))
 	                         .count();
@@ -3584,29 +3629,7 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                 countsMap.put("approvedCount", approvedCount);
 	                 countsMap.put("notStartedCount", notStartedCount);
 	                 countsMap.put("rejectedCount", rejectedCount);
-	                
-	                 if ("Pending For Approval".equalsIgnoreCase(approvalStatus)) {
-	                     combinedProjects = combinedProjects.stream()
-	                             .filter(project -> "Pending For Approval".equalsIgnoreCase(project.getIsDraftProject()))
-	                             .collect(Collectors.toList());
-	                 } else if ("Approved".equalsIgnoreCase(approvalStatus)) {
-	                     combinedProjects = combinedProjects.stream()
-	                             .filter(project -> "Approved".equalsIgnoreCase(project.getIsDraftProject()))
-	                             .collect(Collectors.toList());
-	                 } else if ("Not Started".equalsIgnoreCase(approvalStatus)) {
-	                     combinedProjects = combinedProjects.stream()
-	                             .filter(project -> "Not Started".equalsIgnoreCase(project.getIsDraftProject()) || "Internal".equalsIgnoreCase(project.getIsDraftProject()))
-	                             .collect(Collectors.toList());
-	                 } else if ("Rejected".equalsIgnoreCase(approvalStatus)) {
-	                     combinedProjects = combinedProjects.stream()
-	                             .filter(project -> "Rejected".equalsIgnoreCase(project.getIsDraftProject()))
-	                             .collect(Collectors.toList());
-	                 }
 
-	               
-	                 if ("All".equalsIgnoreCase(approvalStatus)) {
-	                	 combinedProjects = combinedProjects;
-	                 }
 
 	                
 	                 combinedProjects.sort((a, b) -> {
@@ -4153,6 +4176,12 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		
 		public ServiceResponse getAllInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
 		    ServiceResponse response = new ServiceResponse();
+		    if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse(Collections.emptyList());
+		        return response;
+		    }
+
 		    try {
 		        Employee employee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
 		        JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
@@ -4187,6 +4216,12 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		        } else {
 		            internalProjectIds = projectRepository.findAllActiveInternalProjectIds();
 		        }
+		        
+		        internalProjectIds = filterProjectidsApprovalStatusDepartmentFilter(
+		                internalProjectIds,
+		                projectFilterDTO.getApprovalStatus(),
+		                projectFilterDTO.getDepartmentsids()
+		            );
 
 		        Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
@@ -4279,6 +4314,13 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		
 		public ServiceResponse getAllShankhProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
 		    ServiceResponse response = new ServiceResponse();
+		    String approvalStatus = projectFilterDTO.getApprovalStatus();
+		    List<Long> departmentsids = projectFilterDTO.getDepartmentsids();
+		    if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse(Collections.emptyList());
+		        return response;
+		    }
 		    try {
 		        Employee employee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
 		        JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
@@ -4313,6 +4355,12 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		        } else {
 		            internalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
 		        }
+		        
+		        internalProjectIds = filterProjectidsApprovalStatusDepartmentFilter(
+		                internalProjectIds,
+		                projectFilterDTO.getApprovalStatus(),
+		                projectFilterDTO.getDepartmentsids()
+		            );
 
 		        Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
@@ -4405,6 +4453,12 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		
 		public ServiceResponse getAllShankhInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
 		    ServiceResponse response = new ServiceResponse();
+		    
+		    if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse(Collections.emptyList());
+		        return response;
+		    }
 		    try {
 		        Employee employee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
 		        JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
@@ -4439,6 +4493,12 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		        } else {
 		            internalProjectIds = projectRepository.findAllActiveShankhProjectIds();
 		        }
+		        
+		        internalProjectIds = filterProjectidsApprovalStatusDepartmentFilter(
+		                internalProjectIds,
+		                projectFilterDTO.getApprovalStatus(),
+		                projectFilterDTO.getDepartmentsids()
+		            );
 
 		        Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
@@ -4528,5 +4588,67 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		    }
 		    return response;
 		}
+		
+		public Set<Integer> filterProjectidsApprovalStatusDepartmentFilter(
+		        Set<Integer> projectIds,
+		        String approvalStatus,
+		        List<Long> departmentsids) {
+
+		    Set<Integer> filteredProjectIds = new HashSet<>();
+
+		    try {
+		        List<Object[]> allProjectList = projectRepository.findAllProjectByIsDraftAndIsActiveOfProjectIds(projectIds);
+
+		        if (!allProjectList.isEmpty()) {
+		            List<ResourceManagementDTO> dtoList = new ArrayList<>();
+
+		            for (Object[] object : allProjectList) {
+		                Integer projectId = object[0] != null ? Integer.parseInt(object[0].toString()) : null;
+		                String isDraftProject = object[2] != null ? object[2].toString() : null;
+		                Long isActive = object[3] != null ? Long.parseLong(object[3].toString()) : null;
+
+		               
+		                boolean matchesApproval = false;
+
+		                if ("Pending For Approval".equalsIgnoreCase(approvalStatus) && Long.valueOf(2).equals(isActive)) {
+		                    matchesApproval = true;
+		                } else if ("Approved".equalsIgnoreCase(approvalStatus) && "false".equalsIgnoreCase(isDraftProject)) {
+		                    matchesApproval = true;
+		                } else if ("Rejected".equalsIgnoreCase(approvalStatus) && "Rejected".equalsIgnoreCase(isDraftProject)) {
+		                    matchesApproval = true;
+		                }else if("All".equalsIgnoreCase(approvalStatus)) {
+		                	 matchesApproval = true;
+		                }
+
+		                if (!matchesApproval) continue;
+
+		                
+		                List<TeamSpocDTO> spocList = getTeamSpocsByProjectId(projectId);
+
+		               
+		                boolean matchesDepartment = true;
+		                if (departmentsids != null && !departmentsids.isEmpty()) {
+		                    matchesDepartment = spocList.stream().anyMatch(spoc ->
+		                        spoc.getDepartmentList() != null &&
+		                        Arrays.stream(spoc.getDepartmentList())
+		                              .map(Long::valueOf)
+		                              .anyMatch(departmentsids::contains)
+		                    );
+		                }
+
+		                
+		                if (matchesDepartment) {
+		                    filteredProjectIds.add(projectId);
+		                }
+		            }
+		        }
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		    }
+
+		    return filteredProjectIds;
+		}
+
 
 }

@@ -47,6 +47,11 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> findAllProjectByIsDraftAndIsActive();
 	
+	@Query(nativeQuery = true,value ="select p.project_id, p.project_name, p.is_draft_project,(case when exists (select 1 from employee_team_mapping etm where etm.team_id in \n"
+			+ "(select team_id from teams where project_id=p.project_id) and etm.active=2) then 2 else 1 end) from projects p  \n"
+			+ "where p.is_draft_project IN ('false','true','Rejected') and p.project_id IN :projectIds")
+	public List<Object[]> findAllProjectByIsDraftAndIsActiveOfProjectIds(@Param("projectIds") Set<Integer> projectIds);
+	
 
 	public List<Project> findProjectByDepartmentName(String name);
 
