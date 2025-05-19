@@ -1,11 +1,13 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { MyReimbursement } from 'src/app/models/reimbursement';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
+import { TravelDeskService } from 'src/app/services/travel-desk.service';
 
 @Component({
   selector: 'app-reimbursementapproval',
@@ -34,6 +36,7 @@ export class ReimbursementapprovalComponent implements OnInit {
      private sanitizer: DomSanitizer,
      private employeeService : EmployeeService,
      private authenticationService: AuthenticationService,
+     private travelDesk:TravelDeskService,
      private reimbursementService:ReimbursementService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x)}
 
@@ -185,6 +188,20 @@ openEditModal(template: TemplateRef<any> ,row :any) {
 
   this.openAlertMod(template, "njvhv");
 
+}
+
+docUrl: string | null = null;
+preview(template:TemplateRef<any>){
+  const payload = { "docId": 297 };
+  this.travelDesk.previewDocument(payload).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {  
+      this.docUrl = 'data:image/png;base64,' + response.serviceResponse.documentBytes;
+    }
+    else{
+      this.openAlertMod(template, "Image not present");
+    }
+  });
+ 
 }
 
 }

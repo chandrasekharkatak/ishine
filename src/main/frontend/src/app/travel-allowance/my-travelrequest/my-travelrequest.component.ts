@@ -92,8 +92,8 @@ import { ValidationService } from 'src/app/services/validation.service';
     this.todayDate = today.toISOString().split('T')[0];
 
     this.onGetEmployeeInfo();
-
-    // Dynamic Subfeature Flags
+    
+   
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -126,7 +126,7 @@ import { ValidationService } from 'src/app/services/validation.service';
     let currentEmp = new Employee();
     currentEmp.empId = this.currentUser.empId;
     currentEmp.isDraft = false;
-    //console.log("currentEmp : ", currentEmp);
+  
     
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
@@ -308,7 +308,9 @@ async submitForm(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
-
+  
+  
+ 
   onPaste(e) {
     e.preventDefault();
     return false;
@@ -461,6 +463,7 @@ fileUploads: any[] = [{}];
         this.fileUploads.splice(index, 1);
       }
 
+      
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

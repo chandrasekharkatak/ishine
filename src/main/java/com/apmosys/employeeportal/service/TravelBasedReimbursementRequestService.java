@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,9 +17,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TravelBasedReimbursementRequestDTO;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeDocument;
 import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.TravelBasedReimbursementRequest;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -237,6 +240,74 @@ public ServiceResponse checkInvoiceNumberPresentorNot(TravelBasedReimbursementRe
 	    apiLogInfo.setApiRequest(logBuilder.toString());
 	    return response;
 	
+	
+}
+
+
+
+
+
+
+
+
+public ServiceResponse previewDocument(TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
+	ServiceResponse response = new ServiceResponse();
+	
+	LogDTO apiLogInfo = new LogDTO();
+
+	apiLogInfo.setSubFeatureName("Save");
+	apiLogInfo.setApiUrl("/api/previewDocument");
+	apiLogInfo.setLogLevel("INFO");
+	StringBuilder logBuilder = new StringBuilder();
+	
+
+	
+	try {
+
+
+		TravelBasedReimbursementRequestDTO docDTO = new TravelBasedReimbursementRequestDTO();
+		Newsletter travelDocDetails = newsletterRepository.findByDocId(reimbursementRequestDTO.getDocId());
+		
+				byte[] imageByte;
+				try {
+				    String fullPath = traveldeskFileLocation + File.separator
+				   
+				        + travelDocDetails.getFileName();
+
+				    Path path = Paths.get(fullPath);
+
+				    if (Files.exists(path)) {
+				        imageByte = Files.readAllBytes(path);
+				        docDTO.setDocumentBytes(imageByte);
+				    } else {
+				        System.err.println("File not found at path: " + fullPath);
+				    }
+				} catch (IOException e) {
+				    e.printStackTrace(); // or use a logger
+				}
+
+				
+
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(docDTO);
+			
+			apiLogInfo.setApiResponse("Documents Found !!");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+
+	} catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		response.setServiceError(e.getMessage());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setLogLevel("ERROR");
+	}
+
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
+	return response;
 	
 }
 	

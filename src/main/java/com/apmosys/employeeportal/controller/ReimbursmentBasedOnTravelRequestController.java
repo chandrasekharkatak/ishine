@@ -50,5 +50,10 @@ public class ReimbursmentBasedOnTravelRequestController {
 	public ResponseEntity<ServiceResponse> checkInvoiceNumberPresentorNot(@RequestBody TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
 		return ResponseEntity.ok(travelBasedService.checkInvoiceNumberPresentorNot(reimbursementRequestDTO));
 	}
+	
+	@RequestMapping(value = "/previewDocument", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> previewDocument(@RequestBody TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
+		return ResponseEntity.ok(travelBasedService.previewDocument(reimbursementRequestDTO));
+	}
 
 }

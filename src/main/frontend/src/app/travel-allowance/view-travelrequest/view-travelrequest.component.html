@@ -16,7 +16,9 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
             </a>
           </div>
-
+         
+          
+          
 
           <div class="export-button">
             <button type="button" class="btn btn-sm btn-outline-primary mt-2 mb-2 excel-button"
@@ -433,7 +435,7 @@
 
           <div class="col-md-3">
             <label class="info-label"><span class="text-danger">*</span>Upload Invoice</label>
-            <input type="file" class="form-control" (change)="onInvoiceFileChange($event, i)" required />
+            <input type="file" class="form-control" (change)="onInvoiceFileChange($event, i,alert_message)" required />
           </div>
 
           <div class="col-md-2 text-right">

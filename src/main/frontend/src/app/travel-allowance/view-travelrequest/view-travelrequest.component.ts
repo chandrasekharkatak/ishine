@@ -331,13 +331,30 @@ export class ViewTravelrequestComponent implements OnInit {
     this.invoices.splice(index, 1);
   }
 
-  onInvoiceFileChange(event: any, index: number) {
+  onInvoiceFileChange(event: any, index: number, template: TemplateRef<any>) {
     const file = event.target.files[0];
+    
     if (file) {
+     
+      if (!file.type.startsWith('image/')) {
+        this.openAlertMod1(template, 'Only image files are allowed');
+        event.target.value = '';
+        return;
+      }
+  
+      
+      const maxSizeInBytes = 1 * 1024 * 1024; 
+      if (file.size > maxSizeInBytes) {
+        this.openAlertMod1(template, 'Image size should not exceed 1MB');
+        event.target.value = '';
+        return;
+      }
+  
+     
       this.invoices[index].file1 = file;
-
     }
   }
+  
 
 
   isInvoiceRowValid(invoice: any): boolean {
@@ -426,6 +443,7 @@ export class ViewTravelrequestComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.getFileDetails();
         this.invoices = [];
+        this.addInvoiceRow();
         this.modalRef.hide();
         this.openAlertMod1(template, response.serviceResponse);
       } else {
@@ -448,5 +466,8 @@ export class ViewTravelrequestComponent implements OnInit {
       }
     });
   }
+  
+  
 
+  
 }
