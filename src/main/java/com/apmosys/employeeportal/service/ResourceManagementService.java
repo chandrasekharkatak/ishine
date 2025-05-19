@@ -4649,6 +4649,20 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 
 		    return filteredProjectIds;
 		}
+		
+		public ServiceResponse totalEmployeeCount() {
+			ServiceResponse response = new ServiceResponse();
+			try {
+				Long employeeActiveCount = employeeRepository.getTotalEmployeeCount();
+				 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			     response.setServiceResponse(employeeActiveCount);
+				
+			}catch(Exception e) {
+				  e.printStackTrace();
+			}
+			return response;
+			
+		}
 
 
 }

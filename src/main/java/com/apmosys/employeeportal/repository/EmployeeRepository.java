@@ -580,5 +580,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     @Query(value="SELECT e.email FROM employee e WHERE e.emp_id = :hodId",nativeQuery=true)
     String findHodEmailById(@Param("hodId") Long hodId);
+    
+    @Query(value ="select count(*) from employee where employmentstatus != 'InActive'",nativeQuery = true)
+    Long getTotalEmployeeCount();
 
 }
