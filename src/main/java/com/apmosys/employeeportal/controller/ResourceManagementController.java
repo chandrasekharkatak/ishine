@@ -237,5 +237,11 @@ public class ResourceManagementController {
 		ServiceResponse response = resourceManagementService.getAllShankhInternalProjectsNewRMG(projectFilterDTO);
 		return response;
 	}
+	
+	@RequestMapping(value = "/totalEmployeeCount", method = RequestMethod.GET)
+	public ServiceResponse totalEmployeeCount() {
+		ServiceResponse response = resourceManagementService.totalEmployeeCount();
+		return response;
+	}
 
 }
