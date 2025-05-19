@@ -3559,8 +3559,44 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                                         || (project.getProjectId() != null && hodInternalProjectIds.contains(project.getProjectId())))
 	                                 .collect(Collectors.toList());
 	                     }
+	                     
+	                   
 	                 
-	                 
+		                 if (departmentsids != null && !departmentsids.isEmpty()) {
+		                	    List<String> departmentIdStrings = departmentsids.stream()
+		                	            .map(String::valueOf)
+		                	            .map(String::trim)
+		                	            .collect(Collectors.toList());
+
+		                	    combinedProjects = combinedProjects.stream()
+		                	            .filter(project -> project.getTeamSpocs() != null &&
+		                	                    project.getTeamSpocs().stream().anyMatch(spoc ->
+		                	                            spoc.getDepartmentList() != null &&
+		                	                            Arrays.stream(spoc.getDepartmentList())
+		                	                                    .anyMatch(deptId -> departmentIdStrings.contains(deptId.trim()))
+		                	                    )
+		                	            )
+		                	            .collect(Collectors.toList());
+		                	}
+		                 
+		                 int pendingForApprovalCountBefore = (int) combinedProjects.stream()
+		                         .filter(project -> "Pending For Approval".equalsIgnoreCase(project.getIsDraftProject()))
+		                         .count();
+
+		                 int approvedCountBefore = (int) combinedProjects.stream()
+		                         .filter(project -> "Approved".equalsIgnoreCase(project.getIsDraftProject()))
+		                         .count();
+
+		                 int notStartedCountBefore = (int) combinedProjects.stream()
+		                         .filter(project -> "Not Started".equalsIgnoreCase(project.getIsDraftProject()) ||
+		                                            "Internal".equalsIgnoreCase(project.getIsDraftProject()))
+		                         .count();
+
+		                 int rejectedCountBefore = (int) combinedProjects.stream()
+		                         .filter(project -> "Rejected".equalsIgnoreCase(project.getIsDraftProject()))
+		                         .count();  
+		                 
+		                 
 	                 
 	             
 	              
@@ -3588,47 +3624,18 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 	                	
 	                 }
 	                 
-	                 if (departmentsids != null && !departmentsids.isEmpty()) {
-	                	    List<String> departmentIdStrings = departmentsids.stream()
-	                	            .map(String::valueOf)
-	                	            .map(String::trim)
-	                	            .collect(Collectors.toList());
+	                
 
-	                	    combinedProjects = combinedProjects.stream()
-	                	            .filter(project -> project.getTeamSpocs() != null &&
-	                	                    project.getTeamSpocs().stream().anyMatch(spoc ->
-	                	                            spoc.getDepartmentList() != null &&
-	                	                            Arrays.stream(spoc.getDepartmentList())
-	                	                                    .anyMatch(deptId -> departmentIdStrings.contains(deptId.trim()))
-	                	                    )
-	                	            )
-	                	            .collect(Collectors.toList());
-	                	}
-
-	                 
-	                 int pendingForApprovalCount = (int) combinedProjects.stream()
-	                         .filter(project -> "Pending For Approval".equalsIgnoreCase(project.getIsDraftProject()))
-	                         .count();
-
-	                 int approvedCount = (int) combinedProjects.stream()
-	                         .filter(project -> "Approved".equalsIgnoreCase(project.getIsDraftProject()))
-	                         .count();
-
-	                 int notStartedCount = (int) combinedProjects.stream()
-	                         .filter(project -> "Not Started".equalsIgnoreCase(project.getIsDraftProject()) ||
-	                                            "Internal".equalsIgnoreCase(project.getIsDraftProject()))
-	                         .count();
-
-	                 int rejectedCount = (int) combinedProjects.stream()
-	                         .filter(project -> "Rejected".equalsIgnoreCase(project.getIsDraftProject()))
-	                         .count();
+	                                 
 
 	                
 	                 Map<String, Integer> countsMap = new HashMap<>();
-	                 countsMap.put("pendingForApprovalCount", pendingForApprovalCount);
-	                 countsMap.put("approvedCount", approvedCount);
-	                 countsMap.put("notStartedCount", notStartedCount);
-	                 countsMap.put("rejectedCount", rejectedCount);
+	             
+	                	 countsMap.put("pendingForApprovalCount", pendingForApprovalCountBefore);
+		                 countsMap.put("approvedCount", approvedCountBefore);
+		                 countsMap.put("notStartedCount", notStartedCountBefore);
+		                 countsMap.put("rejectedCount", rejectedCountBefore);	 
+	               
 
 
 	                
