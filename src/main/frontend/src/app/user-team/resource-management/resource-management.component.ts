@@ -133,7 +133,7 @@ export class ResourceManagementComponent implements OnInit {
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   filters: any = {};
   isSearchEnabled: boolean = false;
-  projectColumns: any[] = ["blank", "blank", "blank","isDraftProject", "name", "poNo", "projectManagerName", "clientName", "apmosysRM", "clientRM", "startDate", "endDate", "clientState", "createdOn", "status"];
+  projectColumns: any[] = ["blank", "blank", "blank","isDraftProject", "name", "poNo","projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "startDate", "endDate", "clientState", "createdOn", "status"];
 
   projectDetails: any = [];
   copyDepartment: any = [];
@@ -151,7 +151,8 @@ export class ResourceManagementComponent implements OnInit {
   employeeList: Employee[] = [];
   filteredEmployees: Employee[] = [];
   employeeCtrl = new FormControl();
-  searchText : any = '';
+  searchText : any;
+  searchTextDept : any;
   total = 6;
   assigned = 3;
   pending = 3;
@@ -234,10 +235,12 @@ export class ResourceManagementComponent implements OnInit {
     if(deptName === "Accounts" ){
       this.isAccounts = true;
     }
+    // this.toggleSelectAllDept();
     this.projectFilterDTO.approvalStatus = "All";
     this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
     await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
 
+    
     // const deptName = String(this.currentUser.departmentName).trim();
     // const empRole = String(this.currentUser.employeeRole).trim();
     // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
@@ -282,8 +285,8 @@ export class ResourceManagementComponent implements OnInit {
 
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
-    this.getManagerList();
-    this.alreadyCreatedTeam();
+    // this.getManagerList();
+    // this.alreadyCreatedTeam();
   }
 
   showEditProjectForm(project: any) {
@@ -473,36 +476,54 @@ export class ResourceManagementComponent implements OnInit {
     event.stopPropagation(); // prevent dropdown from closing
     // this.employeeReportObj.deptId = [];
     this.deptIdList = [];
-    this.isAllSelected = false;
+    // this.isAllSelected = false;
+    this.toggleSelectAllDept();
     // Optionally: refresh data
   }
 
   filterDepartments() {
-    const lowerText = this.searchText.toLowerCase();
+    const lowerText = this.searchTextDept.toLowerCase();
     this.filteredDepartments = this.departments.filter(dept =>
       dept.name.toLowerCase().includes(lowerText)
     );
   }
 
   onDepartmentSelectionChange() {
-    if (!this.isAllSelected && this.deptIdList.length > 0) {
-      this.getEmployeeReportData();
+    console.log(this.isAllSelected,"this.isAllSelected");
+    if (!this.isAllSelected && this.deptIdList.length > 0 && this.deptIdList[0] != null) {
+      this.projectFilterDTO.approvalStatus = "All";
+    this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+    this.projectFilterDTO.departmentsids = this.deptIdList;
+    console.log(this.projectFilterDTO,"this.projectFilterDTO");
+    this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+
+      // this.getEmployeeReportData();
     }
   }
 
   toggleSelectAllDept() {
     // this.employeeReportObj.deptId = [];
+    console.log(this.isAllSelected,"this.isAllSelected")
     if (this.isAllSelected) {
       // Deselect all if already selected
       this.deptIdList = [];
       this.isAllSelected = false;
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = [];
+      console.log(this.projectFilterDTO,"this.projectFilterDTO");
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+
     } else {
       // Select all departments
       this.deptIdList  = this.filteredDepartments.map(dept => dept.deptId);
       this.isAllSelected = true;
-      // this.getEmployeeReportData();
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = this.deptIdList;
+      console.log(this.projectFilterDTO,"this.projectFilterDTO");
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
     }
-    // this.getEmployeeReportData();
 
   }
   getAllDepartments(): Promise<any> {
@@ -512,6 +533,7 @@ export class ResourceManagementComponent implements OnInit {
             if (response.serviceStatus === "Success") {
               this.departments = response.serviceResponse;
               this.filteredDepartments = this.departments;
+              console.log(this.filteredDepartments,"this.filteredDepartments");
               resolve(response.serviceResponse);
             } else {
               reject("Failed to fetch departments");
@@ -532,6 +554,7 @@ export class ResourceManagementComponent implements OnInit {
               this.departments = response.serviceResponse;
               this.filteredDepartments = this.departments;
               console.log(this.departments,"this.departments")
+              this.deptIdList = this.filteredDepartments.map(dept => dept.deptId);
               resolve(response.serviceResponse);
             } else {
               reject("Failed to fetch departments");
@@ -544,9 +567,7 @@ export class ResourceManagementComponent implements OnInit {
       });
     }
 
-    getEmployeeReportData(){
-      
-    }
+   
   alreadyCreatedTeam() {
     this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1666,6 +1687,7 @@ onAction(action: string, project: any) {
   
   // alert_message template is to be passed
  CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO:ProjectFilterDTO){
+  this.allProject_Po_Internal = [];
   this.resourceManagementService.combinedPOINTERNALList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Success") {
       console.log(response.serviceResponse);

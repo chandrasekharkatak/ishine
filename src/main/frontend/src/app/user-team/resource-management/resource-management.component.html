@@ -149,16 +149,26 @@
   </div>
       <!-- Employee Card Section -->
       <div class="col-md-4">
-        <div class="row justify-content-end align-items-center mb-3">
-            <div class="col-md-6 " style="display: flex;
+        <div class="row justify-content-end">
+            <div class="col-md-2" style="
             justify-content: left;
-            max-width: fit-content;">
+            max-width: fit-content;
+            min-width:80%">
+            <label class="info-label"  style="justify-self: left;"><span class="text-danger">*</span>Department</label>
+            </div>
+        </div>
+        <div class="row justify-content-end mb-3">
+            <div class="col-md-2" style="
+            justify-content: left;
+            max-width: fit-content;
+            min-width:80%">
+            
                  <mat-select class="form-control" multiple [(ngModel)]="deptIdList"
                  (selectionChange)="onDepartmentSelectionChange()">
                  <!-- Search Input (non-selectable) -->
                  <mat-option class="non-selectable" disabled>
                    <div style="display: flex; align-items: center;">
-                     <input type="text" placeholder="Search Department" [(ngModel)]="searchText"
+                     <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDept"
                        (ngModelChange)="filterDepartments()" class="form-control" style="width: 100%; padding: 5px;" />
      
                      <button *ngIf="deptIdList?.length > 0" (click)="clearSelection($event)"
@@ -178,6 +188,7 @@
                    {{ dept.name }}
                  </mat-option>
                </mat-select>
+            
             </div>
         </div>
         <div class="row">
@@ -346,7 +357,7 @@
                     max-width: fit-content;">
                         <i class="fa fa-download" style="color: #053885;display: flex;
                         justify-content: left;
-                        max-width: fit-content;" [hidden]="allProjectList.length == 0" (click)="exportToExcel('project-info')" ></i>
+                        max-width: fit-content;" [hidden]="allProject_Po_Internal.length == 0" (click)="exportToExcel('project-info')" ></i>
                       </div>
                 </div>
                 
@@ -362,6 +373,7 @@
                                     Status</th>
                                 <th scope="col" class="info-label" style="max-width: fit-content;min-width: 300px;" mat-sort-header="name|string">Project Name</th>
                                 <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;" mat-sort-header="poNo|string">PO Number</th>
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;" mat-sort-header="projectType|string">Project Type</th>
                                 <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;" mat-sort-header="projectManagerName|string">Project
                                     Manager</th>
                                     <!-- <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Start Date</th>
@@ -456,6 +468,7 @@
                                     <td *ngIf='project.id && project.isDraftProject != "NA"' style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.id" style="cursor: pointer;" title="Click to view Project Details">{{project.name}}</td>
                                     
                                     <td>{{project.poNo}}</td>
+                                    <td>{{project.projectType}}</td>
 
                                     <!-- <td *ngIf="project.projectId"style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details">{{project.name}}</td> -->
                                     <td id="clickablefor360" *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName && !isAccounts" [navigateToEmployee360]="project.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{project.projectManagerName}}</td>
@@ -733,7 +746,7 @@
 
                     </table>
                     <div class="row col-md-12">
-                        <pagination-controls class="my-pagination" [hidden]="allProjectList.length == 0"
+                        <pagination-controls class="my-pagination" [hidden]="allProject_Po_Internal.length == 0"
                             (pageChange)="handlePageChange($event)"></pagination-controls>
 
                     </div>
