@@ -634,11 +634,43 @@ public class TravelDeskService {
 		}
 		} catch (Exception e) {
 			e.printStackTrace();
-		// throw new FileNotFoundException("File not found ");
 		}
 		return resource;
 
 	} 
+	
+	
+	public ServiceResponse totalTravelData() {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			 List<TravelDesk> totalTravelData = new ArrayList<>() ;
+			 
+			List<TravelDesk> travelData = tavelDeskRepository.findAll();
+			
+			if(!travelData.isEmpty()) {
+				
+			  totalTravelData.addAll(travelData);
+			  System.out.println(totalTravelData);
+			}
+			 
+			if(totalTravelData.isEmpty()) {
+				serviceResponse.setServiceError("Data Not Found...!!");
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				return serviceResponse;
+			}
+			else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(totalTravelData);
+				return serviceResponse;
+			}
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			serviceResponse.setServiceError(e.getMessage());
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			return serviceResponse;
+		}
+	}
 
 
 

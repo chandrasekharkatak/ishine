@@ -53,7 +53,7 @@ export class TotalReimbursementrequestComponent implements OnInit {
 
       console.log('reimbursementData Data  ::::::::::::::::', reimbursementData);
 
-      const response: any = await this.reimbursementService.fetchReimbursementDataforApproval(reimbursementData).toPromise();
+      const response: any = await this.reimbursementService.fetchTotalReimbursementData(reimbursementData).toPromise();
       
       if (response.serviceStatus === "Success") {
         this.reimbursementRequests = response.serviceResponse;  

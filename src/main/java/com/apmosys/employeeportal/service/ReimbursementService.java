@@ -592,4 +592,38 @@ public class ReimbursementService {
 		return resource;
 
 	} 
+	
+	
+	public ServiceResponse fetchTotalReimbursementData() {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			List<ReimbursementData> totalReimbursement = new ArrayList<>();
+			List<ReimbursementData> reimbursementList = reimbursementDataRepository.findAll();
+			System.out.println(reimbursementList);
+			
+			if (!reimbursementList.isEmpty()) {
+				totalReimbursement.addAll(reimbursementList);
+				System.out.println(totalReimbursement);
+			}
+
+			if (totalReimbursement.isEmpty()) {
+				serviceResponse.setServiceError("Data Not Found...!!");
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				return serviceResponse;
+			} else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(totalReimbursement);
+				return serviceResponse;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceError(e.getMessage());
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			return serviceResponse;
+		}
+	}
+
+	
+	
+	
 }

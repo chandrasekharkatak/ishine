@@ -39,4 +39,8 @@ export class ReimbursementService {
   uploadFileReimbursement(formData:any){
     return this.http.post(`${this.baseUrl}`+`api/uploadFileReimbursement`,formData);
   }
+
+  fetchTotalReimbursementData(reimbursementObj: MyReimbursement) {
+    return this.http.post(`${this.baseUrl}` + `api/fetchTotalReimbursementData`, reimbursementObj);
+  }
 }

@@ -66,4 +66,10 @@ public class ReimbursementController {
 		ServiceResponse serviceResponse = reimbursementService.uploadFile(file, displayName, uploadedBy);
 		return serviceResponse;
 	}
+	
+	@PostMapping("/fetchTotalReimbursementData")
+	public ServiceResponse fetchTotalReimbursementData(@RequestBody ReimbursementDTO reimbursementObj) {
+		return reimbursementService.fetchTotalReimbursementData();
+		
+	}
 }

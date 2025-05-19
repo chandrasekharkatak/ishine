@@ -14,7 +14,8 @@ public interface ReimbursementDataRepository extends JpaRepository<Reimbursement
 	@Query(nativeQuery = true, value = "SELECT * FROM reimbursement_data WHERE emp_id = :empId ORDER BY request_id DESC")
 	List<ReimbursementData> findByEmpId(@Param("empId") BigInteger empId);
 
-
+	@Query(nativeQuery = true, value = "SELECT * FROM reimbursement_data ORDER BY requestId desc")
+	List<ReimbursementData> findAll();
 
 	ReimbursementData findByRequestId(BigInteger requestId);
 	

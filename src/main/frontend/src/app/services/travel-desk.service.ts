@@ -52,4 +52,10 @@ export class TravelDeskService {
   checkInvoiceNumberPresentorNot(invoiceDetails:any){
     return this.http.post(`${this.baseUrl}`+`api/checkInvoiceNumberPresentorNot`,invoiceDetails);
   }
+
+  totalTravelData(travelDeskObj: MyTravelDesk) {
+    return this.http.post(`${this.baseUrl}` + `api/totalTravelData`, travelDeskObj);
+  }
+
+  
 }

@@ -1,1 +1,98 @@
-<p>total-travelrequest works!</p>
+<div class="row">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Overall Travel Request</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll>
+                    <table class="table table-bordered table-hover text-center">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th scope="col" class="info-label">Request Id</th>
+                                <th scope="col" class="info-label">Name</th>
+                                <th scope="col" class="info-label">Request Type</th>
+                                <th scope="col" class="info-label">From Date</th>
+                                <th scope="col" class="info-label">To Date</th>
+                                <th scope="col" class="info-label">From Location</th>
+                                <th scope="col" class="info-label">To Location</th>
+                                <th scope="col" class="info-label">Hotel Category</th>
+                                <th scope="col" class="info-label">City Category</th>
+                                <th scope="col" class="info-label">City Name</th>
+                                <th scope="col" class="info-label">Applied By</th>
+                                <th scope="col" class="info-label">Applied On</th>
+                                <th scope="col" class="wide-col">Purpose Of Travel</th>
+                                <th scope="col" class="info-label">Current Approval Level</th>
+                                <th scope="col" class="info-label">Level 1 Approver Name</th>
+                                <th scope="col" class="info-label">Level 1 Approver Status</th>
+                                <th scope="col" class="info-label">Level 2 Approver Name</th>
+                                <th scope="col" class="info-label">Level 2 Approver Status</th>
+                                <th scope="col" class="info-label">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                *ngFor="let row of travelRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                                <td>{{ row.requestId || (i + 1) }}</td>
+                                <td>{{ row.name }}</td>
+                                <td>{{ row.requestType }}</td>
+                                <td>{{ row.fromDate | date }}</td>
+                                <td>{{ row.toDate | date }}</td>
+                                <td>{{ row.fromLocation || 'NA' }}</td>
+                                <td>{{ row.toLocation || 'NA' }}</td>
+                                <td>{{ row.hotelCategory || 'NA' }}</td>
+                                <td>{{ row.cityCategory || 'NA' }}</td>
+                                <td>{{ row.city || 'NA' }}</td>
+                                <td>{{ row.empId }}</td>
+                                <td>{{ row.appliedOn | date }}</td>
+                                <td>{{ row.purpose }}</td>
+                                <td>{{ row.level }}</td>
+                                <td>{{ row.hodName }}</td>
+                                <td>
+                                    <span [ngClass]="{
+                            'badge badge-success': row.status === 'Approved',
+                            'badge badge-danger': row.status === 'Rejected',
+                            'badge badge-warning': row.status === 'Pending'
+                          }">
+                                        {{ row.status || 'NA' }}
+                                    </span>
+                                </td>
+                                <td>{{ row.level2approverName }}</td>
+                                <td>
+                                    <span [ngClass]="{
+                            'badge badge-success': row.level2approverStatus === 'Approved',
+                            'badge badge-danger': row.level2approverStatus === 'Rejected',
+                            'badge badge-warning': row.level2approverStatus === 'Pending'
+                          }">
+                                        {{ row.level2approverStatus || 'NA' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-inline-flex">
+                                        <!-- <button *ngIf="row.level2approverStatus === 'Pending'" type="button"
+                                            class="btn btn-success btn-sm btn-action button"
+                                            (click)="openEditModal(approveRequest, row)">
+                                            <em class="fa fa-edit"></em> Take Action
+                                        </button> -->
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pagination-controls class="my-pagination" [hidden]="travelRequests.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
