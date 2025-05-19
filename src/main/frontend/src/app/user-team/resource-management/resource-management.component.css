@@ -509,3 +509,10 @@ thead {
     cursor: pointer;
     color: #3b3b96;
   }
+
+  .selected-card {
+    background-color: #f2f2f2;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }

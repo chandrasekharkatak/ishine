@@ -156,7 +156,9 @@ export class ResourceManagementComponent implements OnInit {
   total = 6;
   assigned = 3;
   pending = 3;
-  @ViewChild('customDatePickerTemplate') customDatePickerTemplate!: TemplateRef<any>;
+  selectedStatusTab: string ='';
+  @ViewChild('customDatePickerTemplate') 
+  customDatePickerTemplate!: TemplateRef<any>;
 
   selectedDate: String| null = null;
   completedProjectDetails: Project = new Project();
@@ -473,12 +475,21 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   clearSelection(event: Event) {
+    console.log(this.isAllSelected,"this.isAllSelected");
     event.stopPropagation(); // prevent dropdown from closing
-    // this.employeeReportObj.deptId = [];
-    this.deptIdList = [];
-    // this.isAllSelected = false;
-    this.toggleSelectAllDept();
-    // Optionally: refresh data
+    if(this.isAllSelected == true){
+      console.log(this.isAllSelected,"this.isAllSelected");
+      this.toggleSelectAllDept();
+    }
+    else{
+      this.deptIdList = [];
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = [];
+      console.log(this.projectFilterDTO,"this.projectFilterDTO");
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+    }
+    
   }
 
   filterDepartments() {
@@ -567,7 +578,13 @@ export class ResourceManagementComponent implements OnInit {
       });
     }
 
-   
+    selectStatusTab(status: string) {
+      this.selectedStatusTab = status;
+      console.log(this.selectedStatusTab,"this.selectedStatusTab");
+      this.projectFilterDTO.approvalStatus =  this.selectedStatusTab;
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+    }
+
   alreadyCreatedTeam() {
     this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
