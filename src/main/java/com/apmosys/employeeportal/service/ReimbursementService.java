@@ -165,16 +165,21 @@ public class ReimbursementService {
 				reimbursementData.setTravelMode(reimbursementObj.getTravelMode());
 				reimbursementData.setDistance(reimbursementObj.getDistance());
 			}
-			BigInteger approver1 = BigInteger.valueOf((reimbursementObj.getLevelOneApprover()));
-			Employee level1 = employeeRepository.findByEmpId(Long.valueOf(reimbursementObj.getLevelOneApprover()));
-			Employee level2 = employeeRepository.findByEmpId(Long.valueOf(level2Approver));
-			Employee level3 = employeeRepository.findByEmpId(Long.valueOf(level3Approver));
+//			BigInteger approver1 = BigInteger.valueOf((reimbursementObj.getLevelOneApprover()));
+			String approver1 = reimbursementObj.getReportingManagerId();
+			Long reportingManagerId = Long.parseLong(reimbursementObj.getReportingManagerId());
+			Employee level1 = employeeRepository.findByEmpId(reportingManagerId);
+			String approver2 = reimbursementObj.getLevelOneApprover();			
+			Long empId = Long.parseLong(approver2); 
+			Employee level2 = employeeRepository.findByEmpId(empId);
+		//	Employee level3 = employeeRepository.findByEmpId(Long.valueOf(level3Approver));
 			reimbursementData.setLevel2approverName(level2.getName());
-			reimbursementData.setLevel3approverName(level3.getName());
-			reimbursementData.setApprover2(level2Approver); 
-			reimbursementData.setApprover3(level3Approver);
+			//reimbursementData.setLevel3approverName(level3.getName());
+	        
+			reimbursementData.setApprover2(approver2); 
+			//reimbursementData.setApprover3(level3Approver);
 			reimbursementData.setLevel2ApproverEmail(level2ApproverMail);
-			reimbursementData.setLevel3ApproverEmail(level3ApproverMail);
+			//reimbursementData.setLevel3ApproverEmail(level3ApproverMail);
 			reimbursementData.setLevel1ApproverEmail(level1.getEmail());
 			reimbursementData.setApprover1(approver1);
 			reimbursementData.setHodName(level1.getName());			
@@ -538,12 +543,13 @@ public class ReimbursementService {
 				reimbursementData.setLevel2approverStatus(reimbursementObj.getStatus());
 				reimbursementData.setLevel2approverRemarks(reimbursementObj.getLevel1approverRemarks());
 				reimbursementData.setFinalStatus(reimbursementObj.getStatus());
-			} else if (reimbursementData.getLevel() == 3) {
-				reimbursementData.setLevel3ApproveOn(currentTimestamp);
-				reimbursementData.setLevel3approverStatus(reimbursementObj.getStatus());
-				reimbursementData.setLevel3approverRemarks(reimbursementObj.getLevel1approverRemarks());
-				reimbursementData.setFinalStatus(reimbursementObj.getStatus());
-			}
+			} 
+//			else if (reimbursementData.getLevel() == 3) {
+//				reimbursementData.setLevel3ApproveOn(currentTimestamp);
+//				reimbursementData.setLevel3approverStatus(reimbursementObj.getStatus());
+//				reimbursementData.setLevel3approverRemarks(reimbursementObj.getLevel1approverRemarks());
+//				reimbursementData.setFinalStatus(reimbursementObj.getStatus());
+//			}
 
 		} else {
 			if (reimbursementObj.getStatus().equalsIgnoreCase("Approved")) {

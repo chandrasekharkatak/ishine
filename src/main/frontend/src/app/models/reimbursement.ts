@@ -36,5 +36,7 @@ export class MyReimbursement{
         docId:any;
         multipleDocIds: string[] = [];
         docIds: string[] = [];
+        reportingManagerId : any ;
+        reportingManagerName : any ;
 
 }

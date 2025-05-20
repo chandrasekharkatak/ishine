@@ -297,8 +297,12 @@ export class MyReimbursementComponent implements OnInit {
         reimbursementData.foodAllowanceType = this.reimbursementObj.foodAllowanceType;
         reimbursementData.dateOfFood = this.reimbursementObj.dateOfFood;
         reimbursementData.multipleDocIds = this.reimbursementObj.docIds;
+        reimbursementData.reportingManagerId = this.currentUser.managerId ;
+        reimbursementData.reportingManagerName = this.currentUser.managerName ;
 
         console.log('reimbursementData Data::::::::::::::::::::::::::::', reimbursementData);
+        console.log('currentEmployeeInfo Data::::::::::::::::::::::::::::', this.currentEmployeeInfo);
+
 
         this.onGetEmployeeInfo();
 
