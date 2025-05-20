@@ -94,12 +94,17 @@ public class TravelDeskService {
 		System.out.println(currentTimestamp);
 		travelDesk.setAppliedOn(currentTimestamp);
 		travelDesk.setStatus("Pending");
-		BigInteger approver1 = BigInteger.valueOf(travelData.getLevelOneApprover());
+//		BigInteger approver1 = BigInteger.valueOf(travelData.getLevelOneApprover());
+		String approver1 = travelData.getReportingManagerId();
+
 		travelDesk.setApprover1(approver1);
-		Employee level1 = employeeRepository.findByEmpId(Long.valueOf(travelData.getLevelOneApprover()));
+//		Employee level1 = employeeRepository.findByEmpId(Long.valueOf(travelData.getLevelOneApprover()));
+		Long reportingManagerId = Long.parseLong(travelData.getReportingManagerId());
+		Employee level1 = employeeRepository.findByEmpId(reportingManagerId);
         travelDesk.setLevel1ApproverEmail(level1.getEmail());
 		
-		BigInteger approver2 = new BigInteger(level2Approver);
+//		BigInteger approver2 = new BigInteger(level2Approver);
+        BigInteger approver2 = BigInteger.valueOf(travelData.getLevelOneApprover());
 		travelDesk.setApprover2(approver2);
 		travelDesk.setLevel(1);
 		travelDesk.setIsActive(1);
@@ -296,19 +301,19 @@ public class TravelDeskService {
 				existingTravelDesk.setAppliedOn(currentTimestamp);
 				existingTravelDesk.setStatus("Pending");
 //				BigInteger bigInteger = new BigInteger(numberString);
-				BigInteger approver = BigInteger.valueOf(travelData.getLevelOneApprover());
-				existingTravelDesk.setApprover1(approver);
-				Employee level1 = employeeRepository.findByEmpId(Long.valueOf(travelData.getLevelOneApprover()));
-				existingTravelDesk.setLevel1ApproverEmail(level1.getEmail());
-				existingTravelDesk.setLevel(1);
-				BigInteger approver2 = new BigInteger(level2Approver);
-				existingTravelDesk.setApprover2(approver2);
-				existingTravelDesk.setIsActive(1);
+//				BigInteger approver = BigInteger.valueOf(travelData.getLevelOneApprover());
+//				existingTravelDesk.setApprover1(approver);
+//				Employee level1 = employeeRepository.findByEmpId(Long.valueOf(travelData.getLevelOneApprover()));
+//				existingTravelDesk.setLevel1ApproverEmail(level1.getEmail());
+//				existingTravelDesk.setLevel(1);
+//				BigInteger approver2 = new BigInteger(level2Approver);
+//				existingTravelDesk.setApprover2(approver2);
+//				existingTravelDesk.setIsActive(1);
 				existingTravelDesk.setLevel2approverStatus("Pending");
 				existingTravelDesk.setFinalStatus("Pending");
-				Employee level2 = employeeRepository.findByEmpId(Long.valueOf(travelData.getLevel2Approver().toString()));
-				existingTravelDesk.setLevel2ApproverEmail(level2.getEmail());
-				existingTravelDesk.setLevel2approverName(level2.getName());
+//				Employee level2 = employeeRepository.findByEmpId(Long.valueOf(travelData.getLevel2Approver().toString()));
+//				existingTravelDesk.setLevel2ApproverEmail(level2.getEmail());
+//				existingTravelDesk.setLevel2approverName(level2.getName());
 				TravelDesk savedTravelDesk = tavelDeskRepository.save(existingTravelDesk);
 				if(savedTravelDesk == null) {
 					serviceResponse.setServiceError("Unable to update...!!");

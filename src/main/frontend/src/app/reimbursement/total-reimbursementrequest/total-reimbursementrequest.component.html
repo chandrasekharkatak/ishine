@@ -7,6 +7,25 @@
     </div>
 
     <div class="row">
+
+      <div class="d-flex align-items-center justify-content-between mt-3">
+          
+        <!-- <div class="selector-toggle">
+          <a href="javascript:void(0)">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
+          </a>
+        </div> -->
+
+       
+        <div class="export-button">
+          <button type="button" class="btn btn-sm btn-outline-primary mt-2 mb-2 excel-button"
+            [hidden]="reimbursementRequests.length == 0" (click)="exportToExcel()">
+            <em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;
+          </button>
+        </div>
+      </div>
+
         <div class="col-12 table-responsive">
             <table class="table table-bordered table-hover text-center ">
                 <thead class="thead-dark">

@@ -279,8 +279,12 @@ async submitForm(template: TemplateRef<any>) {
         hotelCategory:this.travelDeskObj.hotelCategory,
         cityCategory:this.travelDeskObj.tlSubCategory,
         city : this.travelDeskObj.selectedCity,
-        docId: this.travelDeskObj.docIds
+        docId: this.travelDeskObj.docIds,
+        reportingManagerId : this.currentEmployeeInfo.reportingManagerId ,
+        reportingManagerName : this.currentEmployeeInfo.reportingManagerName
       };
+
+      console.log('currentEmployeeInfo         :::::::::::::',this.currentEmployeeInfo);
 
       console.log('travel data         :::::::::::::',travelData);
       // const formData = new FormData();

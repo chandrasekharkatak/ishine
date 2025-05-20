@@ -38,7 +38,8 @@ public class TravelDeskDTO {
 	    private List<Long> docId; 
 	    private String city;
 	    private String finalStatus;
-		
+		private String reportingManagerId ;
+		private String reportingManagerName ;
 	
 	    
 }
