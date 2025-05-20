@@ -169,6 +169,7 @@ export class ResourceManagementComponent implements OnInit {
   ];
   projectFilterDTO:ProjectFilterDTO = new ProjectFilterDTO();
   departments: any[] = [];
+  totalCount: any;
 
   constructor(
     private departmentService: DepartmentService,
@@ -1710,6 +1711,8 @@ onAction(action: string, project: any) {
       console.log(response.serviceResponse);
       this.allProject_Po_Internal = response.serviceResponse.combinedProjects;
       this.tabCounts = response.serviceResponse.counts;
+      this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
+
     }else {
       this.openAlertMod(template, response.serviceResponse);
     }

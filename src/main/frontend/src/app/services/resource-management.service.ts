@@ -68,4 +68,17 @@ export class ResourceManagementService {
   combinedPOINTERNALList(ProjectFilterDTO:ProjectFilterDTO){
     return this.http.post(`${this.baseUrl}` + `api/combinedPOINTERNALList`,ProjectFilterDTO);
   }
+
+  rbacInternalProjects(ProjectFilterDTO:ProjectFilterDTO){
+    return this.http.post(`${this.baseUrl}` + `api/rbacInternalProjects`,ProjectFilterDTO);
+  }
+
+  rbacShankhProjects(ProjectFilterDTO:ProjectFilterDTO){
+    return this.http.post(`${this.baseUrl}` + `api/rbacShankhProjects`,ProjectFilterDTO);
+  }
+
+  rbacShankhInternalProjects(ProjectFilterDTO:ProjectFilterDTO){
+    return this.http.post(`${this.baseUrl}` + `api/rbacShankhInternalProjects`,ProjectFilterDTO);
+  }
+
 }
