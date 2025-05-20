@@ -565,7 +565,7 @@ export class ResourceManagementComponent implements OnInit {
               this.departments = response.serviceResponse;
               this.filteredDepartments = this.departments;
               console.log(this.departments,"this.departments")
-              this.deptIdList = this.filteredDepartments.map(dept => dept.deptId);
+              // this.deptIdList = this.filteredDepartments.map(dept => dept.deptId);
               resolve(response.serviceResponse);
             } else {
               reject("Failed to fetch departments");
