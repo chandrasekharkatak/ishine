@@ -1,12 +1,14 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { MyReimbursement } from 'src/app/models/reimbursement';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
+import { TravelDeskService } from 'src/app/services/travel-desk.service';
 
 @Component({
   selector: 'app-total-reimbursementrequest',
@@ -37,10 +39,12 @@ export class TotalReimbursementrequestComponent implements OnInit {
      private authenticationService: AuthenticationService,
      private exportExcelService: ExportExcelService,
      private reimbursementService:ReimbursementService,
+    private  travelDesk :TravelDeskService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x)}
 
   ngOnInit(): void {
     this.onGetReimbursementInfo();
+    this.fetchAllInvoice();
 
   }
 
@@ -173,4 +177,62 @@ toggleSearch() {
   }
 }
 
+objectKeys = Object.keys;
+groupedInvoiceData: any = {};
+invoiceDetails:boolean = false;
+fetchAllInvoice() {
+  this.invoiceDetails=!this.invoiceDetails;
+  this.reimbursementService.fetchAllInvoice().pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === "Success") {
+      const rawData = response.serviceResponse;
+
+      // Group data by travelId
+      const grouped: any = {};
+      rawData.forEach((item: any) => {
+        const travelId = item.travelId || 'unknown';
+        if (!grouped[travelId]) {
+          grouped[travelId] = {
+            commonInfo: item,
+            invoices: []
+          };
+        }
+        grouped[travelId].invoices.push({
+          invoiceNo: item.invoiceNo,
+          amount: item.amount,
+          docIdTrevel: item.docIdTrevel
+        });
+      });
+
+      this.groupedInvoiceData = grouped;
+      console.log("Grouped Invoice Data", this.groupedInvoiceData);
+    }
+  });
+}
+
+
+cancelRequestDocument() {
+  this.modalRef.hide();
+
+}
+
+docUrl: string | null = null;
+preview(template: TemplateRef<any>, id: any) {
+  console.log(template,"template");
+
+  this.docUrl = null; 
+  this.modalRef = this.modalService.show(template, {
+    class: 'modal-xl'
+  });
+
+  const payload = { docId: id }; 
+
+  this.travelDesk.previewDocument(payload).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === 'Success' && response.serviceResponse?.documentBytes) {
+      this.docUrl = 'data:image/png;base64,' + response.serviceResponse.documentBytes;
+    } else {
+      // this.modalRef?.hide();
+      // this.openAlertMod(template, 'Image not present');
+    }
+  });
+}
 }

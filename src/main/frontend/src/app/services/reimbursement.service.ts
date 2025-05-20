@@ -43,4 +43,8 @@ export class ReimbursementService {
   fetchTotalReimbursementData(reimbursementObj: MyReimbursement) {
     return this.http.post(`${this.baseUrl}` + `api/fetchTotalReimbursementData`, reimbursementObj);
   }
+
+  fetchAllInvoice(){
+    return this.http.get(`${this.baseUrl}` + `api/getAllInvoices`);
+  }
 }

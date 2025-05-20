@@ -55,5 +55,11 @@ public class ReimbursmentBasedOnTravelRequestController {
 	public ResponseEntity<ServiceResponse> previewDocument(@RequestBody TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
 		return ResponseEntity.ok(travelBasedService.previewDocument(reimbursementRequestDTO));
 	}
+	
+	@RequestMapping(value = "/getAllInvoices", method = RequestMethod.GET)
+	public ResponseEntity<ServiceResponse> getAllInvoices() {
+		return ResponseEntity.ok(travelBasedService.getAllInvoices());
+	}
+	
 
 }
