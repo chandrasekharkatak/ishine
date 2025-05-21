@@ -461,10 +461,7 @@
                                                     (click)="openProjectPreviewModal(preview_team, project);closeMenu(i);isEditProject = false">
                                                     <i class="fas fa-eye"></i> Preview
                                                 </li>
-                                                <li *ngIf="!isHideButton"
-                                                    (click)="openEditModal(team_configuration_form,project);closeMenu(i);project.isEditProject = true">
-                                                    <i class="fas fa-pen"></i> Edit
-                                                </li>
+                                                <li (click)="openEditModal(team_configuration_form,project);closeMenu(i);"><i class="fas fa-pen"></i> Edit </li>
                                                 <!-- <li (click)="onAction('Audit', project);closeMenu(i)"><i class="fas fa-clock"></i> Audit</li> -->
                                                 <li
                                                     (click)="openDatePicker(customDatePickerTemplate,project);closeMenu(i)">
