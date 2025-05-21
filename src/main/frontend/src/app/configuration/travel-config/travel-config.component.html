@@ -10,22 +10,24 @@
 </div> -->
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" (click)="showQuaterTable()" class="btn btn-outline-primary btn-sm mx-1"[ngClass]="{'active' : isCategoryTable}">Travel-Config</button>
+        <button type="button" (click)="showQuaterTable()" class="btn btn-outline-primary btn-sm mx-1"
+            [ngClass]="{'active' : isCategoryTable}">Travel-Config</button>
         <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : istravelMode}"
-        (click)="subCategory()" >Travel Mode</button>
+            (click)="subCategory()">Travel Mode</button>
         <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isClass}"
-        (click)="classCategory()" >Travel Classes </button>
+            (click)="classCategory()">Travel Classes </button>
         <!-- <button type=" button" class="btn btn-outline-primary btn-sm mx-1">Reimbursment-config</button> -->
     </div>
 </div>
 
-<div class="row" *ngIf="!classCategoryForm &&!travelModeForm && isCategoryTable && !createCategoryForm && !isClass  && !istravelMode">
-    
+<div class="row"
+    *ngIf="!classCategoryForm &&!travelModeForm && isCategoryTable && !createCategoryForm && !isClass  && !istravelMode">
+
     <div class="col-md-12">
-        
+
         <div class="row">
             <div class="col-md-12 table-header">
-                    <h3  class="table-header-title">Travel(s)</h3>
+                <h3 class="table-header-title">Travel(s)</h3>
             </div>
         </div>
 
@@ -46,8 +48,8 @@
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
-                    <button type="button" class="btn btn-outline-primary btn-sm" 
-                       (click)="createCategory()" ><em class="fa-solid fa-plus"></em>Add Category</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="createCategory()"><em
+                            class="fa-solid fa-plus"></em>Add Category</button>
 
                 </div>
             </div>
@@ -55,7 +57,7 @@
 
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" >
+                <div class="selector-toggle">
                     <a href="javascript:void(0)" (click)="toggleSearchReviewType()">
                         <i *ngIf="!isSearchEnabledReview" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabledReview" class="fa-solid fa-xmark"></i>
@@ -87,12 +89,11 @@
                                 [columnList]="reviewColumns" (onSearch)="onSearch($event);page=1"></tr>
                         </thead>
                         <tbody>
-                            <tr
-                                >
+                            <tr>
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr>
-                            <!-- <tr
+                                <!-- <tr
                                 *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
                                 <td>{{review.reviewLabel}}</td>
@@ -130,7 +131,7 @@
                         </tbody>
                     </table>
                 </div>
-                <pagination-controls class="my-pagination" 
+                <pagination-controls class="my-pagination"
                     (pageChange)="handlePageChange($event)"></pagination-controls>
                 <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="reviewTypelist.length == 0"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
@@ -140,13 +141,14 @@
 </div>
 
 
-<div class="row" *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && istravelMode">
-    
+<div class="row"
+    *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && istravelMode">
+
     <div class="col-md-12">
-        
+
         <div class="row">
             <div class="col-md-12 table-header">
-                    <h3  class="table-header-title">Travel(s)</h3>
+                <h3 class="table-header-title">Travel(s)</h3>
             </div>
         </div>
 
@@ -167,8 +169,8 @@
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
-                    <button type="button" class="btn btn-outline-primary btn-sm" 
-                       (click)="travelCategory()" ><em class="fa-solid fa-plus"></em>Add Travel Mode</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="travelCategory()"><em
+                            class="fa-solid fa-plus"></em>Add Travel Mode</button>
 
                 </div>
             </div>
@@ -176,7 +178,7 @@
 
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" >
+                <div class="selector-toggle">
                     <a href="javascript:void(0)" (click)="toggleSearchReviewType()">
                         <i *ngIf="!isSearchEnabledReview" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabledReview" class="fa-solid fa-xmark"></i>
@@ -208,12 +210,11 @@
                                 [columnList]="reviewColumns" (onSearch)="onSearch($event);page=1"></tr>
                         </thead>
                         <tbody>
-                            <tr
-                                >
+                            <tr>
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr>
-                            <!-- <tr
+                                <!-- <tr
                                 *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
                                 <td>{{review.reviewLabel}}</td>
@@ -251,7 +252,7 @@
                         </tbody>
                     </table>
                 </div>
-                <pagination-controls class="my-pagination" 
+                <pagination-controls class="my-pagination"
                     (pageChange)="handlePageChange($event)"></pagination-controls>
                 <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="reviewTypelist.length == 0"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
@@ -262,13 +263,14 @@
 
 
 
-<div class="row" *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && isClass  && !istravelMode">
-    
+<div class="row"
+    *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && isClass  && !istravelMode">
+
     <div class="col-md-12">
-        
+
         <div class="row">
             <div class="col-md-12 table-header">
-                    <h3  class="table-header-title">Travel(s)</h3>
+                <h3 class="table-header-title">Travel(s)</h3>
             </div>
         </div>
 
@@ -289,8 +291,8 @@
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
-                    <button type="button" class="btn btn-outline-primary btn-sm" 
-                       (click)="subClassCategory()" ><em class="fa-solid fa-plus"></em>Add Travel Classes</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="subClassCategory()"><em
+                            class="fa-solid fa-plus"></em>Add Travel Classes</button>
 
                 </div>
             </div>
@@ -298,7 +300,7 @@
 
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" >
+                <div class="selector-toggle">
                     <a href="javascript:void(0)" (click)="toggleSearchReviewType()">
                         <i *ngIf="!isSearchEnabledReview" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabledReview" class="fa-solid fa-xmark"></i>
@@ -330,12 +332,11 @@
                                 [columnList]="reviewColumns" (onSearch)="onSearch($event);page=1"></tr>
                         </thead>
                         <tbody>
-                            <tr
-                                >
+                            <tr>
                                 <th colspan="8" class="text-center info-label">No details to display...</th>
                             </tr>
                             <tr>
-                            <!-- <tr
+                                <!-- <tr
                                 *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
                                 <td>{{review.reviewLabel}}</td>
@@ -373,7 +374,7 @@
                         </tbody>
                     </table>
                 </div>
-                <pagination-controls class="my-pagination" 
+                <pagination-controls class="my-pagination"
                     (pageChange)="handlePageChange($event)"></pagination-controls>
                 <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="reviewTypelist.length == 0"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
@@ -382,14 +383,12 @@
     </div>
 </div>
 
-<div class="row" *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && createCategoryForm && !isClass  && !istravelMode">
+<!-- <div class="row" *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && createCategoryForm && !isClass  && !istravelMode">
     <div class="card col-md-12 px-0">
         <div class="card-header text-center text-uppercase">
             <strong>Reason For Travel</strong>
         </div>
         <div class="card-body">
-
-            <!-- ✅ One .row with three columns -->
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <div class="form-group">
@@ -405,86 +404,127 @@
                     </div>
                     <button type="submit" class="btn btn-primary btn-sm mx-1" style="margin-left: 10px;"> Submit
                     </button>
-                </div>
-
-                <!-- <div class="col-md-4 mb-3">
-            <div class="form-group">
-              <label class="info-label"><span class="text-danger">*</span> Travel </label>
-              <input #myInput type="text" class="form-control" autocomplete="off">
-            </div>
-          </div> -->
-               
+                </div>               
             </div>
 
         </div>
     </div>
+</div> -->
+
+<div class="row"
+  *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && createCategoryForm && !isClass && !istravelMode">
+  <div class="card col-md-12 px-0">
+    <div class="card-header text-center text-uppercase">
+      <strong>Reason For Travel</strong>
+    </div>
+    <div class="card-body">
+      <form #reasonForm="ngForm" (ngSubmit)="submitTravelReason(alert_message)">
+        <div class="form-row">
+          <!-- Travel Reason Name -->
+          <div class="form-group col-md-4">
+            <label class="info-label">
+              <span class="text-danger">*</span> Travel Reason Name
+            </label>
+            <input type="text" class="form-control" name="travelReasonName"
+              [(ngModel)]="travelReason.travelReasonName" required autocomplete="off" />
+          </div>
+
+          <!-- Description -->
+          <div class="form-group col-md-4">
+            <label class="info-label">
+              <span class="text-danger">*</span> Description
+            </label>
+            <input type="text" class="form-control" name="description"
+              [(ngModel)]="travelReason.description" required autocomplete="off" />
+          </div>
+
+          <!-- Submit Button -->
+          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!reasonForm.form.valid">
+              Submit
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 
+<!-- Optional alert modal template -->
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+      <p>{{alertMessage}}</p>
+      <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+  </ng-template>
 
-<div class="row" *ngIf="!classCategoryForm && travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode">
-    <div class="card col-md-12 px-0">
-        <div class="card-header text-center text-uppercase">
-            <strong>Travel Mode</strong>
-        </div>
-        <div class="card-body">
 
 
+  <div class="row"
+  *ngIf="!classCategoryForm && travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode">
+  <div class="card col-md-12 px-0">
+    <div class="card-header text-center text-uppercase">
+      <strong>Travel Mode</strong>
+    </div>
+    <div class="card-body">
+        <form #reasonForm="ngForm" (ngSubmit)="submitTravelMode(alert_message)">
             <div class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Reason For Travel</label>
-                            <mat-select class="form-control" multiple>
-                                <mat-option>
-
-                                </mat-option>
-                                <mat-option>
-
-                                </mat-option>
-                            </mat-select>
-                        </div>
-                    </div>
-
+          
+              <!-- Reason For Travel (Native select dropdown) -->
+              <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                  <div class="form-group">
+                    <label class="info-label"><span class="text-danger">*</span>Reason For Travel</label>
+                    <select class="form-control" name="selectedTravelReason" [(ngModel)]="selectedTravelReasons" required>
+                      <option value="" disabled selected>Select a reason</option>
+                      <option *ngFor="let reason of travelReasonlist" [value]="reason.travelReasonName">
+                        {{ reason.travelReasonName }}
+                      </option>
+                    </select>
+                  </div>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Mode Type</label>
-                        <input #myInput type="text" class="form-control" autocomplete="off">
-                    </div>
+              </div>
+          
+              <!-- Mode Type -->
+              <div class="col-md-4 mb-3">
+                <div class="form-group">
+                  <label class="info-label"><span class="text-danger">*</span>Mode Type</label>
+                  <input type="text" [(ngModel)]="modeType" name="modeType" class="form-control" autocomplete="off">
                 </div>
-
-                <div class="col-md-4 mb-3">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Description</label>
-                        <input #myInput type="text" class="form-control" autocomplete="off">
-                    </div>
+              </div>
+          
+              <!-- Description -->
+              <div class="col-md-4 mb-3">
+                <div class="form-group">
+                  <label class="info-label"><span class="text-danger">*</span>Description</label>
+                  <input type="text" [(ngModel)]="description" name="description" class="form-control" autocomplete="off">
                 </div>
-
-                <!-- <div class="col-md-4 mb-3">
-            <div class="form-group">
-              <label class="info-label"><span class="text-danger">*</span> Travel </label>
-              <input #myInput type="text" class="form-control" autocomplete="off">
+              </div>
+          
+              <!-- Submit Button -->
+              <button type="submit" class="btn btn-primary btn-sm mx-1">Submit</button>
+          
             </div>
-          </div> -->
-                <button type="submit" class="btn btn-primary btn-sm mx-1"> Submit
-                </button>
-            </div>
-
-        </div>
+          </form>          
+          
     </div>
-</div>
+    </div>
+  </div>
 
 
 
-<div class="row" *ngIf="classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode">
+
+
+<div class="row"
+    *ngIf="classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode">
     <div class="card col-md-12 px-0">
         <div class="card-header text-center text-uppercase">
             <strong>Reason For Travel</strong>
         </div>
         <div class="card-body">
 
-           
+
             <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
@@ -540,7 +580,7 @@
               <input #myInput type="text" class="form-control" autocomplete="off">
             </div>
           </div> -->
-               
+
             </div>
 
         </div>

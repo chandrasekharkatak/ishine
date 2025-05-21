@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.TravelDeskDTO;
+import com.apmosys.employeeportal.dto.TravelModeDTO;
+import com.apmosys.employeeportal.dto.TravelReasonDTO;
 import com.apmosys.employeeportal.service.TravelDeskService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -83,5 +85,25 @@ public class TravelDeskController {
 	@GetMapping("/getAllDocumentsThroughRequestId")
 	public ServiceResponse getAllDocsThroughReqId(@RequestParam("requestId") BigInteger requestId) {
 	    return travelDeskService.getAllDocsThroughReqId(requestId);
+	
+	@PostMapping("/travel-reason/create")
+	public ServiceResponse createTravelReason(@RequestBody TravelReasonDTO travelReasonDTO) {
+	    return travelDeskService.saveTravelReason(travelReasonDTO);
+	}
+	
+	@GetMapping("/getTravelReason")
+	public ServiceResponse getAllTravelReasons() {
+	    return travelDeskService.getAllTravelReasons();
+	}
+	
+    @PostMapping("/saveTravelMode")
+    public ServiceResponse saveTravelMode(@RequestBody TravelModeDTO travelModeDTO) {
+        return travelDeskService.saveTravelMode(travelModeDTO);
+    }
+    
+    
+	@GetMapping("/getTravelMode")
+	public ServiceResponse getAllgetTravelModes() {
+	    return travelDeskService.getAllgetTravelModes();
 	}
 }

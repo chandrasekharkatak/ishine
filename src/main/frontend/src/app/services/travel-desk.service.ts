@@ -66,5 +66,21 @@ export class TravelDeskService {
 }
 
   
+
+  saveTravelReason(reason: any) {
+    return this.http.post(`${this.baseUrl}`+`api/travel-reason/create`, reason);
+  }
+
+  getTravelReason() {
+    return this.http.get(`${this.baseUrl}` + `api/getTravelReason`);
+  }
+
+  saveTravelMode(travelModeObj: any) {
+    return this.http.post(`${this.baseUrl}`+`api/saveTravelMode`, travelModeObj);
+  }
+
+  getTravelMode() {
+    return this.http.get(`${this.baseUrl}` + `api/getTravelMode`);
+  }
   
 }

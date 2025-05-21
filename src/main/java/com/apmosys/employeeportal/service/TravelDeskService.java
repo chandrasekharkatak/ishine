@@ -24,12 +24,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TravelDeskDTO;
+import com.apmosys.employeeportal.dto.TravelModeDTO;
+import com.apmosys.employeeportal.dto.TravelReasonDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.TravelDesk;
+import com.apmosys.employeeportal.model.TravelMode;
+import com.apmosys.employeeportal.model.TravelReason;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.TravelDeskRepository;
+import com.apmosys.employeeportal.repository.TravelModeRepository;
+import com.apmosys.employeeportal.repository.TravelReasonRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -46,6 +52,12 @@ public class TravelDeskService {
 	
 	@Autowired
 	private NewsletterRepository newsletterRepository;
+	
+	@Autowired 
+	private TravelReasonRepository travelReasonRepository;
+	
+	@Autowired
+	private TravelModeRepository travelModeRepository;
 	
 	@Value("${level2Approver}")
 	public String level2Approver;
@@ -676,6 +688,103 @@ public class TravelDeskService {
 			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			return serviceResponse;
 		}
+	}
+	
+	
+	
+	public ServiceResponse saveTravelReason(TravelReasonDTO travelReasonDTO) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	        TravelReason travelReason = new TravelReason();
+	        travelReason.setTravelReasonName(travelReasonDTO.getTravelReasonName());
+	        travelReason.setDescription(travelReasonDTO.getDescription());
+	        travelReason.setIsActive("Y");
+	        travelReason.setCreatedBy(travelReasonDTO.getCreatedBy());
+
+	        TravelReason savedReason = travelReasonRepository.save(travelReason);
+
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        serviceResponse.setServiceResponse(savedReason); 
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        serviceResponse.setServiceError("Failed to save travel reason: " + e.getMessage());
+	    }
+
+	    return serviceResponse;
+	}
+	
+	public ServiceResponse getAllTravelReasons() {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	        List<TravelReason> reasonList = travelReasonRepository.findAll();
+
+	        if (reasonList.isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("No travel reasons found.");
+	        } else {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(reasonList);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        serviceResponse.setServiceError("Error fetching travel reasons: " + e.getMessage());
+	    }
+
+	    return serviceResponse;
+	}
+	
+	//private TravelModeRepository travelModeRepository;
+
+	public ServiceResponse saveTravelMode(TravelModeDTO travelModeDTO) {
+	    ServiceResponse response = new ServiceResponse();
+
+	    try {
+	        // Fetch TravelReason entity by name
+	        TravelReason travelReason = travelReasonRepository
+	            .findByTravelReasonName(travelModeDTO.getTravelReason())
+	            .orElseThrow(() -> new RuntimeException("TravelReason not found: " + travelModeDTO.getTravelReason()));
+
+	        TravelMode mode = new TravelMode();
+	        mode.setTravelReason(travelReason); // Set the entity, not the string
+	        mode.setModeType(travelModeDTO.getModeType());
+	        mode.setDescription(travelModeDTO.getDescription());
+	        mode.setIsActive("Y");
+	        mode.setCreatedBy(travelModeDTO.getCreatedBy());
+
+	        travelModeRepository.save(mode);
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Travel Mode saved successfully.");
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError(e.getMessage());
+	    }
+
+	    return response;
+	}
+
+    
+    public ServiceResponse getAllgetTravelModes() {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	        List<TravelMode> modeList = travelModeRepository.findAll();
+
+	        if (modeList.isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("No travel reasons found.");
+	        } else {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(modeList);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        serviceResponse.setServiceError("Error fetching travel reasons: " + e.getMessage());
+	    }
+
+	    return serviceResponse;
 	}
 
 	public ServiceResponse getAllDocsThroughReqId(BigInteger requestId) {
