@@ -13,9 +13,8 @@ import com.apmosys.employeeportal.model.ProjectManagerMapping;
 public interface ProjectManagerMappingRepository extends JpaRepository<ProjectManagerMapping,Long>{
 
 	
-	@Query(value = "select pmm.project_manager_id,e.name from project_manager_mapping pmm \n"
-			+ "inner join employee e on e.emp_id = pmm.project_manager_id where project_id = :projectId and active = 1 ",nativeQuery = true)
-	List<Object[]>findProjectManagersPerProject(@Param("projectId") Integer projectId);
+	@Query(nativeQuery = true)
+	public List<Object[]>findProjectManagersPerProject(@Param("projectId") Long projectId);
 	
 	public List<ProjectManagerMapping> findByProjectId(Long projectId);
 	

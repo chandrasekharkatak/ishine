@@ -2081,7 +2081,17 @@ public class ResourceManagementService {
 					List<TeamSpocDTO> spocList = getTeamSpocsByProjectId(projectId);
 					projectDto.setTeamSpocs(spocList);
 					List<ProjectManagersDTO> projectManagersList = getProjectManagersByProjectId(projectId);
-				    projectDto.setProjectManagers(projectManagersList);			
+				    projectDto.setProjectManagers(projectManagersList);		
+				    
+				    List<Object[]> result = projectManagerMappingRepository.findProjectManagersPerProject(Long.parseLong(projectId.toString()));
+				    List<Long> projectManagerIds = new ArrayList<>();
+				    
+				    for (Object[] obj : result) {
+				        if (obj[0] != null) {
+				            projectManagerIds.add(Long.parseLong(obj[0].toString()));
+				        }
+				    }
+				    projectDto.setProjectManagerId(projectManagerIds);				    
 					dtoList.add(projectDto);
 						
 			});
@@ -2130,9 +2140,9 @@ public class ResourceManagementService {
 	}
 	
 	public List<ProjectManagersDTO> getProjectManagersByProjectId(Integer projectId) {
-	    List<Object[]> result = projectManagerMappingRepository.findProjectManagersPerProject(projectId);
+	    List<Object[]> result = projectManagerMappingRepository.findProjectManagersPerProject(Long.parseLong(projectId.toString()));
 	    List<ProjectManagersDTO> projectManagerList = new ArrayList<>();
-
+	    
 	    for (Object[] obj : result) {
 	    	ProjectManagersDTO dto = new ProjectManagersDTO();
 	    	dto.setProjectManagerId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);

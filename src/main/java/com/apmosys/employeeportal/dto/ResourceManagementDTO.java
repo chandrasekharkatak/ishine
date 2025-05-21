@@ -23,7 +23,7 @@ public class ResourceManagementDTO {
 	private String isDraftProject;
 	private String isTeamCreated;
 	private String isHOD;
-	private List<Long> projectManager; // poProjecManager : 'A-1234'
+	private String projectManager; // poProjecManager : 'A-1234'
 	private Long empId;
 	private String rejectReason;
 	private Long poProjectId;
