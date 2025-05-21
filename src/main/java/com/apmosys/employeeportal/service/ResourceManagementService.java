@@ -51,11 +51,15 @@ import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInfoDTO;
+import com.apmosys.employeeportal.dto.ProjectManagerMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectManagersDTO;
 import com.apmosys.employeeportal.dto.RMGProject;
 import com.apmosys.employeeportal.dto.RMGProjectMappedEmployees;
 import com.apmosys.employeeportal.dto.RMGTeam;
+import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
+import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
+import com.apmosys.employeeportal.dto.SpocDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamSpocDTO;
@@ -69,6 +73,8 @@ import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
+import com.apmosys.employeeportal.model.ProjectManagerMapping;
+import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
@@ -81,6 +87,7 @@ import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -125,6 +132,9 @@ public class ResourceManagementService {
 	
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	ResourceRequirementRepository resourceRequirementRepository;
 	
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
@@ -267,16 +277,16 @@ public class ResourceManagementService {
 
 				
 				//Find ProjectManager empId
-			    Long employeementID = Long.parseLong(resourceManagementDTO.getProjectManager().split("-")[1]);
-			    Long projManagerId = null;
-			    Employee employee = employeeRepository.findByEmployeementId(employeementID);
-			    if (employee != null) {
-			        projManagerId = employee.getEmpId();
-			    }
+//			    Long employeementID = Long.parseLong(resourceManagementDTO.getProjectManager().split("-")[1]);
+//			    Long projManagerId = null;
+//			    Employee employee = employeeRepository.findByEmployeementId(employeementID);
+//			    if (employee != null) {
+//			        projManagerId = employee.getEmpId();
+//			    }
 				
 				//Add project
 			    Project newProject = new Project();
-			    newProject.setProjectManagerId(projManagerId);
+//			    newProject.setProjectManagerId(projManagerId);
 			    newProject.setProjectName(resourceManagementDTO.getName());
 			    newProject.setState(resourceManagementDTO.getClientState());
 			    newProject.setClientId(clientId);
@@ -325,7 +335,16 @@ public class ResourceManagementService {
 			                }
 			            }
 			        }
-
+			        
+			        ServiceResponse responseProjectManager= this.setProjectManager(resourceManagementDTO,projectDbResponse);
+		            
+		            if(responseProjectManager.getServiceStatus()!= "Success") {
+		            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			            response.setServiceResponse(responseProjectManager.getServiceResponse());
+		            }else {
+		            	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			            response.setServiceResponse(responseProjectManager.getServiceResponse());
+		            }
 				
                     if (resourceManagementDTO.getTeamList() != null && !resourceManagementDTO.getTeamList().isEmpty()) {
                         resourceManagementDTO.getTeamList().forEach(teamObj -> {
@@ -356,7 +375,9 @@ public class ResourceManagementService {
     						newTeamObj.setDeptIds(deptList.toString());
     						newTeamObj.setDeptIds(deptList.toString());
     			            newTeamObj.setCreatedBy(resourceManagementDTO.getCreatedBy());
-    			            newTeamObj.setCreatedOn(new Timestamp(System.currentTimeMillis()));   			            
+    			            newTeamObj.setCreatedOn(new Timestamp(System.currentTimeMillis()));   
+    			            newTeamObj.setSpocId(teamObj.getSpocId());
+    			            
     			            Team teamDbResponse = teamRepository.save(newTeamObj);
     			            
     			            StringBuilder emailBody = new StringBuilder();
@@ -413,6 +434,12 @@ public class ResourceManagementService {
     			                        newEmpTeamMap.setActive(2L); // Set Active to 2 for TeamLead
     			                        newEmpTeamMap.setEmployeeRole("TeamLead");
     			                        newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
+					                    newEmpTeamMap.setShadowEmpId(Long.parseLong(teamMember.getShadowEmpId().toString()));
+//					                    newEmpTeamMap.setBillable(teamMember.getBillable());
+//					                    newEmpTeamMap.setBillableType(teamMember.getBillableType());
+//						                newEmpTeamMap.setShadowBillable(teamMember.getShadowBillable());
+//						                newEmpTeamMap.setShadowBillableType(teamMember.getShadowBillableType());
+						                newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId());
     			                        mapList.add(newEmpTeamMap);
     			                    } else {
     			                        StringBuilder employeeRole = new StringBuilder("");
@@ -424,6 +451,12 @@ public class ResourceManagementService {
     			                        newEmpTeamMap.setActive(2L); // Set Active to 2 for Team Member
     			                        newEmpTeamMap.setEmployeeRole(employeeRole.toString());
     			                        newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
+					                    newEmpTeamMap.setShadowEmpId(teamMember.getShadowEmpId() != null ? Long.parseLong(teamMember.getShadowEmpId().toString()) : null);
+//					                    newEmpTeamMap.setBillable(teamMember.getBillable() != null ? teamMember.getBillable() : null);
+//					                    newEmpTeamMap.setBillableType(teamMember.getBillableType() != null ? teamMember.getBillableType() : null);
+//						                newEmpTeamMap.setShadowBillable(teamMember.getShadowBillable() != null ? teamMember.getShadowBillable() : null);
+//						                newEmpTeamMap.setShadowBillableType(teamMember.getShadowBillableType() != null ? teamMember.getShadowBillableType() : null);
+						                newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId());
     			                        mapList.add(newEmpTeamMap);
     			                    }
     			                    
@@ -594,6 +627,7 @@ public class ResourceManagementService {
 						        teamPresent.setDeptIds(deptList.toString());
 						        teamPresent.setUpdatedBy(resourceManagementDTO.getCreatedBy());
 						        teamPresent.setUpdatedOn(LocalDateTime.now());
+						        teamPresent.setSpocId(teamObj.getSpocId());
 
 						        Team teamDbResponse = teamRepository.save(teamPresent);
 
@@ -621,8 +655,14 @@ public class ResourceManagementService {
 						                            updateMember.setActive(1L);
 						                            updateMember.setEmployeeRole(employeeRole.toString());
 						                            updateMember.setTeamId(teamDbResponse.getTeamId());
-	                                              updateMember.setUpdatedOn(LocalDateTime.now());
-	                                              updateMember.setUpdatedBy(resourceManagementDTO.getCreatedBy());
+						                            updateMember.setUpdatedOn(LocalDateTime.now());
+						                            updateMember.setUpdatedBy(resourceManagementDTO.getCreatedBy());
+						                            updateMember.setShadowEmpId(Long.parseLong(newMember.getShadowEmpId().toString()));
+//						                            updateMember.setBillable(newMember.getBillable());
+//						                            updateMember.setBillableType(newMember.getBillableType());
+//						                            updateMember.setShadowBillable(newMember.getShadowBillable());
+//						                            updateMember.setShadowBillableType(newMember.getShadowBillableType());
+						                            updateMember.setResourceOverviewId(newMember.getResourceOverviewId());
 						                            updateMemberList.add(updateMember);
 						                        }
 						                    }
@@ -713,6 +753,7 @@ public class ResourceManagementService {
 						        newTeamObj.setDeptIds(deptList.toString());
 						        newTeamObj.setCreatedBy(resourceManagementDTO.getCreatedBy());
 						        newTeamObj.setCreatedOn(new Timestamp(System.currentTimeMillis()));  
+						        newTeamObj.setSpocId(teamObj.getSpocId());
 						        Team teamDbResponse = teamRepository.save(newTeamObj);
 
 						        if (teamDbResponse != null) {
@@ -732,6 +773,12 @@ public class ResourceManagementService {
 						                    newEmpTeamMap.setActive(1l);
 						                    newEmpTeamMap.setEmployeeRole("TeamLead");
 						                    newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
+						                    newEmpTeamMap.setShadowEmpId(Long.parseLong(teamMember.getShadowEmpId().toString()));
+//						                    newEmpTeamMap.setBillable(teamMember.getBillable());
+//						                    newEmpTeamMap.setBillableType(teamMember.getBillableType());
+//							                newEmpTeamMap.setShadowBillable(teamMember.getShadowBillable());
+//							                newEmpTeamMap.setShadowBillableType(teamMember.getShadowBillableType());
+							                newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId());
 						                    mapList.add(newEmpTeamMap);
 						                } else {
 						                    StringBuilder employeeRole = new StringBuilder("");
@@ -743,6 +790,12 @@ public class ResourceManagementService {
 						                    newEmpTeamMap.setActive(2l); // Set active value as 2 for newly added team members
 						                    newEmpTeamMap.setEmployeeRole(employeeRole.toString());
 						                    newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
+						                    newEmpTeamMap.setShadowEmpId(Long.parseLong(teamMember.getShadowEmpId().toString()));
+//						                    newEmpTeamMap.setBillable(teamMember.getBillable());
+//						                    newEmpTeamMap.setBillableType(teamMember.getBillableType());
+//							                newEmpTeamMap.setShadowBillable(teamMember.getShadowBillable());
+//							                newEmpTeamMap.setShadowBillableType(teamMember.getShadowBillableType());
+							                newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId());
 						                    mapList.add(newEmpTeamMap);
 						                }
 						            }
@@ -845,6 +898,12 @@ public class ResourceManagementService {
 		                empTeamMap.setEmpId(newMember.getEmpId());
 		                empTeamMap.setEmployeeRole("TeamLead");
 		                empTeamMap.setTeamId(teamDbResponse.getTeamId());
+		                empTeamMap.setShadowEmpId(Long.parseLong(newMember.getShadowEmpId().toString()));
+//		                empTeamMap.setBillable(newMember.getBillable());
+//		                empTeamMap.setBillableType(newMember.getBillableType());
+//		                empTeamMap.setShadowBillable(newMember.getShadowBillable());
+//		                empTeamMap.setShadowBillableType(newMember.getShadowBillableType());
+		                empTeamMap.setResourceOverviewId(newMember.getResourceOverviewId());
 		                mapList.add(empTeamMap);
 		            } else {
 		                StringBuilder employeeRole = new StringBuilder("");
@@ -854,6 +913,12 @@ public class ResourceManagementService {
 		                empTeamMap.setEmpId(newMember.getEmpId());
 		                empTeamMap.setEmployeeRole(employeeRole.toString());
 		                empTeamMap.setTeamId(teamDbResponse.getTeamId());
+		                empTeamMap.setShadowEmpId(Long.parseLong(newMember.getShadowEmpId().toString()));
+//		                empTeamMap.setBillable(newMember.getBillable());
+//		                empTeamMap.setBillableType(newMember.getBillableType());
+//		                empTeamMap.setShadowBillable(newMember.getShadowBillable());
+//		                empTeamMap.setShadowBillableType(newMember.getShadowBillableType());
+		                empTeamMap.setResourceOverviewId(newMember.getResourceOverviewId());
 		                mapList.add(empTeamMap);
 		            }
 
@@ -973,13 +1038,13 @@ public class ResourceManagementService {
 		
 		try {
 			  // Find project manager
-		    Long projManagerId = getProjectManagerId(dto.getProjectManager());
+//		    Long projManagerId = getProjectManagerId(dto.getProjectManager());
 		    
 		    // Update project properties
-		    if(projManagerId != null) {
+//		    if(projManagerId != null) {
 		    project.setIsDraftProject("false");
 		    project.setProjectName(dto.getName());
-		    project.setProjectManagerId(projManagerId);
+//		    project.setProjectManagerId(projManagerId);
 		    project.setPoNo(dto.getPoNo());
 		    project.setPoStartDate(dto.getStartDate());
 		    project.setPoEndDate(dto.getEndDate());
@@ -991,6 +1056,32 @@ public class ResourceManagementService {
 		    project.setUpdatedBy(dto.getCreatedBy());
 		    project.setUpdatedOn(LocalDateTime.now());
 		     Project dbResponse = projectRepository.save(project);
+		     
+		     ServiceResponse responseProjectManager= this.setProjectManager(dto,dbResponse);
+	            
+	            if(responseProjectManager.getServiceStatus()!= "Success") {
+	            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(responseProjectManager.getServiceResponse());
+	            }else {
+	            	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse(responseProjectManager.getServiceResponse());
+	            }
+		     
+		     if(!dto.getResourceRequirements().isEmpty()) {
+		    	 dto.getResourceRequirements().forEach(req -> {
+		        		ResourceRequirement resourceManagementDTO= new ResourceRequirement();
+		        		
+		        		resourceManagementDTO.setCount(req.getCount());
+		        		resourceManagementDTO.setDepartment(req.getDepartment());
+		        		resourceManagementDTO.setExperience(req.getExperience());
+		        		resourceManagementDTO.setRole(req.getRole());
+		        		resourceManagementDTO.setResourceOverviewId(req.getResourceOverviewId());
+		        		resourceManagementDTO.setProjectId(project.getProjectId());
+
+			        	ResourceRequirement res = resourceRequirementRepository.save(resourceManagementDTO);	
+		        		});
+		         }
+		     
 		    if(dbResponse!= null) {
 		    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            response.setServiceResponse("Project updated successfully");
@@ -1003,15 +1094,15 @@ public class ResourceManagementService {
 	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		    }
 		    
-		    }
-		    else {
-		    	
-		    	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		            response.setServiceResponse("Project Not set Due to Project Manger Is not present");
-		            apiLogInfo.setApiResponse("Project Not set Due to Project Manger Is not present");
-	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-
-		    }
+//		    }
+//		    else {
+//		    	
+//		    	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//		            response.setServiceResponse("Project Not set Due to Project Manger Is not present");
+//		            apiLogInfo.setApiResponse("Project Not set Due to Project Manger Is not present");
+//	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//
+//		    }
 		    
 		}catch(Exception e){
 			e.printStackTrace();
@@ -1843,6 +1934,17 @@ public class ResourceManagementService {
 						teamdto.setTeamId(object.getTeamId());
 						teamdto.setTeamName(object.getTeamName());
 						teamdto.setDepartmentList(object.getDeptIds().split(","));
+						teamdto.setSpocId(object.getSpocId());
+						
+						List<Object[]> spocDetailsList = teamRepository.getSpocDetils(object.getSpocId());
+				        if (!spocDetailsList.isEmpty()) {
+				            Object[] spoc = spocDetailsList.get(0);
+				            SpocDTO spocDTO = new SpocDTO();
+				            spocDTO.setEmpId(Long.parseLong(spoc[0].toString()));
+				            spocDTO.setName( spoc[1].toString());
+				            spocDTO.setEmploymentId(spoc[2].toString());
+				            teamdto.setSpoc(spocDTO);
+				        }
 						
 						//Get teamMembers Info
 						List<EmployeeTeamMap> empTeamMapping = employeeTeamMapRepository.findByTeamIdAndActive(object.getTeamId());
@@ -1870,15 +1972,27 @@ public class ResourceManagementService {
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
+									teamMemberDTO.setResourceOverviewId(Long.parseLong(teamMemberObj.getResourceOverviewId().toString()));
+									teamMemberDTO.setShadowEmpId(Long.parseLong(teamMemberObj.getShadowEmpId().toString()));
+//									teamMemberDTO.setBillable(teamMemberObj.getBillable());
+//									teamMemberDTO.setBillableType(teamMemberObj.getBillableType());
+//									teamMemberDTO.setShadowBillable(teamMemberObj.getShadowBillable());
+//									teamMemberDTO.setShadowBillableType(teamMemberObj.getShadowBillableType());
 									teamMember.add(teamMemberDTO);
 								}else {
 									//Team Member
 									teamMemberDTO.setEmpId(teamMemberObj.getEmpId());
 									teamMemberDTO.setName(employeeName);
-									teamMemberDTO.setStartDate(teamMemberObj.getStartDate().toString());
+//									teamMemberDTO.setStartDate(teamMemberObj.getStartDate().toString());
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
+									teamMemberDTO.setResourceOverviewId(Long.parseLong(teamMemberObj.getResourceOverviewId().toString()));
+									teamMemberDTO.setShadowEmpId(teamMemberObj.getShadowEmpId()!= null ? Long.parseLong(teamMemberObj.getShadowEmpId().toString()):null);
+//									teamMemberDTO.setBillable(teamMemberObj.getBillable());
+//									teamMemberDTO.setBillableType(teamMemberObj.getBillableType());
+//									teamMemberDTO.setShadowBillable(teamMemberObj.getShadowBillable());
+//									teamMemberDTO.setShadowBillableType(teamMemberObj.getShadowBillableType());
 									teamMember.add(teamMemberDTO);
 								}
 							});
@@ -2064,8 +2178,8 @@ public class ResourceManagementService {
 					
 					dto.setId(Long.valueOf(projectId));
 					dto.setName(object[1] != null ? object[1].toString() : null);
-					dto.setProjectManagerName(object[2] != null ? object[2].toString() : null);
-					dto.setProjectManagerId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+//					dto.setProjectManagerName(object[2] != null ? object[2].toString() : null);
+//					dto.setProjectManagerId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
 					dto.setClientName(object[4] != null ? object[4].toString() : null);
 					dto.setClientState(object[5] != null ? object[5].toString() : null);
 					dto.setIsDraftProject(object[6] != null ? object[6].toString() : null);
@@ -2696,7 +2810,7 @@ public class ResourceManagementService {
 					
 					projectDTO.setProjectType("Internal");
 					projectDTO.setName(object[0] != null ? object[0].toString() : null);
-					projectDTO.setProjectManager(object[10] != null ? "A-".concat(object[10].toString()) : null);
+//					projectDTO.setProjectManager(object[10] != null ? "A-".concat(object[10].toString()) : null);
 					projectDTO.setProjectManagerName(object[2] != null ? object[2].toString() : null);
 					projectDTO.setProjectId(object[3] != null ? Integer.parseInt(object[3].toString()) : null);
 					projectDTO.setStatus(object[11] != null ? object[11].toString() : null);
@@ -3145,8 +3259,8 @@ public ServiceResponse getProjectInfo(ResourceManagementDTO resourceManagementDT
 				
 				dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
 				dto.setProjectName(object[1] != null ? object[1].toString() : null);		
-				dto.setProjectManagerId(object[2] != null ?  Long.parseLong(object[2].toString()) : null);
-				dto.setProjectManagerName(object[3] != null ? object[3].toString() : null);	
+//				dto.setProjectManagerId(object[2] != null ?  Long.parseLong(object[2].toString()) : null);
+//				dto.setProjectManagerName(object[3] != null ? object[3].toString() : null);	
 				dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
 				dto.setClientState(object[5] != null? object[5].toString() : null);		
 				
@@ -3196,8 +3310,8 @@ public ServiceResponse getPoProjectInfo(ResourceManagementDTO resourceManagement
 				ResourceManagementDTO dto = new ResourceManagementDTO();
 				
 				dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
-				dto.setProjectName(object[1] != null ? object[1].toString() : null);		
-				dto.setProjectManagerId(object[2] != null ?  Long.parseLong(object[2].toString()) : null);
+//				dto.setProjectName(object[1] != null ? object[1].toString() : null);		
+//				dto.setProjectManagerId(object[2] != null ?  Long.parseLong(object[2].toString()) : null);
 				dto.setProjectManagerName(object[3] != null ? object[3].toString() : null);	
 				dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
 				dto.setClientState(object[5] != null? object[5].toString() : null);		
@@ -4672,4 +4786,122 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		}
 
 
+	 
+	 public ServiceResponse getResourceRequirementByPoProjectId(Long id) {
+		 ServiceResponse response = new ServiceResponse();
+	        LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setSubFeatureName("getResourceRequirementByPoProjectId");
+	        apiLogInfo.setApiUrl("/api/getResourceRequirementByPoProjectId");
+	        apiLogInfo.setLogLevel("INFO");
+	        StringBuilder logBuilder = new StringBuilder();
+	        logBuilder.append("\n getResourceRequirementByPoProjectId "+projectRepository.getAssignedEmployeesCountInProject(id));
+
+			try {
+				List<ResourceManagementDTO> poPortalProjects = fetchPoPortalProjects();
+				
+				Optional<ResourceManagementDTO> projectDTO = poPortalProjects.stream()
+						.filter(dto -> dto.getId() != null && dto.getId().equals(id))
+			            .findFirst();
+
+		        if (!projectDTO.isPresent()) {
+		        	
+		        	response.setServiceResponse("Unable to fetched project requirement details correctly!");
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            logBuilder.append("\n Unable to fetched project requirement details correctly!");
+		            
+		            return response;
+		         
+		        } else {
+		        	ResourceManagementDTO project = projectDTO.get();
+
+		            int totalRequirements = project.getResourceRequirements().stream()
+		                .mapToInt(ResourceRequirementDTO::getCount)
+		                .sum();
+		            int assigned = projectRepository.getAssignedEmployeesCountInProject(id);
+		            int difference = totalRequirements - assigned;
+
+		            ProjectRequirementsDTO dto = new ProjectRequirementsDTO();
+		            dto.setTotalRequirements(totalRequirements);
+		            dto.setAssigned(assigned);
+		            dto.setDifference(difference);
+
+		            response.setServiceResponse(dto);
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            logBuilder.append("\n Fetched project requirement details correctly!");
+		            
+		            return response;
+		        }
+			}catch(Exception e) {
+				e.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("\n Something went wrong!");
+			}
+		 return response;
+	 } 
+	 
+	 @Transactional
+	 private ServiceResponse setProjectManager(ResourceManagementDTO resourceManagementDTO,Project projectDbResponse) {
+		 ServiceResponse response = new ServiceResponse();
+		 LogDTO apiLogInfo = new LogDTO();
+         apiLogInfo.setSubFeatureName("setProjectManager");
+         apiLogInfo.setApiUrl("/api/setProjectManager");
+         apiLogInfo.setLogLevel("INFO");
+         StringBuilder logBuilder = new StringBuilder();
+         logBuilder.append("\n setProjectManager ");
+
+		 try {
+			 
+			 if (!resourceManagementDTO.getProjectManagerId().isEmpty()) {
+				 
+				 Project project = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+				 
+				    List<ProjectManagerMapping> existingMappings = projectManagerMappingRepository.findByProjectId(Long.parseLong(project.getProjectId().toString()));
+
+				    List<Long> newManagerIds = resourceManagementDTO.getProjectManagerId();
+
+				    // In case a existing project manager is deselected and sent
+				    existingMappings.forEach(existingMapping -> {
+				        if (!newManagerIds.contains(existingMapping.getProjectManagerId())) {
+				            existingMapping.setActive(0);
+				            existingMapping.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
+				            existingMapping.setUpdatedOn(LocalDateTime.now());
+				            projectManagerMappingRepository.save(existingMapping);
+				        }
+				    });
+
+				    // In case project manager was present but made inactive then make active again in the same row
+				    newManagerIds.forEach(managerId -> {
+				        ProjectManagerMapping existingMapping = projectManagerMappingRepository.findByProjectIdAndProjectManagerId(Long.parseLong(projectDbResponse.getProjectId().toString()), managerId);
+
+				        if (existingMapping == null) {
+				            ProjectManagerMapping newMapping = new ProjectManagerMapping();
+				            newMapping.setProjectId(Long.parseLong(projectDbResponse.getProjectId().toString()));
+				            newMapping.setProjectManagerId(managerId);
+				            newMapping.setActive(1);
+				            newMapping.setCreatedBy(resourceManagementDTO.getCreatedBy());
+				            newMapping.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+				            projectManagerMappingRepository.save(newMapping);
+				        } else {
+				            existingMapping.setActive(1);
+				            existingMapping.setUpdatedBy(resourceManagementDTO.getCreatedBy());
+				            existingMapping.setUpdatedOn(LocalDateTime.now());
+				            projectManagerMappingRepository.save(existingMapping);
+				        }
+				    });
+				}
+
+			 			 
+		 	 response.setServiceResponse("Project Manager saved successfully!");
+             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+             logBuilder.append("\n Project Manager saved successfully!");
+             
+             return response;
+		 } catch(Exception e) { 
+			 e.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("\n Something went wrong!");
+		 }
+		 return response;
+	 }
+	 
 }

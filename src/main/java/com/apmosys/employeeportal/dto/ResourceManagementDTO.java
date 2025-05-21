@@ -13,7 +13,7 @@ public class ResourceManagementDTO {
 	
 	private Long id;    // poPortal Project Id
 	private String name;   // project name
-	private Long projectManagerId;
+	private List<Long> projectManagerId;
 	private String[] department;
 	private String clientName;
 	private String[] clientLocation;
@@ -23,7 +23,7 @@ public class ResourceManagementDTO {
 	private String isDraftProject;
 	private String isTeamCreated;
 	private String isHOD;
-	private String projectManager; // poProjecManager : 'A-1234'
+	private List<Long> projectManager; // poProjecManager : 'A-1234'
 	private Long empId;
 	private String rejectReason;
 	private Long poProjectId;
@@ -63,4 +63,10 @@ public class ResourceManagementDTO {
 	private String apmosysRmEmail;
 	private String projectCompletionDate;
 	private String projectStatus;
+    private Long shadowEmpId;
+    private String shadowBillable;
+    private String shadowBillableType;
+    private String billable;
+    private List<ProjectManagerMappingDTO> projectManagersList;
+    private Long spocId;
 }

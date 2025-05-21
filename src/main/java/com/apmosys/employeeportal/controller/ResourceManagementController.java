@@ -184,12 +184,10 @@ public class ResourceManagementController {
 	    return resourceManagementService.getEmployeeByNameAndEmpld();
 	}
 	
-	
 	 @PostMapping("/combinedPOINTERNALList")
 	    public ServiceResponse combinedPOINTERNALList(@RequestBody ProjectFilterDTO projectFilterDTO) {
 	        return resourceManagementService.combinedPOINTERNALList(projectFilterDTO);
 	    }
-	 
 	 
 	@RequestMapping(value = "/deleteTeamsByIdsBulk", method = RequestMethod.POST)
 	public ServiceResponse deleteTeamsByIdsBulk(@RequestBody List<TeamDTO> teamDTO) {
@@ -197,8 +195,6 @@ public class ResourceManagementController {
 		ServiceResponse response = resourceManagementService.deleteTeamsByIdsBulk(teamDTO);
 		return response;
 	}
-	
-
 	
 	@RequestMapping(value = "/updateProjectResourcesAsInActiveBulk", method = RequestMethod.POST)
 	public ServiceResponse updateProjectResourcesAsInActiveBulk(@RequestBody List<ResourceManagementDTO> resourceManagementDTOList) {
@@ -242,6 +238,11 @@ public class ResourceManagementController {
 	public ServiceResponse totalEmployeeCount() {
 		ServiceResponse response = resourceManagementService.totalEmployeeCount();
 		return response;
+	}
+	
+	@GetMapping("/getResourceRequirementByPoProjectId")
+	public ServiceResponse getResourceRequirementByPoProjectId(@RequestParam Long id) {
+	    return resourceManagementService.getResourceRequirementByPoProjectId(id);
 	}
 
 }

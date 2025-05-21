@@ -330,16 +330,6 @@ thead {
     background: #cdcbed;
   }
   
-  .set-team-btn {
-    margin-top: 20px;
-    padding: 10px 25px;
-    border: none;
-    border-radius: 20px;
-    background-color: #0a0a6a;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-  }
   ::ng-deep .modal-dialog.custom-modal {
     box-shadow: 0 20px 25px rgba(0,0,0,0.1);
     max-width: fit-content;
@@ -403,63 +393,6 @@ thead {
     font-size: 16px;
     font-weight: 600;
   }
-  
-  .badge {
-    display: inline-block;
-    background: #e6ecff;
-    color: #3b3b96;
-    padding: 2px 10px;
-    font-size: 12px;
-    border-radius: 10px;
-    margin-top: 5px;
-  }
-  
-  .experience {
-    display: block;
-    font-size: 13px;
-    color: #777;
-    margin-top: 4px;
-  }
-  
-  .add-team-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-    align-items: center;
-  }
-  
-  .shadow-resources {
-    margin-top: 15px;
-    label {
-      display: block;
-      font-size: 12px;
-      margin-bottom: 5px;
-      color: #555;
-    }
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-  
-  .member-right {
-    text-align: right;
-    white-space: nowrap;
-  }
-  
-  .assignment {
-    font-size: 14px;
-    color: #3b3b96;
-    margin-right: 5px;
-  }
-  
-  .dropdown-button {
-    background: none;
-    border: none;
-    color: #3b3b96;
-    font-size: 16px;
-    cursor: pointer;
-    margin-left: 5px;
-  }
 
   .form-field input, 
   .form-field mat-select {
@@ -468,6 +401,140 @@ thead {
     border: 2px solid #0a0a6a;
     outline: none;
     min-height: 45px;
+  }
+  
+  select {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+  }
+  
+  .icon-button {
+    background: none;
+    border: 2px solid #3b3b96;
+    border-radius: 50%;
+    padding: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    color: #3b3b96;
+  }
+  
+  .icon-button-small {
+    background: none;
+    border: 1.5px solid #3b3b96;
+    border-radius: 50%;
+    padding: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #3b3b96;
+  }
+
+  .accordion-card {
+    background: #f9f9f9;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+  }
+  
+  .accordion-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    cursor: pointer;
+    align-items: center;
+  }
+  
+  .accordion-header h5 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  
+  .badge {
+    display: inline-block;
+    background: #e6ecff;
+    color: #3b3b96;
+    padding: 2px 10px;
+    font-size: 12px;
+    border-radius: 10px;
+    margin-left: 10px;
+  }
+  
+  .experience {
+    font-size: 13px;
+    color: #777;
+    margin-left: 10px;
+  }
+  
+  .accordion-body {
+    border-top: 1px solid #ddd;
+    background-color: #fff;
+    padding: 20px;
+  }
+  
+  .accordion-content {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+  
+  .team-member-col,
+  .shadow-resource-col {
+    flex: 1;
+    min-width: 300px;
+  }
+  
+  .team-member-col label,
+  .shadow-resource-col label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #3b3b96;
+    margin-bottom: 10px;
+    display: block;
+  }
+  
+  .add-team-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  
+  .add-team-row input[type="text"] {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    width: 180px;
+  }
+  
+  .shadow-resources {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .dropdown-button {
+    background: none;
+    border: none;
+    color: #3b3b96;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .member-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .assignment {
+    font-size: 14px;
+    color: #3b3b96;
   }
   
   .set-team-btn {
@@ -515,4 +582,116 @@ thead {
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
     border-radius: 6px;
     transition: all 0.2s ease;
+  }
+  .accordion-button {
+    background-color: #007bff;
+    color: #fff;
+  }
+  
+  .accordion-button:not(.collapsed) {
+    background-color: #0056b3;
+    color: #fff;
+  }
+  
+  .accordion-body {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 1rem;
+  }  
+
+  .two-column-layout {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    padding-bottom: 8px;
+  }
+  
+  .row-content {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .label-column {
+    width: 150px;
+    font-weight: bold;
+    padding-bottom: 8px;
+  }
+  
+  .input-column {
+    flex: 1;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .form-control {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+  }
+  
+  .shadow-resource-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .name-field {
+    width: 200px;
+  }
+
+  .role-field, .billable-field {
+    width: 120px;
+  }
+
+  .two-column-layout {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .two-column-layout .team-member-col:first-child {
+    flex: 0 0 70%;
+  }
+
+  .two-column-layout .team-member-col:last-child {
+    flex: 0 0 40%;
+  }
+
+  .new-team-members {
+    background-color: #f9f9f9;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+  }
+
+  .new-team-members h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .new-team-member {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .new-team-member .info-wrapper {
+    flex: 1;
+    margin-right: 0.5rem;
+  }
+
+  .new-team-member .btn {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  .role-field-add-team-member{
+    width: 180px
+  }
+
+  ::ng-deep .mat-option.non-selectable .mat-pseudo-checkbox {
+    display: none;
   }

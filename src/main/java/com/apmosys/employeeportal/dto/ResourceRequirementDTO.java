@@ -11,8 +11,11 @@ import lombok.ToString;
 @ToString
 public class ResourceRequirementDTO {
 
-	  private String role;
-	    private int count;
-	    private String experience;
-	    private String department;
+	private String role;
+    private Integer count;
+    private String experience;
+    private String department;
+    private Long resourceOverviewId;
+	private Integer projectId;
+    
 }

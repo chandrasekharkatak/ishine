@@ -204,4 +204,5 @@ export class Employee{
 
 	selectedProjectId :any;
 	employmentId:any;
+	resourceOverviewId: any;
 }

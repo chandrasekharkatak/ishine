@@ -81,4 +81,8 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}` + `api/rbacShankhInternalProjects`,ProjectFilterDTO);
   }
 
+  getResourceRequirementByPoProjectId(id: any) {
+    return this.http.get(`${this.baseUrl}`+`api/getResourceRequirementByPoProjectId`, {params: { id: id }});
+  }
+
 }

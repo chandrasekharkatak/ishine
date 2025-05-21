@@ -9,4 +9,6 @@ export class TeamMember{
     // added for project
     
     billableType : any;
+    newBillableType : any;
+    resourceOverviewId: any;
 }

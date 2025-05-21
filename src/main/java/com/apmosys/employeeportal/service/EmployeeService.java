@@ -4029,6 +4029,7 @@ public class EmployeeService {
 							dto.setDepartmentId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
 							dto.setEmployeementId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
 							dto.setBillableType(object[5] != null ? object[5].toString() : null);
+							dto.setEmploymentId(object[6] != null ? object[6].toString() : null);
 							employeeList.add(dto);
 						});
 						
@@ -4119,7 +4120,7 @@ public class EmployeeService {
 								dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
 								dto.setDepartmentId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
 								dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
-
+								dto.setEmploymentId(object[7] != null ? object[7].toString() : null);
 								dtoList.add(dto);
 
 							});
