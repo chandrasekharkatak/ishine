@@ -27,6 +27,7 @@ export class TotalTravelrequestComponent implements OnInit {
   domainSpecializationList: any[];
   currentUser: any;
   selectedDocument: any;
+  selectedDocumentType: any;
 
   constructor(private travelDesk: TravelDeskService,
     private modalService: BsModalService,
@@ -99,16 +100,32 @@ export class TotalTravelrequestComponent implements OnInit {
       this.alertMessage = response.serviceMessage;
     }
   }
-async previewDocument(docIt:any){
-  const response:any = await this.travelDesk.previewDocument(docIt).toPromise();
-  if (response.serviceStatus === 'Success' && response.serviceResponse?.documentBytes) {
-      this.selectedDocument = 'data:image/png;base64,' + response.serviceResponse.documentBytes;
-    }
-    else{
-      
-    }
+  async previewDocument(docId: any) {
+    const requestPayload = { docId: docId };
+    const response: any = await this.travelDesk.previewDocument(requestPayload).toPromise();
 
-}
+    if (response.serviceStatus === 'Success' && response.serviceResponse?.documentBytes) {
+      const base64Data = response.serviceResponse.documentBytes;
+      const mimeType = this.getMimeTypeFromBase64(base64Data);
+
+      if (mimeType === 'application/pdf') {
+        const pdfUrl = `data:application/pdf;base64,${base64Data}`;
+        this.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
+      } else if (mimeType.startsWith('image/')) {
+        const imgUrl = `data:${mimeType};base64,${base64Data}`;
+        this.selectedDocument = imgUrl; // image binding is safe by default
+      } else {
+        // Handle other file types: Download
+        const link = document.createElement('a');
+        link.href = `data:application/octet-stream;base64,${base64Data}`;
+        link.download = 'document';
+        link.click();
+      }
+    }
+  }
+
+
+
   page = 1;
   handlePageChange(event) {
       this.page = event;
@@ -127,12 +144,13 @@ viewSelectedDocument(doc: any) {
 console.log(doc,"doc");
 this.previewDocument(doc);
 }
-
-getFileType(url: string): string {
-  const extension = url.split('.').pop()?.toLowerCase();
-  if (extension === 'pdf') return 'pdf';
-  if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) return 'image';
-  return 'other';
+getMimeTypeFromBase64(base64: string): string {
+  const header = atob(base64.slice(0, 20));
+  if (header.startsWith('%PDF')) return 'application/pdf';
+  if (header.startsWith('\x89PNG')) return 'image/png';
+  if (header.startsWith('\xFF\xD8\xFF')) return 'image/jpeg';
+  return 'application/octet-stream';
 }
+
 
 }

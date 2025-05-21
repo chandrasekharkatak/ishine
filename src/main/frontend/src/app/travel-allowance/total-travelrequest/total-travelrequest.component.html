@@ -137,31 +137,22 @@
 
             <!-- Right Section: Document Viewer -->
             <div class="col-md-6 border-left">
-                <div *ngIf="selectedDocument">
-                    <h5 class="mb-3">Document Preview</h5>
+            <div *ngIf="selectedDocument">
+                <ng-container *ngIf="selectedDocument?.toString().includes('application/pdf'); else imageBlock">
+                    <iframe [src]="selectedDocument" width="100%" height="600px"></iframe>
+                </ng-container>
+            
+                <ng-template #imageBlock>
+                    <img [src]="selectedDocument" class="img-fluid" alt="Document Preview" />
+                </ng-template>
+            </div>
 
-                    <!-- Example for displaying PDF or image -->
-                    <ng-container [ngSwitch]="getFileType(selectedDocument)">
-                        <!-- PDF -->
-                        <iframe *ngSwitchCase="'pdf'" [src]="selectedDocument | safe" width="100%" height="400px"
-                            frameborder="0">
-                        </iframe>
-
-                        <!-- Image -->
-                        <img *ngSwitchCase="'image'" [src]="selectedDocument" class="img-fluid"
-                            alt="Document Image" />
-
-                        <!-- Fallback -->
-                        <div *ngSwitchDefault class="text-muted">
-                            Cannot preview this file type.
-                        </div>
-                    </ng-container>
-                </div>
+            
                 <div *ngIf="!selectedDocument" class="text-muted">
                     Click on "View Document" to preview here.
                 </div>
             </div>
-        </div>
-    </div>
-    </div>
-</ng-template>
+            </div>
+            </div>
+            </div>
+            </ng-template>
