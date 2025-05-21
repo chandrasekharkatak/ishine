@@ -147,6 +147,7 @@ import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax
 import { LmstabComponent } from './lmstab/lmstab.component';
 import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
 import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
+import { SafePipe } from './safe.pipe';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -267,6 +268,7 @@ import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbu
      LmstabComponent,
      TotalTravelrequestComponent,
      TotalReimbursementrequestComponent,
+     SafePipe,
   
 
     //TestComponent

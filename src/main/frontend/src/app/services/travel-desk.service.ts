@@ -61,6 +61,10 @@ export class TravelDeskService {
     return this.http.post(`${this.baseUrl}`+`api/totalTravelData`,details);
   }
   
+  getAllDocumentsThroughRequestId(requestId: any) {
+  return this.http.get(`${this.baseUrl}api/getAllDocumentsThroughRequestId?requestId=${requestId}`);
+}
+
   
   
 }

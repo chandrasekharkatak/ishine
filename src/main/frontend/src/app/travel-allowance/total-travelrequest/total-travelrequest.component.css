@@ -1,0 +1,12 @@
+.table-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background-color: #343a40; /* same as .thead-dark */
+  color: white;
+  z-index: 1;
+}

@@ -14,16 +14,19 @@ import { TravelDeskService } from 'src/app/services/travel-desk.service';
 })
 export class TotalTravelrequestComponent implements OnInit {
 
+
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   @ViewChild('editTravelRequestModal') modalElement: any;
   travelDeskInfo: MyTravelDesk;
   currentEmployeeInfo: Employee = new Employee();
   travelRequests: any = [];
+  docList: any[] = [];
   selectedTravelRequest: any = [];
   selectedTraveldataforDelete: any = [];
   domainSpecializationList: any[];
   currentUser: any;
+  selectedDocument: any;
 
   constructor(private travelDesk: TravelDeskService,
     private modalService: BsModalService,
@@ -67,11 +70,45 @@ export class TotalTravelrequestComponent implements OnInit {
   }
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
 
+  openViewDocModule(template: TemplateRef<any>, requestId:any){
+    this.alertMessage = null;
+    this.getAllDocumentsThroughRequestId(requestId);
+    if(this.docList != null && this.alertMessage == null){
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    }
+    else{
+      this.openAlertMod(this.alertTemplate,this.alertMessage)
+    }
+     
+  }
+  
+  async getAllDocumentsThroughRequestId(requestId:any) {
+    const response:any = await this.travelDesk.getAllDocumentsThroughRequestId(requestId).toPromise()
+    if (response.serviceStatus === "Success") {
+      this.docList = response.serviceResponse;
+      console.log(this.docList,"this.docList")
+    }
+    else{
+      this.docList = null;
+      this.alertMessage = response.serviceMessage;
+    }
+  }
+async previewDocument(docIt:any){
+  const response:any = await this.travelDesk.previewDocument(docIt).toPromise();
+  if (response.serviceStatus === 'Success' && response.serviceResponse?.documentBytes) {
+      this.selectedDocument = 'data:image/png;base64,' + response.serviceResponse.documentBytes;
+    }
+    else{
+      
+    }
+
+}
   page = 1;
   handlePageChange(event) {
       this.page = event;
@@ -85,5 +122,17 @@ export class TotalTravelrequestComponent implements OnInit {
  closeModal() {
    this.modalRef.hide();
  }
+
+viewSelectedDocument(doc: any) {
+console.log(doc,"doc");
+this.previewDocument(doc);
+}
+
+getFileType(url: string): string {
+  const extension = url.split('.').pop()?.toLowerCase();
+  if (extension === 'pdf') return 'pdf';
+  if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) return 'image';
+  return 'other';
+}
 
 }

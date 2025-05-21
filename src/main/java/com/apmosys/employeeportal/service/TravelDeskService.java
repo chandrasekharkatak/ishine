@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -677,6 +678,44 @@ public class TravelDeskService {
 		}
 	}
 
+	public ServiceResponse getAllDocsThroughReqId(BigInteger requestId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		List<String> docIdList = new ArrayList<>();
+		try {
+			TravelDesk travelData = tavelDeskRepository.findByRequestId(requestId);
+			if(travelData == null) {
+				serviceResponse.setServiceResponse("No data found for the given request !!");
+				serviceResponse.setServiceMessage("No data found for the given request !!");
+				serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
+				return serviceResponse;
+			}
+			else {
+			String docIds = travelData.getDocId();
+			if(docIds != null) {
+			docIdList = Arrays.stream(docIds.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+			serviceResponse.setServiceResponse(docIdList);
+			serviceResponse.setServiceStatus(serviceResponse.STATUS_SUCCESS);
+			return serviceResponse;
+			}
+			else {
+				serviceResponse.setServiceResponse("No document found for the given request !!");
+				serviceResponse.setServiceMessage("No document found for the given request !!");
+				serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
+				return serviceResponse;
+			}
+			}
+		}
+		catch(Exception e) {
+			serviceResponse.setServiceResponse(e.getMessage());
+			serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
+			serviceResponse.setServiceMessage("Something went wrong !!");
+			return serviceResponse;
+		}
+//		return serviceResponse;
+	}
 
 
 }
