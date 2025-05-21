@@ -16,6 +16,8 @@ import { PortalConfigComponent } from './configuration/portal-config/portal-conf
 import { RewardsConfigComponent } from './configuration/rewards-config/rewards-config.component';
 import { RoleConfigComponent } from './configuration/role-config/role-config.component';
 import { SurveyConfigComponent } from './configuration/survey-config/survey-config.component';
+
+import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
 import { Employee360BiomaxComponent } from './employee360/employee360-biomax/employee360-biomax.component';
@@ -40,11 +42,13 @@ import { RecruitmentComponent } from './recruitment/recruitment.component';
 import { MyReimbursementComponent } from './reimbursement/my-reimbursement/my-reimbursement.component';
 import { ReimbursementComponent } from './reimbursement/reimbursement.component';
 import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapproval/reimbursementapproval.component';
+import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
 import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/view-reimbursement.component';
 import { AppreciationComponent } from './rewards/appreciation/appreciation.component';
 import { RewardsAndRecognisationComponent } from './rewards/rewards-and-recognisation/rewards-and-recognisation.component';
 import { RewardsComponent } from './rewards/rewards.component';
 import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
+import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
 import { TravelAllowanceComponent } from './travel-allowance/travel-allowance.component';
 import { TravelrequestapprovalComponent } from './travel-allowance/travelrequestapproval/travelrequestapproval.component';
 import { ViewTravelrequestComponent } from './travel-allowance/view-travelrequest/view-travelrequest.component';
@@ -82,8 +86,6 @@ import { DocumentUploadComponent } from './user-update-info/document-upload/docu
 import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
-import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
-import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -116,6 +118,8 @@ const routes: Routes = [
       { path: 'other', component: OthersComponent, },
       { path: 'rewards-config', component: RewardsConfigComponent, },
       { path: 'performance-config' , component: PerformanceConfigComponent},
+      { path: 'travel-config' , component: TravelConfigComponent},
+     
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],

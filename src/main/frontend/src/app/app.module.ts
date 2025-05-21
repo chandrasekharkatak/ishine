@@ -143,10 +143,12 @@ registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 // 
 
-import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
+
 import { LmstabComponent } from './lmstab/lmstab.component';
-import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
 import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
+import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
+import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
+import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -267,6 +269,8 @@ import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbu
      LmstabComponent,
      TotalTravelrequestComponent,
      TotalReimbursementrequestComponent,
+     TravelConfigComponent
+   
   
 
     //TestComponent
