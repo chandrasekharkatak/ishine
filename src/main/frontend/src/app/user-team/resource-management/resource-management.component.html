@@ -1341,7 +1341,7 @@
                       <mat-option class="non-selectable" disabled>
                         <div style="display: flex; align-items: center;">
                           <input type="text" [(ngModel)]="searchManagerText" (ngModelChange)="filterManagers()" class="form-control" placeholder="Search Project Manager" style="width: 100%; padding: 5px;" />
-                          <button *ngIf="projectObj.projectManager?.length > 0" 
+                          <button *ngIf="projectObj.projectManagerId?.length > 0" 
                                   (click)="clearManagerSelection($event)" 
                                   style="margin-left: 5px; background: none; border: none; cursor: pointer;" 
                                   title="Clear Selection">

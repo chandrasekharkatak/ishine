@@ -966,6 +966,7 @@ export class ResourceManagementComponent implements OnInit {
         }
       }
     });
+    this.getManagerList();
   }
 
   // getTeamListByProjectName(project: any) {
@@ -1865,7 +1866,7 @@ onAction(action: string, project: any) {
   }  
 
   openEditModal(template,project){
-    console.log("Project ",project)
+    // console.log("Project ",project)
     this.isEditProject = true;
 
     this.allProjectTable = true;
@@ -2082,17 +2083,17 @@ onAction(action: string, project: any) {
 
   toggleSelectAllManagers(): void {
     if (this.isAllManagersSelected) {
-      this.projectObj.projectManager = [];
+      this.projectObj.projectManagerId = [];
       this.isAllManagersSelected = false;
     } else {
-      this.projectObj.projectManager = this.filteredManagerList.map(emp => emp.empId);
+      this.projectObj.projectManagerId = this.filteredManagerList.map(emp => emp.empId);
       this.isAllManagersSelected = true;
     }
   }
 
   clearManagerSelection(event: Event): void {
     event.stopPropagation();
-    this.projectObj.projectManager = [];
+    this.projectObj.projectManagerId = [];
     this.isAllManagersSelected = false;
   }
 
