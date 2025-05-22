@@ -50,5 +50,5 @@ public class Team {
 	private Long createdBy;
 //	@Embedded
 //	public CommonProperties commonProperty = new CommonProperties();
-
+	
 }

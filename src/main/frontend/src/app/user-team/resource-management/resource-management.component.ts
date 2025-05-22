@@ -1,5 +1,6 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import * as moment from 'moment';
@@ -11,6 +12,7 @@ import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
 import { Project } from 'src/app/models/project';
 import { ProjectFilterDTO } from 'src/app/models/projectFilterDTO';
+import { ProjectRequirements } from 'src/app/models/projectRequirements';
 import { Team } from 'src/app/models/team';
 import { TeamMember } from 'src/app/models/teamMember';
 import { User } from 'src/app/models/user';
@@ -25,7 +27,6 @@ import { ResourceManagementService } from 'src/app/services/resource-management.
 import { TeamService } from 'src/app/services/team.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
-
 @Component({
   selector: 'app-resource-management',
   templateUrl: './resource-management.component.html',
@@ -170,6 +171,16 @@ export class ResourceManagementComponent implements OnInit {
   projectFilterDTO:ProjectFilterDTO = new ProjectFilterDTO();
   departments: any[] = [];
   totalCount: any;
+  projectRequirementsList: ProjectRequirements =  new ProjectRequirements();
+
+  showSearchInput = true;
+  teamMembers: TeamMember[] = [];
+  newMember: { empId: number; name: string; newBillableType: string; employeeRole: any[]; employeeTeamMappingId: any; teamId: any; isTeamLead: any; billableType: any; isShadow: boolean; };
+  addMemberCtrl = new FormControl();
+  searchManagerText: any;
+  filteredManagerList: any[] = [];
+  isAllManagersSelected: boolean = false;
+  selectedRequirement: any = null;
 
   constructor(
     private departmentService: DepartmentService,
@@ -388,7 +399,7 @@ export class ResourceManagementComponent implements OnInit {
             // Process internal projects
             this.internalProjectList.forEach((proj) => {
               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
-              console.log("Priyadarshini", proj.projectId, " ", proj.projectName);
+              // console.log("Priyadarshini", proj.projectId, " ", proj.projectName);
 
               if (selectedProj) {
                 proj.isTeamCreated = true;
@@ -606,6 +617,7 @@ export class ResourceManagementComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
         this.filteredDeptList = this.allDeptList.filter(x => project.department.includes(x.name));
+        this.filteredDepartments = [...this.allDeptList];
         //console.log("allDeptList : ", this.allDeptList)
       } else {
         console.error(response.serviceResponse);
@@ -708,15 +720,17 @@ export class ResourceManagementComponent implements OnInit {
             // console.log("this.allTeamMembers.length   ",this.allTeamMembers.length);
             team.teamMemberList = [...team.teamMemberList, ...this.allTeamMembers];
             console.log("team.teamMemberList   ", team.teamMemberList);
+            // team.resourceOverviewId = this.currentTeam.resourceOverviewId;
           } else {
             team.teamMemberList = [...team.teamMemberList];
+            // team.resourceOverviewId = this.currentTeam.resourceOverviewId;
           }
         } else {
           team.teamMemberList = (this.allTeamMembers.length !== 0) ? this.allTeamMembers : null;
         }
       }
     });
-    this.cancelRequest1();
+    this.cancelRequest();
   }
 
   checkTeamName(template: TemplateRef<any>, team: any, teamIndex: any) {
@@ -801,6 +815,12 @@ export class ResourceManagementComponent implements OnInit {
           return;
         }
 
+        if (projObj.spoc == undefined || projObj.spoc.length == 0 || projObj.spoc == null) {
+          this.alertMessage = `Please select Team's SPOC - ${index + 1}!!`
+          flag = false;
+          return;
+        }
+
         if (projObj.teamMemberList == undefined || projObj.teamMemberList.length == 0 || projObj.teamMemberList == null) {
           this.alertMessage = `Please add Team Member(s) - ${index + 1}!!`
           flag = false;
@@ -844,14 +864,22 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   createDraftProjectInfo(template: TemplateRef<any>) {
-    this.cancelRequest();
+    this.cancelRequest1();
 
+    this.allTeamList.forEach(team => {
+      if (team.spoc) {
+        team.spocId = team.spoc.empId;
+      } else {
+        console.warn(`No SPOC data available for team: ${team.teamName}`);
+      }
+    });
     this.projectObj.teamList = this.allTeamList;
     this.projectObj.createdBy = this.currentUser.empId;
+    
     // this.projectObj.projectId=this.projectObj.id;
 
-    let inputValidated: boolean = this.validateProjectObj(this.projectObj, template)
-    if (!inputValidated) return;
+    // let inputValidated: boolean = this.validateProjectObj(this.projectObj, template)
+    // if (!inputValidated) return;
 
     if (this.isHOD == true) {
       this.projectObj.isHOD = true;
@@ -938,10 +966,69 @@ export class ResourceManagementComponent implements OnInit {
         }
       }
     });
+    this.getManagerList();
   }
 
+  // getTeamListByProjectName(project: any) {
+  //   this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus === 'Success') {
+  //       this.projectObj.teamList = response.serviceResponse;
 
+  //       this.projectObj.teamList.forEach((obj) => {
+  //         obj.departmentList = obj.departmentList?.map(x => +x);
+  //         this.copyDepartment = obj.departmentList;
 
+  //         this.projectObj.resourceRequirements.forEach((requirement) => {
+  //           requirement.teamMembers = [];
+  //         });
+  
+  //         if (obj.teamMemberList) {
+  //           obj.teamMemberList.forEach((member) => {
+  //             const matchingRequirement = this.projectObj.resourceRequirements.find(
+  //               (requirement) => requirement.id === member.id
+  //             );
+
+  //             if (matchingRequirement) {
+  //               member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
+  //               member.emp360 = member.empId;
+  //               member.billability = 'Billable'; // Static value for billability
+  //               member.shadowResources = member.shadowResources || [];
+  //               matchingRequirement.teamMembers.push(member);
+  //               matchingRequirement.assigned = matchingRequirement.teamMembers.length;
+  //             }
+  //           });
+  //         }
+  //       });
+
+  //       this.projectObj.resourceRequirements.forEach((requirement) => {
+  //         requirement.teamMembers = requirement.teamMembers.map(member => ({
+  //           ...member,
+  //           shadowResources: member.shadowResources.length > 0 ? member.shadowResources : [{}]
+  //         }));
+  //       });
+
+  //       this.previewTeamList = this.projectObj.teamList;
+
+  //       if (!this.projectObj.teamList?.length) {
+  //         this.addInputTeamField();
+  //       } else {
+  //         this.allTeamList = this.projectObj.teamList;
+  //         this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
+  //       }
+
+  //     } else {
+  //       console.error(response.serviceResponse);
+
+  //       if (!this.projectObj.teamList?.length) {
+  //         this.addInputTeamField();
+  //       } else {
+  //         this.allTeamList = this.projectObj.teamList;
+  //         this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
+  //       }
+  //     }
+  //   });
+  // }
+  
   onApproveProject(project: any) {
     project.empId = this.currentUser.empId;
     // project.projectId = this.projectObj.projectId;
@@ -996,6 +1083,7 @@ export class ResourceManagementComponent implements OnInit {
           // }
           emp.employeementId = "A-".concat(emp.employeementId);
         });
+        this.filteredManagerList = this.managerList;
 
         //console.log("managerList : ", this.managerList);
       } else {
@@ -1215,19 +1303,40 @@ export class ResourceManagementComponent implements OnInit {
   tempArray: any[] = [];
 
 
-  addTeamMember() {
-    const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
-    console.log("newteamMember  ", newTeamMember)
-    if (newTeamMember) {
-      newTeamMember.employeeRole = this.newteamMember.employeeRole;
+  // addTeamMember() {
+  //   const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
+  //   console.log("newteamMember  ", newTeamMember)
+  //   if (newTeamMember) {
+  //     newTeamMember.employeeRole = this.newteamMember.employeeRole;
+  //     newTeamMember.resourceOverviewId = this.newteamMember.resourceOverviewId;
 
-      this.allTeamMembers.push(newTeamMember);
+  //     this.allTeamMembers.push(newTeamMember);
       
 
-    }
+  //   }
     
-    this.newteamMember = new TeamMember();
+  //   this.newteamMember = new TeamMember();
+  // }
+
+  addTeamMember() {
+    const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
+  
+    if (newTeamMember && this.selectedRequirement) {
+      const memberToAdd = {
+        ...newTeamMember,
+        employeeRole: this.newteamMember.employeeRole,
+        resourceOverviewId: this.selectedRequirement.resourceOverviewId
+      };
+  
+      this.allTeamMembers.push(memberToAdd);
+  
+      // Reset form
+      this.newteamMember = new TeamMember();
+      this.addMemberCtrl.reset();
+      this.selectedRequirement = null;
+    }
   }
+  
 
   removeTeamMember(teamMember, index) {
     const currentTeam = this.currentTeam;
@@ -1734,7 +1843,6 @@ onAction(action: string, project: any) {
     });
   }
   
-  
   filterEmployees(searchText: string) {
     const lowerText = (searchText || '').toLowerCase();
     return this.employeeList.filter(emp => 
@@ -1743,7 +1851,6 @@ onAction(action: string, project: any) {
     );
   }
   
-  // When an employee is selected
   onEmployeeSelected(event: any) {
     const selectedName = event.option.value;
     const selectedEmp = this.employeeList.find(emp => emp.name === selectedName);
@@ -1759,7 +1866,7 @@ onAction(action: string, project: any) {
   }  
 
   openEditModal(template,project){
-    console.log("Project ",project)
+    // console.log("Project ",project)
     this.isEditProject = true;
 
     this.allProjectTable = true;
@@ -1769,12 +1876,53 @@ onAction(action: string, project: any) {
     this.projectObj = Object.assign({}, project);
     this.getAllDepartmentList(project);
     this.getTeamListByProjectName(project);
+    this.getEmployeeByNameAndEmpld();
 
-    this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
+    this.modalRef1 = this.modalService.show(template, { class: 'custom-modal' });
   }
   
-  openTeamMembersModal(template: any) {
+  openTeamMembersModal(template: any,projectObj,currentTeam) {
+    this.getResourceRequirementByPoProjectId(projectObj.id);
+
+    projectObj.resourceRequirements.forEach(requirement => {
+      requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
+      requirement.assigned = requirement.teamMembers.length;
+    });
+
     this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
+
+    this.allTeamMembers = [];
+    this.teamObj.teamLeadId = '';
+    this.newteamMember.empId = '';
+    this.newteamMember.employeeRole = null;
+    // this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
+    // this.getAllEmployeesByRole(currentTeam.departmentList);
+    console.log("this.copyDepartment ", this.copyDepartment);
+    // this.getAllEmployeesByDepartmentIds(this.copyDepartment);
+    this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
+    this.getAllEmployeesByRole(this.copyDepartment);
+    this.allTeamList?.forEach((team: any) => {
+      if (team.teamName == currentTeam.teamName) {
+        let teamLeadObj = team.teamMemberList?.filter(x => x.isTeamLead == true || x.isTeamLead == "true");
+        if (teamLeadObj) {
+          this.teamObj.teamLeadId = teamLeadObj[0]?.empId;
+        }
+        //console.log(teamLeadObj, " :teamLeadObj");
+        //console.log(this.teamObj.teamLeadId, " : this.teamObj.teamLeadId");
+
+        console.log("team.teammemberList ", team.allTeamMemberList);
+
+        this.teamObj.allTeamMemberList = team.teamMemberList?.filter(x => x.isTeamLead != true);
+        if ((this.teamObj.allTeamMemberList != undefined || this.teamObj.allTeamMemberList != null) && this.teamObj.allTeamMemberList.length != 0) {
+          this.isUpdation = true;
+        } else {
+          this.isUpdation = false;
+        }
+      }
+    });
+    //console.log(this.teamObj.allTeamMemberList, " allTeamMemberList");
+
+    this.currentTeam = currentTeam;
   }
 
  
@@ -1815,4 +1963,147 @@ onAction(action: string, project: any) {
     this.selectedDate ='';
     this.modalRef.hide();
   }
+  getResourceRequirementByPoProjectId(id) {
+    this.resourceManagementService.getResourceRequirementByPoProjectId(id).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectRequirementsList = response.serviceResponse;
+      } else {
+        console.error("Error fetching project requirement list");
+      }
+    });
+  }
+  
+  // addMemberRow(member) {
+  //   member.teamMembers.push({ showAdd: true });
+  //   member.teamMembers.forEach((tm, index) => tm.showAdd = index === member.teamMembers.length - 1);
+  // }
+
+  billabilities: string[] = ['Billable', 'Non-Billable', 'Shadow'];
+
+  addMemberRow(requirement: any) {
+    const newMember = {
+      name: this.newMember.name,
+      role: this.newMember.employeeRole,
+      billability: this.newMember.newBillableType,
+      empId: null,  // Set empId if necessary
+      showAdd: true,
+    };
+  
+    requirement.teamMembers.push(newMember);
+    requirement.assigned = requirement.teamMembers.length;
+  
+    // Clear new member input fields
+    this.newMember = {
+      empId: 0, name: '', newBillableType: '', employeeRole: [],
+      employeeTeamMappingId: undefined,
+      teamId: undefined,
+      isTeamLead: undefined,
+      billableType: undefined,
+      isShadow: false
+    };
+  }
+  
+  newShadow = {
+    name: '',
+    role: '',
+    billability: ''
+  };
+  
+  addShadowResource(member: any) {
+    if (this.newShadow.name.trim() !== '') {
+      const shadowResource = { ...this.newShadow };
+      member.shadowResources.push(shadowResource);
+  
+      // Reset new shadow object
+      this.newShadow = {
+        name: '',
+        role: '',
+        billability: ''
+      };
+    }
+  }
+  
+  removeShadowResource(member: any, index: number) {
+    member.shadowResources.splice(index, 1);
+  }  
+  
+  onResourceSelected(event: any,member) {
+    const selectedName = event.option.value;
+    const selectedEmp = this.employeeList.find(emp => emp.name === selectedName);
+    if (selectedEmp) {
+      this.selectedEmpId = selectedEmp.empId;
+      console.log('Selected Employee ID:', this.selectedEmpId);
+    }
+  }
+  
+  onTeamMemberSelected(event: MatAutocompleteSelectedEvent): void {
+    const selectedEmployee = event.option.value;
+    this.newteamMember.empId = selectedEmployee.empId;
+    this.newteamMember.name = selectedEmployee.name;
+  }
+
+  toggleSelectAllTeams() {
+    if (this.isAllSelected) {
+      this.teamObj.departmentList = [];
+      this.isAllSelected = false;
+    } else {
+      this.teamObj.departmentList = this.filteredDepartments.map(dept => dept.deptId);
+      this.isAllSelected = true;
+    }
+  }
+
+  filterDepartmentsTeamForm() {
+    const lowerText = this.searchText.toLowerCase();
+    this.filteredDepartments = this.allDeptList.filter(dept =>
+      dept.name.toLowerCase().includes(lowerText)
+    );
+  }
+  
+  clearSelectionDept(event: Event) {
+    event.stopPropagation();
+    this.teamObj.departmentList = [];
+    this.isAllSelected = false;
+  }
+
+  onSpocSelected(event: any) {
+    const selectedSpoc = event.option.value;
+  }
+
+  displaySPOC(emp: any): string {
+    console.log("emp",emp)
+    return emp ? `${emp.name}` : '';
+  }  
+  
+  filterManagers() {
+    const lowerText = this.searchManagerText.trim().toLowerCase();
+    this.filteredManagerList = this.managerList.filter(manager =>
+      manager.name.toLowerCase().includes(lowerText)
+    );
+  }
+
+  toggleSelectAllManagers(): void {
+    if (this.isAllManagersSelected) {
+      this.projectObj.projectManagerId = [];
+      this.isAllManagersSelected = false;
+    } else {
+      this.projectObj.projectManagerId = this.filteredManagerList.map(emp => emp.empId);
+      this.isAllManagersSelected = true;
+    }
+  }
+
+  clearManagerSelection(event: Event): void {
+    event.stopPropagation();
+    this.projectObj.projectManagerId = [];
+    this.isAllManagersSelected = false;
+  }
+
+  onManagerSelectionChange(selectedManagers: string[]): void {
+    this.isAllManagersSelected = selectedManagers.length === this.filteredManagerList.length;
+  }
+
+  getTeamMembersForRequirement(resourceOverviewId: number): any[] {
+    return this.allTeamMembers?.filter(member => member.resourceOverviewId === resourceOverviewId) || [];
+  }
+  
+  
 }

@@ -22,5 +22,12 @@ public class TeamMemberDTO {
 	private String employeeName;
 	private Long employeementId;
 	private String departmentName;
+	private Long id;
+	private Long shadowEmpId;
+	private String billable;
+	private String billableType;
+	private String shadowBillable;
+	private String shadowBillableType;
+    private Long resourceOverviewId;
 	
 }

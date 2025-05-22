@@ -106,4 +106,6 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 		List<Team> findAllActiveTeamsOfShankhInternalProjects();
 		
 	
+	@Query(nativeQuery = true)
+	public List<Object[]> getSpocDetils(Long empId);
 }

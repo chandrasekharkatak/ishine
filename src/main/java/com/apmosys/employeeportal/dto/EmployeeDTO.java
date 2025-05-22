@@ -273,5 +273,5 @@ public class EmployeeDTO {
     private String selectedProjectId;
     private String hodDepartmentName;
     private String teamIds;
-	
+    private String employmentId;
 }

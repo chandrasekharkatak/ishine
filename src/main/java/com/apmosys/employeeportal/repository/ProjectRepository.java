@@ -112,5 +112,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	 
 	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true'")
 	 Set<Integer> findAllActiveShankhInternalProjectIds();
+	 
+	@Query(nativeQuery = true)
+	public int getAssignedEmployeesCountInProject(Long id);
 	
 }
