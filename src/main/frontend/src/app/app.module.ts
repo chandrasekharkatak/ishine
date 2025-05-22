@@ -146,6 +146,7 @@ registerLocaleData(localeGb);
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 import { LmstabComponent } from './lmstab/lmstab.component';
 import { FilterEmployeePipe } from './filter-employee.pipe';
+import { ViewEmployeeComponent } from './user-team/resource-management/view-employee/view-employee.component';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -265,6 +266,7 @@ import { FilterEmployeePipe } from './filter-employee.pipe';
      BiomaxApprovalComponent,
      LmstabComponent,
      FilterEmployeePipe,
+     ViewEmployeeComponent,
   
 
     //TestComponent
