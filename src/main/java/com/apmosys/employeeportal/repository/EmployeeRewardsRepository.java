@@ -201,5 +201,7 @@ List<Object[]> getRewardByTeamAndDateRange(String ofMonthYear,Long currentUserEm
  @Transactional
  @Query("UPDATE EmployeeRewards er SET er.isActive = 1 WHERE er.ofmonthyear IN :monthyears")
  int bulkEnableRewards(@Param("monthyears") List<String> monthyears);
+ 
+ EmployeeRewards findByRewardedTo(Long rewardedTo);
 	
 }
