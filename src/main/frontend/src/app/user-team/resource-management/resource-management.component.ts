@@ -154,20 +154,12 @@ export class ResourceManagementComponent implements OnInit {
   employeeCtrl = new FormControl();
   searchText : any;
   searchTextDept : any;
-  total = 6;
-  assigned = 3;
-  pending = 3;
   selectedStatusTab: string ='';
   @ViewChild('customDatePickerTemplate') 
   customDatePickerTemplate!: TemplateRef<any>;
 
   selectedDate: String| null = null;
   completedProjectDetails: Project = new Project();
-  members = [
-    { role: 'Automation Tester', department: 'Automation Testing', experience: '2-3 years', assigned: 1, total: 3 },
-    { role: 'Functional Tester', department: 'Functional Testing', experience: '1-2 years', assigned: 2, total: 2 },
-    { role: 'Developer', department: 'Development', experience: '3-5 years', assigned: 0, total: 1 }
-  ];
   projectFilterDTO:ProjectFilterDTO = new ProjectFilterDTO();
   departments: any[] = [];
   totalCount: any;
@@ -720,10 +712,8 @@ export class ResourceManagementComponent implements OnInit {
             // console.log("this.allTeamMembers.length   ",this.allTeamMembers.length);
             team.teamMemberList = [...team.teamMemberList, ...this.allTeamMembers];
             console.log("team.teamMemberList   ", team.teamMemberList);
-            // team.resourceOverviewId = this.currentTeam.resourceOverviewId;
           } else {
             team.teamMemberList = [...team.teamMemberList];
-            // team.resourceOverviewId = this.currentTeam.resourceOverviewId;
           }
         } else {
           team.teamMemberList = (this.allTeamMembers.length !== 0) ? this.allTeamMembers : null;
@@ -1330,7 +1320,18 @@ export class ResourceManagementComponent implements OnInit {
   
       this.allTeamMembers.push(memberToAdd);
   
-      // Reset form
+      this.newteamMember = new TeamMember();
+      this.addMemberCtrl.reset();
+      this.selectedRequirement = null;
+
+    }else {
+      const memberToAdd = {
+        ...newTeamMember,
+        employeeRole: this.newteamMember.employeeRole
+      };
+  
+      this.allTeamMembers.push(memberToAdd);
+  
       this.newteamMember = new TeamMember();
       this.addMemberCtrl.reset();
       this.selectedRequirement = null;
@@ -1884,11 +1885,16 @@ onAction(action: string, project: any) {
   openTeamMembersModal(template: any,projectObj,currentTeam) {
     this.getResourceRequirementByPoProjectId(projectObj.id);
 
-    projectObj.resourceRequirements.forEach(requirement => {
-      requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
-      requirement.assigned = requirement.teamMembers.length;
-    });
+    // projectObj.resourceRequirements.forEach(requirement => {
+    //   requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
+    //   requirement.assigned = requirement.teamMembers.length;
+    // });
 
+    this.projectObj.resourceRequirements.forEach(req => {
+      const assignedCount = this.teamObj.allTeamMemberList?.filter(member => member.resourceOverviewId === req.resourceOverviewId).length || 0;
+      req.assigned = assignedCount;
+    });
+    
     this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
 
     this.allTeamMembers = [];
@@ -2105,5 +2111,10 @@ onAction(action: string, project: any) {
     return this.allTeamMembers?.filter(member => member.resourceOverviewId === resourceOverviewId) || [];
   }
   
+  hasNoTeamMembersFor(requirementId: number): boolean {
+    return !this.teamObj.allTeamMemberList?.some(
+      member => member.resourceOverviewId === requirementId
+    );
+  }  
   
 }

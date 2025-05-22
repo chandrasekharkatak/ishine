@@ -286,7 +286,6 @@ public class ResourceManagementService {
 				
 				//Add project
 			    Project newProject = new Project();
-//			    newProject.setProjectManagerId(projManagerId);
 			    newProject.setProjectName(resourceManagementDTO.getName());
 			    newProject.setState(resourceManagementDTO.getClientState());
 			    newProject.setClientId(clientId);
@@ -434,7 +433,7 @@ public class ResourceManagementService {
     			                        newEmpTeamMap.setActive(2L); // Set Active to 2 for TeamLead
     			                        newEmpTeamMap.setEmployeeRole("TeamLead");
     			                        newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
-					                    newEmpTeamMap.setShadowEmpId(Long.parseLong(teamMember.getShadowEmpId().toString()));
+					                    newEmpTeamMap.setShadowEmpId(teamMember.getShadowEmpId() != null ? Long.parseLong(teamMember.getShadowEmpId().toString()) : null);
 //					                    newEmpTeamMap.setBillable(teamMember.getBillable());
 //					                    newEmpTeamMap.setBillableType(teamMember.getBillableType());
 //						                newEmpTeamMap.setShadowBillable(teamMember.getShadowBillable());
@@ -1044,7 +1043,6 @@ public class ResourceManagementService {
 //		    if(projManagerId != null) {
 		    project.setIsDraftProject("false");
 		    project.setProjectName(dto.getName());
-//		    project.setProjectManagerId(projManagerId);
 		    project.setPoNo(dto.getPoNo());
 		    project.setPoStartDate(dto.getStartDate());
 		    project.setPoEndDate(dto.getEndDate());
@@ -1093,16 +1091,6 @@ public class ResourceManagementService {
 		            apiLogInfo.setApiResponse("Project not updated successfully");
 	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		    }
-		    
-//		    }
-//		    else {
-//		    	
-//		    	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//		            response.setServiceResponse("Project Not set Due to Project Manger Is not present");
-//		            apiLogInfo.setApiResponse("Project Not set Due to Project Manger Is not present");
-//	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-//
-//		    }
 		    
 		}catch(Exception e){
 			e.printStackTrace();
@@ -2080,18 +2068,26 @@ public class ResourceManagementService {
 					projectDto.setId(object[6] != null ? Long.parseLong(object[6].toString()) : null);				
 					List<TeamSpocDTO> spocList = getTeamSpocsByProjectId(projectId);
 					projectDto.setTeamSpocs(spocList);
-					List<ProjectManagersDTO> projectManagersList = getProjectManagersByProjectId(projectId);
-				    projectDto.setProjectManagers(projectManagersList);		
-				    
-				    List<Object[]> result = projectManagerMappingRepository.findProjectManagersPerProject(Long.parseLong(projectId.toString()));
-				    List<Long> projectManagerIds = new ArrayList<>();
-				    
-				    for (Object[] obj : result) {
-				        if (obj[0] != null) {
-				            projectManagerIds.add(Long.parseLong(obj[0].toString()));
-				        }
-				    }
-				    projectDto.setProjectManagerId(projectManagerIds);				    
+					
+					List<Object[]> result = projectManagerMappingRepository.findProjectManagersPerProject(Long.parseLong(projectId.toString()));
+
+	                List<Long> projectManagerIds = new ArrayList<>();
+	                List<ProjectManagersDTO> projectManagersList = new ArrayList<>();
+
+	                for (Object[] obj : result) {
+	                    if (obj[0] != null) {
+	                        projectManagerIds.add(Long.parseLong(obj[0].toString()));
+	                    }
+
+	                    ProjectManagersDTO dto = new ProjectManagersDTO();
+	                    dto.setProjectManagerId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+	                    dto.setProjectManagerName(obj[1] != null ? obj[1].toString() : null);
+	                    projectManagersList.add(dto);
+	                }
+
+	                projectDto.setProjectManagerId(projectManagerIds);
+	                projectDto.setProjectManagers(projectManagersList);
+					
 					dtoList.add(projectDto);
 						
 			});
@@ -3848,6 +3844,7 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
                     if (selectedProj != null) {
                         proj.setIsTeamCreated("true");
                         proj.setProjectManagers(selectedProj.getProjectManagers());
+                        proj.setProjectManagerId(selectedProj.getProjectManagerId());
                         proj.setTeamSpocs(selectedProj.getTeamSpocs());                      
                         
                         
@@ -3890,6 +3887,7 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
                             if (selectedProj != null) {
                                 proj.setIsTeamCreated("true");
                                 proj.setProjectManagers(selectedProj.getProjectManagers());
+                                proj.setProjectManagerId(selectedProj.getProjectManagerId());
                                 proj.setTeamSpocs(selectedProj.getTeamSpocs());    
                                 if ("true".equalsIgnoreCase(selectedProj.getIsDraftProject())) {
                                     proj.setIsDraftProject("Pending For Approval");

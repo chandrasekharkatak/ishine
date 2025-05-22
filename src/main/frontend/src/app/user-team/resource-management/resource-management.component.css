@@ -635,11 +635,11 @@ thead {
   .shadow-resource-section {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 10px
   }
   
   .name-field {
-    width: 200px;
+    width: 300px;
   }
 
   .role-field, .billable-field {
@@ -695,3 +695,8 @@ thead {
   ::ng-deep .mat-option.non-selectable .mat-pseudo-checkbox {
     display: none;
   }
+
+  .requirement-select-container {
+    min-width: 350px;
+  }
+  
