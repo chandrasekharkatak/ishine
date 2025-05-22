@@ -16,9 +16,9 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
             </a>
           </div>
-         
-          
-          
+
+
+
 
           <div class="export-button">
             <button type="button" class="btn btn-sm btn-outline-primary mt-2 mb-2 excel-button"
@@ -59,10 +59,9 @@
                 (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
-              <tr
-              *ngIf="travelRequests.length == 0 || (travelRequests | colFilter:filters: false).length == 0">
-              <th colspan="12" class="text-center info-label">No details to display...</th>
-          </tr>
+              <tr *ngIf="travelRequests.length == 0 || (travelRequests | colFilter:filters: false).length == 0">
+                <th colspan="12" class="text-center info-label">No details to display...</th>
+              </tr>
               <tr
                 *ngFor="let row of travelRequests |colFilter:filters:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                 <td>{{ row.requestId }}</td>
@@ -120,10 +119,16 @@
                       class="btn btn-danger btn-sm ml-2" (click)="deleteTraveldata(row,alert_message1)">
                       <em class="fa fa-trash"></em> Delete
                     </button>
-                    <button *ngIf="row.status === 'Approved'" type="button"
-                      (click)="reimbursmentModel(travelReimbursment,row)" class="btn btn-primary btn-sm ml-2">
-                      <em class="fa fa-success"></em> Apply Reimbursment
+                    <button *ngIf="row.finalStatus === 'Approved' && isAfterToDate(row.toDate)" type="button"
+                      (click)="reimbursmentModel(travelReimbursment, row)" class="btn btn-primary btn-sm ml-2">
+                      <em class="fa fa-success"></em> Apply Reimbursement
                     </button>
+                    <!-- *ngIf="row.finalStatus === 'Approved' && isBeforeOrOnFromDate(row.fromDate)" -->
+                    <button type="button" *ngIf="row.finalStatus === 'Approved' && isBeforeOrOnFromDate(row.fromDate)"class="btn btn-primary btn-sm ml-2"
+                      (click)="downLoadTicket(alert_message, row.ticketDocId)">
+                      <em class="fa fa-success"></em> Ticket Download
+                    </button>
+
                   </div>
                 </td>
               </tr>
@@ -417,7 +422,8 @@
         <div *ngFor="let invoice of invoices; let i = index" class="row mb-3 align-items-end">
           <div class="col-md-2">
             <label class="info-label"><span class="text-danger">*</span>Invoice No</label>
-            <input type="text" class="form-control" [(ngModel)]="invoice.invoiceNo"(blur)="checkInvoiceNumberPresentorNot(alert_message,invoice.invoiceNo)" name="invoiceNo{{i}}" required />
+            <input type="text" class="form-control" [(ngModel)]="invoice.invoiceNo"
+              (blur)="checkInvoiceNumberPresentorNot(alert_message,invoice.invoiceNo)" name="invoiceNo{{i}}" required />
           </div>
 
           <div class="col-md-3">
@@ -430,7 +436,7 @@
           <div class="col-md-2">
             <label class="info-label"><span class="text-danger">*</span>Amount</label>
             <input type="number" class="form-control" (keypress)="restrictingAlphaAndCharacter($event)"
-             [(ngModel)]="invoice.amount" name="invoiceAmount{{i}}" required />
+              [(ngModel)]="invoice.amount" name="invoiceAmount{{i}}" required />
           </div>
 
           <div class="col-md-3">
@@ -440,7 +446,8 @@
 
           <div class="col-md-2 text-right">
 
-            <button class="btn btn-outline-primary" (click)="addInvoiceRow()"[disabled]="invoices.length >= 15 || !invoices[invoices.length - 1]?.file1">
+            <button class="btn btn-outline-primary" (click)="addInvoiceRow()"
+              [disabled]="invoices.length >= 15 || !invoices[invoices.length - 1]?.file1">
               <i class="fa fa-plus"></i>
             </button>
 
@@ -455,7 +462,8 @@
         <div class="row mb-3">
           <div class="col-md-12 px-0 text-center">
 
-            <button type="button" class="btn btn-primary btn-lg mx-1" (click)="submitInvoice(alert_message)">Submit</button>
+            <button type="button" class="btn btn-primary btn-lg mx-1"
+              (click)="submitInvoice(alert_message)">Submit</button>
           </div>
         </div>
 

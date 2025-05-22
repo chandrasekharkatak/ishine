@@ -189,8 +189,14 @@
 
 <ng-template #invoiceop>
   <div class="modal-body text-center">
-     <div *ngIf="docUrl">
-    <img [src]="docUrl" alt="Document Image" style="max-width: 100%; height: auto;" />
+    <div *ngIf="selectedDocument">
+      <ng-container *ngIf="selectedDocument?.toString().includes('application/pdf'); else imageBlock">
+          <iframe [src]="selectedDocument" width="100%" height="600px"></iframe>
+      </ng-container>
+
+      <ng-template #imageBlock>
+          <img [src]="selectedDocument" class="img-fluid" alt="Document Preview" />
+      </ng-template>
   </div> 
     <button type="button" class="btn btn-primary" (click)="cancelRequestDocument()">OK</button>&nbsp;
   </div>

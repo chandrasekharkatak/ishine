@@ -214,25 +214,52 @@ cancelRequestDocument() {
   this.modalRef.hide();
 
 }
-
+getMimeTypeFromBase64(base64: string): string {
+  const header = atob(base64.slice(0, 20));
+  if (header.startsWith('%PDF')) return 'application/pdf';
+  if (header.startsWith('\x89PNG')) return 'image/png';
+  if (header.startsWith('\xFF\xD8\xFF')) return 'image/jpeg';
+  return 'application/octet-stream';
+}
 docUrl: string | null = null;
-preview(template: TemplateRef<any>, id: any) {
+selectedDocument: any;
+
+  async preview(template: TemplateRef<any>, id: any) {
   console.log(template,"template");
 
-  this.docUrl = null; 
-  this.modalRef = this.modalService.show(template, {
-    class: 'modal-xl'
-  });
+  this.selectedDocument = null; 
+ 
 
   const payload = { docId: id }; 
 
-  this.travelDesk.previewDocument(payload).pipe(first()).subscribe((response: any) => {
+  
+ 
+    const response: any = await this.travelDesk.previewDocument(payload).toPromise();
+
     if (response.serviceStatus === 'Success' && response.serviceResponse?.documentBytes) {
-      this.docUrl = 'data:image/png;base64,' + response.serviceResponse.documentBytes;
-    } else {
-      // this.modalRef?.hide();
-      // this.openAlertMod(template, 'Image not present');
+      const base64Data = response.serviceResponse.documentBytes;
+      const mimeType = this.getMimeTypeFromBase64(base64Data);
+
+      if (mimeType === 'application/pdf') {
+        const pdfUrl = `data:application/pdf;base64,${base64Data}`;
+        this.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
+        this.modalRef = this.modalService.show(template, {
+          class: 'modal-xl'
+        });
+      } else if (mimeType.startsWith('image/')) {
+        const imgUrl = `data:${mimeType};base64,${base64Data}`;
+        this.selectedDocument = imgUrl; 
+        this.modalRef = this.modalService.show(template, {
+          class: 'modal-xl'
+        });
+      } else {
+        // Handle other file types: Download
+        const link = document.createElement('a');
+        link.href = `data:application/octet-stream;base64,${base64Data}`;
+        link.download = 'document';
+        link.click();
+      }
     }
-  });
+  
 }
 }

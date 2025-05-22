@@ -133,6 +133,8 @@ public class TravelDesk {
 	@Column(name = "final_status")
 	private String finalStatus;
 	
+	private Long ticketDocId;
+	
 	
 
 

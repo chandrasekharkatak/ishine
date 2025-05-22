@@ -150,6 +150,7 @@ import { SafePipe } from './safe.pipe';
 import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
+import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -271,7 +272,8 @@ import { TravelConfigComponent } from './configuration/travel-config/travel-conf
      TotalTravelrequestComponent,
      TotalReimbursementrequestComponent,
      SafePipe,
-     TravelConfigComponent
+     TravelConfigComponent,
+     ReimbursmentConfigComponent
    
   
 

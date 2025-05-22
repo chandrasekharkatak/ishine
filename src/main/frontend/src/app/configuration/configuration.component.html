@@ -81,6 +81,10 @@
                         aria-controls="performance-config" aria-selected="false" routerLink="travel-config">Travel-Config</a>
                 </li>
 
+                <li  class="nav-item config__tab-item" (click)="removeActiveTab()">
+                    <a class="nav-link config__tab-item__link" id="performance-config-tab" data-toggle="tab" role="tab"
+                        aria-controls="performance-config" aria-selected="false" routerLink="reimbursment-config">Reimbursment-Config</a>
+                </li>
                 <!-- <li *ngIf="userMapping.project_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
                     <a class="nav-link config__tab-item__link" id="project-config-tab" data-toggle="tab" role="tab"
                         aria-controls="project-config" aria-selected="false" routerLink="project-config">Project</a>

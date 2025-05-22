@@ -10,6 +10,7 @@ import com.apmosys.employeeportal.model.TravelDesk;
 
 public interface TravelDeskRepository extends JpaRepository<TravelDesk, BigInteger>{
 
+	@Query(nativeQuery = true, value = "SELECT * FROM travel_desk WHERE emp_id = :empId ORDER BY request_id DESC")
 	List<TravelDesk> findByEmpId(BigInteger empId);
 	
 	TravelDesk findByRequestId(BigInteger requestId);

@@ -17,6 +17,7 @@ import { RewardsConfigComponent } from './configuration/rewards-config/rewards-c
 import { RoleConfigComponent } from './configuration/role-config/role-config.component';
 import { SurveyConfigComponent } from './configuration/survey-config/survey-config.component';
 
+import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
@@ -119,6 +120,7 @@ const routes: Routes = [
       { path: 'rewards-config', component: RewardsConfigComponent, },
       { path: 'performance-config' , component: PerformanceConfigComponent},
       { path: 'travel-config' , component: TravelConfigComponent},
+      { path: 'reimbursment-config' , component:ReimbursmentConfigComponent},
      
     ]
   },

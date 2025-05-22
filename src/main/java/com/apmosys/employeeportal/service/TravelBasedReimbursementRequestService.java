@@ -280,6 +280,8 @@ public ServiceResponse previewDocument(TravelBasedReimbursementRequestDTO reimbu
 				    if (Files.exists(path)) {
 				        imageByte = Files.readAllBytes(path);
 				        docDTO.setDocumentBytes(imageByte);
+				        docDTO.setTicketFileName(travelDocDetails.getFileName());
+//				        docDto.setFileName(travelDocDetails.getFileName());
 				    } else {
 				        System.err.println("File not found at path: " + fullPath);
 				    }

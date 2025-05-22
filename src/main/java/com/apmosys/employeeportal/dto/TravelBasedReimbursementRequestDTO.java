@@ -36,6 +36,7 @@ public class TravelBasedReimbursementRequestDTO {
     private Timestamp updatedOn;
     private Long docId;
     private byte[] documentBytes;
+    private String ticketFileName;
 //    private  List<MultipartFile> fileName;
 
 }

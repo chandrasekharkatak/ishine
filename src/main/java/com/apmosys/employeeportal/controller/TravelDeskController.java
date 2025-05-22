@@ -85,6 +85,7 @@ public class TravelDeskController {
 	@GetMapping("/getAllDocumentsThroughRequestId")
 	public ServiceResponse getAllDocsThroughReqId(@RequestParam("requestId") BigInteger requestId) {
 	    return travelDeskService.getAllDocsThroughReqId(requestId);
+	}
 	
 	@PostMapping("/travel-reason/create")
 	public ServiceResponse createTravelReason(@RequestBody TravelReasonDTO travelReasonDTO) {
@@ -105,5 +106,16 @@ public class TravelDeskController {
 	@GetMapping("/getTravelMode")
 	public ServiceResponse getAllgetTravelModes() {
 	    return travelDeskService.getAllgetTravelModes();
+	}
+	
+	@PostMapping("/uploadTicket")
+	public ServiceResponse uploadTicket(HttpServletRequest request,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("displayName") String displayName,
+			@RequestParam("uploadedBy") Long uploadedBy,
+			@RequestParam("requestId") BigInteger requestId
+			) {
+		ServiceResponse serviceResponse = travelDeskService.uploadTicket(file, displayName, uploadedBy,requestId);
+		return serviceResponse;
 	}
 }

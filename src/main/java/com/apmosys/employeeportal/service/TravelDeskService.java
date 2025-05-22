@@ -664,10 +664,13 @@ public class TravelDeskService {
 			 List<TravelDesk> totalTravelData = new ArrayList<>() ;
 			 
 			List<TravelDesk> travelData = tavelDeskRepository.findAll();
+			 List<TravelDesk> activeTravelDesk = travelData.stream()
+			            .filter(t -> t.getIsActive() != 0)  
+			            .collect(Collectors.toList());
 			
 			if(!travelData.isEmpty()) {
 				
-			  totalTravelData.addAll(travelData);
+			  totalTravelData.addAll(activeTravelDesk);
 			  System.out.println(totalTravelData);
 			}
 			 
@@ -678,7 +681,7 @@ public class TravelDeskService {
 			}
 			else {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				serviceResponse.setServiceResponse(totalTravelData);
+				serviceResponse.setServiceResponse(activeTravelDesk);
 				return serviceResponse;
 			}
 		}
@@ -787,6 +790,7 @@ public class TravelDeskService {
 	    return serviceResponse;
 	}
 
+
 	public ServiceResponse getAllDocsThroughReqId(BigInteger requestId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		List<String> docIdList = new ArrayList<>();
@@ -825,6 +829,99 @@ public class TravelDeskService {
 		}
 //		return serviceResponse;
 	}
+
+	public ServiceResponse uploadTicket(MultipartFile file, String displayName, Long uploadedBy, BigInteger requestId) {
+
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Upload Newsletter");
+	    apiLogInfo.setApiUrl("/api/newsletters/uploadNewsletter");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Newsletter: ").append(displayName)
+	              .append(", uploadedBy: ").append(uploadedBy);
+
+	    try {
+	        TravelDesk details=tavelDeskRepository.findByRequestId(requestId);
+	        Optional<Employee> employeeObject = employeeRepository.findById(uploadedBy);
+
+	        if (employeeObject.isEmpty()) {
+	            response.setServiceResponse("User Not Found !!");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("User Not Found !!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	            return response;
+	        }
+
+	        if (file == null || file.isEmpty()) {
+	            response.setServiceResponse("Uploaded Travel Document Not Found !!");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("Uploaded Travel Document Not Found !!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	            return response;
+	        }
+
+	        // Prepare the file path
+	        Path directory = Paths.get(traveldeskFileLocation);
+	        if (!Files.exists(directory)) {
+	            Files.createDirectories(directory);  // Ensure directory exists
+	        }
+
+	        // Use a timestamp to avoid filename conflicts
+	        String newFileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+	        Path path = directory.resolve(newFileName);
+	        System.out.println("Saving file to: " + path.toString());
+
+	        // Save file to disk
+	        byte[] bytes = file.getBytes();
+	        Files.write(path, bytes);
+
+	        // Confirm file existence
+	        File savedFile = path.toFile();
+	        if (savedFile.exists()) {
+	            Newsletter newsletter = new Newsletter();
+	            newsletter.setDisplayName(displayName);
+	            newsletter.setFileName(newFileName); // Save actual saved name
+	            newsletter.setType("TRAVEL ALLOWANCE");
+	            newsletter.setReadEnabled("true");
+	            newsletter.setCreatedBy(Integer.parseInt(uploadedBy.toString()));
+	            Newsletter travelDocDetails = newsletterRepository.save(newsletter);
+	            if(travelDocDetails !=null) {
+	            	details.setTicketDocId(travelDocDetails.getDocumentId());
+	            	tavelDeskRepository.save(details);
+	            }
+                
+                
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(travelDocDetails);
+	            response.setServiceMessage("Travel Document uploaded successfully.");
+	            apiLogInfo.setApiResponse("Travel Document uploaded successfully");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceResponse("Failed to upload Travel Document.");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("File did not exist after write operation.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    return response;
+		
+	}
+
+
 
 
 }

@@ -333,28 +333,28 @@ export class ViewTravelrequestComponent implements OnInit {
 
   onInvoiceFileChange(event: any, index: number, template: TemplateRef<any>) {
     const file = event.target.files[0];
-    
+
     if (file) {
-     
-      if (!file.type.startsWith('image/')) {
-        this.openAlertMod1(template, 'Only image files are allowed');
-        event.target.value = '';
-        return;
-      }
-  
-      
-      const maxSizeInBytes = 1 * 1024 * 1024; 
+
+      // if (!file.type.startsWith('image/')) {
+      //   this.openAlertMod1(template, 'Only image files are allowed');
+      //   event.target.value = '';
+      //   return;
+      // }
+
+
+      const maxSizeInBytes = 1 * 1024 * 1024;
       if (file.size > maxSizeInBytes) {
         this.openAlertMod1(template, 'Image size should not exceed 1MB');
         event.target.value = '';
         return;
       }
-  
-     
+
+
       this.invoices[index].file1 = file;
     }
   }
-  
+
 
 
   isInvoiceRowValid(invoice: any): boolean {
@@ -466,8 +466,64 @@ export class ViewTravelrequestComponent implements OnInit {
       }
     });
   }
-  
-  
 
-  
+  isAfterToDate(toDateStr: string): boolean {
+    const toDate = new Date(toDateStr);
+    const today = new Date();
+
+    // Remove time for comparison
+    toDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    return today > toDate; // Show only if today is after toDate
+  }
+
+  isBeforeOrOnFromDate(fromDateStr: string): boolean {
+    const fromDate = new Date(fromDateStr);
+    const today = new Date();
+
+    // Remove time part for accurate comparison
+    fromDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    return today <= fromDate; // Show button if today is before or on fromDate
+  }
+
+  downLoadTicket(template: TemplateRef<any>, ticketDocId: any) {
+    const det = { docId: ticketDocId };
+
+    this.travelDesk.previewDocument(det).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        const base64String = response.serviceResponse.documentBytes;
+        const fullFileName = response.serviceResponse.ticketFileName || 'default.xlsx';
+        const fileName = fullFileName.substring(fullFileName.indexOf('_') + 1);
+
+        const contentType = response.serviceResponse.contentType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+        const byteCharacters = atob(base64String);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: contentType });
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+      } else {
+        this.openAlertMod(template, 'File download failed: ' + "Ticket Not Generated Yet");
+      }
+    });
+  }
+
+
+
 }

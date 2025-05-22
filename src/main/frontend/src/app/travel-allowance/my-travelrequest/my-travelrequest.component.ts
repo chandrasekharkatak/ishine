@@ -354,29 +354,28 @@ onSubCategoryChange(subCategory: string) {
   switch (subCategory) {
     case 'Metros':
       this.cityOptions = [
-        'Mumbai', 'Delhi', 'Chennai', 'Kolkata', 'Bengaluru', 'Hyderabad'
+        'Bengaluru', 'Chennai', 'Delhi', 'Hyderabad', 'Kolkata', 'Mumbai'
       ];
       break;
     case 'Category A':
       this.cityOptions = [
-        'Ahmedabad', 'Baroda', 'Indore', 'Pune', 'Nagpur', 'Jaipur',
-        'Srinagar', 'Amritsar', 'Chandigarh', 'Guwahati', 'Patna', 'Lucknow',
-        'Bhubaneswar', 'Panaji', 'Trivendrum', 'Kochi', 'Gangtok',
-        'Udaipur', 'Agra', 'Coimbatore'
+        'Agra', 'Ahmedabad', 'Amritsar', 'Baroda', 'Bhubaneswar', 'Chandigarh',
+        'Coimbatore', 'Gangtok', 'Guwahati', 'Indore', 'Jaipur', 'Lucknow',
+        'Nagpur', 'Panaji', 'Patna', 'Pune', 'Srinagar', 'Trivendrum', 'Udaipur'
       ];
       break;
     case 'Category B':
       this.cityOptions = [
-        'Surat', 'Rajkot', 'Bhopal', 'Nasik', 'Ludhiana', 'Jammu',
-        'Varanasi', 'Ghaziabad', 'Kanpur', 'Ranchi', 'Jamshedpur',
-        'Siliguri', 'Cuttack', 'Vizag', 'Vijaywada', 'Madurai',
-        'Mangalore', 'Jodhpur', 'Mohali'
+        'Bhopal', 'Cuttack', 'Ghaziabad', 'Jamshedpur', 'Jodhpur', 'Jammu',
+        'Kanpur', 'Ludhiana', 'Madurai', 'Mangalore', 'Mohali', 'Nasik',
+        'Rajkot', 'Ranchi', 'Siliguri', 'Surat', 'Varanasi', 'Vijaywada', 'Vizag'
       ];
       break;
     default:
       this.cityOptions = [];
   }
 }
+
 
 // onFileChange(event: any, template: TemplateRef<any>) {
 //   const file = event.target.files[0];

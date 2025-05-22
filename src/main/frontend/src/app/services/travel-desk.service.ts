@@ -82,5 +82,8 @@ export class TravelDeskService {
   getTravelMode() {
     return this.http.get(`${this.baseUrl}` + `api/getTravelMode`);
   }
+  uploadTicket(formData:FormData){
+    return this.http.post(`${this.baseUrl}`+`api/uploadTicket`,formData);
+  }
   
 }

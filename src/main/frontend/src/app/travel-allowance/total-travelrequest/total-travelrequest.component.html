@@ -29,6 +29,8 @@
                                 <th scope="col" class="info-label">Level 1 Approver Status</th>
                                 <th scope="col" class="info-label">Level 2 Approver Name</th>
                                 <th scope="col" class="info-label">Level 2 Approver Status</th>
+                                <th scope="col" class="info-label">Preview Documents</th>
+                                <th scope="col" class="info-label">Ticket Upload Status</th>
                                 <th scope="col" class="info-label">Action</th>
                             </tr>
                         </thead>
@@ -71,17 +73,32 @@
                                 </td>
                                 <td>
                                     <div class="d-inline-flex">
-                                        <button type="button"
-                                            class="btn btn-success btn-sm btn-action button" (click)="openViewDocModule(view_doc,row.requestId)">
+                                        <button type="button" class="btn btn-success btn-sm btn-action button"
+                                            (click)="openViewDocModule(view_doc,row.requestId)">
                                             <em class="fa fa-file"></em> View Documents
                                         </button>
                                     </div>
                                 </td>
+                                <td>
+                                    <span [ngClass]="{
+                                        'badge badge-success': row.ticketDocId !== null,
+                                        'badge badge-warning': row.ticketDocId === null
+                                      }">
+                                        {{ row.ticketDocId !== null ? 'Uploaded' : 'Pending' }}
+                                    </span>
+                                </td>
+
+                                <td class="file-upload-td">
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                        (click)="uploadTicket(upload_ticket,row.requestId)">Upload Ticket</button>
+                                </td>
+
+
                             </tr>
                         </tbody>
                     </table>
                 </div>
-<!-- (click)="openEditModal(approveRequest, row) -->
+                <!-- (click)="openEditModal(approveRequest, row) -->
                 <pagination-controls class="my-pagination" [hidden]="travelRequests.length == 0"
                     (pageChange)="handlePageChange($event)"></pagination-controls>
             </div>
@@ -98,61 +115,71 @@
 
 <ng-template #view_doc>
     <div class="modal-content">
-    <div class="modal-header">
-      <h5 class="modal-title">View Travel Documents</h5>
-<button type="button" class="close" aria-label="Close" (click)="closeModal()">
-  <span aria-hidden="true">&times;</span>
-</button>
-</div>
-    <div class="modal-body p-3">
-        <div class="row">
-            <!-- Left Section: Table -->
-            <!-- Left Section: Table -->
-            <div class="col-md-6">
-                <div class="table-container border" style="max-height: 550px; min-height: 300px;overflow-y: auto;">
-                    <table class="table table-bordered table-hover text-center mb-0">
-                        <thead class="thead-dark sticky-top bg-dark text-white">
-                            <tr>
-                                <th scope="col" class="info-label">Document List</th>
-                                <th scope="col" class="info-label">View</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let doc of docList; let i = index">
-                                <td>Document &nbsp;{{ i + 1 }}</td>
-                                <td>
-                                    <div class="d-inline-flex">
-                                        <button type="button" class="btn btn-primary btn-sm btn-action button"
-                                            (click)="viewSelectedDocument(doc)">
-                                            <em class="fa fa-file"></em> View Document
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+        <div class="modal-header">
+            <h5 class="modal-title">View Travel Documents</h5>
+            <button type="button" class="close" aria-label="Close" (click)="closeModal()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body p-3">
+            <div class="row">
+                <!-- Left Section: Table -->
+                <!-- Left Section: Table -->
+                <div class="col-md-6">
+                    <div class="table-container border" style="max-height: 550px; min-height: 300px;overflow-y: auto;">
+                        <table class="table table-bordered table-hover text-center mb-0">
+                            <thead class="thead-dark sticky-top bg-dark text-white">
+                                <tr>
+                                    <th scope="col" class="info-label">Document List</th>
+                                    <th scope="col" class="info-label">View</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let doc of docList; let i = index">
+                                    <td>Document &nbsp;{{ i + 1 }}</td>
+                                    <td>
+                                        <div class="d-inline-flex">
+                                            <button type="button" class="btn btn-primary btn-sm btn-action button"
+                                                (click)="viewSelectedDocument(doc)">
+                                                <em class="fa fa-file"></em> View Document
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+                <!-- Right Section: Document Viewer -->
+                <div class="col-md-6 border-left">
+                    <div *ngIf="selectedDocument">
+                        <ng-container *ngIf="selectedDocument?.toString().includes('application/pdf'); else imageBlock">
+                            <iframe [src]="selectedDocument" width="100%" height="600px"></iframe>
+                        </ng-container>
+
+                        <ng-template #imageBlock>
+                            <img [src]="selectedDocument" class="img-fluid" alt="Document Preview" />
+                        </ng-template>
+                    </div>
+
+
+                    <div *ngIf="!selectedDocument" class="text-muted">
+                        Click on "View Document" to preview here.
+                    </div>
                 </div>
             </div>
-
-
-            <!-- Right Section: Document Viewer -->
-            <div class="col-md-6 border-left">
-            <div *ngIf="selectedDocument">
-                <ng-container *ngIf="selectedDocument?.toString().includes('application/pdf'); else imageBlock">
-                    <iframe [src]="selectedDocument" width="100%" height="600px"></iframe>
-                </ng-container>
-            
-                <ng-template #imageBlock>
-                    <img [src]="selectedDocument" class="img-fluid" alt="Document Preview" />
-                </ng-template>
-            </div>
-
-            
-                <div *ngIf="!selectedDocument" class="text-muted">
-                    Click on "View Document" to preview here.
-                </div>
-            </div>
-            </div>
-            </div>
-            </div>
-            </ng-template>
+        </div>
+    </div>
+</ng-template>
+<ng-template #upload_ticket>
+    <div class="modal-body text-center">
+        <input type="file" class="form-control file-upload-input" (change)="onFileSelected($event)" required />
+        <div *ngIf="selectedFileName" class="file-name-display mt-1">
+            <small class="text-muted">Selected File: {{ selectedFileName }}</small>
+        </div>
+        <button type="button" class="btn btn-primary"
+            (click)="uploadTicketByAdmin(selectedFile,alert_message)">Submit</button>&nbsp;
+    </div>
+</ng-template>

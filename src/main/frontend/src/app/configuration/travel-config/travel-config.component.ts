@@ -1,6 +1,5 @@
-import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { DomSanitizer } from '@angular/platform-browser';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Employee } from 'src/app/models/employee';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -15,7 +14,7 @@ import { TravelDeskService } from 'src/app/services/travel-desk.service';
 export class TravelConfigComponent implements OnInit {
 
   items:any=10;
-  page:any;
+  page:any=1;
   isSearchEnabledReview: boolean = false;
   isCategoryTable: boolean = true;
   createCategoryForm:boolean =false;

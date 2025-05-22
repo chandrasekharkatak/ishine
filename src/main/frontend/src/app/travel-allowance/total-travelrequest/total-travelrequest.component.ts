@@ -1,6 +1,7 @@
-import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { MyTravelDesk } from 'src/app/models/travelDesk';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -56,7 +57,8 @@ export class TotalTravelrequestComponent implements OnInit {
       const response: any = await this.travelDesk.totalTravelData(travelData).toPromise();
       
       if (response.serviceStatus === "Success") {
-        this.travelRequests = response.serviceResponse;  
+        this.travelRequests = response.serviceResponse;
+  
         console.log('Fetched Travel Requests:', this.travelRequests);
         this.selectedTravelRequest = this.travelRequests;
       } else {
@@ -152,5 +154,63 @@ getMimeTypeFromBase64(base64: string): string {
   return 'application/octet-stream';
 }
 
+
+ selectedFileName: string | null = null;
+ selectedFile: File | null = null;
+ maxFileSizeMB = 3;
+ 
+ onFileSelected(event: Event): void {
+   const input = event.target as HTMLInputElement;
+ 
+   if (input.files && input.files.length > 0) {
+     const file = input.files[0];
+ 
+     
+     if (file.size > this.maxFileSizeMB * 1024 * 1024) {
+       alert('File size should not exceed 3 MB.');
+       input.value = ''; 
+       this.selectedFileName = null;
+       this.selectedFile = null;
+       return;
+     }
+ 
+     this.selectedFileName = file.name;
+     this.selectedFile = file;
+   } else {
+     this.selectedFileName = null;
+     this.selectedFile = null;
+   }
+ }
+ 
+ ticketId:any;
+ uploadTicket(template:TemplateRef<any>,ticketId:any){
+  this.modalRef = this.modalService.show(template, {
+    class: 'modal-sm'
+  });
+  this.ticketId=ticketId;
+  console.log("ticket",ticketId);
+ }
+
+ async uploadTicketByAdmin(fileObj:any,template:TemplateRef<any>){
+  let uploadResponse: any;
+
+              const fileFormData = new FormData();
+              fileFormData.append('file', this.selectedFile);
+              fileFormData.append("displayName", this.selectedFile.name);
+              fileFormData.append("uploadedBy", this.currentUser.empId);
+              fileFormData.append("requestId",this.ticketId);
+        
+              uploadResponse = await this.travelDesk.uploadTicket(fileFormData)
+                .pipe(first())
+                .toPromise();
+        
+              if (uploadResponse.serviceStatus !== "Success") {
+                this.openAlertMod(template, `File upload failed: ${uploadResponse.serviceResponse}`);
+                return;
+              }else{
+                this.modalRef.hide();
+                // this.openAlertMod(template, `File upload failed: ${uploadResponse.serviceResponse}`);
+              }
+ }
 
 }

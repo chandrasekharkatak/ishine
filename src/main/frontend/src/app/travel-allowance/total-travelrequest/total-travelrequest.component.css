@@ -10,3 +10,16 @@
   color: white;
   z-index: 1;
 }
+.file-upload-td {
+    padding: 0 !important; 
+    vertical-align: middle;
+  }
+  
+  .file-upload-input {
+    width: 100%;
+  }
+  
+  .file-name-display {
+    font-size: 0.85rem;
+    color: #555;
+  }

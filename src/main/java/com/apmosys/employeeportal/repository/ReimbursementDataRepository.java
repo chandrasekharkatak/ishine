@@ -11,7 +11,7 @@ import com.apmosys.employeeportal.model.ReimbursementData;
 import com.apmosys.employeeportal.model.TravelDesk;
 
 public interface ReimbursementDataRepository extends JpaRepository<ReimbursementData, BigInteger>{
-	@Query(nativeQuery = true, value = "SELECT * FROM reimbursement_data WHERE emp_id = :empId ORDER BY request_id DESC")
+	@Query(nativeQuery = true, value = "SELECT * FROM reimbursement_data WHERE emp_id = :empId ORDER BY requestId DESC")
 	List<ReimbursementData> findByEmpId(@Param("empId") BigInteger empId);
 
 	@Query(nativeQuery = true, value = "SELECT * FROM reimbursement_data ORDER BY requestId desc")
