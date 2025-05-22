@@ -23,16 +23,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.TravelClassRequest;
 import com.apmosys.employeeportal.dto.TravelDeskDTO;
 import com.apmosys.employeeportal.dto.TravelModeDTO;
 import com.apmosys.employeeportal.dto.TravelReasonDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Newsletter;
+import com.apmosys.employeeportal.model.TravelClass;
 import com.apmosys.employeeportal.model.TravelDesk;
 import com.apmosys.employeeportal.model.TravelMode;
 import com.apmosys.employeeportal.model.TravelReason;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.NewsletterRepository;
+import com.apmosys.employeeportal.repository.TravelClassRepository;
 import com.apmosys.employeeportal.repository.TravelDeskRepository;
 import com.apmosys.employeeportal.repository.TravelModeRepository;
 import com.apmosys.employeeportal.repository.TravelReasonRepository;
@@ -58,6 +61,9 @@ public class TravelDeskService {
 	
 	@Autowired
 	private TravelModeRepository travelModeRepository;
+	
+	 @Autowired
+	 private TravelClassRepository travelClassRepository;
 	
 	@Value("${level2Approver}")
 	public String level2Approver;
@@ -769,18 +775,52 @@ public class TravelDeskService {
 	}
 
     
-    public ServiceResponse getAllgetTravelModes() {
+//    public ServiceResponse getAllgetTravelModes() {
+//	    ServiceResponse serviceResponse = new ServiceResponse();
+//	    try {
+//	        List<TravelMode> modeList = travelModeRepository.findAll();
+//
+//	        if (modeList.isEmpty()) {
+//	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            serviceResponse.setServiceError("No travel reasons found.");
+//	        } else {
+//	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	            serviceResponse.setServiceResponse(modeList);
+//	        }
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        serviceResponse.setServiceError("Error fetching travel reasons: " + e.getMessage());
+//	    }
+//
+//	    return serviceResponse;
+//	}
+
+	public ServiceResponse getAllgetTravelModes() {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
 	        List<TravelMode> modeList = travelModeRepository.findAll();
+	        List<TravelModeDTO> dtoList = new ArrayList<>();
 
-	        if (modeList.isEmpty()) {
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            serviceResponse.setServiceError("No travel reasons found.");
-	        } else {
-	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            serviceResponse.setServiceResponse(modeList);
+	        for (TravelMode mode : modeList) {
+	            TravelModeDTO dto = new TravelModeDTO();
+	            dto.setTravelModeId(mode.getTravelModeId());
+	            dto.setModeType(mode.getModeType());
+	            dto.setDescription(mode.getDescription());
+	            dto.setIsActive(mode.getIsActive());
+	            dto.setCreatedBy(mode.getCreatedBy());
+	            dto.setCreatedOn(mode.getCreatedOn());
+
+//	            if (mode.getTravelReasonId() != null) {
+//	                dto.setTravelReasonName(mode.getTravelReasonId().getTravelReasonName());
+//	            }
+
+	            dtoList.add(dto);
 	        }
+
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        serviceResponse.setServiceResponse(dtoList);
+
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -790,7 +830,7 @@ public class TravelDeskService {
 	    return serviceResponse;
 	}
 
-
+	
 	public ServiceResponse getAllDocsThroughReqId(BigInteger requestId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		List<String> docIdList = new ArrayList<>();
@@ -829,6 +869,47 @@ public class TravelDeskService {
 		}
 //		return serviceResponse;
 	}
+	
+	
+	 public ServiceResponse saveTravelClass(TravelClassRequest dto) {
+	        ServiceResponse response = new ServiceResponse();
+
+	        try {
+	            // Fetch TravelReason by name
+	        	 TravelReason travelReason = travelReasonRepository
+	     	            .findByTravelReasonName(dto.getTravelReason())
+	     	            .orElseThrow(() -> new RuntimeException("TravelReason not found: " + dto.getTravelReason()));
+
+//	            TravelReason travelReason = travelReasonRepository
+//	                    .findByTravelReasonName(dto.getTravelReasonName())
+//	                    .orElseThrow(() -> new RuntimeException("Travel Reason not found: " + dto.getTravelReasonName()));
+
+	            // Fetch TravelMode by reason and modeType
+//	            TravelMode travelMode = travelModeRepository
+//	                    .findByTravelModeName(dto.getTravelMode())
+//	                    .orElseThrow(() -> new RuntimeException("Travel Mode not found for reason and mode: " + dto.getTravelMode()));
+
+	            TravelClass travelClass = new TravelClass();
+	            travelClass.setTravelReason(travelReason);
+//	            travelClass.setTravelMode(travelMode);
+	            travelClass.setTravelClass(dto.getTravelClass());
+	            travelClass.setDescription(dto.getDescription());
+	            travelClass.setCreatedBy(dto.getCreatedBy());
+	            travelClass.setIsActive("Y");
+
+	            travelClassRepository.save(travelClass);
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Travel Class saved successfully.");
+	        } catch (Exception e) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceError(e.getMessage());
+	        }
+
+	        return response;
+	    }
+	}
+
 
 	public ServiceResponse uploadTicket(MultipartFile file, String displayName, Long uploadedBy, BigInteger requestId) {
 
@@ -924,4 +1005,3 @@ public class TravelDeskService {
 
 
 
-}

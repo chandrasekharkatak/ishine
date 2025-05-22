@@ -1,18 +1,17 @@
 package com.apmosys.employeeportal.dto;
 
-import java.sql.Timestamp;
-
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class TravelModeDTO {
+public class TravelClassRequest {
+    private Long travelReasonId;
     private String travelReason;
+    private String travelMode;
+
     private Long travelModeId;
-    private String modeType;
+    private String travelClass;
     private String description;
-    private String isActive;
     private Long createdBy;
-    private Timestamp createdOn;
 }

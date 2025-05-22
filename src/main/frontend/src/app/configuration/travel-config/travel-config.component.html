@@ -499,74 +499,70 @@
 
 
 
-
-<div class="row"
-    *ngIf="classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode">
-    <div class="card col-md-12 px-0">
-        <div class="card-header text-center text-uppercase">
-            <strong>Reason For Travel</strong>
-        </div>
-        <div class="card-body">
-
-
-            <div class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Reason For Travel</label>
-                            <mat-select class="form-control" multiple>
-                                <mat-option>
-
-                                </mat-option>
-                                <mat-option>
-
-                                </mat-option>
-                            </mat-select>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Travel mode</label>
-                            <mat-select class="form-control" multiple>
-                                <mat-option>
-
-                                </mat-option>
-                                <mat-option>
-
-                                </mat-option>
-                            </mat-select>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Travel Class</label>
-                        <input #myInput type="text" class="form-control" autocomplete="off">
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Description</label>
-                        <input #myInput type="text" class="form-control" autocomplete="off">
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-sm mx-1" style="margin-left: 10px;"> Submit
-                    </button>
-                </div>
-
-                <!-- <div class="col-md-4 mb-3">
-            <div class="form-group">
-              <label class="info-label"><span class="text-danger">*</span> Travel </label>
-              <input #myInput type="text" class="form-control" autocomplete="off">
-            </div>
-          </div> -->
-
-            </div>
-
-        </div>
+  <div class="row"
+  *ngIf="classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode">
+  <div class="card col-md-12 px-0">
+    <div class="card-header text-center text-uppercase">
+      <strong>Travel Class</strong>
     </div>
+    <div class="card-body">
+
+      <form #travelClassForm="ngForm" (ngSubmit)="submitTravelClass(alert_message)">
+
+        <div class="row">
+          <!-- Reason For Travel Dropdown -->
+          <div class="col-md-4 mb-0">
+            <div class="info-wrapper">
+              <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Reason For Travel</label>
+                <select class="form-control" [(ngModel)]="selectedTravelReasons" name="selectedTravelReason" required>
+                  <option value="" disabled selected>Select a reason</option>
+                  <option *ngFor="let reason of travelReasonlist" [value]="reason.travelReasonName">
+                    {{ reason.travelReasonName }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Travel Mode Dropdown -->
+          <div class="col-md-4 mb-0">
+            <div class="info-wrapper">
+              <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
+                <select class="form-control" [(ngModel)]="selectedTravelModes" name="selectedTravelMode" required>
+                  <option value="" disabled selected>Select a mode</option>
+                  <option *ngFor="let mode of travelModelist" [value]="mode.modeType">
+                    {{ mode.modeType }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Travel Class Input -->
+          <div class="col-md-4 mb-3">
+            <div class="form-group">
+              <label class="info-label"><span class="text-danger">*</span>Travel Class</label>
+              <input type="text" class="form-control" [(ngModel)]="travelClass" name="travelClass" autocomplete="off" required>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="col-md-4 mb-3">
+            <div class="form-group">
+              <label class="info-label"><span class="text-danger">*</span>Description</label>
+              <input type="text" class="form-control" [(ngModel)]="description" name="description" autocomplete="off" required>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="col-md-12 text-end">
+            <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
 </div>

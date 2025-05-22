@@ -85,5 +85,9 @@ export class TravelDeskService {
   uploadTicket(formData:FormData){
     return this.http.post(`${this.baseUrl}`+`api/uploadTicket`,formData);
   }
+
+  saveTravelClass(travelModeObj: any) {
+    return this.http.post(`${this.baseUrl}`+`api/saveTravelClass`, travelModeObj);
+  }
   
 }

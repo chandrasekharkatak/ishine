@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.TravelClassRequest;
 import com.apmosys.employeeportal.dto.TravelDeskDTO;
 import com.apmosys.employeeportal.dto.TravelModeDTO;
 import com.apmosys.employeeportal.dto.TravelReasonDTO;
@@ -118,4 +119,8 @@ public class TravelDeskController {
 		ServiceResponse serviceResponse = travelDeskService.uploadTicket(file, displayName, uploadedBy,requestId);
 		return serviceResponse;
 	}
+    @PostMapping("/saveTravelClass")
+    public ServiceResponse saveTravelClass(@RequestBody TravelClassRequest travelClassDTO) {
+        return travelDeskService.saveTravelClass(travelClassDTO);
+    }
 }

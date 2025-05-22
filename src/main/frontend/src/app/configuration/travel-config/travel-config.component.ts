@@ -37,6 +37,8 @@ export class TravelConfigComponent implements OnInit {
   travelReasonlist: any[] = []; 
   travelModelist: any[] = [];
   selectedTravelReasons: string[] = [];
+  selectedTravelModes: string[] = [];
+  travelClass :any ;
   handlePageChange(event) {
     this.page = event;
   }
@@ -239,6 +241,36 @@ toggleSearchReviewType() {
       console.error(response.serviceResponse);
     }
   }
+
+
+
+  async submitTravelClass(template: TemplateRef<any>) {
+    if (!this.selectedTravelReasons || !this.selectedTravelModes || !this.travelClass || !this.description) {
+      this.openAlertMod(template, "All fields are required.");
+      return;
+    }
+  
+    const travelClassPayload = {
+      travelReason: this.selectedTravelReasons,
+      travelMode: this.selectedTravelModes,
+      travelClass: this.travelClass,
+      description: this.description,
+      createdBy: this.currentEmployeeInfo?.empId || 0
+    };
+  
+    try {
+      const response: any = await this.travelDesk.saveTravelClass(travelClassPayload).toPromise();
+      if (response.serviceStatus === 'Success') {
+        this.openAlertMod(template, 'Travel Class saved successfully!');
+      } else {
+        alert('Error saving travel class: ' + response.serviceError);
+      }
+    } catch (error) {
+      console.error('API error:', error);
+      this.openAlertMod(template, 'Unexpected error occurred!');
+    }
+  }
+  
 
 
 }
