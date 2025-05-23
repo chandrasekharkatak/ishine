@@ -33,6 +33,10 @@ import { ValidationService } from 'src/app/services/validation.service';
   feature="Profile";
   userMapping:any = {};
   cityOptions: string[] = [];
+  travelModelistByReason: any[] = [];
+  travelClasslistByReason:any[] = [];
+  selectedTravelReasons: string = '';
+
 
   //modal 
   alertMessage:any;
@@ -68,6 +72,9 @@ import { ValidationService } from 'src/app/services/validation.service';
   locationStrategy: any;
   domainSpecializationList: any[];
   todayDate: string;
+  travelReasonlist: any[] = []; 
+  hotelSubCategorylist: any;
+  hotelCategorylist: any;
 
 
 
@@ -86,6 +93,7 @@ import { ValidationService } from 'src/app/services/validation.service';
   }
 
   ngOnInit(): void {
+    this.onGetTravelReason();
 
     const today = new Date();
     today.setDate(today.getDate() + 7);
@@ -100,6 +108,8 @@ import { ValidationService } from 'src/app/services/validation.service';
     });
     
     this.preventBackButton();
+    this.onGetHotelCategory();
+    this.onGetHotelSubCategory();
 
     //this.updateCityOptions(cityCategory);
 
@@ -195,10 +205,10 @@ async submitForm(template: TemplateRef<any>) {
       this.openAlertMod(template, "Please enter the Purpose of Travel.");
       return;
     }
-    if (!this.fileUploads || this.fileUploads.length === 0 || !this.fileUploads.some(f => f.file)) {
-      this.openAlertMod(template, "Please enter a valid document.");
-      return;
-    }
+    // if (!this.fileUploads || this.fileUploads.length === 0 || !this.fileUploads.some(f => f.file)) {
+    //   this.openAlertMod(template, "Please enter a valid document.");
+    //   return;
+    // }
 
     // First upload the file
     // const fileFormData = new FormData();
@@ -468,6 +478,94 @@ fileUploads: any[] = [{}];
       removeInputSpecializationField(index: number) {
         this.fileUploads.splice(index, 1);
       }
+
+
+
+      async onGetTravelReason(){
+
+        const response: any = await this.travelDesk.getTravelReason().toPromise();
+        if (response.serviceStatus == "Success") {
+          this.travelReasonlist = response.serviceResponse;
+        
+          console.log("travelReasonlist   ::::::: : ", this.travelReasonlist);
+    
+        } else {
+          console.error(response.serviceResponse);
+        }
+      }
+
+
+      async onTravelReasonChange(selectedTravelReasons: string) {
+        console.log('Selected reason:', selectedTravelReasons);
+        this.travelModelistByReason = [];
+        if (selectedTravelReasons == "Hotel & Lodging"){
+          this.onGetHotelCategory();
+          this.onGetHotelSubCategory();
+        }
+        try {
+          const response: any = await this.travelDesk.getTravelModeByReason(selectedTravelReasons).toPromise();
+          if (response.serviceStatus === "Success") {
+            this.travelModelistByReason = response.serviceResponse;
+            console.log("Filtered travel modes:", this.travelModelistByReason);
+          } else {
+            console.error("Failed to fetch travel modes:", response.serviceResponse);
+          }
+         
+        } catch (error) {
+          console.error("Error fetching travel modes:", error);
+        }
+      }
+
+
+      async onModeChange(selectedTravelMode: string) {
+        console.log('Selected Mode:', selectedTravelMode);
+        this.travelClasslistByReason = [];
+        try {
+          const response: any = await this.travelDesk.getTravelClassByMode(selectedTravelMode).toPromise();
+          if (response.serviceStatus === "Success") {
+            this.travelClasslistByReason = response.serviceResponse;
+            console.log("travelClasslistByReason :", this.travelClasslistByReason);
+          } else {
+            console.error("Failed to fetch travel Class:", response.serviceResponse);
+          }
+         
+        } catch (error) {
+          console.error("Error fetching travel Class:", error);
+        }
+      }
+
+
+
+      async onGetHotelCategory(){
+    
+        const response: any = await this.travelDesk.getHotelCategory().toPromise();
+        if (response.serviceStatus == "Success") {
+          this.hotelCategorylist = response.serviceResponse;
+        
+          console.log("hotelCategorylist   ::::::: : ", this.hotelCategorylist);
+    
+        } else {
+          console.error(response.serviceResponse);
+        }
+      }
+
+
+
+      async onGetHotelSubCategory(){
+    
+        const response: any = await this.travelDesk.getHotelSubCategory().toPromise();
+        if (response.serviceStatus == "Success") {
+          this.hotelSubCategorylist = response.serviceResponse;
+        
+          console.log("hotelSubCategorylist   ::::::: : ", this.hotelSubCategorylist);
+    
+        } else {
+          console.error(response.serviceResponse);
+        }
+      }
+
+
+      
 
       
 }

@@ -15,11 +15,11 @@ public class TravelClass {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long travelClassId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "travel_reason_id", nullable = false)
     private TravelReason travelReason;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "travel_mode_id", nullable = false)
     private TravelMode travelMode;
 

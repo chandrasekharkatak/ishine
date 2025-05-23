@@ -9,20 +9,23 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 @Entity
-public class TravelMode {
+public class City {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long travelModeId;
+    private Long cityId;
 
-    // Proper ManyToOne relationship
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "travel_reason_id", nullable = false)
-    private TravelReason travelReason;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hotel_category_id", nullable = false)
+    private HotelCategory hotelCategory;
 
-    private String modeType;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hotel_sub_category_id", nullable = false)
+    private HotelSubCategory hotelSubCategory;
+
+    private String cityName;
     private String description;
-    private String isActive;
+    private String isActive = "Y";
     private Long createdBy;
 
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)

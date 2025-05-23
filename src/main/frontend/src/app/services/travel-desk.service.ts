@@ -89,6 +89,47 @@ export class TravelDeskService {
   saveTravelClass(travelModeObj: any) {
     return this.http.post(`${this.baseUrl}`+`api/saveTravelClass`, travelModeObj);
   }
+
+
+  // getTravelModeByReason(travelModeObj: any) {
+  //   console.log(travelModeObj);
+  //   return this.http.post(`${this.baseUrl}`+`api/getTravelModeByReason`, travelModeObj);
+  // }
+
+  getTravelModeByReason(travelReason: string) {
+    console.log(travelReason);
+    return this.http.post(`${this.baseUrl}api/getTravelModeByReason`, travelReason, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  saveHotelCategory(reason: any) {
+    return this.http.post(`${this.baseUrl}`+`api/saveHotelCategory`, reason);
+  }
+
+  getHotelCategory() {
+    return this.http.get(`${this.baseUrl}` + `api/getHotelCategory`);
+  }
+  
+
+  saveHotelSubCategory(reason: any) {
+    return this.http.post(`${this.baseUrl}`+`api/saveHotelSubCategory`, reason);
+  }
+
+  getHotelSubCategory() {
+    return this.http.get(`${this.baseUrl}` + `api/getHotelSubCategory`);
+  }
+
+  saveCity(reason: any) {
+    return this.http.post(`${this.baseUrl}`+`api/saveCity`, reason);
+  }
+
+  getTravelClassByMode(travelReason: string) {
+    console.log(travelReason);
+    return this.http.post(`${this.baseUrl}api/getTravelClassByMode`, travelReason, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
   
 
 

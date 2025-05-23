@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.naming.factory.SendMailFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
@@ -22,18 +21,27 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.CityDTO;
+import com.apmosys.employeeportal.dto.HotelCategoryDTO;
+import com.apmosys.employeeportal.dto.HotelSubCategoryDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TravelClassRequest;
 import com.apmosys.employeeportal.dto.TravelDeskDTO;
 import com.apmosys.employeeportal.dto.TravelModeDTO;
 import com.apmosys.employeeportal.dto.TravelReasonDTO;
+import com.apmosys.employeeportal.model.City;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.HotelCategory;
+import com.apmosys.employeeportal.model.HotelSubCategory;
 import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.TravelClass;
 import com.apmosys.employeeportal.model.TravelDesk;
 import com.apmosys.employeeportal.model.TravelMode;
 import com.apmosys.employeeportal.model.TravelReason;
+import com.apmosys.employeeportal.repository.CityRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.HotelCategoryRepository;
+import com.apmosys.employeeportal.repository.HotelSubCategoryRepository;
 import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.TravelClassRepository;
 import com.apmosys.employeeportal.repository.TravelDeskRepository;
@@ -64,6 +72,16 @@ public class TravelDeskService {
 	
 	 @Autowired
 	 private TravelClassRepository travelClassRepository;
+	 
+	 @Autowired
+	 private HotelCategoryRepository hotelCategoryRepository;
+	 
+	 
+	 @Autowired
+	 private HotelSubCategoryRepository hotelSubCategoryRepository;
+	 
+	 @Autowired
+	 private CityRepository cityRepository;
 	
 	@Value("${level2Approver}")
 	public String level2Approver;
@@ -811,9 +829,7 @@ public class TravelDeskService {
 	            dto.setCreatedBy(mode.getCreatedBy());
 	            dto.setCreatedOn(mode.getCreatedOn());
 
-//	            if (mode.getTravelReasonId() != null) {
-//	                dto.setTravelReasonName(mode.getTravelReasonId().getTravelReasonName());
-//	            }
+
 
 	            dtoList.add(dto);
 	        }
@@ -880,18 +896,20 @@ public class TravelDeskService {
 	     	            .findByTravelReasonName(dto.getTravelReason())
 	     	            .orElseThrow(() -> new RuntimeException("TravelReason not found: " + dto.getTravelReason()));
 
-//	            TravelReason travelReason = travelReasonRepository
-//	                    .findByTravelReasonName(dto.getTravelReasonName())
-//	                    .orElseThrow(() -> new RuntimeException("Travel Reason not found: " + dto.getTravelReasonName()));
+//	        	 TravelMode travelMode = travelModeRepository
+//	        		        .findById(dto.getTravelModeId())
+//	        		        .orElseThrow(() -> new RuntimeException("Travel Mode not found: " + dto.getTravelModeId()));
 
-	            // Fetch TravelMode by reason and modeType
-//	            TravelMode travelMode = travelModeRepository
-//	                    .findByTravelModeName(dto.getTravelMode())
-//	                    .orElseThrow(() -> new RuntimeException("Travel Mode not found for reason and mode: " + dto.getTravelMode()));
+	        	 String modeType = dto.getTravelMode();
+	        	 
+	        	 TravelMode travelMode = travelModeRepository
+	        		        .findByModeType(modeType)
+	        		        .orElseThrow(() -> new RuntimeException("Travel Mode not found: " + dto.getTravelMode()));
+
 
 	            TravelClass travelClass = new TravelClass();
 	            travelClass.setTravelReason(travelReason);
-//	            travelClass.setTravelMode(travelMode);
+	            travelClass.setTravelMode(travelMode);
 	            travelClass.setTravelClass(dto.getTravelClass());
 	            travelClass.setDescription(dto.getDescription());
 	            travelClass.setCreatedBy(dto.getCreatedBy());
@@ -1002,6 +1020,217 @@ public class TravelDeskService {
 		
 	}
 }
+	
+	public ServiceResponse getTravelModeByReason(String travelReasonName) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	        TravelReason travelModeBasedOnReason = travelReasonRepository
+	            .findByTravelReasonName(travelReasonName)
+	            .orElseThrow(() -> new RuntimeException("TravelReason not found: " + travelReasonName));
+
+	        System.out.println(travelModeBasedOnReason);
+
+	        Long travelReasonId = travelModeBasedOnReason.getId(); 
+	        System.out.println("Travel Reason ID: " + travelReasonId);
+
+	        List<TravelMode> modeList = travelModeRepository.findByTravelReasonId(travelReasonId);
+
+	        if (modeList.isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("No travel modes found.");
+	        } else {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(modeList);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        serviceResponse.setServiceError("Error fetching travel modes: " + e.getMessage());
+	    }
+
+	    return serviceResponse;
+	}
+	
+	
+	public ServiceResponse saveHotelCategory(HotelCategoryDTO hotelCategoryDTO) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	        HotelCategory hotelCategory = new HotelCategory();
+	        hotelCategory.setHotelCategory(hotelCategoryDTO.getHotelCategory());
+	        hotelCategory.setDescription(hotelCategoryDTO.getDescription());
+	        hotelCategory.setIsActive("Y");
+	        hotelCategory.setCreatedBy(hotelCategoryDTO.getCreatedBy()); 
+
+	        HotelCategory savedCategory = hotelCategoryRepository.save(hotelCategory);
+
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        serviceResponse.setServiceResponse(savedCategory); 
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        serviceResponse.setServiceError("Failed to save hotel category: " + e.getMessage());
+	    }
+
+	    return serviceResponse;
+	}
+	
+	
+	public ServiceResponse getHotelCategory() {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	        List<HotelCategory> hotelCategoryist = hotelCategoryRepository.findAll();
+
+	        if (hotelCategoryist.isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("No hotel Category found.");
+	        } else {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(hotelCategoryist);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        serviceResponse.setServiceError("Error fetching hotelCategoryist: " + e.getMessage());
+	    }
+
+	    return serviceResponse;
+	}
+
+	
+	public ServiceResponse saveHotelSubCategory(HotelSubCategoryDTO dto) {
+	    ServiceResponse response = new ServiceResponse();
+
+	    try {
+	        // Fetch HotelCategory entity by name
+//	        HotelCategory hotelCategory = hotelCategoryRepository
+//	            .findHotelCategoryById(dto.getHotelCategory())
+//	            .orElseThrow(() -> new RuntimeException("HotelCategory not found: " + dto.getHotelCategory()));
+	    	
+	    	Long hotelCategoryId = Long.parseLong(dto.getHotelCategory()); // Convert String to Long
+
+	    	HotelCategory hotelCategory = hotelCategoryRepository
+	    	    .findById(hotelCategoryId)
+	    	    .orElseThrow(() -> new RuntimeException("HotelCategory not found: " + dto.getHotelCategory()));
+
+	        HotelSubCategory subCategory = new HotelSubCategory();
+	        subCategory.setHotelCategory(hotelCategory); // Set the entity, not just ID
+	        subCategory.setHotelSubCategoryName(dto.getHotelSubCategoryName());
+	        subCategory.setDescription(dto.getDescription());
+	        subCategory.setIsActive("Y");
+	        subCategory.setCreatedBy(dto.getCreatedBy());
+
+	        hotelSubCategoryRepository.save(subCategory);
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Hotel Sub-Category saved successfully.");
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError("Error saving Hotel Sub-Category: " + e.getMessage());
+	    }
+
+	    return response;
+	}
+	
+	
+	public ServiceResponse getHotelSubCategory() {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	        List<HotelSubCategory> hotelSubCategoryist = hotelSubCategoryRepository.findAll();
+
+	        if (hotelSubCategoryist.isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("No hotel Category found.");
+	            return serviceResponse;
+	        } else {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(hotelSubCategoryist);
+	            return serviceResponse;
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        serviceResponse.setServiceError("Error fetching hotelCategoryist: " + e.getMessage());
+	        return serviceResponse;
+	    }
+
+	    
+	}
+	
+	
+	public ServiceResponse saveCity(CityDTO dto) {
+	    ServiceResponse response = new ServiceResponse();
+
+	    try {
+	        HotelCategory hotelCategory = hotelCategoryRepository
+	                .findById(dto.getHotelCategoryId())
+	                .orElseThrow(() -> new RuntimeException("HotelCategory not found with ID: " + dto.getHotelCategoryId()));
+
+	        HotelSubCategory hotelSubCategory = hotelSubCategoryRepository
+	                .findById(dto.getHotelSubCategoryId())
+	                .orElseThrow(() -> new RuntimeException("HotelSubCategory not found with ID: " + dto.getHotelSubCategoryId()));
+
+	        City city = new City();
+	        city.setHotelCategory(hotelCategory);
+	        city.setHotelSubCategory(hotelSubCategory);
+	        city.setCityName(dto.getCityName());
+	        city.setDescription(dto.getDescription());
+	        city.setIsActive("Y");
+	        city.setCreatedBy(dto.getCreatedBy());
+
+	        cityRepository.save(city);
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("City saved successfully.");
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError("Error saving city: " + e.getMessage());
+	    }
+
+	    return response;
+	}
+	
+	
+	public ServiceResponse getTravelClassByMode(String travelModeName) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+//	        TravelReason travelModeBasedOnReason = travelReasonRepository
+//	            .findByTravelReasonName(travelReasonName)
+//	            .orElseThrow(() -> new RuntimeException("TravelReason not found: " + travelReasonName));
+	        
+	        TravelMode getTravelClassByMode = travelModeRepository
+		            .findByModeType(travelModeName)
+		            .orElseThrow(() -> new RuntimeException("TravelClass not found: " + travelModeName));
+		        
+	        
+
+	        System.out.println(getTravelClassByMode);
+
+	        Long travelModeId = getTravelClassByMode.getTravelModeId(); 
+	        System.out.println("Travel Mode ID: " + travelModeId);
+
+	        Optional<List<TravelClass>> classList = travelClassRepository.findByTravelModeId(travelModeId);
+
+	        if (classList.isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("No travel modes found.");
+	        } else {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(classList);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        serviceResponse.setServiceError("Error fetching travel modes: " + e.getMessage());
+	    }
+
+	    return serviceResponse;
+	}
+
+
+
+	
+}
+
 
 
 

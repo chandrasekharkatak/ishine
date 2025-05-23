@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.CityDTO;
+import com.apmosys.employeeportal.dto.HotelCategoryDTO;
+import com.apmosys.employeeportal.dto.HotelSubCategoryDTO;
 import com.apmosys.employeeportal.dto.TravelClassRequest;
 import com.apmosys.employeeportal.dto.TravelDeskDTO;
 import com.apmosys.employeeportal.dto.TravelModeDTO;
@@ -123,4 +126,41 @@ public class TravelDeskController {
     public ServiceResponse saveTravelClass(@RequestBody TravelClassRequest travelClassDTO) {
         return travelDeskService.saveTravelClass(travelClassDTO);
     }
+    
+    @PostMapping("/getTravelModeByReason")
+    public ServiceResponse getTravelModeByReason(@RequestBody String travelReason) {
+        return travelDeskService.getTravelModeByReason(travelReason);
+    }
+    
+    @PostMapping("/saveHotelCategory")
+    public ServiceResponse saveHotelCategory(@RequestBody HotelCategoryDTO dto) {
+        return travelDeskService.saveHotelCategory(dto);
+    }
+    
+	@GetMapping("/getHotelCategory")
+	public ServiceResponse getHotelCategory() {
+	    return travelDeskService.getHotelCategory();
+	}
+	
+	@PostMapping("/saveHotelSubCategory")
+	public ServiceResponse saveHotelSubCategory(@RequestBody HotelSubCategoryDTO hotelSubCategoryDTO) {
+	    return travelDeskService.saveHotelSubCategory(hotelSubCategoryDTO);
+	}
+	
+	@GetMapping("/getHotelSubCategory")
+	public ServiceResponse getHotelSubCategory() {
+	    return travelDeskService.getHotelSubCategory();
+	}
+	
+	@PostMapping("/saveCity")
+	public ServiceResponse saveCity(@RequestBody CityDTO cityDTO) {
+	    return travelDeskService.saveCity(cityDTO);
+	}
+	
+    @PostMapping("/getTravelClassByMode")
+    public ServiceResponse getTravelClassByMode(@RequestBody String travelReason) {
+        return travelDeskService.getTravelClassByMode(travelReason);
+    }
+
+    
 }
