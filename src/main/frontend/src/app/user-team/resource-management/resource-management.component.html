@@ -1634,17 +1634,20 @@
                                     <label>Existing Team Members</label>
                                     <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index" style="display: flex;">
                                         <div *ngIf="member.resourceOverviewId == requirement.resourceOverviewId" style="display: flex; min-width: 80%;max-width: fit-content;">
-                                            <input type="text" placeholder="Name" [value]="member.name" class="form-control name-field" readonly />
-                                            <mat-select class="form-control role-field" multiple [(ngModel)]="member.employeeRole">
-                                                <mat-option selected="selected" value="" disabled>Select</mat-option>
-                                                <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
-                                            </mat-select>
-                                            <mat-select class="form-control billable-field" placeholder="Select" [(ngModel)]="member.newBillableType">
+                                            <div style="padding-right: 10px;">
+                                                <input type="text" placeholder="Name" [value]="member.name" class="form-control name-field" readonly />
+                                            </div>
+                                            <div style="padding-right: 10px;">
+                                                <mat-select class="form-control role-field" multiple [(ngModel)]="member.employeeRole">
+                                                    <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                                    <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
+                                                </mat-select>
+                                            </div>
+                                            <!-- <mat-select class="form-control billable-field" placeholder="Select" [(ngModel)]="member.newBillableType">
                                                 <mat-option *ngFor="let type of ['TNM', 'Fixed Cost', 'Shadow', 'InternalRNDProducts', 'Bench']" [value]="type">
                                                 {{ type }}
                                                 </mat-option>
-                                            </mat-select>
-                        
+                                            </mat-select> -->
                                             <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(member, i)">
                                                 <i class="fa fa-trash" aria-hidden="true"></i>
                                             </button>
@@ -1653,7 +1656,6 @@
                                             <label style="color: #040404;">No existing team members to display...</label>
                                         </div> -->
                                     </div>
-
                                     <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
                                         <label style="color: #040404;">No existing team members to display...</label>
                                     </div>
