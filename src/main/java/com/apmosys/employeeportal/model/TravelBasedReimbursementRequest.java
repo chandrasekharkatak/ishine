@@ -38,5 +38,11 @@ public class TravelBasedReimbursementRequest {
     
     @Column(name = "doc_id")
   	private Long docId;
+    
+    private String rejectReason;
+    
+    private String reimbursementStatus;
+    
+    private Boolean isValid;
 
 }

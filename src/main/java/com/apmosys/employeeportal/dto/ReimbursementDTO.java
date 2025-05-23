@@ -57,6 +57,9 @@ public class ReimbursementDTO {
     private Timestamp dateOfFood;
     private String reportingManagerId ;
 	private String reportingManagerName ;
+	private String rejectReason; 
+	private String reimbursementStatus;
+	private Boolean isValid;
     
     
    

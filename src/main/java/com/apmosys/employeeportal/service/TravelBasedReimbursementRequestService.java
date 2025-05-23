@@ -271,6 +271,8 @@ public ServiceResponse previewDocument(TravelBasedReimbursementRequestDTO reimbu
 		
 				byte[] imageByte;
 				try {
+					
+//					System.err.println("document"+traveldeskFileLocation);
 				    String fullPath = traveldeskFileLocation + File.separator
 				   
 				        + travelDocDetails.getFileName();
@@ -361,6 +363,7 @@ public ServiceResponse getAllInvoices() {
     	        dto.setLevel2Approver(object[17] != null ? object[17].toString() : null);
 //    	        dto.setLevel2ApproverName(object[17] != null ? object[17].toString() : null);
     	        dto.setLevel2ApproverStatus(object[18] != null ? object[18].toString() : null);
+    	        dto.setReimbursementStatus(object[19] != null ? object[19].toString() : null);
     	       
     	        
     	        
@@ -397,6 +400,145 @@ public ServiceResponse getAllInvoices() {
 }
 
 
+
+
+public ServiceResponse updateInvoicesDetailsByAccountsTeam(TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
+	 ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("updateInvoicesDetailsByAccountsTeam");
+	    apiLogInfo.setApiUrl("/api/updateInvoicesDetailsByAccountsTeam");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+//	    logBuilder.append("Newsletter: ").append(displayName)
+//	              .append(", uploadedBy: ").append(uploadedBy);
+
+	    try {
+	       
+	        TravelBasedReimbursementRequest invoiceDetails= travelBasedReimbursementRequestRepository.findInvoiceDetails(reimbursementRequestDTO.getInvoiceNo());
+	        
+	        if(invoiceDetails != null) {
+	        	invoiceDetails.setIsValid(true);
+	        	invoiceDetails.setReimbursementStatus("Approved");
+	        	if(reimbursementRequestDTO.getRejectReason() != null) {
+	        		invoiceDetails.setRejectReason(reimbursementRequestDTO.getRejectReason());
+	        		invoiceDetails.setIsValid(false);
+	        		invoiceDetails.setReimbursementStatus("Rejected");
+	        	}
+	        	
+//	        	 invoiceDetails.setDocId(travelDocDetails.getDocumentId());
+		            System.err.println("uploadedByinvoiceNo: " + invoiceDetails);
+		            TravelBasedReimbursementRequest dbResponse=  travelBasedReimbursementRequestRepository.save(invoiceDetails);
+		            
+		            
+		            if(dbResponse != null) {
+		            	  response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse(dbResponse);
+							
+							apiLogInfo.setApiResponse("Update Invoices Details By Accounts Team  Completed!!");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		            }else {
+		            	  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse(dbResponse);
+							
+							apiLogInfo.setApiResponse("Update Invoices Details By Accounts Team  Failed!!");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            }
+		          
+	        	
+	        }
+	        }catch(Exception e) {
+	        	e.printStackTrace();
+	    		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	    		response.setServiceResponse("Something Went Wrong.");
+	    		response.setServiceError(e.getMessage());
+	    		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	    		apiLogInfo.setLogLevel("ERROR");
+	        }
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+}
+
+
+
+
+public ServiceResponse getAllInvoicesByEmpId(TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
+	ServiceResponse response = new ServiceResponse();
+	List<TravelDeskDTO> details= new ArrayList();
+	LogDTO apiLogInfo = new LogDTO();
+
+	apiLogInfo.setSubFeatureName("Get");
+	apiLogInfo.setApiUrl("/api/getAllInvoices");
+	apiLogInfo.setLogLevel("INFO");
+	StringBuilder logBuilder = new StringBuilder();
+	
+
+	
+	try {
+
+
+		List<Object[]> invoicesDetails=travelBasedReimbursementRequestRepository.findAllByTravelByEmpId(reimbursementRequestDTO.getUploadedBy());
+		
+       if(invoicesDetails != null) {
+    	   for(Object[] object:invoicesDetails) {
+    		   TravelDeskDTO dto= new TravelDeskDTO();
+    		   dto.setTravelId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+    		   dto.setInvoiceNo(object[1] != null ? object[1].toString():null);
+//    		   dto.setInvoiceDate(object[2] != null ?(object[2].toString()):null);
+    		   dto.setAmount(object[3] != null ? Double.parseDouble(object[3].toString()):null);
+    		   dto.setDocIdTrevel(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+    		   dto.setFullName(object[5] != null ? object[6].toString():null);
+    		   dto.setEmail(object[6] != null ? object[6].toString():null);
+    		   dto.setRequestType(object[7] != null ? object[7].toString():null);
+    		   dto.setTravelMode(object[8] != null ? object[8].toString() : null);
+    	        dto.setTravelClass(object[9] != null ? object[9].toString() : null);
+    	        dto.setFromLocation(object[10] != null ? object[10].toString() : null);
+    	        dto.setToLocation(object[11] != null ? object[11].toString() : null);
+    	        dto.setFromDate(object[12] != null ?  Timestamp.valueOf(object[12].toString()) : null);
+    	        dto.setToDate(object[13] != null ? Timestamp.valueOf(object[13].toString()): null);
+    	        dto.setStatus(object[14] != null ? object[14].toString() : null);
+    	        dto.setLevel1approverRemarks(object[15] != null ? object[15].toString() : null);
+//    	        dto.setLevel1ApproveBy(object[15] != null ? object[15].toString() : null);
+    	        dto.setHodName(object[16] != null ? object[16].toString() : null);
+    	        dto.setLevel2Approver(object[17] != null ? object[17].toString() : null);
+//    	        dto.setLevel2ApproverName(object[17] != null ? object[17].toString() : null);
+    	        dto.setLevel2ApproverStatus(object[18] != null ? object[18].toString() : null);
+    	        dto.setReimbursementStatus(object[19] != null ? object[19].toString() : null);
+    	       
+    	        
+    	        
+    	        details.add(dto);
+    	        
+    		   
+    		   }
+    	  
+    	   
+    	   
+    	  
+       }
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(details);
+			
+			apiLogInfo.setApiResponse("Documents Found !!");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+
+	} catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		response.setServiceError(e.getMessage());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setLogLevel("ERROR");
+	}
+
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
+	return response;
+	
+}
 
 	
 }

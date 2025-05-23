@@ -47,6 +47,7 @@ public class TravelDeskDTO {
 	    private Long docIdTrevel;
 	    private Integer travelId;
 	    private String RequestType;
+	    private String reimbursementStatus;
 		
 	
 	    

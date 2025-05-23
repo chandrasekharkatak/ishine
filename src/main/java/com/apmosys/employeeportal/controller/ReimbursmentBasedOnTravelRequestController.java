@@ -61,5 +61,13 @@ public class ReimbursmentBasedOnTravelRequestController {
 		return ResponseEntity.ok(travelBasedService.getAllInvoices());
 	}
 	
-
+	@RequestMapping(value = "/updateInvoicesDetailsByAccountsTeam", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> updateInvoicesDetailsByAccountsTeam(@RequestBody TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
+		return ResponseEntity.ok(travelBasedService.updateInvoicesDetailsByAccountsTeam(reimbursementRequestDTO));
+	}
+	
+	@RequestMapping(value = "/getAllInvoicesByEmpId", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> getAllInvoicesByEmpId(@RequestBody TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
+		return ResponseEntity.ok(travelBasedService.getAllInvoicesByEmpId(reimbursementRequestDTO));
+	}
 }

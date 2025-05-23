@@ -310,6 +310,9 @@ export class MyReimbursementComponent implements OnInit {
         if (response.serviceStatus == "Success") {
 
           this.resetAfterSubmit();
+          this.fileUploads=[];
+          this.addInputSpecializationField();
+
 
           this.openAlertMod(template, "Success! Your request was processed successfully!");
 

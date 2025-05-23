@@ -37,6 +37,10 @@ public class TravelBasedReimbursementRequestDTO {
     private Long docId;
     private byte[] documentBytes;
     private String ticketFileName;
+    
+    private String rejectReason; 
+    private String reimbursementStatus;
+    private Boolean isValid;
 //    private  List<MultipartFile> fileName;
 
 }

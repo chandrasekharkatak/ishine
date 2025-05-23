@@ -19,8 +19,9 @@
                     <a class="nav-link timesheet__tab-item__link" id="team-timesheet-tab" data-toggle="tab" role="tab"
                         aria-controls="team-timesheet" aria-selected="false" routerLink="approve-travelrequest">Approve Travel Request</a>
                 </li>
+                <!-- *ngIf="userMapping.total_travelrequest" -->
                 <!--for managers-->
-                <li class="nav-item timesheet__tab-item" >
+                <li  *ngIf="userMapping.total_travelrequest" class="nav-item timesheet__tab-item" >
                     <a class="nav-link timesheet__tab-item__link" id="team-timesheet-tab" data-toggle="tab" role="tab"
                         aria-controls="team-timesheet" aria-selected="false" routerLink="total-travelrequest">Total Travel Request</a>
                 </li>

@@ -2,11 +2,22 @@
 <div class="row">
   <div class="col-md-12">
     <div class="row">
-      <div class="col-md-12 table-header">
-        <h1 class="table-header-title">My TravelRequest History</h1>
+      <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="mb-0 text-primary">Travel Request History</h2>
+          <!-- <small class="text-light">Track and manage your past travel reimbursement submissions</small> -->
+        </div>
+
+        <button type="button" class="btn btn-primary"
+          (click)="getAllInvoicesByEmpId(alert_message1,this.currentUser.empId)" *ngIf="!invoiceDetails">
+          Travel Based Request History
+        </button>
+        <button type="button" class="btn btn-primary" (click)="fetchAllInvoice1()" *ngIf="invoiceDetails">
+          View My Travel Request
+        </button>
       </div>
     </div>
-    <div class="row">
+    <div class="row" *ngIf="!invoiceDetails">
       <div class="col-md-12">
         <div class="d-flex align-items-center justify-content-between mt-3">
 
@@ -124,8 +135,8 @@
                       <em class="fa fa-success"></em> Apply Reimbursement
                     </button>
                     <!-- *ngIf="row.finalStatus === 'Approved' && isBeforeOrOnFromDate(row.fromDate)" -->
-                    <button type="button" *ngIf="row.finalStatus === 'Approved' && isBeforeOrOnFromDate(row.fromDate)"class="btn btn-primary btn-sm ml-2"
-                      (click)="downLoadTicket(alert_message, row.ticketDocId)">
+                    <button type="button" *ngIf="row.finalStatus === 'Approved' && isBeforeOrOnFromDate(row.fromDate)"
+                      class="btn btn-primary btn-sm ml-2" (click)="downLoadTicket(alert_message, row.ticketDocId)">
                       <em class="fa fa-success"></em> Ticket Download
                     </button>
 
@@ -146,6 +157,82 @@
   </div>
 </div>
 
+<div class="row" *ngIf="invoiceDetails">
+  <div class="col-12 table-responsive">
+    <table class="table table-bordered table-hover text-center ">
+      <thead class="thead-dark">
+        <tr>
+          <th>Travel ID</th>
+          <th>From</th>
+          <th>To</th>
+          <th>From Date</th>
+          <th>To Date</th>
+          <th>Travel Mode</th>
+          <th>Travel Class</th>
+          <th>Invoice No</th>
+          <th>Amount</th>
+          <th>Preview Document</th>
+          <!-- *ngIf="this.currentUser.departmentName === 'Accounts'" -->
+          <th>Status</th>
+          <th> Action </th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container
+          *ngFor="let key of objectKeys(groupedInvoiceData) | paginate: { itemsPerPage: 10, currentPage: page }">
+          <ng-container *ngIf="groupedInvoiceData[key].invoices.length > 0">
+            <tr *ngFor="let invoice of groupedInvoiceData[key].invoices; let i = index">
+              <td *ngIf="i === 0" [attr.rowspan]="groupedInvoiceData[key].invoices.length">{{
+                groupedInvoiceData[key].commonInfo.travelId }}</td>
+              <td *ngIf="i === 0" [attr.rowspan]="groupedInvoiceData[key].invoices.length">{{
+                groupedInvoiceData[key].commonInfo.fromLocation }}</td>
+              <td *ngIf="i === 0" [attr.rowspan]="groupedInvoiceData[key].invoices.length">{{
+                groupedInvoiceData[key].commonInfo.toLocation }}</td>
+              <td *ngIf="i === 0" [attr.rowspan]="groupedInvoiceData[key].invoices.length">{{
+                groupedInvoiceData[key].commonInfo.fromDate | date:'yyyy-MM-dd' }}</td>
+              <td *ngIf="i === 0" [attr.rowspan]="groupedInvoiceData[key].invoices.length">{{
+                groupedInvoiceData[key].commonInfo.toDate | date:'yyyy-MM-dd' }}</td>
+              <td *ngIf="i === 0" [attr.rowspan]="groupedInvoiceData[key].invoices.length">{{
+                groupedInvoiceData[key].commonInfo.travelMode }}</td>
+              <td *ngIf="i === 0" [attr.rowspan]="groupedInvoiceData[key].invoices.length">{{
+                groupedInvoiceData[key].commonInfo.travelClass }}</td>
+
+              <td>{{ invoice.invoiceNo }}</td>
+              <td>{{ invoice.amount }}</td>
+              <td>
+                <button type="button" class="btn btn-outline-primary sm"
+                  (click)="preview(invoiceop, invoice.docIdTrevel)">
+                  <em class="fa fa-eye">View</em>
+                </button>
+              </td>
+              <!-- *ngIf="this.currentUser.departmentName === 'Accounts'" -->
+              <td>
+                <div>
+                  <span class="badge badge-success" *ngIf="invoice.reimbursementStatus === 'Approved'">Approved</span>
+                  <span class="badge badge-danger" *ngIf="invoice.reimbursementStatus === 'Rejected'">Rejected</span>
+                  <span class="badge badge-warning"
+                    *ngIf="invoice.reimbursementStatus !== 'Approved' && invoice.reimbursementStatus !== 'Rejected'">
+                    Pending
+                  </span>
+                </div>
+
+              </td>
+              <td>
+                <button *ngIf="invoice.reimbursementStatus === 'Rejected'" type="button" class="btn btn-primary"
+                  title="Resubmit Your Invoice Details"
+                  (click)="reimbursmentModelForRejected(RejectedReimbursment,groupedInvoiceData[key].commonInfo.fromDate,groupedInvoiceData[key].commonInfo.toDate,groupedInvoiceData[key].commonInfo.travelId)">
+                  Resubmit
+                </button>
+              </td>
+
+          </ng-container>
+        </ng-container>
+      </tbody>
+    </table>
+    <pagination-controls class="my-3 justify-content-center" (pageChange)="handlePageChange($event)">
+    </pagination-controls>
+  </div>
+</div>
 
 
 
@@ -424,6 +511,7 @@
             <label class="info-label"><span class="text-danger">*</span>Invoice No</label>
             <input type="text" class="form-control" [(ngModel)]="invoice.invoiceNo"
               (blur)="checkInvoiceNumberPresentorNot(alert_message,invoice.invoiceNo)" name="invoiceNo{{i}}" required />
+
           </div>
 
           <div class="col-md-3">
@@ -467,6 +555,83 @@
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+
+<ng-template #invoiceop>
+  <div class="modal-body text-center">
+    <div *ngIf="selectedDocument">
+      <ng-container *ngIf="selectedDocument?.toString().includes('application/pdf'); else imageBlock">
+        <iframe [src]="selectedDocument" width="100%" height="600px"></iframe>
+      </ng-container>
+
+      <ng-template #imageBlock>
+        <img [src]="selectedDocument" class="img-fluid" alt="Document Preview" />
+      </ng-template>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="cancelRequestDocument()">OK</button>&nbsp;
+  </div>
+</ng-template>
+
+
+
+<ng-template #RejectedReimbursment>
+  <div class="row justify-content-center">
+    <div class="card col-md-12 px-0">
+      <div class="card-header text-center text-uppercase">
+        <strong>Update Your Invoice Details</strong>
+        <!-- <strong *ngIf="isUpdation">Update Timesheet</strong> -->
+      </div>
+      <div class="card-body">
+        <div class="row ml-3">
+
+
+          <div *ngFor="let invoice of invoices; let i = index" class="row mb-3 align-items-end">
+            <div class="col-md-3">
+              <label class="info-label"><span class="text-danger">*</span>Invoice No</label>
+              <input type="text" class="form-control" [(ngModel)]="invoice.invoiceNo"
+                (blur)="checkInvoiceNumberPresentorNot(alert_message,invoice.invoiceNo)" name="invoiceNo{{i}}"
+                required />
+
+            </div>
+
+            <div class="col-md-3">
+              <label class="info-label"><span class="text-danger">*</span>Invoice Date</label>
+              <input type="date" class="form-control" [(ngModel)]="invoice.invoiceDate" name="invoiceDate{{i}}"
+                [min]="selectedTravelRequest.fromDate" [max]="selectedTravelRequest.toDate" required />
+            </div>
+
+
+            <div class="col-md-3">
+              <label class="info-label"><span class="text-danger">*</span>Amount</label>
+              <input type="number" class="form-control" (keypress)="restrictingAlphaAndCharacter($event)"
+                [(ngModel)]="invoice.amount" name="invoiceAmount{{i}}" required />
+            </div>
+
+            <div class="col-md-3">
+              <label class="info-label"><span class="text-danger">*</span>Upload Invoice</label>
+              <input type="file" class="form-control" (change)="onInvoiceFileChange($event, i,alert_message)"
+                required />
+            </div>
+
+
+          </div>
+
+
+
+
+
+        </div>
+        <div class="row justify-content-center">
+          <div class="col-md-auto">
+            <button type="button" class="btn btn-primary btn-lg" (click)="submitInvoice(alert_message)">
+              Submit
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

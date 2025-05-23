@@ -62,6 +62,7 @@
                   <th scope="col" class="info-label">Level 1 Approver Name</th>
                   <th scope="col" class="info-label">Level 1 Approver Status</th>
                   <th scope="col" class="info-label">Level 1 Approver Remarks</th> -->
+                  <th>Reimbursement Status</th>
                 <th scope="col" class="info-label">Action</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="reimbursementActiveColumns"
@@ -127,10 +128,16 @@
                                 }">
                   {{ row.finalStatus || 'NA'}}
                 </td>
-                <!-- <td>{{ row.level }}</td> -->
-                <!-- <td>{{ row.hodName }}</td> -->
-                <!-- <td>{{ row.status }}</td> -->
-                <!-- <td>{{ row.level1approverRemarks }}</td> -->
+                <td> 
+                  <div>
+                    <span class="badge badge-success" *ngIf="row.reimbursementStatus === 'Approved'">Reimbursement Done</span>
+                    <span class="badge badge-danger" *ngIf="row.reimbursementStatus === 'Rejected'">Rejected(Reapply)</span>
+                    <span class="badge badge-warning" *ngIf="row.reimbursementStatus !== 'Approved' && row.reimbursementStatus !== 'Rejected'">
+                      Pending
+                    </span>
+                  </div>
+                  
+                  </td>
                 <td>
 
                   <div class="d-inline-flex">

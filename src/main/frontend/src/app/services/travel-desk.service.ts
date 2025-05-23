@@ -90,4 +90,10 @@ export class TravelDeskService {
     return this.http.post(`${this.baseUrl}`+`api/saveTravelClass`, travelModeObj);
   }
   
+
+
+  getAllInvoicesByEmpId(travelModeObj: any) {
+    return this.http.post(`${this.baseUrl}`+`api/getAllInvoicesByEmpId`, travelModeObj);
+  }
+  
 }

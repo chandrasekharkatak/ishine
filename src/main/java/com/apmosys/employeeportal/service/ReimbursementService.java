@@ -8,9 +8,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+
 import java.sql.Timestamp;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +26,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ReimbursementDTO;
+import com.apmosys.employeeportal.dto.TravelBasedReimbursementRequestDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.ReimbursementData;
+import com.apmosys.employeeportal.model.TravelBasedReimbursementRequest;
 import com.apmosys.employeeportal.model.TravelDesk;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.NewsletterRepository;
@@ -43,6 +49,12 @@ public class ReimbursementService {
 	@Autowired
 	private MailService mailService;
 
+	@Autowired
+	private LogService logService;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;	
+	
 	@Autowired
 	private NewsletterRepository newsletterRepository;
 
@@ -631,5 +643,172 @@ public class ReimbursementService {
 
 	
 	
+	public ServiceResponse getAllDocumentsReimbursmentThroughRequestId(BigInteger requestId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		List<String> docIdList = new ArrayList<>();
+		try {
+			
+			ReimbursementData travelData = reimbursementDataRepository.findByRequestId(requestId);
+			if(travelData == null) {
+				serviceResponse.setServiceResponse("No data found for the given request !!");
+				serviceResponse.setServiceMessage("No data found for the given request !!");
+				serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
+				return serviceResponse;
+			}
+			else {
+			String docIds = travelData.getDocId();
+			if(docIds != null) {
+			docIdList = Arrays.stream(docIds.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+			serviceResponse.setServiceResponse(docIdList);
+			serviceResponse.setServiceStatus(serviceResponse.STATUS_SUCCESS);
+			return serviceResponse;
+			}
+			else {
+				serviceResponse.setServiceResponse("No document found for the given request !!");
+				serviceResponse.setServiceMessage("No document found for the given request !!");
+				serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
+				return serviceResponse;
+			}
+			}
+		}
+		catch(Exception e) {
+			serviceResponse.setServiceResponse(e.getMessage());
+			serviceResponse.setServiceStatus(serviceResponse.STATUS_FAIL);
+			serviceResponse.setServiceMessage("Something went wrong !!");
+			return serviceResponse;
+		}
+//		return serviceResponse;
+	}
+
+
+
+public ServiceResponse previewDocumentReimbursment(TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
+	ServiceResponse response = new ServiceResponse();
+	
+	LogDTO apiLogInfo = new LogDTO();
+
+	apiLogInfo.setSubFeatureName("Save");
+	apiLogInfo.setApiUrl("/api/previewDocument");
+	apiLogInfo.setLogLevel("INFO");
+	StringBuilder logBuilder = new StringBuilder();
+	
+
+	
+	try {
+
+
+		TravelBasedReimbursementRequestDTO docDTO = new TravelBasedReimbursementRequestDTO();
+		Newsletter travelDocDetails = newsletterRepository.findByDocId(reimbursementRequestDTO.getDocId());
+		
+				byte[] imageByte;
+				try {
+					
+//					System.err.println("document"+traveldeskFileLocation);
+				    String fullPath = reimbursementFileLocation + File.separator
+				   
+				        + travelDocDetails.getFileName();
+
+				    Path path = Paths.get(fullPath);
+
+				    if (Files.exists(path)) {
+				        imageByte = Files.readAllBytes(path);
+				        docDTO.setDocumentBytes(imageByte);
+				        docDTO.setTicketFileName(travelDocDetails.getFileName());
+//				        docDto.setFileName(travelDocDetails.getFileName());
+				    } else {
+				        System.err.println("File not found at path: " + fullPath);
+				    }
+				} catch (IOException e) {
+				    e.printStackTrace(); // or use a logger
+				}
+
+				
+
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(docDTO);
+			
+			apiLogInfo.setApiResponse("Documents Found !!");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+
+	} catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		response.setServiceError(e.getMessage());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setLogLevel("ERROR");
+	}
+
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
+	return response;
+	
+}
+
+
+
+public ServiceResponse updateReimbursementDetailsByAccountsTeam(ReimbursementDTO reimbursementRequestDTO) {
+	 ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("updateInvoicesDetailsByAccountsTeam");
+	    apiLogInfo.setApiUrl("/api/updateInvoicesDetailsByAccountsTeam");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+//	    logBuilder.append("Newsletter: ").append(displayName)
+//	              .append(", uploadedBy: ").append(uploadedBy);
+
+	    try {
+	       
+//	        TravelBasedReimbursementRequest invoiceDetails= travelBasedReimbursementRequestRepository.findInvoiceDetails(reimbursementRequestDTO.getInvoiceNo());
+	        ReimbursementData existingReimbursementData = reimbursementDataRepository
+					.findByRequestId(reimbursementRequestDTO.getRequestId());
+	        if(existingReimbursementData != null) {
+	        	existingReimbursementData.setIsValid(true);
+	        	existingReimbursementData.setReimbursementStatus("Approved");
+	        	if(reimbursementRequestDTO.getRejectReason() != null) {
+	        		existingReimbursementData.setRejectReason(reimbursementRequestDTO.getRejectReason());
+	        		existingReimbursementData.setIsValid(false);
+	        		existingReimbursementData.setReimbursementStatus("Rejected");
+	        	}
+	        	
+//	        	 invoiceDetails.setDocId(travelDocDetails.getDocumentId());
+//		            System.err.println("uploadedByinvoiceNo: " + invoiceDetails);
+	        	ReimbursementData dbResponse=  reimbursementDataRepository.save(existingReimbursementData);
+		            
+		            
+		            if(dbResponse != null) {
+		            	  response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse(dbResponse);
+							
+							apiLogInfo.setApiResponse("Update Invoices Details By Accounts Team  Completed!!");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		            }else {
+		            	  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse(dbResponse);
+							
+							apiLogInfo.setApiResponse("Update Invoices Details By Accounts Team  Failed!!");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            }
+		          
+	        	
+	        }
+	        }catch(Exception e) {
+	        	e.printStackTrace();
+	    		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	    		response.setServiceResponse("Something Went Wrong.");
+	    		response.setServiceError(e.getMessage());
+	    		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	    		apiLogInfo.setLogLevel("ERROR");
+	        }
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+}
 	
 }

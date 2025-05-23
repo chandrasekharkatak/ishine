@@ -4,6 +4,7 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { MyReimbursement } from 'src/app/models/reimbursement';
+import { TravelBased } from 'src/app/models/travelBasedReimbursement';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
@@ -44,7 +45,7 @@ export class TotalReimbursementrequestComponent implements OnInit {
 
   ngOnInit(): void {
     this.onGetReimbursementInfo();
-    this.fetchAllInvoice();
+    
 
   }
 
@@ -54,7 +55,8 @@ export class TotalReimbursementrequestComponent implements OnInit {
      this.reimbursementInfo = new MyReimbursement();
       let reimbursementData = new MyReimbursement();
 
-      console.log('currentEmployeeInfo ::::::::::::::::',this.currentEmployeeInfo);
+      console.log('currentEmployeeInfo ::::::::::::::::',this.currentEmployeeInfo.departmentName
+      );
       reimbursementData.empId = this.currentUser.empId;  
 
       console.log('reimbursementData Data  ::::::::::::::::', reimbursementData);
@@ -62,8 +64,17 @@ export class TotalReimbursementrequestComponent implements OnInit {
       const response: any = await this.reimbursementService.fetchTotalReimbursementData(reimbursementData).toPromise();
       
       if (response.serviceStatus === "Success") {
-        this.reimbursementRequests = response.serviceResponse;  
-        console.log('Fetched Reimbursement Requests:', this.reimbursementRequests);
+        this.reimbursementRequests = response.serviceResponse;
+
+        console.log('All reimbursement data:', this.reimbursementRequests);
+      
+        if (this.currentUser.departmentName === 'Accounts') {
+          this.reimbursementRequests = this.reimbursementRequests.filter(
+            (item: any) => item.finalStatus === 'Approved'
+          );
+          console.log('Filtered for Development + Approved:', this.reimbursementRequests);
+        }
+      
         this.selectedReimbursementRequest = this.reimbursementRequests;
       } else {
         console.error('Error fetching data:', response.serviceResponse);
@@ -153,7 +164,8 @@ exportToExcel(): void {
       "Level 3 Approver Name": x.level3approverName,
       "Level 3 Approver Status": x.level3approverStatus,
       "Level 3 Approver Remarks": x.level3approverRemarks,
-      "Final Status": x.finalStatus
+      "Final Status": x.finalStatus,
+      "Reimbursement Status":x.reimbursementStatus?x.reimbursementStatus:'Pending'
     })
   )
   this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
@@ -162,7 +174,8 @@ exportToExcel(): void {
 isSearchEnabled: boolean = false;
 filters: any = {};
 
-reimbursementActiveColumns: any[] = ['requestId', 'fullName', 'fromDate', 'toDate', 'dateOfFood', 'expenditureType', 'travelMode', 'distance', 'currency', 'amount', 'appliedBy', 'appliedOn', 'purpose'];
+
+reimbursementActiveColumns: any[] = ['requestId', 'fullName', 'fromDate', 'toDate', 'expenditureType', 'travelMode', 'distance', 'currency', 'foodAllowanceType', 'dateOfFood', 'amount', 'appliedBy','appliedOn', 'purpose','level','hodName','status','level1approverRemarks','level2approverName','level2approverStatus','level2approverRemarks','level3approverName','level3approverStatus','level3approverRemarks'];
 onSearch(searchData) {
   if (this.isSearchEnabled == true) {
     this.filters = searchData;
@@ -180,11 +193,22 @@ toggleSearch() {
 objectKeys = Object.keys;
 groupedInvoiceData: any = {};
 invoiceDetails:boolean = false;
+// fetchAllInvoice1(){
+//   this.invoiceDetails=!this.invoiceDetails;
+// }
+fetchAllInvoice1(){
+  this.invoiceDetails=false;
+  this.onGetReimbursementInfo();
+}
+
+Excell:any[]=[];
 fetchAllInvoice() {
-  this.invoiceDetails=!this.invoiceDetails;
+  this.invoiceDetails=true;
   this.reimbursementService.fetchAllInvoice().pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Success") {
       const rawData = response.serviceResponse;
+      this.Excell=response.serviceResponse;
+     
 
       // Group data by travelId
       const grouped: any = {};
@@ -199,7 +223,8 @@ fetchAllInvoice() {
         grouped[travelId].invoices.push({
           invoiceNo: item.invoiceNo,
           amount: item.amount,
-          docIdTrevel: item.docIdTrevel
+          docIdTrevel: item.docIdTrevel,
+          reimbursementStatus:item.reimbursementStatus
         });
       });
 
@@ -212,7 +237,6 @@ fetchAllInvoice() {
 
 cancelRequestDocument() {
   this.modalRef.hide();
-
 }
 getMimeTypeFromBase64(base64: string): string {
   const header = atob(base64.slice(0, 20));
@@ -262,4 +286,175 @@ selectedDocument: any;
     }
   
 }
+
+
+
+docList: any[] = [];
+ openViewDocModule(template: TemplateRef<any>, requestId:any){
+    this.alertMessage = null;
+    this.getAllDocumentsThroughRequestId(requestId);
+    if(this.docList != null && this.alertMessage == null){
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    }
+    else{
+      this.openAlertMod(this.alertTemplate,this.alertMessage)
+    }
+     
+  }
+
+
+  async getAllDocumentsThroughRequestId(requestId:any) {
+    const response:any = await this.reimbursementService.getAllDocumentsReimbursmentThroughRequestId(requestId).toPromise()
+    if (response.serviceStatus === "Success") {
+      this.docList = response.serviceResponse;
+      console.log(this.docList,"this.docList")
+    }
+    else{
+      this.docList = null;
+      this.alertMessage = response.serviceMessage;
+    }
+  }
+  viewSelectedDocument(doc: any) {
+    console.log(doc,"doc");
+    this.previewDocument(doc);
+    }
+
+    async previewDocument(docId: any) {
+      const requestPayload = { docId: docId };
+      const response: any = await this.reimbursementService.previewDocumentReimbursment(requestPayload).toPromise();
+  
+      if (response.serviceStatus === 'Success' && response.serviceResponse?.documentBytes) {
+        const base64Data = response.serviceResponse.documentBytes;
+        const mimeType = this.getMimeTypeFromBase64(base64Data);
+  
+        if (mimeType === 'application/pdf') {
+          const pdfUrl = `data:application/pdf;base64,${base64Data}`;
+          this.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
+        } else if (mimeType.startsWith('image/')) {
+          const imgUrl = `data:${mimeType};base64,${base64Data}`;
+          this.selectedDocument = imgUrl; // image binding is safe by default
+        } else {
+          // Handle other file types: Download
+          const link = document.createElement('a');
+          link.href = `data:application/octet-stream;base64,${base64Data}`;
+          link.download = 'document';
+          link.click();
+        }
+      }
+    }
+
+   
+    account1:TravelBased=new TravelBased();
+    rejectPopUp(template:TemplateRef<any>,details:any){
+      this.modalRef = this.modalService.show(template, {
+        class: 'modal-sm'
+      });
+      this.account1.invoiceNo=details.invoiceNo;
+      this.account1.travelId = details.travelId;
+    }
+
+
+    rejectPopUpForIndividualReimbursement(template:TemplateRef<any>,details:any){
+      this.modalRef = this.modalService.show(template, {
+        class: 'modal-sm'
+      });
+     
+      this.account1.requestId = details.requestId;
+    }
+    account:TravelBased=new TravelBased();
+    accountSubmit(template:TemplateRef<any>, details:any){
+      this.account.invoiceNo=details.invoiceNo;
+      this.account.travelId = details.travelId;
+      this.account.rejectReason = details.rejectReason;
+      
+      // this.account.rejectReason = details.rejectReason;
+      // this.account.reimbursementStatus = details.reimbursementStatus;
+      // this.account.isValid = details.isValid;
+      console.log("details",this.account);
+      this.modalRef.hide();
+      this.reimbursementService.updateInvoicesDetailsByAccountsTeam(this.account).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus == "Success") {
+              
+               this.fetchAllInvoice();
+             
+              this.openAlertMod(template, "Reimbursment Status Updated !!");
+            } else {
+
+              this.openAlertMod(template, response.serviceResponse);
+            }
+          });
+    }
+
+
+    getApprovedTotal(invoices: any[]): number {
+      if (!invoices || invoices.length === 0) return 0;
+    
+      return invoices
+        .filter(inv => inv.reimbursementStatus === 'Approved')
+        .reduce((sum, inv) => sum + (inv.amount || 0), 0);
+    }
+    
+
+
+    updateReimbursementDetailsByAccountsTeam(template:TemplateRef<any>, details:any){
+      
+      this.account.requestId = details.requestId;
+      this.account.rejectReason = details.rejectReason;
+      
+      // this.account.rejectReason = details.rejectReason;
+      // this.account.reimbursementStatus = details.reimbursementStatus;
+      // this.account.isValid = details.isValid;
+      console.log("details",this.account);
+      this.modalRef.hide();
+      this.reimbursementService.updateReimbursementDetailsByAccountsTeam(this.account).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus == "Success") {
+              
+               this.onGetReimbursementInfo();
+             
+              this.openAlertMod(template, "Reimbursment Status Updated !!");
+            } else {
+
+              this.openAlertMod(template, response.serviceResponse);
+            }
+          });
+    }
+
+    isSearchEnabledTravel:boolean=false;
+    reimbursementActiveColumns1: any[] = ['requestId', 'fullName', 'fromDate', 'toDate', 'expenditureType', 'travelMode', 'distance', 'currency', 'foodAllowanceType', 'dateOfFood', 'amount', 'appliedBy','appliedOn', 'purpose','level','hodName','status','level1approverRemarks','level2approverName','level2approverStatus','level2approverRemarks','level3approverName','level3approverStatus','level3approverRemarks'];
+    onSearchTravel(searchData) {
+      if (this.isSearchEnabledTravel == true) {
+        this.filters = searchData;
+        console.log("Updated Filter : ", this.filters);
+      }
+    }
+    
+    toggleSearchTravel() {
+      this.isSearchEnabledTravel = !this.isSearchEnabledTravel;
+      if (!this.isSearchEnabledTravel) {
+        this.filters = {};
+      }
+    }
+
+
+
+
+
+   name1= 'TravelBasedRequest.xlsx'
+    exportToExcelTravel(){
+      const onlySpecificDataArr = this.Excell.map(
+        x => ({
+          "Travel Id": x.travelId,
+          "From Location": x.fromLocation,
+          "To Location": x.toLocation,
+          "From Date": x.fromDate,
+          "To Date": x.toDate,
+          "Travel Mode ": x.travelMode,
+          "Travel Class": x.travelClass,
+          "Invoice No": x.invoiceNo,
+          "Amount": x.amount,
+           "Reimbursement Status":x.reimbursementStatus?x.reimbursementStatus:'Pending'
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name1)
+    }
 }

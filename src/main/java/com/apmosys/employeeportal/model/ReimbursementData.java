@@ -155,6 +155,10 @@ public class ReimbursementData {
 
 	@Column(name = "level3_approver_Name")
 	private String level3approverName;
+	
+    private String rejectReason; 
+    private String reimbursementStatus;
+	private Boolean isValid;
 
 //	@Column(name = "doc_ids")
 //	private String docIds;

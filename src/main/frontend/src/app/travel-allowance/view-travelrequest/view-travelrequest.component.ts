@@ -28,6 +28,7 @@ export class ViewTravelrequestComponent implements OnInit {
   domainSpecializationList: any[];
   currentUser: any;
   alertMessage: any;
+  invoiceDetails:boolean=false;
 
   constructor(private travelDesk: TravelDeskService,
     private modalService: BsModalService,
@@ -303,6 +304,12 @@ export class ViewTravelrequestComponent implements OnInit {
     this.openAlertMod(template, "");
 
   }
+  reimbursmentModelForRejected(template: TemplateRef<any>, fromDate: any,toDate:any, row:any){
+    this.selectedTravelRequest.fromDate = this.formatDate(fromDate);
+    this.selectedTravelRequest.toDate = this.formatDate(toDate);
+    this.travelId = row.travelId;
+    this.openAlertMod(template, "");
+  }
   restrictingAlphaAndCharacter(event) {
     const k = event.charCode;
     if (k >= 48 && k <= 57) {
@@ -357,15 +364,25 @@ export class ViewTravelrequestComponent implements OnInit {
 
 
 
-  isInvoiceRowValid(invoice: any): boolean {
-    return (
-      invoice.invoiceNo?.trim() &&
-      invoice.invoiceDate &&
-      invoice.amount !== null &&
-      invoice.amount !== undefined &&
-      invoice.file1
-    );
+  isInvoiceRowValid(invoice: any, index: number): boolean {
+    const invoiceNo = invoice.invoiceNo?.trim();
+  
+    if (
+      !invoiceNo ||
+      !invoice.invoiceDate ||
+      invoice.amount === null ||
+      invoice.amount === undefined ||
+      !invoice.file1
+    ) {
+      return false;
+    }
+  
+    // Check for duplicate invoiceNo
+    const isDuplicate = this.invoices.some((inv, i) => i !== index && inv.invoiceNo?.trim() === invoiceNo);
+  
+    return !isDuplicate;
   }
+  
   getFileDetails() {
     this.invoices.forEach(async (invoice, index) => {
       if (invoice.file1) {
@@ -413,7 +430,7 @@ export class ViewTravelrequestComponent implements OnInit {
   submitInvoice(template: TemplateRef<any>) {
     const travelId = this.travelId;
     const uploadedBy = this.currentUser.empId;
-
+    console.log("Testing",travelId);
     const cleanedInvoices = this.invoices.map(invoice => ({
       ...invoice,
       travelId: travelId,
@@ -422,7 +439,13 @@ export class ViewTravelrequestComponent implements OnInit {
 
     }));
 
-
+    const invoiceNos = cleanedInvoices.map(inv => inv.invoiceNo?.trim());
+    const duplicateInvoiceNos = invoiceNos.filter((no, idx) => no && invoiceNos.indexOf(no) !== idx);
+  
+    if (duplicateInvoiceNos.length > 0) {
+      this.openAlertMod1(template, "Duplicate invoice number(s) found. Please ensure all invoice numbers are unique.");
+      return;
+    }
     const hasInvalidInvoice = cleanedInvoices.some(invoice =>
       !invoice.invoiceNo ||
       !invoice.invoiceDate ||
@@ -431,7 +454,7 @@ export class ViewTravelrequestComponent implements OnInit {
       !invoice.uploadedBy ||
       !invoice.fileName
     );
-
+    console.log("Testing",cleanedInvoices);
     if (hasInvalidInvoice) {
 
       this.openAlertMod1(template, "Please fill all required invoice fields before submitting.");
@@ -524,6 +547,101 @@ export class ViewTravelrequestComponent implements OnInit {
     });
   }
 
+  fetchAllInvoice(){
+    this.invoiceDetails=!this.invoiceDetails;
+  }
+  
 
+  fetchAllInvoice1(){
+    this.invoiceDetails=!this.invoiceDetails;
+  }
+  objectKeys = Object.keys;
+  groupedInvoiceData: any = {};
+  getAllInvoicesByEmpId(template: TemplateRef<any>, userId:any) {
+    this.invoiceDetails=!this.invoiceDetails;
+    const invoice = {
+      uploadedBy: userId,
 
+    };
+    console.log("Test", this.invoices);
+    this.travelDesk.getAllInvoicesByEmpId(invoice).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        const rawData = response.serviceResponse;
+        
+       
+  
+        // Group data by travelId
+        const grouped: any = {};
+        rawData.forEach((item: any) => {
+          const travelId = item.travelId || 'unknown';
+          if (!grouped[travelId]) {
+            grouped[travelId] = {
+              commonInfo: item,
+              invoices: []
+            };
+          }
+          grouped[travelId].invoices.push({
+            invoiceNo: item.invoiceNo,
+            amount: item.amount,
+            docIdTrevel: item.docIdTrevel,
+            reimbursementStatus:item.reimbursementStatus
+          });
+        });
+  
+        this.groupedInvoiceData = grouped;
+        console.log("Grouped Invoice Data", this.groupedInvoiceData);
+      }
+    });
+  }
+  
+  cancelRequestDocument() {
+    this.modalRef.hide();
+  }
+  getMimeTypeFromBase64(base64: string): string {
+    const header = atob(base64.slice(0, 20));
+    if (header.startsWith('%PDF')) return 'application/pdf';
+    if (header.startsWith('\x89PNG')) return 'image/png';
+    if (header.startsWith('\xFF\xD8\xFF')) return 'image/jpeg';
+    return 'application/octet-stream';
+  }
+  selectedDocument: any;
+  
+    async preview(template: TemplateRef<any>, id: any) {
+    console.log(template,"template");
+  
+    this.selectedDocument = null; 
+   
+  
+    const payload = { docId: id }; 
+  
+    
+   
+      const response: any = await this.travelDesk.previewDocument(payload).toPromise();
+  
+      if (response.serviceStatus === 'Success' && response.serviceResponse?.documentBytes) {
+        const base64Data = response.serviceResponse.documentBytes;
+        const mimeType = this.getMimeTypeFromBase64(base64Data);
+  
+        if (mimeType === 'application/pdf') {
+          const pdfUrl = `data:application/pdf;base64,${base64Data}`;
+          this.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
+          this.modalRef = this.modalService.show(template, {
+            class: 'modal-xl'
+          });
+        } else if (mimeType.startsWith('image/')) {
+          const imgUrl = `data:${mimeType};base64,${base64Data}`;
+          this.selectedDocument = imgUrl; 
+          this.modalRef = this.modalService.show(template, {
+            class: 'modal-xl'
+          });
+        } else {
+          // Handle other file types: Download
+          const link = document.createElement('a');
+          link.href = `data:application/octet-stream;base64,${base64Data}`;
+          link.download = 'document';
+          link.click();
+        }
+      }
+    
+  }
 }

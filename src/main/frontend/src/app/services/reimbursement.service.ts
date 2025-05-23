@@ -47,4 +47,21 @@ export class ReimbursementService {
   fetchAllInvoice(){
     return this.http.get(`${this.baseUrl}` + `api/getAllInvoices`);
   }
+
+  getAllDocumentsReimbursmentThroughRequestId(requestId: any) {
+    return this.http.get(`${this.baseUrl}api/getAllDocumentsReimbursmentThroughRequestId?requestId=${requestId}`);
+  }
+
+  previewDocumentReimbursment(details:any){
+    return this.http.post(`${this.baseUrl}`+`api/previewDocumentReimbursment`,details);
+  }
+
+  updateInvoicesDetailsByAccountsTeam(details:any){
+    return this.http.post(`${this.baseUrl}`+`api/updateInvoicesDetailsByAccountsTeam`,details);
+  }
+  
+  updateReimbursementDetailsByAccountsTeam(details:any){
+    return this.http.post(`${this.baseUrl}`+`api/updateReimbursementDetailsByAccountsTeam`,details);
+  }
+  
 }
