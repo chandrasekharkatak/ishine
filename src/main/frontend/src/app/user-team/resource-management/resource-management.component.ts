@@ -173,6 +173,7 @@ export class ResourceManagementComponent implements OnInit {
   filteredManagerList: any[] = [];
   isAllManagersSelected: boolean = false;
   selectedRequirement: any = null;
+  teamMemberCtrl = new FormControl();
 
   constructor(
     private departmentService: DepartmentService,
@@ -1880,6 +1881,7 @@ onAction(action: string, project: any) {
     this.getEmployeeByNameAndEmpld();
 
     this.modalRef1 = this.modalService.show(template, { class: 'custom-modal' });
+    // this.modalRef1 = this.modalService.show(template, { class: 'modal-lg' });
   }
   
   openTeamMembersModal(template: any,projectObj,currentTeam) {

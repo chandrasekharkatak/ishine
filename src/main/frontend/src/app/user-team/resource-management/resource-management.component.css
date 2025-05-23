@@ -171,7 +171,7 @@ thead {
     height: calc(1.5rem + 2px);
     font-size: 1rem;
     background-color: #fff;
-    width: 100%;
+    width: 90%;
     min-width: 280px;
   }  
   
@@ -639,11 +639,15 @@ thead {
   }
   
   .name-field {
-    width: 300px;
+    width: 130px;
+  }
+
+  .name2-field {
+    width: 180px;
   }
 
   .role-field, .billable-field {
-    width: 120px;
+    width: 150px;
   }
 
   .two-column-layout {
@@ -652,11 +656,11 @@ thead {
   }
 
   .two-column-layout .team-member-col:first-child {
-    flex: 0 0 70%;
+    flex: 0 0 65%;
   }
 
   .two-column-layout .team-member-col:last-child {
-    flex: 0 0 40%;
+    flex: 0 0 30%;
   }
 
   .new-team-members {
