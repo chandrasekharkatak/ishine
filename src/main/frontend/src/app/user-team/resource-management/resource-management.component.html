@@ -308,10 +308,8 @@
         </div> -->
 
 
-        <div class="col-md-6" style="display: flex;
-      justify-content: left;
-      max-width: fit-content;">
-
+        <div class="col-md-6 d-flex align-items-center">
+            <div class="info-label me-2" ><label>Navigate to Employee 360 : </label></div>
             <input type="text" class="form-select custom-select-style" placeholder="Search by Name or Emp ID"
                 aria-label="Search employee" [formControl]="employeeCtrl" [matAutocomplete]="auto">
             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
@@ -319,7 +317,6 @@
                 <mat-option *ngFor="let emp of filteredEmployees" [value]="emp" [navigateToEmployee360]="emp.empId">{{
                     emp.name }}</mat-option>
             </mat-autocomplete>
-
         </div>
 
         <!-- <div class="col-md-1  align-items-center justify-content-around">
@@ -458,7 +455,7 @@
                                             <!-- Dropdown Menu -->
                                             <ul *ngIf="openMenuIndex === i" class="custom-dropdown">
                                                 <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
-                                                    (click)="openProjectPreviewModal(preview_team, project);closeMenu(i);isEditProject = false">
+                                                    (click)="openProjectPreviewModal(preview_team_new, project);closeMenu(i);isEditProject = false">
                                                     <i class="fas fa-eye"></i> Preview
                                                 </li>
                                                 <li
@@ -1396,14 +1393,14 @@
                         (change)="updateSelection()" />
                         <label>Team Name</label>
 
-                        <input type="text" class="form-control" [(ngModel)]="teamObj.teamName"
+                        <input type="text" class="form-control name-field" [(ngModel)]="teamObj.teamName"
                             (blur)="checkTeamName(alert_message, teamObj, i)">
                     </div>
 
                     <div class="form-field">
                         <label><span class="text-danger">*</span>Department</label>
             
-                        <mat-select class="form-control" [multiple]="true" [(ngModel)]="teamObj.departmentList">
+                        <mat-select class="form-control name-field" [multiple]="true" [(ngModel)]="teamObj.departmentList">
                     
                         <mat-option class="non-selectable" disabled>
                             <div style="display: flex; align-items: center;">
@@ -1447,7 +1444,7 @@
                         <button class="icon-button" (click)="addInputTeamField()">
                         <i class="fa-solid fa-square-plus" aria-hidden="true"></i>
                         </button>
-                        <button class="icon-button" (click)="openDeleteModalForTeam(delete_team_modal,alert_message, teamObj, projectObj)">
+                        <button class="icon-button m-1" (click)="openDeleteModalForTeam(delete_team_modal,alert_message, teamObj, projectObj)">
                         <i class="fa-solid fa fa-trash" aria-hidden="true"></i>
                         </button>
                     </div>
@@ -1459,41 +1456,28 @@
         </div>
     </ng-template>
 
-    <ng-template #teamMemberTemplate>
-        <div class="modal-body p-0">
-            <div class="team-modal-container">
-                <h3 class="modal-title">Project Requirements</h3>
+   <ng-template #teamMemberTemplate>
+    <div class="modal-body p-0">
+        <div class="team-modal-container">
+            <h3 class="modal-title">Project Requirements</h3>
+    
+            <div class="stats-row">
+                <div class="stat-box">
+                    <p>Total Requirements</p>
+                    <h4>{{ projectRequirementsList.totalRequirements || 0 }}</h4>
                 </div>
-                <div class="stats-row">
-                    <div class="stat-box">
-                        <p>Total Requirements</p>
-                        <h4>{{ projectRequirementsList.totalRequirements || 0 }}</h4>
-                    </div>
-                    <div class="stat-box">
-                        <p>Assigned</p>
-                        <h4>{{ projectRequirementsList.assigned || 0 }}</h4>
-                    </div>
-                    <div class="stat-box">
-                        <p>Difference</p>
-                        <h4>{{ projectRequirementsList.difference || 0 }}</h4>
-                    </div>
+                <div class="stat-box">
+                    <p>Assigned</p>
+                    <h4>{{ projectRequirementsList.assigned || 0 }}</h4>
                 </div>
-
-                <!-- Add Team Member Section -->
-                <h3 class="modal-title">Add Team Member</h3>
-
-                <div class="team-member-col mt-3">
-                    <label>Select Requirement</label>
-                    <mat-select placeholder="Select Requirement" [(ngModel)]="selectedRequirement">
-                        <mat-option *ngFor="let requirement of projectObj.resourceRequirements" [value]="requirement">
-                            {{ requirement.role }} || {{ requirement.department }} || {{ requirement.experience }}
-                        </mat-option>
-                    </mat-select>
+                <div class="stat-box">
+                    <p>Difference</p>
+                    <h4>{{ projectRequirementsList.difference || 0 }}</h4>
                 </div>
+            </div>
 
-                <div class="add-team-row mt-2">
-                    <input type="text" class="form-select name-field" placeholder="Search by Emp ID or Name"
-                        aria-label="Search employee" [formControl]="addMemberCtrl" [matAutocomplete]="addAuto" />
+            <!-- Add Team Member Section -->
+            <h3 class="modal-title">Add Team Member</h3>
 
             <div *ngIf="projectObj.resourceRequirements?.length > 0">
                 <div class="requirement-select-container">
@@ -1508,12 +1492,12 @@
         
             <div class="add-team-row mt-2">
                 <input type="text" class="form-select name-field w-100" placeholder="Search by Emp ID or Name"
-                 aria-label="Search employee" [formControl]="addMemberCtrl" [matAutocomplete]="addAuto" />
+                 aria-label="Search employee" [formControl]="teamMemberCtrl" [matAutocomplete]="teamMemberAuto" />
         
-                <mat-autocomplete #addAuto="matAutocomplete" (optionSelected)="onTeamMemberSelected($event)"
+                <mat-autocomplete #teamMemberAuto="matAutocomplete" (optionSelected)="onTeamMemberSelected($event)"
                 [displayWith]="displayEmployee">
-                    <mat-option *ngFor="let newteamMember of employeeListByDept | filterEmployee: addMemberCtrl.value"
-                        [value]="newteamMember">
+                    <mat-option *ngFor="let newteamMember of employeeListByDept | filterEmployee: teamMemberCtrl.value"
+                        [value]="newteamMember" [disabled]="newteamMember.isSelected">
                         {{ newteamMember.name }}
                     </mat-option>
                 </mat-autocomplete>
@@ -1547,35 +1531,37 @@
             <h3 class="modal-title">Team Member(s)</h3>
 
             <div *ngIf="projectObj.resourceRequirements?.length === 0">
-                <!-- mimic look of accordion-card -->
                 <div class="accordion-card">
                   <div class="accordion-content">
                     <div>
                         <div class="two-column-layout">
                             <div *ngIf="teamObj.allTeamMemberList" class="team-member-col">
                                 <label>Existing Team Members</label>
-                                <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index">
-                                    <div *ngIf="member.name">
-                                        <input type="text" placeholder="Name" [value]="member.name" class="form-control name-field" readonly />
-                                        <mat-select class="form-control role-field" multiple [(ngModel)]="member.employeeRole">
-                                            <mat-option selected="selected" value="" disabled>Select</mat-option>
-                                            <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
-                                        </mat-select>
+                                <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index" style="display: flex;">
+                                    <div *ngIf="member.name" style="display: flex; min-width: 80%; max-width: fit-content;">
+                                        <div style="padding-right: 10px;">
+                                            <input type="text" placeholder="Name" [value]="member.name" class="form-control name-field" readonly />
+                                        </div>
+                                        <div style="padding-right: 10px;">
+                                            <mat-select class="form-control role-field" multiple [(ngModel)]="member.employeeRole" style="padding: 3px;">
+                                                <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                                <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
+                                            </mat-select>
+                                        </div>
                                         <!-- <mat-select class="form-control billable-field" placeholder="Select" [(ngModel)]="member.newBillableType">
                                             <mat-option *ngFor="let type of ['TNM', 'Fixed Cost', 'Shadow', 'InternalRNDProducts', 'Bench']" [value]="type">
                                             {{ type }}
                                             </mat-option>
                                         </mat-select> -->
-                    
-                                        <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(member, i)">
-                                            <i class="fa fa-trash" aria-hidden="true"></i>
-                                        </button>
-                                    </div>
-                                    <!-- <div *ngIf="member.resourceOverviewId != requirement.resourceOverviewId">
-                                        <label style="color: #040404;">No existing team members to display...</label>
-                                    </div> -->
-                                    <div *ngIf="!member.name">
-                                        <label style="color: #040404;">No existing team members to display...</label>
+                                        <div>
+                                            <button type="button" class="btn btn-outline-primary mx-1" style="padding: 3px;" (click)="removeTeamMember(member, i)">
+                                                <i class="fa fa-trash" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <div *ngIf="!member.name">
+                                            <label style="color: #040404;">No existing team members to display...</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1584,12 +1570,16 @@
                                 <label>Shadow Resources</label>
                                 <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index">
                                     <div *ngIf="member.name">
-                                        <input type="text" class="form-select name-field" placeholder="Search by Emp ID or Name" aria-label="Search employee" [formControl]="employeeCtrl" [matAutocomplete]="auto">    
-                                        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onResourceSelected($event, member)" [displayWith]="displayEmployee">
-                                            <mat-option *ngFor="let emp of employeeListByDept | filterEmployee: addMemberCtrl.value" [value]="emp">
-                                            {{ emp.name }}
-                                            </mat-option>  
-                                        </mat-autocomplete>
+                                        <div style="padding-right: 10px; width: 200px;">
+                                            <input type="text" class="form-select name2-field" placeholder="Search by Emp ID or Name" aria-label="Search employee" [formControl]="employeeCtrl" [matAutocomplete]="auto">   
+                                        </div>
+                                        <div style="padding-right: 10px;">
+                                            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onResourceSelected($event, member)" [displayWith]="displayEmployee">
+                                                <mat-option *ngFor="let emp of employeeListByDept | filterEmployee: addMemberCtrl.value" [value]="emp">
+                                                {{ emp.name }}
+                                                </mat-option>  
+                                            </mat-autocomplete>
+                                        </div>
                                         <!-- <select class="form-control" [(ngModel)]="member.billableTypes">
                                             <option *ngFor="let billable of billabilities" [value]="billable">{{ billable }}</option>
                                         </select> -->
@@ -1597,9 +1587,10 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="two-column-layout team-member-col">
+                          
+                        <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class="two-column-layout team-member-col">
                             <label>New Team Members</label>
-                            <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class="new-team-members">
+                            <div class="new-team-members">
                                 <div *ngFor="let teamMember of allTeamMembers" class="new-team-member">
                                     <div class="info-wrapper">
                                         <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="teamMember.name">
@@ -1610,6 +1601,10 @@
                                             <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role }}</mat-option>
                                         </mat-select>
                                     </div>
+                                    <button type="button" class="btn btn-outline-primary"
+                                    (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
+                                        <i class="fa fa-trash" aria-hidden="true"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1638,19 +1633,22 @@
                             <div class="two-column-layout">
                                 <div *ngIf="teamObj.allTeamMemberList" class="team-member-col">
                                     <label>Existing Team Members</label>
-                                    <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index">
-                                        <div *ngIf="member.resourceOverviewId == requirement.resourceOverviewId">
-                                            <input type="text" placeholder="Name" [value]="member.name" class="form-control name-field" readonly />
-                                            <mat-select class="form-control role-field" multiple [(ngModel)]="member.employeeRole">
-                                                <mat-option selected="selected" value="" disabled>Select</mat-option>
-                                                <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
-                                            </mat-select>
-                                            <mat-select class="form-control billable-field" placeholder="Select" [(ngModel)]="member.newBillableType">
+                                    <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index" style="display: flex;">
+                                        <div *ngIf="member.resourceOverviewId == requirement.resourceOverviewId" style="display: flex; min-width: 80%;max-width: fit-content;">
+                                            <div style="padding-right: 10px;">
+                                                <input type="text" placeholder="Name" [value]="member.name" class="form-control name-field" readonly />
+                                            </div>
+                                            <div style="padding-right: 10px;">
+                                                <mat-select class="form-control role-field" multiple [(ngModel)]="member.employeeRole">
+                                                    <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                                    <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
+                                                </mat-select>
+                                            </div>
+                                            <!-- <mat-select class="form-control billable-field" placeholder="Select" [(ngModel)]="member.newBillableType">
                                                 <mat-option *ngFor="let type of ['TNM', 'Fixed Cost', 'Shadow', 'InternalRNDProducts', 'Bench']" [value]="type">
                                                 {{ type }}
                                                 </mat-option>
-                                            </mat-select>
-                        
+                                            </mat-select> -->
                                             <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(member, i)">
                                                 <i class="fa fa-trash" aria-hidden="true"></i>
                                             </button>
@@ -1658,9 +1656,9 @@
                                         <!-- <div *ngIf="member.resourceOverviewId != requirement.resourceOverviewId">
                                             <label style="color: #040404;">No existing team members to display...</label>
                                         </div> -->
-                                        <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
-                                            <label style="color: #040404;">No existing team members to display...</label>
-                                        </div>
+                                    </div>
+                                    <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
+                                        <label style="color: #040404;">No existing team members to display...</label>
                                     </div>
                                 </div>
             
@@ -1668,23 +1666,23 @@
                                     <label>Shadow Resources</label>
                                     <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index">
                                         <div *ngIf="member.resourceOverviewId == requirement.resourceOverviewId">
-                                            <input type="text" class="form-select name-field" placeholder="Search by Emp ID or Name" aria-label="Search employee" [formControl]="employeeCtrl" [matAutocomplete]="auto">    
+                                            <input type="text" class="form-select name2-field" placeholder="Search by Emp ID or Name" aria-label="Search employee" [formControl]="employeeCtrl" [matAutocomplete]="auto">    
                                             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onResourceSelected($event, member)" [displayWith]="displayEmployee">
                                                 <mat-option *ngFor="let emp of employeeListByDept | filterEmployee: addMemberCtrl.value" [value]="emp">
                                                 {{ emp.name }}
                                                 </mat-option>  
                                             </mat-autocomplete>
-                                            <select class="form-control" [(ngModel)]="member.billableTypes">
+                                            <!-- <select class="form-control" [(ngModel)]="member.billableTypes">
                                                 <option *ngFor="let billable of billabilities" [value]="billable">{{ billable }}</option>
-                                            </select>
+                                            </select> -->
                                         </div>
                                     </div>
                                 </div>
                             </div>
     
-                            <div class="two-column-layout team-member-col">
+                            <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class=" team-member-col">
                                 <label>New Team Members</label>
-                                <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class="new-team-members">
+                                <div class="new-team-members">
                                     <div *ngFor="let teamMember of getTeamMembersForRequirement(requirement.resourceOverviewId)" class="new-team-member">
                                         <div class="info-wrapper">
                                             <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="teamMember.name">
@@ -1705,11 +1703,11 @@
                         </div>
                     </div>
                 </div>
-                <button class="set-team-btn mt-3" (click)="addTeamMemberMapping()">Add Team Member(s)</button>
             </div>
+            <button class="set-team-btn mt-3" (click)="addTeamMemberMapping()" >Add Team Member(s)</button>
         </div>
-        </div>
-    </ng-template>
+    </div>
+</ng-template>
 
     <ng-template #delete_modal_template1>
         <div class="modal-body text-center">
@@ -1761,3 +1759,186 @@
                 <app-view-employee [allEmployeeData]="employeeData"></app-view-employee>
             </div>
     </ng-template>
+
+<!-- <ng-template #preview_team_new>
+    <div class="team-preview-container">
+
+        <h2 class="team-preview-headline">Team Preview</h2>
+       
+        <div class="team-preview-row">
+          <div class="team-preview-field">
+            <label>Project Name</label>
+            <input type="text" readonly value="APM - DEV - FT - PS - FC - Abinash-Ghansoli - Development" />
+          </div>
+          <div class="team-preview-field">
+            <label>Client Name</label>
+            <input type="text" readonly value="Axis Bank" />
+          </div>
+        </div>
+      
+        
+        <div class="team-preview-row">
+          <div class="team-preview-field">
+            <label>Project Manager(s)</label>
+            <div class="team-manager-list">
+              <button class="manager-tag">Bansi Prasad Krishna</button>
+              <button class="manager-tag">Mitrobhanu Pradhan</button>
+              <button class="manager-tag">Priyadarshini Indira Singh</button>
+            </div>
+          </div>
+          <div class="team-preview-field">
+            <label>State</label>
+            <input type="text" readonly value="Delhi" />
+          </div>
+        </div>
+      
+       
+        <div class="team-card">
+          <p class="team-section-title">Team Info</p>
+          <p><strong>Team 1 Name</strong> &nbsp;&nbsp; Test</p>
+          <p><strong>SPOC</strong> &nbsp;&nbsp; Bansi Prasad Krishna</p>
+      
+          <p class="team-section-title">Team Member Info</p>
+      
+          <div class="team-member">
+            <div class="member-details">
+              <p><span class="member-number">1.</span> <span class="member-name">Sheetal Jagtap</span></p>
+              <p>Employee Role: Employee &nbsp;&nbsp; Start Date: 17-04-2025 16:46:10</p>
+              <p>Department Name: Human Resource</p>
+            </div>
+            <div class="shadow-resource">
+              <p class="shadow-title">Shadow Resources</p>
+              <p class="shadow-name">Anish Nale</p>
+            </div>
+          </div>
+      
+          <div class="team-member">
+            <div class="member-details">
+              <p><span class="member-number">2.</span> <span class="member-name">Sheetal Jagtap</span></p>
+              <p>Employee Role: Employee &nbsp;&nbsp; Start Date: 17-04-2025 16:46:10</p>
+              <p>Department Name: Human Resource</p>
+            </div>
+            <div class="shadow-resource">
+              <p class="shadow-title">Shadow Resources</p>
+              <p class="shadow-name">NA</p>
+            </div>
+          </div>
+        </div>
+      
+        
+        <div class="team-card">
+          <p class="team-section-title">Team Info</p>
+          <p><strong>Team 1 Name</strong> &nbsp;&nbsp; Test 2</p>
+          <p><strong>SPOC</strong> &nbsp;&nbsp; Bansi Prasad Krishna</p>
+      
+          <p class="team-section-title">Team Member Info</p>
+      
+          <div class="team-member">
+            <div class="member-details">
+              <p><span class="member-number">1.</span> <span class="member-name">Sheetal Jagtap</span></p>
+              <p>Employee Role: Employee &nbsp;&nbsp; Start Date: 17-04-2025 16:46:10</p>
+              <p>Department Name: Human Resource</p>
+            </div>
+            <div class="shadow-resource">
+              <p class="shadow-title">Shadow Resources</p>
+              <p class="shadow-name">Anish Nale</p>
+            </div>
+          </div>
+      
+          <div class="team-member">
+            <div class="member-details">
+              <p><span class="member-number">2.</span> <span class="member-name">Sheetal Jagtap</span></p>
+              <p>Employee Role: Employee &nbsp;&nbsp; Start Date: 17-04-2025 16:46:10</p>
+              <p>Department Name: Human Resource</p>
+            </div>
+            <div class="shadow-resource">
+              <p class="shadow-title">Shadow Resources</p>
+              <p class="shadow-name">NA</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </ng-template>  -->
+
+    <ng-template #preview_team_new>
+        <div class="team-preview-container">
+      
+          <h2 class="team-preview-headline">Team Preview</h2>
+      
+          <!-- Project & Client -->
+          <div class="team-preview-row">
+            <div class="team-preview-field">
+              <label>Project Name</label>
+              <input type="text" readonly [value]="projectObj?.name" />
+            </div>
+            <div class="team-preview-field">
+              <label>Client Name</label>
+              <input type="text" readonly [value]="projectObj?.clientName" />
+            </div>
+          </div>
+      
+          <!-- Project Managers & State -->
+          <div class="team-preview-row">
+            <div class="team-preview-field">
+              <label>Project Manager(s)</label>
+              <div class="team-manager-list">
+                <input
+                  *ngFor="let pm of projectObj?.projectManagers"
+                  class="manager-tag"
+                  type="text"
+                  [value]="pm.projectManagerName"
+                  readonly
+                />
+              </div>
+            </div>
+            <div class="team-preview-field">
+              <label>State</label>
+              <input type="text" readonly [value]="projectObj?.clientState" />
+            </div>
+          </div>
+      
+          <!-- Team Info Cards -->
+          <div class="team-card" *ngFor="let team of projectObj?.teamList; let i = index">
+            <p class="team-section-title">Team Info</p>
+            <p><strong>Team {{ i + 1 }} Name</strong> &nbsp;&nbsp; {{ team.teamName }}</p>
+            <p><strong>SPOC</strong>
+                {{
+                  team.spoc?.name
+                    ? team.spoc.name + ' (' + team.spoc.employmentId + ')'
+                    : 'N/A'
+                }}
+              </p>
+      
+            <p class="team-section-title">Team Member Info</p>
+      
+            <div class="team-member" *ngFor="let member of team?.teamMemberList; let j = index">
+              <div class="member-details">
+                <p>
+                  <span class="member-number">{{ j + 1 }}.</span>
+                  <span class="member-name">{{member.name + (member.employmentIdEmployeeType ? ' (' + member.employmentIdEmployeeType + ')' : '')}}</span>
+                </p>
+                <p>
+                  Employee Role: {{ member.employeeRole?.join(', ') || 'N/A' }} &nbsp;&nbsp;
+                  Start Date: {{ member.startDate ? (member.startDate) : 'N/A' }}
+                </p>
+                <p>Department Name: {{ member.departmentName }}</p>
+              </div>
+      
+              <div class="shadow-resource" *ngIf="member.shadowEmployeeName">
+                <p class="shadow-title">Shadow Resource</p>
+                <p class="shadow-name">{{  member.shadowEmployeeName + ' (' + member.shadowEmployeeEmploymentId + ')'}}</p>
+                <p class="shadow-dept">{{ member.shadowEmployeeDepartmentName }}</p>
+              </div>
+            </div>
+          </div>
+      
+        </div>
+      </ng-template>
+      
+
+  
+      
+      
+     
+       

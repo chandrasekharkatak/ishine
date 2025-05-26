@@ -178,6 +178,8 @@ export class ResourceManagementComponent implements OnInit {
   filteredManagerList: any[] = [];
   isAllManagersSelected: boolean = false;
   selectedRequirement: any = null;
+  teamMemberCtrl = new FormControl();
+
   constructor(
     private departmentService: DepartmentService,
     public validationService: ValidationService,
@@ -923,6 +925,7 @@ export class ResourceManagementComponent implements OnInit {
     this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectObj.teamList = response.serviceResponse;
+        console.log(this.projectObj,"projectofthisteam");
         //console.log(this.projectObj.teamList, " this.projectObj.teamList");
         this.projectObj.teamList.forEach((obj) => {
           obj.departmentList = obj.departmentList?.map(x => +x);
@@ -1457,7 +1460,7 @@ export class ResourceManagementComponent implements OnInit {
     }
     //console.log(this.previewTeamList, " : this.previewTeamList");
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
   }
 
   openProjectPreviewModal(template: TemplateRef<any>, project: any) {
@@ -1470,7 +1473,7 @@ export class ResourceManagementComponent implements OnInit {
     this.setManagerName(project);
     this.getTeamListByProjectName(project);
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
   }
 
   openRejectModal(template: TemplateRef<any>, projectObj: any) {
@@ -1939,6 +1942,7 @@ TotalEmployeeCount(){
     this.getEmployeeByNameAndEmpld();
 
     this.modalRef1 = this.modalService.show(template, { class: 'custom-modal' });
+    // this.modalRef1 = this.modalService.show(template, { class: 'modal-lg' });
   }
   
   openTeamMembersModal(template: any,projectObj,currentTeam) {

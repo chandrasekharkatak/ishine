@@ -63,4 +63,5 @@ export class Project{
 	clientRM:any;
     projectCompletionDate:any;
 	projectStatus:any;
+	projectManagers:any;
 }
