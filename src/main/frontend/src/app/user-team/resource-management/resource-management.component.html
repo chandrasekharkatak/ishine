@@ -213,12 +213,12 @@
                     <h2>{{ totalEmployees }}</h2>
                 </div>
                 <div class="col-md-6 text-end mb-2" style="display: flex;
-        justify-content: left;
-        max-width: fit-content;">
+                    justify-content: left;
+                    max-width: fit-content;">
 
                     <!-- <div class="col-md-4"> -->
-                    <div class="mini-card" style="border-left: 4px #2E7D32;">
-                        <div class="value">{{ mappedEmployees }}</div>
+                    <div class="mini-card" style="border-left: 4px #2E7D32;" (click)="EmployeeViewDataModel(employee_data,'Sankh')">
+                        <div class="value">{{ sankhMappedEmployees }}</div>
                         <div class="label">Mapped to shankh Projects <i class="fa fa-link" style="color: #2E7D32;"></i>
                         </div>
                         <div class="small text-primary text-end" style="font-size: 12px;">View Employees</div>
@@ -232,8 +232,8 @@
                 <div class="col-md-6" style="display: flex;
           justify-content: left;
           max-width: fit-content;">
-                    <div class="mini-card" style="border-left:4px #1565C0;">
-                        <div class="value">{{ unmappedEmployees }}</div>
+                    <div class="mini-card" style="border-left:4px #1565C0;" (click)="EmployeeViewDataModel(employee_data,'Internal')">
+                        <div class="value">{{ internalMappedEmployees }}</div>
                         <div class="label">Mapped to Internal Projects <i class="fa fa-unlink"
                                 style="color: #1565C0;"></i></div>
                         <div class="small text-primary text-end" style="font-size: 12px;">View Employees</div>
@@ -242,8 +242,8 @@
                 <div class="col-md-6" style="display: flex;
           justify-content: left;
           max-width: fit-content;">
-                    <div class="mini-card" style="border-left:4px #F9A825;">
-                        <div class="value">{{ unmappedEmployees }}</div>
+                    <div class="mini-card" style="border-left:4px #F9A825;" (click)="EmployeeViewDataModel(employee_data,'Both')">
+                        <div class="value">{{ mappedToBothEmployees }}</div>
                         <div class="label">Mapped to Both Projects <i class="fa fa-unlink text-danger"
                                 style="color: #F9A825;"></i></div>
                         <div class="text-primary text-end " style="font-size: 12px;">View Employees</div>
@@ -458,11 +458,14 @@
                                                     (click)="openProjectPreviewModal(preview_team_new, project);closeMenu(i);isEditProject = false">
                                                     <i class="fas fa-eye"></i> Preview
                                                 </li>
-                                                <li (click)="openEditModal(team_configuration_form,project);closeMenu(i);"><i class="fas fa-pen"></i> Edit </li>
+                                                <li
+                                                    (click)="openEditModal(team_configuration_form,project);closeMenu(i);">
+                                                    <i class="fas fa-pen"></i> Edit </li>
                                                 <!-- <li (click)="onAction('Audit', project);closeMenu(i)"><i class="fas fa-clock"></i> Audit</li> -->
                                                 <li
                                                     (click)="openDatePicker(customDatePickerTemplate,project);closeMenu(i)">
-                                                    <i class="fas fa-check-double"></i> Mark as Complete</li>
+                                                    <i class="fas fa-check-double"></i> Mark as Complete
+                                                </li>
                                                 <li *ngIf="userMapping.rmg_approval_option && project.isActive == '2' || userMapping.rmg_approval_option && project.isDraftProject === 'Pending For Approval' && !isHideButton"
                                                     (click)="onApproveProject(project);closeMenu(i)"><i
                                                         class="fas fa-square-check"></i> Approve</li>
@@ -536,7 +539,8 @@
                                         <em>{{project.isDraftProject}}</em></td> -->
                                     <td
                                         [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
-                                        <em>{{project.isDraftProject}}</em></td>
+                                        <em>{{project.isDraftProject}}</em>
+                                    </td>
                                     <!-- <td *ngIf="!isAccounts"> -->
                                     <!-- <button class="btn btn-sm btn-outline-primary mb-1"
                                             *ngIf="!project.isSynced && project.isDraftProject != 'NA'"
@@ -1097,7 +1101,7 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-        <div class=" table-container">
+        <div class="table-container">
 
             <table class="table project_table scrollable-table" id="projectTable">
                 <thead class="thead-light" id="projectTableHead">
@@ -1171,9 +1175,6 @@
         </div>
 
     </ng-template>
-
-
-
 
 
     <ng-template #preview_team>
@@ -1457,8 +1458,8 @@
             </div>
         </div>
     </ng-template>
-    
-<ng-template #teamMemberTemplate>
+
+   <ng-template #teamMemberTemplate>
     <div class="modal-body p-0">
         <div class="team-modal-container">
             <h3 class="modal-title">Project Requirements</h3>
@@ -1760,26 +1761,26 @@
         </div>
     </div>
 </ng-template>
-    
-<ng-template #delete_modal_template1>
-    <div class="modal-body text-center">
-        <p>Are you sure you want to delete Resource from <br> team and project ?</p>
-        <div class="col-md-12">
-            <div class="info-wrapper">
-                <div class="form-group" style="display: flex;">
-                    <label class="info-label ml-1">Select End Date</label>
-                    <input id="occasionDate" OnClick="this.showPicker()" type="date" class="form-control"
-                        autocomplete="none" [(ngModel)]="lastDate">
+
+    <ng-template #delete_modal_template1>
+        <div class="modal-body text-center">
+            <p>Are you sure you want to delete Resource from <br> team and project ?</p>
+            <div class="col-md-12">
+                <div class="info-wrapper">
+                    <div class="form-group" style="display: flex;">
+                        <label class="info-label ml-1">Select End Date</label>
+                        <input id="occasionDate" OnClick="this.showPicker()" type="date" class="form-control"
+                            autocomplete="none" [(ngModel)]="lastDate">
+                    </div>
                 </div>
+                <button type="button" class="btn btn-success" *ngIf="selectedTeamsDetails.length"
+                    (click)="deleteTeamsByIdsBulk(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
+                <button type="button" class="btn btn-success" *ngIf="!selectedTeamsDetails.length"
+                    (click)="deleteTeam(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
+                <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
             </div>
-            <button type="button" class="btn btn-success" *ngIf="selectedTeamsDetails.length"
-                (click)="deleteTeamsByIdsBulk(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
-            <button type="button" class="btn btn-success" *ngIf="!selectedTeamsDetails.length"
-                (click)="deleteTeam(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
-            <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
         </div>
-    </div>
-</ng-template>
+    </ng-template>
 
     <ng-template #customDatePickerTemplate>
         <div class="modal-body text-center">
@@ -1800,6 +1801,17 @@
         </div>
     </ng-template>
 
+    <ng-template #employee_data>
+        <div class="modal-header">
+             <b>Employee Information</b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="closeModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        </div>
+            <div class="modal-body">
+                <app-view-employee [allEmployeeData]="employeeData"></app-view-employee>
+            </div>
+    </ng-template>
 
 <!-- <ng-template #preview_team_new>
     <div class="team-preview-container">
@@ -1988,3 +2000,4 @@
             <div class="info-line"><span class="label">Total Experience</span>: {{ employeeInformation.totalExperience }} years</div>
         </div>
     </ng-template>    -->
+p

@@ -51,9 +51,14 @@ export class ResourceManagementComponent implements OnInit {
     { value: 32, label: "Pending", icon: "fa-hourglass-half", iconColor: "#03A9F4", borderColor: "#03A9F4" }
   ];
 
-  totalEmployees = 92;
-  mappedEmployees = 58;
-  unmappedEmployees = 24;
+  totalEmployees = 0;
+  sankhMappedEmployees = 0;
+  sankhMappedEmployeesList : any[] = [];
+  internalMappedEmployees = 0;
+  internalMappedEmployeesList : any[] = [];
+  mappedToBothEmployees = 0;
+  mappedToBothEmployeesList : any[] = [];
+  employeeData : any[] = [];
   employees = ['John Doe', 'Jane Smith'];
   statuses = ['Pending', 'Approved'];
   selectedEmployee = '';
@@ -250,7 +255,13 @@ export class ResourceManagementComponent implements OnInit {
     this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
     await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
 
+    await this.RbacInternalProjects(this.projectFilterDTO);
+
+    await this.RbacShankhProjects(this.projectFilterDTO);
+
+    await this.RbacShankhInternalProjects(this.projectFilterDTO)
     
+    await this.TotalEmployeeCount();
     // const deptName = String(this.currentUser.departmentName).trim();
     // const empRole = String(this.currentUser.employeeRole).trim();
     // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
@@ -1689,7 +1700,18 @@ onAction(action: string, project: any) {
     this.copyDepartment = selectedDepartmentIds;
   }
 
-
+  EmployeeViewDataModel(template: TemplateRef<any>, catagory: string){
+    if(catagory === 'Sankh'){
+      this.employeeData = this.sankhMappedEmployeesList;
+    }
+    else if(catagory === 'Internal'){
+      this.employeeData = this.internalMappedEmployeesList;
+    }
+    else{
+      this.employeeData = this.mappedToBothEmployeesList;
+    }
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  }
 
 
 
@@ -1835,10 +1857,48 @@ onAction(action: string, project: any) {
 
  }
 
+RbacInternalProjects(projectFilterDTO: ProjectFilterDTO){
+  this.resourceManagementService.rbacInternalProjects(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.internalMappedEmployeesList = response.serviceResponse;
+      this.internalMappedEmployees = this.internalMappedEmployeesList.length;
+      console.log("this.internalMappedEmployees",this.internalMappedEmployees)
+     }
+});
 
+}
 
+RbacShankhProjects(projectFilterDTO: ProjectFilterDTO){
+  this.resourceManagementService.rbacShankhProjects(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.sankhMappedEmployeesList = response.serviceResponse;
+      this.sankhMappedEmployees = this.sankhMappedEmployeesList.length;
+      console.log("this.sankhMappedEmployees",this.sankhMappedEmployees)
+     }
+});
 
+}
+RbacShankhInternalProjects(projectFilterDTO: ProjectFilterDTO){
+  this.resourceManagementService.rbacShankhInternalProjects(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.mappedToBothEmployeesList = response.serviceResponse;
+      this.mappedToBothEmployees = this.mappedToBothEmployeesList.length;
+      console.log("this.mappedToBothEmployees",this.mappedToBothEmployees)
+     }
+});
 
+}
+TotalEmployeeCount(){
+  this.resourceManagementService.totalEmployeeCount().pipe(first()).subscribe((response:any)=>{
+    if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.totalEmployees = response.serviceResponse;
+     }
+  });
+}
 
   getEmployeeByNameAndEmpld() {
     this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => { 
@@ -1973,6 +2033,9 @@ onAction(action: string, project: any) {
 
   closeModal1() {   
     this.selectedDate ='';
+    this.modalRef.hide();
+  }
+  closeModal(){
     this.modalRef.hide();
   }
   getResourceRequirementByPoProjectId(id) {

@@ -89,4 +89,7 @@ export class ResourceManagementService {
     return this.http.get(`${this.baseUrl}`+`api/getEmployeeInformation`, {params: { empId: empId }});
   }
 
+  totalEmployeeCount(){
+    return this.http.get(`${this.baseUrl}`+`api/totalEmployeeCount`);
+  }
 }
