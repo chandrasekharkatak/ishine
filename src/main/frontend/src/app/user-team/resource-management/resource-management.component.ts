@@ -9,6 +9,7 @@ import { first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
+import { EmployeeInformation } from 'src/app/models/employeeInformation';
 import { Feature } from 'src/app/models/feature';
 import { Project } from 'src/app/models/project';
 import { ProjectFilterDTO } from 'src/app/models/projectFilterDTO';
@@ -174,6 +175,8 @@ export class ResourceManagementComponent implements OnInit {
   isAllManagersSelected: boolean = false;
   selectedRequirement: any = null;
   teamMemberCtrl = new FormControl();
+  spocCtrl = new FormControl();
+  employeeInformation: EmployeeInformation = new EmployeeInformation();
 
   constructor(
     private departmentService: DepartmentService,
@@ -659,7 +662,7 @@ export class ResourceManagementComponent implements OnInit {
         this.employeeListByDept = response.serviceResponse;
         this.employeeListByDept = this.employeeListByDept.sort((a, b) => a.name.localeCompare(b.name));
         console.log("employeeList By Department : ", this.employeeListByDept);
-        this.updateEmployeeListAccordingToTeamMembers();
+        // this.updateEmployeeListAccordingToTeamMembers();
       } else {
         console.error(response.serviceResponse);
       }
@@ -2118,6 +2121,39 @@ onAction(action: string, project: any) {
     return !this.teamObj.allTeamMemberList?.some(
       member => member.resourceOverviewId === requirementId
     );
-  }  
+  }
+
+  // openModal(template,empId) {
+  //   this.getEmployeeInformation(empId);
+  //   this.modalRef2 = this.modalService.show(template, { class: 'custom-modal' });
+  // }
+
+  getEmployeeInformation(empId){
+    this.resourceManagementService.getEmployeeInformation(empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeInformation = response.serviceResponse;
+      } else {
+        console.error("Error employee informations");
+      }
+    });
+  }
+  popoverEmpId: string | null = null;
+
+togglePopover(empId: string) {
+  if (this.popoverEmpId === empId) {
+    this.popoverEmpId = null;
+    return;
+  }
+
+  this.getEmployeeInformation(empId);
+  this.popoverEmpId = empId;
+}
+
+closePopover(empId: string) {
+  if (this.popoverEmpId === empId) {
+    this.popoverEmpId = null;
+  }
+}
+
   
 }

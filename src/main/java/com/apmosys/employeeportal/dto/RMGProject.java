@@ -24,7 +24,7 @@ public class RMGProject {
 	private String poNo;
 	private String active;
 	private List<RMGTeam> rmgTeam;
-	
+	private String projectManagerName;
 	
 	
 	

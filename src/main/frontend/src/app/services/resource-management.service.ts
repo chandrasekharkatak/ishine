@@ -85,4 +85,8 @@ export class ResourceManagementService {
     return this.http.get(`${this.baseUrl}`+`api/getResourceRequirementByPoProjectId`, {params: { id: id }});
   }
 
+  getEmployeeInformation(empId: any){
+    return this.http.get(`${this.baseUrl}`+`api/getEmployeeInformation`, {params: { empId: empId }});
+  }
+
 }

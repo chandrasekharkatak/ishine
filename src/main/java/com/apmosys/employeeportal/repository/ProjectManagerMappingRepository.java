@@ -20,4 +20,6 @@ public interface ProjectManagerMappingRepository extends JpaRepository<ProjectMa
 	
 	public ProjectManagerMapping findByProjectIdAndProjectManagerId(Long projectId,Long projectManagerId);
 	
+	@Query(nativeQuery = true)
+	public List<Object[]>findProjectManagersByPoProjectId(Long id);
 }

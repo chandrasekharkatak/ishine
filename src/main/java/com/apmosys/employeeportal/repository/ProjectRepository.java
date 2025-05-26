@@ -67,7 +67,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getProjectInfo(Integer projectId);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getPoProjectInfo(Integer poProjectId);
+	public List<Object[]> getPoProjectInfo(Long poProjectId);
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getTeamInfo(Integer projectId);
@@ -115,5 +115,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	 
 	@Query(nativeQuery = true)
 	public int getAssignedEmployeesCountInProject(Long id);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeInformation(Long empId);
 	
 }

@@ -501,15 +501,15 @@
                                     </td>
                                     <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                                     <td>{{project.status}}</td>
-                                    <td *ngIf='project.isDraftProject == "NA"'>{{project.name}}</td>
-                                    <td *ngIf='project.projectId && project.isDraftProject != "NA"'
+                                    <td *ngIf='project.isDraftProject == "Not Started"'>{{project.name}}</td>
+                                    <td *ngIf='project.id == null && project.isDraftProject != "Not Started"'
                                         style="cursor: pointer; color: blue;" id="clickablefor360"
-                                        (click)="cancelRequest()" [navigateToProjectView]="project.projectId"
+                                        (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId"
                                         style="cursor: pointer;" title="Click to view Project Details">{{project.name}}
                                     </td>
-                                    <td *ngIf='project.id && project.isDraftProject != "NA"'
+                                    <td *ngIf='project.projectId == null && project.isDraftProject != "Not Started"'
                                         style="cursor: pointer; color: blue;" id="clickablefor360"
-                                        (click)="cancelRequest()" [navigateToProjectView]="project.id"
+                                        (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId"
                                         style="cursor: pointer;" title="Click to view Project Details">{{project.name}}
                                     </td>
 
@@ -992,6 +992,9 @@
                                 <button type="button" class="btn btn-outline-primary mx-1"
                                     (click)="removeTeamMember(teamMember, i)">
                                     <i class="fa fa-trash" aria-hidden="true"></i></button>
+                                <button type="button" class="btn btn-outline-primary mx-1"
+                                (click)="getEmployeeInformation(teamMember.empId)">
+                                <i class="fa-solid fa-circle-exclamation"></i></button>
                             </div>
                         </div>
                     </div>
@@ -1425,9 +1428,9 @@
 
                     <div class="form-field">
                         <label>SPOC</label>
-                        <input type="text" class="form-select name-field" placeholder="Search by Emp ID or Name" aria-label="Search employee" [formControl]="addMemberCtrl" [matAutocomplete]="addAuto" [(ngModel)]="teamObj.spoc">
-                        <mat-autocomplete #addAuto="matAutocomplete" [displayWith]="displaySPOC" (optionSelected)="onSpocSelected($event)">
-                        <mat-option *ngFor="let employee of filteredEmployees | filterEmployee: addMemberCtrl.value" [value]="employee">
+                        <input type="text" class="form-select name-field" placeholder="Search by Emp ID or Name" aria-label="Search employee" [formControl]="spocCtrl" [matAutocomplete]="spocAuto" [(ngModel)]="teamObj.spoc">
+                        <mat-autocomplete #spocAuto="matAutocomplete" [displayWith]="displaySPOC" (optionSelected)="onSpocSelected($event)">
+                        <mat-option *ngFor="let employee of filteredEmployees | filterEmployee: spocCtrl.value" [value]="employee">
                             {{ employee.name }}
                         </mat-option>
                         </mat-autocomplete>
@@ -1437,7 +1440,7 @@
                         <button class="icon-button" (click)="openTeamMembersModal(teamMemberTemplate,projectObj,teamObj)">
                         <i class="fa-solid fa-user-plus"></i>
                         </button>
-                        <button class="icon-button" (click)="previewTeamModal(preview_team, teamObj, projectObj)">
+                        <button class="icon-button" (click)="previewTeamModal(preview_team_new, teamObj, projectObj)">
                         <i class="fa-solid fa-users-viewfinder"></i>
                         </button>
                         <button class="icon-button" (click)="addInputTeamField()">
@@ -1556,6 +1559,27 @@
                                             <button type="button" class="btn btn-outline-primary mx-1" style="padding: 3px;" (click)="removeTeamMember(member, i)">
                                                 <i class="fa fa-trash" aria-hidden="true"></i>
                                             </button>
+                                            <!-- <button type="button" class="btn btn-outline-primary mx-1"(click)="openModal(employeeInfoModal,member.empId)">
+                                                <i class="fa-solid fa-circle-exclamation"></i>
+                                            </button> -->
+                                            <div class="action-menu-wrapper" (clickOutside)="closePopover(member.empId)">
+                                                <!-- Info Icon Button -->
+                                                <button type="button" class="btn btn-outline-primary mx-1" (click)="togglePopover(member.empId)">
+                                                  <i class="fa-solid fa-circle-exclamation"></i>
+                                                </button>
+                                              
+                                                <!-- Tooltip Info Panel -->
+                                                <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2" style="width: 260px;">
+                                                  <div class="info-line"><span class="label">Emp Id</span>: {{ employeeInformation.employmentId }}</div>
+                                                  <div class="info-line"><span class="label">Role</span>: {{ employeeInformation.jobRole }}</div>
+                                                  <div class="info-line"><span class="label">Billability type</span>: {{ employeeInformation.billableType }}</div>
+                                                  <div class="info-line"><span class="label">Department</span>: {{ employeeInformation.deptName }}</div>
+                                                  <div class="info-line"><span class="label">Previous Experience</span>: {{ employeeInformation.previousExperience }} years</div>
+                                                  <div class="info-line"><span class="label">Current Experience</span>: {{ employeeInformation.currentExperience }} years</div>
+                                                  <div class="info-line"><span class="label">Total Experience</span>: {{ employeeInformation.totalExperience }} years</div>
+                                                </div>
+                                            </div>
+                                              
                                         </div>
                                         
                                         <div *ngIf="!member.name">
@@ -1651,6 +1675,35 @@
                                             <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(member, i)">
                                                 <i class="fa fa-trash" aria-hidden="true"></i>
                                             </button>
+                                            <!-- <button type="button" class="btn btn-outline-primary mx-1"(click)="openModal(employeeInfoModal,member.empId)">
+                                                <i class="fa-solid fa-circle-exclamation"></i>
+                                            </button> -->
+                                            <div>
+                                                <button type="button" class="btn btn-outline-primary mx-1" style="padding: 3px;" (click)="removeTeamMember(member, i)">
+                                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                                </button>
+                                                <!-- <button type="button" class="btn btn-outline-primary mx-1"(click)="openModal(employeeInfoModal,member.empId)">
+                                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                                </button> -->
+                                                <div class="action-menu-wrapper" (clickOutside)="closePopover(member.empId)">
+                                                    <!-- Info Icon Button -->
+                                                    <button type="button" class="btn btn-outline-primary mx-1" (click)="togglePopover(member.empId)">
+                                                      <i class="fa-solid fa-circle-exclamation"></i>
+                                                    </button>
+                                                  
+                                                    <!-- Tooltip Info Panel -->
+                                                    <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown" style="width: 260px;">
+                                                      <div class="info-line"><span class="label">Emp Id</span>: {{ employeeInformation.employmentId }}</div>
+                                                      <div class="info-line"><span class="label">Role</span>: {{ employeeInformation.jobRole }}</div>
+                                                      <div class="info-line"><span class="label">Billability type</span>: {{ employeeInformation.billableType }}</div>
+                                                      <div class="info-line"><span class="label">Department</span>: {{ employeeInformation.deptName }}</div>
+                                                      <div class="info-line"><span class="label">Previous Experience</span>: {{ employeeInformation.previousExperience }} years</div>
+                                                      <div class="info-line"><span class="label">Current Experience</span>: {{ employeeInformation.currentExperience }} years</div>
+                                                      <div class="info-line"><span class="label">Total Experience</span>: {{ employeeInformation.totalExperience }} years</div>
+                                                    </div>
+                                                  </div>
+                                                  
+                                            </div>
                                         </div>
                                         <!-- <div *ngIf="member.resourceOverviewId != requirement.resourceOverviewId">
                                             <label style="color: #040404;">No existing team members to display...</label>
@@ -1924,9 +1977,14 @@
         </div>
       </ng-template>
       
-
-  
-      
-      
-     
-       
+    <!-- <ng-template #employeeInfoModal let-modal>
+        <div class="popover-style p-3">
+            <div class="info-line"><span class="label">Emp Id</span>: {{ employeeInformation.employmentId }}</div>
+            <div class="info-line"><span class="label">Role</span>: {{ employeeInformation.jobRole }}</div>
+            <div class="info-line"><span class="label">Billability type</span>: {{ employeeInformation.billableType }}</div>
+            <div class="info-line"><span class="label">Department</span>: {{ employeeInformation.deptName }}</div>
+            <div class="info-line"><span class="label">Previous Experience</span>: {{ employeeInformation.previousExperience }} years</div>
+            <div class="info-line"><span class="label">Current Experience</span>: {{ employeeInformation.currentExperience }} years</div>
+            <div class="info-line"><span class="label">Total Experience</span>: {{ employeeInformation.totalExperience }} years</div>
+        </div>
+    </ng-template>    -->
