@@ -102,7 +102,7 @@ export class TotalTravelrequestComponent implements OnInit {
     const response: any = await this.travelDesk.getAllDocumentsThroughRequestId(requestId).toPromise()
     if (response.serviceStatus === "Success") {
       this.docList = response.serviceResponse;
-      console.log(this.docList, "this.docList")
+      
     }
     else {
       this.docList = null;

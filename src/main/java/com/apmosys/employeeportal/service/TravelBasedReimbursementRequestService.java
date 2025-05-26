@@ -72,7 +72,8 @@ public class TravelBasedReimbursementRequestService {
 					reimbursmentDetails.setAmount(request.getAmount());
 					reimbursmentDetails.setTravelId(request.getTravelId());
 					reimbursmentDetails.setUploadedBy(request.getUploadedBy());
-					reimbursmentDetails.setUpdatedOn(new Timestamp(System.currentTimeMillis()));
+					reimbursmentDetails.setUploadedOn(new Timestamp(System.currentTimeMillis()));
+
 					travelBasedReimbursementRequestRepository.save(reimbursmentDetails);
 				    
 				}
@@ -112,7 +113,7 @@ public ServiceResponse uploadFile(MultipartFile file, String displayName, Long u
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("Upload Newsletter");
-	    apiLogInfo.setApiUrl("/api/newsletters/uploadNewsletter");
+	    apiLogInfo.setApiUrl("/api/uploadFiletravelBased");
 	    apiLogInfo.setLogLevel("INFO");
 
 	    StringBuilder logBuilder = new StringBuilder();
@@ -485,6 +486,9 @@ public ServiceResponse getAllInvoicesByEmpId(TravelBasedReimbursementRequestDTO 
     		   TravelDeskDTO dto= new TravelDeskDTO();
     		   dto.setTravelId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
     		   dto.setInvoiceNo(object[1] != null ? object[1].toString():null);
+    		   dto.setInvoiceDate(object[2] != null ? Timestamp.valueOf(object[2].toString()) : null);
+//    		   dto.setInvoiceDate(object[2] != null ? Timestamp.valueOf(object[2].toString()) : null);
+
 //    		   dto.setInvoiceDate(object[2] != null ?(object[2].toString()):null);
     		   dto.setAmount(object[3] != null ? Double.parseDouble(object[3].toString()):null);
     		   dto.setDocIdTrevel(object[4] != null ? Long.parseLong(object[4].toString()) : null);
@@ -505,7 +509,8 @@ public ServiceResponse getAllInvoicesByEmpId(TravelBasedReimbursementRequestDTO 
 //    	        dto.setLevel2ApproverName(object[17] != null ? object[17].toString() : null);
     	        dto.setLevel2ApproverStatus(object[18] != null ? object[18].toString() : null);
     	        dto.setReimbursementStatus(object[19] != null ? object[19].toString() : null);
-    	       
+    	        dto.setSerialNo(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
+
     	        
     	        
     	        details.add(dto);
@@ -540,5 +545,147 @@ public ServiceResponse getAllInvoicesByEmpId(TravelBasedReimbursementRequestDTO 
 	
 }
 
+
+
+public ServiceResponse updateReimbursmentBasedOnTravelRequest(TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+	apiLogInfo.setSubFeatureName("ReimbursmentTravelRequest");
+	apiLogInfo.setApiUrl("/api/updateReimbursmentBasedOnTravelRequest");
+	apiLogInfo.setLogLevel("INFO");
+	StringBuilder logBuilder = new StringBuilder();
+//	logBuilder.append("TravelRequestId : " + reimbursementRequestDTO.getTravelId() + "appliedBy: " +reimbursementRequestDTO.getUploadedBy());
+	
+	try {
+		if(reimbursementRequestDTO !=null) {
+			TravelBasedReimbursementRequest reimbursmentDetails = travelBasedReimbursementRequestRepository.findInvoiceBySerialNo(reimbursementRequestDTO.getSerialNo());
+			Newsletter travelDocDetails = newsletterRepository.findByDocId(reimbursementRequestDTO.getDocId());
+
+				if(reimbursmentDetails !=null) {
+				reimbursmentDetails.setInvoiceNo(reimbursementRequestDTO.getInvoiceNo());
+				reimbursmentDetails.setInvoiceDate(reimbursementRequestDTO.getInvoiceDate());
+				reimbursmentDetails.setAmount(reimbursementRequestDTO.getAmount());
+				reimbursmentDetails.setIsValid(null);
+				reimbursmentDetails.setReimbursementStatus(null);
+				reimbursmentDetails.setUpdatedBy(reimbursementRequestDTO.getUploadedBy());
+				reimbursmentDetails.setUpdatedOn(new Timestamp(System.currentTimeMillis()));
+				travelBasedReimbursementRequestRepository.save(reimbursmentDetails);
+			    
+			}
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Request Updated Successfully");
+			apiLogInfo.setApiResponse("Reimbursment based On Travel Request : "+reimbursementRequestDTO);
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		
+		} else {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("No Invoice Details Found");
+			apiLogInfo.setApiResponse("No Invoice Details Found");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+		}
+		
+	}catch(Exception e){
+		
+		apiLogInfo.setApiResponse(e.getMessage());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse(e.getMessage());
+	}
+	return response;
+	
+}
+
+
+
+public ServiceResponse updateUploadedFile(MultipartFile file, String displayName, Long uploadedBy, Long docId) {
+
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("updateUploadedFile");
+	    apiLogInfo.setApiUrl("/api/updateUploadedFile");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Newsletter: ").append(displayName)
+	              .append(", uploadedBy: ").append(uploadedBy);
+
+	    try {
+	        System.out.println("uploadedBy: " + uploadedBy);
+	        Newsletter travelDocDetails = newsletterRepository.findByDocId(docId);
+
+	        
+	        System.err.println("Invoice Details"+travelDocDetails);
+	        Optional<Employee> employeeObject = employeeRepository.findById(uploadedBy);
+
+	        if (employeeObject.isEmpty()) {
+	            response.setServiceResponse("User Not Found !!");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("User Not Found !!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	            return response;
+	        }
+
+	        if (file == null || file.isEmpty()) {
+	            response.setServiceResponse("Uploaded Travel Document Not Found !!");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("Uploaded Travel Document Not Found !!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	            return response;
+	        }
+
+	      
+	        Path directory = Paths.get(traveldeskFileLocation);
+	        if (!Files.exists(directory)) {
+	            Files.createDirectories(directory);  // Ensure directory exists
+	        }
+
+	        
+	        String newFileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+	        Path path = directory.resolve(newFileName);
+	        System.out.println("Saving file to: " + path.toString());
+
+	      
+	        byte[] bytes = file.getBytes();
+	        Files.write(path, bytes);
+
+	        
+	        File savedFile = path.toFile();
+	        if (savedFile.exists()) {
+	            travelDocDetails.setDisplayName(displayName);
+	            travelDocDetails.setFileName(newFileName);
+	            travelDocDetails.setType("TRAVEL ALLOWANCE");
+	            travelDocDetails.setReadEnabled("true");
+	            travelDocDetails.setCreatedBy(Integer.parseInt(uploadedBy.toString()));
+	            Newsletter dbResponse = newsletterRepository.save(travelDocDetails);
+	            
+	            
+                System.err.println("Doc_id"+dbResponse.getDocumentId());
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(travelDocDetails);
+	            response.setServiceMessage("Travel Document uploaded successfully.");
+	            apiLogInfo.setApiResponse("Travel Document uploaded successfully");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceResponse("Failed to upload Travel Document.");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("File did not exist after write operation.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    return response;
+	}
 	
 }

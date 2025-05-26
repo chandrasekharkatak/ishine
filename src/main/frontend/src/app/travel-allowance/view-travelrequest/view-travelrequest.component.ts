@@ -28,7 +28,7 @@ export class ViewTravelrequestComponent implements OnInit {
   domainSpecializationList: any[];
   currentUser: any;
   alertMessage: any;
-  invoiceDetails:boolean=false;
+  invoiceDetails: boolean = false;
 
   constructor(private travelDesk: TravelDeskService,
     private modalService: BsModalService,
@@ -291,6 +291,8 @@ export class ViewTravelrequestComponent implements OnInit {
   }
 
   travelId: any;
+  serialNo: any;
+  docIdAgainstRejection: any;
   reimbursmentModel(template: TemplateRef<any>, row: any) {
 
     this.selectedTravelRequest = { ...row };
@@ -304,10 +306,16 @@ export class ViewTravelrequestComponent implements OnInit {
     this.openAlertMod(template, "");
 
   }
-  reimbursmentModelForRejected(template: TemplateRef<any>, fromDate: any,toDate:any, row:any){
+  reimbursmentModelForRejected(template: TemplateRef<any>, fromDate: any, toDate: any, travelId: any, invoice: any) {
     this.selectedTravelRequest.fromDate = this.formatDate(fromDate);
     this.selectedTravelRequest.toDate = this.formatDate(toDate);
-    this.travelId = row.travelId;
+    this.travelId = travelId;
+    this.invoices[0].invoiceNo = invoice.invoiceNo;
+    this.invoices[0].invoiceDate = this.formatDate(invoice.invoiceDate);
+    this.invoices[0].amount = invoice.amount;
+    this.docIdAgainstRejection = invoice.docIdTrevel;
+    this.serialNo = invoice.serialNo;
+    console.log("test2", this.formatDate(invoice.invoiceDate), invoice.invoiceDate);
     this.openAlertMod(template, "");
   }
   restrictingAlphaAndCharacter(event) {
@@ -366,7 +374,7 @@ export class ViewTravelrequestComponent implements OnInit {
 
   isInvoiceRowValid(invoice: any, index: number): boolean {
     const invoiceNo = invoice.invoiceNo?.trim();
-  
+
     if (
       !invoiceNo ||
       !invoice.invoiceDate ||
@@ -376,13 +384,13 @@ export class ViewTravelrequestComponent implements OnInit {
     ) {
       return false;
     }
-  
+
     // Check for duplicate invoiceNo
     const isDuplicate = this.invoices.some((inv, i) => i !== index && inv.invoiceNo?.trim() === invoiceNo);
-  
+
     return !isDuplicate;
   }
-  
+
   getFileDetails() {
     this.invoices.forEach(async (invoice, index) => {
       if (invoice.file1) {
@@ -430,7 +438,7 @@ export class ViewTravelrequestComponent implements OnInit {
   submitInvoice(template: TemplateRef<any>) {
     const travelId = this.travelId;
     const uploadedBy = this.currentUser.empId;
-    console.log("Testing",travelId);
+    console.log("Testing", travelId);
     const cleanedInvoices = this.invoices.map(invoice => ({
       ...invoice,
       travelId: travelId,
@@ -441,7 +449,7 @@ export class ViewTravelrequestComponent implements OnInit {
 
     const invoiceNos = cleanedInvoices.map(inv => inv.invoiceNo?.trim());
     const duplicateInvoiceNos = invoiceNos.filter((no, idx) => no && invoiceNos.indexOf(no) !== idx);
-  
+
     if (duplicateInvoiceNos.length > 0) {
       this.openAlertMod1(template, "Duplicate invoice number(s) found. Please ensure all invoice numbers are unique.");
       return;
@@ -454,7 +462,7 @@ export class ViewTravelrequestComponent implements OnInit {
       !invoice.uploadedBy ||
       !invoice.fileName
     );
-    console.log("Testing",cleanedInvoices);
+    console.log("Testing", cleanedInvoices);
     if (hasInvalidInvoice) {
 
       this.openAlertMod1(template, "Please fill all required invoice fields before submitting.");
@@ -547,18 +555,18 @@ export class ViewTravelrequestComponent implements OnInit {
     });
   }
 
-  fetchAllInvoice(){
-    this.invoiceDetails=!this.invoiceDetails;
+  fetchAllInvoice() {
+    this.invoiceDetails = !this.invoiceDetails;
   }
-  
 
-  fetchAllInvoice1(){
-    this.invoiceDetails=!this.invoiceDetails;
+
+  fetchAllInvoice1() {
+    this.invoiceDetails = !this.invoiceDetails;
   }
   objectKeys = Object.keys;
   groupedInvoiceData: any = {};
-  getAllInvoicesByEmpId(template: TemplateRef<any>, userId:any) {
-    this.invoiceDetails=!this.invoiceDetails;
+  getAllInvoicesByEmpId(template: TemplateRef<any>, userId: any) {
+    this.invoiceDetails = !this.invoiceDetails;
     const invoice = {
       uploadedBy: userId,
 
@@ -567,9 +575,9 @@ export class ViewTravelrequestComponent implements OnInit {
     this.travelDesk.getAllInvoicesByEmpId(invoice).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         const rawData = response.serviceResponse;
-        
-       
-  
+
+
+
         // Group data by travelId
         const grouped: any = {};
         rawData.forEach((item: any) => {
@@ -583,17 +591,21 @@ export class ViewTravelrequestComponent implements OnInit {
           grouped[travelId].invoices.push({
             invoiceNo: item.invoiceNo,
             amount: item.amount,
+            invoiceDate: item.invoiceDate,
             docIdTrevel: item.docIdTrevel,
-            reimbursementStatus:item.reimbursementStatus
+            serialNo: item.serialNo,
+            reimbursementStatus: item.reimbursementStatus
           });
         });
-  
+
         this.groupedInvoiceData = grouped;
-        console.log("Grouped Invoice Data", this.groupedInvoiceData);
+
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
       }
     });
   }
-  
+
   cancelRequestDocument() {
     this.modalRef.hide();
   }
@@ -605,43 +617,173 @@ export class ViewTravelrequestComponent implements OnInit {
     return 'application/octet-stream';
   }
   selectedDocument: any;
-  
-    async preview(template: TemplateRef<any>, id: any) {
-    console.log(template,"template");
-  
-    this.selectedDocument = null; 
-   
-  
-    const payload = { docId: id }; 
-  
-    
-   
-      const response: any = await this.travelDesk.previewDocument(payload).toPromise();
-  
-      if (response.serviceStatus === 'Success' && response.serviceResponse?.documentBytes) {
-        const base64Data = response.serviceResponse.documentBytes;
-        const mimeType = this.getMimeTypeFromBase64(base64Data);
-  
-        if (mimeType === 'application/pdf') {
-          const pdfUrl = `data:application/pdf;base64,${base64Data}`;
-          this.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
-          this.modalRef = this.modalService.show(template, {
-            class: 'modal-xl'
-          });
-        } else if (mimeType.startsWith('image/')) {
-          const imgUrl = `data:${mimeType};base64,${base64Data}`;
-          this.selectedDocument = imgUrl; 
-          this.modalRef = this.modalService.show(template, {
-            class: 'modal-xl'
-          });
-        } else {
-          // Handle other file types: Download
-          const link = document.createElement('a');
-          link.href = `data:application/octet-stream;base64,${base64Data}`;
-          link.download = 'document';
-          link.click();
-        }
+
+  async preview(template: TemplateRef<any>, id: any) {
+    console.log(template, "template");
+
+    this.selectedDocument = null;
+
+
+    const payload = { docId: id };
+
+
+
+    const response: any = await this.travelDesk.previewDocument(payload).toPromise();
+
+    if (response.serviceStatus === 'Success' && response.serviceResponse?.documentBytes) {
+      const base64Data = response.serviceResponse.documentBytes;
+      const mimeType = this.getMimeTypeFromBase64(base64Data);
+
+      if (mimeType === 'application/pdf') {
+        const pdfUrl = `data:application/pdf;base64,${base64Data}`;
+        this.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
+        this.modalRef = this.modalService.show(template, {
+          class: 'modal-xl'
+        });
+      } else if (mimeType.startsWith('image/')) {
+        const imgUrl = `data:${mimeType};base64,${base64Data}`;
+        this.selectedDocument = imgUrl;
+        this.modalRef = this.modalService.show(template, {
+          class: 'modal-xl'
+        });
+      } else {
+        // Handle other file types: Download
+        const link = document.createElement('a');
+        link.href = `data:application/octet-stream;base64,${base64Data}`;
+        link.download = 'document';
+        link.click();
       }
-    
+    }
+    else {
+      this.openAlertMod(template, "No Document to dipslay");
+    }
+
   }
+
+
+
+  updateReimbursmentBasedOnTravelRequest(template: TemplateRef<any>) {
+    const travelId = this.travelId;
+    const uploadedBy = this.currentUser.empId;
+    const serialNo = this.serialNo;
+    const invoice = this.invoices[0];
+    const docId = this.docIdAgainstRejection;
+    console.log("Testing", travelId);
+    const cleanedInvoice = {
+      ...invoice,
+      travelId: travelId,
+      uploadedBy: uploadedBy,
+      serialNo: serialNo,
+      docId: docId
+    };
+    console.log("Testing", invoice);
+    const trimmedInvoiceNo = cleanedInvoice.invoiceNo?.trim();
+
+    // Duplicate check (redundant if handling only one invoice, but kept for safety)
+    if (!trimmedInvoiceNo) {
+      this.openAlertMod1(template, "Invoice number is required.");
+      return;
+    }
+
+    let missingFields: string[] = [];
+
+    if (!cleanedInvoice.invoiceNo) {
+      missingFields.push("Invoice Number");
+    }
+    if (!cleanedInvoice.invoiceDate) {
+      missingFields.push("Invoice Date");
+    }
+    if (cleanedInvoice.amount == null) {
+      missingFields.push("Amount");
+    }
+    if (!cleanedInvoice.travelId) {
+      missingFields.push("Travel ID");
+    }
+    if (!cleanedInvoice.uploadedBy) {
+      missingFields.push("Uploaded By");
+    }
+    
+
+    if (missingFields.length > 0) {
+      const message = "Please fill the following field(s) before submitting: " + missingFields.join(", ");
+      this.openAlertMod1(template, message);
+      return;
+    }
+
+    this.travelDesk.updateReimbursmentBasedOnTravelRequest(cleanedInvoice).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.getFileDetails();
+        this.invoices = [];
+        this.addInvoiceRow();
+        this.modalRef.hide();
+        this.updateUploadedFile();
+        this.getAllInvoicesByEmpId(template, this.currentUser.EmpId);
+        this.openAlertMod1(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+
+  selectedFileName: string | null = null;
+  selectedFile: File | null = null;
+  maxFileSizeMB = 3;
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+
+
+      if (file.size > this.maxFileSizeMB * 1024 * 1024) {
+        alert('File size should not exceed 3 MB.');
+        input.value = '';
+        this.selectedFileName = null;
+        this.selectedFile = null;
+        return;
+      }
+
+      this.selectedFileName = file.name;
+      this.selectedFile = file;
+    } else {
+      this.selectedFileName = null;
+      this.selectedFile = null;
+    }
+  }
+
+  async updateUploadedFile() {
+    // this.invoices.forEach(async (invoice, index) => {
+    //   if (invoice.file1) {
+
+    try {
+      const fileFormData = new FormData();
+      fileFormData.append('file', this.selectedFile);
+      fileFormData.append("displayName", this.selectedFile.name);
+      fileFormData.append("uploadedBy", this.currentUser.empId);
+
+      fileFormData.append("docId", this.docIdAgainstRejection);
+
+      const uploadResponse: any = await this.travelDesk.updateUploadedFile(fileFormData).pipe(first()).toPromise();
+
+      if (uploadResponse.serviceStatus === "Fail") {
+        // this.openAlertMod(template, `Error found: ${uploadResponse.serviceResponse}`);
+        return;
+      } else if (uploadResponse.serviceStatus !== "Success") {
+        // this.openAlertMod(template, uploadResponse.serviceResponse || "Unexpected file upload response.");
+        return;
+      }
+
+
+
+    } catch (error) {
+      // console.error("Upload failed for file", fileObj.file.name, error);
+      // this.openAlertMod(template, `File upload failed: ${error.message || error}`);
+      return;
+    }
+
+
+  }
+  
 }

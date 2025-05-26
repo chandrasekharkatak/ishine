@@ -262,8 +262,11 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/totalTravelData`,
     `${this.baseUrl}`+`api/getAllInvoices`,
     `${this.baseUrl}`+`api/fetchTotalReimbursementData`,
-    `${this.baseUrl}`+`api/uploadFileReimbursement`
-    
+    `${this.baseUrl}`+`api/uploadFileReimbursement`,
+    `${this.baseUrl}`+`api/getAllInvoicesByEmpId`, 
+    `${this.baseUrl}` + `api/updateReimbursmentBasedOnTravelRequest`,
+    `${this.baseUrl}`+`api/updateUploadedFile`
+
   ]
 
   constructor(private loaderService: LoaderService) { }

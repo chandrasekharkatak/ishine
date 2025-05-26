@@ -137,4 +137,12 @@ export class TravelDeskService {
     return this.http.post(`${this.baseUrl}`+`api/getAllInvoicesByEmpId`, travelModeObj);
   }
   
+  updateReimbursmentBasedOnTravelRequest(travelDetails:any){
+    return this.http.post(`${this.baseUrl}` + `api/updateReimbursmentBasedOnTravelRequest`, travelDetails);
+  }
+  
+  updateUploadedFile(formData:FormData){
+    return this.http.post(`${this.baseUrl}`+`api/updateUploadedFile`,formData);
+  }
+  
 }

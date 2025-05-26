@@ -31,7 +31,7 @@ public class ReimbursmentBasedOnTravelRequestController {
 	private TravelDeskService travelDeskService;
 	
 	@RequestMapping(value = "/submitReimbursmentBasedOnTravelRequest", method = RequestMethod.POST)
-	public ResponseEntity<ServiceResponse> createBioMaxRequest(@RequestBody List<TravelBasedReimbursementRequestDTO> reimbursementRequestDTO) {
+	public ResponseEntity<ServiceResponse> submitReimbursmentBasedOnTravelRequest(@RequestBody List<TravelBasedReimbursementRequestDTO> reimbursementRequestDTO) {
 		return ResponseEntity.ok(travelBasedService.submitReimbursmentBasedOnTravelRequest(reimbursementRequestDTO));
 	}
 	
@@ -42,6 +42,7 @@ public class ReimbursmentBasedOnTravelRequestController {
 			@RequestParam("displayName") String displayName,
 			@RequestParam("uploadedBy") Long uploadedBy,
 			@RequestParam("invoiceNo") String invoiceNo) {
+		
 		ServiceResponse serviceResponse = travelBasedService.uploadFile(file, displayName, uploadedBy,invoiceNo);
 		return serviceResponse;
 	}
@@ -69,5 +70,21 @@ public class ReimbursmentBasedOnTravelRequestController {
 	@RequestMapping(value = "/getAllInvoicesByEmpId", method = RequestMethod.POST)
 	public ResponseEntity<ServiceResponse> getAllInvoicesByEmpId(@RequestBody TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
 		return ResponseEntity.ok(travelBasedService.getAllInvoicesByEmpId(reimbursementRequestDTO));
+	}
+	
+	@RequestMapping(value = "/updateReimbursmentBasedOnTravelRequest", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> updateReimbursmentBasedOnTravelRequest(@RequestBody TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
+		return ResponseEntity.ok(travelBasedService.updateReimbursmentBasedOnTravelRequest(reimbursementRequestDTO));
+	}
+	
+	@PostMapping("/updateUploadedFile")
+	public ServiceResponse uploadFile(HttpServletRequest request,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("displayName") String displayName,
+			@RequestParam("uploadedBy") Long uploadedBy,
+			@RequestParam("docId") Long docId) {
+		
+		ServiceResponse serviceResponse = travelBasedService.updateUploadedFile(file, displayName, uploadedBy,docId);
+		return serviceResponse;
 	}
 }

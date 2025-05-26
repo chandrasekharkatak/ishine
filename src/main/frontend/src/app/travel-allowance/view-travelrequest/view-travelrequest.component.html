@@ -220,7 +220,7 @@
               <td>
                 <button *ngIf="invoice.reimbursementStatus === 'Rejected'" type="button" class="btn btn-primary"
                   title="Resubmit Your Invoice Details"
-                  (click)="reimbursmentModelForRejected(RejectedReimbursment,groupedInvoiceData[key].commonInfo.fromDate,groupedInvoiceData[key].commonInfo.toDate,groupedInvoiceData[key].commonInfo.travelId)">
+                  (click)="reimbursmentModelForRejected(RejectedReimbursment,groupedInvoiceData[key].commonInfo.fromDate,groupedInvoiceData[key].commonInfo.toDate,groupedInvoiceData[key].commonInfo.travelId,invoice)">
                   Resubmit
                 </button>
               </td>
@@ -613,7 +613,7 @@
 
             <div class="col-md-3">
               <label class="info-label"><span class="text-danger">*</span>Upload Invoice</label>
-              <input type="file" class="form-control" (change)="onInvoiceFileChange($event, i,alert_message)"
+              <input type="file" class="form-control" (change)="onFileSelected($event)"
                 required />
             </div>
 
@@ -627,7 +627,7 @@
         </div>
         <div class="row justify-content-center">
           <div class="col-md-auto">
-            <button type="button" class="btn btn-primary btn-lg" (click)="submitInvoice(alert_message)">
+            <button type="button" class="btn btn-primary btn-lg" (click)="updateReimbursmentBasedOnTravelRequest(alert_message)">
               Submit
             </button>
           </div>
