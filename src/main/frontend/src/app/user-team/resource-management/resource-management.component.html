@@ -455,7 +455,7 @@
                                             <!-- Dropdown Menu -->
                                             <ul *ngIf="openMenuIndex === i" class="custom-dropdown">
                                                 <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
-                                                    (click)="openProjectPreviewModal(preview_team, project);closeMenu(i);isEditProject = false">
+                                                    (click)="openProjectPreviewModal(preview_team_new, project);closeMenu(i);isEditProject = false">
                                                     <i class="fas fa-eye"></i> Preview
                                                 </li>
                                                 <li (click)="openEditModal(team_configuration_form,project);closeMenu(i);"><i class="fas fa-pen"></i> Edit </li>
@@ -1746,3 +1746,187 @@
             <button type="button" class="btn btn-outline-dark" (click)="closeModal1()">No Cancel</button>
         </div>
     </ng-template>
+
+
+<!-- <ng-template #preview_team_new>
+    <div class="team-preview-container">
+
+        <h2 class="team-preview-headline">Team Preview</h2>
+       
+        <div class="team-preview-row">
+          <div class="team-preview-field">
+            <label>Project Name</label>
+            <input type="text" readonly value="APM - DEV - FT - PS - FC - Abinash-Ghansoli - Development" />
+          </div>
+          <div class="team-preview-field">
+            <label>Client Name</label>
+            <input type="text" readonly value="Axis Bank" />
+          </div>
+        </div>
+      
+        
+        <div class="team-preview-row">
+          <div class="team-preview-field">
+            <label>Project Manager(s)</label>
+            <div class="team-manager-list">
+              <button class="manager-tag">Bansi Prasad Krishna</button>
+              <button class="manager-tag">Mitrobhanu Pradhan</button>
+              <button class="manager-tag">Priyadarshini Indira Singh</button>
+            </div>
+          </div>
+          <div class="team-preview-field">
+            <label>State</label>
+            <input type="text" readonly value="Delhi" />
+          </div>
+        </div>
+      
+       
+        <div class="team-card">
+          <p class="team-section-title">Team Info</p>
+          <p><strong>Team 1 Name</strong> &nbsp;&nbsp; Test</p>
+          <p><strong>SPOC</strong> &nbsp;&nbsp; Bansi Prasad Krishna</p>
+      
+          <p class="team-section-title">Team Member Info</p>
+      
+          <div class="team-member">
+            <div class="member-details">
+              <p><span class="member-number">1.</span> <span class="member-name">Sheetal Jagtap</span></p>
+              <p>Employee Role: Employee &nbsp;&nbsp; Start Date: 17-04-2025 16:46:10</p>
+              <p>Department Name: Human Resource</p>
+            </div>
+            <div class="shadow-resource">
+              <p class="shadow-title">Shadow Resources</p>
+              <p class="shadow-name">Anish Nale</p>
+            </div>
+          </div>
+      
+          <div class="team-member">
+            <div class="member-details">
+              <p><span class="member-number">2.</span> <span class="member-name">Sheetal Jagtap</span></p>
+              <p>Employee Role: Employee &nbsp;&nbsp; Start Date: 17-04-2025 16:46:10</p>
+              <p>Department Name: Human Resource</p>
+            </div>
+            <div class="shadow-resource">
+              <p class="shadow-title">Shadow Resources</p>
+              <p class="shadow-name">NA</p>
+            </div>
+          </div>
+        </div>
+      
+        
+        <div class="team-card">
+          <p class="team-section-title">Team Info</p>
+          <p><strong>Team 1 Name</strong> &nbsp;&nbsp; Test 2</p>
+          <p><strong>SPOC</strong> &nbsp;&nbsp; Bansi Prasad Krishna</p>
+      
+          <p class="team-section-title">Team Member Info</p>
+      
+          <div class="team-member">
+            <div class="member-details">
+              <p><span class="member-number">1.</span> <span class="member-name">Sheetal Jagtap</span></p>
+              <p>Employee Role: Employee &nbsp;&nbsp; Start Date: 17-04-2025 16:46:10</p>
+              <p>Department Name: Human Resource</p>
+            </div>
+            <div class="shadow-resource">
+              <p class="shadow-title">Shadow Resources</p>
+              <p class="shadow-name">Anish Nale</p>
+            </div>
+          </div>
+      
+          <div class="team-member">
+            <div class="member-details">
+              <p><span class="member-number">2.</span> <span class="member-name">Sheetal Jagtap</span></p>
+              <p>Employee Role: Employee &nbsp;&nbsp; Start Date: 17-04-2025 16:46:10</p>
+              <p>Department Name: Human Resource</p>
+            </div>
+            <div class="shadow-resource">
+              <p class="shadow-title">Shadow Resources</p>
+              <p class="shadow-name">NA</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </ng-template>  -->
+
+    <ng-template #preview_team_new>
+        <div class="team-preview-container">
+      
+          <h2 class="team-preview-headline">Team Preview</h2>
+      
+          <!-- Project & Client -->
+          <div class="team-preview-row">
+            <div class="team-preview-field">
+              <label>Project Name</label>
+              <input type="text" readonly [value]="projectObj?.name" />
+            </div>
+            <div class="team-preview-field">
+              <label>Client Name</label>
+              <input type="text" readonly [value]="projectObj?.clientName" />
+            </div>
+          </div>
+      
+          <!-- Project Managers & State -->
+          <div class="team-preview-row">
+            <div class="team-preview-field">
+              <label>Project Manager(s)</label>
+              <div class="team-manager-list">
+                <input
+                  *ngFor="let pm of projectObj?.projectManagers"
+                  class="manager-tag"
+                  type="text"
+                  [value]="pm.projectManagerName"
+                  readonly
+                />
+              </div>
+            </div>
+            <div class="team-preview-field">
+              <label>State</label>
+              <input type="text" readonly [value]="projectObj?.clientState" />
+            </div>
+          </div>
+      
+          <!-- Team Info Cards -->
+          <div class="team-card" *ngFor="let team of projectObj?.teamList; let i = index">
+            <p class="team-section-title">Team Info</p>
+            <p><strong>Team {{ i + 1 }} Name</strong> &nbsp;&nbsp; {{ team.teamName }}</p>
+            <p><strong>SPOC</strong>
+                {{
+                  team.spoc?.name
+                    ? team.spoc.name + ' (' + team.spoc.employmentId + ')'
+                    : 'N/A'
+                }}
+              </p>
+      
+            <p class="team-section-title">Team Member Info</p>
+      
+            <div class="team-member" *ngFor="let member of team?.teamMemberList; let j = index">
+              <div class="member-details">
+                <p>
+                  <span class="member-number">{{ j + 1 }}.</span>
+                  <span class="member-name">{{member.name + (member.employmentIdEmployeeType ? ' (' + member.employmentIdEmployeeType + ')' : '')}}</span>
+                </p>
+                <p>
+                  Employee Role: {{ member.employeeRole?.join(', ') || 'N/A' }} &nbsp;&nbsp;
+                  Start Date: {{ member.startDate ? (member.startDate) : 'N/A' }}
+                </p>
+                <p>Department Name: {{ member.departmentName }}</p>
+              </div>
+      
+              <div class="shadow-resource" *ngIf="member.shadowEmployeeName">
+                <p class="shadow-title">Shadow Resource</p>
+                <p class="shadow-name">{{  member.shadowEmployeeName + ' (' + member.shadowEmployeeEmploymentId + ')'}}</p>
+                <p class="shadow-dept">{{ member.shadowEmployeeDepartmentName }}</p>
+              </div>
+            </div>
+          </div>
+      
+        </div>
+      </ng-template>
+      
+
+  
+      
+      
+     
+       

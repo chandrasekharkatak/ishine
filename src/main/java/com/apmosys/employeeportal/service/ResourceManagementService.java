@@ -1941,9 +1941,13 @@ public class ResourceManagementService {
 							empTeamMapping.forEach((teamMemberObj) -> {
 								String employeeName = null;
 								Employee empObj = employeeRepository.findByEmpId(teamMemberObj.getEmpId());
-								// find department 
 								JobRole findJobRole = jobRoleRepository.findByjobRoleId(empObj.getJobRoleId());
-								Department findDepartment = departmentRepository.findByDeptId(findJobRole.getDeptId());							
+								Department findDepartment = departmentRepository.findByDeptId(findJobRole.getDeptId());
+								String isConsultant = empObj.getIsConsultant();
+								String prefix = "A-";
+								if ("true".equalsIgnoreCase(isConsultant)) {
+									prefix = "CS-";
+							    }
 								
 								if(empObj != null && !"InActive".equalsIgnoreCase(empObj.getEmploymentstatus())) {
 									employeeName = empObj.getName();
@@ -1956,12 +1960,35 @@ public class ResourceManagementService {
 									teamMemberDTO.setEmpId(teamMemberObj.getEmpId());
 									teamMemberDTO.setName(employeeName);
 									teamMemberDTO.setIsTeamLead("true");
+									teamMemberDTO.setEmploymentIdEmployeeType(prefix + empObj.getEmployeementId());									
+									
 									teamMemberDTO.setStartDate(teamMemberObj.getStartDate().toString());
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
-									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
-									teamMemberDTO.setShadowEmpId(teamMemberObj.getShadowEmpId() != null ? Long.parseLong(teamMemberObj.getShadowEmpId().toString()) : null);
+									teamMemberDTO.setResourceOverviewId(Long.parseLong(teamMemberObj.getResourceOverviewId().toString()));
+									
+									if(teamMemberObj.getShadowEmpId()!= null) {
+									Employee shadowempObj = employeeRepository.findByEmpId(teamMemberObj.getShadowEmpId());
+									JobRole findShadowJobRole = jobRoleRepository.findByjobRoleId(shadowempObj.getJobRoleId());
+									Department findShadowDepartment = departmentRepository.findByDeptId(findShadowJobRole.getDeptId());
+									String isConsultantShadow = shadowempObj.getIsConsultant();
+									String prefixx = "A-";
+									
+									if ("true".equalsIgnoreCase(isConsultantShadow)) {
+										prefixx = "CS-";
+								    }
+
+									
+									teamMemberDTO.setShadowEmpId(Long.parseLong(teamMemberObj.getShadowEmpId().toString()));
+									teamMemberDTO.setShadowEmployeeEmploymentId(prefixx + shadowempObj.getEmployeementId());
+									teamMemberDTO.setShadowEmployeeName(shadowempObj.getName());
+									teamMemberDTO.setShadowEmployeeDepartmentName(findShadowDepartment.getName());
+									
+									}
+									
+									
+>>>>>>> Stashed changes
 //									teamMemberDTO.setBillable(teamMemberObj.getBillable());
 //									teamMemberDTO.setBillableType(teamMemberObj.getBillableType());
 //									teamMemberDTO.setShadowBillable(teamMemberObj.getShadowBillable());
@@ -1971,12 +1998,32 @@ public class ResourceManagementService {
 									//Team Member
 									teamMemberDTO.setEmpId(teamMemberObj.getEmpId());
 									teamMemberDTO.setName(employeeName);
-//									teamMemberDTO.setStartDate(teamMemberObj.getStartDate().toString());
+									teamMemberDTO.setEmploymentIdEmployeeType(prefix + empObj.getEmployeementId());	
+									teamMemberDTO.setStartDate(teamMemberObj.getStartDate().toString());
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
-									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
-									teamMemberDTO.setShadowEmpId(teamMemberObj.getShadowEmpId()!= null ? Long.parseLong(teamMemberObj.getShadowEmpId().toString()):null);
+									teamMemberDTO.setResourceOverviewId(Long.parseLong(teamMemberObj.getResourceOverviewId().toString()));
+									if(teamMemberObj.getShadowEmpId()!= null) {
+										Employee shadowempObj = employeeRepository.findByEmpId(teamMemberObj.getShadowEmpId());
+										JobRole findShadowJobRole = jobRoleRepository.findByjobRoleId(shadowempObj.getJobRoleId());
+										Department findShadowDepartment = departmentRepository.findByDeptId(findShadowJobRole.getDeptId());
+										String isConsultantShadow = shadowempObj.getIsConsultant();
+										String prefixx = "A-";
+										
+										if ("true".equalsIgnoreCase(isConsultantShadow)) {
+											prefixx = "CS-";
+									    }
+												
+										
+										teamMemberDTO.setShadowEmpId(teamMemberObj.getShadowEmpId()!= null ? Long.parseLong(teamMemberObj.getShadowEmpId().toString()):null);
+										teamMemberDTO.setShadowEmployeeEmploymentId(prefixx + shadowempObj.getEmployeementId());
+										teamMemberDTO.setShadowEmployeeName(shadowempObj.getName());
+										teamMemberDTO.setShadowEmployeeDepartmentName(findShadowDepartment.getName());
+										
+										}
+//									teamMemberDTO.setShadowEmpId(teamMemberObj.getShadowEmpId()!= null ? Long.parseLong(teamMemberObj.getShadowEmpId().toString()):null);
+>>>>>>> Stashed changes
 //									teamMemberDTO.setBillable(teamMemberObj.getBillable());
 //									teamMemberDTO.setBillableType(teamMemberObj.getBillableType());
 //									teamMemberDTO.setShadowBillable(teamMemberObj.getShadowBillable());
