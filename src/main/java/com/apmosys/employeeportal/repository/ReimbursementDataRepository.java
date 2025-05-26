@@ -19,6 +19,7 @@ public interface ReimbursementDataRepository extends JpaRepository<Reimbursement
 
 	ReimbursementData findByRequestId(BigInteger requestId);
 	
+	@Query(nativeQuery = true, value = "SELECT * FROM reimbursement_data td where td.level1_approve_by = :empId")
 	List<ReimbursementData> findByApprover1(BigInteger empId);
 	
 	List<ReimbursementData> findByApprover2(String empId);

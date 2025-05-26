@@ -100,7 +100,7 @@
                   {{ row.status }}
                 </td>
                 <td>{{ row.level1approverRemarks || 'NA' }}</td>
-                <td>{{ 'ADMIN' }}</td>
+                <td>{{row.level2approverName}} </td>
                 <!-- <td>{{ row.level2approverStatus }}</td> -->
                 <td [ngClass]="{
                     'text-danger': row.level2approverStatus === 'Rejected',

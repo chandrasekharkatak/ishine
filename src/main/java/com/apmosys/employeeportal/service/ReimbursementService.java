@@ -106,8 +106,8 @@ public class ReimbursementService {
 			System.out.println(reimbursementL1);
 			List<ReimbursementData> reimbursementL2 = reimbursementDataRepository.findByApprover2(empId.toString());
 			System.out.println(reimbursementL2);
-			List<ReimbursementData> reimbursementL3 = reimbursementDataRepository.findByApprover3(empId.toString());
-			System.out.println(reimbursementL3);
+//			List<ReimbursementData> reimbursementL3 = reimbursementDataRepository.findByApprover3(empId.toString());
+//			System.out.println(reimbursementL3);
 			if (!reimbursementL1.isEmpty()) {
 				List<ReimbursementData> activeReimbursementL1 = reimbursementL1.stream().filter(
 						t -> t.getStatus().equalsIgnoreCase("Pending") && t.getIsActive() == 1 && t.getLevel() == 1)
@@ -125,15 +125,15 @@ public class ReimbursementService {
 				activeReimbursement.addAll(activeReimbursementL2);
 				System.out.println(activeReimbursement);
 			}
-			if (!reimbursementL3.isEmpty()) {
-				List<ReimbursementData> activeReimbursementL3 = reimbursementL3.stream()
-						.filter(t -> t.getLevel3approverStatus().equalsIgnoreCase("Pending") && t.getIsActive() == 1
-								&& t.getLevel() == 3 && t.getFinalStatus().equalsIgnoreCase("Pending"))
-						.collect(Collectors.toList());
-				System.out.println(activeReimbursementL3);
-				activeReimbursement.addAll(activeReimbursementL3);
-				System.out.println(activeReimbursement);
-			}
+//			if (!reimbursementL3.isEmpty()) {
+//				List<ReimbursementData> activeReimbursementL3 = reimbursementL3.stream()
+//						.filter(t -> t.getLevel3approverStatus().equalsIgnoreCase("Pending") && t.getIsActive() == 1
+//								&& t.getLevel() == 3 && t.getFinalStatus().equalsIgnoreCase("Pending"))
+//						.collect(Collectors.toList());
+//				System.out.println(activeReimbursementL3);
+//				activeReimbursement.addAll(activeReimbursementL3);
+//				System.out.println(activeReimbursement);
+//			}
 
 			if (activeReimbursement.isEmpty()) {
 				serviceResponse.setServiceError("Data Not Found...!!");
@@ -508,18 +508,17 @@ public class ReimbursementService {
 			} else if (existingReimbursementData.getLevel() == 2) {
 				updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
 				
-				mailService.sendMailforReimbursement(existingReimbursementData.getLevel1ApproverEmail(),
-						"Reimbursement request approval required",
-						"Dear Approver"+ ",<br><br>" +
-								"A reimbursement request submitted by " + emp.getName() + " has been reviewed and approved at HOD Level and HRM Level.<br>" +
-								"Details of the request are as follows:<br><br>" +
-								"<strong>Purpose:</strong> " + existingReimbursementData.getPurpose() + "<br>" +
-								"From date:" + existingReimbursementData.getFromDate().toGMTString() +
-								" To date:" + existingReimbursementData.getToDate().toGMTString() + "<br><br>" +
-//								"<strong>Mode of Travel:</strong> " + existingReimbursementData.getTravelMode() + "<br><br>" +
-								"Kindly review and take the necessary action on this request at your level.<br><br>" +
-								"Regards,<br>" +
-								"iShine Reimbursement Desk");
+//				mailService.sendMailforReimbursement(existingReimbursementData.getLevel1ApproverEmail(),
+//						"Reimbursement request approval required",
+//						"Dear Approver"+ ",<br><br>" +
+//								"A reimbursement request submitted by " + emp.getName() + " has been reviewed and approved at HOD Level and HRM Level.<br>" +
+//								"Details of the request are as follows:<br><br>" +
+//								"<strong>Purpose:</strong> " + existingReimbursementData.getPurpose() + "<br>" +
+//								"From date:" + existingReimbursementData.getFromDate().toGMTString() +
+//								" To date:" + existingReimbursementData.getToDate().toGMTString() + "<br><br>" +
+//								"Kindly review and take the necessary action on this request at your level.<br><br>" +
+//								"Regards,<br>" +
+//								"iShine Reimbursement Desk");
 				
 			} else {
 				updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
@@ -577,12 +576,14 @@ public class ReimbursementService {
 					reimbursementData.setLevel2approverStatus(reimbursementObj.getStatus());
 					// reimbursementData.setStatus("Pending");
 					reimbursementData.setLevel2approverRemarks(reimbursementObj.getLevel2approverRemarks());
-				} else if (reimbursementData.getLevel() == 3) {
-					reimbursementData.setLevel3ApproveOn(currentTimestamp);
-					reimbursementData.setLevel3approverStatus(reimbursementObj.getStatus());
 					reimbursementData.setFinalStatus(reimbursementObj.getStatus());
-					reimbursementData.setLevel3approverRemarks(reimbursementObj.getLevel3approverRemarks());
-				}
+				} 
+//				else if (reimbursementData.getLevel() == 3) {
+//					reimbursementData.setLevel3ApproveOn(currentTimestamp);
+//					reimbursementData.setLevel3approverStatus(reimbursementObj.getStatus());
+//					reimbursementData.setFinalStatus(reimbursementObj.getStatus());
+//					reimbursementData.setLevel3approverRemarks(reimbursementObj.getLevel3approverRemarks());
+//				}
 			}
 		}
 	}

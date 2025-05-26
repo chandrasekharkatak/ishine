@@ -18,6 +18,7 @@ public interface TravelDeskRepository extends JpaRepository<TravelDesk, BigInteg
 	@Query(nativeQuery = true, value = "SELECT * FROM travel_desk ORDER BY request_id desc")
 	List<TravelDesk> findAll();
 	
+	@Query(nativeQuery = true, value = "SELECT * FROM travel_desk td where td.level1_approve_by = :empId")
 	List<TravelDesk> findByApprover1(BigInteger empId);
 	
 	List<TravelDesk> findByApprover2(BigInteger empId);

@@ -42,7 +42,7 @@
                     <table class="table table-bordered table-hover text-center" id='travel'>
                         <thead class="thead-dark">
                             <tr>
-                                <th scope="col" class="info-label">Request Id</th>
+                                <th scope="col" class="info-label">Reference Id</th>
                                 <th scope="col" class="info-label">Name</th>
                                 <th scope="col" class="info-label">Request Type</th>
                                 <th scope="col" class="info-label">From Date</th>
@@ -124,7 +124,7 @@
                                     </span>
                                 </td>
 
-                                <td *ngIf="this.currentUser.departmentName === 'Admin'" class="file-upload-td">
+                                <td *ngIf="this.currentUser.departmentName === 'Admin' && row.ticketDocId === null" class="file-upload-td">
                                     <button type="button" class="btn btn-outline-primary btn-sm"
                                         (click)="uploadTicket(upload_ticket,row.requestId)">Upload Ticket</button>
                                 </td>

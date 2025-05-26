@@ -109,7 +109,7 @@ public class TravelDeskService {
 		}
 		travelDesk.setDepartment(travelData.getDepartmentName());
 		travelDesk.setName(travelData.getFullName());
-		travelDesk.setHodName(travelData.getHodName());
+//		travelDesk.setHodName(travelData.getHodName());
 		travelDesk.setRequestType(travelData.getAssociatedTravelRequest());
 		travelDesk.setHotelCategory(travelData.getHotelCategory());
 		travelDesk.setCityCategory(travelData.getCityCategory());
@@ -121,9 +121,13 @@ public class TravelDeskService {
 		travelDesk.setFromDate(travelData.getFromDate());
 		travelDesk.setToLocation(travelData.getToLocation());
 		travelDesk.setToDate(travelData.getToDate());
+
 		   if (travelData.getDocId() != null && !travelData.getDocId().isEmpty()) {
 	            String docIdsString = String.join(",", travelData.getDocId().stream().map(String::valueOf).toArray(String[]::new));
 	            travelDesk.setDocId(docIdsString);
+	        }else {
+	        	
+	        	travelDesk.setDocId("NA");
 	        }
 		//travelDesk.setDocId(travelData.getDocId());
 		Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
@@ -139,7 +143,7 @@ public class TravelDeskService {
 		Long reportingManagerId = Long.parseLong(travelData.getReportingManagerId());
 		Employee level1 = employeeRepository.findByEmpId(reportingManagerId);
         travelDesk.setLevel1ApproverEmail(level1.getEmail());
-		
+        travelDesk.setHodName(level1.getName());
 //		BigInteger approver2 = new BigInteger(level2Approver);
         BigInteger approver2 = BigInteger.valueOf(travelData.getLevelOneApprover());
 		travelDesk.setApprover2(approver2);
@@ -1019,7 +1023,7 @@ public class TravelDeskService {
 	    return response;
 		
 	}
-}
+
 	
 	public ServiceResponse getTravelModeByReason(String travelReasonName) {
 	    ServiceResponse serviceResponse = new ServiceResponse();

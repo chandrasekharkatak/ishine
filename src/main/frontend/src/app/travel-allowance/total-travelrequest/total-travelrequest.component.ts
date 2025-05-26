@@ -212,6 +212,7 @@ export class TotalTravelrequestComponent implements OnInit {
       .toPromise();
 
     if (uploadResponse.serviceStatus !== "Success") {
+      this.onGetTravelInfo();
       this.openAlertMod(template, `File upload failed: ${uploadResponse.serviceResponse}`);
       return;
     } else {

@@ -127,7 +127,7 @@
                     <select class="form-control" [(ngModel)]="travelDeskObj.travelClass" name="travelClass" required>
                         <option value="" disabled>Select</option>
                         <option *ngFor="let travelClass of travelClasslistByReason" [value]="travelClass">
-                            {{ travelClass }}
+                            {{ travelClass.travelClass }}
                         </option>
                     </select>
                 </div>

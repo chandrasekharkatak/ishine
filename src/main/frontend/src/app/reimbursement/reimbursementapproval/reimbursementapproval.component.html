@@ -12,7 +12,7 @@
             <table class="table table-responsive">
               <thead class="thead-light">
                 <tr>
-                  <th scope="col" class="info-label">Request Id</th>                     
+                  <th scope="col" class="info-label">Reference Id</th>                     
                   <th scope="col" class="info-label">Name</th>
                   <!-- <th scope="col" class="info-label">Request Type</th> -->
                   <th scope="col" class="info-label">From Date</th>
@@ -38,9 +38,9 @@
                   <th scope="col" class="info-label">Level 2 Approver Name</th>
                   <th scope="col" class="info-label">Level 2 Approver Status</th>
                   <th scope="col" class="info-label">Level 2 Approver Remarks</th>
-                  <th scope="col" class="info-label">Level 3 Approver Name</th>
+                  <!-- <th scope="col" class="info-label">Level 3 Approver Name</th>
                   <th scope="col" class="info-label">Level 3 Approver Status</th>
-                  <th scope="col" class="info-label">Level 3 Approver Remarks</th>
+                  <th scope="col" class="info-label">Level 3 Approver Remarks</th> -->
                   <th scope="col" class="info-label">Action</th>
                 </tr>
               </thead>
@@ -85,7 +85,7 @@
                     {{ row.level2approverStatus || 'NA'}}
                   </td>
                   <td>{{ row.level2approverRemarks || 'NA' }}</td>
-                  <td>{{ row.level3approverName }}</td>
+                  <!-- <td>{{ row.level3approverName }}</td>
                   <td [ngClass]="{
                     'text-danger': row.level3approverStatus === 'Rejected',
                     'text-success': row.level3approverStatus === 'Approved',
@@ -93,7 +93,7 @@
                                 }">
                     {{ row.level3approverStatus || 'NA'}}
                   </td>
-                  <td>{{ row.level3approverRemarks || 'NA' }}</td>
+                  <td>{{ row.level3approverRemarks || 'NA' }}</td> -->
                   <td>
                  
                     <div class="d-inline-flex">

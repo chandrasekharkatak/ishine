@@ -51,7 +51,7 @@
       <table class="table table-bordered table-hover text-center ">
         <thead class="thead-dark">
           <tr>
-            <th>Request ID</th>
+            <th>Reference ID</th>
             <th>Name</th>
             <th>From Date</th>
             <th>To Date</th>
@@ -75,12 +75,12 @@
             <th>Level 2 Status</th>
             <th>Level 2 Remarks</th>
 
-            <th>Level 3 Approver Name</th>
+            <!-- <th>Level 3 Approver Name</th>
             <th>Level 3 Status</th>
-            <th>Level 3 Remarks</th>
+            <th>Level 3 Remarks</th> -->
             <th>Preview Documents</th>
             <!-- *ngIf="this.currentEmployeeInfo.departmentName === 'Accounts'" -->
-             <th *ngIf="this.currentUser.departmentName != 'Accounts'">Reimbursement Status<th>
+             <!-- <th *ngIf="this.currentUser.departmentName != 'Accounts'">Reimbursement Status<th> -->
             <th *ngIf="this.currentUser.departmentName === 'Accounts'" >Actions</th>
           </tr>
           <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="reimbursementActiveColumns"
@@ -134,7 +134,7 @@
             <td>{{ row.level2approverRemarks || 'NA' }}</td>
 
             <!-- Level 3 -->
-            <td>{{ row.level3approverName }}</td>
+            <!-- <td>{{ row.level3approverName }}</td>
             <td>
               <span [ngClass]="{
                     'badge badge-success': row.level3approverStatus === 'Approved',
@@ -144,7 +144,7 @@
                 {{ row.level3approverStatus || 'NA' }}
               </span>
             </td>
-            <td>{{ row.level3approverRemarks || 'NA' }}</td>
+            <td>{{ row.level3approverRemarks || 'NA' }}</td> -->
             <td>
               <div class="d-inline-flex">
                 <button type="button" class="btn btn-success btn-sm btn-action button"
@@ -218,7 +218,7 @@
       <table class="table table-bordered table-hover text-center ">
         <thead class="thead-dark">
           <tr>
-            <th>Travel ID</th>
+            <th>Travel Request ID</th>
             <th>From</th>
             <th>To</th>
             <th>From Date</th>
