@@ -41,4 +41,24 @@ export class ViewEmployeeComponent implements OnInit {
    handlePageChange(event) {
     this.page = event;
   }
+  getLength(data:any[]):number{
+    // console.log(data);
+  if(!data) return 0;
+  else return data.length;
+  }
+   getRowspanForProject(employee: any): number {
+    if (!employee.rmgprojects) return 0;
+    return employee.rmgprojects.reduce((acc: number, team: any) => {
+      return acc + (team.rmgTeam?.length || 0);
+    }, 0);
+  }
+
+     getHierarchicalSrNo(eIndex: number, pIndex: number, tIndex: number): string {
+    const globalProjectIndex = this.getGlobalProjectIndex(eIndex) + 1;
+    return `${globalProjectIndex}.${pIndex + 1}.${tIndex + 1}`;
+  }
+    getGlobalProjectIndex(localPIndex: number): number {
+    const itemsPerPage = 5; // Match with HTML
+    return (this.page - 1) * itemsPerPage + localPIndex;
+  }
 }
