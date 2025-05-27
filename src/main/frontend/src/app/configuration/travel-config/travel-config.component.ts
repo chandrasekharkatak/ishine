@@ -13,18 +13,18 @@ import { TravelDeskService } from 'src/app/services/travel-desk.service';
 })
 export class TravelConfigComponent implements OnInit {
 
-  items:any=10;
-  page:any=1;
+  items: any = 10;
+  page: any = 1;
   isSearchEnabledReview: boolean = false;
   isCategoryTable: boolean = true;
-  createCategoryForm:boolean =false;
+  createCategoryForm: boolean = false;
   filters: any = {};
   sortColumn: any;
   sortColumnType: any;
   sortDirection = 'asc';
-  isHotelCategory:boolean =false;
-  isHotelSubCategory:boolean =false;
-  isCity:boolean = false;
+  isHotelCategory: boolean = false;
+  isHotelSubCategory: boolean = false;
+  isCity: boolean = false;
   travelReason = {
     travelReasonName: '',
     description: ''
@@ -36,11 +36,11 @@ export class TravelConfigComponent implements OnInit {
     description: ''
   };
   hotelSubCategoryData = {
-        hotelCategory: '',            
-        hotelSubCategoryName: '',        
-         description: ''  ,
-         cityName:''    
-  }             
+    hotelCategory: '',
+    hotelSubCategoryName: '',
+    description: '',
+    cityName: ''
+  }
   currentEmployeeInfo: Employee = new Employee();
   domainSpecializationList: any[];
 
@@ -48,26 +48,33 @@ export class TravelConfigComponent implements OnInit {
   description: string = '';
   currentUser: any;
   alertMessage: any;
-  travelReasonlist: any[] = []; 
+  travelReasonlist: any[] = [];
   hotelCategorylist: any[] = [];
   travelModelist: any[] = [];
   travelModelistByReason: any[] = [];
   selectedTravelReasons: string = '';
   // selectedTravelReasons: string[] = [];
   selectedTravelModes: string[] = [];
-  travelClass :any ;
+  travelClass: any;
   hotelSubCategorylist: any;
-  cityList:any;
-  travelClassList:any;
+  cityList: any;
+  travelClassList: any;
+  istravelModeTab: boolean = false;
+  isHotelCategoryTab: boolean = false;
+  isHotelSubCategoryTab: boolean = false;
+  isCityTab: boolean = false;
+  isClassTab: boolean = false;
+  isCategoryTableTab: boolean = true;
+
   handlePageChange(event) {
     this.page = event;
   }
   reviewColumns: any[] = ['blank', 'reviewLabel', 'reviewFieldType', 'condition', 'quarterCycle', 'departmentName', 'employeeName', 'createdOn', 'updatedByName', 'updatedOn']
 
-  constructor(private modalService: BsModalService,private travelDesk: TravelDeskService,
-    private employeeService : EmployeeService,
+  constructor(private modalService: BsModalService, private travelDesk: TravelDeskService,
+    private employeeService: EmployeeService,
     private authenticationService: AuthenticationService
-  ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x) }
+  ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x) }
 
   ngOnInit(): void {
     this.onGetEmployeeInfo();
@@ -85,14 +92,14 @@ export class TravelConfigComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
-  async onGetEmployeeInfo(){
+  async onGetEmployeeInfo() {
     this.domainSpecializationList = [];
     this.currentEmployeeInfo = new Employee();
     let currentEmp = new Employee();
     currentEmp.empId = this.currentUser.empId;
     currentEmp.isDraft = false;
     console.log("currentEmp :::::::::::::::::::::::: ", currentEmp);
-    
+
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
@@ -101,206 +108,278 @@ export class TravelConfigComponent implements OnInit {
     }
   }
 
-  showQuaterTable(){
-    this.isCategoryTable=true;
-    this.isClass=false;
-    this.istravelMode=false;
-    this.travelModeForm=false;
-    this.classCategoryForm=false;
-    this.createCategoryForm=false;
+  showQuaterTable() {
+    this.isCategoryTable = true;
+    this.isClass = false;
+    this.istravelMode = false;
+    this.travelModeForm = false;
+    this.classCategoryForm = false;
+    this.createCategoryForm = false;
     this.isHotelCategory = false;
-    this.isHotelSubCategory=false;
-    this.isCity=false;
-
+    this.isHotelSubCategory = false;
+    this.isCity = false;
+    this.istravelModeTab = false;
+    this.isHotelCategoryTab = false;
+    this.isHotelSubCategoryTab = false;
+    this.isCityTab = false;
+    this.isClassTab = false;
+    this.isCategoryTableTab = true;
   }
-  createCategory(){
-    this.isCategoryTable=false;
-    this.createCategoryForm=true;
-    this.travelModeForm=false;
-    this.classCategoryForm=false;
-    this.isClass=false;
-    this.istravelMode=false;
+  createCategory() {
+    this.isCategoryTable = false;
+    this.createCategoryForm = true;
+    this.travelModeForm = false;
+    this.classCategoryForm = false;
+    this.isClass = false;
+    this.istravelMode = false;
     //this.createCategoryForm=false;
     this.isHotelCategory = false;
-    this.isHotelSubCategory=false;
-    this.isCity=false;
-    this.hotelCategoryForm = false ;
-    this.hotelSubCategoryForm = false ;
-    this.cityForm =false ;
+    this.isHotelSubCategory = false;
+    this.isCity = false;
+    this.hotelCategoryForm = false;
+    this.hotelSubCategoryForm = false;
+    this.cityForm = false;
+    this.istravelModeTab = false;
+    this.isHotelCategoryTab = false;
+    this.isHotelSubCategoryTab = false;
+    this.isCityTab = false;
+    this.isClassTab = false;
+    this.isCategoryTableTab = true;
 
   }
   sortData(sort: Sort) {
-      //console.log(sort);
-      if (sort.active) {
-        let sortParams: any[] = sort.active?.split("|");
-        this.sortColumn = sortParams[0];
-        this.sortColumnType = sortParams[1];
-        this.sortDirection = sort.direction;
-      }
+    //console.log(sort);
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;
     }
+  }
 
-    onSearch(searchData) {
-      this.filters = searchData;
-      //console.log("Updated Filter : ", this.filters);
-    }
-toggleSearchReviewType() {
+  onSearch(searchData) {
+    this.filters = searchData;
+    //console.log("Updated Filter : ", this.filters);
+  }
+  toggleSearchReviewType() {
     this.isSearchEnabledReview = !this.isSearchEnabledReview;
     if (!this.isSearchEnabledReview) {
       this.filters = {};
     }
   }
-  istravelMode:Boolean=false;
-  subCategory(){
-   this.istravelMode=true;
-   this.isClass=false;
-   this.isCategoryTable=false;
-   this.travelModeForm=false;
-    this.classCategoryForm=false;
-    this.createCategoryForm=false;
+  istravelMode: Boolean = false;
+  subCategory() {
+    this.istravelMode = true;
+    this.isClass = false;
+    this.isCategoryTable = false;
+    this.travelModeForm = false;
+    this.classCategoryForm = false;
+    this.createCategoryForm = false;
     this.isHotelCategory = false;
-    this.isHotelSubCategory=false;
-    this.isCity=false;
-    this.hotelCategoryForm = false ;
-    this.hotelSubCategoryForm = false ;
-    this.cityForm =false ;
+    this.isHotelSubCategory = false;
+    this.isCity = false;
+    this.hotelCategoryForm = false;
+    this.hotelSubCategoryForm = false;
+    this.cityForm = false;
+    this.istravelModeTab = true;
+    this.isHotelCategoryTab = false;
+    this.isHotelSubCategoryTab = false;
+    this.isCityTab = false;
+    this.isClassTab = false;
+    this.isCategoryTableTab = false;
   }
 
-  isClass:boolean=false;
-  classCategory(){
-    this.isClass=true;
-    this.istravelMode=false;
-    this.isCategoryTable=false;
-    this.travelModeForm=false;
-    this.classCategoryForm=false;
-    this.createCategoryForm=false;
+  isClass: boolean = false;
+  classCategory() {
+    this.isClass = true;
+    this.istravelMode = false;
+    this.isCategoryTable = false;
+    this.travelModeForm = false;
+    this.classCategoryForm = false;
+    this.createCategoryForm = false;
     this.isHotelCategory = false;
-    this.isHotelSubCategory=false;
-    this.isCity=false;
-    this.hotelCategoryForm = false ;
-    this.hotelSubCategoryForm = false ;
-    this.cityForm =false ;
+    this.isHotelSubCategory = false;
+    this.isCity = false;
+    this.hotelCategoryForm = false;
+    this.hotelSubCategoryForm = false;
+    this.cityForm = false;
+    this.istravelModeTab = false;
+    this.isHotelCategoryTab = false;
+    this.isHotelSubCategoryTab = false;
+    this.isCityTab = false;
+    this.isClassTab = true;
+    this.isCategoryTableTab = false;
   }
- 
-  hotelCategory(){
-    this.isClass=false;
-    this.istravelMode=false;
-    this.isCategoryTable=false;
-    this.travelModeForm=false;
-    this.classCategoryForm=false;
-    this.createCategoryForm=false;
+
+  hotelCategory() {
+    this.isClass = false;
+    this.istravelMode = false;
+    this.isCategoryTable = false;
+    this.travelModeForm = false;
+    this.classCategoryForm = false;
+    this.createCategoryForm = false;
     this.isHotelCategory = false;
-    this.isHotelSubCategory=false;
-    this.isCity=false;
-    this.hotelCategoryForm = true ;
-    this.hotelSubCategoryForm = false ;
-    this.cityForm =false ;
-    
+    this.isHotelSubCategory = false;
+    this.isCity = false;
+    this.hotelCategoryForm = true;
+    this.hotelSubCategoryForm = false;
+    this.cityForm = false;
+
+    this.istravelModeTab = false;
+    this.isHotelCategoryTab = true;
+    this.isHotelSubCategoryTab = false;
+    this.isCityTab = false;
+    this.isClassTab = false;
+    this.isCategoryTableTab = false;
+
   }
-  hotelCategory3(){
-    this.isClass=false;
-    this.istravelMode=false;
-    this.isCategoryTable=false;
-    this.travelModeForm=false;
-    this.classCategoryForm=false;
-    this.createCategoryForm=false;
+  hotelCategory3() {
+    this.isClass = false;
+    this.istravelMode = false;
+    this.isCategoryTable = false;
+    this.travelModeForm = false;
+    this.classCategoryForm = false;
+    this.createCategoryForm = false;
     this.isHotelCategory = true;
-    this.isHotelSubCategory=false;
-    this.isCity=false;
-    this.hotelCategoryForm = false ;
-    this.hotelSubCategoryForm = false ;
-    this.cityForm =false ;
+    this.isHotelSubCategory = false;
+    this.isCity = false;
+    this.hotelCategoryForm = false;
+    this.hotelSubCategoryForm = false;
+    this.cityForm = false;
+    this.istravelModeTab = false;
+    this.isHotelCategoryTab = true;
+    this.isHotelSubCategoryTab = false;
+    this.isCityTab = false;
+    this.isClassTab = false;
+    this.isCategoryTableTab = false;
   }
 
-  hotelSubCategory(){
-    this.isClass=false;
-    this.istravelMode=false;
-    this.isCategoryTable=false;
-    this.travelModeForm=false;
-    this.classCategoryForm=false;
-    this.createCategoryForm=false;
+  hotelSubCategory() {
+    this.isClass = false;
+    this.istravelMode = false;
+    this.isCategoryTable = false;
+    this.travelModeForm = false;
+    this.classCategoryForm = false;
+    this.createCategoryForm = false;
     this.isHotelCategory = false;
-    this.isHotelSubCategory=false;
-    this.isCity=false;
-    this.hotelCategoryForm = false ;
-    this.hotelSubCategoryForm = true ;
-    this.cityForm =false ;
+    this.isHotelSubCategory = false;
+    this.isCity = false;
+    this.hotelCategoryForm = false;
+    this.hotelSubCategoryForm = true;
+    this.cityForm = false;
+    this.istravelModeTab = false;
+    this.isHotelCategoryTab = false;
+    this.isHotelSubCategoryTab = true;
+    this.isCityTab = false;
+    this.isClassTab = false;
+    this.isCategoryTableTab = false;
   }
-  hotelSubCategory3(){
-    this.isClass=false;
-    this.istravelMode=false;
-    this.isCategoryTable=false;
-    this.travelModeForm=false;
-    this.classCategoryForm=false;
-    this.createCategoryForm=false;
+  hotelSubCategory3() {
+    this.isClass = false;
+    this.istravelMode = false;
+    this.isCategoryTable = false;
+    this.travelModeForm = false;
+    this.classCategoryForm = false;
+    this.createCategoryForm = false;
     this.isHotelCategory = false;
-    this.isHotelSubCategory=true;
-    this.isCity=false;
-    this.hotelCategoryForm = false ;
-    this.hotelSubCategoryForm = false ;
-    this.cityForm =false ;
-  }
-
-  cityCategory(){
-    this.isClass=false;
-    this.istravelMode=false;
-    this.isCategoryTable=false;
-    this.travelModeForm=false;
-    this.classCategoryForm=false;
-    this.createCategoryForm=false;
-    this.isHotelCategory = false;
-    this.isHotelSubCategory=false;
-    this.isCity=true;
-    this.hotelCategoryForm = false ;
-    this.hotelSubCategoryForm = false ;
-    this.cityForm =false ;
-  }
-  cityCategory3(){
-    this.isClass=false;
-    this.istravelMode=false;
-    this.isCategoryTable=false;
-    this.travelModeForm=false;
-    this.classCategoryForm=false;
-    this.createCategoryForm=false;
-    this.isHotelCategory = false;
-    this.isHotelSubCategory=false;
-    this.isCity=false;
-    this.hotelCategoryForm = false ;
-    this.hotelSubCategoryForm = false ;
-    this.cityForm =true ;
+    this.isHotelSubCategory = true;
+    this.isCity = false;
+    this.hotelCategoryForm = false;
+    this.hotelSubCategoryForm = false;
+    this.cityForm = false;
+    this.istravelModeTab = false;
+    this.isHotelCategoryTab = false;
+    this.isHotelSubCategoryTab = true;
+    this.isCityTab = false;
+    this.isClassTab = false;
+    this.isCategoryTableTab = false;
   }
 
-
-  classCategoryForm:boolean=false;
-  travelModeForm:boolean=false;
-  hotelCategoryForm:boolean=false;
-  hotelSubCategoryForm:boolean=false;
-  cityForm:boolean=false;
-
-  subClassCategory(){
-    this.travelModeForm=false;
-    this.classCategoryForm=true;
-    this.createCategoryForm=false;
-    this.isClass=false;
-    this.istravelMode=false;
-    this.isCategoryTable=false;
+  cityCategory() {
+    this.isClass = false;
+    this.istravelMode = false;
+    this.isCategoryTable = false;
+    this.travelModeForm = false;
+    this.classCategoryForm = false;
+    this.createCategoryForm = false;
     this.isHotelCategory = false;
-    this.isHotelSubCategory=false;
-    this.isCity=false;
-    this.hotelCategoryForm = false ;
-    this.hotelSubCategoryForm = false ;
-    this.cityForm =false ;
+    this.isHotelSubCategory = false;
+    this.isCity = true;
+    this.hotelCategoryForm = false;
+    this.hotelSubCategoryForm = false;
+    this.cityForm = false;
+    this.istravelModeTab = false;
+    this.isHotelCategoryTab = false;
+    this.isHotelSubCategoryTab = false;
+    this.isCityTab = true;
+    this.isClassTab = false;
+    this.isCategoryTableTab = false;
+  }
+  cityCategory3() {
+    this.isClass = false;
+    this.istravelMode = false;
+    this.isCategoryTable = false;
+    this.travelModeForm = false;
+    this.classCategoryForm = false;
+    this.createCategoryForm = false;
+    this.isHotelCategory = false;
+    this.isHotelSubCategory = false;
+    this.isCity = false;
+    this.hotelCategoryForm = false;
+    this.hotelSubCategoryForm = false;
+    this.cityForm = true;
+    this.istravelModeTab = false;
+    this.isHotelCategoryTab = false;
+    this.isHotelSubCategoryTab = false;
+    this.isCityTab = true;
+    this.isClassTab = false;
+    this.isCategoryTableTab = false;
   }
 
-  travelCategory(){
-    this.travelModeForm=true;
-    this.classCategoryForm=false;
-    this.createCategoryForm=false;
-    this.isClass=false;
-    this.istravelMode=false;
-    this.isCategoryTable=false;
+
+  classCategoryForm: boolean = false;
+  travelModeForm: boolean = false;
+  hotelCategoryForm: boolean = false;
+  hotelSubCategoryForm: boolean = false;
+  cityForm: boolean = false;
+
+  subClassCategory() {
+    this.travelModeForm = false;
+    this.classCategoryForm = true;
+    this.createCategoryForm = false;
+    this.isClass = false;
+    this.istravelMode = false;
+    this.isCategoryTable = false;
     this.isHotelCategory = false;
-    this.isHotelSubCategory=false;
-    this.isCity=false;
+    this.isHotelSubCategory = false;
+    this.isCity = false;
+    this.hotelCategoryForm = false;
+    this.hotelSubCategoryForm = false;
+    this.cityForm = false;
+    this.istravelModeTab = false;
+    this.isHotelCategoryTab = false;
+    this.isHotelSubCategoryTab = false;
+    this.isCityTab = false;
+    this.isClassTab = true;
+    this.isCategoryTableTab = false;
+  }
+
+  travelCategory() {
+    this.travelModeForm = true;
+    this.classCategoryForm = false;
+    this.createCategoryForm = false;
+    this.isClass = false;
+    this.istravelMode = false;
+    this.isCategoryTable = false;
+    this.isHotelCategory = false;
+    this.isHotelSubCategory = false;
+    this.isCity = false;
+    this.istravelModeTab = true;
+    this.isHotelCategoryTab = false;
+    this.isHotelSubCategoryTab = false;
+    this.isCityTab = false;
+    this.isClassTab = false;
+    this.isCategoryTableTab = false;
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -318,7 +397,7 @@ toggleSearchReviewType() {
       }
       else {
         this.openAlertMod(template, "Submission failed. Try again.!");
-        }
+      }
 
     } catch (error) {
       console.error('Error submitting reason:', error);
@@ -333,12 +412,12 @@ toggleSearchReviewType() {
     location.reload();
   }
 
-  async onGetTravelReason(){
+  async onGetTravelReason() {
 
     const response: any = await this.travelDesk.getTravelReason().toPromise();
     if (response.serviceStatus == "Success") {
       this.travelReasonlist = response.serviceResponse;
-    
+
       console.log("travelReasonlist   ::::::: : ", this.travelReasonlist);
 
     } else {
@@ -352,25 +431,25 @@ toggleSearchReviewType() {
       this.openAlertMod(template, "Please select at least one travel reason.");
       return;
     }
-  
+
     try {
-      const reason = this.selectedTravelReasons ;
+      const reason = this.selectedTravelReasons;
       //for (const reason of this.selectedTravelReasons) {
-        const travelModePayload = {
-          travelReason: reason, 
-          modeType: this.modeType,
-          description: this.description,
-          createdBy: this.currentEmployeeInfo?.empId || 0
-        };
-  
-        const response: any = await this.travelDesk.saveTravelMode(travelModePayload).toPromise();
-  
-        if (response.serviceStatus !== 'Success') {
-          console.error(`Error saving reason: ${reason}`, response.serviceError);
-          this.openAlertMod(template, `Failed to save travel mode for reason: ${reason}`);
-          return;
-        }
-     // }
+      const travelModePayload = {
+        travelReason: reason,
+        modeType: this.modeType,
+        description: this.description,
+        createdBy: this.currentEmployeeInfo?.empId || 0
+      };
+
+      const response: any = await this.travelDesk.saveTravelMode(travelModePayload).toPromise();
+
+      if (response.serviceStatus !== 'Success') {
+        console.error(`Error saving reason: ${reason}`, response.serviceError);
+        this.openAlertMod(template, `Failed to save travel mode for reason: ${reason}`);
+        return;
+      }
+      // }
       this.openAlertMod(template, 'Travel Mode saved successfully!');
     } catch (error) {
       console.error('API error:', error);
@@ -378,12 +457,12 @@ toggleSearchReviewType() {
     }
   }
 
-  async onGetTravelMode(){
+  async onGetTravelMode() {
 
     const response: any = await this.travelDesk.getTravelMode().toPromise();
     if (response.serviceStatus == "Success") {
       this.travelModelist = response.serviceResponse;
-    
+
       console.log("travelModelist   ::::::: : ", this.travelModelist);
 
     } else {
@@ -402,7 +481,7 @@ toggleSearchReviewType() {
       } else {
         console.error("Failed to fetch travel modes:", response.serviceResponse);
       }
-     
+
     } catch (error) {
       console.error("Error fetching travel modes:", error);
     }
@@ -414,7 +493,7 @@ toggleSearchReviewType() {
       this.openAlertMod(template, "All fields are required.");
       return;
     }
-  
+
     const travelClassPayload = {
       travelReason: this.selectedTravelReasons,
       travelMode: this.selectedTravelModes,
@@ -422,7 +501,7 @@ toggleSearchReviewType() {
       description: this.description,
       createdBy: this.currentEmployeeInfo?.empId || 0
     };
-  
+
     try {
       const response: any = await this.travelDesk.saveTravelClass(travelClassPayload).toPromise();
       if (response.serviceStatus === 'Success') {
@@ -436,14 +515,14 @@ toggleSearchReviewType() {
     }
   }
 
-  openDeleteModal(template:TemplateRef<any> , documentObj:any){
-    this.modalRef = this.modalService.show(template , { class : 'modal-sm'});
+  openDeleteModal(template: TemplateRef<any>, documentObj: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
 
   }
 
-  onDeleteType(template:TemplateRef<any>){
+  onDeleteType(template: TemplateRef<any>) {
     let doc = new Document();
-    
+
     // doc.typeId = this.documentObj.typeId;
     // doc.typeName = this.documentObj.typeName;
     //     this.newsletterService.deleteType(doc).pipe(first()).subscribe((response : any)=>{
@@ -454,159 +533,159 @@ toggleSearchReviewType() {
     //         this.openAlertMod(template, response.serviceResponse);
     //       }
     //     })
-        //console.log("yes delete !!   ",doc.typeId);
+    //console.log("yes delete !!   ",doc.typeId);
+  }
+
+
+  async submitHotelCategory(template: TemplateRef<any>) {
+    try {
+
+
+      const hotelCategoryName = {
+        hotelCategory: this.hotelCategory1.hotelCategory,
+        description: this.hotelCategory1.description,
+        createdBy: this.currentEmployeeInfo?.empId || 0
+      };
+
+
+
+      const response: any = await this.travelDesk.saveHotelCategory(hotelCategoryName).toPromise();
+      console.log('hotelCategoryName saved:', response);
+      if (response.serviceStatus === "Success") {
+        this.openAlertMod(template, "Hotel Category Name submitted successfully!");
+        this.modalRef.hide();
+      }
+      else {
+        this.openAlertMod(template, "Submission failed. Try again.!");
       }
 
+    } catch (error) {
+      console.error('Error submitting reason:', error);
+      this.openAlertMod(template, "Error occurred while saving the hotel Category.");
+    }
+  }
 
-      async submitHotelCategory(template: TemplateRef<any>) {
-        try {
 
 
-          const hotelCategoryName = {
-            hotelCategory: this.hotelCategory1.hotelCategory,
-            description: this.hotelCategory1.description,
-            createdBy: this.currentEmployeeInfo?.empId || 0
-          };
+  async onGetHotelCategory() {
 
-          
+    const response: any = await this.travelDesk.getHotelCategory().toPromise();
+    if (response.serviceStatus == "Success") {
+      this.hotelCategorylist = response.serviceResponse;
 
-          const response: any = await this.travelDesk.saveHotelCategory(hotelCategoryName).toPromise();
-          console.log('hotelCategoryName saved:', response);
-          if (response.serviceStatus === "Success") {
-            this.openAlertMod(template, "Hotel Category Name submitted successfully!");
-            this.modalRef.hide();
-          }
-          else {
-            this.openAlertMod(template, "Submission failed. Try again.!");
-            }
-    
-        } catch (error) {
-          console.error('Error submitting reason:', error);
-          this.openAlertMod(template, "Error occurred while saving the hotel Category.");
-        }
-      }
-    
+      console.log("hotelCategorylist   ::::::: : ", this.hotelCategorylist);
 
-    
-      async onGetHotelCategory(){
-    
-        const response: any = await this.travelDesk.getHotelCategory().toPromise();
-        if (response.serviceStatus == "Success") {
-          this.hotelCategorylist = response.serviceResponse;
-        
-          console.log("hotelCategorylist   ::::::: : ", this.hotelCategorylist);
-    
-        } else {
-          console.error(response.serviceResponse);
-        }
+    } else {
+      console.error(response.serviceResponse);
+    }
+  }
+
+  async submitHotelSubCategory(template: TemplateRef<any>) {
+
+    try {
+      const hotelCategoryValue = this.hotelSubCategoryData.hotelCategory;
+      console.log(hotelCategoryValue);
+      const hotelSubCategoryPayload = {
+        hotelCategory: this.hotelSubCategoryData.hotelCategory, // From dropdown
+        hotelSubCategoryName: this.hotelSubCategoryData.hotelSubCategoryName,
+        description: this.hotelSubCategoryData.description,
+        createdBy: this.currentEmployeeInfo?.empId || 0
+      };
+
+      const response: any = await this.travelDesk.saveHotelSubCategory(hotelSubCategoryPayload).toPromise();
+
+      if (response.serviceStatus !== 'Success') {
+        console.error('Error saving hotel sub-category:', response.serviceError);
+        this.openAlertMod(template, "Failed to save Hotel Sub-Category.");
+        return;
       }
 
-      async submitHotelSubCategory(template: TemplateRef<any>) {
-             
-        try {
-          const hotelCategoryValue = this.hotelSubCategoryData.hotelCategory ;
-          console.log(hotelCategoryValue) ;
-          const hotelSubCategoryPayload = {
-            hotelCategory: this.hotelSubCategoryData.hotelCategory, // From dropdown
-            hotelSubCategoryName: this.hotelSubCategoryData.hotelSubCategoryName,
-            description: this.hotelSubCategoryData.description,
-            createdBy: this.currentEmployeeInfo?.empId || 0
-          };
-      
-          const response: any = await this.travelDesk.saveHotelSubCategory(hotelSubCategoryPayload).toPromise();
-      
-          if (response.serviceStatus !== 'Success') {
-            console.error('Error saving hotel sub-category:', response.serviceError);
-            this.openAlertMod(template, "Failed to save Hotel Sub-Category.");
-            return;
-          }
-      
-          this.openAlertMod(template, "Hotel Sub-Category saved successfully!");
-          this.modalRef.hide();
-        } catch (error) {
-          console.error("API error:", error);
-          this.openAlertMod(template, "Unexpected error occurred while saving Hotel Sub-Category.");
-        }
+      this.openAlertMod(template, "Hotel Sub-Category saved successfully!");
+      this.modalRef.hide();
+    } catch (error) {
+      console.error("API error:", error);
+      this.openAlertMod(template, "Unexpected error occurred while saving Hotel Sub-Category.");
+    }
+  }
+
+
+
+  async onGetHotelSubCategory() {
+
+    const response: any = await this.travelDesk.getHotelSubCategory().toPromise();
+    if (response.serviceStatus == "Success") {
+      this.hotelSubCategorylist = response.serviceResponse;
+
+      console.log("hotelSubCategorylist   ::::::: : ", this.hotelSubCategorylist);
+
+    } else {
+      console.error(response.serviceResponse);
+    }
+  }
+
+
+  async submitCity(template: TemplateRef<any>) {
+    try {
+      const payload = {
+        hotelCategoryId: this.hotelSubCategoryData.hotelCategory,
+        hotelSubCategoryId: this.hotelSubCategoryData.hotelSubCategoryName,
+        cityName: this.hotelSubCategoryData.cityName,
+        description: this.hotelSubCategoryData.description,
+        createdBy: this.currentEmployeeInfo?.empId || 0
+      };
+
+      console.log(payload);
+
+      const response: any = await this.travelDesk.saveCity(payload).toPromise();
+
+      if (response.serviceStatus !== 'Success') {
+        console.error('Error saving city:', response.serviceError);
+        this.openAlertMod(template, "Failed to save City.");
+        return;
       }
-      
-    
-    
-        async onGetHotelSubCategory(){
-    
-          const response: any = await this.travelDesk.getHotelSubCategory().toPromise();
-          if (response.serviceStatus == "Success") {
-            this.hotelSubCategorylist = response.serviceResponse;
-          
-            console.log("hotelSubCategorylist   ::::::: : ", this.hotelSubCategorylist);
-      
-          } else {
-            console.error(response.serviceResponse);
-          }
-        }
+
+      this.openAlertMod(template, "City saved successfully!");
+      this.modalRef.hide(); // If you're using modal
+    } catch (error) {
+      console.error("API error:", error);
+      this.openAlertMod(template, "Unexpected error occurred while saving City.");
+    }
+  }
 
 
-        async submitCity(template: TemplateRef<any>) {
-          try {
-            const payload = {
-              hotelCategoryId: this.hotelSubCategoryData.hotelCategory, 
-              hotelSubCategoryId: this.hotelSubCategoryData.hotelSubCategoryName,  
-              cityName: this.hotelSubCategoryData.cityName,
-              description: this.hotelSubCategoryData.description,
-              createdBy: this.currentEmployeeInfo?.empId || 0
-            };
 
-            console.log(payload);
-        
-            const response: any = await this.travelDesk.saveCity(payload).toPromise();
-        
-            if (response.serviceStatus !== 'Success') {
-              console.error('Error saving city:', response.serviceError);
-              this.openAlertMod(template, "Failed to save City.");
-              return;
-            }
-        
-            this.openAlertMod(template, "City saved successfully!");
-            this.modalRef.hide(); // If you're using modal
-          } catch (error) {
-            console.error("API error:", error);
-            this.openAlertMod(template, "Unexpected error occurred while saving City.");
-          }
-        }
+  async onGetCity() {
+
+    const response: any = await this.travelDesk.getCity().toPromise();
+    if (response.serviceStatus == "Success") {
+      this.cityList = response.serviceResponse;
+
+      console.log("cityList   ::::::: : ", this.cityList);
+
+    } else {
+      console.error(response.serviceResponse);
+    }
+  }
 
 
-            
-        async onGetCity(){
-    
-          const response: any = await this.travelDesk.getCity().toPromise();
-          if (response.serviceStatus == "Success") {
-            this.cityList = response.serviceResponse;
-          
-            console.log("cityList   ::::::: : ", this.cityList);
-      
-          } else {
-            console.error(response.serviceResponse);
-          }
-        }
-        
-        
-        async onGetTravelCass(){
-    
-          const response: any = await this.travelDesk.onGetTravelCass().toPromise();
-          if (response.serviceStatus == "Success") {
-            this.travelClassList = response.serviceResponse;
-          
-            console.log("travelClassList Fetched   :::::::: ", this.travelClassList);
-      
-          } else {
-            console.error(response.serviceResponse);
-          }
-        }
+  async onGetTravelCass() {
+
+    const response: any = await this.travelDesk.onGetTravelCass().toPromise();
+    if (response.serviceStatus == "Success") {
+      this.travelClassList = response.serviceResponse;
+
+      console.log("travelClassList Fetched   :::::::: ", this.travelClassList);
+
+    } else {
+      console.error(response.serviceResponse);
+    }
+  }
 
 
-      
 
-    
-  
+
+
+
 
 
 }

@@ -80,8 +80,9 @@
             <th>Level 3 Remarks</th> -->
             <th>Preview Documents</th>
             <!-- *ngIf="this.currentEmployeeInfo.departmentName === 'Accounts'" -->
-             <!-- <th *ngIf="this.currentUser.departmentName != 'Accounts'">Reimbursement Status<th> -->
-            <th *ngIf="this.currentUser.departmentName === 'Accounts'" >Actions</th>
+            <th *ngIf="currentUser.departmentName !== 'Accounts'">Reimbursement Status</th>
+            <th *ngIf="currentUser.departmentName === 'Accounts'">Actions</th>
+            
           </tr>
           <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="reimbursementActiveColumns"
           (onSearch)="onSearch($event);page=1"></tr>
@@ -153,7 +154,7 @@
                 </button>
               </div>
             </td>
-            <td *ngIf="this.currentUser.departmentName != 'Accounts'">
+            <td *ngIf="this.currentUser.departmentName !== 'Accounts'">
               <div>
                 <span class="badge badge-success" *ngIf="row.reimbursementStatus === 'Approved'">Paid</span>
                 <span class="badge badge-danger" *ngIf="row.reimbursementStatus === 'Rejected'">Rejected</span>

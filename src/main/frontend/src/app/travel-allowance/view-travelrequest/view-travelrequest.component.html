@@ -136,9 +136,11 @@
                     </button>
                     <!-- *ngIf="row.finalStatus === 'Approved' && isBeforeOrOnFromDate(row.fromDate)" -->
                     <button type="button" *ngIf="row.finalStatus === 'Approved' && isBeforeOrOnFromDate(row.fromDate)"
-                      class="btn btn-primary btn-sm ml-2" (click)="downLoadTicket(alert_message, row.ticketDocId)">
-                      <em class="fa fa-success"></em> Ticket Download
+                      class="btn btn-sm ml-2" [ngClass]="row.ticketDocId ? 'btn-success' : 'btn-primary'"
+                      (click)="downLoadTicket(alert_message, row.ticketDocId)">
+                      <em class="fa fa-ticket"></em> Ticket Download
                     </button>
+
 
                   </div>
                 </td>
@@ -197,10 +199,10 @@
                 groupedInvoiceData[key].commonInfo.travelMode }}</td>
               <td *ngIf="i === 0" [attr.rowspan]="groupedInvoiceData[key].invoices.length">{{
                 groupedInvoiceData[key].commonInfo.travelClass }}</td>
-               <td *ngIf="i === 0" [attr.rowspan]="groupedInvoiceData[key].invoices.length">
+              <td *ngIf="i === 0" [attr.rowspan]="groupedInvoiceData[key].invoices.length">
                 {{ groupedInvoiceData[key].commonInfo.finalReimbursementStatus || 'Pending' }}
               </td>
-              
+
               <td>{{ invoice.invoiceNo }}</td>
               <td>{{ invoice.amount }}</td>
               <td>
@@ -280,7 +282,7 @@
                   <div class="form-group">
                     <label for="requestType">Request Type</label>
                     <input type="text" class="form-control" id="requestType"
-                      [(ngModel)]="selectedTravelRequest.requestType" name="requestType" />
+                      [(ngModel)]="selectedTravelRequest.requestType" name="requestType" readonly />
                   </div>
                 </div>
 
@@ -617,8 +619,7 @@
 
             <div class="col-md-3">
               <label class="info-label"><span class="text-danger">*</span>Upload Invoice</label>
-              <input type="file" class="form-control" (change)="onFileSelected($event)"
-                required />
+              <input type="file" class="form-control" (change)="onFileSelected($event)" required />
             </div>
 
 
@@ -631,7 +632,8 @@
         </div>
         <div class="row justify-content-center">
           <div class="col-md-auto">
-            <button type="button" class="btn btn-primary btn-lg" (click)="updateReimbursmentBasedOnTravelRequest(alert_message)">
+            <button type="button" class="btn btn-primary btn-lg"
+              (click)="updateReimbursmentBasedOnTravelRequest(alert_message)">
               Submit
             </button>
           </div>

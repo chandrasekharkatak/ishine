@@ -154,7 +154,7 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <input class="form-control" [(ngModel)]="travelDeskObj.fromDate" id="fromDate" type="date"
-                                [min]="todayDate" placeholder="Choose from date" autocomplete="off">
+                                [min]="todayDate" [max]="maxTravelRequestDate" placeholder="Choose from date" autocomplete="off">
                         </div>
                     </div>
                 </div>

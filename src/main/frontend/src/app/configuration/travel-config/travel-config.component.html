@@ -10,17 +10,17 @@
 </div> -->
 <div class="row mb-3">
   <div class="col-md-12 px-0">
-    <button type="button" (click)="showQuaterTable()" class="btn btn-outline-primary btn-sm mx-1"
-      [ngClass]="{'active' : isCategoryTable}">Travel-Reason</button>
-    <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : istravelMode}"
+    <button type="button" (click)="showQuaterTable()" class="btn btn-outline-primary btn-sm mx-2"
+      [ngClass]="{'active' : isCategoryTableTab}">Travel-Reason</button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : istravelModeTab}"
       (click)="subCategory()">Travel Mode</button>
-    <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isClass}"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isClassTab}"
       (click)="classCategory()">Travel Classes </button>
-    <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isHotelCategory}"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isHotelCategoryTab}"
       (click)="hotelCategory3()">Hotel-Booking Category </button>
-    <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isHotelSubCategory}"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isHotelSubCategoryTab}"
       (click)="hotelSubCategory3()">Hotel-Booking SubCategory </button>
-    <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isCity}"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isCityTab}"
       (click)="cityCategory()">Add City </button>
     <!-- <button type=" button" class="btn btn-outline-primary btn-sm mx-1">Reimbursment-config</button> -->
   </div>

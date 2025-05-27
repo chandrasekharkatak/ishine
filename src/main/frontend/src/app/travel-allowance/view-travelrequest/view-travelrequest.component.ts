@@ -454,6 +454,14 @@ export class ViewTravelrequestComponent implements OnInit {
       this.openAlertMod1(template, "Duplicate invoice number(s) found. Please ensure all invoice numbers are unique.");
       return;
     }
+
+    const hasHighAmountInvoice = cleanedInvoices.some(invoice => invoice.amount > 10000);
+
+    if (hasHighAmountInvoice) {
+      this.openAlertMod1(template, "The maximum amount per invoice should not exceed five digits.");
+      return;
+
+    }
     const hasInvalidInvoice = cleanedInvoices.some(invoice =>
       !invoice.invoiceNo ||
       !invoice.invoiceDate ||
@@ -472,10 +480,10 @@ export class ViewTravelrequestComponent implements OnInit {
 
     this.travelDesk.submitReimbursmentBasedOnTravelRequest(cleanedInvoices).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        this.modalRef.hide();
         this.getFileDetails();
         this.invoices = [];
         this.addInvoiceRow();
-        this.modalRef.hide();
         this.openAlertMod1(template, response.serviceResponse);
       } else {
         this.openAlertMod(template, response.serviceResponse);
@@ -699,7 +707,7 @@ export class ViewTravelrequestComponent implements OnInit {
     if (!cleanedInvoice.uploadedBy) {
       missingFields.push("Uploaded By");
     }
-    
+
 
     if (missingFields.length > 0) {
       const message = "Please fill the following field(s) before submitting: " + missingFields.join(", ");
@@ -782,5 +790,5 @@ export class ViewTravelrequestComponent implements OnInit {
 
 
   }
-  
+
 }
