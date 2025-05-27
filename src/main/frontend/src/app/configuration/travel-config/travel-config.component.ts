@@ -58,6 +58,7 @@ export class TravelConfigComponent implements OnInit {
   travelClass :any ;
   hotelSubCategorylist: any;
   cityList:any;
+  travelClassList:any;
   handlePageChange(event) {
     this.page = event;
   }
@@ -75,6 +76,7 @@ export class TravelConfigComponent implements OnInit {
     this.onGetHotelCategory();
     this.onGetHotelSubCategory();
     this.onGetCity();
+    this.onGetTravelCass();
   }
 
   modalRef: BsModalRef = new BsModalRef();
@@ -544,6 +546,19 @@ toggleSearchReviewType() {
           }
         }
         
+        
+        async onGetTravelCass(){
+    
+          const response: any = await this.travelDesk.onGetTravelCass().toPromise();
+          if (response.serviceStatus == "Success") {
+            this.travelClassList = response.serviceResponse;
+          
+            console.log("travelClassList Fetched   :::::::: ", this.travelClassList);
+      
+          } else {
+            console.error(response.serviceResponse);
+          }
+        }
 
 
       

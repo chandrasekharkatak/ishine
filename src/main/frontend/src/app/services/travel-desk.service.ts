@@ -157,4 +157,8 @@ export class TravelDeskService {
   }
   
   
+  onGetTravelCass() {
+    return this.http.get(`${this.baseUrl}` + `api/onGetTravelCass`);
+  }
+  
 }

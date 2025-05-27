@@ -1288,6 +1288,29 @@ public class TravelDeskService {
 	        return serviceResponse;
 	    }
 	}
+	
+	
+	public ServiceResponse onGetTravelCass() {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	        List<TravelClass> classList = travelClassRepository.findAll();
+
+	        if (classList.isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("No CLass found.");
+	            return serviceResponse;
+	        } else {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(classList);
+	            return serviceResponse;
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        serviceResponse.setServiceError("Error fetching classList: " + e.getMessage());
+	        return serviceResponse;
+	    }
+	}
 
 
 

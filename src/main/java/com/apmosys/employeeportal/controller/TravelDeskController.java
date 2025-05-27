@@ -171,6 +171,12 @@ public class TravelDeskController {
 	public ServiceResponse getCity() {
 	    return travelDeskService.getCity();
 	}
+	
+	
+	@GetMapping("/onGetTravelCass")
+	public ServiceResponse onGetTravelCass() {
+	    return travelDeskService.onGetTravelCass();
+	}
 
     
 }
