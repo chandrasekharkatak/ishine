@@ -1486,9 +1486,12 @@
                 <div class="requirement-select-container">
                     <label>Select Requirement</label>
                     <mat-select placeholder="Select Requirement" [(ngModel)]="selectedRequirement">
-                        <mat-option *ngFor="let requirement of projectObj.resourceRequirements" [value]="requirement">
+                        <!-- <mat-option *ngFor="let requirement of projectObj.resourceRequirements" [value]="requirement">
                             {{ requirement.role }}  || {{ requirement.department }} || {{ requirement.experience }}
-                        </mat-option>
+                        </mat-option> -->
+                        <mat-option *ngFor="let requirement of projectObj.resourceRequirements" [value]="requirement">
+                            Role - {{ requirement.role }} || Dept - {{ requirement.department }} || Exp - {{ requirement.experience }} y
+                          </mat-option>                          
                     </mat-select>
                 </div>
             </div>
@@ -1537,7 +1540,7 @@
                 <div class="accordion-card">
                   <div class="accordion-content">
                     <div>
-                        <div class="two-column-layout">
+                        <div class="two-column-layout" style="overflow-y: auto; overflow-x: hidden;" >
                             <div *ngIf="teamObj.allTeamMemberList" class="team-member-col">
                                 <label>Existing Team Members</label>
                                 <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index" style="display: flex;">
@@ -1557,20 +1560,18 @@
                                             </mat-option>
                                         </mat-select> -->
                                         <div>
-                                            <button type="button" class="btn btn-outline-primary mx-1" style="padding: 3px;" (click)="removeTeamMember(member, i)">
+                                            <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(member, i)">
                                                 <i class="fa fa-trash" aria-hidden="true"></i>
                                             </button>
                                             <!-- <button type="button" class="btn btn-outline-primary mx-1"(click)="openModal(employeeInfoModal,member.empId)">
                                                 <i class="fa-solid fa-circle-exclamation"></i>
                                             </button> -->
                                             <div class="action-menu-wrapper" (clickOutside)="closePopover(member.empId)">
-                                                <!-- Info Icon Button -->
                                                 <button type="button" class="btn btn-outline-primary mx-1" (click)="togglePopover(member.empId)">
                                                   <i class="fa-solid fa-circle-exclamation"></i>
                                                 </button>
                                               
-                                                <!-- Tooltip Info Panel -->
-                                                <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2" style="width: 260px;">
+                                                <!-- <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3" style="width: 260px;">
                                                   <div class="info-line"><span class="label">Emp Id</span>: {{ employeeInformation.employmentId }}</div>
                                                   <div class="info-line"><span class="label">Role</span>: {{ employeeInformation.jobRole }}</div>
                                                   <div class="info-line"><span class="label">Billability type</span>: {{ employeeInformation.billableType }}</div>
@@ -1578,7 +1579,16 @@
                                                   <div class="info-line"><span class="label">Previous Experience</span>: {{ employeeInformation.previousExperience }} years</div>
                                                   <div class="info-line"><span class="label">Current Experience</span>: {{ employeeInformation.currentExperience }} years</div>
                                                   <div class="info-line"><span class="label">Total Experience</span>: {{ employeeInformation.totalExperience }} years</div>
-                                                </div>
+                                                </div> -->
+                                                <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3" style="width: 260px;">
+                                                    <div class="info-line"><span class="label">Emp Id</span>: <span class="label">{{ employeeInformation.employmentId }}</span></div>
+                                                    <div class="info-line"><span class="label">Role</span>: <span class="label">{{ employeeInformation.jobRole }}</span></div>
+                                                    <div class="info-line"><span class="label">Billability type</span>: <span class="label">{{ employeeInformation.billableType }}</span></div>
+                                                    <div class="info-line"><span class="label">Department</span>: <span class="label">{{ employeeInformation.deptName }}</span></div>
+                                                    <div class="info-line"><span class="label">Previous Experience</span>: <span class="label">{{ employeeInformation.previousExperience }} years</span></div>
+                                                    <div class="info-line"><span class="label">Current Experience</span>: <span class="label">{{ employeeInformation.currentExperience }} years</span></div>
+                                                    <div class="info-line"><span class="label">Total Experience</span>: <span class="label">{{ employeeInformation.totalExperience }} years</span></div>
+                                                </div>                                                
                                             </div>
                                               
                                         </div>
@@ -1652,7 +1662,7 @@
                         </div>
                     </div>
         
-                    <div class="accordion-body" *ngIf="requirement.expanded">
+                    <div class="accordion-body" style="overflow-y: auto; overflow-x: hidden;" *ngIf="requirement.expanded">
                         <div class="accordion-content">
                             <div class="two-column-layout">
                                 <div *ngIf="teamObj.allTeamMemberList" class="team-member-col">
@@ -1679,31 +1689,28 @@
                                             <!-- <button type="button" class="btn btn-outline-primary mx-1"(click)="openModal(employeeInfoModal,member.empId)">
                                                 <i class="fa-solid fa-circle-exclamation"></i>
                                             </button> -->
-                                            <div>
-                                                <button type="button" class="btn btn-outline-primary mx-1" style="padding: 3px;" (click)="removeTeamMember(member, i)">
-                                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                            <div class="action-menu-wrapper" (clickOutside)="closePopover(member.empId)">
+                                                <button type="button" class="btn btn-outline-primary mx-1" (click)="togglePopover(member.empId)">
+                                                  <i class="fa-solid fa-circle-exclamation"></i>
                                                 </button>
-                                                <!-- <button type="button" class="btn btn-outline-primary mx-1"(click)="openModal(employeeInfoModal,member.empId)">
-                                                    <i class="fa-solid fa-circle-exclamation"></i>
-                                                </button> -->
-                                                <div class="action-menu-wrapper" (clickOutside)="closePopover(member.empId)">
-                                                    <!-- Info Icon Button -->
-                                                    <button type="button" class="btn btn-outline-primary mx-1" (click)="togglePopover(member.empId)">
-                                                      <i class="fa-solid fa-circle-exclamation"></i>
-                                                    </button>
-                                                  
-                                                    <!-- Tooltip Info Panel -->
-                                                    <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown" style="width: 260px;">
-                                                      <div class="info-line"><span class="label">Emp Id</span>: {{ employeeInformation.employmentId }}</div>
-                                                      <div class="info-line"><span class="label">Role</span>: {{ employeeInformation.jobRole }}</div>
-                                                      <div class="info-line"><span class="label">Billability type</span>: {{ employeeInformation.billableType }}</div>
-                                                      <div class="info-line"><span class="label">Department</span>: {{ employeeInformation.deptName }}</div>
-                                                      <div class="info-line"><span class="label">Previous Experience</span>: {{ employeeInformation.previousExperience }} years</div>
-                                                      <div class="info-line"><span class="label">Current Experience</span>: {{ employeeInformation.currentExperience }} years</div>
-                                                      <div class="info-line"><span class="label">Total Experience</span>: {{ employeeInformation.totalExperience }} years</div>
-                                                    </div>
-                                                  </div>
-                                                  
+                                                <!-- <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown p-3" style="width: 260px; font-size: 12px;">
+                                                  <div class="info-line"><span class="label">Emp Id</span>: {{ employeeInformation.employmentId }}</div>
+                                                  <div class="info-line"><span class="label">Role</span>: {{ employeeInformation.jobRole }}</div>
+                                                  <div class="info-line"><span class="label">Billability type</span>: {{ employeeInformation.billableType }}</div>
+                                                  <div class="info-line"><span class="label">Department</span>: {{ employeeInformation.deptName }}</div>
+                                                  <div class="info-line"><span class="label">Previous Experience</span>: {{ employeeInformation.previousExperience }} years</div>
+                                                  <div class="info-line"><span class="label">Current Experience</span>: {{ employeeInformation.currentExperience }} years</div>
+                                                  <div class="info-line"><span class="label">Total Experience</span>: {{ employeeInformation.totalExperience }} years</div>
+                                                </div> -->
+                                                <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3" style="width: 260px;">
+                                                    <div class="info-line"><span class="label">Emp Id</span>: <span class="label">{{ employeeInformation.employmentId }}</span></div>
+                                                    <div class="info-line"><span class="label">Role</span>: <span class="label">{{ employeeInformation.jobRole }}</span></div>
+                                                    <div class="info-line"><span class="label">Billability type</span>: <span class="label">{{ employeeInformation.billableType }}</span></div>
+                                                    <div class="info-line"><span class="label">Department</span>: <span class="label">{{ employeeInformation.deptName }}</span></div>
+                                                    <div class="info-line"><span class="label">Previous Experience</span>: <span class="label">{{ employeeInformation.previousExperience }} years</span></div>
+                                                    <div class="info-line"><span class="label">Current Experience</span>: <span class="label">{{ employeeInformation.currentExperience }} years</span></div>
+                                                    <div class="info-line"><span class="label">Total Experience</span>: <span class="label">{{ employeeInformation.totalExperience }} years</span></div>
+                                                </div>                                                  
                                             </div>
                                         </div>
                                         <!-- <div *ngIf="member.resourceOverviewId != requirement.resourceOverviewId">

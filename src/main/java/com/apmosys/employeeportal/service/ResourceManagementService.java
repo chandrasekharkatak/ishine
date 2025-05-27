@@ -5007,9 +5007,9 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		            dto.setEmpId(result[0] != null ? Long.parseLong(result[0].toString()) : null);
 		            dto.setEmploymentId(result[1] != null ? result[1].toString() : null);
 		            dto.setName(result[2] != null ? result[2].toString() : null);
-		            dto.setPreviousExperience(result[3] != null ? Double.parseDouble(result[3].toString()) : null);
-		            dto.setCurrentExperience(result[4] != null ? Double.parseDouble(result[4].toString()) : null);
-		            dto.setTotalExperience(result[5] != null ? Double.parseDouble(result[5].toString()) : null);
+		            dto.setPreviousExperience(result[3] != null ? result[3].toString() : null);
+		            dto.setCurrentExperience(result[4] != null ? result[4].toString() : null);
+		            dto.setTotalExperience(result[5] != null ? result[5].toString() : null);
 		            dto.setBillableType(result[6] != null ? result[6].toString() : null);
 		            dto.setJobRole(result[7] != null ? result[7].toString() : null);
 		            dto.setDeptName(result[8] != null ? result[8].toString() : null);
