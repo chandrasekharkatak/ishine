@@ -1,3 +1,12 @@
+<div class="col-md-1" style="display: flex;
+                    justify-content: left;
+                    max-width: fit-content;
+                    padding: 5px; border: 2px solid #053885;border-radius: 20%;">
+                        <i class="fa fa-download" style="color: #053885;display: flex;
+                        justify-content: left;
+                        max-width: fit-content;" [hidden]="allEmployeeData.length == 0"
+                            (click)="exportToExcel()"></i>
+</div>
 <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'"
                     [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
                     <table class="table" id="project-info" matSort (matSortChange)="sortData($event)">

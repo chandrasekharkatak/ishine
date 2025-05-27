@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 
 @Component({
   selector: 'app-view-employee',
@@ -17,10 +18,11 @@ export class ViewEmployeeComponent implements OnInit {
   filters: any = {};
   page = 1;
   isSearchEnabled: boolean = false;
-  
-  constructor() { }
+  excelName : any;
+  constructor(private exportExcelService :ExportExcelService) { }
 
   ngOnInit(): void {
+    // this.exportToExcel();
   }
 
    sortData(sort: Sort) {
@@ -61,4 +63,41 @@ export class ViewEmployeeComponent implements OnInit {
     const itemsPerPage = 5; // Match with HTML
     return (this.page - 1) * itemsPerPage + localPIndex;
   }
+
+   exportToExcel(): void {
+
+    
+      this.excelName = 'Employee_Details_Report.xlsx';
+
+      const dataForTable = []
+      this.allEmployeeData.forEach(employee=>{
+        employee.rmgprojects.forEach(empProject =>{
+          empProject.rmgTeam.forEach(data =>{
+            dataForTable.push({
+              "Employment Id" : "A-"+employee.employeementId,
+              "Employee Name" : employee.name,
+              "Department" : employee.department,
+              "Billable Type" : employee.billableType,
+              "Is Billable" : employee.billable,
+              "Project Name" : empProject.projectName,
+              "Client Name" : empProject.clientName,
+              "Apmosys RM" : empProject.apmosysRM,
+              "Client RM" : empProject.clientRM,
+              "PO No." : empProject.poNo,
+              "PO Project Type" : empProject.poProjectType,
+              "PO Start Date" : empProject.poStartDate,
+              "PO End Date" : empProject.poEndDate,
+              "Manager Name" : "NA",
+              "Team Name" : data.teamName,
+              "Employee Role" : data.employeeRole,
+              "Status" : data.status
+            })
+          });
+        });
+      });
+      console.log(dataForTable,"dataForTable")
+      console.log(this.excelName,"this.excelName")
+      this.exportExcelService.exportTableDataToExcel(dataForTable, this.excelName)
+    }
+  
 }
