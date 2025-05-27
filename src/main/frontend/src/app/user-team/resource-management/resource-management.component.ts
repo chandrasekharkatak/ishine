@@ -877,6 +877,18 @@ export class ResourceManagementComponent implements OnInit {
       } else {
         console.warn(`No SPOC data available for team: ${team.teamName}`);
       }
+      if (team.teamMemberList) {
+        team.teamMemberList.forEach(member => {
+          if (member.shadow && member.shadow.empId) {
+            member.shadowEmpId = member.shadow.empId;
+            console.log("shadowEmpId set",member.shadowEmpId)
+          } else {
+            member.shadowEmpId = null;
+            console.warn(`No valid shadow data for member: ${member.empId || 'Unknown ID'} in team: ${team.teamName}`);
+          }
+        });
+      }
+    
     });
     this.projectObj.teamList = this.allTeamList;
     this.projectObj.createdBy = this.currentUser.empId;
@@ -940,6 +952,7 @@ export class ResourceManagementComponent implements OnInit {
                 // Format the startDate if it exists, otherwise set it to null
                 member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
                 member.emp360 = member.empId;
+                member.shadowControl = new FormControl(member.shadow || null);
               }
             });
           } else {
@@ -2109,6 +2122,8 @@ TotalEmployeeCount(){
       this.selectedEmpId = selectedEmp.empId;
       console.log('Selected Employee ID:', this.selectedEmpId);
     }
+    member.shadow = selectedName;
+    member.shadowControl.setValue(selectedName);
   }
   
   onTeamMemberSelected(event: MatAutocompleteSelectedEvent): void {

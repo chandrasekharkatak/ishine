@@ -33,5 +33,6 @@ public class TeamMemberDTO {
 	private String shadowBillable;
 	private String shadowBillableType;
     private Long resourceOverviewId;
+	private SpocDTO shadow;
 	
 }

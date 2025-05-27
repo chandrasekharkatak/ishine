@@ -1961,7 +1961,7 @@ public class ResourceManagementService {
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
-									teamMemberDTO.setResourceOverviewId(Long.parseLong(teamMemberObj.getResourceOverviewId().toString()));
+									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
 									
 									if(teamMemberObj.getShadowEmpId()!= null) {
 									Employee shadowempObj = employeeRepository.findByEmpId(teamMemberObj.getShadowEmpId());
@@ -1979,11 +1979,19 @@ public class ResourceManagementService {
 									teamMemberDTO.setShadowEmployeeEmploymentId(prefixx + shadowempObj.getEmployeementId());
 									teamMemberDTO.setShadowEmployeeName(shadowempObj.getName());
 									teamMemberDTO.setShadowEmployeeDepartmentName(findShadowDepartment.getName());
+
+										List<Object[]> shadowDetailsList = teamRepository.getSpocDetils(Long.parseLong(teamMemberObj.getShadowEmpId().toString()));
+								        if (!shadowDetailsList.isEmpty()) {
+								            Object[] shadow = shadowDetailsList.get(0);
+								            SpocDTO shadowDTO = new SpocDTO();
+								            shadowDTO.setEmpId(Long.parseLong(shadow[0].toString()));
+								            shadowDTO.setName( shadow[1].toString());
+								            shadowDTO.setEmploymentId(shadow[2].toString());
+								            teamMemberDTO.setShadow(shadowDTO);
+								        }
 									
 									}
 									
-									
-
 									// teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
 									// teamMemberDTO.setShadowEmpId(teamMemberObj.getShadowEmpId() != null ? Long.parseLong(teamMemberObj.getShadowEmpId().toString()) : null);
 //									teamMemberDTO.setBillable(teamMemberObj.getBillable());
@@ -1999,7 +2007,7 @@ public class ResourceManagementService {
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
-									teamMemberDTO.setResourceOverviewId(Long.parseLong(teamMemberObj.getResourceOverviewId().toString()));
+									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
 									if(teamMemberObj.getShadowEmpId()!= null) {
 										Employee shadowempObj = employeeRepository.findByEmpId(teamMemberObj.getShadowEmpId());
 										JobRole findShadowJobRole = jobRoleRepository.findByjobRoleId(shadowempObj.getJobRoleId());
@@ -2017,7 +2025,18 @@ public class ResourceManagementService {
 										teamMemberDTO.setShadowEmployeeName(shadowempObj.getName());
 										teamMemberDTO.setShadowEmployeeDepartmentName(findShadowDepartment.getName());
 										
+											List<Object[]> shadowDetailsList = teamRepository.getSpocDetils(Long.parseLong(teamMemberObj.getShadowEmpId().toString()));
+									        if (!shadowDetailsList.isEmpty()) {
+									            Object[] shadow = shadowDetailsList.get(0);
+									            SpocDTO shadowDTO = new SpocDTO();
+									            shadowDTO.setEmpId(Long.parseLong(shadow[0].toString()));
+									            shadowDTO.setName( shadow[1].toString());
+									            shadowDTO.setEmploymentId(shadow[2].toString());
+									            teamMemberDTO.setShadow(shadowDTO);
+									        }
+										
 										}
+									
 //									teamMemberDTO.setShadowEmpId(teamMemberObj.getShadowEmpId()!= null ? Long.parseLong(teamMemberObj.getShadowEmpId().toString()):null);
 //									teamMemberDTO.setBillable(teamMemberObj.getBillable());
 //									teamMemberDTO.setBillableType(teamMemberObj.getBillableType());
@@ -5048,9 +5067,9 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		            dto.setEmpId(result[0] != null ? Long.parseLong(result[0].toString()) : null);
 		            dto.setEmploymentId(result[1] != null ? result[1].toString() : null);
 		            dto.setName(result[2] != null ? result[2].toString() : null);
-		            dto.setPreviousExperience(result[3] != null ? Double.parseDouble(result[3].toString()) : null);
-		            dto.setCurrentExperience(result[4] != null ? Double.parseDouble(result[4].toString()) : null);
-		            dto.setTotalExperience(result[5] != null ? Double.parseDouble(result[5].toString()) : null);
+		            dto.setPreviousExperience(result[3] != null ? result[3].toString() : null);
+		            dto.setCurrentExperience(result[4] != null ? result[4].toString() : null);
+		            dto.setTotalExperience(result[5] != null ? result[5].toString() : null);
 		            dto.setBillableType(result[6] != null ? result[6].toString() : null);
 		            dto.setJobRole(result[7] != null ? result[7].toString() : null);
 		            dto.setDeptName(result[8] != null ? result[8].toString() : null);
