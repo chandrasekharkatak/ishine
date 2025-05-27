@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 
 @Component({
@@ -14,12 +15,14 @@ export class ViewEmployeeComponent implements OnInit {
   sortColumnType: any;
   sortDirection = 'asc';
   allProjectTable: boolean = false;
-  tableColumns = [];
+  tableColumns :any[]= ['blank','employeementId','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
   filters: any = {};
   page = 1;
   isSearchEnabled: boolean = false;
   excelName : any;
-  constructor(private exportExcelService :ExportExcelService) { }
+  constructor(private exportExcelService :ExportExcelService,
+    private breadcrumbService: BreadcrumbService
+  ) { }
 
   ngOnInit(): void {
     // this.exportToExcel();
@@ -35,9 +38,10 @@ export class ViewEmployeeComponent implements OnInit {
       }
     }
 
-     onSearch(searchData) {
+  onSearch(searchData) {
+    this.page=1;
     this.filters = searchData;
-    //console.log("Updated Filter : ", this.filters);
+    // console.log("Updated Filter : ", this.filters);
   }
 
    handlePageChange(event) {
@@ -64,6 +68,12 @@ export class ViewEmployeeComponent implements OnInit {
     return (this.page - 1) * itemsPerPage + localPIndex;
   }
 
+  toggleSearch() {
+    this.isSearchEnabled = !this.isSearchEnabled;
+    if (!this.isSearchEnabled) {
+      this.filters = {};
+    }
+  }
    exportToExcel(): void {
 
     
@@ -99,5 +109,40 @@ export class ViewEmployeeComponent implements OnInit {
       console.log(this.excelName,"this.excelName")
       this.exportExcelService.exportTableDataToExcel(dataForTable, this.excelName)
     }
+
+    get filteredEmployeeList() {
+  if (!this.filters || Object.keys(this.filters).length === 0) {
+    return this.allEmployeeData;
+  }
+
+  const filterText = (val: any) => val?.toString().toLowerCase() || '';
+
+  return this.allEmployeeData.map(employee => {
+    const filteredProjects = employee.rmgprojects.map(project => {
+      const filteredTeams = project.rmgTeam.filter(team =>
+        Object.keys(this.filters).every(key => {
+          const searchValue = this.filters[key]?.toLowerCase() || '';
+
+          return (
+            filterText(employee[key]).includes(searchValue) ||
+            filterText(project[key]).includes(searchValue) ||
+            filterText(team[key]).includes(searchValue)
+          );
+        })
+      );
+
+      return {
+        ...project,
+        rmgTeam: filteredTeams
+      };
+    }).filter(project => project.rmgTeam.length > 0);
+
+    return {
+      ...employee,
+      rmgprojects: filteredProjects
+    };
+  }).filter(employee => employee.rmgprojects.length > 0);
+}
+
   
 }

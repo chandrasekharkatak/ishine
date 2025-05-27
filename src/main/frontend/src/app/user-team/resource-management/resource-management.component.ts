@@ -52,11 +52,11 @@ export class ResourceManagementComponent implements OnInit {
   ];
 
   totalEmployees = 0;
-  sankhMappedEmployees = 0;
+  sankhMappedEmployees :any;
   sankhMappedEmployeesList : any[] = [];
-  internalMappedEmployees = 0;
+  internalMappedEmployees :any;
   internalMappedEmployeesList : any[] = [];
-  mappedToBothEmployees = 0;
+  mappedToBothEmployees :any;
   mappedToBothEmployeesList : any[] = [];
   employeeData : any[] = [];
   employees = ['John Doe', 'Jane Smith'];
@@ -140,7 +140,7 @@ export class ResourceManagementComponent implements OnInit {
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   filters: any = {};
   isSearchEnabled: boolean = false;
-  projectColumns: any[] = ["blank", "blank", "blank","isDraftProject", "name", "poNo","projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "startDate", "endDate", "clientState", "createdOn", "status"];
+  projectColumns: any[] = [ "blank", "blank","isDraftProject", "name", "poNo","projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "startDate", "endDate", "clientState", "createdOn", "status"];
 
   projectDetails: any = [];
   copyDepartment: any = [];
