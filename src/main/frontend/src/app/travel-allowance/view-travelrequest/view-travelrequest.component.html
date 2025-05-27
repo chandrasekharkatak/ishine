@@ -169,6 +169,7 @@
           <th>To Date</th>
           <th>Travel Mode</th>
           <th>Travel Class</th>
+          <th>Final Reimbursement Status</th>
           <th>Invoice No</th>
           <th>Amount</th>
           <th>Preview Document</th>
@@ -196,7 +197,10 @@
                 groupedInvoiceData[key].commonInfo.travelMode }}</td>
               <td *ngIf="i === 0" [attr.rowspan]="groupedInvoiceData[key].invoices.length">{{
                 groupedInvoiceData[key].commonInfo.travelClass }}</td>
-
+               <td *ngIf="i === 0" [attr.rowspan]="groupedInvoiceData[key].invoices.length">
+                {{ groupedInvoiceData[key].commonInfo.finalReimbursementStatus || 'Pending' }}
+              </td>
+              
               <td>{{ invoice.invoiceNo }}</td>
               <td>{{ invoice.amount }}</td>
               <td>

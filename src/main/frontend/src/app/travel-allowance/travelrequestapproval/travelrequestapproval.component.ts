@@ -49,7 +49,8 @@ export class TravelrequestapprovalComponent implements OnInit {
       const response: any = await this.travelDesk.fetchTravelDataForApproval(travelData).toPromise();
       
       if (response.serviceStatus === "Success") {
-        this.travelRequests = response.serviceResponse;  
+        this.travelRequests = response.serviceResponse.sort((a, b) => b.requestId - a.requestId);
+
         console.log('Fetched Travel Requests:', this.travelRequests);
         this.selectedTravelRequest = this.travelRequests;
       } else {

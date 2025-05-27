@@ -180,8 +180,23 @@ toggleSearchReviewType() {
     this.hotelSubCategoryForm = false ;
     this.cityForm =false ;
   }
-
+ 
   hotelCategory(){
+    this.isClass=false;
+    this.istravelMode=false;
+    this.isCategoryTable=false;
+    this.travelModeForm=false;
+    this.classCategoryForm=false;
+    this.createCategoryForm=false;
+    this.isHotelCategory = false;
+    this.isHotelSubCategory=false;
+    this.isCity=false;
+    this.hotelCategoryForm = true ;
+    this.hotelSubCategoryForm = false ;
+    this.cityForm =false ;
+    
+  }
+  hotelCategory3(){
     this.isClass=false;
     this.istravelMode=false;
     this.isCategoryTable=false;
@@ -191,7 +206,7 @@ toggleSearchReviewType() {
     this.isHotelCategory = true;
     this.isHotelSubCategory=false;
     this.isCity=false;
-    this.hotelCategoryForm = true ;
+    this.hotelCategoryForm = false ;
     this.hotelSubCategoryForm = false ;
     this.cityForm =false ;
   }
@@ -204,10 +219,24 @@ toggleSearchReviewType() {
     this.classCategoryForm=false;
     this.createCategoryForm=false;
     this.isHotelCategory = false;
-    this.isHotelSubCategory=true;
+    this.isHotelSubCategory=false;
     this.isCity=false;
     this.hotelCategoryForm = false ;
     this.hotelSubCategoryForm = true ;
+    this.cityForm =false ;
+  }
+  hotelSubCategory3(){
+    this.isClass=false;
+    this.istravelMode=false;
+    this.isCategoryTable=false;
+    this.travelModeForm=false;
+    this.classCategoryForm=false;
+    this.createCategoryForm=false;
+    this.isHotelCategory = false;
+    this.isHotelSubCategory=true;
+    this.isCity=false;
+    this.hotelCategoryForm = false ;
+    this.hotelSubCategoryForm = false ;
     this.cityForm =false ;
   }
 
@@ -223,9 +252,22 @@ toggleSearchReviewType() {
     this.isCity=true;
     this.hotelCategoryForm = false ;
     this.hotelSubCategoryForm = false ;
+    this.cityForm =false ;
+  }
+  cityCategory3(){
+    this.isClass=false;
+    this.istravelMode=false;
+    this.isCategoryTable=false;
+    this.travelModeForm=false;
+    this.classCategoryForm=false;
+    this.createCategoryForm=false;
+    this.isHotelCategory = false;
+    this.isHotelSubCategory=false;
+    this.isCity=false;
+    this.hotelCategoryForm = false ;
+    this.hotelSubCategoryForm = false ;
     this.cityForm =true ;
   }
-
 
 
   classCategoryForm:boolean=false;

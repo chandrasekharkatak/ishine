@@ -59,7 +59,8 @@ export class ReimbursementapprovalComponent implements OnInit {
       const response: any = await this.reimbursementService.fetchReimbursementDataforApproval(reimbursementData).toPromise();
       
       if (response.serviceStatus === "Success") {
-        this.reimbursementRequests = response.serviceResponse;  
+        this.reimbursementRequests = response.serviceResponse.sort((a, b) => b.requestId - a.requestId);
+        // this.reimbursementRequests = response.serviceResponse;  
         console.log('Fetched Reimbursement Requests:', this.reimbursementRequests);
         this.selectedReimbursementRequest = this.reimbursementRequests;
       } else {

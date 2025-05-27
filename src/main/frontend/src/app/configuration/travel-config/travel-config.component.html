@@ -17,9 +17,9 @@
     <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isClass}"
       (click)="classCategory()">Travel Classes </button>
     <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isHotelCategory}"
-      (click)="hotelCategory()">Hotel-Booking Category </button>
+      (click)="hotelCategory3()">Hotel-Booking Category </button>
     <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isHotelSubCategory}"
-      (click)="hotelSubCategory()">Hotel-Booking SubCategory </button>
+      (click)="hotelSubCategory3()">Hotel-Booking SubCategory </button>
     <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isCity}"
       (click)="cityCategory()">Add City </button>
     <!-- <button type=" button" class="btn btn-outline-primary btn-sm mx-1">Reimbursment-config</button> -->
@@ -91,7 +91,7 @@
                 <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                 </th>
                 <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
-                <th scope="col" class="info-label">Action</th>
+                <!-- <th scope="col" class="info-label">Action</th> -->
 
 
               </tr>
@@ -114,10 +114,10 @@
                 <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
                 <td>{{review.updatedBy}}</td>
                 <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
-                <td>
+                <!-- <td>
                   <button class="btn btn-outline-danger" type="button"
                     (click)="openDeleteModal(delete_type_modal,review)"><em class="fa fa-trash"></em></button>&nbsp;
-                </td>
+                </td> -->
 
 
               </tr>
@@ -183,65 +183,39 @@
             <thead class="thead-light" id="domainInfoTHead">
               <tr id="domainInfoTHeadTr">
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label" mat-sort-header="reviewLabel|string">Review Label
+                <th scope="col" class="info-label" mat-sort-header="modeType|string">Mode Type
                 </th>
-                <th scope="col" class="info-label" mat-sort-header="reviewField|string">Review Field
-                  Type</th>
-                <th scope="col" class="info-label" mat-sort-header="limit|string">Limit</th>
-                <th scope="col" class="info-label" mat-sort-header="quarterCycle|string">Cycle
-                </th>
-                <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department
+               
+                <th scope="col" class="info-label" mat-sort-header="description|string">Description
                   Name</th>
                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
-                </th>
+                </th> 
                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
                 <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                 </th>
                 <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
-                <th scope="col" class="info-label">Actions</th>
+                <!-- <th scope="col" class="info-label">Actions</th> -->
               </tr>
               <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview" [columnList]="reviewColumns"
                 (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
               <tr>
-                <th colspan="8" class="text-center info-label">No details to display...</th>
+                <th colspan="8" class="text-center info-label" *ngIf="travelModelist.length == 0">No details to display...</th>
               </tr>
               <tr>
-                <!-- <tr
-                                *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                 <tr
+                                *ngFor="let review of travelModelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
-                                <td>{{review.reviewLabel}}</td>
-                                <td>{{review.reviewFieldType}}</td>
-                                <td>{{review.condition}}</td>
-                                <td>{{review.quarterCycle}}</td>
-                                <td>{{review.departmentName}}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config && review.employeeName"id="clickablefor360" [navigateToEmployee360]="review.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{review.employeeName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config || !review.employeeName">{{review.employeeName}}</td>
-                                <td>{{review.createdOn | date: 'dd-MM-yyyy hh:mm:ss'}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config || !review.updatedByName">{{ review.updatedByName ?? 'NA' }}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config && review.updatedByName">
-                                    <span *ngIf="review.updatedByName; else showNADisplay" 
-                                          id="clickablefor360" 
-                                          [navigateToEmployee360]="review.emp360UpdatedBy" 
-                                          style="cursor: pointer;" 
-                                          title="Click to view Employee 360">
-                                      {{ review.updatedByName }}
-                                    </span>
-                                    <ng-template #showNADisplay>
-                                      {{ review.updatedByName ?? 'NA' }}
-                                    </ng-template>
-                                  </td>                                  
-                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td> 
-                                <td *ngIf="!review.active == false">
-                                    <button class="btn btn-sm btn-outline-primary" type="submit"
-                                        (click)="showUpdateReviewForm(review)"><em
-                                            class="fa fa-edit"></em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-danger" type="submit"
-                                        (click)="openConfirmDeleteModal(confirmDelete,review)"><em
-                                            class="fa fa-trash"></em></button>
-                                </td>
-                            </tr> -->
+                                <td>{{review.modeType}}</td>
+                                <td>{{review.description}}</td>
+                                <!-- <td>{{review.createdBy}}</td> -->
+                                <td>Sakti Das</td>
+                                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <td>{{review.updatedBy}}</td>
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                
+                            </tr> 
 
             </tbody>
           </table>
@@ -304,65 +278,39 @@
             <thead class="thead-light" id="domainInfoTHead">
               <tr id="domainInfoTHeadTr">
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label" mat-sort-header="reviewLabel|string">Review Label
+                <th scope="col" class="info-label" mat-sort-header="travelClass|string">Travel Class
                 </th>
-                <th scope="col" class="info-label" mat-sort-header="reviewField|string">Review Field
-                  Type</th>
-                <th scope="col" class="info-label" mat-sort-header="limit|string">Limit</th>
-                <th scope="col" class="info-label" mat-sort-header="quarterCycle|string">Cycle
-                </th>
-                <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department
+               
+                <th scope="col" class="info-label" mat-sort-header="description|string">Description
                   Name</th>
                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
-                </th>
+                </th> 
                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
                 <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                 </th>
                 <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
-                <th scope="col" class="info-label">Actions</th>
+                <!-- <th scope="col" class="info-label">Actions</th> -->
               </tr>
               <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview" [columnList]="reviewColumns"
                 (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
               <tr>
-                <th colspan="8" class="text-center info-label">No details to display...</th>
+                <th colspan="8" class="text-center info-label"*ngIf="travelClassList.length == 0">No details to display...</th>
               </tr>
               <tr>
-                <!-- <tr
-                                *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
-                                <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
-                                <td>{{review.reviewLabel}}</td>
-                                <td>{{review.reviewFieldType}}</td>
-                                <td>{{review.condition}}</td>
-                                <td>{{review.quarterCycle}}</td>
-                                <td>{{review.departmentName}}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config && review.employeeName"id="clickablefor360" [navigateToEmployee360]="review.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{review.employeeName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config || !review.employeeName">{{review.employeeName}}</td>
-                                <td>{{review.createdOn | date: 'dd-MM-yyyy hh:mm:ss'}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config || !review.updatedByName">{{ review.updatedByName ?? 'NA' }}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config && review.updatedByName">
-                                    <span *ngIf="review.updatedByName; else showNADisplay" 
-                                          id="clickablefor360" 
-                                          [navigateToEmployee360]="review.emp360UpdatedBy" 
-                                          style="cursor: pointer;" 
-                                          title="Click to view Employee 360">
-                                      {{ review.updatedByName }}
-                                    </span>
-                                    <ng-template #showNADisplay>
-                                      {{ review.updatedByName ?? 'NA' }}
-                                    </ng-template>
-                                  </td>                                  
-                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td> 
-                                <td *ngIf="!review.active == false">
-                                    <button class="btn btn-sm btn-outline-primary" type="submit"
-                                        (click)="showUpdateReviewForm(review)"><em
-                                            class="fa fa-edit"></em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-danger" type="submit"
-                                        (click)="openConfirmDeleteModal(confirmDelete,review)"><em
-                                            class="fa fa-trash"></em></button>
-                                </td>
-                            </tr> -->
+                <tr
+                *ngFor="let review of travelClassList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
+                <td>{{review.travelClass}}</td>
+                <td>{{review.description}}</td>
+                <!-- <td>{{review.createdBy}}</td> -->
+                <td>Sakti Das</td>
+                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                <td>{{review.updatedBy}}</td>
+                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                
+            </tr> 
 
             </tbody>
           </table>
@@ -377,7 +325,7 @@
 
 
 <div class="row"
-  *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode && isHotelCategory && !isHotelSubCategory && !isCity">
+  *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode && isHotelCategory && !hotelCategoryForm && !isHotelSubCategory && !isCity">
 
   <div class="col-md-12">
 
@@ -424,65 +372,39 @@
             <thead class="thead-light" id="domainInfoTHead">
               <tr id="domainInfoTHeadTr">
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label" mat-sort-header="reviewLabel|string">Review Label
+                <th scope="col" class="info-label" mat-sort-header="hotelCategory|string">Hotel Category
                 </th>
-                <th scope="col" class="info-label" mat-sort-header="reviewField|string">Review Field
-                  Type</th>
-                <th scope="col" class="info-label" mat-sort-header="limit|string">Limit</th>
-                <th scope="col" class="info-label" mat-sort-header="quarterCycle|string">Cycle
-                </th>
-                <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department
+               
+                <th scope="col" class="info-label" mat-sort-header="description|string">Description
                   Name</th>
                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
-                </th>
+                </th> 
                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
                 <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                 </th>
                 <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
-                <th scope="col" class="info-label">Actions</th>
+                <!-- <th scope="col" class="info-label">Actions</th> -->
               </tr>
               <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview" [columnList]="reviewColumns"
                 (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
               <tr>
-                <th colspan="8" class="text-center info-label">No details to display...</th>
+                <th colspan="8" class="text-center info-label" *ngIf="hotelCategorylist.length == 0">No details to display...</th>
               </tr>
               <tr>
-                <!-- <tr
-                                *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                 <tr
+                                *ngFor="let review of hotelCategorylist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
-                                <td>{{review.reviewLabel}}</td>
-                                <td>{{review.reviewFieldType}}</td>
-                                <td>{{review.condition}}</td>
-                                <td>{{review.quarterCycle}}</td>
-                                <td>{{review.departmentName}}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config && review.employeeName"id="clickablefor360" [navigateToEmployee360]="review.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{review.employeeName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config || !review.employeeName">{{review.employeeName}}</td>
-                                <td>{{review.createdOn | date: 'dd-MM-yyyy hh:mm:ss'}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config || !review.updatedByName">{{ review.updatedByName ?? 'NA' }}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config && review.updatedByName">
-                                    <span *ngIf="review.updatedByName; else showNADisplay" 
-                                          id="clickablefor360" 
-                                          [navigateToEmployee360]="review.emp360UpdatedBy" 
-                                          style="cursor: pointer;" 
-                                          title="Click to view Employee 360">
-                                      {{ review.updatedByName }}
-                                    </span>
-                                    <ng-template #showNADisplay>
-                                      {{ review.updatedByName ?? 'NA' }}
-                                    </ng-template>
-                                  </td>                                  
-                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td> 
-                                <td *ngIf="!review.active == false">
-                                    <button class="btn btn-sm btn-outline-primary" type="submit"
-                                        (click)="showUpdateReviewForm(review)"><em
-                                            class="fa fa-edit"></em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-danger" type="submit"
-                                        (click)="openConfirmDeleteModal(confirmDelete,review)"><em
-                                            class="fa fa-trash"></em></button>
-                                </td>
-                            </tr> -->
+                                <td>{{review.hotelCategory}}</td>
+                                <td>{{review.description}}</td>
+                                <!-- <td>{{review.createdBy}}</td> -->
+                                <td>Sakti Das</td>
+                                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <td>{{review.updatedBy}}</td>
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                               
+                            </tr> 
 
             </tbody>
           </table>
@@ -496,7 +418,7 @@
 </div>
 
 <div class="row"
-  *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode && !isHotelCategory && isHotelSubCategory && !isCity">
+  *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode && !isHotelCategory && isHotelSubCategory && !hotelSubCategoryForm && !isCity">
 
   <div class="col-md-12">
 
@@ -523,7 +445,7 @@
     <div class="col-md-12">
       <div class="row">
         <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
-          <button type="button" class="btn btn-outline-primary btn-sm" (click)="hotelCategory()"><em
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="hotelSubCategory()"><em
               class="fa-solid fa-plus"></em>Add Hotel Sub-Category</button>
 
         </div>
@@ -543,65 +465,39 @@
             <thead class="thead-light" id="domainInfoTHead">
               <tr id="domainInfoTHeadTr">
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label" mat-sort-header="reviewLabel|string">Review Label
+                <th scope="col" class="info-label" mat-sort-header="hotelSubCategoryName|string">Hotel Sub Category Name
                 </th>
-                <th scope="col" class="info-label" mat-sort-header="reviewField|string">Review Field
-                  Type</th>
-                <th scope="col" class="info-label" mat-sort-header="limit|string">Limit</th>
-                <th scope="col" class="info-label" mat-sort-header="quarterCycle|string">Cycle
-                </th>
-                <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department
+               
+                <th scope="col" class="info-label" mat-sort-header="description|string">Description
                   Name</th>
                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
-                </th>
+                </th> 
                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
                 <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                 </th>
                 <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
-                <th scope="col" class="info-label">Actions</th>
+                <!-- <th scope="col" class="info-label">Actions</th> -->
               </tr>
               <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview" [columnList]="reviewColumns"
                 (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
               <tr>
-                <th colspan="8" class="text-center info-label">No details to display...</th>
+                <th colspan="8" class="text-center info-label" *ngIf="hotelSubCategorylist.length==0">No details to display...</th>
               </tr>
               <tr>
-                <!-- <tr
-                                *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                <tr
+                                *ngFor="let review of hotelSubCategorylist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
-                                <td>{{review.reviewLabel}}</td>
-                                <td>{{review.reviewFieldType}}</td>
-                                <td>{{review.condition}}</td>
-                                <td>{{review.quarterCycle}}</td>
-                                <td>{{review.departmentName}}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config && review.employeeName"id="clickablefor360" [navigateToEmployee360]="review.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{review.employeeName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config || !review.employeeName">{{review.employeeName}}</td>
-                                <td>{{review.createdOn | date: 'dd-MM-yyyy hh:mm:ss'}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config || !review.updatedByName">{{ review.updatedByName ?? 'NA' }}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config && review.updatedByName">
-                                    <span *ngIf="review.updatedByName; else showNADisplay" 
-                                          id="clickablefor360" 
-                                          [navigateToEmployee360]="review.emp360UpdatedBy" 
-                                          style="cursor: pointer;" 
-                                          title="Click to view Employee 360">
-                                      {{ review.updatedByName }}
-                                    </span>
-                                    <ng-template #showNADisplay>
-                                      {{ review.updatedByName ?? 'NA' }}
-                                    </ng-template>
-                                  </td>                                  
-                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td> 
-                                <td *ngIf="!review.active == false">
-                                    <button class="btn btn-sm btn-outline-primary" type="submit"
-                                        (click)="showUpdateReviewForm(review)"><em
-                                            class="fa fa-edit"></em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-danger" type="submit"
-                                        (click)="openConfirmDeleteModal(confirmDelete,review)"><em
-                                            class="fa fa-trash"></em></button>
-                                </td>
-                            </tr> -->
+                                <td>{{review.hotelSubCategoryName}}</td>
+                                <td>{{review.description}}</td>
+                                <!-- <td>{{review.createdBy}}</td> -->
+                                <td>Sakti Das</td>
+                                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <td>{{review.updatedBy}}</td>
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                               
+                            </tr> 
 
             </tbody>
           </table>
@@ -642,7 +538,7 @@
     <div class="col-md-12">
       <div class="row">
         <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
-          <button type="button" class="btn btn-outline-primary btn-sm" (click)="hotelCategory()"><em
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="cityCategory3()"><em
               class="fa-solid fa-plus"></em>Add City</button>
 
         </div>
@@ -662,65 +558,40 @@
             <thead class="thead-light" id="domainInfoTHead">
               <tr id="domainInfoTHeadTr">
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label" mat-sort-header="reviewLabel|string">Review Label
+                <th scope="col" class="info-label" mat-sort-header="cityName|string">City Name
                 </th>
-                <th scope="col" class="info-label" mat-sort-header="reviewField|string">Review Field
-                  Type</th>
-                <th scope="col" class="info-label" mat-sort-header="limit|string">Limit</th>
-                <th scope="col" class="info-label" mat-sort-header="quarterCycle|string">Cycle
-                </th>
-                <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department
+               
+                <th scope="col" class="info-label" mat-sort-header="description|string">Description
                   Name</th>
                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
-                </th>
+                </th> 
                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
                 <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                 </th>
                 <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
-                <th scope="col" class="info-label">Actions</th>
+                <!-- <th scope="col" class="info-label">Actions</th> -->
               </tr>
               <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview" [columnList]="reviewColumns"
                 (onSearch)="onSearch($event);page=1"></tr>
             </thead>
             <tbody>
               <tr>
-                <th colspan="8" class="text-center info-label">No details to display...</th>
+                <th colspan="8" class="text-center info-label" *ngIf="cityList.length==0">No details to display...</th>
               </tr>
               <tr>
-                <!-- <tr
-                                *ngFor="let review of reviewTypelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                <tr
+                                *ngFor="let review of cityList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
-                                <td>{{review.reviewLabel}}</td>
-                                <td>{{review.reviewFieldType}}</td>
-                                <td>{{review.condition}}</td>
-                                <td>{{review.quarterCycle}}</td>
-                                <td>{{review.departmentName}}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config && review.employeeName"id="clickablefor360" [navigateToEmployee360]="review.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{review.employeeName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config || !review.employeeName">{{review.employeeName}}</td>
-                                <td>{{review.createdOn | date: 'dd-MM-yyyy hh:mm:ss'}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config || !review.updatedByName">{{ review.updatedByName ?? 'NA' }}</td>
-                                <td *ngIf="userMapping.employee360_view_performance_config && review.updatedByName">
-                                    <span *ngIf="review.updatedByName; else showNADisplay" 
-                                          id="clickablefor360" 
-                                          [navigateToEmployee360]="review.emp360UpdatedBy" 
-                                          style="cursor: pointer;" 
-                                          title="Click to view Employee 360">
-                                      {{ review.updatedByName }}
-                                    </span>
-                                    <ng-template #showNADisplay>
-                                      {{ review.updatedByName ?? 'NA' }}
-                                    </ng-template>
-                                  </td>                                  
-                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td> 
-                                <td *ngIf="!review.active == false">
-                                    <button class="btn btn-sm btn-outline-primary" type="submit"
-                                        (click)="showUpdateReviewForm(review)"><em
-                                            class="fa fa-edit"></em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-danger" type="submit"
-                                        (click)="openConfirmDeleteModal(confirmDelete,review)"><em
-                                            class="fa fa-trash"></em></button>
-                                </td>
-                            </tr> -->
+                                <td>{{review.cityName}}</td>
+                                <td>{{review.description}}</td>
+                                <!-- <td>{{review.createdBy}}</td> -->
+                                <td>Sakti Das</td>
+                                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <td>{{review.updatedBy}}</td>
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                               
+                            </tr> 
+
 
             </tbody>
           </table>
@@ -977,7 +848,7 @@
 </div>
 
 <div class="row"
-  *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode && !hotelCategoryForm && hotelSubCategoryForm && !cityForm">
+  *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode && !hotelCategoryForm && hotelSubCategoryForm && !isHotelSubCategory && !cityForm">
   <div class="card col-md-12 px-0">
     <div class="card-header text-center text-uppercase">
       <strong>Hotel Booking Sub-Category</strong>
@@ -1025,7 +896,7 @@
 
 
 <div class="row"
-  *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode && !hotelCategoryForm && !hotelSubCategoryForm && cityForm">
+  *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode && !hotelCategoryForm && !hotelSubCategoryForm && cityForm && !isCity">
   <div class="card col-md-12 px-0">
     <div class="card-header text-center text-uppercase">
       <strong>Add City</strong>

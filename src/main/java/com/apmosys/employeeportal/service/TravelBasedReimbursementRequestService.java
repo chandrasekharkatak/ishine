@@ -365,7 +365,7 @@ public ServiceResponse getAllInvoices() {
 //    	        dto.setLevel2ApproverName(object[17] != null ? object[17].toString() : null);
     	        dto.setLevel2ApproverStatus(object[18] != null ? object[18].toString() : null);
     	        dto.setReimbursementStatus(object[19] != null ? object[19].toString() : null);
-    	       
+    	        dto.setFinalReimbursementStatus(object[20] != null ? object[20].toString() : null);
     	        
     	        
     	        details.add(dto);
@@ -510,6 +510,7 @@ public ServiceResponse getAllInvoicesByEmpId(TravelBasedReimbursementRequestDTO 
     	        dto.setLevel2ApproverStatus(object[18] != null ? object[18].toString() : null);
     	        dto.setReimbursementStatus(object[19] != null ? object[19].toString() : null);
     	        dto.setSerialNo(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
+    	        dto.setFinalReimbursementStatus(object[21] != null ? object[21].toString() : null);
 
     	        
     	        
@@ -687,5 +688,40 @@ public ServiceResponse updateUploadedFile(MultipartFile file, String displayName
 	    apiLogInfo.setApiRequest(logBuilder.toString());
 	    return response;
 	}
+
+
+
+      public ServiceResponse markAsPaid(TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
+    	  ServiceResponse response = new ServiceResponse();
+    		LogDTO apiLogInfo = new LogDTO();
+    		apiLogInfo.setSubFeatureName("markAsPaid");
+    		apiLogInfo.setApiUrl("/api/markAsPaid");
+    		apiLogInfo.setLogLevel("INFO");
+    		StringBuilder logBuilder = new StringBuilder();
+    		try {
+    			 List<TravelBasedReimbursementRequest> details= travelBasedReimbursementRequestRepository.findAllByTravelId(reimbursementRequestDTO.getTravelId());
+    			 for(TravelBasedReimbursementRequest object:details) {
+    				 object.setFinalReimbusementStatus("Reimbursement Done");    	
+//    				 object.setReimbursementStatus("Reimbursement Done");
+    				 travelBasedReimbursementRequestRepository.save(object);
+    				 
+    			 }
+    			 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+ 	            response.setServiceResponse("Reimbursement Done successfully.");
+ 	            response.setServiceMessage("Reimbursement Done successfully.");
+ 	            apiLogInfo.setApiResponse("Reimbursement Done successfully.");
+ 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+    	    	  
+    		}catch(Exception e){
+    			 e.printStackTrace();
+    		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+    		        response.setServiceResponse("Something Went Wrong.");
+    		        response.setServiceError(e.getMessage());
+    		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+    		        apiLogInfo.setLogLevel("ERROR");
+    		}
+    	 
+		return response;
+      }
 	
 }

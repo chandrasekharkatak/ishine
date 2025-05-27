@@ -576,9 +576,6 @@ export class ViewTravelrequestComponent implements OnInit {
       if (response.serviceStatus === "Success") {
         const rawData = response.serviceResponse;
 
-
-
-        // Group data by travelId
         const grouped: any = {};
         rawData.forEach((item: any) => {
           const travelId = item.travelId || 'unknown';

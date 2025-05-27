@@ -41,6 +41,7 @@ public class TravelBasedReimbursementRequestDTO {
     private String rejectReason; 
     private String reimbursementStatus;
     private Boolean isValid;
+    private String finalReimbusementStatus;
 //    private  List<MultipartFile> fileName;
 
 }

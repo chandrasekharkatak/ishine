@@ -209,8 +209,8 @@ fetchAllInvoice() {
       const rawData = response.serviceResponse;
       this.Excell=response.serviceResponse;
      
-
-      // Group data by travelId
+  console.log("Test",response.serviceResponse.sort((a, b) => b.travelId - a.travelId))
+     
       const grouped: any = {};
       rawData.forEach((item: any) => {
         const travelId = item.travelId || 'unknown';
@@ -394,8 +394,27 @@ docList: any[] = [];
         .reduce((sum, inv) => sum + (inv.amount || 0), 0);
     }
     
+    allInvoicesApproved(invoices: any[]): boolean {
+      if (!invoices || invoices.length === 0) return false;
+      return invoices.every(inv => inv.reimbursementStatus === 'Approved');
+    }
+    
+    markAsPaid(travelId:any,template:TemplateRef<any>): void {
+      const travelId1 = {travelId:travelId};
+      this.reimbursementService.markAsPaid(travelId1).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          
+          this.openAlertMod(template, response.serviceResponse);
+        } else {
 
-
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+      
+      console.log("Marking as paid for Travel ID:", travelId);
+      // You can call your service here to mark as paid
+    }
+    
     updateReimbursementDetailsByAccountsTeam(template:TemplateRef<any>, details:any){
       
       this.account.requestId = details.requestId;

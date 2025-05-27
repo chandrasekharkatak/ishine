@@ -44,5 +44,6 @@ public class TravelBasedReimbursementRequest {
     private String reimbursementStatus;
     
     private Boolean isValid;
+    private String finalReimbusementStatus;
 
 }

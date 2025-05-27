@@ -49,6 +49,7 @@ public class TravelDeskDTO {
 	    private String RequestType;
 	    private String reimbursementStatus;
 	    private Integer serialNo;
+	    private String finalReimbursementStatus;
 	
 	    
 }

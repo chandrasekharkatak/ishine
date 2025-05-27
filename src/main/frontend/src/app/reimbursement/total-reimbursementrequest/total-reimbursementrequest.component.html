@@ -303,10 +303,28 @@
                 <td colspan="8" class="text-right font-weight-bold text-dark">
                   Total Approved Amount for Travel ID {{ groupedInvoiceData[key].commonInfo.travelId }}:
                 </td>
-                <td colspan="3" class="font-weight-bold text-success">
+                <td colspan="2" class="font-weight-bold text-success">
                   {{ getApprovedTotal(groupedInvoiceData[key].invoices) }}
                 </td>
+                <td colspan="1">
+                 
+                  <button 
+                    *ngIf="allInvoicesApproved(groupedInvoiceData[key].invoices) && !groupedInvoiceData[key].commonInfo.finalReimbursementStatus" 
+                    class="btn btn-sm btn-success"
+                    (click)="markAsPaid(groupedInvoiceData[key].commonInfo.travelId, alert_message1)">
+                    Mark as Paid
+                  </button>
+                
+                 
+                  <span 
+                    *ngIf="groupedInvoiceData[key].commonInfo.finalReimbursementStatus" 
+                    class="text-success font-weight-bold">
+                    PAID
+                  </span>
+                </td>
+                
               </tr>
+              
             </ng-container>
           </ng-container>
         </tbody>

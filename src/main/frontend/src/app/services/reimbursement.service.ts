@@ -63,5 +63,10 @@ export class ReimbursementService {
   updateReimbursementDetailsByAccountsTeam(details:any){
     return this.http.post(`${this.baseUrl}`+`api/updateReimbursementDetailsByAccountsTeam`,details);
   }
+
+  markAsPaid(details:any){
+    return this.http.post(`${this.baseUrl}`+`api/markAsPaid`,details);
+  }
+  
   
 }

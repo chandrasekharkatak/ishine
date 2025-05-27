@@ -87,4 +87,9 @@ public class ReimbursmentBasedOnTravelRequestController {
 		ServiceResponse serviceResponse = travelBasedService.updateUploadedFile(file, displayName, uploadedBy,docId);
 		return serviceResponse;
 	}
+	
+	@RequestMapping(value = "/markAsPaid", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> markAsPaid(@RequestBody TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
+		return ResponseEntity.ok(travelBasedService.markAsPaid(reimbursementRequestDTO));
+	}
 }
