@@ -1988,7 +1988,7 @@ public class ResourceManagementService {
 									}
 									
 									
->>>>>>> Stashed changes
+
 //									teamMemberDTO.setBillable(teamMemberObj.getBillable());
 //									teamMemberDTO.setBillableType(teamMemberObj.getBillableType());
 //									teamMemberDTO.setShadowBillable(teamMemberObj.getShadowBillable());
@@ -2023,7 +2023,6 @@ public class ResourceManagementService {
 										
 										}
 //									teamMemberDTO.setShadowEmpId(teamMemberObj.getShadowEmpId()!= null ? Long.parseLong(teamMemberObj.getShadowEmpId().toString()):null);
->>>>>>> Stashed changes
 //									teamMemberDTO.setBillable(teamMemberObj.getBillable());
 //									teamMemberDTO.setBillableType(teamMemberObj.getBillableType());
 //									teamMemberDTO.setShadowBillable(teamMemberObj.getShadowBillable());
