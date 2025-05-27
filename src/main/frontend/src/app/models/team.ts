@@ -27,4 +27,6 @@ export class Team{
     projectName: any;
     spocId:any;
     spoc:any;
+    shadowEmpId:any;
+    shadow:any;
 } 

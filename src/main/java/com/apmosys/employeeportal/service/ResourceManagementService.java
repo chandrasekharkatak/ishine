@@ -1961,7 +1961,7 @@ public class ResourceManagementService {
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
-									teamMemberDTO.setResourceOverviewId(Long.parseLong(teamMemberObj.getResourceOverviewId().toString()));
+									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
 									
 									if(teamMemberObj.getShadowEmpId()!= null) {
 									Employee shadowempObj = employeeRepository.findByEmpId(teamMemberObj.getShadowEmpId());
@@ -1979,11 +1979,19 @@ public class ResourceManagementService {
 									teamMemberDTO.setShadowEmployeeEmploymentId(prefixx + shadowempObj.getEmployeementId());
 									teamMemberDTO.setShadowEmployeeName(shadowempObj.getName());
 									teamMemberDTO.setShadowEmployeeDepartmentName(findShadowDepartment.getName());
+
+										List<Object[]> shadowDetailsList = teamRepository.getSpocDetils(Long.parseLong(teamMemberObj.getShadowEmpId().toString()));
+								        if (!shadowDetailsList.isEmpty()) {
+								            Object[] shadow = shadowDetailsList.get(0);
+								            SpocDTO shadowDTO = new SpocDTO();
+								            shadowDTO.setEmpId(Long.parseLong(shadow[0].toString()));
+								            shadowDTO.setName( shadow[1].toString());
+								            shadowDTO.setEmploymentId(shadow[2].toString());
+								            teamMemberDTO.setShadow(shadowDTO);
+								        }
 									
 									}
 									
-									
-
 									// teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
 									// teamMemberDTO.setShadowEmpId(teamMemberObj.getShadowEmpId() != null ? Long.parseLong(teamMemberObj.getShadowEmpId().toString()) : null);
 //									teamMemberDTO.setBillable(teamMemberObj.getBillable());
@@ -1999,7 +2007,7 @@ public class ResourceManagementService {
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
-									teamMemberDTO.setResourceOverviewId(Long.parseLong(teamMemberObj.getResourceOverviewId().toString()));
+									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
 									if(teamMemberObj.getShadowEmpId()!= null) {
 										Employee shadowempObj = employeeRepository.findByEmpId(teamMemberObj.getShadowEmpId());
 										JobRole findShadowJobRole = jobRoleRepository.findByjobRoleId(shadowempObj.getJobRoleId());
@@ -2017,7 +2025,18 @@ public class ResourceManagementService {
 										teamMemberDTO.setShadowEmployeeName(shadowempObj.getName());
 										teamMemberDTO.setShadowEmployeeDepartmentName(findShadowDepartment.getName());
 										
+											List<Object[]> shadowDetailsList = teamRepository.getSpocDetils(Long.parseLong(teamMemberObj.getShadowEmpId().toString()));
+									        if (!shadowDetailsList.isEmpty()) {
+									            Object[] shadow = shadowDetailsList.get(0);
+									            SpocDTO shadowDTO = new SpocDTO();
+									            shadowDTO.setEmpId(Long.parseLong(shadow[0].toString()));
+									            shadowDTO.setName( shadow[1].toString());
+									            shadowDTO.setEmploymentId(shadow[2].toString());
+									            teamMemberDTO.setShadow(shadowDTO);
+									        }
+										
 										}
+									
 //									teamMemberDTO.setShadowEmpId(teamMemberObj.getShadowEmpId()!= null ? Long.parseLong(teamMemberObj.getShadowEmpId().toString()):null);
 //									teamMemberDTO.setBillable(teamMemberObj.getBillable());
 //									teamMemberDTO.setBillableType(teamMemberObj.getBillableType());

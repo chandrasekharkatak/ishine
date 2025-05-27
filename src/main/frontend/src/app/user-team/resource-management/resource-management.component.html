@@ -1605,11 +1605,11 @@
                                 <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index">
                                     <div *ngIf="member.name">
                                         <div style="padding-right: 10px; width: 200px;">
-                                            <input type="text" class="form-select name2-field" placeholder="Search by Emp ID or Name" aria-label="Search employee" [formControl]="employeeCtrl" [matAutocomplete]="auto">   
+                                            <input type="text" class="form-select name2-field" placeholder="Search by Emp ID or Name" aria-label="Search employee" [formControl]="member.shadowControl" [matAutocomplete]="auto" [(ngModel)]="member.shadow">   
                                         </div>
                                         <div style="padding-right: 10px;">
                                             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onResourceSelected($event, member)" [displayWith]="displayEmployee">
-                                                <mat-option *ngFor="let emp of employeeListByDept | filterEmployee: addMemberCtrl.value" [value]="emp">
+                                                <mat-option *ngFor="let emp of employeeListByDept | filterEmployee: member.shadowControl.value" [value]="emp">
                                                 {{ emp.name }}
                                                 </mat-option>  
                                             </mat-autocomplete>
@@ -1726,9 +1726,9 @@
                                     <label>Shadow Resources</label>
                                     <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index">
                                         <div *ngIf="member.resourceOverviewId == requirement.resourceOverviewId">
-                                            <input type="text" class="form-select name2-field" placeholder="Search by Emp ID or Name" aria-label="Search employee" [formControl]="employeeCtrl" [matAutocomplete]="auto">    
+                                            <input type="text" class="form-select name2-field" placeholder="Search by Emp ID or Name" aria-label="Search employee" [formControl]="member.shadowControl" [matAutocomplete]="auto" [(ngModel)]="member.shadow">    
                                             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onResourceSelected($event, member)" [displayWith]="displayEmployee">
-                                                <mat-option *ngFor="let emp of employeeListByDept | filterEmployee: addMemberCtrl.value" [value]="emp">
+                                                <mat-option *ngFor="let emp of employeeListByDept | filterEmployee: member.shadowControl.value" [value]="emp">
                                                 {{ emp.name }}
                                                 </mat-option>  
                                             </mat-autocomplete>

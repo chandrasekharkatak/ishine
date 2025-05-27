@@ -44,6 +44,8 @@ export class Project{
 	isActive:any;
 	teamId:any;
 	spoc:any;
+    shadowEmpId:any;
+    shadow:any;
 
 	// As per RMG request
 	resourceRequirements: ResourceRequirement[];
