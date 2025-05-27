@@ -108,4 +108,7 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getSpocDetils(Long empId);
+	
+	@Query("SELECT t FROM Team t WHERE t.projectId IN :projectIds")
+	List<Team> findByProjectIdIn(@Param("projectIds") List<Integer> projectIds);
 }

@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -120,5 +121,24 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	
 	@Query(value ="select etm.* from employee_team_mapping etm where etm.team_id =:teamId and active != 0",nativeQuery = true)
 	 List<EmployeeTeamMap> findByTeamIdWhereEmployeesAreActive(@Param("teamId") Long teamId);
+	
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId IN :teamIds AND etm.active !=0")
+	List<EmployeeTeamMap> findActiveByTeamIds(@Param("teamIds") List<Long> teamIds);
+	
+	@Query(value = "select e.emp_id, e.employeement_id, e.billable, e.billable_type, e.name, " +
+            "p.project_id, p.project_name, p.po_project_id, p.po_start_date, p.po_end_date, " +
+            "p.apmosysrm, p.clientrm, p.po_project_type, p.po_no, c.client_name, " +
+            "t.team_id, t.team_name, t.is_active, etm.employee_role, etm.active " +
+            "from employee_team_mapping etm " +
+            "RIGHT JOIN employee e on e.emp_id = etm.emp_id " +
+            "RIGHT JOIN teams t on t.team_id = etm.team_id " +
+            "inner join projects p on p.project_id= t.project_id " +
+            "inner join clients c on c.client_id=p.client_id " +
+            "inner join job_role jr on jr.job_role_id= e.job_role_id " +
+            "inner join department d on d.dept_id = jr.dept_id " +
+            "where p.project_id IN :projectIds and etm.active !=0 and t.is_active ='Y'",
+    nativeQuery = true)
+List<Object[]> findEmployeeProjectTeamDetailsByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+
 
 }

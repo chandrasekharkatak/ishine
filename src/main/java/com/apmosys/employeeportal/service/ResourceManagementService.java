@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -58,6 +59,7 @@ import com.apmosys.employeeportal.dto.RMGProject;
 import com.apmosys.employeeportal.dto.RMGProjectMappedEmployees;
 import com.apmosys.employeeportal.dto.RMGTeam;
 import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
+import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
@@ -1942,6 +1944,12 @@ public class ResourceManagementService {
 							empTeamMapping.forEach((teamMemberObj) -> {
 								String employeeName = null;
 								Employee empObj = employeeRepository.findByEmpId(teamMemberObj.getEmpId());
+								String consultant = empObj.getIsConsultant();
+								String prefixxTeamMember = "A-";
+								if ("true".equalsIgnoreCase(consultant)) {
+									prefixxTeamMember = "CS-";
+							    }
+								
 								// find department 
 								JobRole findJobRole = jobRoleRepository.findByjobRoleId(empObj.getJobRoleId());
 								Department findDepartment = departmentRepository.findByDeptId(findJobRole.getDeptId());							
@@ -1961,7 +1969,8 @@ public class ResourceManagementService {
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
-									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
+									teamMemberDTO.setResourceOverviewId(Long.parseLong(teamMemberObj.getResourceOverviewId().toString()));
+									teamMemberDTO.setEmploymentIdEmployeeType(prefixxTeamMember + empObj.getEmployeementId());							
 									
 									if(teamMemberObj.getShadowEmpId()!= null) {
 									Employee shadowempObj = employeeRepository.findByEmpId(teamMemberObj.getShadowEmpId());
@@ -2003,11 +2012,12 @@ public class ResourceManagementService {
 									//Team Member
 									teamMemberDTO.setEmpId(teamMemberObj.getEmpId());
 									teamMemberDTO.setName(employeeName);
-//									teamMemberDTO.setStartDate(teamMemberObj.getStartDate().toString());
+									teamMemberDTO.setStartDate(teamMemberObj.getStartDate().toString());
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
-									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
+									teamMemberDTO.setResourceOverviewId(Long.parseLong(teamMemberObj.getResourceOverviewId().toString()));
+									teamMemberDTO.setEmploymentIdEmployeeType(prefixxTeamMember + empObj.getEmployeementId());	
 									if(teamMemberObj.getShadowEmpId()!= null) {
 										Employee shadowempObj = employeeRepository.findByEmpId(teamMemberObj.getShadowEmpId());
 										JobRole findShadowJobRole = jobRoleRepository.findByjobRoleId(shadowempObj.getJobRoleId());
@@ -2204,6 +2214,27 @@ public class ResourceManagementService {
 
 	    return spocList;
 	}
+	
+	public List<TeamSpocDTO> getTeamsByProjectId(Integer projectId) {
+	    List<Team> result = teamRepository.findActiveTeamsByProjectId(projectId);
+	    List<TeamSpocDTO> spocList = new ArrayList<>();
+
+	    for (Team team : result) {
+	        TeamSpocDTO dto = new TeamSpocDTO();
+	        dto.setTeamId(team.getTeamId());
+	        dto.setTeamName(team.getTeamName());
+//	        dto.setSpocId(team.getSpocId());
+//	        dto.setSpocName(team.getSpocName());
+
+	        String deptListStr = team.getDeptIds();
+	        dto.setDepartmentList(deptListStr != null ? deptListStr.split(",") : null);
+
+	        spocList.add(dto);
+	    }
+
+	    return spocList;
+	}
+
 	
 	public List<ProjectManagersDTO> getProjectManagersByProjectId(Integer projectId) {
 	    List<Object[]> result = projectManagerMappingRepository.findProjectManagersPerProject(Long.parseLong(projectId.toString()));
@@ -4416,6 +4447,152 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 //	        return response;
 //	    }
 		
+//		public ServiceResponse getAllInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
+//		    ServiceResponse response = new ServiceResponse();
+//		    if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+//		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//		        response.setServiceResponse(Collections.emptyList());
+//		        return response;
+//		    }
+//
+//		    try {
+//		        Employee employee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+//		        JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+//
+//		        String role = jobRole.getEmployeeRole();
+//		        String name = jobRole.getName();
+//
+//		        Set<Integer> internalProjectIds = new HashSet<>();
+//		        if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director") || name.equalsIgnoreCase("Super Admin")) {
+//		            internalProjectIds = projectRepository.findAllActiveInternalProjectIds();
+//		        } else if (teamRepository.existsBySpocId(projectFilterDTO.getCurrentUserEmpId())) {
+//		            internalProjectIds = teamRepository.findActiveInternalProjectIdsBySpocId(projectFilterDTO.getCurrentUserEmpId());
+//		        } else if (departmentRepository.existsByHodId(projectFilterDTO.getCurrentUserEmpId())) {
+//		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(projectFilterDTO.getCurrentUserEmpId());
+//		            List<Team> activeTeams = teamRepository.findAllActiveTeamsOfInternalProjects();
+//
+//		            internalProjectIds = activeTeams.stream()
+//		                    .filter(team -> {
+//		                        String teamDeptIdsStr = team.getDeptIds();
+//		                        if (teamDeptIdsStr == null || teamDeptIdsStr.isBlank()) return false;
+//
+//		                        List<Long> teamDeptIds = Arrays.stream(teamDeptIdsStr.split(","))
+//		                                .map(String::trim)
+//		                                .filter(s -> !s.isEmpty())
+//		                                .map(Long::parseLong)
+//		                                .collect(Collectors.toList());
+//
+//		                        return teamDeptIds.stream().anyMatch(deptIds::contains);
+//		                    })
+//		                    .map(Team::getProjectId)
+//		                    .collect(Collectors.toSet());
+//		        } else {
+//		            internalProjectIds = projectRepository.findAllActiveInternalProjectIds();
+//		        }
+//		        
+//		        internalProjectIds = filterProjectidsApprovalStatusDepartmentFilter(
+//		                internalProjectIds,
+//		                projectFilterDTO.getApprovalStatus(),
+//		                projectFilterDTO.getDepartmentsids()
+//		            );
+//
+//		        Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
+//
+//		        for (Integer projectId : internalProjectIds) {
+//		            List<Team> teams = teamRepository.findActiveTeamsByProjectId(projectId);
+//		            if (teams == null || teams.isEmpty()) continue;
+//
+//		            for (Team team : teams) {
+//		                if (team == null) continue;
+//
+//		                List<EmployeeTeamMap> mappings = employeeTeamMapRepository.findByTeamIdWhereEmployeesAreActive(team.getTeamId());
+//		                if (mappings == null || mappings.isEmpty()) continue;
+//
+//		                for (EmployeeTeamMap map : mappings) {
+//		                    if (map == null) continue;
+//
+//		                    Employee emp = employeeRepository.findByEmpId(map.getEmpId());
+//		                    if (emp == null) continue;
+//
+//		                    JobRole jr = jobRoleRepository.findByjobRoleId(emp.getJobRoleId());
+//		                    if (jr == null) continue;
+//
+//		                    String deptName = departmentRepository.findDepartmentNameFromDeptId(jr.getDeptId());
+//		                    if (deptName == null) deptName = "";
+//
+//		                    RMGProjectMappedEmployees dto = employeeMap.get(emp.getEmpId());
+//		                    if (dto == null) {
+//		                        dto = new RMGProjectMappedEmployees();
+//		                        dto.setEmpId(emp.getEmpId());
+//		                        dto.setEmployeementId(emp.getEmployeementId());
+//		                        dto.setName(emp.getName());
+//		                        dto.setEmploymentstatus(emp.getEmploymentstatus());
+//		                        dto.setBillable(emp.getBillable());
+//		                        dto.setBillableType(emp.getBillableType());
+//		                        dto.setDepartment(deptName);
+//		                        dto.setRmgprojects(new ArrayList<>());
+//		                        employeeMap.put(emp.getEmpId(), dto);
+//		                    }
+//
+//		                    RMGTeam rmgTeam = new RMGTeam();
+//		                    rmgTeam.setTeamId(team.getTeamId());
+//		                    rmgTeam.setTeamName(team.getTeamName());
+//		                    rmgTeam.setIsActive(team.getIsActive());
+//		                    rmgTeam.setEmployeeRole(map.getEmployeeRole());
+//		                    rmgTeam.setStatus(map.getActive() == 1 ? "Approved" : "Pending for Approval");
+//		                  
+//
+//		                    RMGProject existingProject = dto.getRmgprojects().stream()
+//		                            .filter(p -> p.getProjectId().equals(projectId))
+//		                            .findFirst()
+//		                            .orElse(null);
+//
+//		                    if (existingProject == null) {
+//		                        Project project = projectRepository.findByProjectId(projectId);
+//		                        if (project == null) continue;
+//
+//		                        Client client = clientsRepository.findByClientId(project.getClientId());
+//		                        
+//		                        List<Object[]> projectManagers = projectManagerMappingRepository.findProjectManagersPerProject(Long.parseLong(project.getProjectId().toString()));
+//
+//		                        String projectManagerNames = projectManagers.stream()
+//		                            .map(pm -> (String) pm[1])
+//		                            .collect(Collectors.joining(", "));
+//
+//		                        RMGProject rmgProject = new RMGProject();
+//		                        rmgProject.setProjectId(project.getProjectId());
+//		                        rmgProject.setClientName(client != null ? client.getClientName() : "");
+//		                        rmgProject.setProjectName(project.getProjectName());
+//		                        rmgProject.setPoProjectId(project.getPoProjectId());
+//		                        rmgProject.setPoStartDate(project.getPoStartDate());
+//		                        rmgProject.setPoEndDate(project.getPoEndDate());
+//		                        rmgProject.setApmosysRM(project.getApmosysRM());
+//		                        rmgProject.setClientRM(project.getClientRM());
+//		                        rmgProject.setPoProjectType(project.getPoProjectType());
+//		                        rmgProject.setPoNo(project.getPoNo());
+//		                        rmgProject.setActive("true".equalsIgnoreCase(project.getActive()) ? "true" : "false");
+//		                        rmgProject.setRmgTeam(new ArrayList<>());
+//
+//		                        rmgProject.getRmgTeam().add(rmgTeam);
+//		                        rmgProject.setProjectManagerName(projectManagerNames);
+//		                        projectManagerNames="";
+//		                        dto.getRmgprojects().add(rmgProject);
+//		                    } else {
+//		                        existingProject.getRmgTeam().add(rmgTeam);
+//		                    }
+//		                }
+//		            }
+//		        }
+//
+//		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//		        response.setServiceResponse(new ArrayList<>(employeeMap.values()));
+//		    } catch (Exception e) {
+//		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//		        response.setServiceResponse("Error: " + e.getMessage());
+//		    }
+//		    return response;
+//		}
+		
 		public ServiceResponse getAllInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
 		    ServiceResponse response = new ServiceResponse();
 		    if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
@@ -4465,102 +4642,95 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		                projectFilterDTO.getDepartmentsids()
 		            );
 
+		        List<Object[]> rawData = employeeTeamMapRepository.findEmployeeProjectTeamDetailsByProjectIds(internalProjectIds);
+
+		        
 		        Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
-		        for (Integer projectId : internalProjectIds) {
-		            List<Team> teams = teamRepository.findActiveTeamsByProjectId(projectId);
-		            if (teams == null || teams.isEmpty()) continue;
+		        for (Object[] row : rawData) {
+		        	Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
+		            Long employeementId =  row[1] != null ? Long.parseLong(row[1].toString()) : null;
+		            String billable = row[2] != null ? row[2].toString() : null;
+		            String billableType = row[3] != null ? row[3].toString() : null;
+		            String empName = row[4] != null ? row[4].toString() : null;
+		            Integer projectId =  row[5] != null ? Integer.parseInt(row[5].toString()) : null;
+		            String projectName = row[6] != null ? row[6].toString() : null;
+		            Long poProjectId =row[7] != null ? Long.parseLong(row[7].toString()) : null;
+		            String poStartDate = row[8] != null ? row[8].toString() : null;
+		            String poEndDate = row[9] != null ? row[9].toString() : null;
+		            String apmosysRM = row[10] != null ? row[10].toString() : null;
+		            String clientRM = row[11] != null ? row[11].toString() : null;
+		            String poProjectType = row[12] != null ? row[12].toString() : null;
+		            String poNo = row[13] != null ? row[13].toString() : null;
+		            String clientName = row[14] != null ? row[14].toString() : null;
+		            Long teamId = row[15] != null ? Long.parseLong(row[15].toString()) : null;
+		            String teamName = row[16] != null ? row[16].toString() : null;
+		            String teamIsActive = row[17] != null ? row[17].toString() : null;
+		            String employeeRole = row[18] != null ? row[18].toString() : null;
+		            Integer active = row[19] != null ? Integer.parseInt(row[19].toString()) : null;
+		            
+		            
+		          
+		            RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(empId, k -> {
+		                RMGProjectMappedEmployees newDto = new RMGProjectMappedEmployees();
+		                newDto.setEmpId(empId);
+		                newDto.setEmployeementId(employeementId);
+		                newDto.setName(empName);
+		                
+		                newDto.setBillable(billable);
+		                newDto.setBillableType(billableType);
+		                newDto.setRmgprojects(new ArrayList<>());
+		                return newDto;
+		            });
 
-		            for (Team team : teams) {
-		                if (team == null) continue;
+		            // Find existing project in employee's projects list or create new
+		            RMGProject existingProject = dto.getRmgprojects().stream()
+		                .filter(p -> p.getProjectId().equals(projectId))
+		                .findFirst()
+		                .orElse(null);
 
-		                List<EmployeeTeamMap> mappings = employeeTeamMapRepository.findByTeamIdWhereEmployeesAreActive(team.getTeamId());
-		                if (mappings == null || mappings.isEmpty()) continue;
+		            if (existingProject == null) {
+		                RMGProject rmgProject = new RMGProject();
+		                rmgProject.setProjectId(projectId);
+		                rmgProject.setProjectName(projectName);
+		                rmgProject.setPoProjectId(poProjectId);
+		                rmgProject.setPoStartDate(poStartDate);
+		                rmgProject.setPoEndDate(poEndDate);
+		                rmgProject.setApmosysRM(apmosysRM);
+		                rmgProject.setClientRM(clientRM);
+		                rmgProject.setPoProjectType(poProjectType);
+		                rmgProject.setPoNo(poNo);
+		                rmgProject.setClientName(clientName);
+		                rmgProject.setRmgTeam(new ArrayList<>());
 
-		                for (EmployeeTeamMap map : mappings) {
-		                    if (map == null) continue;
-
-		                    Employee emp = employeeRepository.findByEmpId(map.getEmpId());
-		                    if (emp == null) continue;
-
-		                    JobRole jr = jobRoleRepository.findByjobRoleId(emp.getJobRoleId());
-		                    if (jr == null) continue;
-
-		                    String deptName = departmentRepository.findDepartmentNameFromDeptId(jr.getDeptId());
-		                    if (deptName == null) deptName = "";
-
-		                    RMGProjectMappedEmployees dto = employeeMap.get(emp.getEmpId());
-		                    if (dto == null) {
-		                        dto = new RMGProjectMappedEmployees();
-		                        dto.setEmpId(emp.getEmpId());
-		                        dto.setEmployeementId(emp.getEmployeementId());
-		                        dto.setName(emp.getName());
-		                        dto.setEmploymentstatus(emp.getEmploymentstatus());
-		                        dto.setBillable(emp.getBillable());
-		                        dto.setBillableType(emp.getBillableType());
-		                        dto.setDepartment(deptName);
-		                        dto.setRmgprojects(new ArrayList<>());
-		                        employeeMap.put(emp.getEmpId(), dto);
-		                    }
-
-		                    RMGTeam rmgTeam = new RMGTeam();
-		                    rmgTeam.setTeamId(team.getTeamId());
-		                    rmgTeam.setTeamName(team.getTeamName());
-		                    rmgTeam.setIsActive(team.getIsActive());
-		                    rmgTeam.setEmployeeRole(map.getEmployeeRole());
-		                    rmgTeam.setStatus(map.getActive() == 1 ? "Approved" : "Pending for Approval");
-		                    rmgTeam.setDepartmentList(team.getDeptIds().split(","));
-
-		                    RMGProject existingProject = dto.getRmgprojects().stream()
-		                            .filter(p -> p.getProjectId().equals(projectId))
-		                            .findFirst()
-		                            .orElse(null);
-
-		                    if (existingProject == null) {
-		                        Project project = projectRepository.findByProjectId(projectId);
-		                        if (project == null) continue;
-
-		                        Client client = clientsRepository.findByClientId(project.getClientId());
-		                        
-		                        List<Object[]> projectManagers = projectManagerMappingRepository.findProjectManagersPerProject(Long.parseLong(project.getProjectId().toString()));
-
-		                        String projectManagerNames = projectManagers.stream()
-		                            .map(pm -> (String) pm[1])
-		                            .collect(Collectors.joining(", "));
-
-		                        RMGProject rmgProject = new RMGProject();
-		                        rmgProject.setProjectId(project.getProjectId());
-		                        rmgProject.setClientName(client != null ? client.getClientName() : "");
-		                        rmgProject.setProjectName(project.getProjectName());
-		                        rmgProject.setPoProjectId(project.getPoProjectId());
-		                        rmgProject.setPoStartDate(project.getPoStartDate());
-		                        rmgProject.setPoEndDate(project.getPoEndDate());
-		                        rmgProject.setApmosysRM(project.getApmosysRM());
-		                        rmgProject.setClientRM(project.getClientRM());
-		                        rmgProject.setPoProjectType(project.getPoProjectType());
-		                        rmgProject.setPoNo(project.getPoNo());
-		                        rmgProject.setActive("true".equalsIgnoreCase(project.getActive()) ? "true" : "false");
-		                        rmgProject.setRmgTeam(new ArrayList<>());
-
-		                        rmgProject.getRmgTeam().add(rmgTeam);
-		                        rmgProject.setProjectManagerName(projectManagerNames);
-		                        projectManagerNames="";
-		                        dto.getRmgprojects().add(rmgProject);
-		                    } else {
-		                        existingProject.getRmgTeam().add(rmgTeam);
-		                    }
-		                }
+		                dto.getRmgprojects().add(rmgProject);
+		                existingProject = rmgProject;
 		            }
+
+		            // Add team details to the project
+		            RMGTeam rmgTeam = new RMGTeam();
+		            rmgTeam.setTeamId(teamId);
+		            rmgTeam.setTeamName(teamName);
+		            rmgTeam.setIsActive(teamIsActive);
+		            rmgTeam.setEmployeeRole(employeeRole);
+		            rmgTeam.setStatus(active == 1 ? "Approved" : "Pending for Approval");
+
+		            existingProject.getRmgTeam().add(rmgTeam);
 		        }
 
 		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		        response.setServiceResponse(new ArrayList<>(employeeMap.values()));
+
 		    } catch (Exception e) {
 		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		        response.setServiceResponse("Error: " + e.getMessage());
 		    }
 		    return response;
 		}
+		
+	
+
+
 		
 		public ServiceResponse getAllShankhProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
 		    ServiceResponse response = new ServiceResponse();
@@ -4580,12 +4750,12 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 
 		        Set<Integer> internalProjectIds = new HashSet<>();
 		        if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director") || name.equalsIgnoreCase("Super Admin")) {
-		            internalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
+		            internalProjectIds = projectRepository.findAllActiveShankhProjectIds();
 		        } else if (teamRepository.existsBySpocId(projectFilterDTO.getCurrentUserEmpId())) {
-		            internalProjectIds = teamRepository.findActiveShankhInternalProjectIdsBySpocId(projectFilterDTO.getCurrentUserEmpId());
+		            internalProjectIds = teamRepository.findActiveShankhProjectIdsBySpocId(projectFilterDTO.getCurrentUserEmpId());
 		        } else if (departmentRepository.existsByHodId(projectFilterDTO.getCurrentUserEmpId())) {
 		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(projectFilterDTO.getCurrentUserEmpId());
-		            List<Team> activeTeams = teamRepository.findAllActiveTeamsOfShankhInternalProjects();
+		            List<Team> activeTeams = teamRepository.findAllActiveTeamsOfShankhProjects();
 
 		            internalProjectIds = activeTeams.stream()
 		                    .filter(team -> {
@@ -4603,7 +4773,7 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		                    .map(Team::getProjectId)
 		                    .collect(Collectors.toSet());
 		        } else {
-		            internalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
+		            internalProjectIds = projectRepository.findAllActiveShankhProjectIds();
 		        }
 		        
 		        internalProjectIds = filterProjectidsApprovalStatusDepartmentFilter(
@@ -4612,96 +4782,85 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		                projectFilterDTO.getDepartmentsids()
 		            );
 
+   List<Object[]> rawData = employeeTeamMapRepository.findEmployeeProjectTeamDetailsByProjectIds(internalProjectIds);
+
+		        
 		        Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
-		        for (Integer projectId : internalProjectIds) {
-		            List<Team> teams = teamRepository.findActiveTeamsByProjectId(projectId);
-		            if (teams == null || teams.isEmpty()) continue;
+		        for (Object[] row : rawData) {
+		        	Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
+		            Long employeementId =  row[1] != null ? Long.parseLong(row[1].toString()) : null;
+		            String billable = row[2] != null ? row[2].toString() : null;
+		            String billableType = row[3] != null ? row[3].toString() : null;
+		            String empName = row[4] != null ? row[4].toString() : null;
+		            Integer projectId =  row[5] != null ? Integer.parseInt(row[5].toString()) : null;
+		            String projectName = row[6] != null ? row[6].toString() : null;
+		            Long poProjectId =row[7] != null ? Long.parseLong(row[7].toString()) : null;
+		            String poStartDate = row[8] != null ? row[8].toString() : null;
+		            String poEndDate = row[9] != null ? row[9].toString() : null;
+		            String apmosysRM = row[10] != null ? row[10].toString() : null;
+		            String clientRM = row[11] != null ? row[11].toString() : null;
+		            String poProjectType = row[12] != null ? row[12].toString() : null;
+		            String poNo = row[13] != null ? row[13].toString() : null;
+		            String clientName = row[14] != null ? row[14].toString() : null;
+		            Long teamId = row[15] != null ? Long.parseLong(row[15].toString()) : null;
+		            String teamName = row[16] != null ? row[16].toString() : null;
+		            String teamIsActive = row[17] != null ? row[17].toString() : null;
+		            String employeeRole = row[18] != null ? row[18].toString() : null;
+		            Integer active = row[19] != null ? Integer.parseInt(row[19].toString()) : null;
+		            
+		            
+		          
+		            RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(empId, k -> {
+		                RMGProjectMappedEmployees newDto = new RMGProjectMappedEmployees();
+		                newDto.setEmpId(empId);
+		                newDto.setEmployeementId(employeementId);
+		                newDto.setName(empName);
+		                
+		                newDto.setBillable(billable);
+		                newDto.setBillableType(billableType);
+		                newDto.setRmgprojects(new ArrayList<>());
+		                return newDto;
+		            });
 
-		            for (Team team : teams) {
-		                if (team == null) continue;
+		            // Find existing project in employee's projects list or create new
+		            RMGProject existingProject = dto.getRmgprojects().stream()
+		                .filter(p -> p.getProjectId().equals(projectId))
+		                .findFirst()
+		                .orElse(null);
 
-		                List<EmployeeTeamMap> mappings = employeeTeamMapRepository.findByTeamIdWhereEmployeesAreActive(team.getTeamId());
-		                if (mappings == null || mappings.isEmpty()) continue;
+		            if (existingProject == null) {
+		                RMGProject rmgProject = new RMGProject();
+		                rmgProject.setProjectId(projectId);
+		                rmgProject.setProjectName(projectName);
+		                rmgProject.setPoProjectId(poProjectId);
+		                rmgProject.setPoStartDate(poStartDate);
+		                rmgProject.setPoEndDate(poEndDate);
+		                rmgProject.setApmosysRM(apmosysRM);
+		                rmgProject.setClientRM(clientRM);
+		                rmgProject.setPoProjectType(poProjectType);
+		                rmgProject.setPoNo(poNo);
+		                rmgProject.setClientName(clientName);
+		                rmgProject.setRmgTeam(new ArrayList<>());
 
-		                for (EmployeeTeamMap map : mappings) {
-		                    if (map == null) continue;
-
-		                    Employee emp = employeeRepository.findByEmpId(map.getEmpId());
-		                    if (emp == null) continue;
-
-		                    JobRole jr = jobRoleRepository.findByjobRoleId(emp.getJobRoleId());
-		                    if (jr == null) continue;
-
-		                    String deptName = departmentRepository.findDepartmentNameFromDeptId(jr.getDeptId());
-		                    if (deptName == null) deptName = "";
-
-		                    RMGProjectMappedEmployees dto = employeeMap.get(emp.getEmpId());
-		                    if (dto == null) {
-		                        dto = new RMGProjectMappedEmployees();
-		                        dto.setEmpId(emp.getEmpId());
-		                        dto.setEmployeementId(emp.getEmployeementId());
-		                        dto.setName(emp.getName());
-		                        dto.setEmploymentstatus(emp.getEmploymentstatus());
-		                        dto.setBillable(emp.getBillable());
-		                        dto.setBillableType(emp.getBillableType());
-		                        dto.setDepartment(deptName);
-		                        dto.setRmgprojects(new ArrayList<>());
-		                        employeeMap.put(emp.getEmpId(), dto);
-		                    }
-
-		                    RMGTeam rmgTeam = new RMGTeam();
-		                    rmgTeam.setTeamId(team.getTeamId());
-		                    rmgTeam.setTeamName(team.getTeamName());
-		                    rmgTeam.setIsActive(team.getIsActive());
-		                    rmgTeam.setEmployeeRole(map.getEmployeeRole());
-		                    rmgTeam.setStatus(map.getActive() == 1 ? "Approved" : "Pending for Approval");
-		                    rmgTeam.setDepartmentList(team.getDeptIds().split(","));
-
-		                    RMGProject existingProject = dto.getRmgprojects().stream()
-		                            .filter(p -> p.getProjectId().equals(projectId))
-		                            .findFirst()
-		                            .orElse(null);
-
-		                    if (existingProject == null) {
-		                        Project project = projectRepository.findByProjectId(projectId);
-		                        if (project == null) continue;
-
-		                        Client client = clientsRepository.findByClientId(project.getClientId());
-		                        
-		                        List<Object[]> projectManagers = projectManagerMappingRepository.findProjectManagersPerProject(Long.parseLong(project.getProjectId().toString()));
-
-		                        String projectManagerNames = projectManagers.stream()
-		                            .map(pm -> (String) pm[1])
-		                            .collect(Collectors.joining(", "));
-
-		                        RMGProject rmgProject = new RMGProject();
-		                        rmgProject.setProjectId(project.getProjectId());
-		                        rmgProject.setClientName(client != null ? client.getClientName() : "");
-		                        rmgProject.setProjectName(project.getProjectName());
-		                        rmgProject.setPoProjectId(project.getPoProjectId());
-		                        rmgProject.setPoStartDate(project.getPoStartDate());
-		                        rmgProject.setPoEndDate(project.getPoEndDate());
-		                        rmgProject.setApmosysRM(project.getApmosysRM());
-		                        rmgProject.setClientRM(project.getClientRM());
-		                        rmgProject.setPoProjectType(project.getPoProjectType());
-		                        rmgProject.setPoNo(project.getPoNo());
-		                        rmgProject.setActive("true".equalsIgnoreCase(project.getActive()) ? "true" : "false");
-		                        rmgProject.setRmgTeam(new ArrayList<>());
-
-		                        rmgProject.getRmgTeam().add(rmgTeam);
-		                        rmgProject.setProjectManagerName(projectManagerNames);
-		                        projectManagerNames="";
-		                        dto.getRmgprojects().add(rmgProject);
-		                    } else {
-		                        existingProject.getRmgTeam().add(rmgTeam);
-		                    }
-		                }
+		                dto.getRmgprojects().add(rmgProject);
+		                existingProject = rmgProject;
 		            }
+
+		            // Add team details to the project
+		            RMGTeam rmgTeam = new RMGTeam();
+		            rmgTeam.setTeamId(teamId);
+		            rmgTeam.setTeamName(teamName);
+		            rmgTeam.setIsActive(teamIsActive);
+		            rmgTeam.setEmployeeRole(employeeRole);
+		            rmgTeam.setStatus(active == 1 ? "Approved" : "Pending for Approval");
+
+		            existingProject.getRmgTeam().add(rmgTeam);
 		        }
 
 		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		        response.setServiceResponse(new ArrayList<>(employeeMap.values()));
+
 		    } catch (Exception e) {
 		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		        response.setServiceResponse("Error: " + e.getMessage());
@@ -4758,96 +4917,85 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		                projectFilterDTO.getDepartmentsids()
 		            );
 
+ List<Object[]> rawData = employeeTeamMapRepository.findEmployeeProjectTeamDetailsByProjectIds(internalProjectIds);
+
+		        
 		        Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
-		        for (Integer projectId : internalProjectIds) {
-		            List<Team> teams = teamRepository.findActiveTeamsByProjectId(projectId);
-		            if (teams == null || teams.isEmpty()) continue;
+		        for (Object[] row : rawData) {
+		        	Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
+		            Long employeementId =  row[1] != null ? Long.parseLong(row[1].toString()) : null;
+		            String billable = row[2] != null ? row[2].toString() : null;
+		            String billableType = row[3] != null ? row[3].toString() : null;
+		            String empName = row[4] != null ? row[4].toString() : null;
+		            Integer projectId =  row[5] != null ? Integer.parseInt(row[5].toString()) : null;
+		            String projectName = row[6] != null ? row[6].toString() : null;
+		            Long poProjectId =row[7] != null ? Long.parseLong(row[7].toString()) : null;
+		            String poStartDate = row[8] != null ? row[8].toString() : null;
+		            String poEndDate = row[9] != null ? row[9].toString() : null;
+		            String apmosysRM = row[10] != null ? row[10].toString() : null;
+		            String clientRM = row[11] != null ? row[11].toString() : null;
+		            String poProjectType = row[12] != null ? row[12].toString() : null;
+		            String poNo = row[13] != null ? row[13].toString() : null;
+		            String clientName = row[14] != null ? row[14].toString() : null;
+		            Long teamId = row[15] != null ? Long.parseLong(row[15].toString()) : null;
+		            String teamName = row[16] != null ? row[16].toString() : null;
+		            String teamIsActive = row[17] != null ? row[17].toString() : null;
+		            String employeeRole = row[18] != null ? row[18].toString() : null;
+		            Integer active = row[19] != null ? Integer.parseInt(row[19].toString()) : null;
+		            
+		            
+		          
+		            RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(empId, k -> {
+		                RMGProjectMappedEmployees newDto = new RMGProjectMappedEmployees();
+		                newDto.setEmpId(empId);
+		                newDto.setEmployeementId(employeementId);
+		                newDto.setName(empName);
+		                
+		                newDto.setBillable(billable);
+		                newDto.setBillableType(billableType);
+		                newDto.setRmgprojects(new ArrayList<>());
+		                return newDto;
+		            });
 
-		            for (Team team : teams) {
-		                if (team == null) continue;
+		            // Find existing project in employee's projects list or create new
+		            RMGProject existingProject = dto.getRmgprojects().stream()
+		                .filter(p -> p.getProjectId().equals(projectId))
+		                .findFirst()
+		                .orElse(null);
 
-		                List<EmployeeTeamMap> mappings = employeeTeamMapRepository.findByTeamIdWhereEmployeesAreActive(team.getTeamId());
-		                if (mappings == null || mappings.isEmpty()) continue;
+		            if (existingProject == null) {
+		                RMGProject rmgProject = new RMGProject();
+		                rmgProject.setProjectId(projectId);
+		                rmgProject.setProjectName(projectName);
+		                rmgProject.setPoProjectId(poProjectId);
+		                rmgProject.setPoStartDate(poStartDate);
+		                rmgProject.setPoEndDate(poEndDate);
+		                rmgProject.setApmosysRM(apmosysRM);
+		                rmgProject.setClientRM(clientRM);
+		                rmgProject.setPoProjectType(poProjectType);
+		                rmgProject.setPoNo(poNo);
+		                rmgProject.setClientName(clientName);
+		                rmgProject.setRmgTeam(new ArrayList<>());
 
-		                for (EmployeeTeamMap map : mappings) {
-		                    if (map == null) continue;
-
-		                    Employee emp = employeeRepository.findByEmpId(map.getEmpId());
-		                    if (emp == null) continue;
-
-		                    JobRole jr = jobRoleRepository.findByjobRoleId(emp.getJobRoleId());
-		                    if (jr == null) continue;
-
-		                    String deptName = departmentRepository.findDepartmentNameFromDeptId(jr.getDeptId());
-		                    if (deptName == null) deptName = "";
-
-		                    RMGProjectMappedEmployees dto = employeeMap.get(emp.getEmpId());
-		                    if (dto == null) {
-		                        dto = new RMGProjectMappedEmployees();
-		                        dto.setEmpId(emp.getEmpId());
-		                        dto.setEmployeementId(emp.getEmployeementId());
-		                        dto.setName(emp.getName());
-		                        dto.setEmploymentstatus(emp.getEmploymentstatus());
-		                        dto.setBillable(emp.getBillable());
-		                        dto.setBillableType(emp.getBillableType());
-		                        dto.setDepartment(deptName);
-		                        dto.setRmgprojects(new ArrayList<>());
-		                        employeeMap.put(emp.getEmpId(), dto);
-		                    }
-
-		                    RMGTeam rmgTeam = new RMGTeam();
-		                    rmgTeam.setTeamId(team.getTeamId());
-		                    rmgTeam.setTeamName(team.getTeamName());
-		                    rmgTeam.setIsActive(team.getIsActive());
-		                    rmgTeam.setEmployeeRole(map.getEmployeeRole());
-		                    rmgTeam.setStatus(map.getActive() == 1 ? "Approved" : "Pending for Approval");
-		                    rmgTeam.setDepartmentList(team.getDeptIds().split(","));
-
-		                    RMGProject existingProject = dto.getRmgprojects().stream()
-		                            .filter(p -> p.getProjectId().equals(projectId))
-		                            .findFirst()
-		                            .orElse(null);
-
-		                    if (existingProject == null) {
-		                        Project project = projectRepository.findByProjectId(projectId);
-		                        if (project == null) continue;
-
-		                        Client client = clientsRepository.findByClientId(project.getClientId());
-		                        
-		                        List<Object[]> projectManagers = projectManagerMappingRepository.findProjectManagersPerProject(Long.parseLong(project.getProjectId().toString()));
-
-		                        String projectManagerNames = projectManagers.stream()
-		                            .map(pm -> (String) pm[1])
-		                            .collect(Collectors.joining(", "));
-
-		                        RMGProject rmgProject = new RMGProject();
-		                        rmgProject.setProjectId(project.getProjectId());
-		                        rmgProject.setClientName(client != null ? client.getClientName() : "");
-		                        rmgProject.setProjectName(project.getProjectName());
-		                        rmgProject.setPoProjectId(project.getPoProjectId());
-		                        rmgProject.setPoStartDate(project.getPoStartDate());
-		                        rmgProject.setPoEndDate(project.getPoEndDate());
-		                        rmgProject.setApmosysRM(project.getApmosysRM());
-		                        rmgProject.setClientRM(project.getClientRM());
-		                        rmgProject.setPoProjectType(project.getPoProjectType());
-		                        rmgProject.setPoNo(project.getPoNo());
-		                        rmgProject.setActive("true".equalsIgnoreCase(project.getActive()) ? "true" : "false");
-		                        rmgProject.setRmgTeam(new ArrayList<>());
-
-		                        rmgProject.getRmgTeam().add(rmgTeam);
-		                        rmgProject.setProjectManagerName(projectManagerNames);
-		                        projectManagerNames="";
-		                        dto.getRmgprojects().add(rmgProject);
-		                    } else {
-		                        existingProject.getRmgTeam().add(rmgTeam);
-		                    }
-		                }
+		                dto.getRmgprojects().add(rmgProject);
+		                existingProject = rmgProject;
 		            }
+
+		            // Add team details to the project
+		            RMGTeam rmgTeam = new RMGTeam();
+		            rmgTeam.setTeamId(teamId);
+		            rmgTeam.setTeamName(teamName);
+		            rmgTeam.setIsActive(teamIsActive);
+		            rmgTeam.setEmployeeRole(employeeRole);
+		            rmgTeam.setStatus(active == 1 ? "Approved" : "Pending for Approval");
+
+		            existingProject.getRmgTeam().add(rmgTeam);
 		        }
 
 		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		        response.setServiceResponse(new ArrayList<>(employeeMap.values()));
+
 		    } catch (Exception e) {
 		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		        response.setServiceResponse("Error: " + e.getMessage());

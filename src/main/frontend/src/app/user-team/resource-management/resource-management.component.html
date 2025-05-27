@@ -1979,13 +1979,14 @@
                         <p>Department Name: {{ member.departmentName }}</p>
                     </div>
 
-                    <div class="shadow-resource" *ngIf="member.shadowEmployeeName">
+                    <div class="shadow-resource"  style="margin-left: 1rem;" *ngIf="member.shadowEmployeeName">
                         <p class="shadow-title">Shadow Resource</p>
                         <p class="shadow-name">{{ member.shadowEmployeeName + ' (' + member.shadowEmployeeEmploymentId +
                             ')'}}</p>
                         <p class="shadow-dept">{{ member.shadowEmployeeDepartmentName }}</p>
                     </div>
                 </div>
+               
             </div>
 
         </div>

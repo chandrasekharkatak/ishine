@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
+import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
@@ -583,5 +584,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     @Query(value ="select count(*) from employee where employmentstatus != 'InActive'",nativeQuery = true)
     Long getTotalEmployeeCount();
+    
+    @Query("SELECT e FROM Employee e WHERE e.empId IN :empIds")
+    List<Employee> findByEmpIdIn(@Param("empIds") Set<Long> empIds);
+    
+  
+
+
 
 }

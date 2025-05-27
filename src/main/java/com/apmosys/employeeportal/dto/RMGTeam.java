@@ -16,7 +16,6 @@ public class RMGTeam {
 	private String isActive;
 	private String employeeRole;
 	private String status;
-	private String[] departmentList;
-	
+
 
 }
