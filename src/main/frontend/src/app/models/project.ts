@@ -64,4 +64,5 @@ export class Project{
     projectCompletionDate:any;
 	projectStatus:any;
 	projectManagers:any;
+	projectViewId:any;
 }

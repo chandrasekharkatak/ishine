@@ -244,5 +244,10 @@ public class ResourceManagementController {
 	public ServiceResponse getResourceRequirementByPoProjectId(@RequestParam Long id) {
 	    return resourceManagementService.getResourceRequirementByPoProjectId(id);
 	}
+	
+	@GetMapping("/getEmployeeInformation")
+	public ServiceResponse getEmployeeInformation(@RequestParam Long empId) {
+	    return resourceManagementService.getEmployeeInformation(empId);
+	}
 
 }

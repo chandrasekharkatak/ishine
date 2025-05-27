@@ -69,4 +69,5 @@ public class ResourceManagementDTO {
     private String billable;
     private List<ProjectManagerMappingDTO> projectManagersList;
     private Long spocId;
+    private String projectViewId;
 }
