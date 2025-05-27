@@ -35,6 +35,7 @@ import { ValidationService } from 'src/app/services/validation.service';
   cityOptions: string[] = [];
   travelModelistByReason: any[] = [];
   travelClasslistByReason:any[] = [];
+  citylistBySubCategory:any[] = [];
   selectedTravelReasons: string = '';
 
 
@@ -370,14 +371,14 @@ onSubCategoryChange(subCategory: string) {
         'Bengaluru', 'Chennai', 'Delhi', 'Hyderabad', 'Kolkata', 'Mumbai'
       ];
       break;
-    case 'Category A':
+    case 'Tier 1':
       this.cityOptions = [
         'Agra', 'Ahmedabad', 'Amritsar', 'Baroda', 'Bhubaneswar', 'Chandigarh',
         'Coimbatore', 'Gangtok', 'Guwahati', 'Indore', 'Jaipur', 'Lucknow',
         'Nagpur', 'Panaji', 'Patna', 'Pune', 'Srinagar', 'Trivendrum', 'Udaipur'
       ];
       break;
-    case 'Category B':
+    case 'Tier 2':
       this.cityOptions = [
         'Bhopal', 'Cuttack', 'Ghaziabad', 'Jamshedpur', 'Jodhpur', 'Jammu',
         'Kanpur', 'Ludhiana', 'Madurai', 'Mangalore', 'Mohali', 'Nasik',
@@ -561,6 +562,23 @@ fileUploads: any[] = [{}];
     
         } else {
           console.error(response.serviceResponse);
+        }
+      }
+
+      async onSubCategoryChanges(selectedSubCategory : string){
+        console.log('Selected Mode:', selectedSubCategory);
+        this.citylistBySubCategory = [];
+        try {
+          const response: any = await this.travelDesk.getCityBySubCategory(selectedSubCategory).toPromise();
+          if (response.serviceStatus === "Success") {
+            this.citylistBySubCategory = response.serviceResponse;
+            console.log("citylistBySubCategory :", this.citylistBySubCategory);
+          } else {
+            console.error("Failed to fetch City:", response.serviceResponse);
+          }
+         
+        } catch (error) {
+          console.error("Error fetching City:", error);
         }
       }
 

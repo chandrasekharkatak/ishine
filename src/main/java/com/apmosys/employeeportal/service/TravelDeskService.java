@@ -143,7 +143,9 @@ public class TravelDeskService {
 		Long reportingManagerId = Long.parseLong(travelData.getReportingManagerId());
 		Employee level1 = employeeRepository.findByEmpId(reportingManagerId);
         travelDesk.setLevel1ApproverEmail(level1.getEmail());
-        travelDesk.setHodName(level1.getName());
+		travelDesk.setHodName(level1.getName());
+
+		
 //		BigInteger approver2 = new BigInteger(level2Approver);
         BigInteger approver2 = BigInteger.valueOf(travelData.getLevelOneApprover());
 		travelDesk.setApprover2(approver2);
@@ -1197,9 +1199,7 @@ public class TravelDeskService {
 	public ServiceResponse getTravelClassByMode(String travelModeName) {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
-//	        TravelReason travelModeBasedOnReason = travelReasonRepository
-//	            .findByTravelReasonName(travelReasonName)
-//	            .orElseThrow(() -> new RuntimeException("TravelReason not found: " + travelReasonName));
+
 	        
 	        TravelMode getTravelClassByMode = travelModeRepository
 		            .findByModeType(travelModeName)
@@ -1207,7 +1207,7 @@ public class TravelDeskService {
 		        
 	        
 
-	        System.out.println(getTravelClassByMode);
+	        System.out.println(getTravelClassByMode.toString());
 
 	        Long travelModeId = getTravelClassByMode.getTravelModeId(); 
 	        System.out.println("Travel Mode ID: " + travelModeId);
@@ -1228,6 +1228,65 @@ public class TravelDeskService {
 	    }
 
 	    return serviceResponse;
+	}
+	
+	
+	public ServiceResponse getCityBySubCategory(String travelModeName) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+
+	        Optional<List<HotelSubCategory>> subCategories = hotelSubCategoryRepository.findAllByHotelSubCategoryName(travelModeName);
+
+	        if (subCategories.isPresent()) {
+	            List<HotelSubCategory> subCategoriesId = subCategories.get();
+
+	            List<Long> subCategoryIds = subCategoriesId.stream()
+	                .map(HotelSubCategory::getId)
+	                .collect(Collectors.toList());
+
+	            
+	            List<City> cityList = cityRepository.findBySubCategoryIds(subCategoryIds);
+	         
+	        System.out.println(cityList.toString());
+
+	        if (cityList.isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("No travel modes found.");
+	        } else {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(cityList);
+	        }
+	       }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        serviceResponse.setServiceError("Error fetching travel modes: " + e.getMessage());
+	    }
+
+	    return serviceResponse;
+	}
+	
+	
+	public ServiceResponse getCity() {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	        List<City> cityList = cityRepository.findAll();
+
+	        if (cityList.isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceError("No City found.");
+	            return serviceResponse;
+	        } else {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(cityList);
+	            return serviceResponse;
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        serviceResponse.setServiceError("Error fetching cityList: " + e.getMessage());
+	        return serviceResponse;
+	    }
 	}
 
 

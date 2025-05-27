@@ -161,6 +161,16 @@ public class TravelDeskController {
     public ServiceResponse getTravelClassByMode(@RequestBody String travelReason) {
         return travelDeskService.getTravelClassByMode(travelReason);
     }
+    
+    @PostMapping("/getCityBySubCategory")
+    public ServiceResponse getCityBySubCategory(@RequestBody String travelReason) {
+        return travelDeskService.getCityBySubCategory(travelReason);
+    }
+    
+	@GetMapping("/getCity")
+	public ServiceResponse getCity() {
+	    return travelDeskService.getCity();
+	}
 
     
 }

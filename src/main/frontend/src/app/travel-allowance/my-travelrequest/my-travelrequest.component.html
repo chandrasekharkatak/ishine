@@ -95,7 +95,8 @@
                 <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest === 'Hotel & Lodging'">
                     <label class="info-label"><span class="text-danger">*</span>Sub Category</label>
                     <select class="form-control" [(ngModel)]="travelDeskObj.tlSubCategory" name="tlSubCategory" required
-                        (ngModelChange)="onSubCategoryChange($event)">
+                    (change)="onSubCategoryChanges(travelDeskObj.tlSubCategory)">
+                        <!-- (ngModelChange)="onSubCategoryChange($event)"> -->
                         <option value="" disabled>Select Sub Category</option>
                         <option *ngFor="let sub of hotelSubCategorylist" [value]="sub.hotelSubCategoryName">
                             {{ sub.hotelSubCategoryName }}
@@ -103,12 +104,12 @@
                     </select>
                 </div>
 
-                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.tlSubCategory">
+                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest == 'Hotel & Lodging'">
                     <label class="info-label"><span class="text-danger">*</span>Select City</label>
                     <select class="form-control" [(ngModel)]="travelDeskObj.selectedCity" name="selectedCity" required>
                         <option value="" disabled>Select City</option>
-                        <option *ngFor="let city of cityOptions" [value]="city">{{ city }}</option>
-                    </select>
+                        <option *ngFor="let city of citylistBySubCategory" [value]="city.cityName">{{ city.cityName }}</option>
+                      </select>
                 </div>
 
                 <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel & Lodging'">
@@ -126,7 +127,7 @@
                     <label class="info-label"><span class="text-danger">*</span>Travel Class</label>
                     <select class="form-control" [(ngModel)]="travelDeskObj.travelClass" name="travelClass" required>
                         <option value="" disabled>Select</option>
-                        <option *ngFor="let travelClass of travelClasslistByReason" [value]="travelClass">
+                        <option *ngFor="let travelClass of travelClasslistByReason" [value]="travelClass.travelClass">
                             {{ travelClass.travelClass }}
                         </option>
                     </select>

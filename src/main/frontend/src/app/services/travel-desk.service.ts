@@ -144,5 +144,17 @@ export class TravelDeskService {
   updateUploadedFile(formData:FormData){
     return this.http.post(`${this.baseUrl}`+`api/updateUploadedFile`,formData);
   }
+
+  getCityBySubCategory(travelReason: string) {
+    console.log(travelReason);
+    return this.http.post(`${this.baseUrl}api/getCityBySubCategory`, travelReason, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  getCity() {
+    return this.http.get(`${this.baseUrl}` + `api/getCity`);
+  }
+  
   
 }

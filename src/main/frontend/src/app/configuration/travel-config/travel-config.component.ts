@@ -57,6 +57,7 @@ export class TravelConfigComponent implements OnInit {
   selectedTravelModes: string[] = [];
   travelClass :any ;
   hotelSubCategorylist: any;
+  cityList:any;
   handlePageChange(event) {
     this.page = event;
   }
@@ -73,6 +74,7 @@ export class TravelConfigComponent implements OnInit {
     this.onGetTravelMode();
     this.onGetHotelCategory();
     this.onGetHotelSubCategory();
+    this.onGetCity();
   }
 
   modalRef: BsModalRef = new BsModalRef();
@@ -524,6 +526,21 @@ toggleSearchReviewType() {
           } catch (error) {
             console.error("API error:", error);
             this.openAlertMod(template, "Unexpected error occurred while saving City.");
+          }
+        }
+
+
+            
+        async onGetCity(){
+    
+          const response: any = await this.travelDesk.getCity().toPromise();
+          if (response.serviceStatus == "Success") {
+            this.cityList = response.serviceResponse;
+          
+            console.log("cityList   ::::::: : ", this.cityList);
+      
+          } else {
+            console.error(response.serviceResponse);
           }
         }
         
