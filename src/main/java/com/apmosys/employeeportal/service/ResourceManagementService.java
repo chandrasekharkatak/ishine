@@ -4122,6 +4122,8 @@ public class ResourceManagementService {
 				if (team.isPresent()) {
 					Team getTeam = team.get();
 					getTeam.setIsActive("N");
+					getTeam.setUpdatedBy(teamDto.getUpdatedBy());
+					getTeam.setUpdatedOn(LocalDateTime.now());
 					List<EmployeeTeamMap> findAllMappedEmp = employeeTeamMapRepository
 							.findByTeamId(teamDto.getTeamId());
 					System.err
@@ -4129,6 +4131,8 @@ public class ResourceManagementService {
 
 					findAllMappedEmp.forEach(emp -> {
 						emp.setActive(0L);
+						emp.setUpdatedBy(teamDto.getUpdatedBy());
+						emp.setUpdatedOn(LocalDateTime.now());
 						if (teamDto.getEndDate() != null) {
 							String str = teamDto.getEndDate();
 							DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -4242,6 +4246,7 @@ public class ResourceManagementService {
 		return response;
 	}
 
+	@Transactional
 	public ServiceResponse completionDateOfProject(ResourceManagementDTO resourceManagementDTO) {
 
 		ServiceResponse response = new ServiceResponse();
@@ -4273,6 +4278,30 @@ public class ResourceManagementService {
 				return response;
 			}
 			Project projectObj = projObj;
+			
+			List<Team> teams = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(),"Y");
+			
+			if(teams.isEmpty()) {
+				logBuilder.append("\n Empty teamlist found in database for method findByProjectIdAndIsActive for project " + projectObj.getProjectName());
+			}else {
+				List<TeamDTO> teamDTOs = teams.stream()
+					    .map(team -> {
+					        TeamDTO dto = new TeamDTO();
+					        dto.setTeamId(team.getTeamId());
+					        dto.setUpdatedBy(projectObj.getUpdatedBy());
+					        return dto;
+					    })
+					    .collect(Collectors.toList());
+				
+				ServiceResponse response2 = deleteTeamsByIdsBulk(teamDTOs);
+				logBuilder.append("\n " + response2.getServiceResponse() + " for project " + projectObj.getProjectName());
+				
+				if(response2.getServiceStatus() != ServiceResponse.STATUS_SUCCESS) {
+					return response2;
+				}
+			}
+			
+			projectManagerMappingRepository.deactivateByProjectId(Long.parseLong(projectObj.getProjectId().toString()));
 
 			projectObj.setProjectCompletionDate(resourceManagementDTO.getProjectCompletionDate());
 			projectObj.setProjectStatus(resourceManagementDTO.getStatus());
@@ -4951,7 +4980,8 @@ public class ResourceManagementService {
 					Integer projectId = object[0] != null ? Integer.parseInt(object[0].toString()) : null;
 					String isDraftProject = object[2] != null ? object[2].toString() : null;
 					Long isActive = object[3] != null ? Long.parseLong(object[3].toString()) : null;
-
+					String projectStatus = object[4] != null ? object[4].toString() : null;
+					
 					boolean matchesApproval = false;
 
 					if ("Pending For Approval".equalsIgnoreCase(approvalStatus) && Long.valueOf(2).equals(isActive)) {
@@ -4962,7 +4992,13 @@ public class ResourceManagementService {
 					} else if ("Rejected".equalsIgnoreCase(approvalStatus)
 							&& "Rejected".equalsIgnoreCase(isDraftProject)) {
 						matchesApproval = true;
-					} else if ("All".equalsIgnoreCase(approvalStatus)) {
+					} else if ("Completed".equalsIgnoreCase(approvalStatus)
+							&& "Completed".equalsIgnoreCase(isDraftProject)) {
+						matchesApproval = true;
+					} else if ("CompletedInIshine".equalsIgnoreCase(approvalStatus)
+							&& "Completed".equalsIgnoreCase(projectStatus)) {
+						matchesApproval = true;
+					}else if ("All".equalsIgnoreCase(approvalStatus)) {
 						matchesApproval = true;
 					}
 

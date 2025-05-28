@@ -788,14 +788,14 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   validateProjectObj(projectObj, template: TemplateRef<any>) {
-    if (!this.validationService.validateNullUndefinedEmptyString(projectObj.projectManager)) {
-      this.alertMessage = `Please select project manager!!`
+    if (projectObj.projectManagerId == undefined || projectObj.projectManagerId.length == 0 || projectObj.projectManagerId == null) {
+      this.alertMessage = `Please select atleast one project manager.`
       this.openAlertMod(template, this.alertMessage);
       return;
     }
 
     if (projectObj.teamList.length == 0) {
-      this.alertMessage = "Please add a Team !!"
+      this.alertMessage = "Please add atleast one team."
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -805,30 +805,24 @@ export class ResourceManagementComponent implements OnInit {
       projectObj.teamList.forEach((projObj, index) => {
         projObj.teamName = projObj.teamName?.trim();
         if (!this.validationService.validateNullUndefinedEmptyString(projObj.teamName)) {
-          this.alertMessage = `Please enter Team Name - ${index + 1}!!`
+          this.alertMessage = `Please enter Team Name - ${index + 1}.`
           flag = false;
           return;
         }
         if (!this.validationService.validateTeamName(projObj.teamName)) {
-          this.alertMessage = "Please enter valid Team Name !!"
+          this.alertMessage = "Please enter valid Team Name."
           this.openAlertMod(template, this.alertMessage);
           return false;
         }
 
         if (projObj.departmentList == undefined || projObj.departmentList.length == 0 || projObj.departmentList == null) {
-          this.alertMessage = `Please select Team's department - ${index + 1}!!`
-          flag = false;
-          return;
-        }
-
-        if (projObj.spoc == undefined || projObj.spoc.length == 0 || projObj.spoc == null) {
-          this.alertMessage = `Please select Team's SPOC - ${index + 1}!!`
+          this.alertMessage = `Please select Team's department - ${index + 1}.`
           flag = false;
           return;
         }
 
         if (projObj.teamMemberList == undefined || projObj.teamMemberList.length == 0 || projObj.teamMemberList == null) {
-          this.alertMessage = `Please add Team Member(s) - ${index + 1}!!`
+          this.alertMessage = `Please add team member(s) - ${index + 1}.`
           flag = false;
           return;
         }
@@ -837,14 +831,14 @@ export class ResourceManagementComponent implements OnInit {
           let memberFlag = true;
           projObj.teamMemberList.forEach((member) => {
             if (!this.validationService.validateNullUndefinedEmptyString(member.name)) {
-              this.alertMessage = `Please select Team Member- ${index + 1}!!`
+              this.alertMessage = `Please select Team Member- ${index + 1}.`
               flag = false;
               return;
             }
 
             if (member.isTeamLead == null && (member.isTeamLead != true || member.isTeamLead != 'true')) {
               if (member.employeeRole == undefined || member.employeeRole.length == 0 || member.employeeRole == null) {
-                this.alertMessage = `Please select member(s) Employee Role - ${index + 1}!!`
+                this.alertMessage = `Please select member(s) Employee Role - ${index + 1}.`
                 flag = false;
                 //console.log(projObj.teamMemberList, " : projObj.teamMemberList");
 
@@ -899,8 +893,8 @@ export class ResourceManagementComponent implements OnInit {
     
     // this.projectObj.projectId=this.projectObj.id;
 
-    // let inputValidated: boolean = this.validateProjectObj(this.projectObj, template)
-    // if (!inputValidated) return;
+    let inputValidated: boolean = this.validateProjectObj(this.projectObj, template)
+    if (!inputValidated) return;
 
     if (this.isHOD == true) {
       this.projectObj.isHOD = true;
@@ -2029,7 +2023,8 @@ TotalEmployeeCount(){
 
   submitDate(template: TemplateRef<any>) {
     this.completedProjectDetails.projectCompletionDate =this.selectedDate;
-    this.completedProjectDetails.projectStatus = 'Completed'
+    this.completedProjectDetails.projectStatus = 'Completed';
+    this.completedProjectDetails.updatedBy = this.currentUser.empId;
     if (!this.completedProjectDetails.projectCompletionDate) {
       this.alertMessage = "Please Select Completion Date!!"
       this.openAlertMod(template, this.alertMessage);
