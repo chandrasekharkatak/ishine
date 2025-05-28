@@ -2195,6 +2195,7 @@ public class ResourceManagementService {
 					projectDto.setPoProjectId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
 					projectDto.setIsActive(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 					projectDto.setId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+					projectDto.setProjectStatus(object[8] != null ? object[8].toString() : null);
 					List<TeamSpocDTO> spocList = getTeamSpocsByProjectId(projectId);
 					projectDto.setTeamSpocs(spocList);
 
@@ -2961,6 +2962,7 @@ public class ResourceManagementService {
 					projectDTO.setIsActive(object[12] != null ? Long.parseLong(object[12].toString()) : null);
 					// projectDTO.setIsActive(2l);
 					projectDTO.setEmpId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
+					projectDTO.setProjectStatus(object[14] != null ? object[14].toString() : null);
 					// Find ClientName
 					Integer clientId = object[7] != null ? Integer.parseInt(object[7].toString()) : null;
 					if (clientId != null) {
@@ -3839,12 +3841,19 @@ public class ResourceManagementService {
 	        Map<String, Integer> countsMap = countStatus(combined);
 
 	        // Approval Status Filter
+	        
 	        if (approvalStatus != null && !"All".equalsIgnoreCase(approvalStatus)) {
-	            combined = combined.stream()
-	                    .filter(p -> approvalStatus.equalsIgnoreCase(p.getIsDraftProject()) ||
-	                            ("Not Started".equalsIgnoreCase(approvalStatus) &&
-	                                    "Internal".equalsIgnoreCase(p.getIsDraftProject())))
-	                    .collect(Collectors.toList());
+	        	if ("completedInIshine".equalsIgnoreCase(approvalStatus)) {
+	        		combined = combined.stream()
+	                        .filter(p -> "Completed".equalsIgnoreCase(p.getProjectStatus()))
+	                        .collect(Collectors.toList());
+	        	}else {
+	        		combined = combined.stream()
+		                    .filter(p -> approvalStatus.equalsIgnoreCase(p.getIsDraftProject()) ||
+		                            ("Not Started".equalsIgnoreCase(approvalStatus) &&
+		                                    "Internal".equalsIgnoreCase(p.getIsDraftProject())))
+		                    .collect(Collectors.toList());
+	        	}
 	        }
 
 	        // Sort by Created On descending
@@ -3896,10 +3905,12 @@ public class ResourceManagementService {
 		Map<String, Integer> map = new HashMap<>();
 		map.put("pendingForApprovalCount", countByStatus(projects, "Pending For Approval"));
 		map.put("approvedCount", countByStatus(projects, "Approved"));
+		map.put("completedCount", countByStatus(projects, "Completed"));
 		map.put("notStartedCount",
 				(int) projects.stream().filter(p -> "Not Started".equalsIgnoreCase(p.getIsDraftProject())
 						|| "Internal".equalsIgnoreCase(p.getIsDraftProject())).count());
 		map.put("rejectedCount", countByStatus(projects, "Rejected"));
+		map.put("completedInIshineCount", (int) projects.stream().filter(p -> "Completed".equalsIgnoreCase(p.getProjectStatus())).count());
 		return map;
 	}
 
@@ -3941,6 +3952,7 @@ public class ResourceManagementService {
 				proj.setProjectManagerName(selectedProj.getProjectManagerName());
 				proj.setTeamSpocs(selectedProj.getTeamSpocs());
 				proj.setProjectViewId("po" + proj.getId());
+				proj.setProjectStatus(selectedProj.getProjectStatus());
 
 				Long isActive = selectedProj.getIsActive();
 				String isDraft = selectedProj.getIsDraftProject();
@@ -3951,6 +3963,8 @@ public class ResourceManagementService {
 					proj.setIsDraftProject("Rejected");
 				} else if ("false".equalsIgnoreCase(isDraft)) {
 					proj.setIsDraftProject("Approved");
+				} else if ("Completed".equalsIgnoreCase(isDraft)) {
+					proj.setIsDraftProject("Completed");
 				} else {
 					proj.setIsDraftProject("Not started");
 				}
@@ -3989,6 +4003,7 @@ public class ResourceManagementService {
 				proj.setProjectManagerName(selectedProj.getProjectManagerName());
 				proj.setTeamSpocs(selectedProj.getTeamSpocs());
 				proj.setProjectViewId(proj.getProjectId() != null ? proj.getProjectId().toString() : null);
+				proj.setProjectStatus(selectedProj.getProjectStatus());
 
 				String draftStatus = selectedProj.getIsDraftProject();
 				if ("true".equalsIgnoreCase(draftStatus)) {
@@ -3997,7 +4012,9 @@ public class ResourceManagementService {
 					proj.setIsDraftProject("Rejected");
 				} else if ("false".equalsIgnoreCase(draftStatus)) {
 					proj.setIsDraftProject("Approved");
-				} else {
+				} else if ("Completed".equalsIgnoreCase(draftStatus)) {
+					proj.setIsDraftProject("Completed");
+				}  else {
 					proj.setIsDraftProject("Not Started");
 				}
 			} else {

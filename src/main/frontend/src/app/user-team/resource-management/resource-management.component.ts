@@ -182,6 +182,7 @@ export class ResourceManagementComponent implements OnInit {
   teamMemberCtrl = new FormControl();
   spocCtrl = new FormControl();
   employeeInformation: EmployeeInformation = new EmployeeInformation();
+  loadingRequirements = true;
 
   constructor(
     private departmentService: DepartmentService,
@@ -2052,9 +2053,11 @@ TotalEmployeeCount(){
     this.modalRef.hide();
   }
   getResourceRequirementByPoProjectId(id) {
+    this.loadingRequirements = true;
     this.resourceManagementService.getResourceRequirementByPoProjectId(id).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectRequirementsList = response.serviceResponse;
+        this.loadingRequirements = false;
       } else {
         console.error("Error fetching project requirement list");
       }

@@ -508,17 +508,16 @@
                                         <em>{{project.isDraftProject}}</em>
                                     </td>
                                     <td *ngIf='project.isDraftProject == "Not Started"'>{{project.name}}</td>
-                                    <td *ngIf='project.id == null && project.isDraftProject != "Not Started"'
-                                        style="cursor: pointer; color: blue;" id="clickablefor360"
-                                        (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId"
-                                        style="cursor: pointer;" title="Click to view Project Details">{{project.name}}
+                                    <td *ngIf="project.id == null && project.isDraftProject != 'Not Started'"title="Click to view Project Details">
+                                        <span style="cursor: pointer; color: blue;" id="clickablefor360"(click)="cancelRequest()"[navigateToProjectView]="project.projectViewId">
+                                            {{ project.name }}
+                                        </span>
                                     </td>
-                                    <td *ngIf='project.projectId == null && project.isDraftProject != "Not Started"'
-                                        style="cursor: pointer; color: blue;" id="clickablefor360"
-                                        (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId"
-                                        style="cursor: pointer;" title="Click to view Project Details">{{project.name}}
+                                    <td *ngIf="project.projectId == null && project.isDraftProject != 'Not Started'" title="Click to view Project Details">
+                                        <span style="cursor: pointer; color: blue;" id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId">
+                                            {{ project.name }}
+                                        </span>
                                     </td>
-
                                     <td>{{project.poNo}}</td>
                                     <td>{{project.projectType}}</td>
 
@@ -1481,24 +1480,40 @@
     </ng-template>
 
     <ng-template #teamMemberTemplate>
-        <div class="modal-body p-0">
-            <div class="team-modal-container">
-                <h3 class="modal-title">Project Requirements</h3>
-
-                <div class="stats-row">
-                    <div class="stat-box">
-                        <p>Total Requirements</p>
-                        <h4>{{ projectRequirementsList.totalRequirements || 0 }}</h4>
-                    </div>
-                    <div class="stat-box">
-                        <p>Assigned</p>
-                        <h4>{{ projectRequirementsList.assigned || 0 }}</h4>
-                    </div>
-                    <div class="stat-box">
-                        <p>Difference</p>
-                        <h4>{{ projectRequirementsList.difference || 0 }}</h4>
-                    </div>
+    <div class="modal-body p-0">
+        <div class="team-modal-container">
+            <h3 class="modal-title">Project Requirements</h3>
+    
+            <div class="stats-row">
+                <div class="stat-box m-1">
+                    <p>Total Requirements</p>
+                    <h4>
+                        <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
+                        {{ projectRequirementsList.totalRequirements || 0 }}
+                        </ng-container>
+                    </h4>
                 </div>
+                <div class="stat-box m-1">
+                    <p>Assigned</p>
+                    <h4>
+                        <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
+                        {{ projectRequirementsList.assigned || 0 }}
+                        </ng-container>
+                    </h4>
+                </div>
+                <div class="stat-box m-1">
+                    <p>Difference</p>
+                    <h4>
+                        <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
+                        {{ projectRequirementsList.difference || 0 }}
+                        </ng-container>
+                    </h4>
+                </div>
+            </div>
+              
+            <ng-template #loadingSpinner>
+                <i class="fa fa-spinner fa-spin text-secondary"></i>
+            </ng-template>              
 
                 <!-- Add Team Member Section -->
                 <h3 class="modal-title">Add Team Member</h3>
