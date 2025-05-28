@@ -225,7 +225,7 @@
                 <div class="row mb-2 mt-2">
                     <div class="col-md-1" [hidden]="allProject_Po_Internal.length == 0" style="display: flex;
                     justify-content: left;
-                    max-width: fit-content;">
+                    max-width: fit-content; cursor: pointer;">
                         <a (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">
                             <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
                             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
@@ -233,7 +233,7 @@
                     </div>
                     <div class="col-md-1" style="display: flex;
                     justify-content: left;
-                    max-width: fit-content;">
+                    max-width: fit-content;  cursor: pointer;">
                         <i class="fa fa-download" style="color: #053885;display: flex;
                         justify-content: left;
                         max-width: fit-content;" [hidden]="allProject_Po_Internal.length == 0"
@@ -345,15 +345,15 @@
                                         <em>{{project.isDraftProject}}</em>
                                     </td>
                                     <td *ngIf='project.isDraftProject == "Not Started"'>{{project.name}}</td>
-                                    <td *ngIf='project.id == null && project.isDraftProject != "Not Started"'
-                                        style="cursor: pointer; color: blue;" id="clickablefor360"
-                                        (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId"
-                                        style="cursor: pointer;" title="Click to view Project Details">{{project.name}}
+                                    <td *ngIf="project.id == null && project.isDraftProject != 'Not Started'"title="Click to view Project Details">
+                                        <span style="cursor: pointer; color: blue;" id="clickablefor360"(click)="cancelRequest()"[navigateToProjectView]="project.projectViewId">
+                                            {{ project.name }}
+                                        </span>
                                     </td>
-                                    <td *ngIf='project.projectId == null && project.isDraftProject != "Not Started"'
-                                        style="cursor: pointer; color: blue;" id="clickablefor360"
-                                        (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId"
-                                        style="cursor: pointer;" title="Click to view Project Details">{{project.name}}
+                                    <td *ngIf="project.projectId == null && project.isDraftProject != 'Not Started'" title="Click to view Project Details">
+                                        <span style="cursor: pointer; color: blue;" id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId">
+                                            {{ project.name }}
+                                        </span>
                                     </td>
                                     <td>{{project.poNo}}</td>
                                     <td>{{project.projectType}}</td>
@@ -1162,31 +1162,42 @@
 
                 <div class="teams-section">
                     <h3>Teams</h3>
-                    <div class="col-md-12 mb-3" *ngIf="allTeamList.length > 1">
+                    <div class="col-md-12 mb-3 px-0 ml-0" *ngIf="allTeamList.length > 1">
+                        <div class="d-flex justify-content-between align-items-center">
 
-                        <label>
-                            <input type="checkbox" [(ngModel)]="selectAll" (change)="toggleSelectAll()"> Select All
-                            Teams
-                        </label>
-                        <div *ngIf="selectedTeamsDetails.length > 0">
-                            <button type="button" class="btn btn-primary sm"
-                                (click)="openDeleteModalForTeamBulk(delete_team_modal,alert_message, teamObj, projectObj)">Delete
-                                Selected Teams</button>
+                         
+                            <label class="mb-0">
+                                <input type="checkbox" [(ngModel)]="selectAll" (change)="toggleSelectAll()"
+                                    class="form-check-input mr-2" />
+                                Select All
+                            </label>
+
+                           
+                            <div *ngIf="selectedTeamsDetails.length > 0">
+                                <button type="button" class="btn btn-primary btn-sm"
+                                    (click)="openDeleteModalForTeamBulk(delete_team_modal, alert_message, teamObj, projectObj)">
+                                    Bulk Delete
+                                </button>
+                            </div>
+
                         </div>
-
-
                     </div>
                     <div *ngFor="let teamObj of allTeamList; let i = index" class="team-row">
 
-                        <div class="form-field">
 
-                            <input type="checkbox" *ngIf="allTeamList.length > 1" [(ngModel)]="teamObj.selected"
-                                (change)="updateSelection()" />
-                            <label>Team Name</label>
+                        <div class="flex-grow-1">
 
-                            <input type="text" class="form-control name-field" [(ngModel)]="teamObj.teamName"
-                                (blur)="checkTeamName(alert_message, teamObj, i)">
+                            <div class="d-flex align-items-center mb-2">
+                                <input type="checkbox" *ngIf="allTeamList.length > 1" [(ngModel)]="teamObj.selected"
+                                    (change)="updateSelection()" class="form-check-input me-2"
+                                    style="width: 16px; height: 16px; margin-top:40px; " />
+
+                            </div>
+                            <label class="mb-0">Team Name</label>
+                            <input type="text" class="form-select name-field" [(ngModel)]="teamObj.teamName"
+                                (blur)="checkTeamName(alert_message, teamObj, i)" />
                         </div>
+
 
                         <div class="form-field">
                             <label><span class="text-danger">*</span>Department</label>
@@ -1261,116 +1272,151 @@
     <ng-template #teamMemberTemplate>
     <div class="modal-body p-0">
         <div class="team-modal-container">
-            <h3 class="modal-title">Project Requirements</h3>
-    
-            <div class="stats-row">
-                <div class="stat-box">
-                    <p>Total Requirements</p>
-                    <h4>{{ projectRequirementsList.totalRequirements || 0 }}</h4>
+            <div *ngIf="projectObj.id">
+                <h3 class="modal-title">Project Requirements</h3>
+        
+                <div class="stats-row">
+                    <div class="stat-box m-1">
+                        <p>Total Requirements</p>
+                        <h4>
+                            <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
+                            {{ projectRequirementsList.totalRequirements || 0 }}
+                            </ng-container>
+                        </h4>
+                    </div>
+                    <div class="stat-box m-1">
+                        <p>Assigned</p>
+                        <h4>
+                            <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
+                            {{ projectRequirementsList.assigned || 0 }}
+                            </ng-container>
+                        </h4>
+                    </div>
+                    <div class="stat-box m-1">
+                        <p>Difference</p>
+                        <h4>
+                            <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
+                            {{ projectRequirementsList.difference || 0 }}
+                            </ng-container>
+                        </h4>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <p>Assigned</p>
-                    <h4>{{ projectRequirementsList.assigned || 0 }}</h4>
-                </div>
-                <div class="stat-box">
-                    <p>Difference</p>
-                    <h4>{{ projectRequirementsList.difference || 0 }}</h4>
-                </div>
-            </div>
+                
+                <ng-template #loadingSpinner>
+                    <i class="fa fa-spinner fa-spin text-secondary"></i>
+                </ng-template> 
+            </div>             
 
-            <!-- Add Team Member Section -->
-            <h3 class="modal-title">Add Team Member</h3>
+                <!-- Add Team Member Section -->
+                <h3 class="modal-title">Add Team Member</h3>
 
-            <div *ngIf="projectObj.resourceRequirements?.length > 0">
-                <div class="requirement-select-container">
-                    <label>Select Requirement</label>
-                    <mat-select placeholder="Select Requirement" [(ngModel)]="selectedRequirement">
-                        <!-- <mat-option *ngFor="let requirement of projectObj.resourceRequirements" [value]="requirement">
+                <div *ngIf="projectObj.resourceRequirements?.length > 0">
+                    <div class="requirement-select-container">
+                        <label>Select Requirement</label>
+                        <mat-select placeholder="Select Requirement" [(ngModel)]="selectedRequirement">
+                            <!-- <mat-option *ngFor="let requirement of projectObj.resourceRequirements" [value]="requirement">
                             {{ requirement.role }}  || {{ requirement.department }} || {{ requirement.experience }}
                         </mat-option> -->
-                        <mat-option *ngFor="let requirement of projectObj.resourceRequirements" [value]="requirement">
-                            Role - {{ requirement.role }} || Dept - {{ requirement.department }} || Exp - {{ requirement.experience }} y
-                          </mat-option>                          
-                    </mat-select>
+                            <mat-option *ngFor="let requirement of projectObj.resourceRequirements"
+                                [value]="requirement">
+                                Role - {{ requirement.role }} || Dept - {{ requirement.department }} || Exp - {{
+                                requirement.experience }} y
+                            </mat-option>
+                        </mat-select>
+                    </div>
                 </div>
-            </div>
-        
-            <div class="add-team-row mt-2">
-                <input type="text" class="form-select name-field w-100" placeholder="Search by Emp ID or Name"
-                 aria-label="Search employee" [formControl]="teamMemberCtrl" [matAutocomplete]="teamMemberAuto" />
-        
-                <mat-autocomplete #teamMemberAuto="matAutocomplete" (optionSelected)="onTeamMemberSelected($event)"
-                [displayWith]="displayEmployee">
-                    <mat-option *ngFor="let newteamMember of employeeListByDept | filterEmployee: teamMemberCtrl.value"
-                        [value]="newteamMember" [disabled]="newteamMember.isSelected">
-                        {{ newteamMember.name }}
-                    </mat-option>
-                </mat-autocomplete>
-        
-                <mat-select class="form-control role-field-add-team-member" multiple [(ngModel)]="newteamMember.employeeRole">
-                    <mat-option selected="selected" value="" disabled>Select</mat-option>
-                    <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role }}</mat-option>
-                </mat-select>
-        
-                <!-- <mat-select class="form-control billable-field" placeholder="Select Billable Type"
+
+                <div class="add-team-row mt-2">
+                    <input type="text" class="form-select name-field w-100" placeholder="Search by Emp ID or Name"
+                        aria-label="Search employee" [formControl]="teamMemberCtrl"
+                        [matAutocomplete]="teamMemberAuto" />
+
+                    <mat-autocomplete #teamMemberAuto="matAutocomplete" (optionSelected)="onTeamMemberSelected($event)"
+                        [displayWith]="displayEmployee">
+                        <mat-option
+                            *ngFor="let newteamMember of employeeListByDept | filterEmployee: teamMemberCtrl.value"
+                            [value]="newteamMember" [disabled]="newteamMember.isSelected">
+                            {{ newteamMember.name }}
+                        </mat-option>
+                    </mat-autocomplete>
+
+                    <mat-select class="form-control role-field-add-team-member" multiple
+                        [(ngModel)]="newteamMember.employeeRole">
+                        <mat-option selected="selected" value="" disabled>Select</mat-option>
+                        <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role }}</mat-option>
+                    </mat-select>
+
+                    <!-- <mat-select class="form-control billable-field" placeholder="Select Billable Type"
                 [(ngModel)]="newteamMember.billableType">
                     <mat-option *ngFor="let type of ['TNM', 'Fixed Cost', 'Shadow', 'InternalRNDProducts', 'Bench']"
                         [value]="type">{{ type }}</mat-option>
                 </mat-select> -->
-            
+
+                    <div *ngIf="projectObj.resourceRequirements?.length === 0">
+                        <button type="button" class="btn btn-outline-primary mx-1"
+                            (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()"
+                            [disabled]=" !newteamMember.empId || !newteamMember.employeeRole?.length">
+                            <i class="fa fa-plus" aria-hidden="true"></i>
+                        </button>
+                    </div>
+
+                    <div *ngIf="projectObj.resourceRequirements?.length > 0">
+                        <button type="button" class="btn btn-outline-primary mx-1"
+                            (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()"
+                            [disabled]="!selectedRequirement || !newteamMember.empId || !newteamMember.employeeRole?.length">
+                            <i class="fa fa-plus" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <h3 class="modal-title">Team Member(s)</h3>
+
                 <div *ngIf="projectObj.resourceRequirements?.length === 0">
-                    <button type="button" class="btn btn-outline-primary mx-1" (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()"
-                    [disabled]=" !newteamMember.empId || !newteamMember.employeeRole?.length">
-                    <i class="fa fa-plus" aria-hidden="true"></i>
-                    </button>
-                </div>
-
-                <div *ngIf="projectObj.resourceRequirements?.length > 0">
-                    <button type="button" class="btn btn-outline-primary mx-1" (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()"
-                    [disabled]="!selectedRequirement || !newteamMember.empId || !newteamMember.employeeRole?.length">
-                    <i class="fa fa-plus" aria-hidden="true"></i>
-                    </button>
-                </div>
-            </div>
-    
-            <h3 class="modal-title">Team Member(s)</h3>
-
-            <div *ngIf="projectObj.resourceRequirements?.length === 0">
-                <div class="accordion-card">
-                  <div class="accordion-content">
-                    <div>
-                        <div class="two-column-layout" style="overflow-y: auto; overflow-x: hidden;" >
-                            <div *ngIf="teamObj.allTeamMemberList" class="team-member-col">
-                                <label>Existing Team Members</label>
-                                <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index" style="display: flex;">
-                                    <div *ngIf="member.name" style="display: flex; min-width: 80%; max-width: fit-content;">
-                                        <div style="padding-right: 10px;">
-                                            <input type="text" placeholder="Name" [value]="member.name" class="form-control name-field" readonly />
-                                        </div>
-                                        <div style="padding-right: 10px;">
-                                            <mat-select class="form-control role-field" multiple [(ngModel)]="member.employeeRole" style="padding: 3px;">
-                                                <mat-option selected="selected" value="" disabled>Select</mat-option>
-                                                <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
-                                            </mat-select>
-                                        </div>
-                                        <!-- <mat-select class="form-control billable-field" placeholder="Select" [(ngModel)]="member.newBillableType">
+                    <div class="accordion-card">
+                        <div class="accordion-content">
+                            <div>
+                                <div class="two-column-layout" style="overflow-y: auto; overflow-x: hidden;">
+                                    <div *ngIf="teamObj.allTeamMemberList" class="team-member-col">
+                                        <label>Existing Team Members</label>
+                                        <div class="add-team-row"
+                                            *ngFor="let member of teamObj.allTeamMemberList; let i = index"
+                                            style="display: flex;">
+                                            <div *ngIf="member.name"
+                                                style="display: flex; min-width: 80%; max-width: fit-content;">
+                                                <div style="padding-right: 10px;">
+                                                    <input type="text" placeholder="Name" [value]="member.name"
+                                                        class="form-control name-field" readonly />
+                                                </div>
+                                                <div style="padding-right: 10px;">
+                                                    <mat-select class="form-control role-field" multiple
+                                                        [(ngModel)]="member.employeeRole" style="padding: 3px;">
+                                                        <mat-option selected="selected" value=""
+                                                            disabled>Select</mat-option>
+                                                        <mat-option *ngFor="let role of employeeRole"
+                                                            [value]="role">{{role}}</mat-option>
+                                                    </mat-select>
+                                                </div>
+                                                <!-- <mat-select class="form-control billable-field" placeholder="Select" [(ngModel)]="member.newBillableType">
                                             <mat-option *ngFor="let type of ['TNM', 'Fixed Cost', 'Shadow', 'InternalRNDProducts', 'Bench']" [value]="type">
                                             {{ type }}
                                             </mat-option>
                                         </mat-select> -->
-                                        <div>
-                                            <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(member, i)">
-                                                <i class="fa fa-trash" aria-hidden="true"></i>
-                                            </button>
-                                            <!-- <button type="button" class="btn btn-outline-primary mx-1"(click)="openModal(employeeInfoModal,member.empId)">
+                                                <div>
+                                                    <button type="button" class="btn btn-outline-primary mx-1"
+                                                        (click)="removeTeamMember(member, i)">
+                                                        <i class="fa fa-trash" aria-hidden="true"></i>
+                                                    </button>
+                                                    <!-- <button type="button" class="btn btn-outline-primary mx-1"(click)="openModal(employeeInfoModal,member.empId)">
                                                 <i class="fa-solid fa-circle-exclamation"></i>
                                             </button> -->
-                                            <div class="action-menu-wrapper" (clickOutside)="closePopover(member.empId)">
-                                                <button type="button" class="btn btn-outline-primary mx-1" (click)="togglePopover(member.empId)">
-                                                  <i class="fa-solid fa-circle-exclamation"></i>
-                                                </button>
-                                              
-                                                <!-- <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3" style="width: 260px;">
+                                                    <div class="action-menu-wrapper"
+                                                        (clickOutside)="closePopover(member.empId)">
+                                                        <button type="button" class="btn btn-outline-primary mx-1"
+                                                            (click)="togglePopover(member.empId)">
+                                                            <i class="fa-solid fa-circle-exclamation"></i>
+                                                        </button>
+
+                                                        <!-- <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3" style="width: 260px;">
                                                   <div class="info-line"><span class="label">Emp Id</span>: {{ employeeInformation.employmentId }}</div>
                                                   <div class="info-line"><span class="label">Role</span>: {{ employeeInformation.jobRole }}</div>
                                                   <div class="info-line"><span class="label">Billability type</span>: {{ employeeInformation.billableType }}</div>
@@ -1379,120 +1425,169 @@
                                                   <div class="info-line"><span class="label">Current Experience</span>: {{ employeeInformation.currentExperience }} years</div>
                                                   <div class="info-line"><span class="label">Total Experience</span>: {{ employeeInformation.totalExperience }} years</div>
                                                 </div> -->
-                                                <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3" style="width: 260px;">
-                                                    <div class="info-line"><span class="label">Emp Id</span>: <span class="label">{{ employeeInformation.employmentId }}</span></div>
-                                                    <div class="info-line"><span class="label">Role</span>: <span class="label">{{ employeeInformation.jobRole }}</span></div>
-                                                    <div class="info-line"><span class="label">Billability type</span>: <span class="label">{{ employeeInformation.billableType }}</span></div>
-                                                    <div class="info-line"><span class="label">Department</span>: <span class="label">{{ employeeInformation.deptName }}</span></div>
-                                                    <div class="info-line"><span class="label">Previous Experience</span>: <span class="label">{{ employeeInformation.previousExperience }} years</span></div>
-                                                    <div class="info-line"><span class="label">Current Experience</span>: <span class="label">{{ employeeInformation.currentExperience }} years</span></div>
-                                                    <div class="info-line"><span class="label">Total Experience</span>: <span class="label">{{ employeeInformation.totalExperience }} years</span></div>
-                                                </div>                                                
+                                                        <div *ngIf="popoverEmpId === member.empId"
+                                                            class="custom-dropdown2 p-3" style="width: 260px;">
+                                                            <div class="info-line"><span class="label">Emp Id</span>:
+                                                                <span class="label">{{ employeeInformation.employmentId
+                                                                    }}</span>
+                                                            </div>
+                                                            <div class="info-line"><span class="label">Role</span>:
+                                                                <span class="label">{{ employeeInformation.jobRole
+                                                                    }}</span>
+                                                            </div>
+                                                            <div class="info-line"><span class="label">Billability
+                                                                    type</span>: <span class="label">{{
+                                                                    employeeInformation.billableType }}</span></div>
+                                                            <div class="info-line"><span
+                                                                    class="label">Department</span>: <span
+                                                                    class="label">{{ employeeInformation.deptName
+                                                                    }}</span></div>
+                                                            <div class="info-line"><span class="label">Previous
+                                                                    Experience</span>: <span class="label">{{
+                                                                    employeeInformation.previousExperience }}
+                                                                    years</span></div>
+                                                            <div class="info-line"><span class="label">Current
+                                                                    Experience</span>: <span class="label">{{
+                                                                    employeeInformation.currentExperience }}
+                                                                    years</span></div>
+                                                            <div class="info-line"><span class="label">Total
+                                                                    Experience</span>: <span class="label">{{
+                                                                    employeeInformation.totalExperience }} years</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+
+                                                <div *ngIf="!member.name">
+                                                    <label style="color: #040404;">No existing team members to
+                                                        display...</label>
+                                                </div>
                                             </div>
-                                              
-                                        </div>
-                                        
-                                        <div *ngIf="!member.name">
-                                            <label style="color: #040404;">No existing team members to display...</label>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-        
-                            <div *ngIf="teamObj.allTeamMemberList" class="team-member-col">
-                                <label>Shadow Resources</label>
-                                <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index">
-                                    <div *ngIf="member.name">
-                                        <div style="padding-right: 10px; width: 200px;">
-                                            <input type="text" class="form-select name2-field" placeholder="Search by Emp ID or Name" aria-label="Search employee" [formControl]="member.shadowControl" [matAutocomplete]="auto" [(ngModel)]="member.shadow">   
-                                        </div>
-                                        <div style="padding-right: 10px;">
-                                            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onResourceSelected($event, member)" [displayWith]="displayEmployee">
-                                                <mat-option *ngFor="let emp of employeeListByDept | filterEmployee: member.shadowControl.value" [value]="emp">
-                                                {{ emp.name }}
-                                                </mat-option>  
-                                            </mat-autocomplete>
-                                        </div>
-                                        <!-- <select class="form-control" [(ngModel)]="member.billableTypes">
+
+                                    <div *ngIf="teamObj.allTeamMemberList" class="team-member-col">
+                                        <label>Shadow Resources</label>
+                                        <div class="add-team-row"
+                                            *ngFor="let member of teamObj.allTeamMemberList; let i = index">
+                                            <div *ngIf="member.name">
+                                                <div style="padding-right: 10px; width: 200px;">
+                                                    <input type="text" class="form-select name2-field"
+                                                        placeholder="Search by Emp ID or Name"
+                                                        aria-label="Search employee"
+                                                        [formControl]="member.shadowControl" [matAutocomplete]="auto"
+                                                        [(ngModel)]="member.shadow">
+                                                </div>
+                                                <div style="padding-right: 10px;">
+                                                    <mat-autocomplete #auto="matAutocomplete"
+                                                        (optionSelected)="onResourceSelected($event, member)"
+                                                        [displayWith]="displayEmployee">
+                                                        <mat-option
+                                                            *ngFor="let emp of employeeListByDept | filterEmployee: member.shadowControl.value"
+                                                            [value]="emp">
+                                                            {{ emp.name }}
+                                                        </mat-option>
+                                                    </mat-autocomplete>
+                                                </div>
+                                                <!-- <select class="form-control" [(ngModel)]="member.billableTypes">
                                             <option *ngFor="let billable of billabilities" [value]="billable">{{ billable }}</option>
                                         </select> -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                          
-                        <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class="two-column-layout team-member-col">
-                            <label>New Team Members</label>
-                            <div class="new-team-members">
-                                <div *ngFor="let teamMember of allTeamMembers" class="new-team-member">
-                                    <div class="info-wrapper">
-                                        <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="teamMember.name">
-                                    </div>
-                                    <div class="info-wrapper">
-                                        <mat-select class="form-control" multiple [(ngModel)]="teamMember.employeeRole">
-                                            <mat-option selected="selected" value="" disabled>Select</mat-option>
-                                            <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role }}</mat-option>
-                                        </mat-select>
-                                    </div>
-                                    <button type="button" class="btn btn-outline-primary"
-                                    (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
-                                        <i class="fa fa-trash" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                  </div>
-                </div>
-            </div>
-
-            <div *ngIf="projectObj.resourceRequirements?.length > 0">
-                <div *ngFor="let requirement of projectObj.resourceRequirements" class="accordion-card">
-                    <div class="accordion-header" (click)="requirement.expanded = !requirement.expanded">
-                        <h5>{{ requirement.role }}</h5>
-                        <span class="badge">{{ requirement.department }}</span>
-                        <span class="experience">{{ requirement.experience }} years</span>
-            
-                        <div class="member-right">
-                            <span class="assignment">Assigned {{ requirement.assigned || 0 }}/{{ requirement.count }}</span>
-                            <button class="dropdown-button">
-                                <i class="fa-solid" [ngClass]="requirement.expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                            </button>
-                        </div>
-                    </div>
-        
-                    <div class="accordion-body" style="overflow-y: auto; overflow-x: hidden;" *ngIf="requirement.expanded">
-                        <div class="accordion-content">
-                            <div class="two-column-layout">
-                                <div *ngIf="teamObj.allTeamMemberList" class="team-member-col">
-                                    <label>Existing Team Members</label>
-                                    <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index" style="display: flex;">
-                                        <div *ngIf="member.resourceOverviewId == requirement.resourceOverviewId" style="display: flex; min-width: 80%;max-width: fit-content;">
-                                            <div style="padding-right: 10px;">
-                                                <input type="text" placeholder="Name" [value]="member.name" class="form-control name-field" readonly />
                                             </div>
-                                            <div style="padding-right: 10px;">
-                                                <mat-select class="form-control role-field" multiple [(ngModel)]="member.employeeRole">
-                                                    <mat-option selected="selected" value="" disabled>Select</mat-option>
-                                                    <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div *ngIf="allTeamMembers && allTeamMembers.length !== 0"
+                                    class="two-column-layout team-member-col">
+                                    <label>New Team Members</label>
+                                    <div class="new-team-members">
+                                        <div *ngFor="let teamMember of allTeamMembers" class="new-team-member">
+                                            <div class="info-wrapper">
+                                                <input type="text" class="form-control" autocomplete="none" disabled
+                                                    [(ngModel)]="teamMember.name">
+                                            </div>
+                                            <div class="info-wrapper">
+                                                <mat-select class="form-control" multiple
+                                                    [(ngModel)]="teamMember.employeeRole">
+                                                    <mat-option selected="selected" value=""
+                                                        disabled>Select</mat-option>
+                                                    <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role
+                                                        }}</mat-option>
                                                 </mat-select>
                                             </div>
-                                            <!-- <mat-select class="form-control billable-field" placeholder="Select" [(ngModel)]="member.newBillableType">
+                                            <button type="button" class="btn btn-outline-primary"
+                                                (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
+                                                <i class="fa fa-trash" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div *ngIf="projectObj.resourceRequirements?.length > 0">
+                    <div *ngFor="let requirement of projectObj.resourceRequirements" class="accordion-card">
+                        <div class="accordion-header" (click)="requirement.expanded = !requirement.expanded">
+                            <h5>{{ requirement.role }}</h5>
+                            <span class="badge">{{ requirement.department }}</span>
+                            <span class="experience">{{ requirement.experience }} years</span>
+
+                            <div class="member-right">
+                                <span class="assignment">Assigned {{ requirement.assigned || 0 }}/{{ requirement.count
+                                    }}</span>
+                                <button class="dropdown-button">
+                                    <i class="fa-solid"
+                                        [ngClass]="requirement.expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="accordion-body" style="overflow-y: auto; overflow-x: hidden;"
+                            *ngIf="requirement.expanded">
+                            <div class="accordion-content">
+                                <div class="two-column-layout">
+                                    <div *ngIf="teamObj.allTeamMemberList" class="team-member-col">
+                                        <label>Existing Team Members</label>
+                                        <div class="add-team-row"
+                                            *ngFor="let member of teamObj.allTeamMemberList; let i = index"
+                                            style="display: flex;">
+                                            <div *ngIf="member.resourceOverviewId == requirement.resourceOverviewId"
+                                                style="display: flex; min-width: 80%;max-width: fit-content;">
+                                                <div style="padding-right: 10px;">
+                                                    <input type="text" placeholder="Name" [value]="member.name"
+                                                        class="form-control name-field" readonly />
+                                                </div>
+                                                <div style="padding-right: 10px;">
+                                                    <mat-select class="form-control role-field" multiple
+                                                        [(ngModel)]="member.employeeRole">
+                                                        <mat-option selected="selected" value=""
+                                                            disabled>Select</mat-option>
+                                                        <mat-option *ngFor="let role of employeeRole"
+                                                            [value]="role">{{role}}</mat-option>
+                                                    </mat-select>
+                                                </div>
+                                                <!-- <mat-select class="form-control billable-field" placeholder="Select" [(ngModel)]="member.newBillableType">
                                                 <mat-option *ngFor="let type of ['TNM', 'Fixed Cost', 'Shadow', 'InternalRNDProducts', 'Bench']" [value]="type">
                                                 {{ type }}
                                                 </mat-option>
                                             </mat-select> -->
-                                            <button type="button" class="btn btn-outline-primary mx-1" (click)="removeTeamMember(member, i)">
-                                                <i class="fa fa-trash" aria-hidden="true"></i>
-                                            </button>
-                                            <!-- <button type="button" class="btn btn-outline-primary mx-1"(click)="openModal(employeeInfoModal,member.empId)">
+                                                <button type="button" class="btn btn-outline-primary mx-1"
+                                                    (click)="removeTeamMember(member, i)">
+                                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                                </button>
+                                                <!-- <button type="button" class="btn btn-outline-primary mx-1"(click)="openModal(employeeInfoModal,member.empId)">
                                                 <i class="fa-solid fa-circle-exclamation"></i>
                                             </button> -->
-                                            <div class="action-menu-wrapper" (clickOutside)="closePopover(member.empId)">
-                                                <button type="button" class="btn btn-outline-primary mx-1" (click)="togglePopover(member.empId)">
-                                                  <i class="fa-solid fa-circle-exclamation"></i>
-                                                </button>
-                                                <!-- <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown p-3" style="width: 260px; font-size: 12px;">
+                                                <div class="action-menu-wrapper"
+                                                    (clickOutside)="closePopover(member.empId)">
+                                                    <button type="button" class="btn btn-outline-primary mx-1"
+                                                        (click)="togglePopover(member.empId)">
+                                                        <i class="fa-solid fa-circle-exclamation"></i>
+                                                    </button>
+                                                    <!-- <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown p-3" style="width: 260px; font-size: 12px;">
                                                   <div class="info-line"><span class="label">Emp Id</span>: {{ employeeInformation.employmentId }}</div>
                                                   <div class="info-line"><span class="label">Role</span>: {{ employeeInformation.jobRole }}</div>
                                                   <div class="info-line"><span class="label">Billability type</span>: {{ employeeInformation.billableType }}</div>
@@ -1501,72 +1596,105 @@
                                                   <div class="info-line"><span class="label">Current Experience</span>: {{ employeeInformation.currentExperience }} years</div>
                                                   <div class="info-line"><span class="label">Total Experience</span>: {{ employeeInformation.totalExperience }} years</div>
                                                 </div> -->
-                                                <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3" style="width: 260px;">
-                                                    <div class="info-line"><span class="label">Emp Id</span>: <span class="label">{{ employeeInformation.employmentId }}</span></div>
-                                                    <div class="info-line"><span class="label">Role</span>: <span class="label">{{ employeeInformation.jobRole }}</span></div>
-                                                    <div class="info-line"><span class="label">Billability type</span>: <span class="label">{{ employeeInformation.billableType }}</span></div>
-                                                    <div class="info-line"><span class="label">Department</span>: <span class="label">{{ employeeInformation.deptName }}</span></div>
-                                                    <div class="info-line"><span class="label">Previous Experience</span>: <span class="label">{{ employeeInformation.previousExperience }} years</span></div>
-                                                    <div class="info-line"><span class="label">Current Experience</span>: <span class="label">{{ employeeInformation.currentExperience }} years</span></div>
-                                                    <div class="info-line"><span class="label">Total Experience</span>: <span class="label">{{ employeeInformation.totalExperience }} years</span></div>
-                                                </div>                                                  
+                                                    <div *ngIf="popoverEmpId === member.empId"
+                                                        class="custom-dropdown2 p-3" style="width: 260px;">
+                                                        <div class="info-line"><span class="label">Emp Id</span>: <span
+                                                                class="label">{{ employeeInformation.employmentId
+                                                                }}</span></div>
+                                                        <div class="info-line"><span class="label">Role</span>: <span
+                                                                class="label">{{ employeeInformation.jobRole }}</span>
+                                                        </div>
+                                                        <div class="info-line"><span class="label">Billability
+                                                                type</span>: <span class="label">{{
+                                                                employeeInformation.billableType }}</span></div>
+                                                        <div class="info-line"><span class="label">Department</span>:
+                                                            <span class="label">{{ employeeInformation.deptName
+                                                                }}</span>
+                                                        </div>
+                                                        <div class="info-line"><span class="label">Previous
+                                                                Experience</span>: <span class="label">{{
+                                                                employeeInformation.previousExperience }} years</span>
+                                                        </div>
+                                                        <div class="info-line"><span class="label">Current
+                                                                Experience</span>: <span class="label">{{
+                                                                employeeInformation.currentExperience }} years</span>
+                                                        </div>
+                                                        <div class="info-line"><span class="label">Total
+                                                                Experience</span>: <span class="label">{{
+                                                                employeeInformation.totalExperience }} years</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <!-- <div *ngIf="member.resourceOverviewId != requirement.resourceOverviewId">
+                                            <!-- <div *ngIf="member.resourceOverviewId != requirement.resourceOverviewId">
                                             <label style="color: #040404;">No existing team members to display...</label>
                                         </div> -->
+                                        </div>
+                                        <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
+                                            <label style="color: #040404;">No existing team members to
+                                                display...</label>
+                                        </div>
                                     </div>
-                                    <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
-                                        <label style="color: #040404;">No existing team members to display...</label>
-                                    </div>
-                                </div>
-            
-                                <div *ngIf="teamObj.allTeamMemberList" class="team-member-col">
-                                    <label>Shadow Resources</label>
-                                    <div class="add-team-row" *ngFor="let member of teamObj.allTeamMemberList; let i = index">
-                                        <div *ngIf="member.resourceOverviewId == requirement.resourceOverviewId">
-                                            <input type="text" class="form-select name2-field" placeholder="Search by Emp ID or Name" aria-label="Search employee" [formControl]="member.shadowControl" [matAutocomplete]="auto" [(ngModel)]="member.shadow">    
-                                            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onResourceSelected($event, member)" [displayWith]="displayEmployee">
-                                                <mat-option *ngFor="let emp of employeeListByDept | filterEmployee: member.shadowControl.value" [value]="emp">
-                                                {{ emp.name }}
-                                                </mat-option>  
-                                            </mat-autocomplete>
-                                            <!-- <select class="form-control" [(ngModel)]="member.billableTypes">
+
+                                    <div *ngIf="teamObj.allTeamMemberList" class="team-member-col">
+                                        <label>Shadow Resources</label>
+                                        <div class="add-team-row"
+                                            *ngFor="let member of teamObj.allTeamMemberList; let i = index">
+                                            <div *ngIf="member.resourceOverviewId == requirement.resourceOverviewId">
+                                                <input type="text" class="form-select name2-field"
+                                                    placeholder="Search by Emp ID or Name" aria-label="Search employee"
+                                                    [formControl]="member.shadowControl" [matAutocomplete]="auto"
+                                                    [(ngModel)]="member.shadow">
+                                                <mat-autocomplete #auto="matAutocomplete"
+                                                    (optionSelected)="onResourceSelected($event, member)"
+                                                    [displayWith]="displayEmployee">
+                                                    <mat-option
+                                                        *ngFor="let emp of employeeListByDept | filterEmployee: member.shadowControl.value"
+                                                        [value]="emp">
+                                                        {{ emp.name }}
+                                                    </mat-option>
+                                                </mat-autocomplete>
+                                                <!-- <select class="form-control" [(ngModel)]="member.billableTypes">
                                                 <option *ngFor="let billable of billabilities" [value]="billable">{{ billable }}</option>
                                             </select> -->
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-    
-                            <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class=" team-member-col">
-                                <label>New Team Members</label>
-                                <div class="new-team-members">
-                                    <div *ngFor="let teamMember of getTeamMembersForRequirement(requirement.resourceOverviewId)" class="new-team-member">
-                                        <div class="info-wrapper">
-                                            <input type="text" class="form-control" autocomplete="none" disabled [(ngModel)]="teamMember.name">
+
+                                <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class=" team-member-col">
+                                    <label>New Team Members</label>
+                                    <div class="new-team-members">
+                                        <div *ngFor="let teamMember of getTeamMembersForRequirement(requirement.resourceOverviewId)"
+                                            class="new-team-member">
+                                            <div class="info-wrapper">
+                                                <input type="text" class="form-control" autocomplete="none" disabled
+                                                    [(ngModel)]="teamMember.name">
+                                            </div>
+                                            <div class="info-wrapper">
+                                                <mat-select class="form-control" multiple
+                                                    [(ngModel)]="teamMember.employeeRole">
+                                                    <mat-option selected="selected" value=""
+                                                        disabled>Select</mat-option>
+                                                    <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role
+                                                        }}</mat-option>
+                                                </mat-select>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-primary"
+                                                (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
+                                                <i class="fa fa-trash" aria-hidden="true"></i>
+                                            </button>
                                         </div>
-                                        <div class="info-wrapper">
-                                            <mat-select class="form-control" multiple [(ngModel)]="teamMember.employeeRole">
-                                                <mat-option selected="selected" value="" disabled>Select</mat-option>
-                                                <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role }}</mat-option>
-                                            </mat-select>
-                                        </div>
-                                        <button type="button" class="btn btn-outline-primary"
-                                        (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
-                                            <i class="fa fa-trash" aria-hidden="true"></i>
-                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <button class="set-team-btn mt-3" (click)="addTeamMemberMapping()">Add Team Member(s)</button>
             </div>
-            <button class="set-team-btn mt-3" (click)="addTeamMemberMapping()" >Add Team Member(s)</button>
         </div>
-    </div>
-</ng-template>
+    </ng-template>
 
     <ng-template #delete_modal_template1>
         <div class="modal-body text-center">
@@ -1780,14 +1908,14 @@
                         <p>Department Name: {{ member.departmentName }}</p>
                     </div>
 
-                    <div class="shadow-resource"  style="margin-left: 1rem;" *ngIf="member.shadowEmployeeName">
+                    <div class="shadow-resource" style="margin-left: 1rem;" *ngIf="member.shadowEmployeeName">
                         <p class="shadow-title">Shadow Resource</p>
                         <p class="shadow-name">{{ member.shadowEmployeeName + ' (' + member.shadowEmployeeEmploymentId +
                             ')'}}</p>
                         <p class="shadow-dept">{{ member.shadowEmployeeDepartmentName }}</p>
                     </div>
                 </div>
-               
+
             </div>
 
         </div>
