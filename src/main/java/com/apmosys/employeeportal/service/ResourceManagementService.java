@@ -1,9 +1,7 @@
 package com.apmosys.employeeportal.service;
 
-import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -13,12 +11,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 import org.springframework.web.client.RestClientException;
@@ -56,13 +51,11 @@ import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInfoDTO;
-import com.apmosys.employeeportal.dto.ProjectManagerMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectManagersDTO;
+import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
 import com.apmosys.employeeportal.dto.RMGProject;
 import com.apmosys.employeeportal.dto.RMGProjectMappedEmployees;
 import com.apmosys.employeeportal.dto.RMGTeam;
-import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
-import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
@@ -440,6 +433,7 @@ public class ResourceManagementService {
 										newEmpTeamMap.setActive(2L); // Set Active to 2 for TeamLead
 										newEmpTeamMap.setEmployeeRole("TeamLead");
 										newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
+										newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis())); 
 										newEmpTeamMap.setShadowEmpId(teamMember.getShadowEmpId() != null
 												? Long.parseLong(teamMember.getShadowEmpId().toString())
 												: null);
@@ -460,6 +454,7 @@ public class ResourceManagementService {
 										newEmpTeamMap.setEmpId(teamMember.getEmpId());
 										newEmpTeamMap.setActive(2L); // Set Active to 2 for Team Member
 										newEmpTeamMap.setEmployeeRole(employeeRole.toString());
+										newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis())); 
 										newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
 										newEmpTeamMap.setShadowEmpId(teamMember.getShadowEmpId() != null
 												? Long.parseLong(teamMember.getShadowEmpId().toString())
@@ -729,7 +724,7 @@ public class ResourceManagementService {
 									Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
 
 									member.setActive(0L);
-
+									member.setEndDate(LocalDateTime.now());	
 									member.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 									inActiveMember.add(member);
 
@@ -796,6 +791,7 @@ public class ResourceManagementService {
 									newEmpTeamMap.setActive(1l);
 									newEmpTeamMap.setEmployeeRole("TeamLead");
 									newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
+									newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis())); 
 									newEmpTeamMap.setShadowEmpId(teamMember.getShadowEmpId() != null
 											? Long.parseLong(teamMember.getShadowEmpId().toString())
 											: null);
@@ -817,6 +813,7 @@ public class ResourceManagementService {
 									newEmpTeamMap.setActive(2l); // Set active value as 2 for newly added team members
 									newEmpTeamMap.setEmployeeRole(employeeRole.toString());
 									newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
+									newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis())); 
 									newEmpTeamMap.setShadowEmpId(teamMember.getShadowEmpId() != null
 											? Long.parseLong(teamMember.getShadowEmpId().toString())
 											: null);
@@ -926,6 +923,7 @@ public class ResourceManagementService {
 						empTeamMap.setEmpId(newMember.getEmpId());
 						empTeamMap.setEmployeeRole("TeamLead");
 						empTeamMap.setTeamId(teamDbResponse.getTeamId());
+						empTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
 						empTeamMap.setShadowEmpId(newMember.getShadowEmpId() != null
 								? Long.parseLong(newMember.getShadowEmpId().toString())
 								: null);
@@ -945,6 +943,7 @@ public class ResourceManagementService {
 						empTeamMap.setEmpId(newMember.getEmpId());
 						empTeamMap.setEmployeeRole(employeeRole.toString());
 						empTeamMap.setTeamId(teamDbResponse.getTeamId());
+						empTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
 						empTeamMap.setShadowEmpId(newMember.getShadowEmpId() != null
 								? Long.parseLong(newMember.getShadowEmpId().toString())
 								: null);
