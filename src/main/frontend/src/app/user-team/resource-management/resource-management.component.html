@@ -356,7 +356,7 @@
                 <div class="row mb-2 mt-2">
                     <div class="col-md-1" [hidden]="allProject_Po_Internal.length == 0" style="display: flex;
                     justify-content: left;
-                    max-width: fit-content;">
+                    max-width: fit-content; cursor: pointer;">
                         <a (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">
                             <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
                             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
@@ -369,7 +369,7 @@
                     </div> -->
                     <div class="col-md-1" style="display: flex;
                     justify-content: left;
-                    max-width: fit-content;">
+                    max-width: fit-content;  cursor: pointer;">
                         <i class="fa fa-download" style="color: #053885;display: flex;
                         justify-content: left;
                         max-width: fit-content;" [hidden]="allProject_Po_Internal.length == 0"
@@ -1482,38 +1482,40 @@
     <ng-template #teamMemberTemplate>
     <div class="modal-body p-0">
         <div class="team-modal-container">
-            <h3 class="modal-title">Project Requirements</h3>
-    
-            <div class="stats-row">
-                <div class="stat-box m-1">
-                    <p>Total Requirements</p>
-                    <h4>
-                        <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
-                        {{ projectRequirementsList.totalRequirements || 0 }}
-                        </ng-container>
-                    </h4>
+            <div *ngIf="projectObj.id">
+                <h3 class="modal-title">Project Requirements</h3>
+        
+                <div class="stats-row">
+                    <div class="stat-box m-1">
+                        <p>Total Requirements</p>
+                        <h4>
+                            <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
+                            {{ projectRequirementsList.totalRequirements || 0 }}
+                            </ng-container>
+                        </h4>
+                    </div>
+                    <div class="stat-box m-1">
+                        <p>Assigned</p>
+                        <h4>
+                            <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
+                            {{ projectRequirementsList.assigned || 0 }}
+                            </ng-container>
+                        </h4>
+                    </div>
+                    <div class="stat-box m-1">
+                        <p>Difference</p>
+                        <h4>
+                            <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
+                            {{ projectRequirementsList.difference || 0 }}
+                            </ng-container>
+                        </h4>
+                    </div>
                 </div>
-                <div class="stat-box m-1">
-                    <p>Assigned</p>
-                    <h4>
-                        <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
-                        {{ projectRequirementsList.assigned || 0 }}
-                        </ng-container>
-                    </h4>
-                </div>
-                <div class="stat-box m-1">
-                    <p>Difference</p>
-                    <h4>
-                        <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
-                        {{ projectRequirementsList.difference || 0 }}
-                        </ng-container>
-                    </h4>
-                </div>
-            </div>
-              
-            <ng-template #loadingSpinner>
-                <i class="fa fa-spinner fa-spin text-secondary"></i>
-            </ng-template>              
+                
+                <ng-template #loadingSpinner>
+                    <i class="fa fa-spinner fa-spin text-secondary"></i>
+                </ng-template> 
+            </div>             
 
                 <!-- Add Team Member Section -->
                 <h3 class="modal-title">Add Team Member</h3>

@@ -1963,7 +1963,9 @@ TotalEmployeeCount(){
   }
   
   openTeamMembersModal(template: any,projectObj,currentTeam) {
+    if(projectObj.id) {
     this.getResourceRequirementByPoProjectId(projectObj.id);
+    }
 
     // projectObj.resourceRequirements.forEach(requirement => {
     //   requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
