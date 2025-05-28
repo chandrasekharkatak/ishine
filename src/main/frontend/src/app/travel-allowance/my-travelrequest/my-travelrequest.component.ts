@@ -68,6 +68,7 @@ export class MyTravelrequestComponent implements OnInit {
     hotelCategory: '',
     tlSubCategory: '',
     docIds: [],
+    kycDocumentId:''
 
   };
   locationStrategy: any;
@@ -210,6 +211,10 @@ export class MyTravelrequestComponent implements OnInit {
         this.openAlertMod(template, "Please enter the Purpose of Travel.");
         return;
       }
+      if(!this.selectedFile ){
+        this.openAlertMod(template, "Please select the kyc Document for Travel.");
+        return;
+      }
       // if (!this.fileUploads || this.fileUploads.length === 0 || !this.fileUploads.some(f => f.file)) {
       //   this.openAlertMod(template, "Please enter a valid document.");
       //   return;
@@ -262,6 +267,35 @@ export class MyTravelrequestComponent implements OnInit {
             }
           }
         }
+
+
+        let uploadResponse11:any
+        if (this.selectedFile) {
+          try{
+            const fileFormData = new FormData();
+            fileFormData.append('file', this.selectedFile);
+            fileFormData.append("displayName",this.selectedFileName);
+            fileFormData.append("uploadedBy", this.currentEmployeeInfo.empId);
+  
+            uploadResponse11 = await this.travelDesk.uploadKycDocument(fileFormData)
+              .pipe(first())
+              .toPromise();
+  
+            if (uploadResponse11.serviceStatus !== "Success") {
+              this.travelDeskObj.kycDocumentId = uploadResponse11.serviceResponse.documentId;
+              console.error("Upload failed for file", this.travelDeskObj.kycDocumentId, uploadResponse11.serviceResponse.documentId);
+              this.openAlertMod(template, `File upload failed: ${uploadResponse.serviceResponse}`);
+              return;
+            }else{
+              this.travelDeskObj.kycDocumentId = uploadResponse11.serviceResponse.documentId;
+              console.error("Upload failed for file", this.travelDeskObj.kycDocumentId, uploadResponse11.serviceResponse.documentId);
+            }
+          } catch (error) {
+            
+            this.openAlertMod(template, `File upload failed: ${error.message || error}`);
+            return;
+          }
+        }
         // const uploadResponse: any = await this.travelDesk.uploadFile(fileFormData).pipe(first()).toPromise();
 
         // if (uploadResponse.serviceStatus === "Fail") {
@@ -273,6 +307,11 @@ export class MyTravelrequestComponent implements OnInit {
         // }
 
         // If file uploaded successfully, proceed with travel form data
+        
+        
+        
+      
+        
         const travelData: any = {
           employeeId: this.currentEmployeeInfo.empId,
           fullName: this.currentEmployeeInfo.name,
@@ -296,7 +335,8 @@ export class MyTravelrequestComponent implements OnInit {
           city: this.travelDeskObj.selectedCity,
           docId: this.travelDeskObj.docIds,
           reportingManagerId: this.currentEmployeeInfo.reportingManagerId,
-          reportingManagerName: this.currentEmployeeInfo.reportingManagerName
+          reportingManagerName: this.currentEmployeeInfo.reportingManagerName,
+          kycDocumentId: this.travelDeskObj.kycDocumentId
         };
 
         console.log('currentEmployeeInfo         :::::::::::::', this.currentEmployeeInfo);
@@ -312,6 +352,7 @@ export class MyTravelrequestComponent implements OnInit {
           this.openAlertMod(template, saveResponse.serviceResponse);
           this.travelDeskObj = [];
           this.fileUploads = [];
+          this.selectedFile = null;
           this.addInputSpecializationField();
           //location.reload();
         } else {
@@ -587,6 +628,99 @@ export class MyTravelrequestComponent implements OnInit {
   }
 
 
+  selectedFileName: string | null = null;
+  selectedFile: File | null = null;
+  maxFileSizeMB = 1;
+
+  onFileSelected(event: Event, template: TemplateRef<any>): void {
+    const input = event.target as HTMLInputElement;
+    
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      
+      const allowedTypes = [
+       
+        'application/pdf',
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/gif',
+        'image/bmp',
+        'image/webp',
+        'image/tiff',
+        'image/tif',
+        'image/svg+xml',
+        'application/postscript', 
+      ];
+      
+      const allowedExtensions = [
+        '.pdf',
+        '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp',
+        '.tiff', '.tif', '.svg', '.eps'
+      ];
+      
+     
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+      
+      // Validate file type
+      if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+        this.openAlertMod(template, 'Please select only PDF files, images or scanned copies.');
+        input.value = '';
+        this.selectedFileName = null;
+        this.selectedFile = null;
+        return;
+      }
+      
+     
+      if (file.size > this.maxFileSizeMB * 1024 * 1024) {
+        this.openAlertMod(template, 'File size should not exceed 1 MB.');
+        input.value = '';
+        this.selectedFileName = null;
+        this.selectedFile = null;
+        return;
+      }
+      
+    
+      if (file.size === 0) {
+        this.openAlertMod(template, 'Selected file is empty. Please choose a valid file.');
+        input.value = '';
+        this.selectedFileName = null;
+        this.selectedFile = null;
+        return;
+      }
+      
+  
+      this.selectedFileName = file.name;
+      this.selectedFile = file;
+      
+      console.log("KYC Document - Valid file selected:", {
+        name: this.selectedFileName,
+        type: file.type,
+        size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+        extension: fileExtension
+      });
+      
+    } else {
+     
+      this.selectedFileName = null;
+      this.selectedFile = null;
+    }
+  }
+  
+ 
+  private getFileTypeDescription(file: File): string {
+    const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+    
+    if (file.type === 'application/pdf' || extension === '.pdf') {
+      return 'PDF Document';
+    } else if (file.type.startsWith('image/')) {
+      return 'Image File';
+    } else {
+      return 'Document';
+    }
+  }
+  
+  
 
 
 

@@ -50,6 +50,7 @@ public class TravelDeskDTO {
 	    private String reimbursementStatus;
 	    private Integer serialNo;
 	    private String finalReimbursementStatus;
+	    private Long kycDocumentId;
 	
 	    
 }

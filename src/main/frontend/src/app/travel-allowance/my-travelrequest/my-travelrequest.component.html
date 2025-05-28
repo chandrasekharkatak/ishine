@@ -79,7 +79,7 @@
 
 
                 <!-- <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest === 'Hotel'"> -->
-                    <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest === 'Hotel & Lodging'">
+                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest === 'Hotel & Lodging'">
                     <label class="info-label">
                         <span class="text-danger">*</span>Hotel Booking Category
                     </label>
@@ -95,7 +95,7 @@
                 <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest === 'Hotel & Lodging'">
                     <label class="info-label"><span class="text-danger">*</span>Sub Category</label>
                     <select class="form-control" [(ngModel)]="travelDeskObj.tlSubCategory" name="tlSubCategory" required
-                    (change)="onSubCategoryChanges(travelDeskObj.tlSubCategory)">
+                        (change)="onSubCategoryChanges(travelDeskObj.tlSubCategory)">
                         <!-- (ngModelChange)="onSubCategoryChange($event)"> -->
                         <option value="" disabled>Select Sub Category</option>
                         <option *ngFor="let sub of hotelSubCategorylist" [value]="sub.hotelSubCategoryName">
@@ -104,12 +104,14 @@
                     </select>
                 </div>
 
-                <div class="col-md-3 mb-0" *ngIf="travelDeskObj.tlSubCategory && travelDeskObj.associatedTravelRequest == 'Hotel & Lodging'">
+                <div class="col-md-3 mb-0"
+                    *ngIf="travelDeskObj.tlSubCategory && travelDeskObj.associatedTravelRequest == 'Hotel & Lodging'">
                     <label class="info-label"><span class="text-danger">*</span>Select City</label>
                     <select class="form-control" [(ngModel)]="travelDeskObj.selectedCity" name="selectedCity" required>
                         <option value="" disabled>Select City</option>
-                        <option *ngFor="let city of citylistBySubCategory" [value]="city.cityName">{{ city.cityName }}</option>
-                      </select>
+                        <option *ngFor="let city of citylistBySubCategory" [value]="city.cityName">{{ city.cityName }}
+                        </option>
+                    </select>
                 </div>
 
                 <div class="col-md-3 mb-0" *ngIf="travelDeskObj.associatedTravelRequest !== 'Hotel & Lodging'">
@@ -154,7 +156,8 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
                             <input class="form-control" [(ngModel)]="travelDeskObj.fromDate" id="fromDate" type="date"
-                                [min]="todayDate" [max]="maxTravelRequestDate" placeholder="Choose from date" autocomplete="off">
+                                [min]="todayDate" [max]="maxTravelRequestDate" placeholder="Choose from date"
+                                autocomplete="off">
                         </div>
                     </div>
                 </div>
@@ -166,6 +169,17 @@
                             <input class="form-control" [(ngModel)]="travelDeskObj.toDate" id="toDate" type="date"
                                 [min]="travelDeskObj.fromDate" placeholder="Choose to date" autocomplete="off"
                                 [disabled]="!travelDeskObj.fromDate">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <label class="info-label">
+                            <span class="text-danger">*</span> Kyc Document
+                        </label>
+                        <div class="d-flex align-items-center">
+                            <input type="file" class="form-control" (change)="onFileSelected($event,alert_message)" />
                         </div>
                     </div>
                 </div>

@@ -178,5 +178,13 @@ public class TravelDeskController {
 	    return travelDeskService.onGetTravelCass();
 	}
 
-    
+	@PostMapping("/uploadKycDocument")
+	public ServiceResponse uploadKycDocument(HttpServletRequest request,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("displayName") String displayName,
+			@RequestParam("uploadedBy") Long uploadedBy
+			) {
+		ServiceResponse serviceResponse = travelDeskService.uploadKycDocument(file, displayName, uploadedBy);
+		return serviceResponse;
+	}
 }

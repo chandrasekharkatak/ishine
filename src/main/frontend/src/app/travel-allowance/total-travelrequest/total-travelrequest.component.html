@@ -61,6 +61,7 @@
                                 <th scope="col" class="info-label">Level 2 Approver Name</th>
                                 <th scope="col" class="info-label">Level 2 Approver Status</th>
                                 <th scope="col" class="info-label">Preview Documents</th>
+                                <th scope="col" class="info-label"> View Kyc Document</th>
                                 <th scope="col" class="info-label">Ticket Upload Status</th>
                                 <th scope="col" class="info-label" *ngIf="this.currentUser.departmentName === 'Admin'">Action</th>
                             </tr>
@@ -113,6 +114,14 @@
                                             (click)="openViewDocModule(view_doc,row.requestId)">
                                             <em class="fa fa-file"></em> View Documents
                                         </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-inline-flex">
+                                        <button type="button" class="btn btn-outline-primary sm"
+                                        (click)="preview(invoiceop, row.kycDocumentId)">
+                                        <em class="fa fa-eye">View</em>
+                                      </button>
                                     </div>
                                 </td>
                                 <td>
@@ -219,3 +228,23 @@
             (click)="uploadTicketByAdmin(selectedFile,alert_message)">Submit</button>&nbsp;
     </div>
 </ng-template>
+
+
+
+<ng-template #invoiceop>
+    <div class="modal-body text-center">
+      <div *ngIf="selectedDocument1">
+        <ng-container *ngIf="selectedDocument1?.toString().includes('application/pdf'); else imageBlock">
+          <iframe [src]="selectedDocument1" width="100%" height="600px"></iframe>
+        </ng-container>
+  
+        <ng-template #imageBlock>
+          <img [src]="selectedDocument1" class="img-fluid" alt="Document Preview" />
+        </ng-template>
+      </div>
+      <div class="modal-body text-center" *ngIf="!selectedDocument1">
+        <p>{{alertMessage}}</p>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="closeModal()">OK</button>&nbsp;
+    </div>
+  </ng-template>

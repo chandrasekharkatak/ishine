@@ -161,4 +161,8 @@ export class TravelDeskService {
     return this.http.get(`${this.baseUrl}` + `api/onGetTravelCass`);
   }
   
+  uploadKycDocument(formData:FormData){
+    return this.http.post(`${this.baseUrl}`+`api/uploadKycDocument`,formData);
+  }
+  
 }

@@ -578,6 +578,9 @@
         <img [src]="selectedDocument" class="img-fluid" alt="Document Preview" />
       </ng-template>
     </div>
+    <div class="modal-body text-center" *ngIf="!selectedDocument">
+      <p>{{alertMessage}}</p>
+    </div>
     <button type="button" class="btn btn-primary" (click)="cancelRequestDocument()">OK</button>&nbsp;
   </div>
 </ng-template>

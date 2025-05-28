@@ -298,4 +298,48 @@ export class TotalTravelrequestComponent implements OnInit {
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
   }
 
+
+  selectedDocument1: any;
+  
+    async preview(template: TemplateRef<any>, id: any) {
+      console.log(template, "template");
+  
+      this.selectedDocument1 = null;
+  
+  
+      const payload = { docId: id };
+  
+  
+  
+      const response: any = await this.travelDesk.previewDocument(payload).toPromise();
+  
+      if (response.serviceStatus === 'Success' && response.serviceResponse?.documentBytes) {
+        const base64Data = response.serviceResponse.documentBytes;
+        const mimeType = this.getMimeTypeFromBase64(base64Data);
+  
+        if (mimeType === 'application/pdf') {
+          const pdfUrl = `data:application/pdf;base64,${base64Data}`;
+          this.selectedDocument1 = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
+          this.modalRef = this.modalService.show(template, {
+            class: 'modal-xl'
+          });
+        } else if (mimeType.startsWith('image/')) {
+          const imgUrl = `data:${mimeType};base64,${base64Data}`;
+          this.selectedDocument1 = imgUrl;
+          this.modalRef = this.modalService.show(template, {
+            class: 'modal-xl'
+          });
+        } else {
+          // Handle other file types: Download
+          const link = document.createElement('a');
+          link.href = `data:application/octet-stream;base64,${base64Data}`;
+          link.download = 'document';
+          link.click();
+        }
+      }
+      else {
+        this.openAlertMod(template, "No Document to dipslay");
+      }
+  
+    }
 }

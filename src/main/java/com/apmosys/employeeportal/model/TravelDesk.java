@@ -134,6 +134,7 @@ public class TravelDesk {
 	private String finalStatus;
 	
 	private Long ticketDocId;
+	private Long kycDocumentId;
 	
 	
 

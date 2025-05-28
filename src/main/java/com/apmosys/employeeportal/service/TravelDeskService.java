@@ -129,6 +129,13 @@ public class TravelDeskService {
 	        	
 	        	travelDesk.setDocId("NA");
 	        }
+		   
+		   if(travelData.getKycDocumentId() != null) {
+			   travelDesk.setKycDocumentId(travelData.getKycDocumentId());
+			   
+		   }else {
+			   travelDesk.setKycDocumentId(null);
+		   }
 		//travelDesk.setDocId(travelData.getDocId());
 		Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
 		currentTimestamp.setNanos(currentTimestamp.getNanos() / 1000 * 1000);
@@ -1313,6 +1320,90 @@ public class TravelDeskService {
 	}
 
 
+	public ServiceResponse uploadKycDocument(MultipartFile file, String displayName, Long uploadedBy) {
+
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Upload Newsletter");
+	    apiLogInfo.setApiUrl("/api/uploadKycDocument");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("uploadKycDocument:").append(displayName)
+	              .append(", uploadedBy: ").append(uploadedBy);
+
+	    try {
+	        System.out.println("uploadedBy: " + uploadedBy);
+	        Optional<Employee> employeeObject = employeeRepository.findById(uploadedBy);
+
+	        if (employeeObject.isEmpty()) {
+	            response.setServiceResponse("User Not Found !!");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("User Not Found !!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	            return response;
+	        }
+
+	        if (file == null || file.isEmpty()) {
+	            response.setServiceResponse("Uploaded Travel Document Not Found !!");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("Uploaded Travel Document Not Found !!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	            return response;
+	        }
+
+	        // Prepare the file path
+	        Path directory = Paths.get(traveldeskFileLocation);
+	        if (!Files.exists(directory)) {
+	            Files.createDirectories(directory);  // Ensure directory exists
+	        }
+
+	        // Use a timestamp to avoid filename conflicts
+	        String newFileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+	        Path path = directory.resolve(newFileName);
+	        System.out.println("Saving file to: " + path.toString());
+
+	        // Save file to disk
+	        byte[] bytes = file.getBytes();
+	        Files.write(path, bytes);
+
+	        // Confirm file existence
+	        File savedFile = path.toFile();
+	        if (savedFile.exists()) {
+	            Newsletter newsletter = new Newsletter();
+	            newsletter.setDisplayName(displayName);
+	            newsletter.setFileName(newFileName); // Save actual saved name
+	            newsletter.setType("TRAVEL KYC DOCUMENT");
+	            newsletter.setReadEnabled("true");
+	            newsletter.setCreatedBy(Integer.parseInt(uploadedBy.toString()));
+	            Newsletter travelDocDetails = newsletterRepository.save(newsletter);
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(travelDocDetails);
+	            response.setServiceMessage("Travel Document uploaded successfully.");
+	            apiLogInfo.setApiResponse("Travel Document uploaded successfully");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceResponse("Failed to upload Travel Document.");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("File did not exist after write operation.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    return response;
+	}
 
 	
 }
