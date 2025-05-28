@@ -1821,7 +1821,6 @@ onAction(action: string, project: any) {
   updateSelectedTeamsDetails(): void {
     this.allTeamList.forEach(teamObj => {
       teamObj.endDate = this.lastDate; 
-      teamObj.updatedBy = this.currentUser.empId;
     });
     this.selectedTeamsDetails = this.allTeamList.filter(teamObj => teamObj.selected);
     console.log('Selected Team Details:', this.selectedTeamsDetails);
