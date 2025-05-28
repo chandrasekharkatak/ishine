@@ -1471,10 +1471,6 @@ export class ResourceManagementComponent implements OnInit {
         this.previewTeamList = [team];
       }
     });
-    //by priyadarshini
-    // if (Object.keys(this.previewTeamList[0]).length === 0) {
-    //   this.previewTeamList = [];
-    // }
     if (this.previewTeamList.length === 0) {
       console.warn('No team members available for this team.');
       return;
