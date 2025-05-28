@@ -89,7 +89,7 @@
                     [ngClass]="{'selected-card': selectedStatusTab === 'Pending for approval'}">
                     <div class="mini-card1" style="border-left: 4px solid #FFB300;">
                         <div class="value fw-bold" style="color: #FFB300;">{{tabCounts.pendingForApprovalCount}}</div>
-                        <div class="label text-muted">Pending<i class="fa fa-clock" style="color: #FFB300;"></i></div>
+                        <div class="label text-muted">Pending<i class="fa-solid fa-clock fa-beat-fade" style="color: #FFB300;"></i></div>
                     </div>
                 </div>
 
@@ -99,7 +99,7 @@
                     [ngClass]="{'selected-card': selectedStatusTab === 'Approved'}">
                     <div class="mini-card1" style="border-left: 4px solid #4CAF50;">
                         <div class="value fw-bold" style="color: #4CAF50;">{{tabCounts.approvedCount}}</div>
-                        <div class="label text-muted">Approved <i class="fa fa-check-circle"
+                        <div class="label text-muted">Approved <i class="fa-solid fa-check-circle fa-beat-fade"
                                 style="color: #4CAF50;"></i></div>
                     </div>
                 </div>
@@ -110,12 +110,24 @@
                     [ngClass]="{'selected-card': selectedStatusTab === 'Not Started'}">
                     <div class="mini-card1" style="border-left: 4px solid #9E9E9E;">
                         <div class="value fw-bold" style="color: #9E9E9E;">{{tabCounts.notStartedCount}}</div>
-                        <div class="label text-muted">Not Started <i class="fa fa-minus-circle"
+                        <div class="label text-muted">Not Started <i class="fa-solid fa-minus-circle fa-beat-fade"
                                 style="color: #9E9E9E;"></i></div>
                     </div>
                 </div>
+
+                <div class="col-md-2" style="display: flex;
+              justify-content: left;
+              max-width: fit-content;" (click)="selectStatusTab('Completed')"
+                    [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
+                    <div class="mini-card1" style="border-left: 4px solid #00ec33;">
+                        <div class="value fw-bold" style="color: #00ec33;">{{tabCounts.notStartedCount}}</div>
+                        <div class="label text-muted">Completed <i class="fa-solid fa-thumbs-up fa-beat-fade"
+                                style="color: #00ec33;"></i></div>
+                    </div>
+                </div>
                 <!-- </div> -->
-                <!-- <div class="row mb-3"> -->
+                <!-- <div class="row mb-3"> 
+                    <i class="fa-solid fa-thumbs-up fa-beat-fade"></i>-->
 
                 <!-- <div class="col-md-2" style="display: flex;
         justify-content: left;
@@ -133,7 +145,7 @@
                     [ngClass]="{'selected-card': selectedStatusTab === 'Rejected'}">
                     <div class="mini-card1" style="border-left: 4px solid #F44336;">
                         <div class="value fw-bold" style="color: #F44336;">{{tabCounts.rejectedCount}}</div>
-                        <div class="label text-muted">Rejected <i class="fa fa-close" style="color: #F44336;"></i></div>
+                        <div class="label text-muted">Rejected <i class="fa-solid fa-circle-xmark fa-beat-fade" style="color: #F44336;"></i></div>
                     </div>
                 </div>
 
@@ -143,7 +155,7 @@
                     [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
                     <div class="mini-card1" style="border-left: 4px solid #03A9F4;">
                         <div class="value fw-bold" style="color: #03A9F4;">{{totalCount}}</div>
-                        <div class="label text-muted">Total <i class="fa fa-plus" style="color: #03A9F4;"></i>
+                        <div class="label text-muted">Total <i class="fa-solid fa-plus-circle fa-beat-fade" style="color: #03A9F4;"></i>
                         </div>
                     </div>
                 </div>
@@ -491,7 +503,10 @@
                                                         type="submit">Reject</button>&nbsp; -->
                                     </td>
                                     <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
-                                    <td>{{project.status}}</td>
+                                     <td
+                                        [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
+                                        <em>{{project.isDraftProject}}</em>
+                                    </td>
                                     <td *ngIf='project.isDraftProject == "Not Started"'>{{project.name}}</td>
                                     <td *ngIf='project.id == null && project.isDraftProject != "Not Started"'
                                         style="cursor: pointer; color: blue;" id="clickablefor360"
@@ -525,10 +540,7 @@
                                     <!-- <td
                                         [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isActive == 2) ? 'orange': (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
                                         <em>{{project.isDraftProject}}</em></td> -->
-                                    <td
-                                        [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
-                                        <em>{{project.isDraftProject}}</em>
-                                    </td>
+                                    <td>{{project.status}}</td>
                                     <!-- <td *ngIf="!isAccounts"> -->
                                     <!-- <button class="btn btn-sm btn-outline-primary mb-1"
                                             *ngIf="!project.isSynced && project.isDraftProject != 'NA'"
