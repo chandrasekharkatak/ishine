@@ -16,9 +16,8 @@ public class RMGProjectMappedEmployees {
 	private String name;
 	private String employmentstatus;
 	private String billable;
-	private String billableType;
+	private String billableType; 
 	private String department;
 	private List<RMGProject> rmgprojects;
 	
-
 }
