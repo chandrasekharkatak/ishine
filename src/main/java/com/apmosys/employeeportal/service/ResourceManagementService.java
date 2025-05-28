@@ -2014,8 +2014,8 @@ public class ResourceManagementService {
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
-									teamMemberDTO.setResourceOverviewId(
-											Long.parseLong(teamMemberObj.getResourceOverviewId().toString()));
+									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ?
+											Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
 									teamMemberDTO.setEmploymentIdEmployeeType(
 											prefixxTeamMember + empObj.getEmployeementId());
 
@@ -2071,8 +2071,8 @@ public class ResourceManagementService {
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
-									teamMemberDTO.setResourceOverviewId(
-											Long.parseLong(teamMemberObj.getResourceOverviewId().toString()));
+									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ?
+											Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
 									teamMemberDTO.setEmploymentIdEmployeeType(
 											prefixxTeamMember + empObj.getEmployeementId());
 									if (teamMemberObj.getShadowEmpId() != null) {
