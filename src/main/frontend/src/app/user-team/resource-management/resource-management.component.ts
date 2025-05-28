@@ -870,7 +870,10 @@ export class ResourceManagementComponent implements OnInit {
 
   createDraftProjectInfo(template: TemplateRef<any>) {
     this.cancelRequest1();
-
+    console.log(this.allTeamList,"this.allTeamList");
+    if(this.allTeamList != null && this.allTeamList.length != 0){
+      
+    
     this.allTeamList.forEach(team => {
       if (team.spoc) {
         team.spocId = team.spoc.empId;
@@ -931,6 +934,10 @@ export class ResourceManagementComponent implements OnInit {
         }
       });
     }
+  }
+  else{
+    this.openAlertMod(this.alertTemplate, "There are currently no teams to be set...!");
+  }
   }
 
   getTeamListByProjectName(project: any) {

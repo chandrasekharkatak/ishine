@@ -10,75 +10,6 @@
 <div class="container bg-white" *ngIf="allProjectTable">
     <div class="row">
         <div class="col-md-8">
-            <!-- Top Stats -->
-            <!-- <div class="row mb-3">
-
-                <div class="col-md-3" style="display: flex;
-            justify-content: left;
-            max-width: fit-content;">
-                    <div class="mini-card" style="border-left: 4px solid #5E35B1; background: white;">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="value fw-bold" style="color: #5E35B1; font-size: 1rem;">96</div>
-                            <i class="fa fa-users" style="color: #5E35B1; font-size: 1rem;"></i>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="label text-muted">Ishine’s Billable</div>
-                            <i class="fa fa-info-circle text-secondary" title="More Info"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3" style="display: flex;
-          justify-content: left;
-          max-width: fit-content;">
-
-                    <div class="mini-card" style="border-left: 4px solid #FFB300; background: white;">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="value fw-bold" style="color: #FFB300; font-size: 1rem;">96</div>
-                            <i class="fa fa-users" style="color: #FFB300; font-size: 1rem;"></i>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="label text-muted">Shankh’s Billable</div>
-                            <i class="fa fa-info-circle text-secondary" title="More Info"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3" style="display: flex;
-          justify-content: left;
-          max-width: fit-content;">
-
-                    <div class="mini-card" style="border-left: 4px solid #D32F2F; background: white;">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="value fw-bold" style="color: #D32F2F; font-size: 1rem;">96</div>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="label text-muted">Total Difference</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3" style="display: flex;
-          justify-content: left;
-          max-width: fit-content;">
-                    <div class="mini-card text-center" style="border-left: 4px solid #D32F2F; background: white;">
-                        <div class="d-flex justify-content-around align-items-center mb-1">
-                            <div>
-                                <div class="fw-bold" style="color: #D32F2F; font-size: 1rem; font-weight: bold;">-5
-                                </div>
-                                <div class="text-muted" style="font-size: 0.8 rem;">TNM</div>
-                            </div>
-                            <div style="width: 1px; background: #ccc; height: 40px;"></div>
-                            <div>
-                                <div class="fw-bold" style="color: #D32F2F; font-size: 1rem; font-weight: bold;">-7
-                                </div>
-                                <div class="text-muted" style="font-size: 0.8 rem;">FC</div>
-                            </div>
-                        </div>
-                        <div class="label fw-semibold text-center text-muted " style="justify-content: center;">
-                            Difference</div>
-                    </div>
-                </div>
-
-            </div> -->
-
             <!-- Status Cards -->
             <div class="row mb-3" style="display: flex;
         justify-content: left;
@@ -125,20 +56,6 @@
                                 style="color: #00ec33;"></i></div>
                     </div>
                 </div>
-                <!-- </div> -->
-                <!-- <div class="row mb-3"> 
-                    <i class="fa-solid fa-thumbs-up fa-beat-fade"></i>-->
-
-                <!-- <div class="col-md-2" style="display: flex;
-        justify-content: left;
-        max-width: fit-content;" (click)="selectStatusTab('Completed')"
-            [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}" >
-            <div class="mini-card1" style="border-left: 4px solid #009688;">
-              <div class="value fw-bold" style="color: #009688;">NA</div>
-              <div class="label text-muted">Completed <i class="fa fa-check" style="color: #009688;"></i></div>
-            </div>
-          </div> -->
-
                 <div class="col-md-2" style="display: flex;
           justify-content: left;
           max-width: fit-content;" (click)="selectStatusTab('Rejected')"
@@ -263,22 +180,6 @@
                     </mat-select>
 
                 </div>
-                <!-- <div class="col-md-4 col-sm-12">
-            <div class="d-flex flex-column">
-                <label for="employeeSearch" class="mb-1">Navigate to Employee 360:</label>
-        
-                <input id="employeeSearch" type="text" class="form-select custom-select-style"
-                    placeholder="Search by Name or Emp ID" aria-label="Search employee" [formControl]="employeeCtrl"
-                    [matAutocomplete]="auto">
-        
-                <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
-                    [displayWith]="displayEmployee">
-                    <mat-option *ngFor="let emp of filteredEmployees" [value]="emp" [navigateToEmployee360]="emp.empId">
-                        {{ emp.name }}
-                    </mat-option>
-                </mat-autocomplete>
-            </div>
-        </div> -->
             </div>
             <div class="row">
                 <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
@@ -300,37 +201,10 @@
                     </mat-autocomplete>
                 </div>
             </div>
-            <!-- <div class="row">
-               
-            </div>
-            <div class="row mb-4">
-               
-            </div> -->
         </div>
 
     </div>
 
-    <div class="row justify-content-end align-items-center">
-
-        <!-- <div class="col-md-4 " style="display: flex;
-        justify-content: left;
-        max-width: fit-content;">
-            <select class="form-select border border-primary text-primary">
-                <option selected>Search Department</option>
-                <option>John Doe</option>
-                <option>Jane Smith</option>
-              </select>
-        </div> -->
-        <!-- <div class="col-md-1  align-items-center justify-content-around">
-        
-      </div>
-      <div class="col-md-1  align-items-center justify-content-around">
-        <i class="fa fa-filter" style="color: #053885;"></i>
-      </div>
-      <div class="col-md-1  align-items-center justify-content-around">
-        <i class="fa fa-download" style="color: #053885;"></i>
-      </div> -->
-    </div>
 </div>
 
 
@@ -345,11 +219,6 @@
 <!-- start :: View Projects -->
 <div class="row" *ngIf="allProjectTable">
     <div class="col-md-12">
-        <!-- <div class="row">
-            <div class="col-md-12 table-header">
-                <h1 class="table-header-title">All Projects</h1>
-            </div>
-        </div> -->
 
         <div class="row">
             <div class="col-md-12">
@@ -362,11 +231,6 @@
                             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                         </a>
                     </div>
-                    <!-- <div class="col-md-1" style="display: flex;
-                    justify-content: left;
-                    max-width: fit-content;">
-                        <i class="fa fa-filter" style="color: #053885;"></i>
-                    </div> -->
                     <div class="col-md-1" style="display: flex;
                     justify-content: left;
                     max-width: fit-content;">
@@ -474,33 +338,6 @@
                                                         class="fas fa-times"></i> Reject</li>
                                             </ul>
                                         </div>
-
-
-
-
-                                        <!-- In use functionality -->
-                                        <!-- <button class="btn btn-sm btn-outline-primary mb-1"
-                                                        *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
-                                                        (click)="openProjectPreviewModal(preview_team, project);isEditProject = false"
-                                                        type="submit">Preview</button>&nbsp;
-                                                    <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isHideButton"
-                                                        type="submit"
-                                                        (click)="showEditProjectForm(project);project.isEditProject = true"><em
-                                                            class="fa fa-edit"></em></button>&nbsp;
-                                                    <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isHideButton"
-                                                        type="submit" (click)="openEditModal(team_configuration_form,project);project.isEditProject = true">
-                                                        <em class="fa fa-edit"></em></button>&nbsp;
-                                                    <button class="btn btn-sm btn-outline-danger mb-1"
-                                                        *ngIf="project.name == projectObj.name && isHideButton" type="submit"
-                                                        (click)="closeEditProject();project.isEditProject = false"><i
-                                                            class="fa-solid fa-xmark"></i></button>&nbsp;
-                                                    <button class="btn btn-sm btn-outline-success mb-1"
-                                                        *ngIf="userMapping.rmg_approval_option && project.isActive == '2' || userMapping.rmg_approval_option && project.isDraftProject === 'Pending For Approval' && !isHideButton"
-                                                        (click)="onApproveProject(project)" type="submit">Approve</button>&nbsp;
-                                                    <button class="btn btn-sm btn-outline-danger mb-1"
-                                                        *ngIf="userMapping.rmg_approval_option &&  project.isActive == 2  || userMapping.rmg_approval_option && project.isDraftProject === 'Pending For Approval' && !isHideButton"
-                                                        (click)="openRejectModal(reject_project,project)"
-                                                        type="submit">Reject</button>&nbsp; -->
                                     </td>
                                     <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                                      <td
@@ -518,11 +355,8 @@
                                         (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId"
                                         style="cursor: pointer;" title="Click to view Project Details">{{project.name}}
                                     </td>
-
                                     <td>{{project.poNo}}</td>
                                     <td>{{project.projectType}}</td>
-
-                                    <!-- <td *ngIf="project.projectId"style="cursor: pointer; color: blue;"  id="clickablefor360" (click)="cancelRequest()" [navigateToProjectView]="project.projectId" style="cursor: pointer;" title="Click to view Project Details">{{project.name}}</td> -->
                                     <td id="clickablefor360"
                                         *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName && !isAccounts"
                                         [navigateToEmployee360]="project.emp360" style="cursor: pointer;"
@@ -537,9 +371,6 @@
                                     <td>{{project.endDate | date: 'dd/MM/yyyy'}}</td>
                                     <td>{{project.clientState}}</td>
                                     <td>{{ project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td>
-                                    <!-- <td
-                                        [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isActive == 2) ? 'orange': (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
-                                        <em>{{project.isDraftProject}}</em></td> -->
                                     <td>{{project.status}}</td>
                                     <!-- <td *ngIf="!isAccounts"> -->
                                     <!-- <button class="btn btn-sm btn-outline-primary mb-1"
@@ -604,14 +435,6 @@
                                                         </div>
                                                     </div>
                                                     <div class="row">
-                                                        <!-- <div class="col-md-4 mb-0">
-                                                            <div class="info-wrapper">
-                                                                <div class="form-group">
-                                                                    <    ><span class="text-danger">*</span>Project Manager</label>
-                                                                    <input type="text" class="form-control" disabled maxlength="255" autocomplete="none" [(ngModel)]="projectObj.projectManagerName">
-                                                                </div>
-                                                            </div>
-                                                        </div> -->
                                                         <div class="col-md-4 mb-0">
                                                             <div class="info-wrapper">
                                                                 <div class="form-group">
@@ -849,17 +672,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Client Name</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="projectObj.clientId" (change)="getClientLocationList(projectObj.clientId)">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option *ngFor="let client of filteredClientList" value="{{client.clientId}}">{{client.clientName}}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div> -->
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
@@ -886,29 +698,6 @@
                     </div>
                 </div>
             </div>
-            <!-- <div class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label">Client Location</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="projectObj.clientLocationId">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option *ngFor="let client of clientLocationList" value="{{client.clientLocationId}}">{{client.clientLocation}}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group mt-4 pt-2">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" id="sync-switch" (change)="toggleSync($event)" [(ngModel)]="projectObj.syncProject">
-                                <label class="custom-control-label" for="sync-switch">Sync Project With PO Portal</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button type="submit" *ngIf="isCreation" class="btn btn-primary btn-sm mx-1"
