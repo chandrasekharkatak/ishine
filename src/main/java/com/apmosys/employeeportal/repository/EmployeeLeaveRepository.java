@@ -170,5 +170,22 @@ public List<EmployeeLeave> findByEmployeeforPending();
 @Query(value = " FROM EmployeeLeave WHERE current_date() between fromDate AND toDate")
 public List<EmployeeLeave> findEmployeeIsOnLeaveToday();
 
+//used in travel desk to fetch the whethere the reporting manager is on leave or not
+@Query(nativeQuery = true, value = 
+"SELECT emp.name " +
+"FROM employee_leave el " +
+"INNER JOIN leave_type_master ltm ON ltm.leave_type_master_id = el.leave_type_master_id " +
+"INNER JOIN leave_status ls ON ls.leave_status_id = el.leave_status_id " +
+"INNER JOIN employee e ON e.emp_id = el.emp_id " +
+"INNER JOIN employee emp ON emp.emp_id = el.emp_id " +
+"INNER JOIN employee em ON em.emp_id = el.manager_id " +
+"LEFT JOIN employee e2 ON e2.emp_id = el.level2approver_id " +
+"LEFT JOIN employee e3 ON e3.emp_id = el.level3approver_id " +
+"WHERE el.emp_id = :empId " +
+"AND CURDATE() BETWEEN el.from_date AND el.to_date " +
+"AND ls.status != 'Rejected'")
+List<Object[]> reportingManagerIsOnLeave(@Param("empId") Long empId);
+
+
 
 }

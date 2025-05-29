@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +32,7 @@ import com.apmosys.employeeportal.dto.TravelModeDTO;
 import com.apmosys.employeeportal.dto.TravelReasonDTO;
 import com.apmosys.employeeportal.model.City;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.HotelCategory;
 import com.apmosys.employeeportal.model.HotelSubCategory;
 import com.apmosys.employeeportal.model.Newsletter;
@@ -39,6 +41,7 @@ import com.apmosys.employeeportal.model.TravelDesk;
 import com.apmosys.employeeportal.model.TravelMode;
 import com.apmosys.employeeportal.model.TravelReason;
 import com.apmosys.employeeportal.repository.CityRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.HotelCategoryRepository;
 import com.apmosys.employeeportal.repository.HotelSubCategoryRepository;
@@ -89,6 +92,8 @@ public class TravelDeskService {
 	@Value("${file.location.documents.travelDesk}")
 	private String traveldeskFileLocation;
 	
+	@Autowired
+	EmployeeLeaveRepository employeeLeaveRepository;
 	
 	@SuppressWarnings("unused")
 	public ServiceResponse saveTravelData(TravelDeskDTO travelData) {
@@ -141,16 +146,31 @@ public class TravelDeskService {
 		currentTimestamp.setNanos(currentTimestamp.getNanos() / 1000 * 1000);
 		System.out.println(currentTimestamp);
 		travelDesk.setAppliedOn(currentTimestamp);
+		
 		travelDesk.setStatus("Pending");
 //		BigInteger approver1 = BigInteger.valueOf(travelData.getLevelOneApprover());
 		String approver1 = travelData.getReportingManagerId();
 
-		travelDesk.setApprover1(approver1);
+		
 //		Employee level1 = employeeRepository.findByEmpId(Long.valueOf(travelData.getLevelOneApprover()));
 		Long reportingManagerId = Long.parseLong(travelData.getReportingManagerId());
-		Employee level1 = employeeRepository.findByEmpId(reportingManagerId);
-        travelDesk.setLevel1ApproverEmail(level1.getEmail());
-		travelDesk.setHodName(level1.getName());
+		Timestamp currentTimestamp1 = new Timestamp(System.currentTimeMillis());
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		String timestampString = sdf.format(currentTimestamp);
+		List<Object[]> details=employeeLeaveRepository.reportingManagerIsOnLeave(reportingManagerId);
+		if(details != null && !details.isEmpty()) {	
+			BigInteger approver2 = BigInteger.valueOf(travelData.getLevelOneApprover());
+			travelDesk.setApprover1(approver2.toString());
+			Employee level1 = employeeRepository.findByEmpId(Long.valueOf(approver2.toString()));
+	        travelDesk.setLevel1ApproverEmail(level1.getEmail());
+			travelDesk.setHodName(level1.getName());
+		}else {
+			travelDesk.setApprover1(approver1);
+			Employee level1 = employeeRepository.findByEmpId(reportingManagerId);
+	        travelDesk.setLevel1ApproverEmail(level1.getEmail());
+			travelDesk.setHodName(level1.getName());
+		}
+		
 
 		
 //		BigInteger approver2 = new BigInteger(level2Approver);

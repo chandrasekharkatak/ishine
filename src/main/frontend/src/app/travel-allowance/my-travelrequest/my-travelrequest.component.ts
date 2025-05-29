@@ -353,6 +353,7 @@ export class MyTravelrequestComponent implements OnInit {
           this.travelDeskObj = [];
           this.fileUploads = [];
           this.selectedFile = null;
+          this.selectedFileName = null;
           this.addInputSpecializationField();
           //location.reload();
         } else {
