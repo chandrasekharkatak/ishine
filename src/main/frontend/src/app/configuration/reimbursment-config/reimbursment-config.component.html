@@ -397,7 +397,7 @@
             <label class="info-label">
               <span class="text-danger">*</span> Expenditure Type Name
             </label>
-            <input type="text" class="form-control" name="expenditureTypeName" [(ngModel)]="expenditureType.expenditureTypeName"
+            <input type="text" class="form-control" name="expenditureTypeName" [(ngModel)]="expenditureType.expenditureTypeName" (keypress)="fieldRestrictNumber($event)"
               required autocomplete="off" />
           </div>
 
@@ -406,7 +406,7 @@
             <label class="info-label">
               <span class="text-danger">*</span> Description
             </label>
-            <input type="text" class="form-control" name="description" [(ngModel)]="expenditureType.description" required
+            <input type="text" class="form-control" name="description" [(ngModel)]="expenditureType.description" (keypress)="fieldRestrictNumber($event)" required
               autocomplete="off" />
           </div>
 
@@ -454,7 +454,7 @@
           <div class="col-md-4 mb-3">
             <div class="form-group">
               <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
-              <input type="text" [(ngModel)]="modeType" name="modeType" class="form-control" autocomplete="off">
+              <input type="text" [(ngModel)]="modeType" name="modeType" class="form-control" (keypress)="fieldRestrictNumber($event)" autocomplete="off">
             </div>
           </div>
 
@@ -477,13 +477,17 @@
           <div class="col-md-4 mb-3">
             <div class="form-group">
               <label class="info-label"><span class="text-danger">*</span>Description</label>
-              <input type="text" [(ngModel)]="description" name="description" class="form-control" autocomplete="off">
+              <input type="text" [(ngModel)]="description" name="description" class="form-control" (keypress)="fieldRestrictNumber($event)" autocomplete="off">
             </div>
           </div>
 
           <!-- Submit Button -->
-          <button type="submit" class="btn btn-primary btn-sm ">Submit</button>
+          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
 
+          <button type="submit" class="btn btn-primary btn-sm" [disabled]="!reasonForm.form.valid">
+            Submit
+          </button>
+          </div>
         </div>
       </form>
 
@@ -507,7 +511,7 @@
             <label class="info-label">
               <span class="text-danger">*</span> Vehicle Type Name
             </label>
-            <input type="text" class="form-control" name="vehicleTypeName" [(ngModel)]="vehicleType.vehicleTypeName"
+            <input type="text" class="form-control" name="vehicleTypeName" [(ngModel)]="vehicleType.vehicleTypeName" (keypress)="fieldRestrictNumber($event)"
               required autocomplete="off" />
           </div>
 
@@ -516,7 +520,7 @@
             <label class="info-label">
               <span class="text-danger">*</span> Description
             </label>
-            <input type="text" class="form-control" name="description" [(ngModel)]="vehicleType.description" required
+            <input type="text" class="form-control" name="description" [(ngModel)]="vehicleType.description" (keypress)="fieldRestrictNumber($event)" required
               autocomplete="off" />
           </div>
 

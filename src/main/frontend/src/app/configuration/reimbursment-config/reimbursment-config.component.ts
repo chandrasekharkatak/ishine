@@ -286,4 +286,18 @@ toggleSearchReviewType() {
     }
   }
 
+
+
+  fieldRestrictNumber(event) {
+    const k = event.charCode; 
+    const inputValue = event.target.value; 
+    if ((k >= 65 && k <= 90) || (k >= 97 && k <= 122)) {
+        return true; 
+    }
+    if (k === 32 && inputValue.length > 0) { 
+        return true; 
+    }
+    return false; 
+}
+
 }
