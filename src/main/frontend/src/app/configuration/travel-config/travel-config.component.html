@@ -1,0 +1,970 @@
+<!-- <div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" *ngIf="!isQuaterForm && !isCreateReview && !isReviewUpdation"
+            class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isQuaterTable}"
+            (click)="showQuaterTable()">Cycle Config</button>
+        <button type="button" *ngIf="!isQuaterForm && !isCreateReview && !isReviewUpdation"
+            class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isReviewTable}"
+            (click)="showReviewTable()">Review-Type</button>
+    </div>
+</div> -->
+<div class="row mb-3">
+  <div class="col-md-12 px-0">
+    <button type="button" (click)="showQuaterTable()" class="btn btn-outline-primary btn-sm mx-2"
+      [ngClass]="{'active' : isCategoryTableTab}">Travel-Reason</button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : istravelModeTab}"
+      (click)="subCategory()">Travel Mode</button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isClassTab}"
+      (click)="classCategory()">Travel Classes </button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isHotelCategoryTab}"
+      (click)="hotelCategory3()">Hotel-Booking Category </button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isHotelSubCategoryTab}"
+      (click)="hotelSubCategory3()">Hotel-Booking SubCategory </button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isCityTab}"
+      (click)="cityCategory()">Add City </button>
+    <!-- <button type=" button" class="btn btn-outline-primary btn-sm mx-1">Reimbursment-config</button> -->
+  </div>
+</div>
+
+<div class="row"
+  *ngIf="!classCategoryForm &&!travelModeForm && isCategoryTable && !createCategoryForm && !isClass  && !istravelMode">
+
+  <div class="col-md-12">
+
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h3 class="table-header-title">Travel(s)</h3>
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <div class="form-inline">
+        <small>View</small>
+        <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
+          (change)="page=1">
+          <option class="option-bg" selected value="10">10</option>
+          <option class="option-bg" value="20">20</option>
+          <option class="option-bg" value="50">50</option>
+          <option class="option-bg" value="100">100</option>
+        </select>
+        <small>entries</small>
+      </div>
+    </div>
+
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="createCategory()"><em
+              class="fa-solid fa-plus"></em>Add Category</button>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="selector-toggle">
+          <a href="javascript:void(0)" (click)="toggleSearchReviewType()">
+            <i *ngIf="!isSearchEnabledReview" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabledReview" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+        <div class="overflow-auto" bassHorizontalScroll>
+          <table class="table" matSort (matSortChange)="sortData($event)" id="domainInfo">
+            <thead class="thead-light" id="domainInfoTHead">
+              <tr id="domainInfoTHeadTr">
+
+
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="travelReasonName|string">Travel Reason Name
+                </th>
+                <th scope="col" class="info-label" mat-sort-header="description|string">Description
+                  Type</th>
+                <!-- <th scope="col" class="info-label" mat-sort-header="limit|string">Limit</th>
+                                <th scope="col" class="info-label" mat-sort-header="quarterCycle|string">Cycle
+                                </th>
+                                <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department
+                                    Name</th> -->
+                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
+                </th>
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                </th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <!-- <th scope="col" class="info-label">Action</th> -->
+
+
+              </tr>
+              <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview" [columnList]="reviewColumns"
+                (onSearch)="onSearch($event);page=1"></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th colspan="8" class="text-center info-label" *ngIf="travelReasonlist.length == 0">No details to
+                  display...</th>
+              </tr>
+              <tr>
+              <tr
+                *ngFor="let review of travelReasonlist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                <th scope="col" class="info-label">{{10*(page-1)+i+1}}</th>
+                <td>{{review.travelReasonName}}</td>
+                <td>{{review.description}}</td>
+                <!-- <td>{{review.createdBy}}</td> -->
+                <td>Sakti Das</td>
+                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                <td>{{review.updatedBy}}</td>
+                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                <!-- <td>
+                  <button class="btn btn-outline-danger" type="button"
+                    (click)="openDeleteModal(delete_type_modal,review)"><em class="fa fa-trash"></em></button>&nbsp;
+                </td> -->
+
+
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+        <pagination-controls class="my-pagination" [hidden]="travelReasonlist.length==0"
+          (pageChange)="handlePageChange($event)"></pagination-controls>
+        <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="reviewTypelist.length == 0"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="row"
+  *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && istravelMode">
+
+  <div class="col-md-12">
+
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h3 class="table-header-title">Travel(s)</h3>
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <div class="form-inline">
+        <small>View</small>
+        <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
+          (change)="page=1">
+          <option class="option-bg" selected value="10">10</option>
+          <option class="option-bg" value="20">20</option>
+          <option class="option-bg" value="50">50</option>
+          <option class="option-bg" value="100">100</option>
+        </select>
+        <small>entries</small>
+      </div>
+    </div>
+
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="travelCategory()"><em
+              class="fa-solid fa-plus"></em>Add Travel Mode</button>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="selector-toggle">
+          <a href="javascript:void(0)" (click)="toggleSearchReviewType()">
+            <i *ngIf="!isSearchEnabledReview" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabledReview" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+        <div class="overflow-auto" bassHorizontalScroll>
+          <table class="table" matSort (matSortChange)="sortData($event)" id="domainInfo">
+            <thead class="thead-light" id="domainInfoTHead">
+              <tr id="domainInfoTHeadTr">
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="modeType|string">Mode Type
+                </th>
+               
+                <th scope="col" class="info-label" mat-sort-header="description|string">Description
+                  Name</th>
+                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
+                </th> 
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                </th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <!-- <th scope="col" class="info-label">Actions</th> -->
+              </tr>
+              <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview" [columnList]="reviewColumns"
+                (onSearch)="onSearch($event);page=1"></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th colspan="8" class="text-center info-label" *ngIf="travelModelist.length == 0">No details to display...</th>
+              </tr>
+              <tr>
+                 <tr
+                                *ngFor="let review of travelModelist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                                <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
+                                <td>{{review.modeType}}</td>
+                                <td>{{review.description}}</td>
+                                <!-- <td>{{review.createdBy}}</td> -->
+                                <td>Sakti Das</td>
+                                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <td>{{review.updatedBy}}</td>
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                
+                            </tr> 
+
+            </tbody>
+          </table>
+        </div>
+        <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls>
+        <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="reviewTypelist.length == 0"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="row"
+  *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && isClass  && !istravelMode">
+
+  <div class="col-md-12">
+
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h3 class="table-header-title">Travel(s)</h3>
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <div class="form-inline">
+        <small>View</small>
+        <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
+          (change)="page=1">
+          <option class="option-bg" selected value="10">10</option>
+          <option class="option-bg" value="20">20</option>
+          <option class="option-bg" value="50">50</option>
+          <option class="option-bg" value="100">100</option>
+        </select>
+        <small>entries</small>
+      </div>
+    </div>
+
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="subClassCategory()"><em
+              class="fa-solid fa-plus"></em>Add Travel Classes</button>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="selector-toggle">
+          <a href="javascript:void(0)" (click)="toggleSearchReviewType()">
+            <i *ngIf="!isSearchEnabledReview" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabledReview" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+        <div class="overflow-auto" bassHorizontalScroll>
+          <table class="table" matSort (matSortChange)="sortData($event)" id="domainInfo">
+            <thead class="thead-light" id="domainInfoTHead">
+              <tr id="domainInfoTHeadTr">
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="travelClass|string">Travel Class
+                </th>
+               
+                <th scope="col" class="info-label" mat-sort-header="description|string">Description
+                  Name</th>
+                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
+                </th> 
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                </th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <!-- <th scope="col" class="info-label">Actions</th> -->
+              </tr>
+              <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview" [columnList]="reviewColumns"
+                (onSearch)="onSearch($event);page=1"></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th colspan="8" class="text-center info-label"*ngIf="travelClassList.length == 0">No details to display...</th>
+              </tr>
+              <tr>
+                <tr
+                *ngFor="let review of travelClassList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
+                <td>{{review.travelClass}}</td>
+                <td>{{review.description}}</td>
+                <!-- <td>{{review.createdBy}}</td> -->
+                <td>Sakti Das</td>
+                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                <td>{{review.updatedBy}}</td>
+                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                
+            </tr> 
+
+            </tbody>
+          </table>
+        </div>
+        <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls>
+        <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="reviewTypelist.length == 0"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="row"
+  *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode && isHotelCategory && !hotelCategoryForm && !isHotelSubCategory && !isCity">
+
+  <div class="col-md-12">
+
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h3 class="table-header-title">Travel(s)</h3>
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <div class="form-inline">
+        <small>View</small>
+        <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
+          (change)="page=1">
+          <option class="option-bg" selected value="10">10</option>
+          <option class="option-bg" value="20">20</option>
+          <option class="option-bg" value="50">50</option>
+          <option class="option-bg" value="100">100</option>
+        </select>
+        <small>entries</small>
+      </div>
+    </div>
+
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="hotelCategory()"><em
+              class="fa-solid fa-plus"></em>Add Hotel Category</button>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="selector-toggle">
+          <a href="javascript:void(0)" (click)="toggleSearchReviewType()">
+            <i *ngIf="!isSearchEnabledReview" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabledReview" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+        <div class="overflow-auto" bassHorizontalScroll>
+          <table class="table" matSort (matSortChange)="sortData($event)" id="domainInfo">
+            <thead class="thead-light" id="domainInfoTHead">
+              <tr id="domainInfoTHeadTr">
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="hotelCategory|string">Hotel Category
+                </th>
+               
+                <th scope="col" class="info-label" mat-sort-header="description|string">Description
+                  Name</th>
+                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
+                </th> 
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                </th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <!-- <th scope="col" class="info-label">Actions</th> -->
+              </tr>
+              <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview" [columnList]="reviewColumns"
+                (onSearch)="onSearch($event);page=1"></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th colspan="8" class="text-center info-label" *ngIf="hotelCategorylist.length == 0">No details to display...</th>
+              </tr>
+              <tr>
+                 <tr
+                                *ngFor="let review of hotelCategorylist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                                <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
+                                <td>{{review.hotelCategory}}</td>
+                                <td>{{review.description}}</td>
+                                <!-- <td>{{review.createdBy}}</td> -->
+                                <td>Sakti Das</td>
+                                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <td>{{review.updatedBy}}</td>
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                               
+                            </tr> 
+
+            </tbody>
+          </table>
+        </div>
+        <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls>
+        <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="reviewTypelist.length == 0"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row"
+  *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode && !isHotelCategory && isHotelSubCategory && !hotelSubCategoryForm && !isCity">
+
+  <div class="col-md-12">
+
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h3 class="table-header-title">Travel(s)</h3>
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <div class="form-inline">
+        <small>View</small>
+        <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
+          (change)="page=1">
+          <option class="option-bg" selected value="10">10</option>
+          <option class="option-bg" value="20">20</option>
+          <option class="option-bg" value="50">50</option>
+          <option class="option-bg" value="100">100</option>
+        </select>
+        <small>entries</small>
+      </div>
+    </div>
+
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="hotelSubCategory()"><em
+              class="fa-solid fa-plus"></em>Add Hotel Sub-Category</button>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="selector-toggle">
+          <a href="javascript:void(0)" (click)="toggleSearchReviewType()">
+            <i *ngIf="!isSearchEnabledReview" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabledReview" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+        <div class="overflow-auto" bassHorizontalScroll>
+          <table class="table" matSort (matSortChange)="sortData($event)" id="domainInfo">
+            <thead class="thead-light" id="domainInfoTHead">
+              <tr id="domainInfoTHeadTr">
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="hotelSubCategoryName|string">Hotel Sub Category Name
+                </th>
+               
+                <th scope="col" class="info-label" mat-sort-header="description|string">Description
+                  Name</th>
+                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
+                </th> 
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                </th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <!-- <th scope="col" class="info-label">Actions</th> -->
+              </tr>
+              <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview" [columnList]="reviewColumns"
+                (onSearch)="onSearch($event);page=1"></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th colspan="8" class="text-center info-label" *ngIf="hotelSubCategorylist.length==0">No details to display...</th>
+              </tr>
+              <tr>
+                <tr
+                                *ngFor="let review of hotelSubCategorylist| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                                <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
+                                <td>{{review.hotelSubCategoryName}}</td>
+                                <td>{{review.description}}</td>
+                                <!-- <td>{{review.createdBy}}</td> -->
+                                <td>Sakti Das</td>
+                                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <td>{{review.updatedBy}}</td>
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                               
+                            </tr> 
+
+            </tbody>
+          </table>
+        </div>
+        <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls>
+        <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="reviewTypelist.length == 0"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row"
+  *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode && !isHotelCategory && !isHotelSubCategory && isCity">
+
+  <div class="col-md-12">
+
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h3 class="table-header-title">Travel(s)</h3>
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <div class="form-inline">
+        <small>View</small>
+        <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
+          (change)="page=1">
+          <option class="option-bg" selected value="10">10</option>
+          <option class="option-bg" value="20">20</option>
+          <option class="option-bg" value="50">50</option>
+          <option class="option-bg" value="100">100</option>
+        </select>
+        <small>entries</small>
+      </div>
+    </div>
+
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="cityCategory3()"><em
+              class="fa-solid fa-plus"></em>Add City</button>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="selector-toggle">
+          <a href="javascript:void(0)" (click)="toggleSearchReviewType()">
+            <i *ngIf="!isSearchEnabledReview" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabledReview" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+        <div class="overflow-auto" bassHorizontalScroll>
+          <table class="table" matSort (matSortChange)="sortData($event)" id="domainInfo">
+            <thead class="thead-light" id="domainInfoTHead">
+              <tr id="domainInfoTHeadTr">
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="cityName|string">City Name
+                </th>
+               
+                <th scope="col" class="info-label" mat-sort-header="description|string">Description
+                  Name</th>
+                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
+                </th> 
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                </th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <!-- <th scope="col" class="info-label">Actions</th> -->
+              </tr>
+              <tr app-column-filter-bar *ngIf="isCategoryTable && isSearchEnabledReview" [columnList]="reviewColumns"
+                (onSearch)="onSearch($event);page=1"></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th colspan="8" class="text-center info-label" *ngIf="cityList.length==0">No details to display...</th>
+              </tr>
+              <tr>
+                <tr
+                                *ngFor="let review of cityList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                                <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
+                                <td>{{review.cityName}}</td>
+                                <td>{{review.description}}</td>
+                                <!-- <td>{{review.createdBy}}</td> -->
+                                <td>Sakti Das</td>
+                                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <td>{{review.updatedBy}}</td>
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                               
+                            </tr> 
+
+
+            </tbody>
+          </table>
+        </div>
+        <pagination-controls class="my-pagination" (pageChange)="handlePageChange($event)"></pagination-controls>
+        <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="reviewTypelist.length == 0"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- <div class="row" *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && createCategoryForm && !isClass  && !istravelMode">
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase">
+            <strong>Reason For Travel</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Travel Reason Name</label>
+                        <input #myInput type="text" class="form-control" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Description</label>
+                        <input #myInput type="text" class="form-control" autocomplete="off">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm mx-1" style="margin-left: 10px;"> Submit
+                    </button>
+                </div>               
+            </div>
+
+        </div>
+    </div>
+</div> -->
+
+<div class="row"
+  *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && createCategoryForm && !isClass && !istravelMode">
+  <div class="card col-md-12 px-0">
+    <div class="card-header text-center text-uppercase">
+      <strong>Reason For Travel</strong>
+    </div>
+    <div class="card-body">
+      <form #reasonForm="ngForm" (ngSubmit)="submitTravelReason(alert_message)">
+        <div class="form-row">
+          <!-- Travel Reason Name -->
+          <div class="form-group col-md-4">
+            <label class="info-label">
+              <span class="text-danger">*</span> Travel Reason Name
+            </label>
+            <input type="text" class="form-control" name="travelReasonName" [(ngModel)]="travelReason.travelReasonName"
+              required autocomplete="off" />
+          </div>
+
+          <!-- Description -->
+          <div class="form-group col-md-4">
+            <label class="info-label">
+              <span class="text-danger">*</span> Description
+            </label>
+            <input type="text" class="form-control" name="description" [(ngModel)]="travelReason.description" required
+              autocomplete="off" />
+          </div>
+
+          <!-- Submit Button -->
+          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!reasonForm.form.valid">
+              Submit
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- Optional alert modal template -->
+<ng-template #alert_message>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+  </div>
+</ng-template>
+
+
+
+<div class="row"
+  *ngIf="!classCategoryForm && travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode">
+  <div class="card col-md-12 px-0">
+    <div class="card-header text-center text-uppercase">
+      <strong>Travel Mode</strong>
+    </div>
+    <div class="card-body">
+      <form #reasonForm="ngForm" (ngSubmit)="submitTravelMode(alert_message)">
+        <div class="row">
+
+          <!-- Reason For Travel (Native select dropdown) -->
+          <div class="col-md-4 mb-0">
+            <div class="info-wrapper">
+              <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Reason For Travel</label>
+                <select class="form-control" name="selectedTravelReason" [(ngModel)]="selectedTravelReasons" required>
+                  <option value="" disabled selected>Select a reason</option>
+                  <option *ngFor="let reason of travelReasonlist" [value]="reason.travelReasonName">
+                    {{ reason.travelReasonName }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mode Type -->
+          <div class="col-md-4 mb-3">
+            <div class="form-group">
+              <label class="info-label"><span class="text-danger">*</span>Mode Type</label>
+              <input type="text" [(ngModel)]="modeType" name="modeType" class="form-control" autocomplete="off">
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="col-md-4 mb-3">
+            <div class="form-group">
+              <label class="info-label"><span class="text-danger">*</span>Description</label>
+              <input type="text" [(ngModel)]="description" name="description" class="form-control" autocomplete="off">
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary btn-sm mx-1">Submit</button>
+
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+
+
+
+<div class="row"
+  *ngIf="classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode">
+  <div class="card col-md-12 px-0">
+    <div class="card-header text-center text-uppercase">
+      <strong>Travel Class</strong>
+    </div>
+    <div class="card-body">
+
+      <form #travelClassForm="ngForm" (ngSubmit)="submitTravelClass(alert_message)">
+
+        <div class="row">
+          <!-- Reason For Travel Dropdown -->
+          <div class="col-md-4 mb-0">
+            <div class="info-wrapper">
+              <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Reason For Travel</label>
+                <select class="form-control" [(ngModel)]="selectedTravelReasons" name="selectedTravelReason" required
+                  (change)="onTravelReasonChange(selectedTravelReasons)">
+                  <option value="" disabled selected>Select a reason</option>
+                  <option *ngFor="let reason of travelReasonlist" [value]="reason.travelReasonName">
+                    {{ reason.travelReasonName }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Travel Mode Dropdown -->
+          <div class="col-md-4 mb-0">
+            <div class="info-wrapper">
+              <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
+                <select class="form-control" [(ngModel)]="selectedTravelModes" name="selectedTravelMode" required>
+                  <option value="" disabled selected>Select a mode</option>
+                  <option *ngFor="let mode of travelModelistByReason" [value]="mode.modeType">
+                    {{ mode.modeType }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Travel Class Input -->
+          <div class="col-md-4 mb-3">
+            <div class="form-group">
+              <label class="info-label"><span class="text-danger">*</span>Travel Class</label>
+              <input type="text" class="form-control" [(ngModel)]="travelClass" name="travelClass" autocomplete="off"
+                required>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="col-md-4 mb-3">
+            <div class="form-group">
+              <label class="info-label"><span class="text-danger">*</span>Description</label>
+              <input type="text" class="form-control" [(ngModel)]="description" name="description" autocomplete="off"
+                required>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="col-md-12 text-end">
+            <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="row"
+  *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode && hotelCategoryForm && !hotelSubCategoryForm && !cityForm">
+  <div class="card col-md-12 px-0">
+    <div class="card-header text-center text-uppercase">
+      <strong>Hotel Booking Category</strong>
+    </div>
+    <div class="card-body">
+      <form #reasonForm="ngForm" (ngSubmit)="submitHotelCategory(alert_message)">
+        <div class="form-row">
+          <!-- Hotel Category Name -->
+          <div class="form-group col-md-4">
+            <label class="info-label">
+              <span class="text-danger">*</span> Hotel Category Name
+            </label>
+            <input type="text" class="form-control" name="hotelCategoryName" [(ngModel)]="hotelCategory1.hotelCategory"
+              required autocomplete="off" />
+          </div>
+
+          <!-- Description -->
+          <div class="form-group col-md-4">
+            <label class="info-label">
+              <span class="text-danger">*</span> Description
+            </label>
+            <input type="text" class="form-control" name="description" [(ngModel)]="hotelCategory1.description" required
+              autocomplete="off" />
+          </div>
+
+          <!-- Submit Button -->
+          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!reasonForm.form.valid">
+              Submit
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="row"
+  *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode && !hotelCategoryForm && hotelSubCategoryForm && !isHotelSubCategory && !cityForm">
+  <div class="card col-md-12 px-0">
+    <div class="card-header text-center text-uppercase">
+      <strong>Hotel Booking Sub-Category</strong>
+    </div>
+    <div class="card-body">
+      <form #reasonForm="ngForm" (ngSubmit)="submitHotelSubCategory(alert_message)">
+        <div class="form-row">
+          <!-- Hotel Category Name -->
+          <div class="form-group col-md-4">
+            <label class="info-label"><span class="text-danger">*</span> Hotel Category</label>
+            <select class="form-control" name="hotelCategory" required [(ngModel)]="hotelSubCategoryData.hotelCategory">
+              <option value="" disabled selected>Select a category</option>
+              <option *ngFor="let category of hotelCategorylist" [value]="category.id">
+                {{ category.hotelCategory }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Hotel Sub-Category Name -->
+          <div class="form-group col-md-4">
+            <label class="info-label"><span class="text-danger">*</span> Hotel Sub-Category Name</label>
+            <input type="text" class="form-control" name="hotelSubCategoryName"
+              [(ngModel)]="hotelSubCategoryData.hotelSubCategoryName" required autocomplete="off" />
+          </div>
+
+          <!-- Description -->
+          <div class="form-group col-md-4">
+            <label class="info-label"><span class="text-danger">*</span> Description</label>
+            <input type="text" class="form-control" name="description" [(ngModel)]="hotelSubCategoryData.description"
+              required autocomplete="off" />
+          </div>
+
+
+          <!-- Submit Button -->
+          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!reasonForm.form.valid">
+              Submit
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div class="row"
+  *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode && !hotelCategoryForm && !hotelSubCategoryForm && cityForm && !isCity">
+  <div class="card col-md-12 px-0">
+    <div class="card-header text-center text-uppercase">
+      <strong>Add City</strong>
+    </div>
+    <div class="card-body">
+      <form #reasonForm="ngForm" (ngSubmit)="submitCity(alert_message)">
+        <div class="form-row">
+          <!-- Hotel Category Name -->
+          <div class="form-group col-md-4">
+            <label class="info-label"><span class="text-danger">*</span> Hotel Category</label>
+            <select class="form-control" name="hotelCategory" required [(ngModel)]="hotelSubCategoryData.hotelCategory">
+              <option value="" disabled selected>Select a category</option>
+              <option *ngFor="let category of hotelCategorylist" [value]="category.id">
+                {{ category.hotelCategory }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Hotel Sub-Category Name -->
+          <div class="form-group col-md-4">
+            <label class="info-label"><span class="text-danger">*</span> Hotel Sub-Category</label>
+            <select class="form-control" name="hotelSubCategoryName" required [(ngModel)]="hotelSubCategoryData.hotelSubCategoryName">
+              <option value="" disabled selected>Select a sub-category</option>
+              <option *ngFor="let subCategory of hotelSubCategorylist" [value]="subCategory.id">
+                {{ subCategory.hotelSubCategoryName }}
+              </option>
+            </select>
+          </div>
+
+          <!-- City Name -->
+          <div class="form-group col-md-4">
+            <label class="info-label"><span class="text-danger">*</span> City Name</label>
+            <input type="text" class="form-control" name="cityName" [(ngModel)]="hotelSubCategoryData.cityName" required
+              autocomplete="off" />
+          </div>
+
+
+          <!-- Description -->
+          <div class="form-group col-md-4">
+            <label class="info-label"><span class="text-danger">*</span> Description</label>
+            <input type="text" class="form-control" name="description" [(ngModel)]="hotelSubCategoryData.description"
+              required autocomplete="off" />
+          </div>
+
+
+          <!-- Submit Button -->
+          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!reasonForm.form.valid">
+              Submit
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+<ng-template #delete_type_modal>
+  <div class="modal-body text-center">
+    <!-- <p>Are you sure you want to delete this {{typeNames}}?</p> -->
+    <button type="button" class="btn btn-success" (click)="onDeleteType(alert_message);cancelRequest();">Yes,
+      proceed</button>&nbsp;
+    <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+  </div>
+</ng-template>

@@ -49,7 +49,8 @@ export class TravelrequestapprovalComponent implements OnInit {
       const response: any = await this.travelDesk.fetchTravelDataForApproval(travelData).toPromise();
       
       if (response.serviceStatus === "Success") {
-        this.travelRequests = response.serviceResponse;  
+        this.travelRequests = response.serviceResponse.sort((a, b) => b.requestId - a.requestId);
+
         console.log('Fetched Travel Requests:', this.travelRequests);
         this.selectedTravelRequest = this.travelRequests;
       } else {
@@ -210,8 +211,8 @@ export class TravelrequestapprovalComponent implements OnInit {
    
 
       if (response.serviceStatus === "Success") {
-
-        if(response.serviceResponse.status === "Rejected"){
+        
+        if(response.serviceResponse.finalstatus === "Rejected"){
           this.modalRef.hide();
           this.alertMessage = `Success! Your request was Rejected successfully ..!!!!`;
           this.openAlertMod(template, this.alertMessage);

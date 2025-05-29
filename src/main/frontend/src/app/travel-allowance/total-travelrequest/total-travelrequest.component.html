@@ -1,0 +1,250 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+              <h1 class="table-header-title">Overall Travel Request</h1>
+          
+              
+              <div class="d-flex align-items-center justify-content-between mt-3">
+          
+                
+                <div class="selector-toggle">
+                  <a href="javascript:void(0)">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
+                  </a>
+                </div>
+          
+
+                <!-- <div  *ngIf="isSearchEnabled" class="export-button">
+                    <button type="button" class="btn btn-sm btn-outline-primary mt-2 mb-2 excel-button"
+                      [hidden]="travelRequests.length == 0" (click)="exportToExcel('travel')">
+                      <em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;
+                    </button>
+                  </div> -->
+               
+                <div *ngIf="!isSearchEnabled" class="export-button">
+                  <button type="button" class="btn btn-sm btn-outline-primary mt-2 mb-2 excel-button"
+                    [hidden]="travelRequests.length == 0" (click)="exportToExcelFullData()">
+                    <em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;
+                  </button>
+                </div>
+          
+              </div>
+              <!-- End of search and export section -->
+          
+            </div>
+          </div>
+          
+        <div class="row">
+            <div class="col-md-12">
+                <div class="overflow-auto" bassHorizontalScroll>
+                    <table class="table table-bordered table-hover text-center" id='travel'>
+                        <thead class="thead-dark">
+                            <tr>
+                                <th scope="col" class="info-label">Reference Id</th>
+                                <th scope="col" class="info-label">Name</th>
+                                <th scope="col" class="info-label">Request Type</th>
+                                <th scope="col" class="info-label">From Date</th>
+                                <th scope="col" class="info-label">To Date</th>
+                                <th scope="col" class="info-label">From Location</th>
+                                <th scope="col" class="info-label">To Location</th>
+                                <th scope="col" class="info-label">Hotel Category</th>
+                                <th scope="col" class="info-label">City Category</th>
+                                <th scope="col" class="info-label">City Name</th>
+                                <th scope="col" class="info-label">Applied By</th>
+                                <th scope="col" class="info-label">Applied On</th>
+                                <th scope="col" class="wide-col">Purpose Of Travel</th>
+                                <th scope="col" class="info-label">Current Approval Level</th>
+                                <th scope="col" class="info-label">Level 1 Approver Name</th>
+                                <th scope="col" class="info-label">Level 1 Approver Status</th>
+                                <th scope="col" class="info-label">Level 2 Approver Name</th>
+                                <th scope="col" class="info-label">Level 2 Approver Status</th>
+                                <th scope="col" class="info-label">Preview Documents</th>
+                                <th scope="col" class="info-label"> View Kyc Document</th>
+                                <th scope="col" class="info-label">Ticket Upload Status</th>
+                                <th scope="col" class="info-label" *ngIf="this.currentUser.departmentName === 'Admin'">Action</th>
+                            </tr>
+                            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="travelActiveColumns"
+                            (onSearch)="onSearch($event);page=1"></tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="travelRequests.length == 0 || (travelRequests | colFilter:filters: false).length == 0">
+                                <th colspan="12" class="text-center info-label">No details to display...</th>
+                              </tr>
+                            <tr
+                                *ngFor="let row of travelRequests |colFilter:filters:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                                <td>{{ row.requestId || (i + 1) }}</td>
+                                <td>{{ row.name }}</td>
+                                <td>{{ row.requestType }}</td>
+                                <td>{{ row.fromDate | date }}</td>
+                                <td>{{ row.toDate | date }}</td>
+                                <td>{{ row.fromLocation || 'NA' }}</td>
+                                <td>{{ row.toLocation || 'NA' }}</td>
+                                <td>{{ row.hotelCategory || 'NA' }}</td>
+                                <td>{{ row.cityCategory || 'NA' }}</td>
+                                <td>{{ row.city || 'NA' }}</td>
+                                <td>{{ row.empId }}</td>
+                                <td>{{ row.appliedOn | date }}</td>
+                                <td>{{ row.purpose }}</td>
+                                <td>{{ row.level }}</td>
+                                <td>{{ row.hodName }}</td>
+                                <td>
+                                    <span [ngClass]="{
+                            'badge badge-success': row.status === 'Approved',
+                            'badge badge-danger': row.status === 'Rejected',
+                            'badge badge-warning': row.status === 'Pending'
+                          }">
+                                        {{ row.status || 'NA' }}
+                                    </span>
+                                </td>
+                                <td>{{ row.level2approverName }}</td>
+                                <td>
+                                    <span [ngClass]="{
+                            'badge badge-success': row.level2approverStatus === 'Approved',
+                            'badge badge-danger': row.level2approverStatus === 'Rejected',
+                            'badge badge-warning': row.level2approverStatus === 'Pending'
+                          }">
+                                        {{ row.level2approverStatus || 'NA' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-inline-flex">
+                                        <button type="button" class="btn btn-success btn-sm btn-action button"
+                                            (click)="openViewDocModule(view_doc,row.requestId)">
+                                            <em class="fa fa-file"></em> View Documents
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-inline-flex">
+                                        <button type="button" class="btn btn-outline-primary sm"
+                                        (click)="preview(invoiceop, row.kycDocumentId)">
+                                        <em class="fa fa-eye">View</em>
+                                      </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span [ngClass]="{
+                                        'badge badge-success': row.ticketDocId !== null,
+                                        'badge badge-warning': row.ticketDocId === null
+                                      }">
+                                        {{ row.ticketDocId !== null ? 'Uploaded' : 'Pending' }}
+                                    </span>
+                                </td>
+
+                                <td *ngIf="this.currentUser.departmentName === 'Admin' && row.ticketDocId === null" class="file-upload-td">
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                        (click)="uploadTicket(upload_ticket,row.requestId)">Upload Ticket</button>
+                                </td>
+
+
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- (click)="openEditModal(approveRequest, row) -->
+                <pagination-controls class="my-pagination" [hidden]="travelRequests.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #view_doc>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">View Travel Documents</h5>
+            <button type="button" class="close" aria-label="Close" (click)="closeModal()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body p-3">
+            <div class="row">
+                <!-- Left Section: Table -->
+                <!-- Left Section: Table -->
+                <div class="col-md-6">
+                    <div class="table-container border" style="max-height: 550px; min-height: 300px;overflow-y: auto;">
+                        <table class="table table-bordered table-hover text-center mb-0">
+                            <thead class="thead-dark sticky-top bg-dark text-white">
+                                <tr>
+                                    <th scope="col" class="info-label">Document List</th>
+                                    <th scope="col" class="info-label">View</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let doc of docList; let i = index">
+                                    <td>Document &nbsp;{{ i + 1 }}</td>
+                                    <td>
+                                        <div class="d-inline-flex">
+                                            <button type="button" class="btn btn-primary btn-sm btn-action button"
+                                                (click)="viewSelectedDocument(doc)">
+                                                <em class="fa fa-file"></em> View Document
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+                <!-- Right Section: Document Viewer -->
+                <div class="col-md-6 border-left">
+                    <div *ngIf="selectedDocument">
+                        <ng-container *ngIf="selectedDocument?.toString().includes('application/pdf'); else imageBlock">
+                            <iframe [src]="selectedDocument" width="100%" height="600px"></iframe>
+                        </ng-container>
+
+                        <ng-template #imageBlock>
+                            <img [src]="selectedDocument" class="img-fluid" alt="Document Preview" />
+                        </ng-template>
+                    </div>
+
+
+                    <div *ngIf="!selectedDocument" class="text-muted">
+                        Click on "View Document" to preview here.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+<ng-template #upload_ticket>
+    <div class="modal-body text-center">
+        <input type="file" class="form-control file-upload-input" (change)="onFileSelected($event)" required />
+        <div *ngIf="selectedFileName" class="file-name-display mt-1">
+            <small class="text-muted">Selected File: {{ selectedFileName }}</small>
+        </div>
+        <button type="button" class="btn btn-primary"
+            (click)="uploadTicketByAdmin(selectedFile,alert_message)">Submit</button>&nbsp;
+    </div>
+</ng-template>
+
+
+
+<ng-template #invoiceop>
+    <div class="modal-body text-center">
+      <div *ngIf="selectedDocument1">
+        <ng-container *ngIf="selectedDocument1?.toString().includes('application/pdf'); else imageBlock">
+          <iframe [src]="selectedDocument1" width="100%" height="600px"></iframe>
+        </ng-container>
+  
+        <ng-template #imageBlock>
+          <img [src]="selectedDocument1" class="img-fluid" alt="Document Preview" />
+        </ng-template>
+      </div>
+      <div class="modal-body text-center" *ngIf="!selectedDocument1">
+        <p>{{alertMessage}}</p>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="closeModal()">OK</button>&nbsp;
+    </div>
+  </ng-template>

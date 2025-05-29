@@ -17,15 +17,15 @@ import { LoaderService } from '../services/loader.service';
 @Injectable()
 export class LoaderInterceptor implements HttpInterceptor {
 
-  private baseUrl:any = environment.baseUrl;
-  startDate:any;
+  private baseUrl: any = environment.baseUrl;
+  startDate: any;
 
   URL_whiteList = [
 
     `${this.baseUrl}` + `api/authenticateUser`,
     `${this.baseUrl}` + `api/authenticateUserWithOTP`,
-    `${this.baseUrl}`+`api/upload/designationBulkUpload`,
-    `${this.baseUrl}`+`api/employeeBulkUpload`,
+    `${this.baseUrl}` + `api/upload/designationBulkUpload`,
+    `${this.baseUrl}` + `api/employeeBulkUpload`,
     `${this.baseUrl}` + `api/createDepartment`,
     `${this.baseUrl}` + `api/updateDepartment`,
     `${this.baseUrl}` + `api/deleteDepartment`,
@@ -172,32 +172,32 @@ export class LoaderInterceptor implements HttpInterceptor {
 
     `${this.baseUrl}` + `api/updateEmployeePassword`,
 
-    `${this.baseUrl}`+`api/updateDefaultFeatureMapping`,
-    `${this.baseUrl}`+`api/getDefaultMapping`,
+    `${this.baseUrl}` + `api/updateDefaultFeatureMapping`,
+    `${this.baseUrl}` + `api/getDefaultMapping`,
 
-    `${this.baseUrl}`+`api/checkEmailWhenForgotPassword`,
-    `${this.baseUrl}`+`api/updateEmployeeForgotPassword`,
+    `${this.baseUrl}` + `api/checkEmailWhenForgotPassword`,
+    `${this.baseUrl}` + `api/updateEmployeeForgotPassword`,
 
-    `${this.baseUrl}`+`api/newsletters/uploadNewsletter`,
-    `${this.baseUrl}`+`api/newsletters/`,
-    `${this.baseUrl}`+`api/newsletters/download/`,
-    `${this.baseUrl}`+`api/newsletters/setNewsletterReadResponseByEmpId`,
-    `${this.baseUrl}`+`api/newsletters/getAllReadNewslettersByEmpId`,
-    `${this.baseUrl}`+`api/getEmployeeAuditInfo`,
+    `${this.baseUrl}` + `api/newsletters/uploadNewsletter`,
+    `${this.baseUrl}` + `api/newsletters/`,
+    `${this.baseUrl}` + `api/newsletters/download/`,
+    `${this.baseUrl}` + `api/newsletters/setNewsletterReadResponseByEmpId`,
+    `${this.baseUrl}` + `api/newsletters/getAllReadNewslettersByEmpId`,
+    `${this.baseUrl}` + `api/getEmployeeAuditInfo`,
 
-    `${this.baseUrl}`+`api/approveDraftEmployeeApplication`,
-    `${this.baseUrl}`+`api/uploadHelpDocument`,
-    `${this.baseUrl}`+`api/uploadPolicies`,
-    `${this.baseUrl}`+`api/bulkCompOffReject`,
-    `${this.baseUrl}`+`api/bulkCompOffApprove`,
-    `${this.baseUrl}`+`api/getTeamListByProjectName`,
+    `${this.baseUrl}` + `api/approveDraftEmployeeApplication`,
+    `${this.baseUrl}` + `api/uploadHelpDocument`,
+    `${this.baseUrl}` + `api/uploadPolicies`,
+    `${this.baseUrl}` + `api/bulkCompOffReject`,
+    `${this.baseUrl}` + `api/bulkCompOffApprove`,
+    `${this.baseUrl}` + `api/getTeamListByProjectName`,
 
     // added by anurag 
-    `${this.baseUrl}`+`api/deleteType`,
-    `${this.baseUrl}`+`api/updateType`,
-    `${this.baseUrl}`+`api/getAllTypeName`,
-    `${this.baseUrl}`+`api/newsletters/getDocumentByType`,
-    `${this.baseUrl}`+`api/newsletters/customQueryForDocument`,
+    `${this.baseUrl}` + `api/deleteType`,
+    `${this.baseUrl}` + `api/updateType`,
+    `${this.baseUrl}` + `api/getAllTypeName`,
+    `${this.baseUrl}` + `api/newsletters/getDocumentByType`,
+    `${this.baseUrl}` + `api/newsletters/customQueryForDocument`,
     `${this.baseUrl}` + `api/pipGenerateToUser`,
     // query/createQuery
     `${this.baseUrl}` + `api/query/createQuery`,
@@ -214,16 +214,16 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/revokeAccount`,
     `${this.baseUrl}` + `api/upload/billableFile`,
     `${this.baseUrl}` + `api/getDepartmentPendingLeaveHistory`,
-    `${this.baseUrl}`+`api/getEmployeeAuditInfo`,
-    `${this.baseUrl}`+`api/deleteTeamByTeamId`,
-    `${this.baseUrl}`+`api/upload/saveExcelDataForManagerMapping`,
+    `${this.baseUrl}` + `api/getEmployeeAuditInfo`,
+    `${this.baseUrl}` + `api/deleteTeamByTeamId`,
+    `${this.baseUrl}` + `api/upload/saveExcelDataForManagerMapping`,
     `${this.baseUrl}` + `api/getBioData`,
 
     //added by priyadarshini
-    `${this.baseUrl}` +`api/saveRewardConfiguration`,
+    `${this.baseUrl}` + `api/saveRewardConfiguration`,
     `${this.baseUrl}` + `api/showAllRewards/`,
     `${this.baseUrl}` + `api/fetchEmployeesFromRewardCondition`,
-    `${this.baseUrl}` +`api/submitRewardForEmployee`,
+    `${this.baseUrl}` + `api/submitRewardForEmployee`,
     `${this.baseUrl}` + `api/showAllEmployeeRewards`,
     `${this.baseUrl}` + `api/getReviewType`,
     `${this.baseUrl}` + `api/getProjectInfo`,
@@ -240,12 +240,12 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/biomax`,
     `${this.baseUrl}` + `api/saveExcelDataForReward`,
     `${this.baseUrl}` + `api/fetchEmployeesForHomepageByCategoryId`,
-    `${this.baseUrl}` + `api/getAllTeamView`, 
-    `${this.baseUrl}`+`api/submitRewardForEmployee`,
+    `${this.baseUrl}` + `api/getAllTeamView`,
+    `${this.baseUrl}` + `api/submitRewardForEmployee`,
     `${this.baseUrl}` + `api/showAllEmployeeRewards`,
     `${this.baseUrl}` + `api/getAllEmployeesReportByProjectTypeInConsolidated`,
-    `${this.baseUrl}`+`api/getAllEmployeesReportByProjectType`,
-     `${this.baseUrl}`+`api/saveAppreciation`,
+    `${this.baseUrl}` + `api/getAllEmployeesReportByProjectType`,
+    `${this.baseUrl}` + `api/saveAppreciation`,
     `${this.baseUrl}` + `api/deleteCompOff`,
     `${this.baseUrl}` + `api/getAllOrDeptWiseEmployeeTimesheetReport`,
     `${this.baseUrl}` + `api/getAllEmployeesForPerformance`,
@@ -258,7 +258,33 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/updateBulkBillableEmployeeReport`,
     `${this.baseUrl}` + `api/updateProjectResourcesAsInActiveBulk`,
     `${this.baseUrl}` + `api/deleteTeamsByIdsBulk`,
-    `${this.baseUrl}` + `api/combinedPOINTERNALList`
+    `${this.baseUrl}` + `api/combinedPOINTERNALList`,
+    `${this.baseUrl}` + `api/previewDocument`,
+    `${this.baseUrl}` + `api/uploadTicket`,
+    `${this.baseUrl}` + `api/totalTravelData`,
+    `${this.baseUrl}` + `api/getAllInvoices`,
+    `${this.baseUrl}` + `api/fetchTotalReimbursementData`,
+    `${this.baseUrl}` + `api/uploadFileReimbursement`,
+    `${this.baseUrl}` + `api/getAllInvoicesByEmpId`,
+    `${this.baseUrl}` + `api/updateReimbursmentBasedOnTravelRequest`,
+    `${this.baseUrl}` + `api/updateUploadedFile`,
+    `${this.baseUrl}` + `api/saveTravelData`,
+    `${this.baseUrl}` + `api/fetchTotalReimbursementData`,
+    `${this.baseUrl}` + `api/fetchReimbursementData`,
+    `${this.baseUrl}` + `api/fetchReimbursementDataforApproval`,
+    `${this.baseUrl}` + `api/saveReimbursementData`,
+    `${this.baseUrl}` + `api/updateReimbursementData`,
+    `${this.baseUrl}` + `api/revokeReimbursement`,
+    `${this.baseUrl}` + `api/approveOrRejectReimbursement`,
+    `${this.baseUrl}` + `api/uploadFileReimbursement`,
+    `${this.baseUrl}` + `api/approveOrRejectTravel`,
+    `${this.baseUrl}` + `api/fetchTravelData`,
+    `${this.baseUrl}` + `api/fetchTravelDataForApproval`,
+    `${this.baseUrl}` + `api/saveTravelData`,
+    `${this.baseUrl}` + `api/uploadFile`,
+    `${this.baseUrl}` + `api/updateTravelData`,
+    `${this.baseUrl}` + `api/revokeTravel`
+
   ]
 
   constructor(private loaderService: LoaderService) { }

@@ -143,10 +143,16 @@ registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 // 
 
-import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
+
 import { LmstabComponent } from './lmstab/lmstab.component';
 import { FilterEmployeePipe } from './filter-employee.pipe';
 import { ViewEmployeeComponent } from './user-team/resource-management/view-employee/view-employee.component';
+import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
+import { SafePipe } from './safe.pipe';
+import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
+import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
+import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
+import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -267,6 +273,12 @@ import { ViewEmployeeComponent } from './user-team/resource-management/view-empl
      LmstabComponent,
      FilterEmployeePipe,
      ViewEmployeeComponent,
+     TotalTravelrequestComponent,
+     TotalReimbursementrequestComponent,
+     SafePipe,
+     TravelConfigComponent,
+     ReimbursmentConfigComponent
+   
   
 
     //TestComponent

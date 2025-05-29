@@ -77,7 +77,7 @@
               <thead class="thead-light">
                 <tr>
                    
-                  <th scope="col" class="info-label">Sr No.</th>
+                  <th scope="col" class="info-label">Reference Id</th>
                   <th scope="col" class="info-label">Name</th>
                   <th scope="col" class="info-label">Request Type</th>
                   <th scope="col" class="info-label">From Date</th>
@@ -102,7 +102,7 @@
               <tbody>
                 <!-- Loop over travelRequests and render each row -->
                 <tr *ngFor="let row of travelRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                  <td>{{ i + 1}}</td>
+                  <td>{{row.requestId}}</td>
                   <td>{{ row.name }}</td>
                   <td>{{ row.requestType }}</td>
                   <td>{{ row.fromDate | date }}</td>

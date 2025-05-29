@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { MyReimbursementComponent } from '../reimbursement/my-reimbursement/my-reimbursement.component';
 import { MyReimbursement } from '../models/reimbursement';
 
 @Injectable({
@@ -37,7 +36,37 @@ export class ReimbursementService {
     return this.http.post(`${this.baseUrl}` + `api/approveOrRejectReimbursement`, reimbursementObj);
   }
 
-  uploadFileReimbursement(formData:FormData){
+  uploadFileReimbursement(formData:any){
     return this.http.post(`${this.baseUrl}`+`api/uploadFileReimbursement`,formData);
   }
+
+  fetchTotalReimbursementData(reimbursementObj: MyReimbursement) {
+    return this.http.post(`${this.baseUrl}` + `api/fetchTotalReimbursementData`, reimbursementObj);
+  }
+
+  fetchAllInvoice(){
+    return this.http.get(`${this.baseUrl}` + `api/getAllInvoices`);
+  }
+
+  getAllDocumentsReimbursmentThroughRequestId(requestId: any) {
+    return this.http.get(`${this.baseUrl}api/getAllDocumentsReimbursmentThroughRequestId?requestId=${requestId}`);
+  }
+
+  previewDocumentReimbursment(details:any){
+    return this.http.post(`${this.baseUrl}`+`api/previewDocumentReimbursment`,details);
+  }
+
+  updateInvoicesDetailsByAccountsTeam(details:any){
+    return this.http.post(`${this.baseUrl}`+`api/updateInvoicesDetailsByAccountsTeam`,details);
+  }
+  
+  updateReimbursementDetailsByAccountsTeam(details:any){
+    return this.http.post(`${this.baseUrl}`+`api/updateReimbursementDetailsByAccountsTeam`,details);
+  }
+
+  markAsPaid(details:any){
+    return this.http.post(`${this.baseUrl}`+`api/markAsPaid`,details);
+  }
+  
+  
 }

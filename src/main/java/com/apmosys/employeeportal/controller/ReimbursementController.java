@@ -1,16 +1,22 @@
 package com.apmosys.employeeportal.controller;
 
+import java.math.BigInteger;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ReimbursementDTO;
+import com.apmosys.employeeportal.dto.TravelBasedReimbursementRequestDTO;
 import com.apmosys.employeeportal.service.ReimbursementService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -66,4 +72,28 @@ public class ReimbursementController {
 		ServiceResponse serviceResponse = reimbursementService.uploadFile(file, displayName, uploadedBy);
 		return serviceResponse;
 	}
+	
+	@PostMapping("/fetchTotalReimbursementData")
+	public ServiceResponse fetchTotalReimbursementData(@RequestBody ReimbursementDTO reimbursementObj) {
+		return reimbursementService.fetchTotalReimbursementData();
+		
+	}
+	
+	@GetMapping("/getAllDocumentsReimbursmentThroughRequestId")
+	public ServiceResponse getAllDocumentsReimbursmentThroughRequestId(@RequestParam("requestId") BigInteger requestId) {
+	    return reimbursementService.getAllDocumentsReimbursmentThroughRequestId(requestId);
+	}
+	
+	@RequestMapping(value = "/previewDocumentReimbursment", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> previewDocumentReimbursment(@RequestBody TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
+		return ResponseEntity.ok(reimbursementService.previewDocumentReimbursment(reimbursementRequestDTO));
+	}
+	
+	
+	@RequestMapping(value = "/updateReimbursementDetailsByAccountsTeam", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> updateReimbursementDetailsByAccountsTeam(@RequestBody ReimbursementDTO reimbursementRequestDTO) {
+		return ResponseEntity.ok(reimbursementService.updateReimbursementDetailsByAccountsTeam(reimbursementRequestDTO));
+	}
+	
+	
 }

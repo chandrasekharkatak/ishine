@@ -16,6 +16,9 @@ import { PortalConfigComponent } from './configuration/portal-config/portal-conf
 import { RewardsConfigComponent } from './configuration/rewards-config/rewards-config.component';
 import { RoleConfigComponent } from './configuration/role-config/role-config.component';
 import { SurveyConfigComponent } from './configuration/survey-config/survey-config.component';
+
+import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
+import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
 import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
 import { Employee360BiomaxComponent } from './employee360/employee360-biomax/employee360-biomax.component';
@@ -40,11 +43,13 @@ import { RecruitmentComponent } from './recruitment/recruitment.component';
 import { MyReimbursementComponent } from './reimbursement/my-reimbursement/my-reimbursement.component';
 import { ReimbursementComponent } from './reimbursement/reimbursement.component';
 import { ReimbursementapprovalComponent } from './reimbursement/reimbursementapproval/reimbursementapproval.component';
+import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
 import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/view-reimbursement.component';
 import { AppreciationComponent } from './rewards/appreciation/appreciation.component';
 import { RewardsAndRecognisationComponent } from './rewards/rewards-and-recognisation/rewards-and-recognisation.component';
 import { RewardsComponent } from './rewards/rewards.component';
 import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
+import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
 import { TravelAllowanceComponent } from './travel-allowance/travel-allowance.component';
 import { TravelrequestapprovalComponent } from './travel-allowance/travelrequestapproval/travelrequestapproval.component';
 import { ViewTravelrequestComponent } from './travel-allowance/view-travelrequest/view-travelrequest.component';
@@ -114,6 +119,9 @@ const routes: Routes = [
       { path: 'other', component: OthersComponent, },
       { path: 'rewards-config', component: RewardsConfigComponent, },
       { path: 'performance-config' , component: PerformanceConfigComponent},
+      { path: 'travel-config' , component: TravelConfigComponent},
+      { path: 'reimbursment-config' , component:ReimbursmentConfigComponent},
+     
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
@@ -228,7 +236,8 @@ const routes: Routes = [
       {path:'', redirectTo:'my-travelrequest', pathMatch:'full'},
       {path:'my-travelrequest', component:MyTravelrequestComponent},
       {path:'view-travelrequest', component:ViewTravelrequestComponent},
-      {path:'approve-travelrequest', component:TravelrequestapprovalComponent}
+      {path:'approve-travelrequest', component:TravelrequestapprovalComponent},
+      {path:'total-travelrequest', component:TotalTravelrequestComponent}
     ]
   },
   {path:'reimbursement', component: ReimbursementComponent, canActivate: [AuthGuard],
@@ -236,7 +245,8 @@ const routes: Routes = [
       {path:'', redirectTo:'my-reimbursement', pathMatch:'full'},
       {path:'my-reimbursement', component:MyReimbursementComponent},
       {path:'view-reimbursement', component:ViewReimbursementComponent},
-      {path:'approve-reimbursement', component:ReimbursementapprovalComponent}
+      {path:'approve-reimbursement', component:ReimbursementapprovalComponent},
+      {path:'total-reimbursement', component:TotalReimbursementrequestComponent}
       
     ]
   },

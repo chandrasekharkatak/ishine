@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.dto;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.util.List;
 
 import lombok.Data;
 
@@ -33,10 +34,23 @@ public class TravelDeskDTO {
 	    private String level2Approver;
 	    private String hotelCategory;
 	    private String cityCategory;
-	    private String docId;
+	    private String level2ApproverStatus;
+	    //private String docId;
+	    private List<Long> docId; 
 	    private String city;
 	    private String finalStatus;
-		
+		private String reportingManagerId ;
+		private String reportingManagerName ;
+	    private String invoiceNo;
+	    private Timestamp invoiceDate;
+	    private Double amount;
+	    private Long docIdTrevel;
+	    private Integer travelId;
+	    private String RequestType;
+	    private String reimbursementStatus;
+	    private Integer serialNo;
+	    private String finalReimbursementStatus;
+	    private Long kycDocumentId;
 	
 	    
 }

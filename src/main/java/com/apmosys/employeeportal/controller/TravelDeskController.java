@@ -1,17 +1,25 @@
 package com.apmosys.employeeportal.controller;
 
+import java.math.BigInteger;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.CityDTO;
+import com.apmosys.employeeportal.dto.HotelCategoryDTO;
+import com.apmosys.employeeportal.dto.HotelSubCategoryDTO;
+import com.apmosys.employeeportal.dto.TravelClassRequest;
 import com.apmosys.employeeportal.dto.TravelDeskDTO;
+import com.apmosys.employeeportal.dto.TravelModeDTO;
+import com.apmosys.employeeportal.dto.TravelReasonDTO;
 import com.apmosys.employeeportal.service.TravelDeskService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -66,8 +74,117 @@ public class TravelDeskController {
 	public ServiceResponse uploadFile(HttpServletRequest request,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam("displayName") String displayName,
-			@RequestParam("uploadedBy") Long uploadedBy) {
+			@RequestParam("uploadedBy") Long uploadedBy
+			) {
 		ServiceResponse serviceResponse = travelDeskService.uploadFile(file, displayName, uploadedBy);
+		return serviceResponse;
+	}
+	
+	@PostMapping("/totalTravelData")
+	public ServiceResponse totalTravelData(@RequestBody TravelDeskDTO travelData) {
+		
+		return travelDeskService.totalTravelData();
+		 
+	}
+	@GetMapping("/getAllDocumentsThroughRequestId")
+	public ServiceResponse getAllDocsThroughReqId(@RequestParam("requestId") BigInteger requestId) {
+	    return travelDeskService.getAllDocsThroughReqId(requestId);
+	}
+	
+	@PostMapping("/travel-reason/create")
+	public ServiceResponse createTravelReason(@RequestBody TravelReasonDTO travelReasonDTO) {
+	    return travelDeskService.saveTravelReason(travelReasonDTO);
+	}
+	
+	@GetMapping("/getTravelReason")
+	public ServiceResponse getAllTravelReasons() {
+	    return travelDeskService.getAllTravelReasons();
+	}
+	
+    @PostMapping("/saveTravelMode")
+    public ServiceResponse saveTravelMode(@RequestBody TravelModeDTO travelModeDTO) {
+        return travelDeskService.saveTravelMode(travelModeDTO);
+    }
+    
+    
+	@GetMapping("/getTravelMode")
+	public ServiceResponse getAllgetTravelModes() {
+	    return travelDeskService.getAllgetTravelModes();
+	}
+	
+	@PostMapping("/uploadTicket")
+	public ServiceResponse uploadTicket(HttpServletRequest request,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("displayName") String displayName,
+			@RequestParam("uploadedBy") Long uploadedBy,
+			@RequestParam("requestId") BigInteger requestId
+			) {
+		ServiceResponse serviceResponse = travelDeskService.uploadTicket(file, displayName, uploadedBy,requestId);
+		return serviceResponse;
+	}
+    @PostMapping("/saveTravelClass")
+    public ServiceResponse saveTravelClass(@RequestBody TravelClassRequest travelClassDTO) {
+        return travelDeskService.saveTravelClass(travelClassDTO);
+    }
+    
+    @PostMapping("/getTravelModeByReason")
+    public ServiceResponse getTravelModeByReason(@RequestBody String travelReason) {
+        return travelDeskService.getTravelModeByReason(travelReason);
+    }
+    
+    @PostMapping("/saveHotelCategory")
+    public ServiceResponse saveHotelCategory(@RequestBody HotelCategoryDTO dto) {
+        return travelDeskService.saveHotelCategory(dto);
+    }
+    
+	@GetMapping("/getHotelCategory")
+	public ServiceResponse getHotelCategory() {
+	    return travelDeskService.getHotelCategory();
+	}
+	
+	@PostMapping("/saveHotelSubCategory")
+	public ServiceResponse saveHotelSubCategory(@RequestBody HotelSubCategoryDTO hotelSubCategoryDTO) {
+	    return travelDeskService.saveHotelSubCategory(hotelSubCategoryDTO);
+	}
+	
+	@GetMapping("/getHotelSubCategory")
+	public ServiceResponse getHotelSubCategory() {
+	    return travelDeskService.getHotelSubCategory();
+	}
+	
+	@PostMapping("/saveCity")
+	public ServiceResponse saveCity(@RequestBody CityDTO cityDTO) {
+	    return travelDeskService.saveCity(cityDTO);
+	}
+	
+    @PostMapping("/getTravelClassByMode")
+    public ServiceResponse getTravelClassByMode(@RequestBody String travelReason) {
+        return travelDeskService.getTravelClassByMode(travelReason);
+    }
+    
+    @PostMapping("/getCityBySubCategory")
+    public ServiceResponse getCityBySubCategory(@RequestBody String travelReason) {
+        return travelDeskService.getCityBySubCategory(travelReason);
+    }
+    
+	@GetMapping("/getCity")
+	public ServiceResponse getCity() {
+	    return travelDeskService.getCity();
+	}
+	
+	
+	@GetMapping("/onGetTravelCass")
+	public ServiceResponse onGetTravelCass() {
+	    return travelDeskService.onGetTravelCass();
+	}
+
+	@PostMapping("/uploadKycDocument")
+	public ServiceResponse uploadKycDocument(HttpServletRequest request,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("displayName") String displayName,
+			@RequestParam("uploadedBy") Long uploadedBy
+			) {
+		ServiceResponse serviceResponse = travelDeskService.uploadKycDocument(file, displayName, uploadedBy);
 		return serviceResponse;
 	}
 }

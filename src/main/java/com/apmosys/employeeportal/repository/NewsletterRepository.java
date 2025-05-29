@@ -26,4 +26,7 @@ public interface NewsletterRepository extends JpaRepository<Newsletter, Long >{
 			+ "inner join type_document td on td.type_id = d.type_id "
 			+ " where d.type_id = :typeId")
 	public List<Object[]> findByTypeId(Long typeId);
+
+	@Query(nativeQuery = true , value = "select * from documents where document_id = :docId")
+	public Newsletter findByDocId(Long docId);
 }

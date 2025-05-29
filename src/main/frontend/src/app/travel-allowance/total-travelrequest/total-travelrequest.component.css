@@ -1,0 +1,25 @@
+.table-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background-color: #343a40; /* same as .thead-dark */
+  color: white;
+  z-index: 1;
+}
+.file-upload-td {
+    padding: 0 !important; 
+    vertical-align: middle;
+  }
+  
+  .file-upload-input {
+    width: 100%;
+  }
+  
+  .file-name-display {
+    font-size: 0.85rem;
+    color: #555;
+  }

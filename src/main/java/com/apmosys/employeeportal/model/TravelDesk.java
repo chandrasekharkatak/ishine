@@ -75,7 +75,7 @@ public class TravelDesk {
 	private String status;
 	
 	@Column(name = "level1_approve_by")
-	private BigInteger approver1;
+	private String approver1;
 	
 	@Column(name = "level1_approver_email")
 	private String level1ApproverEmail;
@@ -132,6 +132,9 @@ public class TravelDesk {
 	
 	@Column(name = "final_status")
 	private String finalStatus;
+	
+	private Long ticketDocId;
+	private Long kycDocumentId;
 	
 	
 

@@ -9,51 +9,57 @@
                     <label class="info-label">
                         <span class="text-danger">*</span>Full Name
                     </label>
-                    <input type="text" class="form-control" name="fullName"  [(ngModel)]="currentEmployeeInfo.name" disabled/>
+                    <input type="text" class="form-control" name="fullName" [(ngModel)]="currentEmployeeInfo.name"
+                        disabled />
                 </div>
 
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Employee Id
                     </label>
-                    <input type="text" class="form-control" name="fullName" [(ngModel)]="currentEmployeeInfo.employeementId" disabled />
+                    <input type="text" class="form-control" name="fullName"
+                        [(ngModel)]="currentEmployeeInfo.employeementId" disabled />
                 </div>
-               
+
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Designation
                     </label>
-                    <input type="text" class="form-control" name="fullName" [(ngModel)]="currentEmployeeInfo.designationName" disabled />
+                    <input type="text" class="form-control" name="fullName"
+                        [(ngModel)]="currentEmployeeInfo.designationName" disabled />
                 </div>
 
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Department
                     </label>
-                    <input type="text" class="form-control" name="fullName"  [(ngModel)]="currentEmployeeInfo.departmentName" disabled />
+                    <input type="text" class="form-control" name="fullName"
+                        [(ngModel)]="currentEmployeeInfo.departmentName" disabled />
                 </div>
 
 
-                    <div class="col-md-3 mb-0">
-                        <label class="info-label">
-                            <span class="text-danger">*</span>HOD Name
-                        </label>
-                        <input type="text" class="form-control" name="fullName"  [(ngModel)]="currentUser.hodName" disabled />
-                    </div>
-                
-            
+                <div class="col-md-3 mb-0">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>HOD Name
+                    </label>
+                    <input type="text" class="form-control" name="fullName" [(ngModel)]="currentUser.hodName"
+                        disabled />
+                </div>
+
+
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span>Mobile No
                     </label>
-                    <input type="text" class="form-control" name="fullName" [(ngModel)]="currentEmployeeInfo.mobileNo" disabled />
+                    <input type="text" class="form-control" name="fullName" [(ngModel)]="currentEmployeeInfo.mobileNo"
+                        disabled />
                 </div>
 
                 <div class="col-md-3 mb-0">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Expenditure Type</label>
-                        <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="reimbursementObj.expenditureType"
-                            (change)="onReasonSelect()">
+                        <select class="form-control" id="dayTypeCursor" aria-hidden="true"
+                            [(ngModel)]="reimbursementObj.expenditureType" (change)="onReasonSelect()">
                             <option selected="selected" value="" disabled>Select</option>
                             <option value="Travel">Travel</option>
                             <option value="Food">Food</option>
@@ -63,13 +69,14 @@
                         </select>
                     </div>
                 </div>
-               
-                
-             
-           <!-- Travel related fields -->
+
+
+
+                <!-- Travel related fields -->
                 <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Travel'">
                     <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
-                    <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="reimbursementObj.travelMode">
+                    <select class="form-control" id="dayTypeCursor" aria-hidden="true"
+                        [(ngModel)]="reimbursementObj.travelMode">
                         <option selected="selected" value="" disabled>Select</option>
                         <option value="Flight">Flight</option>
                         <option value="Train">Train</option>
@@ -84,74 +91,69 @@
                 <div class="col-md-3 mb-0" *ngIf="reimbursementObj.travelMode === 'Personal Vehicle' && isTravel">
                     <label class="info-label"><span class="text-danger">*</span>Vehicle Type</label>
                     <select class="form-control" [(ngModel)]="reimbursementObj.vehicleType">
-                      <option value="" disabled selected>Select Vehicle</option>
-                      <option value="Car">Car</option>
-                      <option value="Bike">Bike</option>
+                        <option value="" disabled selected>Select Vehicle</option>
+                        <option value="Car">Car</option>
+                        <option value="Bike">Bike</option>
                     </select>
-                  </div>
-                  
+                </div>
+
 
                 <div class="col-md-3 mb-0" *ngIf="isTravel && reimbursementObj.travelMode === 'Personal Vehicle'">
                     <label class="info-label">
                         <span class="text-danger">*</span> Distance (In KM)
                     </label>
                     <!-- <input type="number" class="form-control" name="fullName" [(ngModel)]="reimbursementObj.distance" required /> -->
-                    <input type="number" class="form-control"
-                    [(ngModel)]="reimbursementObj.distance"
-                    (ngModelChange)="onKilometersChange()"
-                    name="distance" min="1" [disabled]="!reimbursementObj.vehicleType"/>
+                    <input type="number" class="form-control" [(ngModel)]="reimbursementObj.distance"
+                        (ngModelChange)="onKilometersChange()" name="distance" min="1"
+                        [disabled]="!reimbursementObj.vehicleType" />
                 </div>
                 <!-- Travel related fields end -->
 
-                <!-- Food related fields -->
+                
                 <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Food' ">
                     <label class="info-label"><span class="text-danger">*</span>Food Allowance Type</label>
                     <select class="form-control" [(ngModel)]="reimbursementObj.foodAllowanceType">
-                      <option value="" disabled selected>Select Type</option>
-                      <option value="Out Station Travel">On Out Station Travel</option>
-                      <option value="Extra Time">On Extra Time</option>
-                      <option value="Team Dinner/Lunch">Team Dinner/Lunch</option>
-                      <option value="Other">Other</option>
+                        <option value="" disabled selected>Select Type</option>
+                        <option value="Out Station Travel">On Out Station Travel</option>
+                        <option value="Extra Time">On Extra Time</option>
+                        <option value="Team Dinner/Lunch">Team Dinner/Lunch</option>
+                        <option value="Other">Other</option>
                     </select>
-                  </div>
+                </div>
 
-                  <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Food'">
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Food'">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Fooding Date</label>
-                            <input class="form-control" [(ngModel)]="reimbursementObj.dateOfFood" id="toDate" type="date" [min]="fromDate" [max]="toDate" placeholder="Choose to date" autocomplete="off">
+                            <input class="form-control" [(ngModel)]="reimbursementObj.dateOfFood" id="toDate"
+                                type="date" [min]="fromDate" [max]="toDate" placeholder="Choose to date"
+                                autocomplete="off">
                         </div>
                     </div>
                 </div>
-                <!-- Food related fields end -->
-                <!-- Common fields  -->
-                 <!-- <div class="col-md-3 mb-0">
-                    <label class="info-label">
-                        <span class="text-danger">*</span> Currency
-                    </label>
-                    <select class="form-control" id="dayTypeCursor" aria-hidden="true" [(ngModel)]="reimbursementObj.currencyType">
-                        <option selected="selected" value="" disabled>Select</option>
-                        <option value="Rupees">Rupees</option>
-                        <option value="Dollar">Dollar</option>
-                        <option value="Euro">Euro</option>
-                        <option value="Dhiram">Dhiram</option>
-                        <option value="Australian Dollar">Australian Dollar</option>
-                        <option value="Yen">Yen</option>
-                    </select>
-                </div> -->
+
                 <div class="col-md-3 mb-0">
                     <label class="info-label">
                         <span class="text-danger">*</span> Total Amount
                     </label>
-                    <input type="number" class="form-control" name="fullName" [(ngModel)]="reimbursementObj.amount" required [disabled]="reimbursementObj.travelMode === 'Personal Vehicle'"/>
+                    <input type="number" class="form-control" name="fullName" [(ngModel)]="reimbursementObj.amount"
+                        required [disabled]="reimbursementObj.travelMode === 'Personal Vehicle'" />
                 </div>
 
                 <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType != 'Food'">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>From Date</label>
-                            <input class="form-control" [(ngModel)]="reimbursementObj.fromDate" id="fromDate" type="date" 
-                                [min]="fromDate" [max]="toDate" placeholder="Choose from date" autocomplete="off">
+                            <!-- <input class="form-control" [(ngModel)]="reimbursementObj.fromDate"
+                                (ngModelChange)="onFromDateChange($event)" id="fromDate" type="date" [min]="fromDate"
+                                [max]="toDate" placeholder="Choose from date" autocomplete="off" /> -->
+                            <input class="form-control" [(ngModel)]="reimbursementObj.fromDate"
+                                (ngModelChange)="onFromDateChange($event)" id="fromDate" type="date" [min]="fromDate"
+                                [max]="toDate" placeholder="Choose from date" autocomplete="off" />
+                            <div *ngIf="invalidFromDate" class="text-danger mt-1">
+                                Please select a date between the 1st and 15th only.
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -160,32 +162,51 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                            <input class="form-control" [(ngModel)]="reimbursementObj.toDate" id="toDate" type="date" [min]="reimbursementObj.fromDate" [max]="toDate" placeholder="Choose to date" [disabled]="reimbursementObj.fromDate == null" autocomplete="off">
+                            <input class="form-control" [(ngModel)]="reimbursementObj.toDate" id="toDate" type="date"
+                                [min]="reimbursementObj.fromDate" [max]="toDate" placeholder="Choose to date"
+                                [disabled]="reimbursementObj.fromDate == null" autocomplete="off">
                         </div>
                     </div>
                 </div>
-                              
-                    <div class="col-md-3 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label for="leaveDesc"><span class="text-danger">*</span>Purpose</label>
-                                <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="reimbursementObj.purpose"></textarea>
+
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="leaveDesc"><span class="text-danger">*</span>Purpose</label>
+                            <textarea class="form-control" id="dayTypeDesc" rows="3"
+                                [(ngModel)]="reimbursementObj.purpose"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-0" *ngFor="let file of fileUploads; let i = index">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label" [for]="'fileUpload' + i">
+                                <span class="text-danger">*</span> Supporting Document/GST Bill {{ i + 1 }}
+                            </label>
+                            <div class="d-flex align-items-center">
+                                <input type="file" class="form-control" [id]="'fileUpload' + i"
+                                    (change)="onFileChange1($event, i,alert_message)" />
+                                <button type="button" class="btn btn-outline-primary ml-2"
+                                    (click)="addInputSpecializationField()" [hidden]="fileUploads.length >= 6"
+                                    [disabled]="!fileUploads[i]?.file || fileUploads.length >= 6">
+                                    <i class="fa fa-plus" aria-hidden="true"></i>
+                                </button>
+                                <button *ngIf="i > 0" type="button" class="btn btn-outline-danger ml-2"
+                                    (click)="removeInputSpecializationField(i)">
+                                    <i class="fa fa-trash"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
-
-                    <div class="col-md-3 mb-0">
-                            <div class="info-wrapper">
-                               <div class="form-group">
-                                    <label for="fileUpload" class="info-label"><span class="text-danger">*</span>Supporting Document/GST Bill</label>
-                                    <input type="file" id="fileUpload" class="form-control" (change)="onFileChange($event)" />
-                                </div>   
-                            </div>
-                    </div>
-                
+                </div>
 
 
-                    <!-- Common fields  end-->
+
+
+
+                <!-- Common fields  end-->
 
 
                 <!-- </div> -->
@@ -195,8 +216,10 @@
             <div class="row mb-3">
                 <div class="col-md-12 px-0 text-center">
                     <!-- Reset and Submit buttons -->
-                    <button type="button" class="btn btn-secondary btn-lg mx-1" (click)="resetForm(alert_message)">Reset</button>
-                    <button type="submit" class="btn btn-primary btn-lg mx-1" (click)="submitForm(alert_messagevalidation)">Submit</button>
+                    <button type="button" class="btn btn-secondary btn-lg mx-1"
+                        (click)="resetForm(alert_message)">Reset</button>
+                    <button type="submit" class="btn btn-primary btn-lg mx-1"
+                        (click)="submitForm(alert_messagevalidation)">Submit</button>
                 </div>
             </div>
         </div>
