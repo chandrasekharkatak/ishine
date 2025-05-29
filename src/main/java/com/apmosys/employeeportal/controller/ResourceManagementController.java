@@ -228,11 +228,25 @@ public class ResourceManagementController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/rbacShankhInternalProjects", method = RequestMethod.POST)
+	@RequestMapping(value = "/rbacAllShankhInternalProjects", method = RequestMethod.POST)
 	public ServiceResponse getAllShankhInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
 		ServiceResponse response = resourceManagementService.getAllShankhInternalProjectsNewRMG(projectFilterDTO);
 		return response;
 	}
+	
+	
+	@RequestMapping(value = "/rbacBothShankhInternal", method = RequestMethod.POST)
+	public ServiceResponse getBothShankhInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
+		ServiceResponse response = resourceManagementService.getBothShankhInternalProjectsNewRMG(projectFilterDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/projectLessEmployees", method = RequestMethod.POST)
+	public ServiceResponse getEmployessWithoutProjects(@RequestBody ProjectFilterDTO projectFilterDTO) {
+		ServiceResponse response = resourceManagementService.getEmployessWithoutProjects(projectFilterDTO);
+		return response;
+	}
+	
 	
 	@RequestMapping(value = "/totalEmployeeCount", method = RequestMethod.GET)
 	public ServiceResponse totalEmployeeCount() {

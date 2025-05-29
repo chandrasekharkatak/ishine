@@ -74,6 +74,13 @@ export class ViewEmployeeComponent implements OnInit {
       this.filters = {};
     }
   }
+
+  nameListToString(listData: any[]): string {
+  if (!listData || listData.length === 0) {
+    return '';
+  }
+  return listData.map(item => item.projectManagerName).join(', ');
+}
    exportToExcel(): void {
 
     

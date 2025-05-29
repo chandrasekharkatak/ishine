@@ -93,7 +93,7 @@ matSort (matSortChange)="sortData($event)"
                                             <td class="text-center" *ngIf="tIndex === 0" [attr.rowspan]="getLength(empProject.rmgTeam)">{{empProject.poProjectType}}</td>
                                             <td class="text-center" *ngIf="tIndex === 0" [attr.rowspan]="getLength(empProject.rmgTeam)">{{empProject.poStartDate | date: 'dd-MM-yyyy'}}</td>
                                             <td class="text-center" *ngIf="tIndex === 0" [attr.rowspan]="getLength(empProject.rmgTeam)">{{empProject.poEndDate | date: 'dd-MM-yyyy'}}</td>
-                                            <td class="text-center" *ngIf="tIndex === 0" [attr.rowspan]="getLength(empProject.rmgTeam)">{{empProject.projectManagerName}}</td>
+                                            <td class="text-center" *ngIf="tIndex === 0" [attr.rowspan]="getLength(empProject.rmgTeam)">{{nameListToString(empProject.projectManagers)}}</td>
                                             <td class="text-center">{{empTeam.teamName}}</td>
                                             <td class="text-center">{{empTeam.employeeRole}}</td>
                                             <td class="text-center">{{empTeam.status}}</td>

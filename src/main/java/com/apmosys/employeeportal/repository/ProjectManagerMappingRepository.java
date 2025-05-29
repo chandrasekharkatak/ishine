@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -22,4 +23,9 @@ public interface ProjectManagerMappingRepository extends JpaRepository<ProjectMa
 	
 	@Query(nativeQuery = true)
 	public List<Object[]>findProjectManagersByPoProjectId(Long id);
+	
+	@Modifying
+	@Query(nativeQuery = true)
+	public void deactivateByProjectId(@Param("projectId") Long projectId);
+
 }
