@@ -659,21 +659,21 @@ public class ResourceManagementService {
 				                    	    String ccMail = hodMail + "," + managerEmail.getEmail().toString() + "," + rmgMail + "," + adminMail;
 					                    	  
 						                    
-						                    try {
-												mailService.sendMailWithCC(findEmp.getEmail().toString(),ccMail,"Regarding Resource removed from Project ", "Dear "
-														+ emp.getName()+"<br>"
-														+ "You have been removed from project "+findProject.getProjectName()+ "under the team - "+findTeam.getTeamName()+"<br>"
-																+ "<br><br>"
-																+ "Sincerely,"+"<br>"
-																+ "Team RMG - ApMoSys Technologies"
-														);
-											} catch (AddressException e) {
-												// TODO Auto-generated catch block
-												e.printStackTrace();
-											} catch (MessagingException e) {
-												// TODO Auto-generated catch block
-												e.printStackTrace();
-											}
+//						                    try {
+//												mailService.sendMailWithCC(findEmp.getEmail().toString(),ccMail,"Regarding Resource removed from Project ", "Dear "
+//														+ emp.getName()+"<br>"
+//														+ "You have been removed from project "+findProject.getProjectName()+ "under the team - "+findTeam.getTeamName()+"<br>"
+//																+ "<br><br>"
+//																+ "Sincerely,"+"<br>"
+//																+ "Team RMG - ApMoSys Technologies"
+//														);
+//											} catch (AddressException e) {
+//												// TODO Auto-generated catch block
+//												e.printStackTrace();
+//											} catch (MessagingException e) {
+//												// TODO Auto-generated catch block
+//												e.printStackTrace();
+//											}
 						                });
 						                List<EmployeeTeamMap> inActiveDbResponse = employeeTeamMapRepository.saveAll(inActiveMember);
 						            }
@@ -3398,21 +3398,21 @@ public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) 
 		                }
 
 		                employeeTeamMapRepository.save(findResource);
-		                try {
-							mailService.sendMail(rmgMail,"Regarding Resource removed from Project ", "Dear "
-									+ emp.getName()+"<br>"
-									+ "You have been removed from project "+findProject.getProjectName()+ "under the team - "+findTeam.getTeamName()+"<br>"
-											+ "<br><br>"
-											+ "Sincerely,"+"<br>"
-											+ "Team RMG - ApMoSys Technologies"
-									);
-						} catch (AddressException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (MessagingException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+//		                try {
+//							mailService.sendMail(rmgMail,"Regarding Resource removed from Project ", "Dear "
+//									+ emp.getName()+"<br>"
+//									+ "You have been removed from project "+findProject.getProjectName()+ "under the team - "+findTeam.getTeamName()+"<br>"
+//											+ "<br><br>"
+//											+ "Sincerely,"+"<br>"
+//											+ "Team RMG - ApMoSys Technologies"
+//									);
+//						} catch (AddressException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						} catch (MessagingException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
 		               
 		                resultMessage.append("Resource with EmpId " + resourceManagementDTO.getEmpId() + " from Team " +
 		                        findTeam.getTeamName() + " removed successfully.\n");
