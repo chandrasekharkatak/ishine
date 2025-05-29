@@ -58,6 +58,10 @@ export class ResourceManagementComponent implements OnInit {
   internalMappedEmployeesList : any[] = [];
   mappedToBothEmployees :any;
   mappedToBothEmployeesList : any[] = [];
+  allMappedEmployees : any;
+  allMappedEmployeesList : any[] = [];
+  employeesWithoutProject : any;
+  employeesWithoutProjectList : any[] = [];
   employeeData : any[] = [];
   employees = ['John Doe', 'Jane Smith'];
   statuses = ['Pending', 'Approved'];
@@ -260,7 +264,9 @@ export class ResourceManagementComponent implements OnInit {
 
     await this.RbacShankhProjects(this.projectFilterDTO);
 
-    await this.RbacShankhInternalProjects(this.projectFilterDTO)
+    await this.RbacAllShankhInternalProjects(this.projectFilterDTO);
+    await this.RbacBothShankhInternal(this.projectFilterDTO);
+    await this.ProjectLessEmployees(this.projectFilterDTO);
     
     await this.TotalEmployeeCount();
     // const deptName = String(this.currentUser.departmentName).trim();
@@ -443,44 +449,7 @@ export class ResourceManagementComponent implements OnInit {
                 }
               });
             }
-
-            // added in single list  
-
-            // this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
-            // let fileteredList : any[] = [];
-            // let unfilteredList : any[] = this.allProject_Po_Internal;
-            // console.log(unfilteredList,"unfilteredList");
-            // console.log(this.allProject_Po_Internal, " this.allProject_Po_Internal");
-
-            
-            // const deptName = String(this.currentUser.departmentName).trim();
-            // const empRole = String(this.currentUser.employeeRole).trim();
-            // console.log(empRole);55
-            // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
-            //   this.allProject_Po_Internal = [];
-            //   this.departments.forEach(data1=>{
-            //     console.log(data1,"data1");
-            //     fileteredList = unfilteredList.filter(data => {
-            //       return String(data.department).includes(data1.name);
-            //       });
-            //       console.log(fileteredList);
-            //       this.allProject_Po_Internal.push(...fileteredList);
-            //       console.log(this.allProject_Po_Internal,"this.allProject_Po_Internal");
-            //   })
-              // this.allProject_Po_Internal = this.allProject_Po_Internal.filter(data => {
-              //   console.log(data.department)
-              //   return String(data.department).includes(deptName);
-              //   });
-                // console.log('dept name ::',deptName);
             }
-            // else{
-
-            // }
-           
-
-            // this.allProject_Po_Internal.filter(data =>{
-            //   data.department.includes(this.currentUser.departmentName);
-            // })
             console.log(this.internalProjectList, " this.internalProjectList");
 
 
@@ -1718,8 +1687,14 @@ onAction(action: string, project: any) {
     else if(catagory === 'Internal'){
       this.employeeData = this.internalMappedEmployeesList;
     }
-    else{
+    else if(catagory === 'Both'){
       this.employeeData = this.mappedToBothEmployeesList;
+    }
+    else if(catagory === 'Not Mapped'){
+      this.employeeData = this.employeesWithoutProjectList;
+    }
+    else if(catagory === 'All Mapped'){
+      this.employeeData = this.allMappedEmployees;
     }
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
@@ -1875,6 +1850,8 @@ RbacInternalProjects(projectFilterDTO: ProjectFilterDTO){
       this.internalMappedEmployeesList = response.serviceResponse;
       this.internalMappedEmployees = this.internalMappedEmployeesList.length;
       console.log("this.internalMappedEmployees",this.internalMappedEmployees)
+     }else{
+      this.openAlertMod(this.alertTemplate, response.serviceResponse);
      }
 });
 
@@ -1887,26 +1864,58 @@ RbacShankhProjects(projectFilterDTO: ProjectFilterDTO){
       this.sankhMappedEmployeesList = response.serviceResponse;
       this.sankhMappedEmployees = this.sankhMappedEmployeesList.length;
       console.log("this.sankhMappedEmployees",this.sankhMappedEmployees)
+     }else{
+      this.openAlertMod(this.alertTemplate, response.serviceResponse);
      }
 });
 
 }
-RbacShankhInternalProjects(projectFilterDTO: ProjectFilterDTO){
-  this.resourceManagementService.rbacShankhInternalProjects(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+RbacAllShankhInternalProjects(projectFilterDTO: ProjectFilterDTO){
+  this.resourceManagementService.rbacAllShankhInternalProjects(projectFilterDTO).pipe(first()).subscribe((response: any) => {
      if (response.serviceStatus === "Success") {
       console.log(response.serviceResponse);
-      this.mappedToBothEmployeesList = response.serviceResponse;
-      this.mappedToBothEmployees = this.mappedToBothEmployeesList.length;
-      console.log("this.mappedToBothEmployees",this.mappedToBothEmployees)
+      this.allMappedEmployeesList = response.serviceResponse;
+      this.allMappedEmployees = this.allMappedEmployeesList.length;
+      console.log("this.allMappedEmployeesList",this.allMappedEmployeesList)
+     }
+     else{
+      this.openAlertMod(this.alertTemplate, response.serviceResponse);
      }
 });
-
 }
+
+RbacBothShankhInternal(projectFilterDTO: ProjectFilterDTO){
+   this.resourceManagementService.rbacBothShankhInternal(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus === "Success") {
+         console.log(response.serviceResponse);
+      this.mappedToBothEmployeesList = response.serviceResponse;
+      this.mappedToBothEmployees = this.mappedToBothEmployeesList.length;
+      console.log("this.mappedToBothEmployeesList",this.mappedToBothEmployeesList)
+     }else{
+      this.openAlertMod(this.alertTemplate, response.serviceResponse);
+     }
+    });
+}
+
+ProjectLessEmployees(projectFilterDTO: ProjectFilterDTO){
+   this.resourceManagementService.projectLessEmployees(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus === "Success") {
+      this.employeesWithoutProjectList = response.serviceResponse;
+      this.employeesWithoutProject = this.employeesWithoutProjectList.length;
+      console.log("this.employeesWithoutProjectList",this.employeesWithoutProjectList)
+     }else{
+      this.openAlertMod(this.alertTemplate, response.serviceResponse);
+     }
+    });
+}
+
 TotalEmployeeCount(){
   this.resourceManagementService.totalEmployeeCount().pipe(first()).subscribe((response:any)=>{
     if (response.serviceStatus === "Success") {
       console.log(response.serviceResponse);
       this.totalEmployees = response.serviceResponse;
+     }else{
+      this.openAlertMod(this.alertTemplate, response.serviceResponse);
      }
   });
 }
@@ -1916,6 +1925,8 @@ TotalEmployeeCount(){
       if (response.serviceStatus === 'Success') {
         this.employeeList = response.serviceResponse;
         this.filteredEmployees = this.employeeList;
+      }else{
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
     });
   }

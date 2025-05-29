@@ -77,8 +77,15 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}` + `api/rbacShankhProjects`,ProjectFilterDTO);
   }
 
-  rbacShankhInternalProjects(ProjectFilterDTO:ProjectFilterDTO){
+  rbacAllShankhInternalProjects(ProjectFilterDTO:ProjectFilterDTO){
     return this.http.post(`${this.baseUrl}` + `api/rbacAllShankhInternalProjects`,ProjectFilterDTO);
+  }
+
+  rbacBothShankhInternal(ProjectFilterDTO:ProjectFilterDTO){
+    return this.http.post(`${this.baseUrl}` + `api/rbacBothShankhInternal`,ProjectFilterDTO);
+  }
+  projectLessEmployees(ProjectFilterDTO:ProjectFilterDTO){
+    return this.http.post(`${this.baseUrl}` + `api/projectLessEmployees`,ProjectFilterDTO);
   }
 
   getResourceRequirementByPoProjectId(id: any) {
