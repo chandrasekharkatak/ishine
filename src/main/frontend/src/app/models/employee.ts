@@ -203,5 +203,6 @@ export class Employee{
 	emp360:any;
 
 	selectedProjectId :any;
-
+	employmentId:any;
+	resourceOverviewId: any;
 }

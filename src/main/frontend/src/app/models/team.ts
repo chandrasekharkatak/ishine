@@ -25,4 +25,8 @@ export class Team{
     empId:any;
     activity: any;
     projectName: any;
+    spocId:any;
+    spoc:any;
+    shadowEmpId:any;
+    shadow:any;
 } 

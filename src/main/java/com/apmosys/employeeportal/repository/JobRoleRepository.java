@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -34,6 +35,9 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 
 	@Query(nativeQuery = true, value = "SELECT count(*) FROM job_role WHERE name = :name AND dept_id = :deptId")
 	public Integer findByNameAndDeptId(@Param("name") String name, @Param("deptId") Long deptId);
+	
+	@Query("SELECT jr FROM JobRole jr WHERE jr.jobRoleId IN :jobRoleIds")
+	List<JobRole> findByJobRoleIdIn(@Param("jobRoleIds") Set<Long> jobRoleIds);
 
 	
 }

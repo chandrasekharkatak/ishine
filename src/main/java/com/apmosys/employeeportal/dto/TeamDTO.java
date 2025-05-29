@@ -58,6 +58,6 @@ public class TeamDTO {
 	private String employeeTeamRole;   // comma seperated string of employeeRole
 	private String updatedByName;
 	private String employeeName;
-//	private String createdBy;
-
+	private SpocDTO spoc;
+	private Long spocId;
 }

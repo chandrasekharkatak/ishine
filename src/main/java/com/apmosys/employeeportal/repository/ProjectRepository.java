@@ -27,7 +27,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getAllProject();
 
 	public Project findByPoProjectId(Long poProjectId);
-
+	
 	public boolean existsProjectByProjectName(String projectName);
 
 	public List<Project> findBySyncProject(String sync);
@@ -47,6 +47,11 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> findAllProjectByIsDraftAndIsActive();
 	
+	@Query(nativeQuery = true,value ="select p.project_id, p.project_name, p.is_draft_project,(case when exists (select 1 from employee_team_mapping etm where etm.team_id in \n"
+			+ "(select team_id from teams where project_id=p.project_id) and etm.active=2) then 2 else 1 end), p.project_status from projects p  \n"
+			+ "where p.is_draft_project IN ('false','true','Rejected') and p.project_id IN :projectIds")
+	public List<Object[]> findAllProjectByIsDraftAndIsActiveOfProjectIds(@Param("projectIds") Set<Integer> projectIds);
+	
 
 	public List<Project> findProjectByDepartmentName(String name);
 
@@ -62,7 +67,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getProjectInfo(Integer projectId);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getPoProjectInfo(Integer poProjectId);
+	public List<Object[]> getPoProjectInfo(Long poProjectId);
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getTeamInfo(Integer projectId);
@@ -97,5 +102,21 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeesByPoProjectId(String poProjectId);
+	
+	
+	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true' and po_project_type IS NULL")
+	 Set<Integer> findAllActiveInternalProjectIds();
+	 
+	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true' and po_project_type IS NOT NULL")
+	 Set<Integer> findAllActiveShankhProjectIds();
+	 
+	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true'")
+	 Set<Integer> findAllActiveShankhInternalProjectIds();
+	 
+	@Query(nativeQuery = true)
+	public int getAssignedEmployeesCountInProject(Long id);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeInformation(Long empId);
 	
 }

@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -116,5 +117,118 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	
 	@Query(value = "SELECT project_name FROM projects WHERE project_id = :projectId", nativeQuery = true)
 	String getProjectNameById(@Param("projectId") Long projectId);
+	
+	
+	@Query(value ="select etm.* from employee_team_mapping etm where etm.team_id =:teamId and active != 0",nativeQuery = true)
+	 List<EmployeeTeamMap> findByTeamIdWhereEmployeesAreActive(@Param("teamId") Long teamId);
+	
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId IN :teamIds AND etm.active !=0")
+	List<EmployeeTeamMap> findActiveByTeamIds(@Param("teamIds") List<Long> teamIds);
+	
+	@Query(value = "SELECT \n"
+			+ "    e.emp_id, \n"
+			+ "    e.employeement_id, \n"
+			+ "    e.billable, \n"
+			+ "    e.billable_type, \n"
+			+ "    e.name, \n"
+			+ "    d.name AS departmentname,\n"
+			+ "    p.project_id, \n"
+			+ "    p.project_name, \n"
+			+ "    p.po_project_id, \n"
+			+ "    p.po_start_date, \n"
+			+ "    p.po_end_date,\n"
+			+ "    p.apmosysrm, \n"
+			+ "    p.clientrm, \n"
+			+ "    p.po_project_type, \n"
+			+ "    p.po_no, \n"
+			+ "    c.client_name,\n"
+			+ "    t.team_id, \n"
+			+ "    t.team_name, \n"
+			+ "    t.is_active, \n"
+			+ "    etm.employee_role, \n"
+			+ "    etm.active,  \n"
+			+ "    pm.emp_id AS project_manager_id, \n"
+			+ "    pm.name AS project_manager_name\n"
+			+ "FROM \n"
+			+ "    employee_team_mapping etm\n"
+			+ "RIGHT JOIN \n"
+			+ "    employee e ON e.emp_id = etm.emp_id\n"
+			+ "RIGHT JOIN \n"
+			+ "    teams t ON t.team_id = etm.team_id\n"
+			+ "INNER JOIN \n"
+			+ "    projects p ON p.project_id = t.project_id\n"
+			+ "INNER JOIN \n"
+			+ "    clients c ON c.client_id = p.client_id\n"
+			+ "INNER JOIN \n"
+			+ "    job_role jr ON jr.job_role_id = e.job_role_id\n"
+			+ "INNER JOIN \n"
+			+ "    department d ON d.dept_id = jr.dept_id\n"
+			+ "LEFT JOIN \n"
+			+ "    project_manager_mapping pmm ON pmm.project_id = p.project_id\n"
+			+ "LEFT JOIN \n"
+			+ "    employee pm ON pm.emp_id = pmm.project_manager_id\n"
+			+ "WHERE \n"
+			+ "    p.project_id IN :projectIds\n"
+			+ "    AND etm.active != 0 \n"
+			+ "    AND t.is_active = 'Y' \n"
+			+ "    AND e.employmentstatus != 'InActive' \n"
+			+ "    AND pmm.active = 1",
+    nativeQuery = true)
+List<Object[]> findEmployeeProjectTeamDetailsByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+
+@Query(value ="SELECT \n"
+		+ "    e.emp_id, \n"
+		+ "    e.employeement_id, \n"
+		+ "    e.billable, \n"
+		+ "    e.billable_type, \n"
+		+ "    e.name, \n"
+		+ "    d.name AS departmentname,\n"
+		+ "    p.project_id, \n"
+		+ "    p.project_name, \n"
+		+ "    p.po_project_id, \n"
+		+ "    p.po_start_date, \n"
+		+ "    p.po_end_date,\n"
+		+ "    p.apmosysrm, \n"
+		+ "    p.clientrm, \n"
+		+ "    p.po_project_type, \n"
+		+ "    p.po_no, \n"
+		+ "    c.client_name,\n"
+		+ "    t.team_id, \n"
+		+ "    t.team_name, \n"
+		+ "    t.is_active, \n"
+		+ "    etm.employee_role, \n"
+		+ "    etm.active,  \n"
+		+ "    pm.emp_id AS project_manager_id, \n"
+		+ "    pm.name AS project_manager_name\n"
+		+ "FROM \n"
+		+ "    employee_team_mapping etm\n"
+		+ "RIGHT JOIN employee e ON e.emp_id = etm.emp_id\n"
+		+ "RIGHT JOIN teams t ON t.team_id = etm.team_id\n"
+		+ "INNER JOIN projects p ON p.project_id = t.project_id\n"
+		+ "INNER JOIN clients c ON c.client_id = p.client_id\n"
+		+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+		+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+		+ "LEFT JOIN project_manager_mapping pmm ON pmm.project_id = p.project_id\n"
+		+ "LEFT JOIN employee pm ON pm.emp_id = pmm.project_manager_id\n"
+		+ "WHERE \n"
+		+ "    e.emp_id IN (\n"
+		+ "        SELECT e1.emp_id\n"
+		+ "        FROM employee_team_mapping etm1\n"
+		+ "        JOIN employee e1 ON e1.emp_id = etm1.emp_id\n"
+		+ "        JOIN teams t1 ON t1.team_id = etm1.team_id\n"
+		+ "        JOIN projects p1 ON p1.project_id = t1.project_id\n"
+		+ "        JOIN project_manager_mapping pmm1 ON pmm1.project_id = p1.project_id\n"
+		+ "        WHERE etm1.active != 0 AND t1.is_active = 'Y' AND e1.employmentstatus != 'InActive' AND pmm1.active = 1   AND p1.project_id IN :projectIds\n"
+		+ "        GROUP BY e1.emp_id\n"
+		+ "        HAVING \n"
+		+ "            COUNT(CASE WHEN p1.po_project_id IS NULL THEN 1 END) > 0 AND\n"
+		+ "            COUNT(CASE WHEN p1.po_project_id IS NOT NULL THEN 1 END) > 0\n"
+		+ "    )\n"
+		+ "    AND etm.active != 0 \n"
+		+ "    AND t.is_active = 'Y' \n"
+		+ "    AND e.employmentstatus != 'InActive' \n"
+		+ "    AND pmm.active = 1",nativeQuery = true)
+List<Object[]> findEmployeeProjectTeamDetailsMatchedBothProjects(@Param("projectIds") Set<Integer> projectIds);
+
 
 }

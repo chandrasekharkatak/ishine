@@ -1,30 +1,33 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { Sort } from '@angular/material/sort';
+import { ActivatedRoute, Params, Router } from '@angular/router';
+import * as moment from 'moment';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first, map, startWith } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
+import { Department } from 'src/app/models/department';
+import { Employee } from 'src/app/models/employee';
+import { EmployeeInformation } from 'src/app/models/employeeInformation';
 import { Feature } from 'src/app/models/feature';
 import { Project } from 'src/app/models/project';
-import { first } from 'rxjs/operators';
-import { User } from 'src/app/models/user';
-import { DepartmentService } from 'src/app/services/department.service';
+import { ProjectFilterDTO } from 'src/app/models/projectFilterDTO';
+import { ProjectRequirements } from 'src/app/models/projectRequirements';
 import { Team } from 'src/app/models/team';
-import { Employee } from 'src/app/models/employee';
-import { EmployeeService } from 'src/app/services/employee.service';
-import { Department } from 'src/app/models/department';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { TeamMember } from 'src/app/models/teamMember';
-import { ResourceManagementService } from 'src/app/services/resource-management.service';
+import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { DepartmentService } from 'src/app/services/department.service';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { ProjectService } from 'src/app/services/project.service';
+import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TeamService } from 'src/app/services/team.service';
 import { UtilityService } from 'src/app/services/utility.service';
-import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { ActivatedRoute, Router, Params } from '@angular/router';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
-import { ProjectService } from 'src/app/services/project.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { Employee360Service } from 'src/app/services/employee360.service';
-import { SortPipe } from 'src/app/sort.pipe';
-
 @Component({
   selector: 'app-resource-management',
   templateUrl: './resource-management.component.html',
@@ -32,6 +35,36 @@ import { SortPipe } from 'src/app/sort.pipe';
 })
 export class ResourceManagementComponent implements OnInit {
 
+  topStats = [
+    { value: 96, label: "Ishine’s Billable", icon: "fa-users", iconColor: "#5E35B1", borderColor: "#5E35B1" },
+    { value: 104, label: "Shankh’s Billable", icon: "fa-users", iconColor: "#FFB300", borderColor: "#FFB300" },
+    { value: -5, label: "TNM Difference", icon: "", iconColor: "#D32F2F", borderColor: "#D32F2F" },
+    { value: -7, label: "Fixed Cost Difference", icon: "", iconColor: "#D32F2F", borderColor: "#D32F2F" }
+  ];
+
+  statusCards = [
+    { value: 12, label: "Pending for approval", icon: "fa fa-clock", iconColor: "#FFB300", borderColor: "#FFB300" },
+    { value: 45, label: "Approved", icon: "fa-check-circle", iconColor: "#4CAF50", borderColor: "#4CAF50" },
+    { value: 28, label: "Not Started", icon: "fa-minus-circle", iconColor: "#9E9E9E", borderColor: "#9E9E9E" },
+    { value: 28, label: "Completed", icon: "fa-check", iconColor: "#009688", borderColor: "#009688" },
+    { value: 5, label: "On Hold", icon: "fa-pause-circle", iconColor: "#F44336", borderColor: "#F44336" },
+    { value: 32, label: "Pending", icon: "fa-hourglass-half", iconColor: "#03A9F4", borderColor: "#03A9F4" }
+  ];
+
+  totalEmployees = 0;
+  sankhMappedEmployees :any;
+  sankhMappedEmployeesList : any[] = [];
+  internalMappedEmployees :any;
+  internalMappedEmployeesList : any[] = [];
+  mappedToBothEmployees :any;
+  mappedToBothEmployeesList : any[] = [];
+  employeeData : any[] = [];
+  employees = ['John Doe', 'Jane Smith'];
+  statuses = ['Pending', 'Approved'];
+  selectedEmployee = '';
+  selectedStatus = '';
+
+  // new cards changes.....................................................................
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
@@ -57,7 +90,9 @@ export class ResourceManagementComponent implements OnInit {
   newteamMember: TeamMember = new TeamMember();
   isActive: any;
   temp: any
-
+  lastDate: any;
+  selectAll: boolean = false;
+  selectedTeamsDetails: any[] = [];
   isProjectTable: boolean = false;
   isEditProject: boolean = false;
   isUpdation: boolean = false;
@@ -96,6 +131,7 @@ export class ResourceManagementComponent implements OnInit {
   internalProjectList: any[] = [];
   poPortalProjectList: any[] = [];
   allProject_Po_Internal: any[] = [];
+  filteredDepartments: any[] = [];
 
   getBillableType: any;
   newMemberInProject: any;
@@ -104,17 +140,49 @@ export class ResourceManagementComponent implements OnInit {
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   filters: any = {};
   isSearchEnabled: boolean = false;
-  projectColumns: any[] = ["blank", "blank", "name","poNo","projectManagerName", "clientName", "apmosysRM", "clientRM" , "startDate" , "endDate" , "clientState" ,"createdOn", "status", "isDraftProject"];
+  projectColumns: any[] = [ "blank", "blank","isDraftProject", "name", "poNo","projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "startDate", "endDate", "clientState", "createdOn", "status"];
 
   projectDetails: any = [];
-  copyDepartment : any = [];
+  copyDepartment: any = [];
   currentBreadcrumbList: any[] = [];
   // employeesFor360: any[] = [];
   poProjectListFromIshine: any[] = [];
   flagDialogueBox: boolean = false;
   tableName: string;
   isAccounts: boolean = false;
+  isAllSelected: boolean = false;
+  tabCounts: any;
+  searchQuery: any;
+  selectedEmpId: any;
+  deptIdList: any[] = [];
+  employeeList: Employee[] = [];
+  filteredEmployees: Employee[] = [];
+  employeeCtrl = new FormControl();
+  searchText : any;
+  searchTextDept : any;
+  selectedStatusTab: string ='';
+  @ViewChild('customDatePickerTemplate') 
+  customDatePickerTemplate!: TemplateRef<any>;
+
+  selectedDate: String| null = null;
+  completedProjectDetails: Project = new Project();
+  projectFilterDTO:ProjectFilterDTO = new ProjectFilterDTO();
   departments: any[] = [];
+  totalCount: any;
+  projectRequirementsList: ProjectRequirements =  new ProjectRequirements();
+
+  showSearchInput = true;
+  teamMembers: TeamMember[] = [];
+  newMember: { empId: number; name: string; newBillableType: string; employeeRole: any[]; employeeTeamMappingId: any; teamId: any; isTeamLead: any; billableType: any; isShadow: boolean; };
+  addMemberCtrl = new FormControl();
+  searchManagerText: any;
+  filteredManagerList: any[] = [];
+  isAllManagersSelected: boolean = false;
+  selectedRequirement: any = null;
+  teamMemberCtrl = new FormControl();
+  spocCtrl = new FormControl();
+  employeeInformation: EmployeeInformation = new EmployeeInformation();
+  loadingRequirements = true;
 
   constructor(
     private departmentService: DepartmentService,
@@ -145,12 +213,31 @@ export class ResourceManagementComponent implements OnInit {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     //console.log(this.feature, this.userMapping);
+    const deptName = String(this.currentUser.departmentName).trim();
+    const empRole = String(this.currentUser.employeeRole).trim();
+    if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
+    !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
+      await this.getAllDepartmentsFromId();
+    }
+    else{
+      await this.getAllDepartments();
+    }
 
     this.route.params.subscribe((params: Params) => {
       this.currentProjectId = params['id'];
     });
     //console.log(this.currentProjectId, " : this.currentProjectId");
     this.sectionViewInit();
+    this.getEmployeeByNameAndEmpld();
+
+    this.employeeCtrl.valueChanges
+    .pipe(
+      startWith(''),
+      map(value => this.filterEmployees(value))
+    )
+    .subscribe(filtered => {
+      this.filteredEmployees = filtered;
+    });
 
     if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
       this.toggleSearch();
@@ -160,15 +247,33 @@ export class ResourceManagementComponent implements OnInit {
     //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
     // });
     // console.log('userMapping',this.userMapping);
-    const deptName = String(this.currentUser.departmentName).trim();
+    
     if(deptName === "Accounts" ){
       this.isAccounts = true;
     }
+    // this.toggleSelectAllDept();
+    this.projectFilterDTO.approvalStatus = "All";
+    this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+    await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
 
-    await this.getAllDepartmentsFromId();
-   
+    await this.RbacInternalProjects(this.projectFilterDTO);
+
+    await this.RbacShankhProjects(this.projectFilterDTO);
+
+    await this.RbacShankhInternalProjects(this.projectFilterDTO)
+    
+    await this.TotalEmployeeCount();
+    // const deptName = String(this.currentUser.departmentName).trim();
+    // const empRole = String(this.currentUser.employeeRole).trim();
+    // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
+    // !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
+    //   await this.getAllDepartmentsFromId();
+    // }
+    // else{
+    //   await this.getAllDepartments();
+    // }
   }
-   
+
 
   sectionViewInit() {
     if (this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin') {
@@ -202,8 +307,8 @@ export class ResourceManagementComponent implements OnInit {
 
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
-    this.getManagerList();
-    this.alreadyCreatedTeam();
+    // this.getManagerList();
+    // this.alreadyCreatedTeam();
   }
 
   showEditProjectForm(project: any) {
@@ -302,7 +407,7 @@ export class ResourceManagementComponent implements OnInit {
             // Process internal projects
             this.internalProjectList.forEach((proj) => {
               let selectedProj = this.teamCreatedProjectList.find((projTeam) => proj.projectId == projTeam.projectId);
-              console.log("Priyadarshini",proj.projectId," ",proj.projectName);
+              // console.log("Priyadarshini", proj.projectId, " ", proj.projectName);
 
               if (selectedProj) {
                 proj.isTeamCreated = true;
@@ -341,36 +446,36 @@ export class ResourceManagementComponent implements OnInit {
 
             // added in single list  
 
-            this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
-            let fileteredList : any[] = [];
-            let unfilteredList : any[] = this.allProject_Po_Internal;
-            console.log(unfilteredList,"unfilteredList");
-            console.log(this.allProject_Po_Internal, " this.allProject_Po_Internal");
+            // this.allProject_Po_Internal = [...this.poPortalProjectList, ...this.internalProjectList];
+            // let fileteredList : any[] = [];
+            // let unfilteredList : any[] = this.allProject_Po_Internal;
+            // console.log(unfilteredList,"unfilteredList");
+            // console.log(this.allProject_Po_Internal, " this.allProject_Po_Internal");
 
             
-            const deptName = String(this.currentUser.departmentName).trim();
-            const empRole = String(this.currentUser.employeeRole).trim();
-            console.log(empRole);55
-            if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
-              this.allProject_Po_Internal = [];
-              this.departments.forEach(data1=>{
-                console.log(data1,"data1");
-                fileteredList = unfilteredList.filter(data => {
-                  return String(data.department).includes(data1.name);
-                  });
-                  console.log(fileteredList);
-                  this.allProject_Po_Internal.push(...fileteredList);
-                  console.log(this.allProject_Po_Internal,"this.allProject_Po_Internal");
-              })
+            // const deptName = String(this.currentUser.departmentName).trim();
+            // const empRole = String(this.currentUser.employeeRole).trim();
+            // console.log(empRole);55
+            // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
+            //   this.allProject_Po_Internal = [];
+            //   this.departments.forEach(data1=>{
+            //     console.log(data1,"data1");
+            //     fileteredList = unfilteredList.filter(data => {
+            //       return String(data.department).includes(data1.name);
+            //       });
+            //       console.log(fileteredList);
+            //       this.allProject_Po_Internal.push(...fileteredList);
+            //       console.log(this.allProject_Po_Internal,"this.allProject_Po_Internal");
+            //   })
               // this.allProject_Po_Internal = this.allProject_Po_Internal.filter(data => {
               //   console.log(data.department)
               //   return String(data.department).includes(deptName);
               //   });
-                console.log('dept name ::',deptName);
+                // console.log('dept name ::',deptName);
             }
-            else{
+            // else{
 
-            }
+            // }
            
 
             // this.allProject_Po_Internal.filter(data =>{
@@ -384,18 +489,82 @@ export class ResourceManagementComponent implements OnInit {
           } else {
             console.error(response.serviceResponse);
           }
-        }
+        
       });
     });
   }
 
-   getAllDepartmentsFromId(): Promise<any> {
+  clearSelection(event: Event) {
+    console.log(this.isAllSelected,"this.isAllSelected");
+    event.stopPropagation(); // prevent dropdown from closing
+    if(this.isAllSelected == true){
+      console.log(this.isAllSelected,"this.isAllSelected");
+      this.toggleSelectAllDept();
+    }
+    else{
+      this.deptIdList = [];
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = [];
+      console.log(this.projectFilterDTO,"this.projectFilterDTO");
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+    }
+    
+  }
+
+  filterDepartments() {
+    const lowerText = this.searchTextDept.toLowerCase();
+    this.filteredDepartments = this.departments.filter(dept =>
+      dept.name.toLowerCase().includes(lowerText)
+    );
+  }
+
+  onDepartmentSelectionChange() {
+    console.log(this.isAllSelected,"this.isAllSelected");
+    if (!this.isAllSelected && this.deptIdList.length > 0 && this.deptIdList[0] != null) {
+      this.projectFilterDTO.approvalStatus = "All";
+    this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+    this.projectFilterDTO.departmentsids = this.deptIdList;
+    console.log(this.projectFilterDTO,"this.projectFilterDTO");
+    this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+
+      // this.getEmployeeReportData();
+    }
+  }
+
+  toggleSelectAllDept() {
+    // this.employeeReportObj.deptId = [];
+    console.log(this.isAllSelected,"this.isAllSelected")
+    if (this.isAllSelected) {
+      // Deselect all if already selected
+      this.deptIdList = [];
+      this.isAllSelected = false;
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = [];
+      console.log(this.projectFilterDTO,"this.projectFilterDTO");
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+
+    } else {
+      // Select all departments
+      this.deptIdList  = this.filteredDepartments.map(dept => dept.deptId);
+      this.isAllSelected = true;
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = this.deptIdList;
+      console.log(this.projectFilterDTO,"this.projectFilterDTO");
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+    }
+
+  }
+  getAllDepartments(): Promise<any> {
       return new Promise((resolve, reject) => {
-        this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
+        this.departmentService.getAllDepartments().pipe(first()).subscribe({
           next: (response: any) => {
             if (response.serviceStatus === "Success") {
               this.departments = response.serviceResponse;
-              console.log(this.departments,"this.departments")
+              this.filteredDepartments = this.departments;
+              console.log(this.filteredDepartments,"this.filteredDepartments");
               resolve(response.serviceResponse);
             } else {
               reject("Failed to fetch departments");
@@ -407,6 +576,35 @@ export class ResourceManagementComponent implements OnInit {
         });
       });
     }
+
+   getAllDepartmentsFromId(): Promise<any> {
+      return new Promise((resolve, reject) => {
+        this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
+          next: (response: any) => {
+            if (response.serviceStatus === "Success") {
+              this.departments = response.serviceResponse;
+              this.filteredDepartments = this.departments;
+              console.log(this.departments,"this.departments")
+              // this.deptIdList = this.filteredDepartments.map(dept => dept.deptId);
+              resolve(response.serviceResponse);
+            } else {
+              reject("Failed to fetch departments");
+            }
+          },
+          error: (error) => {
+            reject(error);
+          }
+        });
+      });
+    }
+
+    selectStatusTab(status: string) {
+      this.selectedStatusTab = status;
+      console.log(this.selectedStatusTab,"this.selectedStatusTab");
+      this.projectFilterDTO.approvalStatus =  this.selectedStatusTab;
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+    }
+
   alreadyCreatedTeam() {
     this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -427,6 +625,7 @@ export class ResourceManagementComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
         this.filteredDeptList = this.allDeptList.filter(x => project.department.includes(x.name));
+        this.filteredDepartments = [...this.allDeptList];
         //console.log("allDeptList : ", this.allDeptList)
       } else {
         console.error(response.serviceResponse);
@@ -475,7 +674,7 @@ export class ResourceManagementComponent implements OnInit {
         this.employeeListByDept = response.serviceResponse;
         this.employeeListByDept = this.employeeListByDept.sort((a, b) => a.name.localeCompare(b.name));
         console.log("employeeList By Department : ", this.employeeListByDept);
-        this.updateEmployeeListAccordingToTeamMembers();
+        // this.updateEmployeeListAccordingToTeamMembers();
       } else {
         console.error(response.serviceResponse);
       }
@@ -537,7 +736,7 @@ export class ResourceManagementComponent implements OnInit {
         }
       }
     });
-    this.cancelRequest1();
+    this.cancelRequest();
   }
 
   checkTeamName(template: TemplateRef<any>, team: any, teamIndex: any) {
@@ -589,14 +788,14 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   validateProjectObj(projectObj, template: TemplateRef<any>) {
-    if (!this.validationService.validateNullUndefinedEmptyString(projectObj.projectManager)) {
-      this.alertMessage = `Please select project manager!!`
+    if (projectObj.projectManagerId == undefined || projectObj.projectManagerId.length == 0 || projectObj.projectManagerId == null) {
+      this.alertMessage = `Please select atleast one project manager.`
       this.openAlertMod(template, this.alertMessage);
       return;
     }
 
     if (projectObj.teamList.length == 0) {
-      this.alertMessage = "Please add a Team !!"
+      this.alertMessage = "Please add atleast one team."
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -606,24 +805,24 @@ export class ResourceManagementComponent implements OnInit {
       projectObj.teamList.forEach((projObj, index) => {
         projObj.teamName = projObj.teamName?.trim();
         if (!this.validationService.validateNullUndefinedEmptyString(projObj.teamName)) {
-          this.alertMessage = `Please enter Team Name - ${index + 1}!!`
+          this.alertMessage = `Please enter Team Name - ${index + 1}.`
           flag = false;
           return;
         }
         if (!this.validationService.validateTeamName(projObj.teamName)) {
-          this.alertMessage = "Please enter valid Team Name !!"
+          this.alertMessage = "Please enter valid Team Name."
           this.openAlertMod(template, this.alertMessage);
           return false;
         }
 
         if (projObj.departmentList == undefined || projObj.departmentList.length == 0 || projObj.departmentList == null) {
-          this.alertMessage = `Please select Team's department - ${index + 1}!!`
+          this.alertMessage = `Please select Team's department - ${index + 1}.`
           flag = false;
           return;
         }
 
         if (projObj.teamMemberList == undefined || projObj.teamMemberList.length == 0 || projObj.teamMemberList == null) {
-          this.alertMessage = `Please add Team Member(s) - ${index + 1}!!`
+          this.alertMessage = `Please add team member(s) - ${index + 1}.`
           flag = false;
           return;
         }
@@ -632,14 +831,14 @@ export class ResourceManagementComponent implements OnInit {
           let memberFlag = true;
           projObj.teamMemberList.forEach((member) => {
             if (!this.validationService.validateNullUndefinedEmptyString(member.name)) {
-              this.alertMessage = `Please select Team Member- ${index + 1}!!`
+              this.alertMessage = `Please select Team Member- ${index + 1}.`
               flag = false;
               return;
             }
 
             if (member.isTeamLead == null && (member.isTeamLead != true || member.isTeamLead != 'true')) {
               if (member.employeeRole == undefined || member.employeeRole.length == 0 || member.employeeRole == null) {
-                this.alertMessage = `Please select member(s) Employee Role - ${index + 1}!!`
+                this.alertMessage = `Please select member(s) Employee Role - ${index + 1}.`
                 flag = false;
                 //console.log(projObj.teamMemberList, " : projObj.teamMemberList");
 
@@ -665,10 +864,33 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   createDraftProjectInfo(template: TemplateRef<any>) {
-    this.cancelRequest();
-
+    this.cancelRequest1();
+    console.log(this.allTeamList,"this.allTeamList");
+    if(this.allTeamList != null && this.allTeamList.length != 0){
+      
+    
+    this.allTeamList.forEach(team => {
+      if (team.spoc) {
+        team.spocId = team.spoc.empId;
+      } else {
+        console.warn(`No SPOC data available for team: ${team.teamName}`);
+      }
+      if (team.teamMemberList) {
+        team.teamMemberList.forEach(member => {
+          if (member.shadow && member.shadow.empId) {
+            member.shadowEmpId = member.shadow.empId;
+            console.log("shadowEmpId set",member.shadowEmpId)
+          } else {
+            member.shadowEmpId = null;
+            console.warn(`No valid shadow data for member: ${member.empId || 'Unknown ID'} in team: ${team.teamName}`);
+          }
+        });
+      }
+    
+    });
     this.projectObj.teamList = this.allTeamList;
     this.projectObj.createdBy = this.currentUser.empId;
+    
     // this.projectObj.projectId=this.projectObj.id;
 
     let inputValidated: boolean = this.validateProjectObj(this.projectObj, template)
@@ -708,6 +930,10 @@ export class ResourceManagementComponent implements OnInit {
       });
     }
   }
+  else{
+    this.openAlertMod(this.alertTemplate, "There are currently no teams to be set...!");
+  }
+  }
 
   getTeamListByProjectName(project: any) {
     // this.previewTeamList = [];
@@ -716,15 +942,11 @@ export class ResourceManagementComponent implements OnInit {
     this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectObj.teamList = response.serviceResponse;
+        console.log(this.projectObj,"projectofthisteam");
         //console.log(this.projectObj.teamList, " this.projectObj.teamList");
         this.projectObj.teamList.forEach((obj) => {
           obj.departmentList = obj.departmentList?.map(x => +x);
           this.copyDepartment = obj.departmentList;
-
-          // obj.teamMemberList.forEach((member) => {
-          //   //console.log(" teamMemberList    ",obj.teamMemberList);
-          //   member.startDate = (member.startDate) ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
-          // });
 
           if (obj.teamMemberList) {
             obj.teamMemberList.forEach((member) => {
@@ -732,6 +954,7 @@ export class ResourceManagementComponent implements OnInit {
                 // Format the startDate if it exists, otherwise set it to null
                 member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
                 member.emp360 = member.empId;
+                member.shadowControl = new FormControl(member.shadow || null);
               }
             });
           } else {
@@ -764,15 +987,74 @@ export class ResourceManagementComponent implements OnInit {
         }
       }
     });
+    this.getManagerList();
   }
 
+  // getTeamListByProjectName(project: any) {
+  //   this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus === 'Success') {
+  //       this.projectObj.teamList = response.serviceResponse;
 
+  //       this.projectObj.teamList.forEach((obj) => {
+  //         obj.departmentList = obj.departmentList?.map(x => +x);
+  //         this.copyDepartment = obj.departmentList;
 
+  //         this.projectObj.resourceRequirements.forEach((requirement) => {
+  //           requirement.teamMembers = [];
+  //         });
+  
+  //         if (obj.teamMemberList) {
+  //           obj.teamMemberList.forEach((member) => {
+  //             const matchingRequirement = this.projectObj.resourceRequirements.find(
+  //               (requirement) => requirement.id === member.id
+  //             );
+
+  //             if (matchingRequirement) {
+  //               member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
+  //               member.emp360 = member.empId;
+  //               member.billability = 'Billable'; // Static value for billability
+  //               member.shadowResources = member.shadowResources || [];
+  //               matchingRequirement.teamMembers.push(member);
+  //               matchingRequirement.assigned = matchingRequirement.teamMembers.length;
+  //             }
+  //           });
+  //         }
+  //       });
+
+  //       this.projectObj.resourceRequirements.forEach((requirement) => {
+  //         requirement.teamMembers = requirement.teamMembers.map(member => ({
+  //           ...member,
+  //           shadowResources: member.shadowResources.length > 0 ? member.shadowResources : [{}]
+  //         }));
+  //       });
+
+  //       this.previewTeamList = this.projectObj.teamList;
+
+  //       if (!this.projectObj.teamList?.length) {
+  //         this.addInputTeamField();
+  //       } else {
+  //         this.allTeamList = this.projectObj.teamList;
+  //         this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
+  //       }
+
+  //     } else {
+  //       console.error(response.serviceResponse);
+
+  //       if (!this.projectObj.teamList?.length) {
+  //         this.addInputTeamField();
+  //       } else {
+  //         this.allTeamList = this.projectObj.teamList;
+  //         this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
+  //       }
+  //     }
+  //   });
+  // }
+  
   onApproveProject(project: any) {
     project.empId = this.currentUser.empId;
     // project.projectId = this.projectObj.projectId;
-    console.log("this.projectObj.projectId   ",this.projectObj.projectId);
-    console.log("this.projectObj.projectId   ",project.projectId);
+    console.log("this.projectObj.projectId   ", this.projectObj.projectId);
+    console.log("this.projectObj.projectId   ", project.projectId);
     this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.showViewProjects();
@@ -822,6 +1104,7 @@ export class ResourceManagementComponent implements OnInit {
           // }
           emp.employeementId = "A-".concat(emp.employeementId);
         });
+        this.filteredManagerList = this.managerList;
 
         //console.log("managerList : ", this.managerList);
       } else {
@@ -1002,63 +1285,97 @@ export class ResourceManagementComponent implements OnInit {
     //console.log(this.allTeamList, " : this.allTeamList");
   }
 
-  // removeInputTeamField(teamObj) {
-  //   console.log("teamObj anurag   ",teamObj);
-  //   this.allTeamList.forEach((value, index) => {
-  //     if (value == teamObj) {
-  //       this.updatedTeamList.push(value);
-  //       this.allTeamList.splice(index, 1);
-  //       this.allTeamListCopy.splice(index, 1);
-  //     }
-  //   });
-  // }
+  
 
   tempTeam = new Project();
-
-  openDeleteModalForTeam(template: TemplateRef<any>, teamObj) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  projectdetails1: any[] = [];
+  openDeleteModalForTeam(template: TemplateRef<any>,alert_message: TemplateRef<any>, teamObj, project) {
     this.tempTeam = teamObj;
-  }
+    this.projectdetails1 = project;
 
-  deleteTeam(template: TemplateRef<any>) {
-    console.log("delete team method call ", this.tempTeam);
-    this.projectService.deleteTeam(this.tempTeam).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
+    if (!this.tempTeam.teamId) {
+      this.openAlertMod(alert_message, "Team is missing. Cannot proceed.");
+      this.allTeamList.pop();
+      this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
+      this.copyDepartment = [];
+      if (!this.allTeamList || this.allTeamList.length === 0) {
+        this.addInputTeamField();
       }
-    })
-
-
-
+      return;
+   }else{
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+   }
+   
 
   }
+
+
+  openDeleteModalForTeamBulk(template: TemplateRef<any>,alert_message: TemplateRef<any>, teamObj, project) {
+    this.tempTeam = teamObj;
+    this.projectdetails1 = project;
+    console.log("tesmp",this.projectdetails1);
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+ 
+  
+ 
 
   tempArray: any[] = [];
 
 
+  // addTeamMember() {
+  //   const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
+  //   console.log("newteamMember  ", newTeamMember)
+  //   if (newTeamMember) {
+  //     newTeamMember.employeeRole = this.newteamMember.employeeRole;
+  //     newTeamMember.resourceOverviewId = this.newteamMember.resourceOverviewId;
+
+  //     this.allTeamMembers.push(newTeamMember);
+      
+
+  //   }
+    
+  //   this.newteamMember = new TeamMember();
+  // }
+
   addTeamMember() {
     const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
-    console.log("newteamMember  ", newTeamMember)
-    if (newTeamMember) {
-      newTeamMember.employeeRole = this.newteamMember.employeeRole;
+  
+    if (newTeamMember && this.selectedRequirement) {
+      const memberToAdd = {
+        ...newTeamMember,
+        employeeRole: this.newteamMember.employeeRole,
+        resourceOverviewId: this.selectedRequirement.resourceOverviewId
+      };
+  
+      this.allTeamMembers.push(memberToAdd);
+  
+      this.newteamMember = new TeamMember();
+      this.addMemberCtrl.reset();
+      this.selectedRequirement = null;
 
-      this.allTeamMembers.push(newTeamMember);
-      //console.log("New member ===== ::  ",newTeamMember);
-
+    }else {
+      const memberToAdd = {
+        ...newTeamMember,
+        employeeRole: this.newteamMember.employeeRole
+      };
+  
+      this.allTeamMembers.push(memberToAdd);
+  
+      this.newteamMember = new TeamMember();
+      this.addMemberCtrl.reset();
+      this.selectedRequirement = null;
     }
-    // this.tempArrays =  Object.assign({},this.allTe)
-    this.newteamMember = new TeamMember();
   }
+  
 
   removeTeamMember(teamMember, index) {
     const currentTeam = this.currentTeam;
     this.allTeamList?.forEach((team) => {
       if (team.teamName == currentTeam.teamName) {
         team.teamMemberList.splice(index, 1);
-        //console.log(team.teamMemberList, " : team.teamMemberList");
-
+       
         this.teamObj.allTeamMemberList.splice(index, 1);
         let existingEmployee = this.employeeListByDept.find(employee => employee.empId == teamMember.empId);
         if (existingEmployee) existingEmployee.isSelected = false;
@@ -1074,10 +1391,8 @@ export class ResourceManagementComponent implements OnInit {
         if (existingEmployee) existingEmployee.isSelected = false;
       }
     });
-    //console.log("Updated Members : ", this.allTeamMembers);
+   
   }
-
-  // Modals
 
   openTeamMemberModal(template: TemplateRef<any>, currentTeam) {
     this.allTeamMembers = [];
@@ -1086,7 +1401,7 @@ export class ResourceManagementComponent implements OnInit {
     this.newteamMember.employeeRole = null;
     // this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     // this.getAllEmployeesByRole(currentTeam.departmentList);
-    console.log("this.copyDepartment ",this.copyDepartment);
+    console.log("this.copyDepartment ", this.copyDepartment);
     // this.getAllEmployeesByDepartmentIds(this.copyDepartment);
     this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     this.getAllEmployeesByRole(this.copyDepartment);
@@ -1099,7 +1414,7 @@ export class ResourceManagementComponent implements OnInit {
         //console.log(teamLeadObj, " :teamLeadObj");
         //console.log(this.teamObj.teamLeadId, " : this.teamObj.teamLeadId");
 
-        console.log("team.teammemberList ",team.allTeamMemberList);
+        console.log("team.teammemberList ", team.allTeamMemberList);
 
         this.teamObj.allTeamMemberList = team.teamMemberList?.filter(x => x.isTeamLead != true);
         if ((this.teamObj.allTeamMemberList != undefined || this.teamObj.allTeamMemberList != null) && this.teamObj.allTeamMemberList.length != 0) {
@@ -1150,20 +1465,16 @@ export class ResourceManagementComponent implements OnInit {
         this.previewTeamList = [team];
       }
     });
-    //by priyadarshini
-    // if (Object.keys(this.previewTeamList[0]).length === 0) {
-    //   this.previewTeamList = [];
-    // }
     if (this.previewTeamList.length === 0) {
       console.warn('No team members available for this team.');
-      return; 
-  }
+      return;
+    }
     if (projectObj.projectManager != null) {
       this.setManagerName(projectObj);
     }
     //console.log(this.previewTeamList, " : this.previewTeamList");
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
   }
 
   openProjectPreviewModal(template: TemplateRef<any>, project: any) {
@@ -1176,7 +1487,7 @@ export class ResourceManagementComponent implements OnInit {
     this.setManagerName(project);
     this.getTeamListByProjectName(project);
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
   }
 
   openRejectModal(template: TemplateRef<any>, projectObj: any) {
@@ -1213,38 +1524,60 @@ export class ResourceManagementComponent implements OnInit {
     }
   }
 
+
+
+
+  openMenuIndex: number | null = null;
+
+toggleMenu(index: number) {
+  this.openMenuIndex = this.openMenuIndex === index ? null : index;
+}
+
+closeMenu(index: number) {
+  if (this.openMenuIndex === index) {
+    this.openMenuIndex = null;
+  }
+}
+
+onAction(action: string, project: any) {
+  console.log('Action:', action, 'on Project:', project);
+  this.openMenuIndex = null;
+  // handle your logic here...
+}
+
+
   // Excel Export
 
-//   exportToExcel(id:any) {
-//     this.excelName = 'Projects.xlsx';
+  //   exportToExcel(id:any) {
+  //     this.excelName = 'Projects.xlsx';
 
-//     const onlySpecificDataArr = this.allProjectList.map(
-//       x => ({
-//         "Project Name": x.name,
-//         "PO Number": x.poNo,
-//         "Project Manager": x.projectManagerName,
-//         "Client Name": x.clientName,
-//         "Client State": x.clientState,
-//         "Apmosys RM": x.apmosysRM,
-//         "Client RM": x.clientRM,
-//         "Start Date": x.startDate ? x.startDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.startDate,
-// "End Date": x.endDate ? x.endDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.endDate,
-//         // "Start Date": x.startDate,
-//         // "End Date": x.endDate,
-//         "Created On": x.createdOn,
-//         "Approval Status": x.isDraftProject,
-//         "Project Status": x.status,
-//       })
-//     )
-//     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
-//   }
-exportToExcel(id:any): void {
-  const tableId = id; // Replace with your actual table ID
-  this.excelName = "TeamMemberSheet.xlsx";
-  this.tableName= 'Team Members';
+  //     const onlySpecificDataArr = this.allProjectList.map(
+  //       x => ({
+  //         "Project Name": x.name,
+  //         "PO Number": x.poNo,
+  //         "Project Manager": x.projectManagerName,
+  //         "Client Name": x.clientName,
+  //         "Client State": x.clientState,
+  //         "Apmosys RM": x.apmosysRM,
+  //         "Client RM": x.clientRM,
+  //         "Start Date": x.startDate ? x.startDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.startDate,
+  // "End Date": x.endDate ? x.endDate.split(/[\sT]/)[0].split('-').reverse().join('-') : x.endDate,
+  //         // "Start Date": x.startDate,
+  //         // "End Date": x.endDate,
+  //         "Created On": x.createdOn,
+  //         "Approval Status": x.isDraftProject,
+  //         "Project Status": x.status,
+  //       })
+  //     )
+  //     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
+  //   }
+  exportToExcel(id: any): void {
+    const tableId = id; // Replace with your actual table ID
+    this.excelName = "TeamMemberSheet.xlsx";
+    this.tableName = 'Team Members';
 
-  this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
-}
+    this.exportExcelService.exportTableFormat(tableId, this.excelName, this.tableName);
+  }
 
 
   // check resource template
@@ -1252,16 +1585,16 @@ exportToExcel(id:any): void {
   getExistingProjectsByUser(employeeId: string): Promise<any[]> {
     return new Promise((resolve, reject) => {
       console.log("Fetching project details for employee ID:", employeeId);
-  
+
       let projectObj = new Project();
       projectObj.empId = employeeId;
-  
+
       this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe(
         (response: any) => {
           if (response.serviceStatus === "Success") {
             this.projectDetails = response.serviceResponse;
             console.log("Project details fetched successfully:", this.projectDetails);
-  
+
             if (this.projectDetails.length > 0) {
               if (this.projectDetails[0].billableType === "TNM") {
                 this.openAlertMod(
@@ -1279,21 +1612,21 @@ exportToExcel(id:any): void {
               this.newMemberInProject = "NewMember";
               this.newteamMember.billableType = this.newMemberInProject;
             }
-  
-            resolve(this.projectDetails); 
+
+            resolve(this.projectDetails);
           } else {
             console.error("Failed to fetch project details:", response);
-            reject(response); 
+            reject(response);
           }
         },
         (error) => {
           console.error("Error in service call:", error);
-          reject(error); 
+          reject(error);
         }
       );
     });
   }
-  
+
 
   deleteResourceFromProject(template: TemplateRef<any>) {
 
@@ -1319,65 +1652,77 @@ exportToExcel(id:any): void {
   openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
     this.getExistingProjectsByUser(employee.empId).then((projectDetails) => {
       this.dataObj = employee;
-  
+
       if (projectDetails.length > 0) {
         this.modalRef2 = this.modalService.show(template, { class: 'modal-xl' });
       } else {
         console.log("No project details found for the employee.");
       }
-  
+
       console.log("data employee newmenbfcg  ", employee);
     }).catch((error) => {
       console.error("Error fetching project details:", error);
     });
   }
+
   
 
 
-changeDepartment(event: any): void {
+  changeDepartment(event: any): void {
     const selectedDepartmentIds = event.value;
-console.log("this.copyDepartment ",this.copyDepartment);
+    console.log("this.copyDepartment ", this.copyDepartment);
     // Identify deselected departments by finding the difference between the previous and current selections
     const deselectedDepartmentIds = this.copyDepartment.filter(
-        id => !selectedDepartmentIds.includes(id)
+      id => !selectedDepartmentIds.includes(id)
     );
 
-    console.log("deselectedDepartmentIds    ",deselectedDepartmentIds)
+    console.log("deselectedDepartmentIds    ", deselectedDepartmentIds)
 
     // Update the current department selection
     this.copyDepartment = selectedDepartmentIds;
 
     // If there are any deselected departments, show the alert
     if (deselectedDepartmentIds.length > 0) {
-        this.allTeamList.forEach(team => {
-            if (team.teamMemberList === '' || team.teamMemberList === null || team.teamMemberList === undefined) {
-                return;
-            } else {
-                this.openAlertMod(this.alertTemplate,"You have deselected a department! Wish to add it again, please ensure that the team members for that department are added as well.");
+      this.allTeamList.forEach(team => {
+        if (team.teamMemberList === '' || team.teamMemberList === null || team.teamMemberList === undefined) {
+          return;
+        } else {
+          this.openAlertMod(this.alertTemplate, "You have deselected a department! Wish to add it again, please ensure that the team members for that department are added as well.");
 
-                const departmentList = team.departmentList;
-                console.log("team.teamMemberList  ",team.teamMemberList)
-                console.log("departmentList     ",departmentList);
-                
-                  // Use strict equality check and type casting if necessary
-                  const filteredTeamMemberList = team.teamMemberList.filter(member => {
-                    const memberDeptId = String(member.departmentId); // Convert to string for comparison
-                    const isMatch = departmentList.some(deptId => String(deptId) === memberDeptId);
-                    console.log(`Checking if department ID ${memberDeptId} is in departmentList:`, isMatch);
-                    return isMatch;
-                });
-                console.log("filteredTeamMemberList    ",filteredTeamMemberList)
-                team.teamMemberList = filteredTeamMemberList;
-                console.log(team.teamMemberList);
-            }
-        });
+          const departmentList = team.departmentList;
+          console.log("team.teamMemberList  ", team.teamMemberList)
+          console.log("departmentList     ", departmentList);
+
+          // Use strict equality check and type casting if necessary
+          const filteredTeamMemberList = team.teamMemberList.filter(member => {
+            const memberDeptId = String(member.departmentId); // Convert to string for comparison
+            const isMatch = departmentList.some(deptId => String(deptId) === memberDeptId);
+            console.log(`Checking if department ID ${memberDeptId} is in departmentList:`, isMatch);
+            return isMatch;
+          });
+          console.log("filteredTeamMemberList    ", filteredTeamMemberList)
+          team.teamMemberList = filteredTeamMemberList;
+          console.log(team.teamMemberList);
+        }
+      });
     }
 
     // Update the previousDepartmentIds with the current selection for future comparison
     this.copyDepartment = selectedDepartmentIds;
-}
+  }
 
-
+  EmployeeViewDataModel(template: TemplateRef<any>, catagory: string){
+    if(catagory === 'Sankh'){
+      this.employeeData = this.sankhMappedEmployeesList;
+    }
+    else if(catagory === 'Internal'){
+      this.employeeData = this.internalMappedEmployeesList;
+    }
+    else{
+      this.employeeData = this.mappedToBothEmployeesList;
+    }
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  }
 
 
 
@@ -1404,7 +1749,7 @@ console.log("this.copyDepartment ",this.copyDepartment);
   }
 
   syncPoProjectDetailsByProjectId(template: TemplateRef<any>, project: any) {
-    this.resourceManagementService.syncPoProjectDetailsByProjectId(project).pipe(first()).subscribe((response: any) => { 
+    this.resourceManagementService.syncPoProjectDetailsByProjectId(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
       } else {
@@ -1414,7 +1759,7 @@ console.log("this.copyDepartment ",this.copyDepartment);
   }
 
   sendEmailNotificationToBDTeam(template: TemplateRef<any>, project: any) {
-    this.resourceManagementService.sendEmailNotificationToBDTeam(project).pipe(first()).subscribe((response: any) => { 
+    this.resourceManagementService.sendEmailNotificationToBDTeam(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
       } else {
@@ -1422,5 +1767,474 @@ console.log("this.copyDepartment ",this.copyDepartment);
       }
     });
   }
+  
+  deleteTeam(template: TemplateRef<any>) {
+    console.log("delete team method call ", this.tempTeam);
+    this.tempTeam.endDate = this.lastDate;
+    this.projectService.deleteTeam(this.tempTeam).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        const teamIndex = this.allTeamList.findIndex(team => team.teamId === this.tempTeam.teamId);
+     
+      if (teamIndex !== -1) {
+        this.allTeamList.splice(teamIndex, 1); 
+        this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));  
+        this.copyDepartment = [];  
+      }
+      if (!this.allTeamList || this.allTeamList.length === 0) {
+        this.addInputTeamField();
+      }
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    })
 
+  }
+  deleteResourceModal1(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    const detailsList = Array.isArray(this.projectdetails1) ? this.projectdetails1 : [this.projectdetails1];
+
+    detailsList.forEach(details => {
+      this.lastDate = details.endDate
+        ? moment(details.endDate).format('YYYY-MM-DD')
+        : moment().format('YYYY-MM-DD');
+      console.log("Testing for end date", this.lastDate);
+    });
+  }
+
+
+  toggleSelectAll(): void {
+    this.allTeamList.forEach(teamObj => {
+      teamObj.selected = this.selectAll;  
+    });
+    this.updateSelectedTeamsDetails();
+  }
+
+  
+  updateSelection(): void {
+   
+    this.selectAll = this.allTeamList.every(teamObj => teamObj.selected);
+    this.updateSelectedTeamsDetails();
+  }
+
+  
+  updateSelectedTeamsDetails(): void {
+    this.allTeamList.forEach(teamObj => {
+      teamObj.endDate = this.lastDate; 
+    });
+    this.selectedTeamsDetails = this.allTeamList.filter(teamObj => teamObj.selected);
+    console.log('Selected Team Details:', this.selectedTeamsDetails);
+  }
+
+  deleteTeamsByIdsBulk(template: TemplateRef<any>) {
+    console.log("Deleting teams: ", this.selectedTeamsDetails);
+  
+    this.projectService.deleteTeamsByIdsBulk(this.selectedTeamsDetails).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        const deletedIds = this.selectedTeamsDetails.map(team => team.teamId);
+        this.allTeamList = this.allTeamList.filter(team => !deletedIds.includes(team.teamId));
+        this.selectedTeamsDetails = [];
+        this.allTeamList.forEach(team => team.selected = false);
+        this.selectAll = false;
+        this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
+        this.copyDepartment = [];
+        if (!this.allTeamList || this.allTeamList.length === 0) {
+          this.addInputTeamField();
+        }
+        console.log("Selected teams cleared: ", this.selectedTeamsDetails);
+       
+        this.openAlertMod(template, response.serviceResponse);
+       
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+  
+  // alert_message template is to be passed
+ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO:ProjectFilterDTO){
+  this.allProject_Po_Internal = [];
+  this.resourceManagementService.combinedPOINTERNALList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.allProject_Po_Internal = response.serviceResponse.combinedProjects;
+      this.tabCounts = response.serviceResponse.counts;
+      this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
+
+    }else {
+      this.openAlertMod(template, response.serviceResponse);
+    }
+  });
+
+ }
+
+RbacInternalProjects(projectFilterDTO: ProjectFilterDTO){
+  this.resourceManagementService.rbacInternalProjects(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.internalMappedEmployeesList = response.serviceResponse;
+      this.internalMappedEmployees = this.internalMappedEmployeesList.length;
+      console.log("this.internalMappedEmployees",this.internalMappedEmployees)
+     }
+});
+
+}
+
+RbacShankhProjects(projectFilterDTO: ProjectFilterDTO){
+  this.resourceManagementService.rbacShankhProjects(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.sankhMappedEmployeesList = response.serviceResponse;
+      this.sankhMappedEmployees = this.sankhMappedEmployeesList.length;
+      console.log("this.sankhMappedEmployees",this.sankhMappedEmployees)
+     }
+});
+
+}
+RbacShankhInternalProjects(projectFilterDTO: ProjectFilterDTO){
+  this.resourceManagementService.rbacShankhInternalProjects(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.mappedToBothEmployeesList = response.serviceResponse;
+      this.mappedToBothEmployees = this.mappedToBothEmployeesList.length;
+      console.log("this.mappedToBothEmployees",this.mappedToBothEmployees)
+     }
+});
+
+}
+TotalEmployeeCount(){
+  this.resourceManagementService.totalEmployeeCount().pipe(first()).subscribe((response:any)=>{
+    if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.totalEmployees = response.serviceResponse;
+     }
+  });
+}
+
+  getEmployeeByNameAndEmpld() {
+    this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => { 
+      if (response.serviceStatus === 'Success') {
+        this.employeeList = response.serviceResponse;
+        this.filteredEmployees = this.employeeList;
+      }
+    });
+  }
+  
+  filterEmployees(searchText: string) {
+    const lowerText = (searchText || '').toLowerCase();
+    return this.employeeList.filter(emp => 
+      emp.name.toLowerCase().includes(lowerText) || 
+      emp.employmentId.toLowerCase().includes(lowerText)
+    );
+  }
+  
+  onEmployeeSelected(event: any) {
+    const selectedName = event.option.value;
+    const selectedEmp = this.employeeList.find(emp => emp.name === selectedName);
+    if (selectedEmp) {
+      this.selectedEmpId = selectedEmp.empId;
+      console.log('Selected Employee ID:', this.selectedEmpId);
+    }
+  }
+
+  displayEmployee(emp: any): string {
+    console.log("emp",emp)
+    return emp ? `${emp.name}` : '';
+  }  
+
+  openEditModal(template,project){
+    // console.log("Project ",project)
+    this.isEditProject = true;
+
+    this.allProjectTable = true;
+    this.isHideButton = true;
+
+    this.allTeamList = [];
+    this.projectObj = Object.assign({}, project);
+    this.getAllDepartmentList(project);
+    this.getTeamListByProjectName(project);
+    this.getEmployeeByNameAndEmpld();
+
+    this.modalRef1 = this.modalService.show(template, { class: 'custom-modal' });
+    // this.modalRef1 = this.modalService.show(template, { class: 'modal-lg' });
+  }
+  
+  openTeamMembersModal(template: any,projectObj,currentTeam) {
+    if(projectObj.id) {
+    this.getResourceRequirementByPoProjectId(projectObj.id);
+    }
+
+    // projectObj.resourceRequirements.forEach(requirement => {
+    //   requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
+    //   requirement.assigned = requirement.teamMembers.length;
+    // });
+
+    this.projectObj.resourceRequirements.forEach(req => {
+      const assignedCount = this.teamObj.allTeamMemberList?.filter(member => member.resourceOverviewId === req.resourceOverviewId).length || 0;
+      req.assigned = assignedCount;
+    });
+    
+    this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
+
+    this.allTeamMembers = [];
+    this.teamObj.teamLeadId = '';
+    this.newteamMember.empId = '';
+    this.newteamMember.employeeRole = null;
+    // this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
+    // this.getAllEmployeesByRole(currentTeam.departmentList);
+    console.log("this.copyDepartment ", this.copyDepartment);
+    // this.getAllEmployeesByDepartmentIds(this.copyDepartment);
+    this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
+    this.getAllEmployeesByRole(this.copyDepartment);
+    this.allTeamList?.forEach((team: any) => {
+      if (team.teamName == currentTeam.teamName) {
+        let teamLeadObj = team.teamMemberList?.filter(x => x.isTeamLead == true || x.isTeamLead == "true");
+        if (teamLeadObj) {
+          this.teamObj.teamLeadId = teamLeadObj[0]?.empId;
+        }
+        //console.log(teamLeadObj, " :teamLeadObj");
+        //console.log(this.teamObj.teamLeadId, " : this.teamObj.teamLeadId");
+
+        console.log("team.teammemberList ", team.allTeamMemberList);
+
+        this.teamObj.allTeamMemberList = team.teamMemberList?.filter(x => x.isTeamLead != true);
+        if ((this.teamObj.allTeamMemberList != undefined || this.teamObj.allTeamMemberList != null) && this.teamObj.allTeamMemberList.length != 0) {
+          this.isUpdation = true;
+        } else {
+          this.isUpdation = false;
+        }
+      }
+    });
+    //console.log(this.teamObj.allTeamMemberList, " allTeamMemberList");
+
+    this.currentTeam = currentTeam;
+  }
+
+ 
+
+  openDatePicker(template: TemplateRef<any>,project:any) {
+    const today = new Date();
+    this.selectedDate = today.toISOString().split('T')[0];
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });  
+    this.completedProjectDetails = project;
+
+  }
+
+  submitDate(template: TemplateRef<any>) {
+    this.completedProjectDetails.projectCompletionDate =this.selectedDate;
+    this.completedProjectDetails.projectStatus = 'Completed';
+    this.completedProjectDetails.updatedBy = this.currentUser.empId;
+    if (!this.completedProjectDetails.projectCompletionDate) {
+      this.alertMessage = "Please Select Completion Date!!"
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+ 
+    this.resourceManagementService.completionDateOfProject(this.completedProjectDetails ).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.selectedDate ='';
+        this.modalRef.hide();
+        console.log('Selected Date:', response.serviceResponse);
+        this.openAlertMod(template, response.serviceResponse);
+      }else{
+        this.selectedDate ='';
+        this.modalRef.hide();
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    })
+   
+  }
+
+  closeModal1() {   
+    this.selectedDate ='';
+    this.modalRef.hide();
+  }
+  closeModal(){
+    this.modalRef.hide();
+  }
+  getResourceRequirementByPoProjectId(id) {
+    this.loadingRequirements = true;
+    this.resourceManagementService.getResourceRequirementByPoProjectId(id).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectRequirementsList = response.serviceResponse;
+        this.loadingRequirements = false;
+      } else {
+        console.error("Error fetching project requirement list");
+      }
+    });
+  }
+  
+  // addMemberRow(member) {
+  //   member.teamMembers.push({ showAdd: true });
+  //   member.teamMembers.forEach((tm, index) => tm.showAdd = index === member.teamMembers.length - 1);
+  // }
+
+  billabilities: string[] = ['Billable', 'Non-Billable', 'Shadow'];
+
+  addMemberRow(requirement: any) {
+    const newMember = {
+      name: this.newMember.name,
+      role: this.newMember.employeeRole,
+      billability: this.newMember.newBillableType,
+      empId: null,  // Set empId if necessary
+      showAdd: true,
+    };
+  
+    requirement.teamMembers.push(newMember);
+    requirement.assigned = requirement.teamMembers.length;
+  
+    // Clear new member input fields
+    this.newMember = {
+      empId: 0, name: '', newBillableType: '', employeeRole: [],
+      employeeTeamMappingId: undefined,
+      teamId: undefined,
+      isTeamLead: undefined,
+      billableType: undefined,
+      isShadow: false
+    };
+  }
+  
+  newShadow = {
+    name: '',
+    role: '',
+    billability: ''
+  };
+  
+  addShadowResource(member: any) {
+    if (this.newShadow.name.trim() !== '') {
+      const shadowResource = { ...this.newShadow };
+      member.shadowResources.push(shadowResource);
+  
+      // Reset new shadow object
+      this.newShadow = {
+        name: '',
+        role: '',
+        billability: ''
+      };
+    }
+  }
+  
+  removeShadowResource(member: any, index: number) {
+    member.shadowResources.splice(index, 1);
+  }  
+  
+  onResourceSelected(event: any,member) {
+    const selectedName = event.option.value;
+    const selectedEmp = this.employeeList.find(emp => emp.name === selectedName);
+    if (selectedEmp) {
+      this.selectedEmpId = selectedEmp.empId;
+      console.log('Selected Employee ID:', this.selectedEmpId);
+    }
+    member.shadow = selectedName;
+    member.shadowControl.setValue(selectedName);
+  }
+  
+  onTeamMemberSelected(event: MatAutocompleteSelectedEvent): void {
+    const selectedEmployee = event.option.value;
+    this.newteamMember.empId = selectedEmployee.empId;
+    this.newteamMember.name = selectedEmployee.name;
+  }
+
+  toggleSelectAllTeams() {
+    if (this.isAllSelected) {
+      this.teamObj.departmentList = [];
+      this.isAllSelected = false;
+    } else {
+      this.teamObj.departmentList = this.filteredDepartments.map(dept => dept.deptId);
+      this.isAllSelected = true;
+    }
+  }
+
+  filterDepartmentsTeamForm() {
+    const lowerText = this.searchText.toLowerCase();
+    this.filteredDepartments = this.allDeptList.filter(dept =>
+      dept.name.toLowerCase().includes(lowerText)
+    );
+  }
+  
+  clearSelectionDept(event: Event) {
+    event.stopPropagation();
+    this.teamObj.departmentList = [];
+    this.isAllSelected = false;
+  }
+
+  onSpocSelected(event: any) {
+    const selectedSpoc = event.option.value;
+  }
+
+  displaySPOC(emp: any): string {
+    console.log("emp",emp)
+    return emp ? `${emp.name}` : '';
+  }  
+  
+  filterManagers() {
+    const lowerText = this.searchManagerText.trim().toLowerCase();
+    this.filteredManagerList = this.managerList.filter(manager =>
+      manager.name.toLowerCase().includes(lowerText)
+    );
+  }
+
+  toggleSelectAllManagers(): void {
+    if (this.isAllManagersSelected) {
+      this.projectObj.projectManagerId = [];
+      this.isAllManagersSelected = false;
+    } else {
+      this.projectObj.projectManagerId = this.filteredManagerList.map(emp => emp.empId);
+      this.isAllManagersSelected = true;
+    }
+  }
+
+  clearManagerSelection(event: Event): void {
+    event.stopPropagation();
+    this.projectObj.projectManagerId = [];
+    this.isAllManagersSelected = false;
+  }
+
+  onManagerSelectionChange(selectedManagers: string[]): void {
+    this.isAllManagersSelected = selectedManagers.length === this.filteredManagerList.length;
+  }
+
+  getTeamMembersForRequirement(resourceOverviewId: number): any[] {
+    return this.allTeamMembers?.filter(member => member.resourceOverviewId === resourceOverviewId) || [];
+  }
+  
+  hasNoTeamMembersFor(requirementId: number): boolean {
+    return !this.teamObj.allTeamMemberList?.some(
+      member => member.resourceOverviewId === requirementId
+    );
+  }
+
+  // openModal(template,empId) {
+  //   this.getEmployeeInformation(empId);
+  //   this.modalRef2 = this.modalService.show(template, { class: 'custom-modal' });
+  // }
+
+  getEmployeeInformation(empId){
+    this.resourceManagementService.getEmployeeInformation(empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeInformation = response.serviceResponse;
+      } else {
+        console.error("Error employee informations");
+      }
+    });
+  }
+  popoverEmpId: string | null = null;
+
+togglePopover(empId: string) {
+  if (this.popoverEmpId === empId) {
+    this.popoverEmpId = null;
+    return;
+  }
+
+  this.getEmployeeInformation(empId);
+  this.popoverEmpId = empId;
+}
+
+closePopover(empId: string) {
+  if (this.popoverEmpId === empId) {
+    this.popoverEmpId = null;
+  }
+}
+
+  
 }

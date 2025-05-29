@@ -64,4 +64,6 @@ public class Project {
 	private String deptId;
 	private String status;
 	private String apmosysRmEmail;
+	private String projectCompletionDate;
+	private String projectStatus;
 }

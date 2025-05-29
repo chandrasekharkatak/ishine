@@ -46,4 +46,15 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	@Query(nativeQuery = true , value = "select * from department where name = :deptname")
 	public List<Department> findByDeptName(String deptname);
 	
+	@Query(nativeQuery = true, value = "select dept_id from department where hod_id = :hodId")
+	 List<Long> findDeptIdsByHodId(@Param("hodId") Long hodId);
+	
+	@Query(nativeQuery = true,value ="select name from department where dept_id =:deptId")
+	String findDepartmentNameFromDeptId(@Param("deptId") Long deptId);
+	
+	@Query(nativeQuery = true,value ="select dept_id from job_role where job_role_id = :jobRoleId")
+	Long findDepartmentIdOfSpoc(@Param("jobRoleId") Long jobRoleId);
+	
+	
+	
 }

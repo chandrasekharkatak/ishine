@@ -21,6 +21,18 @@ public class TeamMemberDTO {
 	
 	private String employeeName;
 	private Long employeementId;
+	private String employmentIdEmployeeType;
 	private String departmentName;
+	private Long id;
+	private Long shadowEmpId;
+	private String shadowEmployeeName;
+	private String shadowEmployeeEmploymentId;
+	private String shadowEmployeeDepartmentName;
+	private String billable;
+	private String billableType;
+	private String shadowBillable;
+	private String shadowBillableType;
+    private Long resourceOverviewId;
+	private SpocDTO shadow;
 	
 }

@@ -1,3 +1,5 @@
+import { ResourceRequirement } from "./resourceRequirement";
+
 export class Project{
     projectId:any;
 	clientName:any;
@@ -41,12 +43,10 @@ export class Project{
 	teamMemberList:any;
 	isActive:any;
 	teamId:any;
+	spoc:any;
 
 	// As per RMG request
-
-	resourceCount : any;
-	experience : any;
-	role : any;
+	resourceRequirements: ResourceRequirement[];
 
 	endDate: any;
 	isAllProj: any;
@@ -61,4 +61,8 @@ export class Project{
 	isMail:any;
 	apmosysRM:any;
 	clientRM:any;
+    projectCompletionDate:any;
+	projectStatus:any;
+	projectManagers:any;
+	projectViewId:any;
 }
