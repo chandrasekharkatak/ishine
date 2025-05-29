@@ -183,7 +183,7 @@ export class ResourceManagementComponent implements OnInit {
   spocCtrl = new FormControl();
   employeeInformation: EmployeeInformation = new EmployeeInformation();
   loadingRequirements = true;
-
+  projectCompletionDate:any;
   constructor(
     private departmentService: DepartmentService,
     public validationService: ValidationService,
@@ -949,11 +949,13 @@ export class ResourceManagementComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.projectObj.teamList = response.serviceResponse;
         console.log(this.projectObj,"projectofthisteam");
-        //console.log(this.projectObj.teamList, " this.projectObj.teamList");
+  
+        this.projectCompletionDate =this.projectObj.endDate ? moment(this.projectObj.endDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
+        console.log(this.projectCompletionDate, " this.projectObj.endDtae");
         this.projectObj.teamList.forEach((obj) => {
           obj.departmentList = obj.departmentList?.map(x => +x);
           this.copyDepartment = obj.departmentList;
-
+          
           if (obj.teamMemberList) {
             obj.teamMemberList.forEach((member) => {
               if (member) { // Check if member is not null
@@ -1644,8 +1646,11 @@ onAction(action: string, project: any) {
     console.log("team details ", projectObj)
     this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        this.selectedMembers=[];
         this.openAlertMod(template, response.serviceResponse);
         this.getExistingProjectsByUser(this.projectObj2.empId)
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
       }
     })
 
@@ -2242,5 +2247,183 @@ closePopover(empId: string) {
   }
 }
 
+
+
+
+
+
+
+
+
+selectedMembers: any[] = [];
+employeeSelectionHistory:any[]=[];
+globalSelectAll: boolean = false;
+onSelectionChange(team: any, object: any) {
+  if (!this.selectedMembers) {
+    this.selectedMembers = [];
+  }
+
+  const existingTeamIndex = this.selectedMembers.findIndex(item => item.team.teamId === team.teamId);
+
+  if (object.selected) {
+   
+    if (existingTeamIndex === -1) {
+      this.selectedMembers.push({ team, object: [object] });
+    } else {
+      
+      const alreadyAdded = this.selectedMembers[existingTeamIndex].object
+        .some((m: any) => m.empId === object.empId);
+      if (!alreadyAdded) {
+        this.selectedMembers[existingTeamIndex].object.push(object);
+      }
+    }
+
+    
+    const historyExists = this.employeeSelectionHistory.some(
+      (entry) => entry.teamId === team.teamId && entry.empId === object.empId
+    );
+    if (!historyExists) {
+      const deselectedMember = {
+        teamId: team.teamId,
+        empId: object.empId,
+      };
+      this.employeeSelectionHistory.push(deselectedMember);
+    }
+  } else {
+    
+    if (existingTeamIndex !== -1) {
+      const memberIndex = this.selectedMembers[existingTeamIndex].object
+        .findIndex((m: any) => m.empId === object.empId);
+
+      if (memberIndex !== -1) {
+       
+        this.selectedMembers[existingTeamIndex].object.splice(memberIndex, 1);
+
+       
+        if (this.selectedMembers[existingTeamIndex].object.length === 0) {
+          this.selectedMembers.splice(existingTeamIndex, 1);
+        }
+      }
+    }
+
+ 
+    const historyIndex = this.employeeSelectionHistory.findIndex(
+      (entry) => entry.teamId === team.teamId && entry.empId === object.empId
+    );
+    if (historyIndex !== -1) {
+      this.employeeSelectionHistory.splice(historyIndex, 1);
+    }
+  }
+
+  console.log("Selected Members:", this.selectedMembers);
+  console.log("Employee Selection History:", this.employeeSelectionHistory);
+}
+
+
+
+  
+
+teamMemberList1: any[] = [];
+isTeamFullySelected(team: any): boolean {
+  return team.teamMemberList.every((member: any) => member.selected);
+ 
+}
+
+toggleTeamSelection(team: any, event: any) {
+  const isChecked = event.target.checked;
+ 
+  team.teamMemberList.forEach((member: any) => {
+    if (member.selected !== isChecked) {
+      member.selected = isChecked;
+      this.onSelectionChange(team, member); 
+    }
+  });
+
+  if (!isChecked) {
+    
+    this.employeeSelectionHistory = this.employeeSelectionHistory.filter(
+      (entry) => entry.teamId !== team.teamId
+    );
+
+   
+    const teamIndex = this.selectedMembers.findIndex(sel => sel.team.teamId === team.teamId);
+    if (teamIndex !== -1) {
+      this.selectedMembers.splice(teamIndex, 1);
+    }
+  }
+  console.log("After deletion:", this.selectedMembers, this.employeeSelectionHistory);
+}
+
+
+
+isMemberSelected(team: any, member: any): boolean {
+  return !!member.selected;
+}
+  
+areAllTeamsSelected(): boolean {
+  const allTeamsHaveMembers = this.teamMemberList1.every(team => team.employees.length > 0);
+  const allMembersSelected = this.teamMemberList1.every(team =>
+    team.employees.every((member: any) => member.selected)
+  );
+
+  return this.teamMemberList1.length > 0 && allTeamsHaveMembers && allMembersSelected;
+}
+
+
+toggleAllTeams(event: any): void {
+  const isChecked = event.target.checked;
+
+  this.teamMemberList1.forEach(team => {
+    team.employees.forEach(member => {
+      if (member.selected !== isChecked) {
+        member.selected = isChecked;
+        this.onSelectionChange(team, member); 
+      }
+    });
+  });
+  console.log("After deletion:", this.selectedMembers, this.employeeSelectionHistory,this.teamMemberList1);
+ 
+  if (!isChecked) {
+    this.employeeSelectionHistory = [];
+    this.selectedMembers = [];
+  }
+}
+lastDate1:any;
+deleteResourceModalBulk(template: TemplateRef<any>) {
+  this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+  
+  this.lastDate1=this.projectCompletionDate;
+}
+deleteResourceFromProjectBulk(template: TemplateRef<any>) {
+  this.employeeSelectionHistory = this.employeeSelectionHistory.map(entry => ({
+    ...entry,
+    endDate: this.lastDate1 || null
+  }));
+  console.log("After deletion:", this.selectedMembers, this.employeeSelectionHistory,this.teamMemberList1);
+  this.projectService.updateProjectResourcesAsInActiveBulk(this.employeeSelectionHistory)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+
+    
+        this.selectedMembers = [];
+        this.employeeSelectionHistory = [];
+
+       
+        this.teamMemberList1.forEach(team => {
+  
+          team.employees.forEach(member => {
+            member.selected = false;
+          });
+        });
+
+        this.getExistingProjectsByUser(this.projectObj2.empId)
+  
+       
+      }
+      window.location.reload();
+    });
+}
   
 }
