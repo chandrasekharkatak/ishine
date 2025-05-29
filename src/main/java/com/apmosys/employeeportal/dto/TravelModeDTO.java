@@ -15,4 +15,8 @@ public class TravelModeDTO {
     private String isActive;
     private Long createdBy;
     private Timestamp createdOn;
+    private String expenditureType ;
+    private String requiresVehicleType ;
+    private String vehicleTypeName;
+    private String travelReasonName;
 }

@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,8 +16,6 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.sql.Timestamp;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
@@ -24,17 +23,23 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.ExpenditureTypeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ReimbursementDTO;
 import com.apmosys.employeeportal.dto.TravelBasedReimbursementRequestDTO;
+import com.apmosys.employeeportal.dto.TravelModeDTO;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.ExpenditureType;
 import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.ReimbursementData;
-import com.apmosys.employeeportal.model.TravelBasedReimbursementRequest;
-import com.apmosys.employeeportal.model.TravelDesk;
+import com.apmosys.employeeportal.model.ReimbursementTravelMode;
+import com.apmosys.employeeportal.model.VehicleType;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.ExpenditureTypeRepository;
 import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.ReimbursementDataRepository;
+import com.apmosys.employeeportal.repository.ReimbursementTravelModeRepository;
+import com.apmosys.employeeportal.repository.VehicleTypeRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -57,6 +62,16 @@ public class ReimbursementService {
 	
 	@Autowired
 	private NewsletterRepository newsletterRepository;
+	
+	@Autowired
+	private ExpenditureTypeRepository expenditureTypeRepository;
+	
+	@Autowired
+	private VehicleTypeRepository vehicleTypeRepository;
+	
+	@Autowired
+	private ReimbursementTravelModeRepository reimbursementTravelModeRepository;
+	
 
 	@Value("${file.location.documents.reimbursement}")
 	private String reimbursementFileLocation;
@@ -811,5 +826,158 @@ public ServiceResponse updateReimbursementDetailsByAccountsTeam(ReimbursementDTO
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 }
+
+public ServiceResponse saveExpenditureType(ExpenditureTypeDTO expenditureTypeDTO) {
+    ServiceResponse serviceResponse = new ServiceResponse();
+    try {
+    	ExpenditureType expenditureType = new ExpenditureType();
+    	expenditureType.setExpenditureTypeName(expenditureTypeDTO.getExpenditureTypeName());
+    	expenditureType.setDescription(expenditureTypeDTO.getDescription());
+    	expenditureType.setIsActive("Y");
+    	expenditureType.setCreatedBy(expenditureTypeDTO.getCreatedBy());
+
+    	ExpenditureType savedType = expenditureTypeRepository.save(expenditureType);
+
+        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        serviceResponse.setServiceResponse(savedType); 
+    } catch (Exception e) {
+        e.printStackTrace();
+        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        serviceResponse.setServiceError("Failed to save expenditure Type: " + e.getMessage());
+    }
+
+    return serviceResponse;
+}
+
+public ServiceResponse getAllExpenditureType() {
+    ServiceResponse serviceResponse = new ServiceResponse();
+    try {
+        List<ExpenditureType> typeList = expenditureTypeRepository.findAll();
+
+        if (typeList.isEmpty()) {
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            serviceResponse.setServiceError("No travel reasons found.");
+        } else {
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            serviceResponse.setServiceResponse(typeList);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        serviceResponse.setServiceError("Error fetching travel reasons: " + e.getMessage());
+    }
+
+    return serviceResponse;
+}
+
+public ServiceResponse saveTravelMode(TravelModeDTO travelModeDTO) {
+    ServiceResponse response = new ServiceResponse();
+
+    try {
+        // Fetch TravelReason entity by name
+        ExpenditureType expenditureType = expenditureTypeRepository
+            .findByExpenditureTypeName(travelModeDTO.getExpenditureType())
+            .orElseThrow(() -> new RuntimeException("Expenditure not found: " + travelModeDTO.getExpenditureType()));
+
+        ReimbursementTravelMode mode = new ReimbursementTravelMode();
+        mode.setExpenditureType(expenditureType); // Set the entity, not the string
+        mode.setModeType(travelModeDTO.getModeType());
+        mode.setDescription(travelModeDTO.getDescription());
+        mode.setIsActive("Y");
+        mode.setRequiresVehicleType(travelModeDTO.getRequiresVehicleType());
+        mode.setCreatedBy(travelModeDTO.getCreatedBy());
+
+        reimbursementTravelModeRepository.save(mode);
+
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse("Travel Mode saved successfully.");
+    } catch (Exception e) {
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceError(e.getMessage());
+    }
+
+    return response;
+}
+
+public ServiceResponse getAllgetTravelModes() {
+    ServiceResponse serviceResponse = new ServiceResponse();
+    try {
+        List<ReimbursementTravelMode> modeList = reimbursementTravelModeRepository.findAll();
+        List<TravelModeDTO> dtoList = new ArrayList<>();
+
+        for (ReimbursementTravelMode mode : modeList) {
+            TravelModeDTO dto = new TravelModeDTO();
+            dto.setTravelModeId(mode.getTravelModeId());
+            dto.setModeType(mode.getModeType());
+            dto.setRequiresVehicleType(mode.getRequiresVehicleType());
+            dto.setDescription(mode.getDescription());
+            dto.setIsActive(mode.getIsActive());
+            dto.setCreatedBy(mode.getCreatedBy());
+            dto.setCreatedOn(mode.getCreatedOn());
+
+
+
+            dtoList.add(dto);
+        }
+
+        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        serviceResponse.setServiceResponse(dtoList);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        serviceResponse.setServiceError("Error fetching travel reasons: " + e.getMessage());
+    }
+
+    return serviceResponse;
+}
+
+
+public ServiceResponse saveVehicleType(TravelModeDTO travelModeDTO) {
+    ServiceResponse serviceResponse = new ServiceResponse();
+    try {
+    	VehicleType vehicleType = new VehicleType();
+    	vehicleType.setVehicleTypeName(travelModeDTO.getVehicleTypeName());
+    	vehicleType.setDescription(travelModeDTO.getDescription());
+    	vehicleType.setIsActive("Y");
+    	vehicleType.setCreatedBy(travelModeDTO.getCreatedBy());
+
+    	VehicleType savedType = vehicleTypeRepository.save(vehicleType);
+
+        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        serviceResponse.setServiceResponse(savedType); 
+    } catch (Exception e) {
+        e.printStackTrace();
+        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        serviceResponse.setServiceError("Failed to save vehicle Type: " + e.getMessage());
+    }
+
+    return serviceResponse;
+}
+
+
+public ServiceResponse getAllVehicleType() {
+    ServiceResponse serviceResponse = new ServiceResponse();
+    try {
+        List<VehicleType> typeList = vehicleTypeRepository.findAll();
+
+        if (typeList.isEmpty()) {
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            serviceResponse.setServiceError("No travel reasons found.");
+        } else {
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            serviceResponse.setServiceResponse(typeList);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        serviceResponse.setServiceError("Error fetching travel reasons: " + e.getMessage());
+    }
+
+    return serviceResponse;
+}
+
+
+
 	
 }

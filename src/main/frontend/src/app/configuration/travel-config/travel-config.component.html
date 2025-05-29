@@ -640,7 +640,7 @@
       <strong>Reason For Travel</strong>
     </div>
     <div class="card-body">
-      <form #reasonForm="ngForm" (ngSubmit)="submitTravelReason(alert_message)">
+      <form #reasonForm="ngForm" (ngSubmit)="submitTravelReason(alert_message,alert_message2)">
         <div class="form-row">
           <!-- Travel Reason Name -->
           <div class="form-group col-md-4">
@@ -648,7 +648,7 @@
               <span class="text-danger">*</span> Travel Reason Name
             </label>
             <input type="text" class="form-control" name="travelReasonName" [(ngModel)]="travelReason.travelReasonName"
-              required autocomplete="off" />
+              required autocomplete="off" (keypress)="fieldRestrictNumber($event)" />
           </div>
 
           <!-- Description -->
@@ -657,7 +657,7 @@
               <span class="text-danger">*</span> Description
             </label>
             <input type="text" class="form-control" name="description" [(ngModel)]="travelReason.description" required
-              autocomplete="off" />
+              autocomplete="off" (keypress)="fieldRestrictNumber($event)" />
           </div>
 
           <!-- Submit Button -->
@@ -681,6 +681,13 @@
   </div>
 </ng-template>
 
+<ng-template #alert_message1>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest1()">OK</button>&nbsp;
+  </div>
+</ng-template>
+
 
 
 <div class="row"
@@ -690,7 +697,7 @@
       <strong>Travel Mode</strong>
     </div>
     <div class="card-body">
-      <form #reasonForm="ngForm" (ngSubmit)="submitTravelMode(alert_message)">
+      <form #modeForm="ngForm" (ngSubmit)="submitTravelMode(alert_message,alert_message2)">
         <div class="row">
 
           <!-- Reason For Travel (Native select dropdown) -->
@@ -725,8 +732,11 @@
           </div>
 
           <!-- Submit Button -->
-          <button type="submit" class="btn btn-primary btn-sm mx-1">Submit</button>
-
+          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!modeForm.form.valid">
+              Submit
+            </button>
+          </div>
         </div>
       </form>
 
@@ -745,7 +755,7 @@
     </div>
     <div class="card-body">
 
-      <form #travelClassForm="ngForm" (ngSubmit)="submitTravelClass(alert_message)">
+      <form #travelClassForm="ngForm" (ngSubmit)="submitTravelClass(alert_message,alert_message2)">
 
         <div class="row">
           <!-- Reason For Travel Dropdown -->
@@ -771,7 +781,7 @@
                 <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
                 <select class="form-control" [(ngModel)]="selectedTravelModes" name="selectedTravelMode" required>
                   <option value="" disabled selected>Select a mode</option>
-                  <option *ngFor="let mode of travelModelistByReason" [value]="mode.modeType">
+                  <option *ngFor="let mode of travelModelistByReason" [value]="mode.travelModeId">
                     {{ mode.modeType }}
                   </option>
                 </select>
@@ -783,7 +793,7 @@
           <div class="col-md-4 mb-3">
             <div class="form-group">
               <label class="info-label"><span class="text-danger">*</span>Travel Class</label>
-              <input type="text" class="form-control" [(ngModel)]="travelClass" name="travelClass" autocomplete="off"
+              <input type="text" class="form-control" [(ngModel)]="travelClass" name="travelClass" autocomplete="off" (keypress)="fieldRestrictNumber($event)"
                 required>
             </div>
           </div>
@@ -792,14 +802,16 @@
           <div class="col-md-4 mb-3">
             <div class="form-group">
               <label class="info-label"><span class="text-danger">*</span>Description</label>
-              <input type="text" class="form-control" [(ngModel)]="description" name="description" autocomplete="off"
+              <input type="text" class="form-control" [(ngModel)]="description" name="description" autocomplete="off" (keypress)="fieldRestrictNumber($event)"
                 required>
             </div>
           </div>
 
           <!-- Submit Button -->
-          <div class="col-md-12 text-end">
-            <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!travelClassForm.form.valid">
+              Submit
+            </button>
           </div>
         </div>
 
@@ -822,7 +834,7 @@
             <label class="info-label">
               <span class="text-danger">*</span> Hotel Category Name
             </label>
-            <input type="text" class="form-control" name="hotelCategoryName" [(ngModel)]="hotelCategory1.hotelCategory"
+            <input type="text" class="form-control" name="hotelCategoryName" [(ngModel)]="hotelCategory1.hotelCategory" (keypress)="fieldRestrictNumber($event)"
               required autocomplete="off" />
           </div>
 
@@ -831,7 +843,7 @@
             <label class="info-label">
               <span class="text-danger">*</span> Description
             </label>
-            <input type="text" class="form-control" name="description" [(ngModel)]="hotelCategory1.description" required
+            <input type="text" class="form-control" name="description" [(ngModel)]="hotelCategory1.description" (keypress)="fieldRestrictNumber($event)" required
               autocomplete="off" />
           </div>
 
@@ -871,13 +883,13 @@
           <div class="form-group col-md-4">
             <label class="info-label"><span class="text-danger">*</span> Hotel Sub-Category Name</label>
             <input type="text" class="form-control" name="hotelSubCategoryName"
-              [(ngModel)]="hotelSubCategoryData.hotelSubCategoryName" required autocomplete="off" />
+              [(ngModel)]="hotelSubCategoryData.hotelSubCategoryName" (keypress)="fieldRestrictNumber($event)" required autocomplete="off" />
           </div>
 
           <!-- Description -->
           <div class="form-group col-md-4">
             <label class="info-label"><span class="text-danger">*</span> Description</label>
-            <input type="text" class="form-control" name="description" [(ngModel)]="hotelSubCategoryData.description"
+            <input type="text" class="form-control" name="description" [(ngModel)]="hotelSubCategoryData.description" (keypress)="fieldRestrictNumber($event)"
               required autocomplete="off" />
           </div>
 
@@ -929,7 +941,7 @@
           <!-- City Name -->
           <div class="form-group col-md-4">
             <label class="info-label"><span class="text-danger">*</span> City Name</label>
-            <input type="text" class="form-control" name="cityName" [(ngModel)]="hotelSubCategoryData.cityName" required
+            <input type="text" class="form-control" name="cityName" [(ngModel)]="hotelSubCategoryData.cityName" (keypress)="fieldRestrictNumber($event)" required
               autocomplete="off" />
           </div>
 
@@ -937,7 +949,7 @@
           <!-- Description -->
           <div class="form-group col-md-4">
             <label class="info-label"><span class="text-danger">*</span> Description</label>
-            <input type="text" class="form-control" name="description" [(ngModel)]="hotelSubCategoryData.description"
+            <input type="text" class="form-control" name="description" [(ngModel)]="hotelSubCategoryData.description" (keypress)="fieldRestrictNumber($event)"
               required autocomplete="off" />
           </div>
 
@@ -966,5 +978,13 @@
     <button type="button" class="btn btn-success" (click)="onDeleteType(alert_message);cancelRequest();">Yes,
       proceed</button>&nbsp;
     <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+  </div>
+</ng-template>
+
+
+<ng-template #alert_message2>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest1()">OK</button>&nbsp;
   </div>
 </ng-template>

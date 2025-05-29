@@ -67,6 +67,31 @@ export class ReimbursementService {
   markAsPaid(details:any){
     return this.http.post(`${this.baseUrl}`+`api/markAsPaid`,details);
   }
+  //new aded
+
+  saveExpenditureType(reason: any) {
+    return this.http.post(`${this.baseUrl}`+`api/saveExpenditureType`, reason);
+  }
+
+  onGetExpenditureType() {
+    return this.http.get(`${this.baseUrl}` + `api/onGetExpenditureType`);
+  }
+
+  saveTravelMode(travelModeObj: any) {
+    return this.http.post(`${this.baseUrl}`+`api/saveReimbursementTravelMode`, travelModeObj);
+  }
+
+  getTravelMode() {
+    return this.http.get(`${this.baseUrl}` + `api/getReimbursementTravelMode`);
+  }
+
+  saveVehicleType(reason: any) {
+    return this.http.post(`${this.baseUrl}`+`api/saveVehicleType`, reason);
+  }
+
+  onGetVehicleType() {
+    return this.http.get(`${this.baseUrl}` + `api/onGetVehicleType`);
+  }
   
   
 }

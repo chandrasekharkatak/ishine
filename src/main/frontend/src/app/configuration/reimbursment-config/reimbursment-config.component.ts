@@ -1,5 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { Employee } from 'src/app/models/employee';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { ReimbursementService } from 'src/app/services/reimbursement.service';
+import { TravelDeskService } from 'src/app/services/travel-desk.service';
 
 @Component({
   selector: 'app-reimbursment-config',
@@ -17,14 +23,59 @@ export class ReimbursmentConfigComponent implements OnInit {
   sortColumn: any;
   sortColumnType: any;
   sortDirection = 'asc';
+  expenditureType = {
+    expenditureTypeName: '',
+    description: '',
+    createdBy:''
+  };
+  vehicleType = {
+    vehicleTypeName :'',
+    description: '',
+    createdBy:''
+  };
+  selectedExpenditure: string = '';
+  requiresVehicleType: string = '';
+  vehicleTypeList:string = '';
+  expenditureTypeList:any[] = [];
+  travelModeList:any[] = [];
+
+  currentEmployeeInfo: Employee = new Employee();
+  domainSpecializationList: any[];
+  alertMessage: any;
+  currentUser: import("/home/apmosys/Desktop/EmployeePortal_UAT_17_03_25/employeeportal_java/src/main/frontend/src/app/models/user").User;
+  modeType: any;
+  description: any;
   handlePageChange(event) {
     this.page = event;
   }
   reviewColumns: any[] = ['blank', 'reviewLabel', 'reviewFieldType', 'condition', 'quarterCycle', 'departmentName', 'employeeName', 'createdOn', 'updatedByName', 'updatedOn']
 
-  constructor() { }
+  constructor(private modalService: BsModalService, private travelDesk: TravelDeskService,private reimbursementService:ReimbursementService,
+    private employeeService: EmployeeService,
+    private authenticationService: AuthenticationService
+  ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x) }
 
   ngOnInit(): void {
+    this.onGetEmployeeInfo();
+    this.onGetExpenditureType();
+    this.onGetTravelMode();
+    this.onGetVehicleType();
+  }
+
+  async onGetEmployeeInfo() {
+    this.domainSpecializationList = [];
+    this.currentEmployeeInfo = new Employee();
+    let currentEmp = new Employee();
+    currentEmp.empId = this.currentUser.empId;
+    currentEmp.isDraft = false;
+    console.log("currentEmp :::::::::::::::::::::::: ", currentEmp);
+
+    const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
+    if (response.serviceStatus == "Success") {
+      this.currentEmployeeInfo = response.serviceResponse;
+    } else {
+      console.error(response.serviceResponse);
+    }
   }
 
   showQuaterTable(){
@@ -102,6 +153,137 @@ toggleSearchReviewType() {
     this.isClass=false;
     this.istravelMode=false;
     this.isCategoryTable=false;
+  }
+
+  openAlertMod(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  cancelRequest() {
+    this.modalRef.hide();
+   // location.reload();
+  }
+
+  modalRef: BsModalRef = new BsModalRef();
+  modalRef2: BsModalRef = new BsModalRef();
+  openAlertMod1(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+  async submitExpenditureType(template: TemplateRef<any>) {
+    try {
+      this.expenditureType.createdBy = this.currentEmployeeInfo.empId; 
+      console.log('created By ',this.expenditureType.createdBy);
+      const response: any = await this.reimbursementService.saveExpenditureType(this.expenditureType).toPromise();
+      console.log('Expenditure Type saved', response);
+      if (response.serviceStatus === "Success") {
+        this.openAlertMod(template, "Expenditure submitted successfully!");
+        this.modalRef.hide();
+      }
+      else {
+        this.openAlertMod(template, "Submission failed. Try again.!");
+      }
+
+    } catch (error) {
+      console.error('Error submitting reason:', error);
+      this.openAlertMod(template, "Error occurred while saving the Expenditure type.");
+    }
+  }
+
+
+  async onGetExpenditureType() {
+
+    const response: any = await this.reimbursementService.onGetExpenditureType().toPromise();
+    if (response.serviceStatus == "Success") {
+      this.expenditureTypeList = response.serviceResponse;
+
+      console.log("expenditureTypeList   ::::::: : ", this.expenditureTypeList);
+
+    } else {
+      console.error(response.serviceResponse);
+    }
+  }
+ 
+
+  async submitTravelMode(template: TemplateRef<any>) {
+    if (!this.selectedExpenditure || this.selectedExpenditure.length === 0) {
+      this.openAlertMod(template, "Please select at least one travel reason.");
+      return;
+    }
+
+    try {
+      const reason = this.selectedExpenditure;
+      const travelModePayload = {
+        expenditureType: reason,
+        modeType: this.modeType,
+        description: this.description,
+        requiresVehicleType :this.requiresVehicleType,
+        createdBy: this.currentEmployeeInfo?.empId || 0
+      };
+
+      console.log("travelModePayload :::::::::::::",travelModePayload);
+
+      const response: any = await this.reimbursementService.saveTravelMode(travelModePayload).toPromise();
+
+      if (response.serviceStatus !== 'Success') {
+        console.error(`Error saving reason: ${reason}`, response.serviceError);
+        this.openAlertMod(template, `Failed to save travel mode for reason: ${reason}`);
+        return;
+      }
+      // }
+      this.openAlertMod(template, 'Travel Mode saved successfully!');
+    } catch (error) {
+      console.error('API error:', error);
+      this.openAlertMod(template, 'Unexpected error occurred!');
+    }
+  }
+
+  async onGetTravelMode() {
+
+    const response: any = await this.reimbursementService.getTravelMode().toPromise();
+    if (response.serviceStatus == "Success") {
+      this.travelModeList = response.serviceResponse;
+
+      console.log("travelModelist   ::::::: : ", this.travelModeList);
+
+    } else {
+      console.error(response.serviceResponse);
+    }
+  }
+
+  async submitVehicleType(template: TemplateRef<any>) {
+    try {
+      this.vehicleType.createdBy = this.currentEmployeeInfo.empId; 
+      console.log('Vehicle details ',this.vehicleType);
+      const response: any = await this.reimbursementService.saveVehicleType(this.vehicleType).toPromise();
+      console.log('Vehicle Type saved', response);
+      if (response.serviceStatus === "Success") {
+        this.openAlertMod(template, "Vehicle submitted successfully!");
+        this.modalRef.hide();
+      }
+      else {
+        this.openAlertMod(template, "Submission failed. Try again.!");
+      }
+
+    } catch (error) {
+      console.error('Error submitting reason:', error);
+      this.openAlertMod(template, "Error occurred while saving the Vehicle type.");
+    }
+  }
+
+
+
+  async onGetVehicleType() {
+
+    const response: any = await this.reimbursementService.onGetVehicleType().toPromise();
+    if (response.serviceStatus == "Success") {
+      this.vehicleTypeList = response.serviceResponse;
+
+      console.log("vehicleTypeList   ::::::: : ", this.vehicleTypeList);
+
+    } else {
+      console.error(response.serviceResponse);
+    }
   }
 
 }

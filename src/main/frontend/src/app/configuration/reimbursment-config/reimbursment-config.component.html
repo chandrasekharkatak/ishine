@@ -10,11 +10,11 @@
 </div> -->
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" (click)="showQuaterTable()" class="btn btn-outline-primary btn-sm mx-1"[ngClass]="{'active' : isCategoryTable}">Travel-Config</button>
+        <button type="button" (click)="showQuaterTable()" class="btn btn-outline-primary btn-sm mx-1"[ngClass]="{'active' : isCategoryTable}">Expenditure Type</button>
         <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : istravelMode}"
         (click)="subCategory()" >Travel Mode</button>
         <button type="button" class="btn btn-outline-primary btn-sm" [ngClass]="{'active' : isClass}"
-        (click)="classCategory()" >Travel Classes </button>
+        (click)="classCategory()" >Vehicle Type</button>
         <!-- <button type=" button" class="btn btn-outline-primary btn-sm mx-1">Reimbursment-config</button> -->
     </div>
 </div>
@@ -290,7 +290,7 @@
             <div class="row">
                 <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
                     <button type="button" class="btn btn-outline-primary btn-sm" 
-                       (click)="subClassCategory()" ><em class="fa-solid fa-plus"></em>Add Travel Classes</button>
+                       (click)="subClassCategory()" ><em class="fa-solid fa-plus"></em>Add Vehicle Type</button>
 
                 </div>
             </div>
@@ -382,167 +382,161 @@
     </div>
 </div>
 
-<div class="row" *ngIf="!classCategoryForm &&!travelModeForm && !isCategoryTable && createCategoryForm && !isClass  && !istravelMode">
-    <div class="card col-md-12 px-0">
-        <div class="card-header text-center text-uppercase">
-            <strong>Reason For Travel</strong>
-        </div>
-        <div class="card-body">
 
-            
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Travel Reason Name</label>
-                        <input #myInput type="text" class="form-control" autocomplete="off">
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Description</label>
-                        <input #myInput type="text" class="form-control" autocomplete="off">
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-sm mx-1" style="margin-left: 10px;"> Submit
-                    </button>
-                </div>
-
-                <!-- <div class="col-md-4 mb-3">
-            <div class="form-group">
-              <label class="info-label"><span class="text-danger">*</span> Travel </label>
-              <input #myInput type="text" class="form-control" autocomplete="off">
-            </div>
-          </div> -->
-               
-            </div>
-
-        </div>
+<div class="row"
+  *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && createCategoryForm && !isClass && !istravelMode">
+  <div class="card col-md-12 px-0">
+    <div class="card-header text-center text-uppercase">
+      <strong>Expenditure Type Form</strong>
     </div>
+    <div class="card-body">
+      <form #reasonForm="ngForm" (ngSubmit)="submitExpenditureType(alert_message)">
+        <div class="form-row">
+          <!-- Expenditure Type Name -->
+          <div class="form-group col-md-4">
+            <label class="info-label">
+              <span class="text-danger">*</span> Expenditure Type Name
+            </label>
+            <input type="text" class="form-control" name="expenditureTypeName" [(ngModel)]="expenditureType.expenditureTypeName"
+              required autocomplete="off" />
+          </div>
+
+          <!-- Description -->
+          <div class="form-group col-md-4">
+            <label class="info-label">
+              <span class="text-danger">*</span> Description
+            </label>
+            <input type="text" class="form-control" name="description" [(ngModel)]="expenditureType.description" required
+              autocomplete="off" />
+          </div>
+
+          <!-- Submit Button -->
+          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!reasonForm.form.valid">
+              Submit
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div class="row"
+  *ngIf="!classCategoryForm && travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode">
+  <div class="card col-md-12 px-0">
+    <div class="card-header text-center text-uppercase">
+      <strong>Travel Mode</strong>
+    </div>
+    <div class="card-body">
+      <form #reasonForm="ngForm" (ngSubmit)="submitTravelMode(alert_message)">
+        <div class="row">
+
+          <!-- Reason For Travel (Native select dropdown) -->
+          <div class="col-md-4 mb-0">
+            <div class="info-wrapper">
+              <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Expenditure Type</label>
+                <select class="form-control" name="selectedExpenditure" [(ngModel)]="selectedExpenditure" required>
+                  <option value="" disabled selected>Select Expenditure Type</option>
+                  <option *ngFor="let expenditure of expenditureTypeList" [value]="expenditure.expenditureTypeName">
+                    {{ expenditure.expenditureTypeName }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+
+
+          <!-- Mode Type -->
+          <div class="col-md-4 mb-3">
+            <div class="form-group">
+              <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
+              <input type="text" [(ngModel)]="modeType" name="modeType" class="form-control" autocomplete="off">
+            </div>
+          </div>
+
+          <div class="col-md-4 mb-0">
+            <div class="info-wrapper">
+              <div class="form-group">
+                <label class="info-label">
+                  <span class="text-danger">*</span> Requires Vehicle Type
+                </label>
+                <select class="form-control" name="requiresVehicleType" [(ngModel)]="requiresVehicleType" required>
+                    <option [ngValue]="null" disabled selected>Select Option</option>
+                    <option [ngValue]="true">Yes</option>
+                    <option [ngValue]="false">No</option>
+                </select>
+              </div>
+            </div>
+          </div>
+ 
+          <!-- Description -->
+          <div class="col-md-4 mb-3">
+            <div class="form-group">
+              <label class="info-label"><span class="text-danger">*</span>Description</label>
+              <input type="text" [(ngModel)]="description" name="description" class="form-control" autocomplete="off">
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary btn-sm ">Submit</button>
+
+        </div>
+      </form>
+
+    </div>
+  </div>
 </div>
 
 
 
-<div class="row" *ngIf="!classCategoryForm && travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode">
-    <div class="card col-md-12 px-0">
-        <div class="card-header text-center text-uppercase">
-            <strong>Travel Mode</strong>
-        </div>
-        <div class="card-body">
-
-
-            <div class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Reason For Travel</label>
-                            <mat-select class="form-control" multiple>
-                                <mat-option>
-
-                                </mat-option>
-                                <mat-option>
-
-                                </mat-option>
-                            </mat-select>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Mode Type</label>
-                        <input #myInput type="text" class="form-control" autocomplete="off">
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Description</label>
-                        <input #myInput type="text" class="form-control" autocomplete="off">
-                    </div>
-                </div>
-
-                <!-- <div class="col-md-4 mb-3">
-            <div class="form-group">
-              <label class="info-label"><span class="text-danger">*</span> Travel </label>
-              <input #myInput type="text" class="form-control" autocomplete="off">
-            </div>
-          </div> -->
-                <button type="submit" class="btn btn-primary btn-sm mx-1"> Submit
-                </button>
-            </div>
-
-        </div>
+<div class="row"
+  *ngIf="classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode">
+  <div class="card col-md-12 px-0">
+    <div class="card-header text-center text-uppercase">
+      <strong>Vehicle Type Form</strong>
     </div>
+    <div class="card-body">
+      <form #reasonForm="ngForm" (ngSubmit)="submitVehicleType(alert_message)">
+        <div class="form-row">
+          <!-- Vehicle Type Name -->
+          <div class="form-group col-md-4">
+            <label class="info-label">
+              <span class="text-danger">*</span> Vehicle Type Name
+            </label>
+            <input type="text" class="form-control" name="vehicleTypeName" [(ngModel)]="vehicleType.vehicleTypeName"
+              required autocomplete="off" />
+          </div>
+
+          <!-- Description -->
+          <div class="form-group col-md-4">
+            <label class="info-label">
+              <span class="text-danger">*</span> Description
+            </label>
+            <input type="text" class="form-control" name="description" [(ngModel)]="vehicleType.description" required
+              autocomplete="off" />
+          </div>
+
+          <!-- Submit Button -->
+          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!reasonForm.form.valid">
+              Submit
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 
-
-<div class="row" *ngIf="classCategoryForm &&!travelModeForm && !isCategoryTable && !createCategoryForm && !isClass  && !istravelMode">
-    <div class="card col-md-12 px-0">
-        <div class="card-header text-center text-uppercase">
-            <strong>Reason For Travel</strong>
-        </div>
-        <div class="card-body">
-
-           
-            <div class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Reason For Travel</label>
-                            <mat-select class="form-control" multiple>
-                                <mat-option>
-
-                                </mat-option>
-                                <mat-option>
-
-                                </mat-option>
-                            </mat-select>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Travel mode</label>
-                            <mat-select class="form-control" multiple>
-                                <mat-option>
-
-                                </mat-option>
-                                <mat-option>
-
-                                </mat-option>
-                            </mat-select>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Travel Class</label>
-                        <input #myInput type="text" class="form-control" autocomplete="off">
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Description</label>
-                        <input #myInput type="text" class="form-control" autocomplete="off">
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-sm mx-1" style="margin-left: 10px;"> Submit
-                    </button>
-                </div>
-
-                <!-- <div class="col-md-4 mb-3">
-            <div class="form-group">
-              <label class="info-label"><span class="text-danger">*</span> Travel </label>
-              <input #myInput type="text" class="form-control" autocomplete="off">
-            </div>
-          </div> -->
-               
-            </div>
-
-        </div>
+<!-- Optional alert modal template -->
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+      <p>{{alertMessage}}</p>
+      <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
-</div>
+  </ng-template>

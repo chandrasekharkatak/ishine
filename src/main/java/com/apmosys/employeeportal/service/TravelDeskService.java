@@ -830,7 +830,9 @@ public class TravelDeskService {
 	public ServiceResponse getAllgetTravelModes() {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
-	        List<TravelMode> modeList = travelModeRepository.findAll();
+//	        List<TravelMode> modeList = travelModeRepository.findAll();
+	        List<TravelMode> modeList = travelModeRepository.findAllData();
+
 	        List<TravelModeDTO> dtoList = new ArrayList<>();
 
 	        for (TravelMode mode : modeList) {
@@ -841,6 +843,11 @@ public class TravelDeskService {
 	            dto.setIsActive(mode.getIsActive());
 	            dto.setCreatedBy(mode.getCreatedBy());
 	            dto.setCreatedOn(mode.getCreatedOn());
+	            if (mode.getTravelReason() != null) {
+	                dto.setTravelReasonName(mode.getTravelReason().getTravelReasonName());
+	            } else {
+	                dto.setTravelReasonName(null); 
+	            }
 
 
 
@@ -909,20 +916,21 @@ public class TravelDeskService {
 	     	            .findByTravelReasonName(dto.getTravelReason())
 	     	            .orElseThrow(() -> new RuntimeException("TravelReason not found: " + dto.getTravelReason()));
 
-//	        	 TravelMode travelMode = travelModeRepository
-//	        		        .findById(dto.getTravelModeId())
-//	        		        .orElseThrow(() -> new RuntimeException("Travel Mode not found: " + dto.getTravelModeId()));
+	        	 Long modeId = Long.parseLong(dto.getTravelMode()); 
+	 	        
 
-	        	 String modeType = dto.getTravelMode();
+	 	        TravelMode modeList = travelModeRepository.findByModeId(modeId);
+
+//	        	 String modeType = dto.getTravelMode();
 	        	 
-	        	 TravelMode travelMode = travelModeRepository
-	        		        .findByModeType(modeType)
-	        		        .orElseThrow(() -> new RuntimeException("Travel Mode not found: " + dto.getTravelMode()));
+//	        	 TravelMode travelMode = travelModeRepository
+//	        		        .findByModeType(modeType)
+//	        		        .orElseThrow(() -> new RuntimeException("Travel Mode not found: " + dto.getTravelMode()));
 
 
 	            TravelClass travelClass = new TravelClass();
 	            travelClass.setTravelReason(travelReason);
-	            travelClass.setTravelMode(travelMode);
+	            travelClass.setTravelMode(modeList);
 	            travelClass.setTravelClass(dto.getTravelClass());
 	            travelClass.setDescription(dto.getDescription());
 	            travelClass.setCreatedBy(dto.getCreatedBy());
@@ -933,6 +941,7 @@ public class TravelDeskService {
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            response.setServiceResponse("Travel Class saved successfully.");
 	        } catch (Exception e) {
+	        	e.printStackTrace();
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceError(e.getMessage());
 	        }
