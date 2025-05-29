@@ -51,11 +51,24 @@
               max-width: fit-content;" (click)="selectStatusTab('Completed')"
                     [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
                     <div class="mini-card1" style="border-left: 4px solid #00ec33;">
-                        <div class="value fw-bold" style="color: #00ec33;">{{tabCounts.notStartedCount}}</div>
-                        <div class="label text-muted">Completed <i class="fa-solid fa-thumbs-up fa-beat-fade"
+                        <div class="value fw-bold" style="color: #00ec33;">{{tabCounts.completedCount}}</div>
+                        <div class="label text-muted">Completed In Sankh<i class="fa-solid fa-thumbs-up fa-beat-fade"
                                 style="color: #00ec33;"></i></div>
                     </div>
                 </div>
+
+                 <div class="col-md-2" style="display: flex;
+              justify-content: left;
+              max-width: fit-content;" (click)="selectStatusTab('completedInIshine')"
+                    [ngClass]="{'selected-card': selectedStatusTab === 'completedInIshine'}">
+                    <div class="mini-card1" style="border-left: 4px solid #17ceee;">
+                        <div class="value fw-bold" style="color: #17ceee;">{{tabCounts.completedInIshineCount}}</div>
+                        <div class="label text-muted">Completed In Ishine<i class="fa-solid fa-thumbs-up fa-beat-fade"
+                                style="color: #17ceee;"></i></div>
+                    </div>
+                </div>
+
+
                 <div class="col-md-2" style="display: flex;
           justify-content: left;
           max-width: fit-content;" (click)="selectStatusTab('Rejected')"
@@ -80,7 +93,7 @@
             </div>
             <div class="row mb-3">
                 <div class="col-md-3 text-end">
-                    <strong>Total Employees</strong><br />
+                    <strong>Total ApMoSys Employees</strong><br />
                     <h2>{{ totalEmployees }}</h2>
                 </div>
                 <div class="col-md-3 text-end mb-2" style="display: flex;
@@ -289,10 +302,12 @@
 
                             <!-- table body for PoPortal -->
                         </thead>
-                        <tbody *ngIf="allProject_Po_Internal && allProject_Po_Internal.length">
-                            <!-- <tr *ngIf="poPortalProjectList.length == 0 && (allProjectList | multicolFilter:filters:false).length == 0">
+                        <tbody>
+                            <ng-container *ngIf="allProject_Po_Internal.length ==0">
+                            <tr>
                                 <th colspan="9" class="text-center info-label">No details to display...</th>
-                            </tr> -->
+                            </tr>
+                            </ng-container>
                             <ng-container
                                 *ngFor="let project of allProject_Po_Internal | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                 <tr>
