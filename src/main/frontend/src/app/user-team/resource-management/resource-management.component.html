@@ -341,7 +341,7 @@
                                                     <i class="fas fa-pen"></i> Edit
                                                 </li>
                                                 <!-- <li (click)="onAction('Audit', project);closeMenu(i)"><i class="fas fa-clock"></i> Audit</li> -->
-                                                <li
+                                                <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
                                                     (click)="openDatePicker(customDatePickerTemplate,project);closeMenu(i)">
                                                     <i class="fas fa-check-double"></i> Mark as Complete
                                                 </li>
@@ -729,7 +729,7 @@
     <ng-template #alert_message>
         <div class="modal-body text-center">
             <p>{{alertMessage}}</p>
-            <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+            <button type="button" class="btn btn-primary" (click)="cancelRequest();CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO)">OK</button>&nbsp;
         </div>
     </ng-template>
     <ng-template #alert_team_message>
