@@ -1691,7 +1691,7 @@ onAction(action: string, project: any) {
       this.employeeData = this.employeesWithoutProjectList;
     }
     else if(catagory === 'All Mapped'){
-      this.employeeData = this.allMappedEmployees;
+      this.employeeData = this.allMappedEmployeesList;
     }
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
