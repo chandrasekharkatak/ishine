@@ -594,11 +594,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "inner join department d on d.dept_id = jr.dept_id\n"
     		+ "LEFT JOIN \n"
     		+ "    employee em ON em.emp_id = e.manager_id\n"
-    		+ "WHERE NOT EXISTS (\n"
-    		+ "    SELECT 1\n"
+    		+ "WHERE NOT EXISTS (SELECT 1\n"
     		+ "    FROM employee_team_mapping etm\n"
-    		+ "    WHERE etm.emp_id = e.emp_id AND etm.active != 0\n"
-    		+ ") and e.employmentstatus != 'InActive'",nativeQuery = true)
+    		+ "    JOIN teams t ON t.team_id = etm.team_id\n"
+    		+ "    JOIN projects p ON p.project_id = t.project_id\n"
+    		+ "    WHERE etm.emp_id = e.emp_id \n"
+    		+ "      AND etm.active != 0\n"
+    		+ "      AND t.is_active = 'Y'\n"
+    		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive'",nativeQuery = true)
     List<Object[]> findAllEmployeesWithoutAnyProject();
     
     @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name from employee e \n"
@@ -606,11 +609,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "inner join department d on d.dept_id = jr.dept_id\n"
     		+ "LEFT JOIN \n"
     		+ "    employee em ON em.emp_id = e.manager_id\n"
-    		+ "WHERE NOT EXISTS (\n"
-    		+ "    SELECT 1\n"
+    		+ "WHERE NOT EXISTS (SELECT 1\n"
     		+ "    FROM employee_team_mapping etm\n"
-    		+ "    WHERE etm.emp_id = e.emp_id AND etm.active != 0\n"
-    		+ ") and e.employmentstatus != 'InActive' and d.dept_id IN :deptIds",nativeQuery = true)
+    		+ "    JOIN teams t ON t.team_id = etm.team_id\n"
+    		+ "    JOIN projects p ON p.project_id = t.project_id\n"
+    		+ "    WHERE etm.emp_id = e.emp_id \n"
+    		+ "      AND etm.active != 0\n"
+    		+ "      AND t.is_active = 'Y'\n"
+    		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive' and d.dept_id IN :deptIds",nativeQuery = true)
     List<Object[]> findAllEmployeesWithoutProjectInDeptIds(@Param("deptIds") List<Long> deptIds);
     
     
@@ -619,11 +625,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "inner join department d on d.dept_id = jr.dept_id\n"
     		+ "LEFT JOIN \n"
     		+ "    employee em ON em.emp_id = e.manager_id\n"
-    		+ "WHERE NOT EXISTS (\n"
-    		+ "    SELECT 1\n"
+    		+ "WHERE NOT EXISTS (SELECT 1\n"
     		+ "    FROM employee_team_mapping etm\n"
-    		+ "    WHERE etm.emp_id = e.emp_id AND etm.active != 0\n"
-    		+ ") and e.employmentstatus != 'InActive' and d.dept_id = :deptId ",nativeQuery = true)
+    		+ "    JOIN teams t ON t.team_id = etm.team_id\n"
+    		+ "    JOIN projects p ON p.project_id = t.project_id\n"
+    		+ "    WHERE etm.emp_id = e.emp_id \n"
+    		+ "      AND etm.active != 0\n"
+    		+ "      AND t.is_active = 'Y'\n"
+    		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive' and d.dept_id = :deptId ",nativeQuery = true)
     List<Object[]> findAllEmployeesWithoutProjectInDeptId(@Param("deptId") Long deptId);
   
 
