@@ -96,8 +96,15 @@ export class ReimbursementapprovalComponent implements OnInit {
   }
   //alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  modalRef1: BsModalRef = new BsModalRef();
+
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  openAlertMod1(template: TemplateRef<any>, message: any) {
+    this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -107,10 +114,10 @@ export class ReimbursementapprovalComponent implements OnInit {
     location.reload();
   }
 
-  async actionRequest(template: TemplateRef<any>) {
+  async actionRequest(template: TemplateRef<any>,template1: TemplateRef<any>) {
 
     if (!this.selectedReimbursementRequest.approverStatus) {
-      this.openAlertMod(template, "Please select an Approver Status .");
+      this.openAlertMod1(template1, "Please select an Approver Status .");
       return;
     }
     this.reimbursementInfo = new MyReimbursement();
@@ -203,6 +210,10 @@ preview(template:TemplateRef<any>){
     }
   });
  
+}
+
+cancelRequest2() {
+  this.modalRef1.hide();
 }
 
 }

@@ -157,7 +157,7 @@
                   </select>
                 </div>
 
-                <button type="button" class="btn btn-primary" (click)="actionRequest(alert_message)">Submit Response</button>
+                <button type="button" class="btn btn-primary" (click)="actionRequest(alert_message,alert_message2)">Submit Response</button>
                 <!-- <button type="button" class="btn btn-primary" (click)="approveRequest()">Approve</button>
                 <button type="button" class="btn btn-danger" (click)="closeModal()">Cancel</button> -->
               </form>
@@ -173,6 +173,12 @@
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
+</ng-template>
+<ng-template #alert_message2>
+  <div class="modal-body text-center">
+      <p>{{alertMessage}}</p>
+      <button type="button" class="btn btn-primary" (click)="cancelRequest2()">OK</button>&nbsp;
+  </div>
 </ng-template>
 
 

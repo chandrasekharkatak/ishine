@@ -64,8 +64,14 @@ export class TravelrequestapprovalComponent implements OnInit {
   }
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  modalRef1: BsModalRef = new BsModalRef();
+
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+  openAlertMod1(template: TemplateRef<any>, message: any) {
+    this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
   openEditModal(template: TemplateRef<any> ,row :any) {
@@ -144,6 +150,10 @@ export class TravelrequestapprovalComponent implements OnInit {
     this.onGetTravelInfo();
   }
 
+  cancelRequest2() {
+    this.modalRef1.hide();
+  }
+
   closeModal() {
     this.modalRef.hide();
   }
@@ -179,7 +189,7 @@ export class TravelrequestapprovalComponent implements OnInit {
   }
 
 
-  async actionRequest(template: TemplateRef<any>) {
+  async actionRequest(template: TemplateRef<any>,template1: TemplateRef<any>) {
 
     this.travelDeskInfo = new MyTravelDesk();
     let travelData = new MyTravelDesk();
@@ -189,6 +199,11 @@ export class TravelrequestapprovalComponent implements OnInit {
     newtravelData.requestId=this.selectedTravelRequest.requestId;
     newtravelData.employeeId = this.selectedTravelRequest.empId;
     newtravelData.status = this.selectedTravelRequest.approverStatus;
+      if (!this.selectedTravelRequest.approverStatus) {
+        this.openAlertMod1(template1, "Please select Approver Status");
+        return;
+      }
+
     if(this.selectedTravelRequest.level == 1){
       newtravelData.level1approverRemarks = this.selectedTravelRequest.approverRemarks;
 
