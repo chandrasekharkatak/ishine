@@ -97,7 +97,7 @@ export class ViewReimbursementComponent implements OnInit {
     this.selectedReimbursementRequest.fromDate = this.formatDate(this.selectedReimbursementRequest.fromDate);
     this.selectedReimbursementRequest.toDate = this.formatDate(this.selectedReimbursementRequest.toDate);
     this.selectedReimbursementRequest.appliedOn = this.formatDate(this.selectedReimbursementRequest.appliedOn);
-
+    this.selectedReimbursementRequest.dateOfFood = this.formatDate(this.selectedReimbursementRequest.dateOfFood);
     //  console.log('editpain asichi re ::::::::::::::::::::',this.selectedTravelRequest);
 
     console.log('editpain asichi re ::::::::::::::::::::', this.selectedReimbursementRequest);
@@ -173,6 +173,7 @@ export class ViewReimbursementComponent implements OnInit {
           //alert("Success! Your data was updated successfully.");
           console.log('Updated Travel Request:', this.selectedReimbursementRequest);
           this.modalRef.hide();
+          this.onGetReimbursementInfo();
         } else {
           console.error('Error updating reimbursement request:', response.serviceResponse);
           this.openAlertMod2(template, "There was an issue updating the data.. !!");

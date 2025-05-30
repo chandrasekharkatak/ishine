@@ -323,7 +323,7 @@ vehicleTypeList:any[] = [];
           this.addInputSpecializationField();
 
 
-          this.openAlertMod(template, "Success! Your request was processed successfully!");
+          this.openAlertMod(template, "Success! Your request is processed successfully!");
 
           //  alert("Success! Your request was processed successfully.");
           //window.location.reload();

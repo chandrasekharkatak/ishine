@@ -78,12 +78,12 @@
                 </li>
                 
                 <!-- *ngIf="userMapping.travel_config" -->
-                <li  class="nav-item config__tab-item" (click)="removeActiveTab()">
+                <li *ngIf="userMapping.travel_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
                     <a class="nav-link config__tab-item__link" id="performance-config-tab" data-toggle="tab" role="tab"
                         aria-controls="performance-config" aria-selected="false" routerLink="travel-config">Travel-Config</a>
                 </li>
-                <!-- *ngIf="userMapping.reimbursement _config" -->
-                <li  class="nav-item config__tab-item" (click)="removeActiveTab()">
+                <!-- *ngIf="userMapping.reimbursement_config" -->
+                <li *ngIf="userMapping.reimbursement_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
                     <a class="nav-link config__tab-item__link" id="performance-config-tab" data-toggle="tab" role="tab"
                         aria-controls="performance-config" aria-selected="false" routerLink="reimbursment-config">Reimbursment-Config</a>
                 </li>

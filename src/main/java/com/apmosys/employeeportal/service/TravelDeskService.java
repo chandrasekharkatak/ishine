@@ -243,7 +243,7 @@ public class TravelDeskService {
 
             }
     		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-    		serviceResponse.setServiceResponse("Success! Your request was processed successfully!\nAgainst requestId " + savedTravelDesk.getRequestId());
+    		serviceResponse.setServiceResponse("Success! Your request is processed successfully!\nAgainst requestId " + savedTravelDesk.getRequestId());
 			serviceResponse.setServiceMessage("Saved Successfully..!!");
 			
 			return serviceResponse;

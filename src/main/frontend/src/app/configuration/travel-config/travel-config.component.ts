@@ -69,8 +69,12 @@ export class TravelConfigComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
-  reviewColumns: any[] = ['blank', 'reviewLabel', 'reviewFieldType', 'condition', 'quarterCycle', 'departmentName', 'employeeName', 'createdOn', 'updatedByName', 'updatedOn']
-
+  reviewColumns: any[] = ['blank', 'travelReasonName', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
+  reviewColumns1: any[] = ['blank', 'modeType', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
+  reviewColumns2: any[] = ['blank', 'travelClass', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
+  reviewColumns3: any[] = ['blank', 'hotelCategory', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
+  reviewColumns4: any[] = ['blank', 'hotelSubCategoryName', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
+  reviewColumns5: any[] = ['blank', 'cityName', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
   constructor(private modalService: BsModalService, private travelDesk: TravelDeskService,
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService
