@@ -55,7 +55,7 @@
                         disabled />
                 </div>
 
-                <div class="col-md-3 mb-0">
+                <!-- <div class="col-md-3 mb-0">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Expenditure Type</label>
                         <select class="form-control" id="dayTypeCursor" aria-hidden="true"
@@ -68,12 +68,33 @@
                             <option value="Other">Other</option>
                         </select>
                     </div>
-                </div>
+                </div> -->
+                <div class="col-md-3 mb-0">
+                    <div class="form-group">
+                      <label class="info-label">
+                        <span class="text-danger">*</span>Expenditure Type
+                      </label>
+                      <select
+                        class="form-control"
+                        id="dayTypeCursor"
+                        aria-hidden="true"
+                        [(ngModel)]="reimbursementObj.expenditureType"
+                        (change)="onReasonSelect()"
+                        required
+                      >
+                        <option value="" disabled selected>Select</option>
+                        <option *ngFor="let type of expenditureTypeList" [value]="type.expenditureTypeName">
+                          {{ type.expenditureTypeName }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                  
 
 
 
                 <!-- Travel related fields -->
-                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Travel'">
+                <!-- <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Travel'">
                     <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
                     <select class="form-control" id="dayTypeCursor" aria-hidden="true"
                         [(ngModel)]="reimbursementObj.travelMode">
@@ -86,16 +107,44 @@
                         <option value="Rickshaw">Rickshaw</option>
                         <option value="Personal Vehicle">Personal Vehicle</option>
                     </select>
-                </div>
+                </div> -->
 
-                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.travelMode === 'Personal Vehicle' && isTravel">
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Travel'">
+                    <label class="info-label"><span class="text-danger">*</span>Travel Mode</label>
+                    <select
+                      class="form-control"
+                      id="dayTypeCursor"
+                      aria-hidden="true"
+                      [(ngModel)]="reimbursementObj.travelMode"
+                      required
+                    >
+                      <option value="" disabled selected>Select</option>
+                      <option *ngFor="let mode of travelModeList" [value]="mode.modeType">
+                        {{ mode.modeType }}
+                      </option>
+                    </select>
+                  </div>
+                  
+
+                <!-- <div class="col-md-3 mb-0" *ngIf="reimbursementObj.travelMode === 'Personal Vehicle' && isTravel">
                     <label class="info-label"><span class="text-danger">*</span>Vehicle Type</label>
                     <select class="form-control" [(ngModel)]="reimbursementObj.vehicleType">
                         <option value="" disabled selected>Select Vehicle</option>
                         <option value="Car">Car</option>
                         <option value="Bike">Bike</option>
                     </select>
-                </div>
+                </div> -->
+
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.travelMode === 'Personal Vehicle' && isTravel">
+                    <label class="info-label"><span class="text-danger">*</span>Vehicle Type</label>
+                    <select class="form-control" [(ngModel)]="reimbursementObj.vehicleType" required>
+                      <option value="" disabled selected>Select Vehicle</option>
+                      <option *ngFor="let vehicle of vehicleTypeList" [value]="vehicle.vehicleTypeName">
+                        {{ vehicle.vehicleTypeName }}
+                      </option>
+                    </select>
+                  </div>
+                  
 
 
                 <div class="col-md-3 mb-0" *ngIf="isTravel && reimbursementObj.travelMode === 'Personal Vehicle'">
@@ -109,8 +158,8 @@
                 </div>
                 <!-- Travel related fields end -->
 
-                
-                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Food' ">
+
+                <!-- <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Food' ">
                     <label class="info-label"><span class="text-danger">*</span>Food Allowance Type</label>
                     <select class="form-control" [(ngModel)]="reimbursementObj.foodAllowanceType">
                         <option value="" disabled selected>Select Type</option>
@@ -118,6 +167,19 @@
                         <option value="Extra Time">On Extra Time</option>
                         <option value="Team Dinner/Lunch">Team Dinner/Lunch</option>
                         <option value="Other">Other</option>
+                    </select>
+                </div> -->
+
+                <div class="col-md-3 mb-0" *ngIf="reimbursementObj.expenditureType === 'Food' ">
+                    <label class="info-label">
+                        <span class="text-danger">*</span>Food Allowance Type
+                    </label>
+                    <select class="form-control" [(ngModel)]="reimbursementObj.foodAllowanceType"
+                        name="foodAllowanceType" required>
+                        <option value="" disabled selected>Select Type</option>
+                        <option *ngFor="let type of foodTypeList" [value]="type.foodTypeName">
+                            {{ type.foodTypeName }}
+                        </option>
                     </select>
                 </div>
 

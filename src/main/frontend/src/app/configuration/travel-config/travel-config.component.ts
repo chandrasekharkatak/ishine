@@ -88,6 +88,7 @@ export class TravelConfigComponent implements OnInit {
 
   modalRef: BsModalRef = new BsModalRef();
   modalRef1: BsModalRef = new BsModalRef();
+  modalRef2: BsModalRef = new BsModalRef();
   openAlertMod1(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
@@ -387,6 +388,11 @@ export class TravelConfigComponent implements OnInit {
     this.alertMessage = message;
   }
 
+  openAlertMod2(template1: TemplateRef<any>, message: any) {
+    this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
   openValidationMod(template: TemplateRef<any>, message: any) {
     this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -508,7 +514,7 @@ export class TravelConfigComponent implements OnInit {
         this.openAlertMod(template, `Failed to save travel mode for reason: ${reason}`);
         return;
       }
-      this.openAlertMod(template, 'Travel Mode saved successfully!');
+      this.openAlertMod2(template1, 'Travel Mode saved successfully!');
     } catch (error) {
       console.error('API error:', error);
       this.openAlertMod(template, 'Unexpected error occurred!');

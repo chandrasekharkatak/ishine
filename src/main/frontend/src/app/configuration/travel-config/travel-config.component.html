@@ -722,7 +722,7 @@
           <div class="col-md-4 mb-3">
             <div class="form-group">
               <label class="info-label"><span class="text-danger">*</span>Mode Type</label>
-              <input type="text" [(ngModel)]="modeType" name="modeType" class="form-control" autocomplete="off">
+              <input type="text" [(ngModel)]="modeType" name="modeType" class="form-control" required autocomplete="off" (keypress)="fieldRestrictNumber($event)">
             </div>
           </div>
 
@@ -730,7 +730,7 @@
           <div class="col-md-4 mb-3">
             <div class="form-group">
               <label class="info-label"><span class="text-danger">*</span>Description</label>
-              <input type="text" [(ngModel)]="description" name="description" class="form-control" autocomplete="off">
+              <input type="text" [(ngModel)]="description" name="description" class="form-control" autocomplete="off" required (keypress)="fieldRestrictNumber($event)">
             </div>
           </div>
 
