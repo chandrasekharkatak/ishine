@@ -15,8 +15,8 @@ import { TravelDeskService } from 'src/app/services/travel-desk.service';
 })
 export class ReimbursmentConfigComponent implements OnInit {
 
-  items:any=10;
-  page:any;
+  items: any = 10;
+  page: any = 1;
   isSearchEnabledReview: boolean = false;
   isCategoryTable: boolean = true;
   createCategoryForm:boolean =false;
@@ -51,9 +51,13 @@ export class ReimbursmentConfigComponent implements OnInit {
   currentEmployeeInfo: Employee = new Employee();
   domainSpecializationList: any[];
   alertMessage: any;
-  currentUser: User;
+  currentUser:User;
   modeType: any;
   description: any;
+  istravelModeTab: boolean = false;
+  isCityTab: boolean = false;
+  isClassTab: boolean = false;
+  isCategoryTableTab: boolean = true;
   handlePageChange(event) {
     this.page = event;
   }
@@ -95,6 +99,13 @@ export class ReimbursmentConfigComponent implements OnInit {
     this.travelModeForm=false;
     this.classCategoryForm=false;
     this.createCategoryForm=false;
+    this.istravelModeTab = false;
+    this.isCategoryTableTab = true;
+    this.isCityTab = false;
+    this.isClassTab = false;
+    this.foodCategoryForm= false;
+    this.foodCategoryTable =false;
+    this.foodAllowanceTypeTab = false;
   }
   createCategory(){
     this.isCategoryTable=false;
@@ -103,6 +114,13 @@ export class ReimbursmentConfigComponent implements OnInit {
     this.classCategoryForm=false;
     this.isClass=false;
     this.istravelMode=false;
+    this.istravelModeTab = false;
+    this.isCategoryTableTab = true;
+    this.isCityTab = false;
+    this.isClassTab = false;
+    this.foodCategoryForm= false;
+    this.foodCategoryTable =false;
+    this.foodAllowanceTypeTab = false;
 
   }
   sortData(sort: Sort) {
@@ -133,6 +151,13 @@ toggleSearchReviewType() {
    this.travelModeForm=false;
     this.classCategoryForm=false;
     this.createCategoryForm=false;
+    this.istravelModeTab = true;
+    this.isCategoryTableTab = false;
+    this.isCityTab = false;
+    this.isClassTab = false;
+    this.foodCategoryForm= false;
+    this.foodCategoryTable =false;
+    this.foodAllowanceTypeTab = false;
   }
 
   isClass:boolean=false;
@@ -143,6 +168,14 @@ toggleSearchReviewType() {
     this.travelModeForm=false;
     this.classCategoryForm=false;
     this.createCategoryForm=false;
+    this.istravelModeTab = false;
+    this.isCategoryTableTab = false;
+    this.isCityTab = false;
+    this.isClassTab = true;
+    this.foodCategoryForm= false;
+    this.foodCategoryTable =false;
+    this.foodAllowanceTypeTab = false;
+   
   }
 
   foodAllowanceType(){
@@ -153,10 +186,32 @@ toggleSearchReviewType() {
     this.classCategoryForm=false;
     this.createCategoryForm=false;
     this.foodCategoryForm= true;
+    this.istravelModeTab = false;
+    this.isCategoryTableTab = false;
+    this.foodAllowanceTypeTab = true;
+    this.isClassTab = false;
+    this.foodCategoryTable= false;
+  }
+
+  foodTypeTable(){
+    this.isClass=false;
+    this.istravelMode=false;
+    this.isCategoryTable=false;
+    this.travelModeForm=false;
+    this.classCategoryForm=false;
+    this.createCategoryForm=false;
+    this.foodCategoryForm= false;
+    this.foodCategoryTable =true;
+    this.istravelModeTab = false;
+    this.isCategoryTableTab = false;
+    this.foodAllowanceTypeTab = true;
+    this.isClassTab = false;
   }
 
   classCategoryForm:boolean=false;
   foodCategoryForm:boolean=false;
+  foodCategoryTable:boolean =false;
+  foodAllowanceTypeTab:boolean = false;
   travelModeForm:boolean=false;
   subClassCategory(){
     this.travelModeForm=false;
@@ -165,6 +220,13 @@ toggleSearchReviewType() {
     this.isClass=false;
     this.istravelMode=false;
     this.isCategoryTable=false;
+    this.istravelModeTab = false;
+    this.isCategoryTableTab = false;
+    this.isCityTab = false;
+    this.isClassTab = true;
+    this.foodCategoryForm= false;
+    this.foodCategoryTable =false;
+    this.foodAllowanceTypeTab = false;
   }
 
   travelCategory(){
@@ -174,6 +236,13 @@ toggleSearchReviewType() {
     this.isClass=false;
     this.istravelMode=false;
     this.isCategoryTable=false;
+    this.istravelModeTab = true;
+    this.isCategoryTableTab = false;
+    this.isCityTab = false;
+    this.isClassTab = false;
+    this.foodCategoryForm= false;
+    this.foodCategoryTable =false;
+    this.foodAllowanceTypeTab = false;
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
