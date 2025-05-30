@@ -840,6 +840,7 @@ public ServiceResponse saveExpenditureType(ExpenditureTypeDTO expenditureTypeDTO
     	expenditureType.setDescription(expenditureTypeDTO.getDescription());
     	expenditureType.setIsActive("Y");
     	expenditureType.setCreatedBy(expenditureTypeDTO.getCreatedBy());
+    	System.out.println(expenditureType.toString());
 
     	ExpenditureType savedType = expenditureTypeRepository.save(expenditureType);
 

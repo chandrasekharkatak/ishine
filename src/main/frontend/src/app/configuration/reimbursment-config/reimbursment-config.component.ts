@@ -263,11 +263,12 @@ toggleSearchReviewType() {
   async submitExpenditureType(template: TemplateRef<any>) {
     try {
       this.expenditureType.createdBy = this.currentEmployeeInfo.empId; 
-      console.log('created By ',this.expenditureType.createdBy);
+      console.log('Expenditure type :::::::::::::::: ',this.expenditureType);
       const response: any = await this.reimbursementService.saveExpenditureType(this.expenditureType).toPromise();
       console.log('Expenditure Type saved', response);
       if (response.serviceStatus === "Success") {
         this.openAlertMod(template, "Expenditure submitted successfully!");
+        this.resetForm();
         this.modalRef.hide();
       }
       else {
@@ -322,6 +323,7 @@ toggleSearchReviewType() {
       }
       // }
       this.openAlertMod(template, 'Travel Mode saved successfully!');
+      this.resetForm();
     } catch (error) {
       console.error('API error:', error);
       this.openAlertMod(template, 'Unexpected error occurred!');
@@ -349,6 +351,7 @@ toggleSearchReviewType() {
       console.log('Vehicle Type saved', response);
       if (response.serviceStatus === "Success") {
         this.openAlertMod(template, "Vehicle submitted successfully!");
+        this.resetForm();
         this.modalRef.hide();
       }
       else {
@@ -386,6 +389,7 @@ toggleSearchReviewType() {
       console.log('Food Type saved', response);
       if (response.serviceStatus === "Success") {
         this.openAlertMod(template, "Food Type submitted successfully!");
+        this.resetForm();
         this.modalRef.hide();
       }
       else {
@@ -424,6 +428,31 @@ toggleSearchReviewType() {
         return true; 
     }
     return false; 
+}
+
+resetForm(){
+  this.expenditureType = {
+    expenditureTypeName: '',
+    description: '',
+    createdBy:''
+  };
+
+  
+  this.foodType = {
+    foodTypeName: '',
+    description: '',
+    createdBy:''
+  };
+  this.vehicleType = {
+    vehicleTypeName :'',
+    description: '',
+    createdBy:''
+  };
+  this.modeType = '';
+  this.description = '';
+  this.selectedExpenditure = '';
+  this.requiresVehicleType = '';
+
 }
 
 }

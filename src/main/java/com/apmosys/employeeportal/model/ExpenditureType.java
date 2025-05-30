@@ -20,13 +20,13 @@ public class ExpenditureType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "expenditure_type_name", nullable = false)
+    @Column(name = "expenditure_type_name")
     private String expenditureTypeName;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description")
     private String description;
 
-    @Column(name = "is_active", nullable = false)
+    @Column(name = "is_active")
     private String isActive = "Y";
 
     @Column(name = "created_by")
