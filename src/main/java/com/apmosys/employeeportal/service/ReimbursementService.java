@@ -30,12 +30,14 @@ import com.apmosys.employeeportal.dto.TravelBasedReimbursementRequestDTO;
 import com.apmosys.employeeportal.dto.TravelModeDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.ExpenditureType;
+import com.apmosys.employeeportal.model.FoodType;
 import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.ReimbursementData;
 import com.apmosys.employeeportal.model.ReimbursementTravelMode;
 import com.apmosys.employeeportal.model.VehicleType;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.ExpenditureTypeRepository;
+import com.apmosys.employeeportal.repository.FoodTypeRepository;
 import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.ReimbursementDataRepository;
 import com.apmosys.employeeportal.repository.ReimbursementTravelModeRepository;
@@ -68,6 +70,9 @@ public class ReimbursementService {
 	
 	@Autowired
 	private VehicleTypeRepository vehicleTypeRepository;
+	
+	@Autowired
+	private FoodTypeRepository foodTypeRepository;
 	
 	@Autowired
 	private ReimbursementTravelModeRepository reimbursementTravelModeRepository;
@@ -977,6 +982,49 @@ public ServiceResponse getAllVehicleType() {
     return serviceResponse;
 }
 
+public ServiceResponse saveFoodType(TravelModeDTO travelModeDTO) {
+    ServiceResponse serviceResponse = new ServiceResponse();
+    try {
+    	FoodType foodType = new FoodType();
+    	foodType.setFoodTypeName(travelModeDTO.getFoodTypeName());
+    	foodType.setDescription(travelModeDTO.getDescription());
+    	foodType.setIsActive("Y");
+    	foodType.setCreatedBy(travelModeDTO.getCreatedBy());
+
+    	FoodType savedType = foodTypeRepository.save(foodType);
+
+        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        serviceResponse.setServiceResponse(savedType); 
+    } catch (Exception e) {
+        e.printStackTrace();
+        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        serviceResponse.setServiceError("Failed to save food Type: " + e.getMessage());
+    }
+
+    return serviceResponse;
+}
+
+
+public ServiceResponse getAllFoodType() {
+    ServiceResponse serviceResponse = new ServiceResponse();
+    try {
+        List<FoodType> typeList = foodTypeRepository.findAll();
+
+        if (typeList.isEmpty()) {
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            serviceResponse.setServiceError("No travel reasons found.");
+        } else {
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            serviceResponse.setServiceResponse(typeList);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        serviceResponse.setServiceError("Error fetching food type " + e.getMessage());
+    }
+
+    return serviceResponse;
+}
 
 
 	

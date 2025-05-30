@@ -2,6 +2,7 @@ import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Employee } from 'src/app/models/employee';
+import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
@@ -28,6 +29,13 @@ export class ReimbursmentConfigComponent implements OnInit {
     description: '',
     createdBy:''
   };
+
+  
+  foodType = {
+    foodTypeName: '',
+    description: '',
+    createdBy:''
+  };
   vehicleType = {
     vehicleTypeName :'',
     description: '',
@@ -37,12 +45,13 @@ export class ReimbursmentConfigComponent implements OnInit {
   requiresVehicleType: string = '';
   vehicleTypeList:string = '';
   expenditureTypeList:any[] = [];
+  foodTypeList:any[] = [];
   travelModeList:any[] = [];
 
   currentEmployeeInfo: Employee = new Employee();
   domainSpecializationList: any[];
   alertMessage: any;
-  currentUser: import("/home/apmosys/Desktop/EmployeePortal_UAT_17_03_25/employeeportal_java/src/main/frontend/src/app/models/user").User;
+  currentUser: User;
   modeType: any;
   description: any;
   handlePageChange(event) {
@@ -60,6 +69,7 @@ export class ReimbursmentConfigComponent implements OnInit {
     this.onGetExpenditureType();
     this.onGetTravelMode();
     this.onGetVehicleType();
+    this.onGetFoodType();
   }
 
   async onGetEmployeeInfo() {
@@ -135,7 +145,18 @@ toggleSearchReviewType() {
     this.createCategoryForm=false;
   }
 
+  foodAllowanceType(){
+    this.isClass=false;
+    this.istravelMode=false;
+    this.isCategoryTable=false;
+    this.travelModeForm=false;
+    this.classCategoryForm=false;
+    this.createCategoryForm=false;
+    this.foodCategoryForm= true;
+  }
+
   classCategoryForm:boolean=false;
+  foodCategoryForm:boolean=false;
   travelModeForm:boolean=false;
   subClassCategory(){
     this.travelModeForm=false;
@@ -285,6 +306,42 @@ toggleSearchReviewType() {
       console.error(response.serviceResponse);
     }
   }
+
+
+
+  async saveFoodType(template: TemplateRef<any>) {
+    try {
+      this.foodType.createdBy = this.currentEmployeeInfo.empId; 
+      console.log('Food details ',this.foodType);
+      const response: any = await this.reimbursementService.saveFoodType(this.foodType).toPromise();
+      console.log('Food Type saved', response);
+      if (response.serviceStatus === "Success") {
+        this.openAlertMod(template, "Food Type submitted successfully!");
+        this.modalRef.hide();
+      }
+      else {
+        this.openAlertMod(template, "Submission failed. Try again.!");
+      }
+
+    } catch (error) {
+      console.error('Error submitting reason:', error);
+      this.openAlertMod(template, "Error occurred while saving the Food type.");
+    }
+  }
+
+  async onGetFoodType() {
+
+    const response: any = await this.reimbursementService.onGetFoodType().toPromise();
+    if (response.serviceStatus == "Success") {
+      this.foodTypeList = response.serviceResponse;
+
+      console.log("foodTypeList   ::::::: : ", this.foodTypeList);
+
+    } else {
+      console.error(response.serviceResponse);
+    }
+  }
+
 
 
 

@@ -19,4 +19,5 @@ public class TravelModeDTO {
     private String requiresVehicleType ;
     private String vehicleTypeName;
     private String travelReasonName;
+    private String foodTypeName;
 }

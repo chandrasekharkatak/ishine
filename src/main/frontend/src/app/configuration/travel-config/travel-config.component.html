@@ -635,10 +635,10 @@
 
 <div class="row"
   *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && createCategoryForm && !isClass && !istravelMode">
-  <div class="card col-md-12 px-0">
-    <div class="card-header text-center text-uppercase">
-      <strong>Reason For Travel</strong>
-    </div>
+    <div class="card col-md-12 px-0 shadow-sm rounded">
+      <div class="card-header bg-color text-white text-center text-uppercase" style="background-color:#021b79;">
+          <strong>Reason For Travel</strong>
+      </div>
     <div class="card-body">
       <form #reasonForm="ngForm" (ngSubmit)="submitTravelReason(alert_message,alert_message2)">
         <div class="form-row">
@@ -660,10 +660,13 @@
               autocomplete="off" (keypress)="fieldRestrictNumber($event)" />
           </div>
 
-          <!-- Submit Button -->
-          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
-            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!reasonForm.form.valid">
-              Submit
+
+        </div>
+
+        <div class="row">
+          <div class="col-12 d-flex justify-content-center">
+            <button type="submit" class="btn btn-success" [disabled]="!reasonForm.form.valid">
+              <i class="fas fa-paper-plane mr-2"></i> Submit
             </button>
           </div>
         </div>
@@ -692,9 +695,9 @@
 
 <div class="row"
   *ngIf="!classCategoryForm && travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode">
-  <div class="card col-md-12 px-0">
-    <div class="card-header text-center text-uppercase">
-      <strong>Travel Mode</strong>
+  <div class="card col-md-12 px-0 shadow-sm rounded">
+    <div class="card-header bg-color text-white text-center text-uppercase">
+        <strong>Travel Mode</strong>
     </div>
     <div class="card-body">
       <form #modeForm="ngForm" (ngSubmit)="submitTravelMode(alert_message,alert_message2)">
@@ -731,10 +734,12 @@
             </div>
           </div>
 
-          <!-- Submit Button -->
-          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
-            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!modeForm.form.valid">
-              Submit
+
+        </div>
+        <div class="row">
+          <div class="col-12 d-flex justify-content-center">
+            <button type="submit" class="btn btn-success" [disabled]="!modeForm.form.valid">
+              <i class="fas fa-paper-plane mr-2"></i> Submit
             </button>
           </div>
         </div>
@@ -749,9 +754,9 @@
 
 <div class="row"
   *ngIf="classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode">
-  <div class="card col-md-12 px-0">
-    <div class="card-header text-center text-uppercase">
-      <strong>Travel Class</strong>
+  <div class="card col-md-12 px-0 shadow-sm rounded">
+    <div class="card-header bg-color text-white text-center text-uppercase">
+        <strong>Travel Class</strong>
     </div>
     <div class="card-body">
 
@@ -807,14 +812,16 @@
             </div>
           </div>
 
-          <!-- Submit Button -->
-          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
-            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!travelClassForm.form.valid">
-              Submit
+
+        </div>
+
+        <div class="row">
+          <div class="col-12 d-flex justify-content-center">
+            <button type="submit" class="btn btn-success" [disabled]="!travelClassForm.form.valid">
+              <i class="fas fa-paper-plane mr-2"></i> Submit
             </button>
           </div>
         </div>
-
       </form>
     </div>
   </div>
@@ -822,9 +829,9 @@
 
 <div class="row"
   *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode && hotelCategoryForm && !hotelSubCategoryForm && !cityForm">
-  <div class="card col-md-12 px-0">
-    <div class="card-header text-center text-uppercase">
-      <strong>Hotel Booking Category</strong>
+  <div class="card col-md-12 px-0 shadow-sm rounded">
+    <div class="card-header bg-color text-white text-center text-uppercase">
+        <strong>Hotel Booking Category</strong>
     </div>
     <div class="card-body">
       <form #reasonForm="ngForm" (ngSubmit)="submitHotelCategory(alert_message)">
@@ -847,10 +854,12 @@
               autocomplete="off" />
           </div>
 
-          <!-- Submit Button -->
-          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
-            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!reasonForm.form.valid">
-              Submit
+
+        </div>
+        <div class="row">
+          <div class="col-12 d-flex justify-content-center">
+            <button type="submit" class="btn btn-success" [disabled]="!reasonForm.form.valid">
+              <i class="fas fa-paper-plane mr-2"></i> Submit
             </button>
           </div>
         </div>
@@ -861,9 +870,9 @@
 
 <div class="row"
   *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode && !hotelCategoryForm && hotelSubCategoryForm && !isHotelSubCategory && !cityForm">
-  <div class="card col-md-12 px-0">
-    <div class="card-header text-center text-uppercase">
-      <strong>Hotel Booking Sub-Category</strong>
+  <div class="card col-md-12 px-0 shadow-sm rounded">
+    <div class="card-header bg-color text-white text-center text-uppercase">
+        <strong>Hotel Booking Sub-Category</strong>
     </div>
     <div class="card-body">
       <form #reasonForm="ngForm" (ngSubmit)="submitHotelSubCategory(alert_message)">
@@ -894,10 +903,11 @@
           </div>
 
 
-          <!-- Submit Button -->
-          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
-            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!reasonForm.form.valid">
-              Submit
+        </div>
+        <div class="row">
+          <div class="col-12 d-flex justify-content-center">
+            <button type="submit" class="btn btn-success" [disabled]="!reasonForm.form.valid">
+              <i class="fas fa-paper-plane mr-2"></i> Submit
             </button>
           </div>
         </div>
@@ -909,9 +919,9 @@
 
 <div class="row"
   *ngIf="!classCategoryForm && !travelModeForm && !isCategoryTable && !createCategoryForm && !isClass && !istravelMode && !hotelCategoryForm && !hotelSubCategoryForm && cityForm && !isCity">
-  <div class="card col-md-12 px-0">
-    <div class="card-header text-center text-uppercase">
-      <strong>Add City</strong>
+  <div class="card col-md-12 px-0 shadow-sm rounded">
+    <div class="card-header bg-color text-white text-center text-uppercase">
+        <strong>Add City</strong>
     </div>
     <div class="card-body">
       <form #reasonForm="ngForm" (ngSubmit)="submitCity(alert_message)">
@@ -954,10 +964,11 @@
           </div>
 
 
-          <!-- Submit Button -->
-          <div class="form-group col-md-4 d-flex align-items-end justify-content-start">
-            <button type="submit" class="btn btn-primary btn-sm" [disabled]="!reasonForm.form.valid">
-              Submit
+        </div>
+        <div class="row">
+          <div class="col-12 d-flex justify-content-center">
+            <button type="submit" class="btn btn-success" [disabled]="!reasonForm.form.valid">
+              <i class="fas fa-paper-plane mr-2"></i> Submit
             </button>
           </div>
         </div>

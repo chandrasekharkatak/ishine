@@ -126,5 +126,17 @@ public class ReimbursementController {
 	public ServiceResponse onGetVehicleType() {
 		return reimbursementService.getAllVehicleType();
 	}
+	
+	
+	@PostMapping("/saveFoodType")
+	public ServiceResponse createFoodType(@RequestBody TravelModeDTO travelModeDTO) {
+		return reimbursementService.saveFoodType(travelModeDTO);
+	}
+	
+	@GetMapping("/onGetFoodType")
+	public ServiceResponse onGetFoodType() {
+		return reimbursementService.getAllFoodType();
+	}
+
 
 }

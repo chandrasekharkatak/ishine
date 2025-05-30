@@ -92,6 +92,14 @@ export class ReimbursementService {
   onGetVehicleType() {
     return this.http.get(`${this.baseUrl}` + `api/onGetVehicleType`);
   }
-  
+
+
+  saveFoodType(reason: any) {
+    return this.http.post(`${this.baseUrl}`+`api/saveFoodType`, reason);
+  }
+
+  onGetFoodType() {
+    return this.http.get(`${this.baseUrl}` + `api/onGetFoodType`);
+  }
   
 }
