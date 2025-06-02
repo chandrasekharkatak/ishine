@@ -2,10 +2,12 @@ package com.apmosys.employeeportal.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -25,9 +27,11 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeDocument;
 import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.TravelBasedReimbursementRequest;
+import com.apmosys.employeeportal.model.TravelDesk;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.TravelBasedReimbursementRequestRepository;
+import com.apmosys.employeeportal.repository.TravelDeskRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @Service
@@ -35,6 +39,10 @@ public class TravelBasedReimbursementRequestService {
      
 	@Autowired
 	private TravelBasedReimbursementRequestRepository travelBasedReimbursementRequestRepository;
+	
+	@Autowired
+	private TravelDeskRepository tavelDeskRepository;
+	
 	@Autowired
 	private EmployeeRepository employeeRepository;
 	
@@ -52,6 +60,21 @@ public class TravelBasedReimbursementRequestService {
 	
 	@Autowired
 	private HttpServletRequest httpRequest;	
+	
+	@Autowired
+	private MailService mailService;
+	
+	@Value("${hr.mail}")
+	private String hrMailAddress;
+	
+	@Value("${admin.mail}")
+	private String adminMail;
+	
+	@Value("${ticket.mail}")
+	private String ticketMail;
+	
+	@Value("${admin.head}")
+	private String adminHead;
 	
 	public ServiceResponse submitReimbursmentBasedOnTravelRequest(List<TravelBasedReimbursementRequestDTO> reimbursementRequestDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -417,7 +440,7 @@ public ServiceResponse updateInvoicesDetailsByAccountsTeam(TravelBasedReimbursem
 	    try {
 	       
 	        TravelBasedReimbursementRequest invoiceDetails= travelBasedReimbursementRequestRepository.findInvoiceDetails(reimbursementRequestDTO.getInvoiceNo());
-	        
+	        SimpleDateFormat sdf1 = new SimpleDateFormat("dd/MM/yyyy");
 	        if(invoiceDetails != null) {
 	        	invoiceDetails.setIsValid(true);
 	        	invoiceDetails.setReimbursementStatus("Approved");
@@ -435,7 +458,50 @@ public ServiceResponse updateInvoicesDetailsByAccountsTeam(TravelBasedReimbursem
 		            if(dbResponse != null) {
 		            	  response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse(dbResponse);
+							TravelDesk tavelDeskDetails = tavelDeskRepository.findByRequestId(new BigInteger(String.valueOf(invoiceDetails.getTravelId())));
+
+							if("Rejected".equalsIgnoreCase(invoiceDetails.getReimbursementStatus())) {
+								try {
+									
+				            		mailService.sendMail(
+				            				tavelDeskDetails.getEmail(),
+					            		    " Reimbursement Payment Rejected"+"",
+					            		    "Dear "+ tavelDeskDetails.getName() + ","+"<br>" +
+					            		    "<br>"+" &nbsp"+" &nbsp"+" "+"Your travel based reimbursement request for the purpose of"+ tavelDeskDetails.getPurpose()+ 
+					            		    " covering the period from"+sdf1.format(tavelDeskDetails.getFromDate())+" to "+ sdf1.format(tavelDeskDetails.getToDate())+
+					            		    ", has been  Rejected by the Accounts Team due to "+invoiceDetails.getRejectReason()+" Against invoice Number "+invoiceDetails.getInvoiceNo() +
+				
+					            		    "<br> Please Resubmit with the latest Details"+
+					            		   
+					            		    "<br><br>Regards,<br>" +
+					            		    "IShine Support Team<br>" +
+					            		    "ApMoSys PVT. LTD.<br><br>"
+				                		);
+
+							}catch(Exception e) {
+								 e.printStackTrace();
+							}
 							
+							try {
+								
+							mailService.sendMailWithCC(
+			            			adminHead,
+			            			hrMailAddress,
+			            		    "Reimbursement Rejected  - "+tavelDeskDetails.getName()+"",
+			            		    "Dear "+ "HR Team" + ","+"<br>" +
+			            		    "<br>"+" &nbsp"+" &nbsp"+" "+"The travel based reimbursement request submitted by - "+tavelDeskDetails.getName()+"."+
+			            		   
+			            		    "<br>This has been rejected by Accounts Team due to "+invoiceDetails.getRejectReason()+
+			            		      
+			            		    "<br><br>Regards,<br>" +
+			            		    "IShine Support Team<br>" +
+			            		    "ApMoSys PVT. LTD.<br><br>"
+			            		);
+		        		}catch(Exception e){
+		        			 e.printStackTrace(); 
+		        		}
+							}
+					
 							apiLogInfo.setApiResponse("Update Invoices Details By Accounts Team  Completed!!");
 							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		            }else {
@@ -693,6 +759,7 @@ public ServiceResponse updateUploadedFile(MultipartFile file, String displayName
 
       public ServiceResponse markAsPaid(TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
     	  ServiceResponse response = new ServiceResponse();
+    	  SimpleDateFormat sdf1 = new SimpleDateFormat("dd/MM/yyyy");
     		LogDTO apiLogInfo = new LogDTO();
     		apiLogInfo.setSubFeatureName("markAsPaid");
     		apiLogInfo.setApiUrl("/api/markAsPaid");
@@ -711,6 +778,46 @@ public ServiceResponse updateUploadedFile(MultipartFile file, String displayName
  	            response.setServiceMessage("Reimbursement Done successfully.");
  	            apiLogInfo.setApiResponse("Reimbursement Done successfully.");
  	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+ 	           TravelDesk tavelDeskDetails = tavelDeskRepository.findByRequestId(new BigInteger(String.valueOf(reimbursementRequestDTO.getTravelId())));
+ 	           try {
+					
+           		mailService.sendMail(
+           				tavelDeskDetails.getEmail(),
+	            		    " Reimbursement Payment Processed Successfully"+"",
+	            		    "Dear "+ tavelDeskDetails.getName() + ","+"<br>" +
+	            		    "<br>"+" &nbsp"+" &nbsp"+" "+"Your tarvel based reimbursement request for the purpose of"+ tavelDeskDetails.getPurpose()+ 
+	            		    " covering the period from"+sdf1.format(tavelDeskDetails.getFromDate())+" to "+ sdf1.format(tavelDeskDetails.getToDate())+
+	            		    ", has been successfully processed and marked as paid by the Accounts Team."+
+
+	            		    "<br> The payment should be reflected in your account shortly."+
+	            		   
+	            		    "<br><br>Regards,<br>" +
+	            		    "IShine Support Team<br>" +
+	            		    "ApMoSys PVT. LTD.<br><br>"
+               		);
+
+			}catch(Exception e) {
+				 e.printStackTrace();
+			}
+			
+			try {
+				
+			mailService.sendMailWithCC(
+       			adminHead,
+       			hrMailAddress,
+       		    "Reimbursement Paid  - "+tavelDeskDetails.getName()+"",
+       		    "Dear "+ "HR Team" + ","+"<br>" +
+       		    "<br>"+" &nbsp"+" &nbsp"+" "+"The reimbursement request submitted by - "+tavelDeskDetails.getName()+"."+
+       		   
+       		    "<br>This is for your records and no further action is required at this time."+
+       		      
+       		    "<br><br>Regards,<br>" +
+       		    "IShine Support Team<br>" +
+       		    "ApMoSys PVT. LTD.<br><br>"
+       		);
+		}catch(Exception e){
+			 e.printStackTrace(); 
+		}
     	    	  
     		}catch(Exception e){
     			 e.printStackTrace();

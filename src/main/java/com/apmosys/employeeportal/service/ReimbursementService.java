@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -93,12 +94,14 @@ public class ReimbursementService {
 	@Value("${level3.ApproverMail}")
 	private String level3ApproverMail ;
 	
+	@Value("${ticket.mail}")
+	private String ticketMail;
+	
+	@Value("${admin.head}")
+	private String adminHead;
+	
 	@Value("${hr.mail}")
-	private String hrMail ;
-	
-	@Value("${finance.mail}")
-	private String financeMail ;
-	
+	private String hrMailAddress;
 
 	public ServiceResponse fetchReimbursementData(BigInteger empId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -217,7 +220,7 @@ public class ReimbursementService {
 	        
 			reimbursementData.setApprover2(approver2); 
 			//reimbursementData.setApprover3(level3Approver);
-			reimbursementData.setLevel2ApproverEmail(level2.getEmail());
+			reimbursementData.setLevel2ApproverEmail(level2ApproverMail);
 			//reimbursementData.setLevel3ApproverEmail(level3ApproverMail);
 			reimbursementData.setLevel1ApproverEmail(level1.getEmail());
 			reimbursementData.setApprover1(approver1);
@@ -252,6 +255,15 @@ public class ReimbursementService {
 				return serviceResponse;
 			} else {
 				
+//				File file = null;
+//				try {
+//				    Resource resource = getTemplateFile(Long.parseLong(savedReimbursementData.getDocId()));
+//				    if (resource != null && resource.exists()) {
+//				        file = resource.getFile(); 
+//				    }
+//				} catch (IOException e) {
+//				    e.printStackTrace();
+//				}
 				File file = null;
 				try {
 				    String docIdsString = savedReimbursementData.getDocId();
@@ -274,90 +286,32 @@ public class ReimbursementService {
 				}
 				Employee emp = employeeRepository.findByEmpId(Long.valueOf(savedReimbursementData.getEmpId().toString()));
 				
-				if (reimbursementObj.getExpenditureType().equals("Food")) {
-				    // To Approver 1 and HR
-				    try {
-				        mailService.sendMailWithCC(savedReimbursementData.getLevel1ApproverEmail(), hrMail,
-				            "Reimbursement Request Approval Required",
-				            "Dear"+"&nbsp" + savedReimbursementData.getHodName() + ",<br><br>" +
-				            "A reimbursement request has been submitted by " + emp.getName() + " for the purpose of: " + savedReimbursementData.getPurpose() + "<br>" +
-				            "The expenditure type is Food. Kindly review the request and take the necessary action at your earliest convenience.<br><br>" +
-				            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-				    } catch (Exception e) {
-				        e.printStackTrace();
-				        
-				    }
+				if(reimbursementObj.getExpenditureType().equals("Food")) {
+			      	mailService.sendMailWithAttachment(savedReimbursementData.getLevel1ApproverEmail(),savedReimbursementData.getEmail(),
+	    	        		"Reimbursement request approval required",
+	    	        		"Dear " + savedReimbursementData.getHodName() + ",<br><br>" +
+	    	        				"A reimbursement request has been submitted by " + emp.getName() + ".<br>" +
+	    	        				"Purpose: " + savedReimbursementData.getPurpose() + "<br>" +
+//	    	        				"Location: " + savedReimbursementData.getCity() + "<br><br>" +
+	    	        				"Kindly review and take the necessary action on this reimbursement application.<br><br>" +
+	    	        				"Regards,<br>" +
+	    	        				"iShine Reimbursement Desk", file);
+				}else {
+	            
+	            	mailService.sendMailWithAttachment(savedReimbursementData.getLevel1ApproverEmail(),savedReimbursementData.getEmail(),
+	    	        		"Reimbursement request approval required",
+	    	        		"Dear " + savedReimbursementData.getHodName() + ",<br><br>" +
+	    	        				"A reimbursement request has been submitted by " + emp.getName() + ".<br>" +
+	    	        				"Purpose: " + savedReimbursementData.getPurpose() + "<br>" +
+	    	        				"Duration: From " + savedReimbursementData.getFromDate().toGMTString() +
+	    	        				" to " + savedReimbursementData.getToDate().toGMTString() + "<br><br>" +
+//	    	        				"Location: " + savedReimbursementData.getCity() + "<br><br>" +
+	    	        				"Kindly review and take the necessary action on this reimbursement application.<br><br>" +
+	    	        				"Regards,<br>" +
+	    	        				"iShine Reimbursement Desk", file);
 
-				    // To User
-				    try {
-				        mailService.sendMailWithCC(savedReimbursementData.getEmail(), savedReimbursementData.getEmail(),
-				            "Your Reimbursement Request Has Been Submitted",
-				            "Dear"+"&nbsp" + emp.getName() + ",<br><br>" +
-				            "Your reimbursement request for the purpose of: " + savedReimbursementData.getPurpose() + "<br>" +
-				            "with the expenditure type Food has been successfully submitted.<br>" +
-				            "The request has been forwarded to your Reporting Manager " + savedReimbursementData.getHodName() + " for approval. You will be notified once it is processed.<br><br>" +
-				            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-				    } catch (Exception e) {
-				        e.printStackTrace();
-				    }
-
-				    // To HR
-//				    try {
-//				        mailService.sendMailWithCC(hrMail, savedReimbursementData.getEmail(),
-//					        "Reimbursement Request Submitted by "+ emp.getName() +"",
-//				            "Dear HR Team,<br><br>" +
-//				            "A reimbursement request has been submitted by " + emp.getName() + ".<br>" +
-//				            "for the purpose of: " + savedReimbursementData.getPurpose() + "<br>" +
-//				            "The expenditure type is Food. The request has been forwarded to " + savedReimbursementData.getHodName() + " for approval. This is for your information.<br><br>" +
-//				            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-//				    } catch (Exception e) {
-//				        e.printStackTrace();
-//				    }
-
-				} else {
-				    // To Approver 1 and HR
-				    try {
-				        mailService.sendMailWithCC(savedReimbursementData.getLevel1ApproverEmail(), hrMail,
-				            "Reimbursement Request Approval Required",
-				            "Dear "+"&nbsp" + savedReimbursementData.getHodName() + ",<br><br>" +
-				            "A reimbursement request has been submitted by " + emp.getName() + " for the purpose of: " + savedReimbursementData.getPurpose() + "<br>" +
-				            "The duration of the expense is from " + savedReimbursementData.getFromDate() + " to " + savedReimbursementData.getToDate() + "<br>" +
-				            "Kindly review the request and take the necessary action at your earliest convenience.<br><br>" +
-				            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-				    } catch (Exception e) {
-				        e.printStackTrace();
-				    }
-
-				    // To User
-				    try {
-				        mailService.sendMailWithCC(savedReimbursementData.getEmail(), savedReimbursementData.getEmail(),
-				            "Your Reimbursement Request Has Been Submitted",
-				            "Dear"+"&nbsp"+ emp.getName() + ",<br><br>" +
-				            "Your reimbursement request for the purpose of: " + savedReimbursementData.getPurpose() + "<br>" +
-				            "covering the period from " + savedReimbursementData.getFromDate() + " to " + savedReimbursementData.getToDate() + " has been successfully submitted.<br>" +
-				            "The request has been forwarded to your Reporting Manager " + savedReimbursementData.getHodName() + " for approval. You will be notified once it is processed.<br><br>" +
-				            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-				    } catch (Exception e) {
-				        e.printStackTrace();
-				    }
-
-				    // To HR
-//				    try {
-//				        mailService.sendMailWithCC(hrMail, savedReimbursementData.getEmail(),
-//				            "Reimbursement Request Submitted by "+ emp.getName() +"",
-//				            "Dear HR Team,<br><br>" +
-//				            "A reimbursement request has been submitted by " + emp.getName() + ".<br>" +
-//				            "for the purpose of: " + savedReimbursementData.getPurpose() + "<br>" +
-//				            "covering the duration from " + savedReimbursementData.getFromDate() + " to " + savedReimbursementData.getToDate() + " has been successfully submitted.<br>" +
-//				            "The request has been forwarded to " + savedReimbursementData.getHodName() + " for approval. This is for your information.<br><br>" +
-//				            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-//				    } catch (Exception e) {
-//				        e.printStackTrace();
-//				    }
 				}
-
-				
-			    serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				serviceResponse.setServiceResponse(savedReimbursementData);
 				serviceResponse.setServiceMessage("Saved Successfully..!!");
 	            return serviceResponse;
@@ -382,9 +336,12 @@ public class ReimbursementService {
 				return serviceResponse;
 			} else {
 				existingReimbursementData.setEmpId(reimbursementObj.getEmpId());
+//				existingReimbursementData.setFullName(existingReimbursementData.getFullName());
+//				existingReimbursementData.setCurrency(existingReimbursementData.getCurrency());
 				existingReimbursementData.setEmail(reimbursementObj.getEmail());
 				existingReimbursementData.setMobileNo(reimbursementObj.getMobileNo());
 				existingReimbursementData.setDepartment(reimbursementObj.getDepartmentName());
+				//existingReimbursementData.setFullName(reimbursementObj.getName());
 				existingReimbursementData.setExpenditureType(reimbursementObj.getExpenditureType());
 				if (reimbursementObj.getExpenditureType().equalsIgnoreCase("Travel")) {
 					existingReimbursementData.setTravelMode(reimbursementObj.getTravelMode());
@@ -411,54 +368,14 @@ public class ReimbursementService {
 				// BigInteger approver2 = new BigInteger(level2Approver);
 				// existingReimbursementData.setApprover2(approver2);
 				existingReimbursementData.setIsActive(1);
-				ReimbursementData savedReimbursementData = reimbursementDataRepository.save(existingReimbursementData);
-				if (savedReimbursementData == null) {
+				ReimbursementData savedReimbursementdata = reimbursementDataRepository.save(existingReimbursementData);
+				if (savedReimbursementdata == null) {
 					serviceResponse.setServiceError("Unable to update...!!");
 					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					return serviceResponse;
 				} else {
-					
-					 // To Approver 1 and HR
-				    try {
-				        mailService.sendMailWithCC(savedReimbursementData.getLevel1ApproverEmail(), savedReimbursementData.getEmail(),
-				            "Reimbursement Request Updated – Action Required",
-				            "Dear"+"&nbsp" + savedReimbursementData.getHodName() + ",<br><br>" +
-				            "A reimbursement request has been updated by " + savedReimbursementData.getFullName() + " for the purpose of: " + savedReimbursementData.getPurpose() + "<br>" +
-				            "The expenditure type is Food. Kindly review the updated request and take the necessary action at your earliest convenience.<br><br>" +
-				            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-				    } catch (Exception e) {
-				        e.printStackTrace();
-				        
-				    }
-
-				    // To User
-				    try {
-				        mailService.sendMailWithCC(savedReimbursementData.getEmail(), savedReimbursementData.getEmail(),
-				            "Your Reimbursement Request Has Been Updated",
-				            "Dear"+"&nbsp" + savedReimbursementData.getFullName() + ",<br><br>" +
-				            "You have successfully updated your reimbursement request for the purpose of: " + savedReimbursementData.getPurpose() + "<br>" +
-				            "with the expenditure type Food .<br>" +
-				            "The updated request has been sent again to your Reporting Manager " + savedReimbursementData.getHodName() + " for approval. You will be notified once it is processed.<br><br>" +
-				            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-				    } catch (Exception e) {
-				        e.printStackTrace();
-				    }
-
-				    // To HR
-//				    try {
-//				        mailService.sendMailWithCC(hrMail, savedReimbursementData.getEmail(),
-//					        "Reimbursement Request Submitted by "+ savedReimbursementData.getFullName() +"",
-//				            "Dear HR Team,<br><br>" +
-//				            "A reimbursement request has been submitted by " + savedReimbursementData.getFullName() + ".<br>" +
-//				            "for the purpose of: " + savedReimbursementData.getPurpose() + "<br>" +
-//				            "The expenditure type is Food. The request has been forwarded to " + savedReimbursementData.getHodName() + " for approval. This is for your information.<br><br>" +
-//				            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-//				    } catch (Exception e) {
-//				        e.printStackTrace();
-//				    }
-					
 					serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					serviceResponse.setServiceResponse(savedReimbursementData);
+					serviceResponse.setServiceResponse(savedReimbursementdata);
 					serviceResponse.setServiceMessage("Updated Successfully..!!");
 					return serviceResponse;
 				}
@@ -482,35 +399,6 @@ public class ReimbursementService {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return serviceResponse;
 			} else {
-				
-				 // To Approver 1 and HR
-			    try {
-			        mailService.sendMailWithCC(existingReimbursementData.getLevel1ApproverEmail(), existingReimbursementData.getEmail(),
-			            "Reimbursement Request Revoked "+ existingReimbursementData.getFullName() +"",
-			            "Dear"+"&nbsp" + existingReimbursementData.getHodName() + ",<br><br>" +
-			            ""+ existingReimbursementData.getFullName() + "has revoked their reimbursement request for the purpose of: " + existingReimbursementData.getPurpose() + "<br>" +
-			            ",with the expenditure type is Food." +"<br>"+
-			            "No further action is required from your end..<br><br>" +
-			            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-			    } catch (Exception e) {
-			        e.printStackTrace();
-			        
-			    }
-
-			    // To User
-			    try {
-			        mailService.sendMailWithCC(existingReimbursementData.getEmail(), existingReimbursementData.getEmail(),
-			            "Your Reimbursement Request Has Been Revoked",
-			            "Dear"+"&nbsp" + existingReimbursementData.getFullName() + ",<br><br>" +
-			            "Your reimbursement request for the purpose of: " + existingReimbursementData.getPurpose() + "<br>" +
-			            "with the expenditure type Food, has been successfully revoked..<br>" +
-			            "No further action will be taken on this request .<br><br>" +
-			            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-			    } catch (Exception e) {
-			        e.printStackTrace();
-			    }
-
-				
 				existingReimbursementData.setIsActive(0);
 				reimbursementDataRepository.save(existingReimbursementData);
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -633,169 +521,34 @@ public class ReimbursementService {
 				updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
 
 				if (existingReimbursementData.getStatus() == "Approved") {
+					mailService.sendMailforReimbursement(existingReimbursementData.getLevel1ApproverEmail(),
+							"Reimbursement request approval required",
+							"Dear " + existingReimbursementData.getLevel2approverName() + ",<br><br>" +
+									"A reimbursement request submitted by " + emp.getName() + " has been reviewed and approved at HOD Level.<br>" +
+									"Details of the request are as follows:<br><br>" +
+									"<strong>Purpose:</strong> " + existingReimbursementData.getPurpose() + "<br>" +
+									"From date:" + existingReimbursementData.getFromDate().toGMTString() +
+									" To date:" + existingReimbursementData.getToDate().toGMTString() + "<br><br>" +
+//									"<strong>Mode of Travel:</strong> " + existingReimbursementData.getTravelMode() + "<br><br>" +
+									"Kindly review and take the necessary action on this request at your level.<br><br>" +
+									"Regards,<br>" +
+									"iShine Reimbursement Desk");
 
-					if (existingReimbursementData.getExpenditureType().equals("Food")) {
-						
-						 // To Approver 1 and HR
-					    try {
-					        mailService.sendMailWithCC(existingReimbursementData.getLevel1ApproverEmail(), hrMail,
-					            "Reimbursement Request Approval Required "+ existingReimbursementData.getFullName() +"",
-					            "Dear"+"&nbsp" + existingReimbursementData.getLevel2approverName() + ",<br><br>" +
-					            "A reimbursement request submitted by"+ existingReimbursementData.getFullName() + "for the purpose of: " + existingReimbursementData.getPurpose() + "<br>" +
-					            ",with the expenditure type is Food has been approved by the reporting manager " + existingReimbursementData.getHodName() +" and is now awaiting your review." +" <br>"+
-					            "Kindly review the request and take the necessary action.<br><br>" +
-					            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-					    } catch (Exception e) {
-					        e.printStackTrace();
-					        
-					    }
-
-					    // To User
-					    try {
-					        mailService.sendMailWithCC(existingReimbursementData.getEmail(), existingReimbursementData.getEmail(),
-					            "Your Reimbursement Request Has Been Approved by Level 1 ",
-					            "Dear"+"&nbsp" + existingReimbursementData.getFullName() + ",<br><br>" +
-					            "Your reimbursement request for the purpose of: " + existingReimbursementData.getPurpose() + "<br>" +
-					            "with the expenditure type Food, has been successfully approved by your reporting manager .<br>" +
-					            "The approved request will now be processed to the HOD for 2nd Level Approval. You will be notified once the approval is received from HOD. .<br><br>" +
-					            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-					    } catch (Exception e) {
-					        e.printStackTrace();
-					    	}
-						
-						}else {
-							
-							 // To Approver 1 and HR
-						    try {
-						        mailService.sendMailWithCC(existingReimbursementData.getLevel1ApproverEmail(), hrMail,
-						            "Reimbursement Request Approval Required "+ existingReimbursementData.getFullName() +"",
-						            "Dear"+"&nbsp" + existingReimbursementData.getLevel2approverName() + ",<br><br>" +
-						            "A reimbursement request submitted by"+ existingReimbursementData.getFullName() + "for the purpose of: " + existingReimbursementData.getPurpose() + "<br>" +
-						            ",with the expenditure type is Travel covering the period from "+ existingReimbursementData.getFromDate()+" to "+ existingReimbursementData.getToDate()+",and the  " +
-						            "<strong>Mode of travel is:</strong> " + existingReimbursementData.getTravelMode() + "<br><br>" +
-						            "<strong>the travel class is:</strong> " + existingReimbursementData.getClass() + "<br><br>" +
-						            "has been approved by the reporting manager " + existingReimbursementData.getHodName() +" and is now awaiting your review." +" <br>"+
-						            "Kindly review the request and take the necessary action.<br><br>" +
-						            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-						    } catch (Exception e) {
-						        e.printStackTrace();
-						        
-						    }
-
-						    // To User
-						    try {
-						        mailService.sendMailWithCC(existingReimbursementData.getEmail(), existingReimbursementData.getEmail(),
-						            "Your Reimbursement Request Has Been Approved by Level 1 ",
-						            "Dear"+"&nbsp" + existingReimbursementData.getFullName() + ",<br><br>" +
-						            "Your reimbursement request for the purpose of: " + existingReimbursementData.getPurpose() + "<br>" +
-						            ",with the expenditure type is Travel covering the period from "+ existingReimbursementData.getFromDate()+" to "+ existingReimbursementData.getToDate()+", has been approved by the reporting manager " + existingReimbursementData.getHodName() +" and is now awaiting your review." +" <br>"+
-						            "The approved request will now be processed to the HOD for 2nd Level Approval. You will be notified once the approval is received from HOD. .<br><br>" +
-						            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-						    } catch (Exception e) {
-						        e.printStackTrace();
-						    }
-							
-						}
-
-				}else {
-					 // To User
-				    try {
-				        mailService.sendMailWithCC(existingReimbursementData.getEmail(), hrMail,
-				            "Your Reimbursement Request Has Been Rejected by Level 1 ",
-				            "Dear"+"&nbsp" + existingReimbursementData.getFullName() + ",<br><br>" +
-				            "Your reimbursement request for the purpose of: " + existingReimbursementData.getPurpose() + "<br>" +
-				            ",with the expenditure type is Travel covering the period from "+ existingReimbursementData.getFromDate()+" to "+ existingReimbursementData.getToDate()+", has been rejected by the reporting manager " + existingReimbursementData.getHodName() +" and is now awaiting your review." +" <br>"+
-				            "For more details regarding this decision, please reach out directly to your reporting manager .<br><br>" +
-				            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-				    } catch (Exception e) {
-				        e.printStackTrace();
-				    }
 				}
 			} else if (existingReimbursementData.getLevel() == 2) {
 				updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
 				
-				//Before approval of levl 2
-				if(existingReimbursementData.getLevel2approverStatus() == "Approved") {
-				if (existingReimbursementData.getExpenditureType().equals("Food")) {
-					
-					 // To Accounts and HR
-				    try {
-				        mailService.sendMailWithCC(financeMail, hrMail,
-				            "Reimbursement Request Approval Required "+ existingReimbursementData.getFullName() +"",
-				            "Dear Accounts Team <br><br>" +
-				            "A reimbursement request submitted by"+ existingReimbursementData.getFullName() + "for the purpose of: " + existingReimbursementData.getPurpose() + "<br>" +
-				            ",with the expenditure type is Food has been approved by the Head of Department " + existingReimbursementData.getHodName() +" and is now awaiting your final review." +" <br>"+
-				            "Kindly review the request and take the necessary action.<br><br>" +
-				            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-				    } catch (Exception e) {
-				        e.printStackTrace();
-				        
-				    }
-
-				    // To User
-				    try {
-				        mailService.sendMailWithCC(existingReimbursementData.getEmail(), existingReimbursementData.getEmail(),
-				            "Your Reimbursement Request is Under Final Review ",
-				            "Dear"+"&nbsp" + existingReimbursementData.getFullName() + ",<br><br>" +
-				            "Your reimbursement request for the purpose of: " + existingReimbursementData.getPurpose() + "<br>" +
-				            "with the expenditure type Food, has been successfully approved by your Head of Department" +existingReimbursementData.getLevel2approverName()+" .<br>" +
-				            "The request is now with the Accounts Team for final approval and processing.. You will be notified once the approval is received from Accounts Team  .<br><br>" +
-				            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-				    } catch (Exception e) {
-				        e.printStackTrace();
-				    	}
-					
-					}else {
-						
-						 // To Approver 1 and HR
-					    try {
-					        mailService.sendMailWithCC(financeMail, hrMail,
-					            "Reimbursement Request Final Approval Required "+ existingReimbursementData.getFullName() +"",
-					            "Dear Accounts Team <br><br>" +
-					            "A reimbursement request submitted by"+ existingReimbursementData.getFullName() + "for the purpose of: " + existingReimbursementData.getPurpose() + "<br>" +
-					            ",with the expenditure type is Travel covering the period from "+ existingReimbursementData.getFromDate()+" to "+ existingReimbursementData.getToDate()+",and the  " +
-					            "<strong>Mode of travel is:</strong> " + existingReimbursementData.getTravelMode() + "<br><br>" +
-					            "<strong>the travel class is:</strong> " + existingReimbursementData.getClass() + "<br><br>" +
-					            "has been approved by the Head of Department " + existingReimbursementData.getLevel2approverName() +" and is now awaiting your final review." +" <br>"+
-					            "Kindly review the request and take the necessary action.<br><br>" +
-					            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-					    } catch (Exception e) {
-					        e.printStackTrace();
-					        
-					    }
-
-					    // To User
-					    try {
-					        mailService.sendMailWithCC(existingReimbursementData.getEmail(), existingReimbursementData.getEmail(),
-						            "Your Reimbursement Request is Under Final Review ",
-						            "Dear"+"&nbsp" + existingReimbursementData.getFullName() + ",<br><br>" +
-						            "Your reimbursement request for the purpose of: " + existingReimbursementData.getPurpose() + "<br>" +
-						            "with the expenditure type Travel covering the period from "+ existingReimbursementData.getFromDate()+" to "+ existingReimbursementData.getToDate()+", has been successfully approved by your Head of Department" +existingReimbursementData.getLevel2approverName()+" .<br>" +
-						            "The request is now with the Accounts Team for final approval and processing.. You will be notified once the approval is received from Accounts Team  .<br><br>" +
-						            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-					    } catch (Exception e) {
-					        e.printStackTrace();
-					    }
-						
-					}
-			}	else {
-				 // To User
-			    try {
-			        mailService.sendMailWithCC(existingReimbursementData.getEmail(), hrMail,
-			            "Your Reimbursement Request Has Been Rejected by Head of Department " ,
-			            "Dear"+"&nbsp" + existingReimbursementData.getFullName() + ",<br><br>" +
-			            "Your reimbursement request for the purpose of: " + existingReimbursementData.getPurpose() + "<br>" +
-			            ",with the expenditure type is Travel covering the period from "+ existingReimbursementData.getFromDate()+" to "+ existingReimbursementData.getToDate()+", has been rejected by the<strong> Head of Department</strong> " + existingReimbursementData.getLevel2approverName() +" and is now awaiting your review." +" <br>"+
-			            "For further details, please connect directly with your HOD .<br><br>" +
-			            "Regards,<br>IShine Support Team <br>ApMoSys PVT. LTD.");
-			    } catch (Exception e) {
-			        e.printStackTrace();
-			    }
-				
-			}
-				//After approval of level2
-				
-
+//				mailService.sendMailforReimbursement(existingReimbursementData.getLevel1ApproverEmail(),
+//						"Reimbursement request approval required",
+//						"Dear Approver"+ ",<br><br>" +
+//								"A reimbursement request submitted by " + emp.getName() + " has been reviewed and approved at HOD Level and HRM Level.<br>" +
+//								"Details of the request are as follows:<br><br>" +
+//								"<strong>Purpose:</strong> " + existingReimbursementData.getPurpose() + "<br>" +
+//								"From date:" + existingReimbursementData.getFromDate().toGMTString() +
+//								" To date:" + existingReimbursementData.getToDate().toGMTString() + "<br><br>" +
+//								"Kindly review and take the necessary action on this request at your level.<br><br>" +
+//								"Regards,<br>" +
+//								"iShine Reimbursement Desk");
 				
 			} else {
 				updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
@@ -832,18 +585,22 @@ public class ReimbursementService {
 				reimbursementData.setLevel2approverRemarks(reimbursementObj.getLevel1approverRemarks());
 				reimbursementData.setFinalStatus(reimbursementObj.getStatus());
 			} 
+//			else if (reimbursementData.getLevel() == 3) {
+//				reimbursementData.setLevel3ApproveOn(currentTimestamp);
+//				reimbursementData.setLevel3approverStatus(reimbursementObj.getStatus());
+//				reimbursementData.setLevel3approverRemarks(reimbursementObj.getLevel1approverRemarks());
+//				reimbursementData.setFinalStatus(reimbursementObj.getStatus());
+//			}
 
 		} else {
 			if (reimbursementObj.getStatus().equalsIgnoreCase("Approved")) {
 				if (reimbursementData.getLevel() == 1) {
-										
 					reimbursementData.setLevel1ApproveOn(currentTimestamp);
 					reimbursementData.setLevel(reimbursementData.getLevel() + 1);
 					reimbursementData.setStatus(reimbursementObj.getStatus());
 					// reimbursementData.setFinalStatus("Pending");
 					reimbursementData.setLevel1approverRemarks(reimbursementObj.getLevel1approverRemarks());
 				} else if (reimbursementData.getLevel() == 2) {
-					
 					reimbursementData.setLevel2ApproveOn(currentTimestamp);
 					reimbursementData.setLevel(reimbursementData.getLevel() + 1);
 					reimbursementData.setLevel2approverStatus(reimbursementObj.getStatus());
@@ -1029,8 +786,8 @@ public ServiceResponse previewDocumentReimbursment(TravelBasedReimbursementReque
 public ServiceResponse updateReimbursementDetailsByAccountsTeam(ReimbursementDTO reimbursementRequestDTO) {
 	 ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("updateInvoicesDetailsByAccountsTeam");
-	    apiLogInfo.setApiUrl("/api/updateInvoicesDetailsByAccountsTeam");
+	    apiLogInfo.setSubFeatureName("updateReimbursementDetailsByAccountsTeam");
+	    apiLogInfo.setApiUrl("/api/updateReimbursementDetailsByAccountsTeam");
 	    apiLogInfo.setLogLevel("INFO");
 
 	    StringBuilder logBuilder = new StringBuilder();
@@ -1055,10 +812,91 @@ public ServiceResponse updateReimbursementDetailsByAccountsTeam(ReimbursementDTO
 //		            System.err.println("uploadedByinvoiceNo: " + invoiceDetails);
 	        	ReimbursementData dbResponse=  reimbursementDataRepository.save(existingReimbursementData);
 		            
-		            
+	        	 SimpleDateFormat sdf1 = new SimpleDateFormat("dd/MM/yyyy");
 		            if(dbResponse != null) {
 		            	  response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse(dbResponse);
+							if("Approved".equalsIgnoreCase(existingReimbursementData.getReimbursementStatus())) {
+								try {
+									
+				            		mailService.sendMail(
+				            				existingReimbursementData.getEmail(),
+					            		    " Reimbursement Payment Processed Successfully"+"",
+					            		    "Dear "+ existingReimbursementData.getFullName() + ","+"<br>" +
+					            		    "<br>"+" &nbsp"+" &nbsp"+" "+"Your reimbursement request for the purpose of"+ existingReimbursementData.getPurpose()+ 
+					            		    " covering the period from"+sdf1.format(existingReimbursementData.getFromDate())+" to "+ sdf1.format(existingReimbursementData.getToDate())+
+					            		    ", has been successfully processed and marked as paid by the Accounts Team."+
+				
+					            		    "<br> The payment should be reflected in your account shortly."+
+					            		   
+					            		    "<br><br>Regards,<br>" +
+					            		    "IShine Support Team<br>" +
+					            		    "ApMoSys PVT. LTD.<br><br>"
+				                		);
+
+							}catch(Exception e) {
+								 e.printStackTrace();
+							}
+							
+							try {
+								
+							mailService.sendMailWithCC(
+			            			adminHead,
+			            			hrMailAddress,
+			            		    "Reimbursement Paid  - "+existingReimbursementData.getFullName()+"",
+			            		    "Dear "+ "HR Team" + ","+"<br>" +
+			            		    "<br>"+" &nbsp"+" &nbsp"+" "+"The reimbursement request submitted by - "+existingReimbursementData.getFullName()+"."+
+			            		   
+			            		    "<br>This is for your records and no further action is required at this time."+
+			            		      
+			            		    "<br><br>Regards,<br>" +
+			            		    "IShine Support Team<br>" +
+			            		    "ApMoSys PVT. LTD.<br><br>"
+			            		);
+	            		}catch(Exception e){
+	            			 e.printStackTrace(); 
+	            		}
+					}else {
+						try {
+							
+		            		mailService.sendMail(
+		            				existingReimbursementData.getEmail(),
+			            		    " Reimbursement Payment Rejected"+"",
+			            		    "Dear "+ existingReimbursementData.getFullName() + ","+"<br>" +
+			            		    "<br>"+" &nbsp"+" &nbsp"+" "+"Your reimbursement request for the purpose of"+ existingReimbursementData.getPurpose()+ 
+			            		    " covering the period from"+sdf1.format(existingReimbursementData.getFromDate())+" to "+ sdf1.format(existingReimbursementData.getToDate())+
+			            		    ", has been  Rejected by the Accounts Team due to "+existingReimbursementData.getRejectReason()+
+		
+			            		    "<br> Please Apply with the latest Details"+
+			            		   
+			            		    "<br><br>Regards,<br>" +
+			            		    "IShine Support Team<br>" +
+			            		    "ApMoSys PVT. LTD.<br><br>"
+		                		);
+
+					}catch(Exception e) {
+						 e.printStackTrace();
+					}
+					
+					try {
+						
+					mailService.sendMailWithCC(
+	            			adminHead,
+	            			hrMailAddress,
+	            		    "Reimbursement Rejected  - "+existingReimbursementData.getFullName()+"",
+	            		    "Dear "+ "HR Team" + ","+"<br>" +
+	            		    "<br>"+" &nbsp"+" &nbsp"+" "+"The reimbursement request submitted by - "+existingReimbursementData.getFullName()+"."+
+	            		   
+	            		    "<br>This has been rejected by Accounts Team due to "+existingReimbursementData.getRejectReason()+
+	            		      
+	            		    "<br><br>Regards,<br>" +
+	            		    "IShine Support Team<br>" +
+	            		    "ApMoSys PVT. LTD.<br><br>"
+	            		);
+        		}catch(Exception e){
+        			 e.printStackTrace(); 
+        		}
+					}
 							
 							apiLogInfo.setApiResponse("Update Invoices Details By Accounts Team  Completed!!");
 							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);

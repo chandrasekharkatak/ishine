@@ -95,6 +95,19 @@ public class TravelDeskService {
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
 	
+	@Value("${hr.mail}")
+	private String hrMailAddress;
+	
+	@Value("${admin.mail}")
+	private String adminMail;
+	
+	@Value("${ticket.mail}")
+	private String ticketMail;
+	
+	@Value("${admin.head}")
+	private String adminHead;
+
+	
 	@SuppressWarnings("unused")
 	public ServiceResponse saveTravelData(TravelDeskDTO travelData) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -226,20 +239,138 @@ public class TravelDeskService {
 			}
 			
             Employee emp = employeeRepository.findByEmpId(Long.valueOf(travelDesk.getEmpId().toString()));
-            if(savedTravelDesk.getRequestType().equalsIgnoreCase("HOTEL")) {
-            	mailService.sendMailWithAttachment(travelDesk.getLevel1ApproverEmail(),travelDesk.getEmail(),
-    	        		"Travel request approval required",
-    	        		"Dear"+travelDesk.getHodName()+", <br><br>" + "A request is applied by "+ emp.getName()+"<br> for the purpose of : "+
-    	        		travelDesk.getPurpose()+".<br>From date:"+travelDesk.getFromDate().toGMTString()+" and will return on : "+travelDesk.getToDate().toGMTString()+
-    	        		".<br> For this he/she requires a stay at: "+travelDesk.getCity()+".<br>Kindly take action on this application .",file);
+            SimpleDateFormat sdf1 = new SimpleDateFormat("dd/MM/yyyy");
+            if(savedTravelDesk.getCity() != null ) {
+            	try {
+            	    mailService.sendMailWithCC(
+            	        travelDesk.getLevel1ApproverEmail(),
+            		    hrMailAddress,
+            		    "Travel Request Approval Required",
+            		    "Dear "+ travelDesk.getHodName() + ","+"<br>" +
+            		    "<br>"+" &nbsp"+" &nbsp"+" "+"A travel request has been submitted by "+ emp.getName() + 
+            		    " for the purpose of " + travelDesk.getPurpose()+". The planned travel is from "+ 
+            		    sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+", and the employee will require accommodation in "+ travelDesk.getCity() +" Kindly review the request and take the necessary action at your earliest convenience. "+ 
+            		
+            		    
+            		    "<br><br>Regards,<br>" +
+            		    "IShine Support Team<br>" +
+            		    "ApMoSys PVT. LTD.<br><br>"
+            		);
+            	}catch(Exception e) {
+            			
+            		e.printStackTrace();
+//            		serviceResponse.setServiceError(e.getMessage());
+//            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            	}
+            	
+            	
+            	try {
+                	mailService.sendMail(
+                		    travelDesk.getEmail(),
+                		    "Your Travel Request Has Been Submitted",
+                		    "Dear "+ travelDesk.getName() + ","+"<br>" +
+                		    "<br>"+" &nbsp"+" &nbsp"+" "+" Your travel requests for the purpose of "+ travelDesk.getPurpose()+ 
+                		    "has been successfully submitted. \n"
+                		    + "The travel is scheduled from "+ 
+                		    sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+" and a stay has been requested in "+ travelDesk.getCity()+"."+
+                		    "The request has been forwarded to your reporting manager "+travelDesk.getHodName()+" for approval. You will be notified once action is taken."+
+                		    "<br><br>Regards,<br>" +
+                		    "IShine Support Team<br>" +
+                		    "ApMoSys PVT. LTD.<br><br>"
+                		);
+                	}catch(Exception e) {
+                			
+                		e.printStackTrace();
+//                		serviceResponse.setServiceError(e.getMessage());
+//                		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+                	}
+            	
+//            	try {
+//                	mailService.sendMailWithCC(
+//                			hrMailAddress, "shivtosh.pal@apmosys.com",
+//                		    " Travel Request Submitted by "+travelDesk.getName()+"",
+//                		    "Dear "+"HR Team" + ","+"<br>" +
+//                		    "<br>"+" &nbsp"+" &nbsp"+" "+"A travel request has been submitted by "+travelDesk.getName()+ 
+//                		    "for the purpose of \n"+ travelDesk.getPurpose()+"."
+//                		    + "The proposed travel is scheduled from "+ 
+//                		    sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+" and accommodation is requested in "+travelDesk.getCity()+"."+
+//                		   	 "The request has been forwarded to "+travelDesk.getHodName()+" for approval. This is for your information."+   
+//                		    "<br><br>Regards,<br>" +
+//                		    "IShine Support Team<br>" +
+//                		    "ApMoSys PVT. LTD.<br><br>"
+//                		);
+//                	}catch(Exception e) {
+//                			
+//                		e.printStackTrace();
+//                		serviceResponse.setServiceError(e.getMessage());
+//                		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//                	}
+						
 
             }else {
+            	try {
+            	    mailService.sendMailWithCC(
+            	    	travelDesk.getLevel1ApproverEmail(),
+            		    hrMailAddress,
+            		    "Travel Request Approval Required",
+            		    "Dear "+ travelDesk.getHodName() + ","+"<br>" +
+            		    "<br>"+" &nbsp"+" &nbsp"+" "+"A travel request has been submitted by "+ emp.getName()+ 
+            		    " for the purpose of"+ travelDesk.getPurpose()+". The planned travel is from "+ 
+            		    sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+", and the employee has requested to travel via " + travelDesk.getTravelMode() + " in " + travelDesk.getTravelClass() + ". Kindly review the request and take the necessary action at your earliest convenience. "+ 
+            		    travelDesk.getName() +" "+" for "+travelDesk.getName()+" day(s), Please take necessary action." +
+            		    
+            		    "<br><br>Regards,<br>" +
+            		    "IShine Support Team<br>" +
+            		    "ApMoSys PVT. LTD.<br><br>"
+            		);
+            	}catch(Exception e) {
+            			
+            		e.printStackTrace();
+//            		serviceResponse.setServiceError(e.getMessage());
+//            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            	}
             	
-            	mailService.sendMailWithAttachment(travelDesk.getLevel1ApproverEmail(),travelDesk.getEmail(),
-    	        		"Travel request approval required",
-    	        		"Dear"+travelDesk.getHodName()+", <br><br>" + "A request is applied by "+ emp.getName()+"<br> for the purpose of : "+
-    	        		travelDesk.getPurpose()+".<br>From date:"+travelDesk.getFromDate().toGMTString()+" and will return on : "+travelDesk.getToDate().toGMTString()+
-    	        		".<br> For this he requires a stay in : "+travelDesk.getTravelMode()+" and travel class is:"+travelDesk.getTravelClass()+" .<br>Kindly take action on this application .",file);
+            	try {
+            	mailService.sendMail(
+            			travelDesk.getEmail(),
+            		    "Your Travel Request Has Been Submitted",
+            		    "Dear "+ travelDesk.getName() + ","+"<br>" +
+            		    "<br>"+" &nbsp"+" &nbsp"+" "+"Your travel requests for the purpose of "+ travelDesk.getPurpose()+ 
+            		    " has been successfully submitted. \n"
+            		    + "The travel is scheduled from "+ 
+            		    sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+", and you have requested to travel via "+ travelDesk.getTravelMode()+" in "+ travelDesk.getTravelClass()+"."+
+            		   	    
+            		    "<br><br>Regards,<br>" +
+            		    "IShine Support Team<br>" +
+            		    "ApMoSys PVT. LTD.<br><br>"
+            		);
+            	}catch(Exception e) {
+            			
+            		e.printStackTrace();
+//            		serviceResponse.setServiceError(e.getMessage());
+//            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            	}
+
+//            	try {
+//                	mailService.sendMailWithCC(
+//                			hrMailAddress, "shivtosh.pal@apmosys.com",
+//                		    " Travel Request Submitted by "+travelDesk.getName()+"",
+//                		    "Dear "+"HR Team" + ","+"<br>" +
+//                		    "<br>"+" &nbsp"+" &nbsp"+" "+"A travel request has been submitted by "+travelDesk.getName()+ 
+//                		    "for the purpose of \n"+ travelDesk.getPurpose()+"."
+//                		    + "The proposed travel is scheduled from "+ 
+//                		    sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+", and you have requested to travel via"+ travelDesk.getTravelMode()+" in "+ travelDesk.getTravelClass()+"."+
+//                		   	 "The request has been forwarded to "+travelDesk.getHodName()+" for approval. This is for your information."+   
+//                		    "<br><br>Regards,<br>" +
+//                		    "IShine Support Team<br>" +
+//                		    "ApMoSys PVT. LTD.<br><br>"
+//                		);
+//                	}catch(Exception e) {
+//                			
+//                		e.printStackTrace();
+//                		serviceResponse.setServiceError(e.getMessage());
+//                		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//                	}
 
             }
     		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -341,6 +472,7 @@ public class TravelDeskService {
 	@SuppressWarnings("unused")
 	public ServiceResponse updateTravelData(TravelDeskDTO travelData) {
 		ServiceResponse serviceResponse = new ServiceResponse();
+		 SimpleDateFormat sdf1 = new SimpleDateFormat("dd/MM/yyyy");
 		try {
 			TravelDesk existingTravelDesk = tavelDeskRepository.findByRequestId(travelData.getRequestId());
 			if(existingTravelDesk == null) {
@@ -395,11 +527,52 @@ public class TravelDeskService {
 					serviceResponse.setServiceResponse(savedTravelDesk);
 					serviceResponse.setServiceMessage("Updated Successfully..!!");
 					 Employee emp = employeeRepository.findByEmpId(Long.valueOf(existingTravelDesk.getEmpId().toString()));
-						mailService.sendMailforTravel(existingTravelDesk.getLevel1ApproverEmail(),
-				        		"Travel request Updated",
-				        		"Dear "+existingTravelDesk.getHodName()+", <br><br>" + "A travel request that was applied by "+ emp.getName()+" is upadated and now <br>the purpose is : "+
-				        				existingTravelDesk.getPurpose()+".<br>the From date is : "+existingTravelDesk.getFromDate().toGMTString()+" and will return on : "+existingTravelDesk.getToDate().toGMTString()+
-				        		".<br> For this the mode of travel will be : "+existingTravelDesk.getTravelMode()+" and travel class is : "+existingTravelDesk.getTravelClass()+"<br>Kindly take action on this application .");
+					 
+						try {
+		            	    mailService.sendMailWithCC(
+		            	        existingTravelDesk.getLevel1ApproverEmail(),
+		            		    hrMailAddress,
+		            		    "Updated Travel Request - "+emp.getName()+"",
+		            		    "Dear "+ existingTravelDesk.getHodName() + ","+"<br>" +
+		            		    "<br>"+" &nbsp"+" &nbsp"+" "+"The travel requests previously submitted by "+ emp.getName()+ 
+		            		    " has been updated. Kindly review the revised details and take appropriate action."+
+		            		    "<br>Updated Details:"+
+		            		    "<br>&bull; Purpose: "+existingTravelDesk.getPurpose() +
+		            		    "<br>&bull; Travel Dates: "+sdf1.format(existingTravelDesk.getFromDate())+" to "+ sdf1.format(existingTravelDesk.getToDate())+
+		            		    "<br>&bull; City: "+existingTravelDesk.getCity() +
+		            		    "<br> Please log in to the system to view the full details."+
+		            		    "<br><br>Regards,<br>" +
+		            		    "IShine Support Team<br>" +
+		            		    "ApMoSys PVT. LTD.<br><br>"
+		            		);
+		            	}catch(Exception e) {
+		            			
+		            		e.printStackTrace();
+//		            		serviceResponse.setServiceError(e.getMessage());
+//		            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		            	}
+		            	
+		            	try {
+		            	mailService.sendMail(
+		            			existingTravelDesk.getEmail(),
+		            		    "Your Travel Request Has Been Updated",
+		            		    "Dear "+ existingTravelDesk.getName() + ","+"<br>" +
+		            		    "<br>"+" &nbsp"+" &nbsp"+" "+"Your travel requests for the purpose of "+ existingTravelDesk.getPurpose()+ 
+		            		    "  scheduled from "+sdf1.format(existingTravelDesk.getFromDate())+" to "+ sdf1.format(existingTravelDesk.getToDate())+", has been successfully updated."
+		            		    + " <br> The updated request has been sent again to your reporting manager"+ existingTravelDesk.getHodName()+" for approval. "+ 
+		            		   
+		            		   	    
+		            		    "<br><br>Regards,<br>" +
+		            		    "IShine Support Team<br>" +
+		            		    "ApMoSys PVT. LTD.<br><br>"
+		            		);
+		            	}catch(Exception e) {
+		            			
+		            		e.printStackTrace();
+//		            		serviceResponse.setServiceError(e.getMessage());
+//		            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		            	}
+						
 
 					return serviceResponse;
 				}
@@ -416,6 +589,7 @@ public class TravelDeskService {
 	
 	public ServiceResponse revokeTravel(BigInteger requestId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
+		SimpleDateFormat sdf1 = new SimpleDateFormat("dd/MM/yyyy");
 		try {
 		TravelDesk travelDesk = tavelDeskRepository.findByRequestId(requestId);
 		if(travelDesk == null) {
@@ -428,6 +602,47 @@ public class TravelDeskService {
 			tavelDeskRepository.save(travelDesk);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(travelDesk);
+			try {
+        	    mailService.sendMailWithCC(
+        	    	travelDesk.getLevel1ApproverEmail(),
+        		    hrMailAddress,
+        		    "Travel Request Revoked – "+travelDesk.getName()+"",
+        		    "Dear "+ travelDesk.getHodName() + ","+"<br>" +
+        		    "<br>"+" &nbsp"+" &nbsp"+" "+"Please be informed that the travel request submitted by"+ travelDesk.getName()+ 
+        		    " for the period "+sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+" has been revoked by the employee."+
+        		    
+        		    "<br><br> No further action is required from your end on this request."+
+        		    "<br><br>Regards,<br>" +
+        		    "IShine Support Team<br>" +
+        		    "ApMoSys PVT. LTD.<br><br>"
+        		);
+        	}catch(Exception e) {
+        			
+        		e.printStackTrace();
+//        		serviceResponse.setServiceError(e.getMessage());
+//        		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        	}
+        	
+        	try {
+        	mailService.sendMail(
+        			travelDesk.getEmail(),
+        		    "Your Travel Request Has Been Revoked",
+        		    "Dear "+ travelDesk.getName() + ","+"<br>" +
+        		    "<br>"+" &nbsp"+" &nbsp"+" "+"You have successfully revoked your travel request for the purpose of  "+ travelDesk.getPurpose()+ 
+        		    "  originally scheduled from  "+sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+"."
+        		    + "<br>If you wish to submit a new request, you may do so via the travel request system."+ 
+        		   
+        		   	    
+        		    "<br><br>Regards,<br>" +
+        		    "IShine Support Team<br>" +
+        		    "ApMoSys PVT. LTD.<br><br>"
+        		);
+        	}catch(Exception e) {
+        			
+        		e.printStackTrace();
+//        		serviceResponse.setServiceError(e.getMessage());
+//        		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        	}
 			return serviceResponse;
 		}
 		}
@@ -444,7 +659,8 @@ public class TravelDeskService {
 	@SuppressWarnings("deprecation")
 	public ServiceResponse approveRejectTravel(TravelDeskDTO travelData) {
 	    ServiceResponse serviceResponse = new ServiceResponse();
-
+	    File file = null;
+	    SimpleDateFormat sdf1 = new SimpleDateFormat("dd/MM/yyyy");
 	    try {
 	        TravelDesk travelDesk = tavelDeskRepository.findByRequestId(travelData.getRequestId());
 	        
@@ -459,15 +675,234 @@ public class TravelDeskService {
             Employee emp = employeeRepository.findByEmpId(Long.valueOf(travelDesk.getEmpId().toString()));
 	        if (travelDesk.getLevel() == 1) {
 	            updateApprovalLevel(travelDesk, currentTimestamp, travelData);
-	            if(travelDesk.getLevel1ApproveOn() != null && travelDesk.getStatus() == "Approved") {
-		            mailService.sendMailforTravel(travelDesk.getLevel1ApproverEmail(),
-			        		"Travel request approval required",
-			        		"Dear"+travelDesk.getHodName()+", <br><br>" + "A travel request is applied by"+ emp.getName()+"<br> for the purpose of:"+
-			        		travelDesk.getPurpose()+".<br>From date:"+travelDesk.getFromDate().toGMTString()+"and will return on:"+travelDesk.getToDate().toGMTString()+
-			        		".<br> For this the mode of travel will be:"+travelDesk.getTravelMode()+"and travle class is:"+travelDesk.getTravelClass()+".<>"+"<br>Kindly take action on this application");
+	            if(travelDesk.getLevel1ApproveOn() != null && "Approved".equals(travelDesk.getStatus())) {
+
+try {
+//	travelDesk.getLevel2ApproverEmail()
+	            	    mailService.sendMailWithCC(
+	            	    	travelDesk.getLevel2ApproverEmail(),
+	            		    hrMailAddress,
+	            		    "Travel Request Approved – "+travelDesk.getName()+"",
+	            		    "Dear "+ travelDesk.getLevel2approverName() + ","+"<br>" +
+	            		    "<br>"+" &nbsp"+" &nbsp"+" "+"The travel request submitted by "+ travelDesk.getName()+ "for the purpose of "+travelDesk.getPurpose()+" from "+	            		
+	            		     sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+", has been approved by"+travelDesk.getHodName()+
+	            		    "<br>Please take final action on this request."+
+	            		   
+	            		    "<br><br>Regards,<br>" +
+	            		    "IShine Support Team<br>" +
+	            		    "ApMoSys PVT. LTD.<br><br>"
+	            		);
+	            	}catch(Exception e) {
+	            			
+	            		e.printStackTrace();
+//	            		serviceResponse.setServiceError(e.getMessage());
+//	            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            	}
+	            	
+	            	try {
+//	            		travelDesk.getEmail()
+	            	mailService.sendMail(
+	            			travelDesk.getEmail(),
+	            		    "Travel Request Approved by Your Reporting Manager",
+	            		    "Dear "+ travelDesk.getName() + ","+"<br>" +
+	            		    "<br>"+" &nbsp"+" &nbsp"+" "+"Your travel requests for the purpose of "+ travelDesk.getPurpose()+ 
+	            		    ",scheduled from "+sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+
+	            		    ", has been reviewed and approved by your reporting manager"+travelDesk.getHodName()+"."+
+	            		    "<br> The approved request will now be processed to the HOD for 2nd Level Approval."
+	            		    + " You will be notified once the approval is received from HOD. "+
+	            		      
+	            		    "<br><br>Regards,<br>" +
+	            		    "IShine Support Team<br>" +
+	            		    "ApMoSys PVT. LTD.<br><br>"
+	            		);
+	            	}catch(Exception e) {
+	            			
+	            		e.printStackTrace();
+//	            		serviceResponse.setServiceError(e.getMessage());
+//	            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            	}
+		            }else {
+		            	
+//		            	try {
+//		            	    mailService.sendMailWithCC(
+//		            	    	travelDesk.getLevel2ApproverEmail(),
+//		            		    hrMailAddress,
+//		            		    "Travel Request Rejected  – "+travelDesk.getName()+"",
+//		            		    "Dear "+ travelDesk.getLevel2approverName() + ","+"<br>" +
+//		            		    "<br>"+" &nbsp"+" &nbsp"+" "+"The travel request submitted by "+ travelDesk.getName()+ "for the purpose of "+travelDesk.getPurpose()+" from "+	            		
+//		            		     sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+", has been approved by"+travelDesk.getHodName()+
+//		            		    "<br>Please take final action on this request."+
+//		            		   
+//		            		    "<br><br>Regards,<br>" +
+//		            		    "IShine Support Team<br>" +
+//		            		    "ApMoSys PVT. LTD.<br><br>"
+//		            		);
+//		            	}catch(Exception e) {
+//		            			
+//		            		e.printStackTrace();
+//		            		serviceResponse.setServiceError(e.getMessage());
+//		            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//		            	}
+		            	
+		            	try {
+//		            		travelDesk.getEmail()
+		            	mailService.sendMailWithCC(
+		            			travelDesk.getEmail(),
+		            			hrMailAddress,
+		            		    "Travel Request Rejected by Your Manager",
+		            		    "Dear "+ travelDesk.getName() + ","+"<br>" +
+		            		    "<br>"+" &nbsp"+" &nbsp"+" "+"Your travel requests for the purpose of "+ travelDesk.getPurpose()+ 
+		            		    ",scheduled from "+sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+
+		            		    ", has been reviewed and rejected by your reporting manager"+travelDesk.getHodName()+"."+
+		            		    "<br> For more details regarding this decision, please reach out directly to your reporting manager. "+
+		            		      
+		            		    "<br><br>Regards,<br>" +
+		            		    "IShine Support Team<br>" +
+		            		    "ApMoSys PVT. LTD.<br><br>"
+		            		);
+		            	}catch(Exception e) {
+		            			
+		            		e.printStackTrace();
+//		            		serviceResponse.setServiceError(e.getMessage());
+//		            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		            	}
 		            }
 	        } else if (travelDesk.getLevel() == 2) {
 	            updateApprovalLevel(travelDesk, currentTimestamp, travelData);
+	            if( travelDesk.getLevel2ApproveOn() != null && "Approved".equals(travelDesk.getLevel2approverStatus())) {
+	            	
+	    			    
+	            	try {
+	            		            	    mailService.sendMail(
+	            		            		    hrMailAddress,
+	            		            		    "Travel Request Approved – "+travelDesk.getName()+"",
+	            		            		    "Dear "+ "HR Team" + ","+"<br>" +
+	            		            		    "<br>"+" &nbsp"+" &nbsp"+" "+"The travel request submitted by "+ travelDesk.getName()+ "for the purpose of "+travelDesk.getPurpose()+" from "+	            		
+	            		            		     sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+", has been approved by"+travelDesk.getLevel2approverName()+
+	            		            		    "<br>No further action is required from your end at this time."+
+	            		            		   
+	            		            		    "<br><br>Regards,<br>" +
+	            		            		    "IShine Support Team<br>" +
+	            		            		    "ApMoSys PVT. LTD.<br><br>"
+	            		            		);
+	            		            	}catch(Exception e) {
+	            		            			
+	            		            		e.printStackTrace();
+//	            		            		serviceResponse.setServiceError(e.getMessage());
+//	            		            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            		            	}
+	            		            	
+	            		            	try {
+//	            		            		travelDesk.getEmail()
+	            		            		mailService.sendMail(
+	            		            				travelDesk.getEmail(),
+	            			            		    "Travel Request Approved by Your HOD",
+	            			            		    "Dear "+ travelDesk.getName() + ","+"<br>" +
+	            			            		    "<br>"+" &nbsp"+" &nbsp"+" "+"Your travel requests for the purpose of "+ travelDesk.getPurpose()+ 
+	            			            		    ",scheduled from "+sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+
+	            			            		    ", has been reviewed and approved by your HOD "+travelDesk.getLevel2approverName()+"."+
+	            			            		   
+	            			            		      
+	            			            		    "<br><br>Regards,<br>" +
+	            			            		    "IShine Support Team<br>" +
+	            			            		    "ApMoSys PVT. LTD.<br><br>"
+	            			            		);
+	            			            	}catch(Exception e) {
+	            			            			
+	            			            		e.printStackTrace();
+//	            			            		serviceResponse.setServiceError(e.getMessage());
+//	            			            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            			            	}
+	            		            	
+	            		            	
+	            		    			
+	        	    			        try {
+	        	    			        
+	        	    			            Long docId = travelDesk.getKycDocumentId() ;
+	        	    			            Resource resource = getTemplateFile(docId);
+	        	    			            if (resource != null && resource.exists()) {
+	        	    			                file = resource.getFile();
+	        	    			               
+	        	    			            }
+	        	    			        } catch (Exception e) {
+	        	    			        	e.printStackTrace();
+//	            		            		serviceResponse.setServiceError(e.getMessage());
+//	            		            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        	    			        }
+	            		            	try {
+	            		            		mailService.sendMailWithAttachment(
+	            		            				ticketMail,
+	            			            			adminHead,
+	            			            		    "Approved Travel Request – Ticket Booking Required for"+ travelDesk.getName()+"",
+	            			            		    "Dear "+ "Admin Team" + ","+"<br>" +
+	            			            		    "<br>"+" &nbsp"+" &nbsp"+" "+"A travel request submitted by "+ travelDesk.getName()+" for the purpose of "+ travelDesk.getPurpose()+ 
+	            			            		    ",has been approved by the HOD "+travelDesk.getLevel2approverName()+"."+
+	            			            		    
+	            			            		    "<br>Updated Details:"+
+	            			            		    "<br>&bull; Purpose: "+travelDesk.getPurpose() +
+	            			            		    "<br>&bull; Travel Dates: "+sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+
+	            			            		    "<br>&bull; Travel Mode: "+travelDesk.getTravelMode() +
+	            			            		    "<br>&bull; Travel Class: "+travelDesk.getTravelClass() +
+	            			            		    "<br> Kindly proceed with the necessary arrangements, including ticket booking and/or hotel reservations, as applicable."+
+	            			            		    "<br>Please refer to the attachment for further information."+
+	            			            		      
+	            			            		    "<br><br>Regards,<br>" +
+	            			            		    "IShine Support Team<br>" +
+	            			            		    "ApMoSys PVT. LTD.<br><br>"
+	            			            		,file);
+	            			            	}catch(Exception e) {
+	            			            			
+	            			            		e.printStackTrace();
+//	            			            		serviceResponse.setServiceError(e.getMessage());
+//	            			            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            			            	}
+	            			            }else {
+	            			            	
+//	            			            	try {
+//	            			            	    mailService.sendMailWithCC(
+//	            			            	    	travelDesk.getLevel2ApproverEmail(),
+//	            			            		    hrMailAddress,
+//	            			            		    "Travel Request Rejected  – "+travelDesk.getName()+"",
+//	            			            		    "Dear "+ travelDesk.getLevel2approverName() + ","+"<br>" +
+//	            			            		    "<br>"+" &nbsp"+" &nbsp"+" "+"The travel request submitted by "+ travelDesk.getName()+ "for the purpose of "+travelDesk.getPurpose()+" from "+	            		
+//	            			            		     sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+", has been approved by"+travelDesk.getHodName()+
+//	            			            		    "<br>Please take final action on this request."+
+//	            			            		   
+//	            			            		    "<br><br>Regards,<br>" +
+//	            			            		    "IShine Support Team<br>" +
+//	            			            		    "ApMoSys PVT. LTD.<br><br>"
+//	            			            		);
+//	            			            	}catch(Exception e) {
+//	            			            			
+//	            			            		e.printStackTrace();
+//	            			            		serviceResponse.setServiceError(e.getMessage());
+//	            			            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	            			            	}
+	            			            	
+	            			            	try {
+//	            			            		travelDesk.getEmail()
+	            			            	mailService.sendMailWithCC(
+	            			            			travelDesk.getEmail()
+	            			            			,
+	            			            			hrMailAddress,
+	            			            		    "Travel Request Rejected by Your HOD",
+	            			            		    "Dear "+ travelDesk.getName() + ","+"<br>" +
+	            			            		    "<br>"+" &nbsp"+" &nbsp"+" "+"Your travel requests for the purpose of "+ travelDesk.getPurpose()+ 
+	            			            		    ",scheduled from "+sdf1.format(travelDesk.getFromDate())+" to "+ sdf1.format(travelDesk.getToDate())+
+	            			            		    ", has been reviewed and rejected by your HOD "+travelDesk.getLevel2approverName()+"."+
+	            			            		   "<br>For more details regarding this decision, please reach out directly to your reporting manager."+
+	            			            		      
+	            			            		    "<br><br>Regards,<br>" +
+	            			            		    "IShine Support Team<br>" +
+	            			            		    "ApMoSys PVT. LTD.<br><br>"
+	            			            		);
+	            			            	}catch(Exception e) {
+	            			            			
+	            			            		e.printStackTrace();
+//	            			            		serviceResponse.setServiceError(e.getMessage());
+//	            			            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            			            	}
+	            			            }
 	            
 	        }
 
@@ -975,8 +1410,8 @@ public class TravelDeskService {
 
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("Upload Newsletter");
-	    apiLogInfo.setApiUrl("/api/newsletters/uploadNewsletter");
+	    apiLogInfo.setSubFeatureName("Upload Ticket");
+	    apiLogInfo.setApiUrl("/api/uploadTicket");
 	    apiLogInfo.setLogLevel("INFO");
 
 	    StringBuilder logBuilder = new StringBuilder();
@@ -985,6 +1420,7 @@ public class TravelDeskService {
 
 	    try {
 	        TravelDesk details=tavelDeskRepository.findByRequestId(requestId);
+	        SimpleDateFormat sdf1 = new SimpleDateFormat("dd/MM/yyyy");
 	        Optional<Employee> employeeObject = employeeRepository.findById(uploadedBy);
 
 	        if (employeeObject.isEmpty()) {
@@ -1041,6 +1477,135 @@ public class TravelDeskService {
 	            response.setServiceMessage("Travel Document uploaded successfully.");
 	            apiLogInfo.setApiResponse("Travel Document uploaded successfully");
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            
+	            try {
+	            	File file1 = null;
+	            	 try {
+	    			        
+ 			            Long docId = details.getTicketDocId();
+ 			            Resource resource = getTemplateFile(docId);
+ 			            if (resource != null && resource.exists()) {
+ 			                file1 = resource.getFile();
+ 			               
+ 			            }
+ 			        } catch (Exception e) {
+ 			        	e.printStackTrace();
+//		            		serviceResponse.setServiceError(e.getMessage());
+//		            		serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+ 			        }
+
+	            	if(details.getCity()!= null) {
+	            		try {
+	            		mailService.sendMail(
+		            			details.getEmail(),
+		            		    "Travel Accommodation Issued for Your Approved Request"+"",
+		            		    "Dear "+ details.getName() + ","+"<br>" +
+		            		    "<br>"+" &nbsp"+" &nbsp"+" "+"The Administration Team has successfully issued you the Accommodation Deatils for your travel"+ details.getRequestId()+ 
+		            		    " for the purpose of"+details.getPurpose()+", scheduled from"+sdf1.format(details.getFromDate())+" to "+ sdf1.format(details.getToDate())+
+		            		    ".It is uploaded now on IShine."+
+		            		   
+		            		    "<br>Details:"+
+		            		    "<br>&bull; Hotel Booking Category:  "+details.getHotelCategory()+
+		            		    "<br>&bull; Accommodation: "+"Yes"+
+		            		    "<br>&bull; Destination City: "+details.getCity()+
+		            		   
+		            		   
+		            		    "<br> Please review the Accommodation details and contact the Admin team immediately if any corrections are required."+
+		            		    "<br>Wishing you a safe and successful journey."+
+		            		      
+		            		    "<br><br>Regards,<br>" +
+		            		    "IShine Support Team<br>" +
+		            		    "ApMoSys PVT. LTD.<br><br>"
+	                		);}catch(Exception e) {
+	                			 e.printStackTrace();
+	                		}
+	            		try {
+	            			mailService.sendMailWithAttachment(
+			            			adminHead,
+			            			hrMailAddress,
+			            		    "Travel Accommodation Issued - "+details.getName()+"",
+			            		    "Dear "+ "HR Team" + ","+"<br>" +
+			            		    "<br>"+" &nbsp"+" &nbsp"+" "+"The Accommodation request submitted by "+ details.getName()+" for the purpose of"+details.getPurpose()+
+			            		    ",scheduled from "+sdf1.format(details.getFromDate())+" to "+ sdf1.format(details.getToDate())+
+			            		    ", has been approved, and the Accommodation Details has been issued by the Admin team."+
+			            		    
+			            		    "<br>Details:"+
+			            		    "<br>&bull; Hotel Booking Category:  "+details.getHotelCategory()+
+			            		    "<br>&bull; Accommodation: "+"Yes"+
+			            		    "<br>&bull; Destination City: "+details.getCity()+
+			            		   
+			            		    "<br>This is for your records and no further action is required at this time."+
+			            		      
+			            		    "<br><br>Regards,<br>" +
+			            		    "IShine Support Team<br>" +
+			            		    "ApMoSys PVT. LTD.<br><br>"
+			            		,file1);
+	            		}catch(Exception e){
+	            			 e.printStackTrace();
+	     	     	       
+	            		}
+	            	}else {
+	            		
+	            		try {
+	            		mailService.sendMail(
+		            			details.getEmail(),
+		            		    "Travel Ticket Issued for Your Approved Request"+"",
+		            		    "Dear "+ details.getName() + ","+"<br>" +
+		            		    "<br>"+" &nbsp"+" &nbsp"+" "+"The Administration Team has successfully issued you the travel tickets for your travel"+ details.getRequestId()+ 
+		            		    " for the purpose of"+details.getPurpose()+", scheduled from"+sdf1.format(details.getFromDate())+" to "+ sdf1.format(details.getToDate())+
+		            		    ".It is uploaded now on IShine."+
+		            		    
+		            		    "<br>Details:"+
+		            		    "<br>&bull; Travel Mode:  "+details.getTravelMode()+
+		            		    "<br>&bull; Travel Class: "+details.getTravelClass()+
+		            		   
+		            		   
+		            		    "<br> Please review the ticket details and contact the Admin team immediately if any corrections are required."+
+		            		    "<br>Wishing you a safe and successful journey."+
+		            		      
+		            		    "<br><br>Regards,<br>" +
+		            		    "IShine Support Team<br>" +
+		            		    "ApMoSys PVT. LTD.<br><br>"
+	                		);
+	            		}catch(Exception e) {
+	                			 e.printStackTrace();
+	         	     	       
+	                		}
+	            		try {
+	            			mailService.sendMailWithAttachment(
+			            			adminHead,
+			            			hrMailAddress,
+			            		    "Travel Ticket Issued - "+details.getName()+"",
+			            		    "Dear "+ "HR Team" + ","+"<br>" +
+			            		    "<br>"+" &nbsp"+" &nbsp"+" "+"The Ticket request submitted by "+ details.getName()+" for the purpose of"+details.getPurpose()+
+			            		    ",scheduled from "+sdf1.format(details.getFromDate())+" to "+ sdf1.format(details.getToDate())+
+			            		    ", has been approved, and the Ticket Details has been issued by the Admin team."+
+			            		    
+                                    "<br>Details:"+
+                                    "<br>&bull; Travel Mode:  "+details.getTravelMode()+
+                                    "<br>&bull; Travel Class: "+details.getTravelClass()+
+			            		   
+			            		    "<br>This is for your records and no further action is required at this time."+
+			            		      
+			            		    "<br><br>Regards,<br>" +
+			            		    "IShine Support Team<br>" +
+			            		    "ApMoSys PVT. LTD.<br><br>"
+			            		,file1);
+	            		}catch(Exception e){
+	            			 e.printStackTrace();
+	     	     	       
+	            		}
+
+	            	}
+	            	
+	            }catch(Exception e) {
+	            	 e.printStackTrace();
+	     	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	     	        response.setServiceResponse("Something Went Wrong.");
+	     	        response.setServiceError(e.getMessage());
+	     	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	     	        apiLogInfo.setLogLevel("ERROR");
+	            }
 	        } else {
 	            response.setServiceResponse("Failed to upload Travel Document.");
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
