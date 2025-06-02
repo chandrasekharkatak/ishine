@@ -30,7 +30,6 @@ export class ReimbursmentConfigComponent implements OnInit {
     createdBy:''
   };
 
-  
   foodType = {
     foodTypeName: '',
     description: '',
@@ -43,7 +42,7 @@ export class ReimbursmentConfigComponent implements OnInit {
   };
   selectedExpenditure: string = '';
   requiresVehicleType: string = '';
-  vehicleTypeList:string = '';
+  vehicleTypeList:any[] = [];
   expenditureTypeList:any[] = [];
   foodTypeList:any[] = [];
   travelModeList:any[] = [];
@@ -91,6 +90,11 @@ export class ReimbursmentConfigComponent implements OnInit {
       console.error(response.serviceResponse);
     }
   }
+  modalRef1: BsModalRef = new BsModalRef();
+  openValidationMod(template: TemplateRef<any>, message: any) {
+      this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
+      this.alertMessage = message;
+    }
 
   showQuaterTable(){
     this.isCategoryTable=true;
@@ -252,9 +256,10 @@ toggleSearchReviewType() {
 
   cancelRequest() {
     this.modalRef.hide();
-   // location.reload();
   }
-
+  cancelRequest1() {
+    this.modalRef.hide();
+  }
   modalRef: BsModalRef = new BsModalRef();
   modalRef2: BsModalRef = new BsModalRef();
   openAlertMod1(template: TemplateRef<any>) {
@@ -264,6 +269,16 @@ toggleSearchReviewType() {
     try {
       this.expenditureType.createdBy = this.currentEmployeeInfo.empId; 
       console.log('Expenditure type :::::::::::::::: ',this.expenditureType);
+      const newReason = this.expenditureType.expenditureTypeName.trim().toLowerCase();
+  
+      const duplicate = this.expenditureTypeList.some(reason =>
+        reason.expenditureTypeName.trim().toLowerCase() === newReason
+      );
+  
+      if (duplicate) {
+        this.openValidationMod(template, "Expenditure Type Name already exists!");
+        return;
+      }
       const response: any = await this.reimbursementService.saveExpenditureType(this.expenditureType).toPromise();
       console.log('Expenditure Type saved', response);
       if (response.serviceStatus === "Success") {
@@ -311,7 +326,16 @@ toggleSearchReviewType() {
         requiresVehicleType :this.requiresVehicleType,
         createdBy: this.currentEmployeeInfo?.empId || 0
       };
-
+      const newReason = this.modeType.trim().toLowerCase();
+  
+      const duplicate = this.travelModeList.some(reason =>
+        reason.modeType.trim().toLowerCase() === newReason
+      );
+  
+      if (duplicate) {
+        this.openValidationMod(template, "Mode Type Name already exists!");
+        return;
+      }
       console.log("travelModePayload :::::::::::::",travelModePayload);
 
       const response: any = await this.reimbursementService.saveTravelMode(travelModePayload).toPromise();
@@ -347,6 +371,16 @@ toggleSearchReviewType() {
     try {
       this.vehicleType.createdBy = this.currentEmployeeInfo.empId; 
       console.log('Vehicle details ',this.vehicleType);
+      const newReason = this.vehicleType.vehicleTypeName.trim().toLowerCase();
+  
+      const duplicate = this.vehicleTypeList.some(reason =>
+        reason.vehicleTypeName.trim().toLowerCase() === newReason
+      );
+  
+      if (duplicate) {
+        this.openValidationMod(template, "Vehicle Type Name already exists!");
+        return;
+      }
       const response: any = await this.reimbursementService.saveVehicleType(this.vehicleType).toPromise();
       console.log('Vehicle Type saved', response);
       if (response.serviceStatus === "Success") {
@@ -385,6 +419,16 @@ toggleSearchReviewType() {
     try {
       this.foodType.createdBy = this.currentEmployeeInfo.empId; 
       console.log('Food details ',this.foodType);
+      const newReason = this.foodType.foodTypeName.trim().toLowerCase();
+  
+      const duplicate = this.foodTypeList.some(reason =>
+        reason.foodTypeName.trim().toLowerCase() === newReason
+      );
+  
+      if (duplicate) {
+        this.openValidationMod(template, "Food Type Name already exists!");
+        return;
+      }
       const response: any = await this.reimbursementService.saveFoodType(this.foodType).toPromise();
       console.log('Food Type saved', response);
       if (response.serviceStatus === "Success") {
