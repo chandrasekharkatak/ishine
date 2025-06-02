@@ -86,6 +86,7 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
+import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.BiomaxDefaulter;
 import com.apmosys.employeeportal.model.BiomaxRequest;
@@ -106,6 +107,7 @@ import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ProjectPo;
+import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UserSession;
@@ -127,6 +129,7 @@ import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.PortalConfigRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
@@ -227,6 +230,9 @@ public class CronJobService {
 	
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
+	
+	@Autowired
+	ResourceRequirementRepository resourceRequirementRepository;
 	
 	@Autowired
 	MailService mailService;
@@ -6226,11 +6232,73 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		    }
 		}
 
+		@Async
+//		@Scheduled(cron = "0 47 16 * * ?")
+		@Transactional
+		public void getResourceRequirementFromPoPortal() {
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("getResourceRequirementFromPoPortal");
+		    apiLogInfo.setApiUrl("/api/getResourceRequirementFromPoPortal");
+		    apiLogInfo.setLogLevel("INFO");
 
+		    StringBuilder logBuilder = new StringBuilder();
+		    logBuilder.append("Cron to update existing po-project details in Ishine started! ");
 
+		    List<ProjectPoPortalDTO> list = new ArrayList<>();
 
+		    try {
+		        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
+		        list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
+		        logBuilder.append("Total Projects Fetched = " + list.size());
+		    } catch (RestClientException e) {
+		        logBuilder.append("Error fetching projects from PoPortal API: " + e.getMessage());
+		        return;
+		    }
 
+		    if (!list.isEmpty()) {
+		        for (ProjectPoPortalDTO dto : list) {
+		            try {
+		                Project project = projectRepository.findByPoProjectId(dto.getId());
 
+		                if (project != null) {
+		                    Integer projectId = project.getProjectId();
 
+		                    List<ResourceRequirementDTO> requirements = dto.getResourceRequirements(); // Assuming this exists
+
+		                    if (requirements != null && !requirements.isEmpty()) {
+
+		                        // Save new list
+		                        for (ResourceRequirementDTO rrDto : requirements) {
+		                            ResourceRequirement rr = new ResourceRequirement();
+		                            rr.setRole(rrDto.getRole());
+		                            rr.setCount(rrDto.getCount());
+		                            rr.setExperience(rrDto.getExperience());
+		                            rr.setDepartment(rrDto.getDepartment());
+		                            rr.setResourceOverviewId(rrDto.getResourceOverviewId());
+		                            rr.setProjectId(projectId);
+
+		                            resourceRequirementRepository.save(rr);
+//		                            System.err.println(rr);
+		                        }
+		                    }
+
+		                    logBuilder.append("\nUpdated Resource Requirements for Project ID=" + dto.getId());
+//		                    System.err.print("\nUpdated Resource Requirements for Project ID=" + dto.getId());
+
+		                } else {
+		                    logBuilder.append("\nProject not found for PoProjectId=" + dto.getId());
+//		                    System.err.println("\nProject not found for PoProjectId= " + dto.getId());
+		                }
+		            } catch (Exception ex) {
+		                ex.printStackTrace();
+		                logBuilder.append("\nError updating project ID: " + dto.getId() + " - " + ex.getMessage());
+//		                System.err.println("\nError updating project ID: " + dto.getId() + " - " + ex.getMessage());
+		            }
+		        }
+		    } else {
+		        logBuilder.append("No projects found from PoPortal API.");
+//		        System.err.println("No projects found from PoPortal API.");
+		    }
+		}
 
 }	

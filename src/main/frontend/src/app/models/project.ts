@@ -65,4 +65,6 @@ export class Project{
 	projectStatus:any;
 	projectManagers:any;
 	projectViewId:any;
+	projectOverheadId:any;
+	projectOverheadName:any;
 }

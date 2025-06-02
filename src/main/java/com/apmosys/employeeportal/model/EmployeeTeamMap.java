@@ -47,12 +47,8 @@ public class EmployeeTeamMap {
 	
     private Long updatedBy;
 	//added by rahul singh
-    private Long id;
-    private Long shadowEmpId;
-    private String shadowBillable;
-    private String shadowBillableType;
-    private String billable;
-    private String billableType;
     private Long resourceOverviewId;
+    private Integer isShadow;
+    private Integer isDefaultProject;
 	
 }

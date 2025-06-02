@@ -28,10 +28,8 @@ public class TeamMemberDTO {
 	private String shadowEmployeeName;
 	private String shadowEmployeeEmploymentId;
 	private String shadowEmployeeDepartmentName;
-	private String billable;
-	private String billableType;
-	private String shadowBillable;
-	private String shadowBillableType;
+	private Integer isShadow;
+	private Integer isDefaultProject;
     private Long resourceOverviewId;
 	private SpocDTO shadow;
 	

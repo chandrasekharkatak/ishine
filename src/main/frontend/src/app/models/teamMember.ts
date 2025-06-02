@@ -10,5 +10,7 @@ export class TeamMember{
     
     billableType : any;
     newBillableType : any;
+    isShadow:any;
+    isDefaultProject:any;
     resourceOverviewId: any;
 }
