@@ -63,6 +63,7 @@ export class ResourceManagementComponent implements OnInit {
   employeesWithoutProject : any;
   employeesWithoutProjectList : any[] = [];
   employeeData : any[] = [];
+  catagory:any;
   employees = ['John Doe', 'Jane Smith'];
   statuses = ['Pending', 'Approved'];
   selectedEmployee = '';
@@ -1685,18 +1686,23 @@ onAction(action: string, project: any) {
   EmployeeViewDataModel(template: TemplateRef<any>, catagory: string){
     if(catagory === 'Sankh'){
       this.employeeData = this.sankhMappedEmployeesList;
+      this.catagory = catagory;
     }
     else if(catagory === 'Internal'){
       this.employeeData = this.internalMappedEmployeesList;
+      this.catagory = catagory;
     }
     else if(catagory === 'Both'){
       this.employeeData = this.mappedToBothEmployeesList;
+      this.catagory = catagory;
     }
     else if(catagory === 'Not Mapped'){
       this.employeeData = this.employeesWithoutProjectList;
+      this.catagory = catagory;
     }
     else if(catagory === 'All Mapped'){
       this.employeeData = this.allMappedEmployeesList;
+      this.catagory = catagory;
     }
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }

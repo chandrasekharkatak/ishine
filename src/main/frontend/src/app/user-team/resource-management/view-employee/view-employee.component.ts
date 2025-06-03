@@ -11,11 +11,14 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 export class ViewEmployeeComponent implements OnInit {
   @Input()
   allEmployeeData: any[] = [];
+  @Input()
+  catagory: any;
   sortColumn: any;
   sortColumnType: any;
   sortDirection = 'asc';
   allProjectTable: boolean = false;
   tableColumns :any[]= ['blank','employeementId','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
+  tableColumnsNotMapped : any[] = ['blank','employeementId','name','departmentName','managerName','jobRoleName']
   filters: any = {};
   page = 1;
   isSearchEnabled: boolean = false;
@@ -26,6 +29,7 @@ export class ViewEmployeeComponent implements OnInit {
 
   ngOnInit(): void {
     // this.exportToExcel();
+    console.log(this.catagory)
   }
 
    sortData(sort: Sort) {
