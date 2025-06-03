@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -46,6 +47,7 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
+import com.apmosys.employeeportal.dto.ExceptionReportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
@@ -77,8 +79,8 @@ import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
-import com.apmosys.employeeportal.model.ProjectTemp;
 import com.apmosys.employeeportal.model.ProjectOverheadMapping;
+import com.apmosys.employeeportal.model.ProjectTemp;
 import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
@@ -5264,6 +5266,7 @@ public class ResourceManagementService {
 	}
 	@Transactional
 	private ServiceResponse setProjectOverheads(ResourceManagementDTO resourceManagementDTO, Project projectDbResponse) {
+		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("setProjectOverheads");
 		apiLogInfo.setApiUrl("/api/setProjectOverheads");
@@ -5340,7 +5343,7 @@ public class ResourceManagementService {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("\n Something went wrong!");
-		}
+		}   
 		return response;
 	}
 	public ServiceResponse setDefaultProjectUpdateBillable(DefaultProjectUpdateDTO defaultProjectUpdateDTO) {
@@ -5470,4 +5473,37 @@ public class ResourceManagementService {
 	
 	
 	
+	
+	public ServiceResponse getAllExceptionReport() {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        List<Object[]> result = projectRepository.getExceptionEmployeeReport();
+
+	        List<ExceptionReportDTO> dtoList = result.stream().map(obj -> {
+	            ExceptionReportDTO dto = new ExceptionReportDTO();
+	            dto.setEmploymentId(obj[0] != null ? obj[0].toString() : null); 
+	            dto.setEmployeeName((String) obj[1]);
+	            dto.setDepartment((String) obj[2]);
+	            dto.setBillableType((String) obj[3]);
+	            dto.setProjectName((String) obj[4]);
+	            dto.setClientName((String) obj[5]);
+	            dto.setApmosysRM((String) obj[6]);
+	            dto.setClientRM((String) obj[7]);
+	            dto.setPoNumber((String) obj[8]);
+	            dto.setPoProjectType((String) obj[9]);
+	            dto.setPoStartDate((String) obj[10]);
+	            dto.setPoEndDate((String) obj[11]);
+	            return dto;
+	        }).collect(Collectors.toList());
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(dtoList);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError("Error while fetching report: " + e.getMessage());
+	    }
+	    return response;
+	}
+
 }

@@ -99,4 +99,8 @@ export class ResourceManagementService {
   totalEmployeeCount(){
     return this.http.get(`${this.baseUrl}`+`api/totalEmployeeCount`);
   }
+
+  exceptionEmployeeReport(){
+    return this.http.get(`${this.baseUrl}` + `api/exceptionEmployeeReport`);
+  }
 }

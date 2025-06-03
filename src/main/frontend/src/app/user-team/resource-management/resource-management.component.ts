@@ -59,7 +59,9 @@ export class ResourceManagementComponent implements OnInit {
   mappedToBothEmployees :any;
   mappedToBothEmployeesList : any[] = [];
   allMappedEmployees : any;
+  exceptionEmployees : any;
   allMappedEmployeesList : any[] = [];
+  exceptionEmployeesList : any[] = [];
   employeesWithoutProject : any;
   employeesWithoutProjectList : any[] = [];
   employeeData : any[] = [];
@@ -274,6 +276,7 @@ export class ResourceManagementComponent implements OnInit {
     await this.RbacShankhProjects(this.projectFilterDTO);
 
     await this.RbacAllShankhInternalProjects(this.projectFilterDTO);
+    await this.ExceptionEmployeeReport();
     await this.RbacBothShankhInternal(this.projectFilterDTO);
     await this.ProjectLessEmployees(this.projectFilterDTO);
     
@@ -1717,6 +1720,10 @@ onAction(action: string, project: any) {
       this.employeeData = this.allMappedEmployeesList;
       this.catagory = catagory;
     }
+    else if(catagory === 'Exception'){
+      this.employeeData = this.exceptionEmployeesList;
+      this.catagory = catagory;
+    }
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
@@ -1898,6 +1905,20 @@ RbacAllShankhInternalProjects(projectFilterDTO: ProjectFilterDTO){
       this.allMappedEmployeesList = response.serviceResponse;
       this.allMappedEmployees = this.allMappedEmployeesList.length;
       console.log("this.allMappedEmployeesList",this.allMappedEmployeesList)
+     }
+     else{
+      this.openAlertMod(this.alertTemplate, response.serviceResponse);
+     }
+});
+}
+
+ExceptionEmployeeReport(){
+  this.resourceManagementService.exceptionEmployeeReport().pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.exceptionEmployeesList = response.serviceResponse;
+      this.exceptionEmployees = this.exceptionEmployeesList.length;
+      console.log("this.exceptionEmployeesList",this.exceptionEmployeesList)
      }
      else{
       this.openAlertMod(this.alertTemplate, response.serviceResponse);

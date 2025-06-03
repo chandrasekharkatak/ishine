@@ -102,7 +102,7 @@ thead {
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     padding: 12px 16px;
-    min-width: 120px;
+    min-width: 165px;
     min-height: 60px;
     margin-bottom: 10px;
     display: flex;
@@ -126,7 +126,7 @@ thead {
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     padding: 10px 12px;
-    min-width: 110px;
+    min-width: 120px;
     min-height: 60px;
     margin-bottom: 10px;
     display: flex;
@@ -916,3 +916,77 @@ thead {
     list-style: none;
     white-space: nowrap;
   }
+
+  .team-members-wrapper {
+    padding: 10px;
+  }
+  
+  .team-member-section {
+    margin-bottom: 20px;
+  }
+  
+  .team-member-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .team-member-fields {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  
+  .team-member-field {
+    flex: 1 1 auto;
+    min-width: 150px;
+  }
+  
+  .checkbox-group {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .custom-dropdown2 {
+    width: 230px;
+  }
+  
+  .no-member-message {
+    color: #666;
+    font-style: italic;
+  }
+
+  .add-team-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+  }
+  
+  .add-team-field {
+    min-width: 200px;
+    flex: 1 1 auto;
+  }
+  
+  .checkbox-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .checkbox-group label {
+    margin: 0;
+  }
+  
+  
