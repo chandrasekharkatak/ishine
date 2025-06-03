@@ -184,7 +184,7 @@ export class EmployeeConfigComponent implements OnInit {
   employeeInActiveColumns: any[] = ['employeementId', 'employeeType', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'dateOfRelieving', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName'];
   draftEmployeeColumns: any[] = ['employeementId', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'updateApplicationStatus']
   domainColumns: any[] = ['blank', 'domainName', 'createdByName', 'createdOn']
-
+  employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   workHistoryFilters: any = {};
   isworkHistorySearchEnabled: boolean = false;
   employeeWorkhistoryColumns: any[] = ['occasion', 'dayOfTheWeek', 'dateOfHoliday', 'state', 'createdOn', 'createdbyName', 'updatedOn', 'updatedByName'];
@@ -1143,25 +1143,27 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billable)) {
-      this.alertMessage = "Please select a value for 'Billable'";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billable)) {
+    //   this.alertMessage = "Please select a value for 'Billable'";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.employeeObj.billable === 'No' &&
-      !this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billableType)) {
-      this.alertMessage = "Please select a value for 'Billable Type' when Billable is set to 'No'";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.employeeObj.billable === 'No' &&
+    //   !this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billableType)) {
+    //   this.alertMessage = "Please select a value for 'Billable Type' when Billable is set to 'No'";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
-    if (this.employeeObj.billable === 'Yes' &&
-      !this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billableType)) {
-      this.alertMessage = "Please select a value for 'Billable Type' when Billable is set to 'Yes'";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (this.employeeObj.billable === 'Yes' &&
+    //   !this.validationService.validateNullUndefinedEmptyString(this.employeeObj.billableType)) {
+    //   this.alertMessage = "Please select a value for 'Billable Type' when Billable is set to 'Yes'";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
+
+
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentstatus)) {
       this.alertMessage = "Please enter employment status !!"
@@ -1243,6 +1245,34 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultprojectType) && !this.isUpdation) {
+      this.alertMessage = "Please select Default project Type !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultProjectId) && !this.isUpdation) {
+      this.alertMessage = "Please select Default project  !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultTeamId) && !this.isUpdation) {
+      this.alertMessage = "Please select Default Team !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    if (!this.isUpdation) {
+      if ((employeeObj.defaultTeamEmployeeRole.length === 0 || !employeeObj.defaultTeamEmployeeRole)) {
+        this.alertMessage = "Please select Employee Role In Default Project !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }
+
+
+
+
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.jobRoleId)) {
       this.alertMessage = "Please select Job Role !!"
       this.openAlertMod(template, this.alertMessage);
@@ -1283,11 +1313,11 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.billable)) {
-      this.alertMessage = "Please select billable !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.billable)) {
+    //   this.alertMessage = "Please select billable !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
     if (employeeObj.employmentstatus == 'Resigned') {
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfResign)) {
         this.alertMessage = "Please Enter Resign Date !!"
@@ -1970,18 +2000,20 @@ export class EmployeeConfigComponent implements OnInit {
   projectList: any[] = [];
   teamListt: any[] = [];
   apiResponse: any[] = [];
-  showProjectDropdown :any;
-  showTeamDropdown:any;
+  showProjectDropdown: any;
+  showTeamDropdown: any;
+  showEmployeeRoleDropdown: any;
   getProjectsAccToDepartmentSelected() {
     this.showProjectDropdown = true;
     this.showTeamDropdown = false;
+    this.showEmployeeRoleDropdown = false;
     const payload = {
       departmentId: this.employeeObj.departmentId,
       defaultProjectType: this.employeeObj.defaultprojectType
     };
     this.employeeService.getProjectsAccToDepartmentSelected(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
-        this.apiResponse = response.serviceResponse;
+        this.projectList = response.serviceResponse;
       } else {
         alert(response.serviceResponse);
       }
@@ -1991,13 +2023,27 @@ export class EmployeeConfigComponent implements OnInit {
   onProjectChange(event: any) {
     const selectedProjectId = +event.target.value;
     const selectedProject = this.projectList.find(p => p.projectId === selectedProjectId);
-  
+    this.showEmployeeRoleDropdown = false;
+
     if (selectedProject && selectedProject.teamList) {
       this.teamList = selectedProject.teamList;
       this.showTeamDropdown = true;
     } else {
       this.teamList = [];
       this.showTeamDropdown = false;
+    }
+  }
+
+  onTeamChange(event: any) {
+    const selectedTeamId = +event.target.value;
+    const selectedTeam = this.teamList.find(t => t.teamId === selectedTeamId);
+
+    if (selectedTeam) {
+      this.showEmployeeRoleDropdown = true;
+
+      this.employeeObj.defaultTeamEmployeeRole = [];
+    } else {
+      this.showEmployeeRoleDropdown = false;
     }
   }
 
@@ -2416,7 +2462,9 @@ export class EmployeeConfigComponent implements OnInit {
     });
   }
 
+  deptSelected: any;
   getJobRolesByDept(departmentId: any, jobRoleId?: any) {
+    this.deptSelected = true;
     this.filteredJobRoleList = [];
     this.filteredJobRoleList = this.allJobRoleList.filter(jobRole => jobRole.departmentId == departmentId);
     jobRoleId ? this.employeeObj.jobRoleId = jobRoleId : this.employeeObj.jobRoleId = '';

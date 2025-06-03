@@ -1987,7 +1987,11 @@ public class ResourceManagementService {
 							empTeamMapping.forEach((teamMemberObj) -> {
 								String employeeName = null;
 								Employee empObj = employeeRepository.findByEmpId(teamMemberObj.getEmpId());
-								String consultant = empObj.getIsConsultant();
+								if (empObj == null) {
+								    System.out.println("Skipping null employee for empId: " + teamMemberObj.getEmpId());
+								    return; 
+								}
+								String consultant = empObj.getIsConsultant() != null ? empObj.getIsConsultant() : null;
 								String prefixxTeamMember = "A-";
 								if ("true".equalsIgnoreCase(consultant)) {
 									prefixxTeamMember = "CS-";
