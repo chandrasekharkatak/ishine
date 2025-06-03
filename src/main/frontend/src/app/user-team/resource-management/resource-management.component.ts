@@ -73,6 +73,9 @@ export class ResourceManagementComponent implements OnInit {
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
+  @ViewChild("alert_message_without_reload")
+  alertTemplateWithoutReload: TemplateRef<any>;
+
   data: string;
   currentUser: User;
   feature = "Resource Management";
@@ -189,6 +192,11 @@ export class ResourceManagementComponent implements OnInit {
   employeeInformation: EmployeeInformation = new EmployeeInformation();
   loadingRequirements = true;
   projectCompletionDate:any;
+  searchOverheadText: any;
+  filteredOverheadList: any[] = [];
+  isAllOverheadsSelected: boolean = false;
+  overheadList: any[] = [];
+
   constructor(
     private departmentService: DepartmentService,
     public validationService: ValidationService,
@@ -833,7 +841,7 @@ export class ResourceManagementComponent implements OnInit {
     }
   }
 
-  createDraftProjectInfo(template: TemplateRef<any>) {
+  createDraftProjectInfo(template: TemplateRef<any>,template2: TemplateRef<any>) {
     this.cancelRequest1();
     console.log(this.allTeamList,"this.allTeamList");
     if(this.allTeamList != null && this.allTeamList.length != 0){
@@ -863,7 +871,7 @@ export class ResourceManagementComponent implements OnInit {
     
     // this.projectObj.projectId=this.projectObj.id;
 
-    let inputValidated: boolean = this.validateProjectObj(this.projectObj, template)
+    let inputValidated: boolean = this.validateProjectObj(this.projectObj, template2)
     if (!inputValidated) return;
 
     if (this.isHOD == true) {
@@ -1064,6 +1072,7 @@ export class ResourceManagementComponent implements OnInit {
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.managerList = response.serviceResponse;
+        this.overheadList = response.serviceResponse;
 
         this.managerList.forEach((emp) => {
           // if(emp.isConsultant == 'true'){
@@ -1073,7 +1082,11 @@ export class ResourceManagementComponent implements OnInit {
           // }
           emp.employeementId = "A-".concat(emp.employeementId);
         });
+        this.overheadList.forEach((emp) => {
+          emp.employeementId = "A-".concat(emp.employeementId);
+        });
         this.filteredManagerList = this.managerList;
+        this.filteredOverheadList = this.overheadList;
 
         //console.log("managerList : ", this.managerList);
       } else {
@@ -1988,10 +2001,12 @@ TotalEmployeeCount(){
     //   requirement.assigned = requirement.teamMembers.length;
     // });
 
-    this.projectObj.resourceRequirements.forEach(req => {
-      const assignedCount = this.teamObj.allTeamMemberList?.filter(member => member.resourceOverviewId === req.resourceOverviewId).length || 0;
-      req.assigned = assignedCount;
-    });
+    if(projectObj.resourceRequirements != null){
+      this.projectObj.resourceRequirements.forEach(req => {
+        const assignedCount = this.teamObj.allTeamMemberList?.filter(member => member.resourceOverviewId === req.resourceOverviewId).length || 0;
+        req.assigned = assignedCount;
+      });
+    }
     
     this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
 
@@ -2211,6 +2226,34 @@ TotalEmployeeCount(){
 
   onManagerSelectionChange(selectedManagers: string[]): void {
     this.isAllManagersSelected = selectedManagers.length === this.filteredManagerList.length;
+  }
+
+
+  filterOverhead() {
+    const lowerText = this.searchOverheadText.trim().toLowerCase();
+    this.filteredOverheadList = this.overheadList.filter(overhead =>
+      overhead.name.toLowerCase().includes(lowerText)
+    );
+  }
+
+  toggleSelectAllOverhead(): void {
+    if (this.isAllOverheadsSelected) {
+      this.projectObj.projectOverheadId = [];
+      this.isAllOverheadsSelected = false;
+    } else {
+      this.projectObj.projectOverheadId = this.filteredOverheadList.map(emp => emp.empId);
+      this.isAllOverheadsSelected = true;
+    }
+  }
+
+  clearOverheadSelection(event: Event): void {
+    event.stopPropagation();
+    this.projectObj.projectOverheadId = [];
+    this.isAllOverheadsSelected = false;
+  }
+
+  onOverheadSelectionChange(selectedOverheads: string[]): void {
+    this.isAllOverheadsSelected = selectedOverheads.length === this.filteredOverheadList.length;
   }
 
   getTeamMembersForRequirement(resourceOverviewId: number): any[] {

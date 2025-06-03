@@ -63,10 +63,6 @@ public class ResourceManagementDTO {
 	private String apmosysRmEmail;
 	private String projectCompletionDate;
 	private String projectStatus;
-    private Long shadowEmpId;
-    private String shadowBillable;
-    private String shadowBillableType;
-    private String billable;
     private List<ProjectManagerMappingDTO> projectManagersList;
     private Long spocId;
     private String projectViewId;
@@ -74,4 +70,8 @@ public class ResourceManagementDTO {
     private String teamCreated;
     private String prevPoNo;
 	private String nextPoNo;
+    private List<Long> projectOverheadId;
+    private String projectOverheadName;
+    private List<ProjectOverheadMappingDTO> projectOverheadsList;
+	private List<ProjectOverheadsDTO> projectOverheads;
 }

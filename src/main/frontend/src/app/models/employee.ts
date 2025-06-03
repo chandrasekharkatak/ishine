@@ -205,4 +205,7 @@ export class Employee{
 	selectedProjectId :any;
 	employmentId:any;
 	resourceOverviewId: any;
+	defaultprojectType:any;
+	defaultProjectId:any;
+	defaultTeamId:any;
 }
