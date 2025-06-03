@@ -1,8 +1,8 @@
 package com.apmosys.employeeportal.model;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -18,17 +18,18 @@ import lombok.ToString;
 @Entity
 @Getter
 @Setter
-@ToString
 @Audited
-@Table(name="clients")
-public class Client {
+@ToString
+@Table(name="resource_requirement_temp")
+public class ResourceRequirementTemp {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer clientId;
-	private Integer poClientId;
-	
-	private String clientName;
-	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
-	private Timestamp createdOn;
+	private Long resourceRequirementId;
+	private String role;
+    private Integer count;
+    private String experience;
+    private String department;
+    private Long resourceOverviewId;
+	private Long poProjectId;
 }

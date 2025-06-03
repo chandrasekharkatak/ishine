@@ -120,27 +120,6 @@ matSort (matSortChange)="sortData($event)"
                                 </tr>
                             </ng-container>
                         </ng-container>
-                        <!-- <tr >
-                                    <th scope="col" class="info-label">{{10*(page-1)+i+1}}</th>
-                                    <td>A-{{employee.employeementId}}</td>
-                                    <td>{{employee.name}}</td>
-                                    <td>{{employee.department}}</td>
-                                    <td>{{employee.billableType}}</td>
-                                    <td>{{employee.billable}}</td>
-                                    <td> -->
-                        <!-- <tr *ngFor="let empProject of employee.rmgprojects">
-                                            <td>{{empProject.projectName}}</td>
-                                            <td>{{empProject.clientName}}</td>
-                                            <td>{{empProject.apmosysRM}}</td>
-                                            <td>{{empProject.clientRM}}</td>
-                                            <td>{{empProject.poNo}}</td>
-                                            <td>{{empProject.poProjectType}}</td>
-                                            <td>{{empProject.poStartDate}}</td>
-                                            <td>{{empProject.poEndDate}}</td>
-                                        </tr> -->
-                        <!-- </td>
-                                </tr> -->
-
                     </ng-container>
                 </tbody>
             </table>
@@ -174,20 +153,8 @@ matSort (matSortChange)="sortData($event)"
                         <th scope="col" class="info-label" style=" min-width: 200px;">Employment Id</th>
                         <th scope="col" class="info-label" style=" min-width: 300px;">Employee Name</th>
                         <th scope="col" class="info-label" style=" min-width: 300px;">Department</th>
-                        <!-- <th scope="col" class="info-label" style=" min-width: 200px;">Billable Type</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Is Billable</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Project Name</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Client Name</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Apmosys RM</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Client RM</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">PO No.</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">PO Project Type</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">PO Start Date</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">PO End Date</th> -->
                         <th scope="col" class="info-label" style=" min-width: 250px;">Manager Name</th>
-                        <!-- <th scope="col" class="info-label" style=" min-width: 200px;">Team Name</th> -->
                         <th scope="col" class="info-label" style=" min-width: 200px;">Employee Role</th>
-                        <!-- <th scope="col" class="info-label" style=" min-width: 200px;">Status</th> -->
 
                     </tr>
                     <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="tableColumnsNotMapped"

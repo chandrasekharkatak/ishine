@@ -68,8 +68,8 @@ public class ResourceManagementDTO {
     private String projectViewId;
     private String requestType;
     private String teamCreated;
-    private String prevPoNo;
-	private String nextPoNo;
+    private String prevPo;
+	private String nextPo;
     private List<Long> projectOverheadId;
     private String projectOverheadName;
     private List<ProjectOverheadMappingDTO> projectOverheadsList;

@@ -80,6 +80,7 @@ import com.apmosys.employeeportal.model.ProjectManagerMapping;
 import com.apmosys.employeeportal.model.ProjectTemp;
 import com.apmosys.employeeportal.model.ProjectOverheadMapping;
 import com.apmosys.employeeportal.model.ResourceRequirement;
+import com.apmosys.employeeportal.model.ResourceRequirementTemp;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
@@ -94,7 +95,9 @@ import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.ProjectTempRepo;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
+import com.apmosys.employeeportal.repository.ResourceRequirementTempRepo;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -143,6 +146,12 @@ public class ResourceManagementService {
 
 	@Autowired
 	ResourceRequirementRepository resourceRequirementRepository;
+	
+	@Autowired
+	ResourceRequirementTempRepo resourceRequirementTempRepo;
+	
+	@Autowired
+	ProjectTempRepo projectTempRepo;
 	
 	@Autowired
 	ProjectOverheadMappingRepository projectOverheadMappingRepository;
@@ -3909,6 +3918,7 @@ public class ResourceManagementService {
 					ResourceManagementDTO[].class);
 			poPortalProjects = Arrays
 					.asList(poPortalProjectArray != null ? poPortalProjectArray : new ResourceManagementDTO[0]);
+			System.out.println(poPortalProjects);
 		} catch (RestClientException e) {
 			throw new RuntimeException("Error fetching projects from PoPortal: " + e.getMessage());
 		}
@@ -5210,7 +5220,6 @@ public class ResourceManagementService {
 		 StringBuilder logBuilder = new StringBuilder();
 		    LogDTO apiLogInfo = new LogDTO();
 		    apiLogInfo.setLogLevel("INFO");
-		List<ProjectTemp> dump = new ArrayList<>();
 		ServiceResponse teamCreatedProjectsResponse = alreadyCreatedTeam();
         if (!ServiceResponse.STATUS_SUCCESS.equals(teamCreatedProjectsResponse.getServiceStatus())) {
             return failResponse(serviceResponse, apiLogInfo, "Failed to fetch already created team projects.");
@@ -5219,6 +5228,7 @@ public class ResourceManagementService {
 		List<ResourceManagementDTO> poPortalProjects = Optional.ofNullable(fetchPoPortalProjects()).orElse(new ArrayList<>());
 		System.out.println(poPortalProjects);
 		processPoPortalProjects(poPortalProjects,teamCreatedProjects);
+		System.out.println(poPortalProjects);
 		for (ResourceManagementDTO poData :  poPortalProjects) {
 			ProjectTemp data = new ProjectTemp();
 			data.setPoNo(poData.getPoNo());
@@ -5226,21 +5236,90 @@ public class ResourceManagementService {
 			data.setApmosysRmEmail(poData.getApmosysRmEmail());	
 			
 			data.setActive(poData.getActive() != null ? poData.getActive().toString() : null);
-		    data.setApprovedOn(null); // Set if you have approval logic
-		    data.setClientId(poData.getClientId() != null ? poData.getClientId().intValue() : null);
-		    data.setClientLocation(poData.getClientLocationName());
-		    data.setClientName(poData.getClientName());
+			
+		    Integer clientId = null;
+			Optional<Client> clientObj = clientsRepository.findByClientName(poData.getClientName());
+			if (!clientObj.isEmpty()) {
+				Client clientPresent = clientObj.get();
+				clientId = clientPresent.getClientId();
+			} else {
+				// Add Client & Client Location
+				Client newClient = new Client();
+				newClient.setClientName(poData.getClientName());
+				Client clientDbResponse = clientsRepository.save(newClient);
+
+				if (clientDbResponse != null) {
+					clientId = clientDbResponse.getClientId();
+					List<ClientLocation> locations = new ArrayList<>();
+
+					for (String clientLocation : poData.getClientLocation()) {
+						ClientLocation newClientLocation = new ClientLocation();
+						newClientLocation.setClientId(clientDbResponse.getClientId());
+						newClientLocation.setClientLocation(clientLocation);
+						locations.add(newClientLocation);
+					}
+
+					// Add WFH location
+					boolean contains = Arrays.stream(poData.getClientLocation())
+							.anyMatch("WFH"::equals);
+					if (!contains) {
+						ClientLocation newClientLocation = new ClientLocation();
+						newClientLocation.setClientId(clientDbResponse.getClientId());
+						newClientLocation.setClientLocation("WFH");
+						locations.add(newClientLocation);
+					}
+
+					List<ClientLocation> clientLocationDbResponse = clientLocationRepository.saveAll(locations);
+
+					if (!clientLocationDbResponse.isEmpty()) {
+						serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						serviceResponse.setServiceResponse("Client Location added");
+						apiLogInfo.setApiResponse("Client Location added");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					} else {
+						serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						serviceResponse.setServiceResponse("Failed to add client Location");
+						apiLogInfo.setApiResponse("Failed to add client Location");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						return serviceResponse;
+					}
+				} else {
+					serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					serviceResponse.setServiceResponse("Failed to add client");
+					apiLogInfo.setApiResponse("Failed to add client");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					return serviceResponse;
+				}
+			}
+			
+
+		    data.setClientId(clientId != null ? clientId : null);
+		    data.setClientName(poData.getClientName()!=null ? poData.getClientName() : null );
+		    if (poData.getClientLocation() != null) {
+		        data.setClientLocation(String.join(", ", poData.getClientLocation()));
+		    } else {
+		        data.setClientLocation(null);
+		    }
+//		    data.setClientLocation(poData.getClientLocation() != null ? poData.getClientLocation() : null);
+		    data.setProjectName(poData.getName() != null ? poData.getName() : null);    
 		    data.setCreatedBy(poData.getCreatedBy());
-		    data.setCreatedOn(poData.getCreatedOn() != null ? Timestamp.valueOf(poData.getCreatedOn()) : null);
+		    String input = poData.getCreatedOn();
+		    if (input != null) {
+		        ZonedDateTime zdt = ZonedDateTime.parse(input);
+		        LocalDateTime ldt = zdt.toLocalDateTime();
+		        data.setCreatedOn(Timestamp.valueOf(ldt));
+		    } else {
+		        data.setCreatedOn(null);
+		    }		    
 		    data.setDepartmentName(poData.getDepartmentName());
 		    data.setIsDraftProject(poData.getIsDraftProject());
-		    data.setPoEndDate(poData.getPoEndDate());
+		    data.setPoEndDate(poData.getEndDate());
 		    data.setPoNo(poData.getPoNo());
-		    data.setPoProjectId(poData.getPoProjectId());
+		    data.setPoProjectId(poData.getId());
 		    data.setPoProjectType(poData.getProjectType());
-		    data.setPoStartDate(poData.getPoStartDate());
+		    data.setPoStartDate(poData.getStartDate());
 		    data.setProjectManagerId(poData.getProjectManagerId() != null && !poData.getProjectManagerId().isEmpty() ? poData.getProjectManagerId().get(0) : null);
-		    data.setProjectName(poData.getProjectName());
+		    data.setProjectName(poData.getName());
 		    data.setRole(poData.getEmployeeRole());
 		    data.setState(poData.getClientState());
 		    data.setUpdatedBy(poData.getUpdatedBy());
@@ -5254,16 +5333,37 @@ public class ResourceManagementService {
 		    data.setProjectCompletionDate(poData.getProjectCompletionDate());
 		    data.setProjectStatus(poData.getProjectStatus());
 		    data.setProjectId(poData.getProjectId());
-		    data.setPrevPoNo(poData.getPrevPoNo()); 
-		    data.setNextPoNo(poData.getNextPoNo()); 
+		    data.setPrevPoNo(poData.getPrevPo()); 
+		    data.setNextPoNo(poData.getNextPo());
+		    if (!poData.getResourceRequirements().isEmpty() && poData.getResourceRequirements() != null) {
+		    	poData.getResourceRequirements().forEach(req -> {
+					ResourceRequirementTemp resourceManagementDTO = new ResourceRequirementTemp();
 
-		}
-		serviceResponse.setServiceResponse("Changes made successfully");
+					resourceManagementDTO.setCount(req.getCount());
+					resourceManagementDTO.setDepartment(req.getDepartment());
+					resourceManagementDTO.setExperience(req.getExperience());
+					resourceManagementDTO.setRole(req.getRole());
+					resourceManagementDTO.setResourceOverviewId(
+							req.getResourceOverviewId() != null ? Long.parseLong(req.getResourceOverviewId().toString())
+									: null);
+					resourceManagementDTO.setPoProjectId(poData.getId());
+
+					ResourceRequirementTemp res = resourceRequirementTempRepo.save(resourceManagementDTO);
+				});
+			}
+		    
+		    System.out.println(data);
+		    projectTempRepo.save(data);
+		    }
+		serviceResponse.setServiceResponse(poPortalProjects);
 		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		return serviceResponse;
 	}
+	
+	
 	@Transactional
 	private ServiceResponse setProjectOverheads(ResourceManagementDTO resourceManagementDTO, Project projectDbResponse) {
+		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("setProjectOverheads");
 		apiLogInfo.setApiUrl("/api/setProjectOverheads");

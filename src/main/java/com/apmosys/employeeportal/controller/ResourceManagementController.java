@@ -275,7 +275,7 @@ public class ResourceManagementController {
 		return resourceManagementService.crudOnAllNotstartedProjs(resourceManagementDTO);
 	}
 	
-	@PostMapping("/poDump")
+	@GetMapping("/poDump")
 	public ServiceResponse getAllPOPortalDumpInIshineTemp() {
 		return resourceManagementService.dumpPODataInIshine();
 	}
