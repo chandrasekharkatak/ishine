@@ -533,9 +533,9 @@
           <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
               <tr>
-                <th *ngIf="changeTable && !isAccounts">
+                <!-- <th *ngIf="changeTable && !isAccounts">
                   <input type="checkbox" [(ngModel)]="masterSelected" (change)="selectAllEmployees()" />
-                </th>
+                </th> -->
                 <th scope="col" class="info-label">Sr No.</th>
                 <th scope="col" style="min-width: 85px;" mat-sort-header="employeementId|empId">Emp Id</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Full Name</th>
@@ -547,8 +547,8 @@
                 <th scope="col" class="info-label wide-col" mat-sort-header="employmentstatus|string">Employment Status
                 </th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="billable|string">Billable</th>
-                <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">
-                  <div style="display: flex; flex-direction: column; align-items: start;">
+                <th scope="col" class="info-label wide-col" mat-sort-header="billableType|string">Billable Type
+                  <!-- <div style="display: flex; flex-direction: column; align-items: start;">
                     <span>Billable Type</span>
                     <div *ngIf="selectedEmployees.length > 0 && changeTable && !isAccounts" style="margin-top: 5px;">
                       <select [(ngModel)]="selectedBillableTypeForBulk"
@@ -557,7 +557,7 @@
                         <option *ngFor="let type of billableTypes" [value]="type">{{ type }}</option>
                       </select>
                     </div>
-                  </div>
+                  </div> -->
                 </th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="teamName|string">Team Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="projectName|string">Project Name</th>
@@ -592,9 +592,9 @@
               </tr>
               <tr
                 *ngFor="let employee of employeeList | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                <td *ngIf="changeTable && !isAccounts">
+                <!-- <td *ngIf="changeTable && !isAccounts">
                   <input type="checkbox" [(ngModel)]="employee.isSelected" (change)="checkIfAllSelected()" />
-                </td>
+                </td> -->
                 <th class="info-label">{{20*(page-1)+i+1}}</th>
                 <td>A-{{ employee.employeementId }}</td>
                 <td>{{ employee.name }}</td>
@@ -613,9 +613,9 @@
                 </td>
                 <td>{{ employee.employmentstatus }}</td>
                 <td>{{ employee.billable }}</td>
-                <!-- <td>{{ employee.billableType }}</td> -->
+                <td>{{ employee.billableType }}</td>
 
-                <td>
+                <!-- <td>
                   <ng-container *ngIf="changeTable; else viewOnly">
                     <div *ngIf="editIndex !== i"
                       style="display: flex; align-items: center; justify-content: space-between; width: 180px;">
@@ -641,7 +641,7 @@
                   <ng-template #viewOnly>
                     {{ employee.billableType }}
                   </ng-template>
-                </td>
+                </td> -->
 
 
 

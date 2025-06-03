@@ -265,9 +265,10 @@ public class ResourceManagementController {
 	    return resourceManagementService.getEmployeeInformation(empId);
 	}
 	
-	@RequestMapping(value = "/lala", method = RequestMethod.POST)
-	public ServiceResponse setDefaultProjectUpdateBillable(@RequestBody DefaultProjectUpdateDTO defaultProjectUpdateDTO) {
-	    return resourceManagementService.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
+	@GetMapping(value = "/exceptionEmployeeReport")
+	public ServiceResponse exceptionEmployeeReport( ) {
+		ServiceResponse response = resourceManagementService.getAllExceptionReport();
+		return response;
 	}
 
 	@PostMapping("/poCrudOperationsInIshine")

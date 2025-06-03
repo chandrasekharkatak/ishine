@@ -18,7 +18,8 @@ export class ViewEmployeeComponent implements OnInit {
   sortDirection = 'asc';
   allProjectTable: boolean = false;
   tableColumns :any[]= ['blank','employeementId','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
-  tableColumnsNotMapped : any[] = ['blank','employeementId','name','departmentName','managerName','jobRoleName']
+  tableColumnsNotMapped : any[] = ['blank','employeementId','name','departmentName','managerName','jobRoleName'] ;
+  exceptionTableColumns: any[] = ['blank','employmentId','employeeName','department','billableType','projectName','clientName','apmosysRM','clientRM','poNumber','poProjectType','poStartDate','poEndDate'];
   filters: any = {};
   page = 1;
   isSearchEnabled: boolean = false;
@@ -29,7 +30,8 @@ export class ViewEmployeeComponent implements OnInit {
 
   ngOnInit(): void {
     // this.exportToExcel();
-    console.log(this.catagory)
+    console.log(this.catagory,"catagory")
+    console.log(this.allEmployeeData,"allEmployeeData")
   }
 
    sortData(sort: Sort) {
@@ -154,6 +156,31 @@ export class ViewEmployeeComponent implements OnInit {
     };
   }).filter(employee => employee.rmgprojects.length > 0);
 }
+
+
+exportExceptionToExcel1(): void {
+  const excelName = 'Exception_Employee_Details_Report.xlsx';
+
+  const dataForTable = this.allEmployeeData.map((employee: any) => {
+    return {
+      "Employment Id": "A-" + employee.employmentId,
+      "Employee Name": employee.employeeName,
+      "Department": employee.department,
+      "Billable Type": employee.billableType,
+      "Project Name": employee.projectName,
+      "Client Name": employee.clientName,
+      "Apmosys RM": employee.apmosysRM,
+      "Client RM": employee.clientRM,
+      "PO No.": employee.poNumber,
+      "PO Project Type": employee.poProjectType,
+      "PO Start Date": employee.poStartDate,
+      "PO End Date": employee.poEndDate
+    };
+  });
+
+  this.exportExcelService.exportTableDataToExcel(dataForTable, excelName);
+}
+
 
   
 }

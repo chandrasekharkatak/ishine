@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -47,6 +48,7 @@ import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.DefaultProjectEmployeeConfig;
+import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
@@ -196,6 +198,9 @@ public class EmployeeService {
 
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
+	
+	@Autowired
+	ResourceManagementService resourceManagementService;
 	
 	@Autowired
 	private LeavePolicyMasterRepository leavePolicyMasterRepository;
@@ -509,8 +514,8 @@ public class EmployeeService {
 			employee.setChild1(employeedto.getChild1());
 			employee.setChild2(employeedto.getChild2());
 			employee.setChild3(employeedto.getChild3());
-			employee.setBillable(employeedto.getBillable());
-			employee.setBillableType(employeedto.getBillableType());
+//			employee.setBillable(employeedto.getBillable());
+//			employee.setBillableType(employeedto.getBillableType());
 			employee.setIsTimesheetLockCheckEnable("true");
 			employee.setDesignationId(employeedto.getDesignationId());
 			employee.setIsConsultant(employeedto.getIsConsultant());
@@ -529,20 +534,41 @@ public class EmployeeService {
 				employee.setApprovalsTo(employeedto.getApprovalsTo());
 			}
 
-			Employee newEmployee = employeeRepository.save(employee);
-			
-			if (employeedto.getBillableType() != null && !employeedto.getBillableType().trim().isEmpty()) {
-			    FieldAlteration billableTypeAlteration = new FieldAlteration();
-			    billableTypeAlteration.setEmpId(newEmployee.getEmpId());
-			    billableTypeAlteration.setField("Billable Type");
-			    billableTypeAlteration.setValue(employeedto.getBillableType());
-			    billableTypeAlteration.setAlteredBy(employeedto.getCreatedBy().longValue());
-			    billableTypeAlteration.setUpdatedOn(LocalDateTime.now());
-
-			    fieldAlterationRepository.save(billableTypeAlteration);
+			Employee newEmployee = employeeRepository.save(employee);			
+			StringBuilder employeeRole = new StringBuilder("");
+			for (String empRole : employeedto.getDefaultTeamEmployeeRole()) {
+				employeeRole.append(empRole).append(",");
 			}
+			
+			if(employeedto.getDefaultProjectId() != null) {
+				EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
+				employeeTeamMap.setEmpId(newEmployee.getEmpId());
+				employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
+				employeeTeamMap.setActive(2l);
+				employeeTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
+				employeeTeamMap.setEmployeeRole(employeeRole.toString());
+				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());		
+			
+			   employeeTeamMapRepository.save(employeeTeamMap);
+			   
+			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
+			    if (project != null && project.getPoProjectId() == null) {
+			        project.setIsDraftProject("true");
+			        projectRepository.save(project);  
+			    }
+			   
+			   DefaultProjectUpdateDTO dto = new DefaultProjectUpdateDTO();
+			    dto.setUpdatedBy(employeedto.getCreatedBy().longValue()); 
+			    dto.setProjectId(employeedto.getDefaultProjectId());
+			    dto.setEmpIds(Collections.singletonList(newEmployee.getEmpId()));
 
-			if (newEmployee.getEmpId() != null) {
+			    resourceManagementService.setDefaultProjectUpdateBillable(dto);
+			   
+			   }
+					
+					
+						
+				if (newEmployee.getEmpId() != null) {
 
 				List<LeaveTypeMaster> leaveTypeMasterList = leaveTypeMasterRepository.findAll();
 
@@ -1222,7 +1248,15 @@ public class EmployeeService {
 					empDTO.setDomainList(domainIds.toArray(new Long[domainIds.size()]));
 					empDTO.setSpecializationList(specializationIds.toArray(new Long[specializationIds.size()]));
 				}
-
+				
+				EmpPrimaryProjectMapping employeeProject = empPrimaryProjectMappingRepository.findByEmpId(employeedto.getEmpId());
+				if(employeeProject!=null) {
+					Project project = projectRepository.findByProjectId(employeeProject.getPrimaryProjectId().intValue());
+					empDTO.setDefaultProjectName(project.getProjectName());					
+				}
+						
+						
+						
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(empDTO);
 				
@@ -6671,58 +6705,32 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	public ServiceResponse updateDefaultProject(Long empId, String projectId,Long updatedBy) {
 		
 		ServiceResponse response = new ServiceResponse();
-		EmpPrimaryProjectMapping empPrimaryProjectMapping = new EmpPrimaryProjectMapping();
-		if(empId != null) {
-		empPrimaryProjectMapping = empPrimaryProjectMappingRepository.findByEmpId(empId);
-		if(empPrimaryProjectMapping == null && projectId != null && !projectId.isEmpty()) {
-			
-			EmpPrimaryProjectMapping empPrimaryProjectMappingNew = new EmpPrimaryProjectMapping();
+		if (empId == null || projectId == null || projectId.isEmpty()) {
+	        response.setServiceMessage("Please provide valid Employee Id and Project Id..!!");
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        return response;
+	    }
 
-			// empPrimaryProjectMappingNew.setEmpId(empId);
-			// empPrimaryProjectMappingNew.setPrimaryProjectId(Long.valueOf(projectId));			
-			// empPrimaryProjectMappingNew.setPrimaryProjectName(projectName);
-			// EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMappingNew);
-			Project project = projectRepository.findByProjectId(Integer.valueOf(projectId));
-			empPrimaryProjectMappingNew.setEmpId(empId);
-			empPrimaryProjectMappingNew.setPrimaryProjectId(Long.valueOf(projectId));			
-			empPrimaryProjectMappingNew.setPrimaryProjectName(project.getProjectName());
-			empPrimaryProjectMappingNew.setIsMapped("Y");
-			empPrimaryProjectMappingNew.setUpdatedBy(updatedBy);
-			empPrimaryProjectMappingNew.setUpdatedOn(LocalDateTime.now());	
-			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMappingNew);
-			
-			response.setServiceResponse(empPrimaryProjectMappingSaved);
-			response.setServiceMessage("Saved Succesfully...!!");
-			response.setServiceStatus(response.STATUS_SUCCESS);
-		
-		}
-		else if(empPrimaryProjectMapping != null && projectId != null && !projectId.isEmpty()) {
-			
-			empPrimaryProjectMapping.setPrimaryProjectId(Long.valueOf(projectId));	
-			Project project = projectRepository.findByProjectId(Integer.valueOf(projectId));
-			empPrimaryProjectMapping.setPrimaryProjectName(project.getProjectName());
-			empPrimaryProjectMapping.setUpdatedBy(updatedBy);
-			empPrimaryProjectMapping.setUpdatedOn(LocalDateTime.now());	
-			
-			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMapping);
-			
-			response.setServiceResponse(empPrimaryProjectMappingSaved);
-			response.setServiceMessage("Updated Succesfully...!!");
-			response.setServiceStatus(response.STATUS_SUCCESS);
-		}
-		
-		else {
-			response.setServiceMessage("Please provide the Project Id..!!");
-			response.setServiceStatus(response.STATUS_FAIL);
-		}
+	    try {
+	        
+	        DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
+	        defaultProjectUpdateDTO.setUpdatedBy(updatedBy);
+	        defaultProjectUpdateDTO.setProjectId(Integer.valueOf(projectId));
+	        defaultProjectUpdateDTO.setEmpIds(Collections.singletonList(empId));
+
+	       
+	        response = resourceManagementService.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceMessage("Exception occurred while updating default project.");
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceError(e.getMessage());
+	    }
+
+	    return response;
 	}
-		else {
-			response.setServiceMessage("Please provide the Employee Id..!!");
-			response.setServiceStatus(response.STATUS_FAIL);
-		}
-		
-		return response;
-	}
+
 	
 	
 	public ServiceResponse getExpiredPo() {

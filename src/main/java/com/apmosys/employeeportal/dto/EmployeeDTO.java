@@ -274,4 +274,10 @@ public class EmployeeDTO {
     private String hodDepartmentName;
     private String teamIds;
     private String employmentId;
+    private String defaultprojectType;
+    private Integer defaultProjectId;
+    private String defaultProjectName;
+    private Long defaultTeamId;
+    private Integer isShadowResource;
+    private String[] defaultTeamEmployeeRole;
 }

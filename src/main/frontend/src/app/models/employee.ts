@@ -207,5 +207,8 @@ export class Employee{
 	resourceOverviewId: any;
 	defaultprojectType:any;
 	defaultProjectId:any;
+	defaultProjectName:any;
 	defaultTeamId:any;
+	isShadowResource:any;
+	defaultTeamEmployeeRole:any;
 }

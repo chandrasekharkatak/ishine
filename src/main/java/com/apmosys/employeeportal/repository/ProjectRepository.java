@@ -118,5 +118,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInformation(Long empId);
+
+	@Query(nativeQuery = true)
+	public List<Object[]> getExceptionEmployeeReport();
 	
 }
