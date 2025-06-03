@@ -73,6 +73,7 @@ import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
+import com.apmosys.employeeportal.model.ProjectTemp;
 import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
@@ -5192,4 +5193,71 @@ public class ResourceManagementService {
 		}
 		return response;
 	}
+	
+	public ServiceResponse crudOnAllNotstartedProjs(ResourceManagementDTO resourceManagementDTO) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		System.out.println(resourceManagementDTO);
+		serviceResponse.setServiceResponse("Changes made successfully");
+		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		return serviceResponse;
+	}
+	
+	public ServiceResponse dumpPODataInIshine() {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		 StringBuilder logBuilder = new StringBuilder();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setLogLevel("INFO");
+		List<ProjectTemp> dump = new ArrayList<>();
+		ServiceResponse teamCreatedProjectsResponse = alreadyCreatedTeam();
+        if (!ServiceResponse.STATUS_SUCCESS.equals(teamCreatedProjectsResponse.getServiceStatus())) {
+            return failResponse(serviceResponse, apiLogInfo, "Failed to fetch already created team projects.");
+        }
+		List<ResourceManagementDTO> teamCreatedProjects = castList(teamCreatedProjectsResponse.getServiceResponse());
+		List<ResourceManagementDTO> poPortalProjects = Optional.ofNullable(fetchPoPortalProjects()).orElse(new ArrayList<>());
+		System.out.println(poPortalProjects);
+		processPoPortalProjects(poPortalProjects,teamCreatedProjects);
+		for (ResourceManagementDTO poData :  poPortalProjects) {
+			ProjectTemp data = new ProjectTemp();
+			data.setPoNo(poData.getPoNo());
+			data.setApmosysrm(poData.getApmosysRM());
+			data.setApmosysRmEmail(poData.getApmosysRmEmail());	
+			
+			data.setActive(poData.getActive() != null ? poData.getActive().toString() : null);
+		    data.setApprovedOn(null); // Set if you have approval logic
+		    data.setClientId(poData.getClientId() != null ? poData.getClientId().intValue() : null);
+		    data.setClientLocation(poData.getClientLocationName());
+		    data.setClientName(poData.getClientName());
+		    data.setCreatedBy(poData.getCreatedBy());
+		    data.setCreatedOn(poData.getCreatedOn() != null ? Timestamp.valueOf(poData.getCreatedOn()) : null);
+		    data.setDepartmentName(poData.getDepartmentName());
+		    data.setIsDraftProject(poData.getIsDraftProject());
+		    data.setPoEndDate(poData.getPoEndDate());
+		    data.setPoNo(poData.getPoNo());
+		    data.setPoProjectId(poData.getPoProjectId());
+		    data.setPoProjectType(poData.getProjectType());
+		    data.setPoStartDate(poData.getPoStartDate());
+		    data.setProjectManagerId(poData.getProjectManagerId() != null && !poData.getProjectManagerId().isEmpty() ? poData.getProjectManagerId().get(0) : null);
+		    data.setProjectName(poData.getProjectName());
+		    data.setRole(poData.getEmployeeRole());
+		    data.setState(poData.getClientState());
+		    data.setUpdatedBy(poData.getUpdatedBy());
+		    data.setUpdatedOn(poData.getUpdatedOn() != null ? LocalDateTime.parse(poData.getUpdatedOn()) : null);
+		    data.setApmosysrm(poData.getApmosysRM());
+		    data.setClientrm(poData.getClientRM());
+		    data.setDeptId(poData.getDeptId());
+		    data.setIsRenewable(poData.getIsRenewable());
+		    data.setStatus(poData.getStatus());
+		    data.setApmosysRmEmail(poData.getApmosysRmEmail());
+		    data.setProjectCompletionDate(poData.getProjectCompletionDate());
+		    data.setProjectStatus(poData.getProjectStatus());
+		    data.setProjectId(poData.getProjectId());
+		    data.setPrevPoNo(poData.getPrevPoNo()); 
+		    data.setNextPoNo(poData.getNextPoNo()); 
+
+		}
+		serviceResponse.setServiceResponse("Changes made successfully");
+		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		return serviceResponse;
+	}
+	
 }

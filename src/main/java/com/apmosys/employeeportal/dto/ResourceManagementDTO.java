@@ -70,4 +70,8 @@ public class ResourceManagementDTO {
     private List<ProjectManagerMappingDTO> projectManagersList;
     private Long spocId;
     private String projectViewId;
+    private String requestType;
+    private String teamCreated;
+    private String prevPoNo;
+	private String nextPoNo;
 }
