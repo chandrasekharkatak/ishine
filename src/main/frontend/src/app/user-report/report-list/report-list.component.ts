@@ -304,6 +304,8 @@ export class ReportListComponent implements OnInit {
     event.stopPropagation(); // prevent dropdown from closing
     this.employeeReportObj.deptId = [];
     this.isAllSelected = false;
+    this.searchText = '';
+    this.filterDepartments();
     // Optionally: refresh data
   }
 
