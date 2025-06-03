@@ -46,6 +46,7 @@ import com.apmosys.employeeportal.dto.AppreciationAndRewardsCountDto;
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
+import com.apmosys.employeeportal.dto.DefaultProjectEmployeeConfig;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
@@ -6951,5 +6952,71 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+	
+	
+	public ServiceResponse getInternalProjectsAccToDepartmentSelected(DefaultProjectEmployeeConfig defaultProjectEmployeeConfig){
+		   ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/getInternalProjectsAccToDepartment");
+		    apiLogInfo.setLogLevel("INFO");
+		    try {
+		    	List<Object[]> getBenchOrOtherProjects = new ArrayList<>();
+		    	Long departmentId = defaultProjectEmployeeConfig.getDepartmentId();
+		    	if("Bench".equalsIgnoreCase(defaultProjectEmployeeConfig.getDefaultProjectType())){
+		    	getBenchOrOtherProjects= employeeRepository.getAllInternalBenchprojectsAndTeamDetailsForDepartmenFilter();
+		    	}else {
+		        getBenchOrOtherProjects = employeeRepository.getAllProjectsThatAreNotBench();
+		    	}
+		    	 Map<Integer, ProjectDTO> projectMap = new HashMap<>();
+		    	 
+		    	 for(Object[] row : getBenchOrOtherProjects) {
+		    		 
+		    		 Integer projectId = row[0]!=null ? Integer.parseInt(row[0].toString()) : null;
+		    		 String projectName = row[1]!=null ? row[1].toString():null;
+		    		 Long teamId = row[2]!=null ? Long.parseLong(row[2].toString()):null;
+		    		 String teamName = row[3]!=null ? row[3].toString():null;
+		    		 String deptIds = row[4]!=null ? row[4].toString():null;
+		    		 
+		    		 if (deptIds == null || !Arrays.asList(deptIds.split(",")).contains(departmentId.toString())) {
+		                 continue;
+		             }
+		    		 
+		    		 TeamDTO teamDTO = new TeamDTO();
+		             teamDTO.setTeamId(teamId);
+		             teamDTO.setTeamName(teamName);
+		             teamDTO.setDepartmentList(deptIds.split(","));
+		             
+		             if (projectMap.containsKey(projectId)) {
+		                 projectMap.get(projectId).getTeamList().add(teamDTO);
+		             } else {
+		               
+		                 ProjectDTO projectDTO = new ProjectDTO();
+		                 projectDTO.setProjectId(projectId);
+		                 projectDTO.setProjectName(projectName);
+		                 projectDTO.setTeamList(new ArrayList<>());
+		                 projectDTO.getTeamList().add(teamDTO);
+		                 projectMap.put(projectId, projectDTO);
+		             }
+		         }
+
+		         List<ProjectDTO> filteredProjects = new ArrayList<>(projectMap.values());
+		         response.setServiceResponse(filteredProjects);
+		         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		         apiLogInfo.setApiResponse("List fetched of size: " + filteredProjects.size());
+		    	
+		    }catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("An error occurred while processing the request.");
+		        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        apiLogInfo.setLogLevel("ERROR");
+		        response.setServiceError(e.getMessage());
+		    }
+
+		    logService.logMyInfo(httpRequest, apiLogInfo);
+		    return response;
+		}
+	
+	
 }
 	

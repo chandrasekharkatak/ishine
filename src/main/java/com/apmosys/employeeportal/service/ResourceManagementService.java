@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,6 +41,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
+import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
@@ -68,6 +70,7 @@ import com.apmosys.employeeportal.model.ActivityTemplate;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.JobRole;
@@ -82,6 +85,7 @@ import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -117,6 +121,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	ClientsRepository clientsRepository;
+	
+	@Autowired
+	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
 
 	@Autowired
 	ProjectManagerMappingRepository projectManagerMappingRepository;
@@ -5272,4 +5279,131 @@ public class ResourceManagementService {
 		}
 		return response;
 	}
+	public ServiceResponse setDefaultProjectUpdateBillable(DefaultProjectUpdateDTO defaultProjectUpdateDTO) {
+		
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			Long updatedBy = defaultProjectUpdateDTO.getUpdatedBy();
+			Integer projectId = defaultProjectUpdateDTO.getProjectId();
+			List<Long> empIds = defaultProjectUpdateDTO.getEmpIds();
+			
+			 if (empIds == null || empIds.isEmpty() || projectId == null) {
+				 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Invalid Emp Id");
+		        }
+			 
+			  Map<Long, EmpPrimaryProjectMapping> existingMappings = empPrimaryProjectMappingRepository
+		                .findByEmpIdIn(empIds)
+		                .stream()
+		                .collect(Collectors.toMap(EmpPrimaryProjectMapping::getEmpId, Function.identity()));
+			  
+			  Project project = projectRepository.findByProjectId(projectId);
+			  if (project == null) {
+				  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Invalid Project");
+		        }
+			  
+			 
+			  Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(empIds).stream()
+		                .collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
+			  
+			  
+			  List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(empIds, projectId);
+			  
+			  
+			  String billableType;
+		        String billable;
+			  if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
+		            billableType = "TNM";
+		            billable = "Yes";
+		        } else if ("Fixed cost".equalsIgnoreCase(project.getPoProjectType()) || "Fixed Cost".equalsIgnoreCase(project.getPoProjectType())) {
+		            billableType = "Fixed Cost";
+		            billable = "No";
+		        } else if ("Bench".equalsIgnoreCase(project.getInternalProjectType())) {
+		            billableType = "Bench";
+		            billable = "No";
+		        } else if ("InternalRNDProducts".equalsIgnoreCase(project.getInternalProjectType())) {
+		            billableType = "InternalRNDProducts";
+		            billable = "No";
+		        } else {
+		            billableType = null;
+		            billable = null;
+		        }
+			  
+			  
+			  LocalDateTime now = LocalDateTime.now();
+		        List<EmpPrimaryProjectMapping> mappingsToUpdate = new ArrayList<>();
+		        List<Long> empIdsToUpdateBillable = new ArrayList<>();
+		        Map<Long, String> empIdToBillable = new HashMap<>();
+		        Map<Long, String> empIdToBillableType = new HashMap<>();
+
+		        for (Long empId : empIds) {
+		            EmpPrimaryProjectMapping existing = existingMappings.get(empId);
+		            boolean isNewMapping = false;
+		            Long projectIdLong = Long.valueOf(projectId);
+
+		            if (existing != null && !existing.getPrimaryProjectId().equals(projectId)) {
+		                existing.setPrimaryProjectId(projectIdLong);
+		                existing.setPrimaryProjectName(project.getProjectName());
+		                existing.setIsMapped("Y");
+		                existing.setUpdatedBy(updatedBy);
+		                existing.setUpdatedOn(now);
+		                mappingsToUpdate.add(existing);
+		            } else if (existing == null) {
+		                EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
+		                newMapping.setEmpId(empId);
+		                newMapping.setPrimaryProjectId(projectIdLong);
+		                newMapping.setPrimaryProjectName(project.getProjectName());
+		                newMapping.setIsMapped("Y");
+		                newMapping.setUpdatedBy(updatedBy);
+		                newMapping.setUpdatedOn(now);
+		                mappingsToUpdate.add(newMapping);
+		            }
+
+		           
+		            String finalBillableType = shadowEmpIds.contains(empId) ? "Shadow" : billableType;
+		            String finalBillable = "Shadow".equals(finalBillableType) ? "No" : billable;
+
+		            Employee emp = employeeMap.get(empId);
+		            if (emp == null ||
+		                !Objects.equals(emp.getBillable(), finalBillable) ||
+		                !Objects.equals(emp.getBillableType(), finalBillableType)) {
+		                empIdsToUpdateBillable.add(empId);
+		                empIdToBillable.put(empId, finalBillable);
+		                empIdToBillableType.put(empId, finalBillableType);
+		            }
+		        }
+
+		      
+		        if (!mappingsToUpdate.isEmpty()) {
+		            empPrimaryProjectMappingRepository.saveAll(mappingsToUpdate);
+		        }
+
+		     
+		        for (Long empId : empIdsToUpdateBillable) {
+		            employeeRepository.updateBillableFields(empId, empIdToBillable.get(empId), empIdToBillableType.get(empId));
+		        }
+
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse("Updated " + empIds.size() + " employees successfully.");
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Error occurred while updating employees.");
+		        response.setServiceError(e.getMessage());
+		    }
+		    return response;
+		}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }

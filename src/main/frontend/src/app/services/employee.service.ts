@@ -381,4 +381,8 @@ updateDefaultProject(newemployeeObj : any){
   return this.http.get(`${this.baseUrl}` + `api/getEmployeeByNameAndEmpld`);
  }
 
+ getProjectsAccToDepartmentSelected(payload:any){
+  return this.http.post(`${this.baseUrl}` + `api/getProjectsAccToDepartmentAndProjectType`,payload);
+ }
+
 }

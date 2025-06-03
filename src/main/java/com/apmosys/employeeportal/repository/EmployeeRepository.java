@@ -587,6 +587,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     @Query("SELECT e FROM Employee e WHERE e.empId IN :empIds")
     List<Employee> findByEmpIdIn(@Param("empIds") Set<Long> empIds);
+    @Query("SELECT e FROM Employee e WHERE e.empId IN :empIds")
+    List<Employee> findByEmpIdIn(@Param("empIds") List<Long> empIds);
     
     
     @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name from employee e \n"
@@ -634,6 +636,21 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "      AND t.is_active = 'Y'\n"
     		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive' and d.dept_id = :deptId ",nativeQuery = true)
     List<Object[]> findAllEmployeesWithoutProjectInDeptId(@Param("deptId") Long deptId);
+    
+    
+    
+    @Query(nativeQuery = true ,value ="select p.project_id,p.project_name,t.team_id,t.team_name,t.dept_ids from projects p inner join teams t on t.project_id = p.project_id  where p.po_project_id  IS NULL and p.internal_project_type = 'Bench' and p.active = 'true' and t.is_active = 'Y'")
+    List<Object[]> getAllInternalBenchprojectsAndTeamDetailsForDepartmenFilter();
+    
+    
+    @Query(nativeQuery = true,value ="select p.project_id,p.project_name,t.team_id,t.team_name,t.dept_ids from projects p inner join teams t on t.project_id = p.project_id  where p.internal_project_type = 'Internal' or p.internal_project_type IS NULL and p.active = 'true' and t.is_active = 'Y'")
+    List<Object[]> getAllProjectsThatAreNotBench();
+    
+    
+    @Modifying
+    @Transactional
+    @Query(nativeQuery = true,value ="update employee set billable = :billable,billable_type = :billableType where emp_id = :empId") 
+    void updateBillableFields(@Param("empId") Long empId, @Param("billable") String billable, @Param("billableType") String billableType);
   
 
 

@@ -1047,7 +1047,48 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-3 mb-0">
+                                    <div class="col-md-4 mb-0" *ngIf="this.employeeObj.departmentId">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">Default Project Type</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.defaultprojectType" (change)="getProjectsAccToDepartmentSelected()">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="Bench">Bench</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-0" *ngIf="showProjectDropdown">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">Default Project</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.defaultProjectId">
+                                                    <option selected="selected" value="">Select</option>
+                                                    <option *ngFor="let employee of managerList"
+                                                        value="{{employee.empId}}">{{employee.name}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0" *ngIf="showTeamDropdown">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">Default Team</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.defaultTeamId">
+                                                    <option selected="selected" value="">Select</option>
+                                                    <option *ngFor="let employee of managerList"
+                                                        value="{{employee.empId}}">{{employee.name}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- <div class="col-md-3 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span
@@ -1060,11 +1101,11 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
 
                                     <!-- as per discussion with pratima ma'am on 17/05/2024 07:10 PM -->
 
-                                    <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'No'">
+                                    <!-- <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'No'">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Billable
@@ -1080,9 +1121,10 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
 
-                                    <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'Yes'">
+
+                                    <!-- <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'Yes'">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Billable
@@ -1094,7 +1136,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
 
                                     <div class="col-md-4 mb-0" *ngIf="isUpdation">
                                         <div class="info-wrapper">
