@@ -11,6 +11,7 @@ import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { EmployeeInformation } from 'src/app/models/employeeInformation';
 import { Feature } from 'src/app/models/feature';
+import { PreviousDefaultProject } from 'src/app/models/previousDefaultProject';
 import { Project } from 'src/app/models/project';
 import { ProjectFilterDTO } from 'src/app/models/projectFilterDTO';
 import { ProjectRequirements } from 'src/app/models/projectRequirements';
@@ -142,6 +143,7 @@ export class ResourceManagementComponent implements OnInit {
   poPortalProjectList: any[] = [];
   allProject_Po_Internal: any[] = [];
   filteredDepartments: any[] = [];
+  filteredDepartmentsInternal: any[] = [];
 
   getBillableType: any;
   newMemberInProject: any;
@@ -183,7 +185,7 @@ export class ResourceManagementComponent implements OnInit {
 
   showSearchInput = true;
   teamMembers: TeamMember[] = [];
-  newMember: { empId: number; name: string; newBillableType: string; employeeRole: any[]; employeeTeamMappingId: any; teamId: any; isTeamLead: any; billableType: any; isShadow: boolean; };
+  newMember: TeamMember = new TeamMember;
   addMemberCtrl = new FormControl();
   searchManagerText: any;
   filteredManagerList: any[] = [];
@@ -198,6 +200,8 @@ export class ResourceManagementComponent implements OnInit {
   filteredOverheadList: any[] = [];
   isAllOverheadsSelected: boolean = false;
   overheadList: any[] = [];
+  previousDefaultProjects: PreviousDefaultProject = new PreviousDefaultProject();
+  filtered:any[]=[];
 
   constructor(
     private departmentService: DepartmentService,
@@ -1166,6 +1170,7 @@ export class ResourceManagementComponent implements OnInit {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
+        this.filteredDepartmentsInternal = [...this.allDeptList];
       } else {
         console.error(response.serviceResponse)
       }
@@ -1222,11 +1227,11 @@ export class ResourceManagementComponent implements OnInit {
     //   this.openAlertMod(template, this.alertMessage);
     //   return false;
     // }
-    if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.projectManagerId)) {
-      this.alertMessage = "Please select project manager !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.projectManagerId)) {
+    //   this.alertMessage = "Please select project manager !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
     if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.departmentName)) {
       this.alertMessage = "Please select department !!"
       this.openAlertMod(template, this.alertMessage);
@@ -1331,7 +1336,9 @@ export class ResourceManagementComponent implements OnInit {
       const memberToAdd = {
         ...newTeamMember,
         employeeRole: this.newteamMember.employeeRole,
-        resourceOverviewId: this.selectedRequirement.resourceOverviewId
+        resourceOverviewId: this.selectedRequirement.resourceOverviewId,
+        isShadow: this.newteamMember.isShadow,
+        isDefaultProject: this.newteamMember.isDefaultProject
       };
   
       this.allTeamMembers.push(memberToAdd);
@@ -1343,7 +1350,9 @@ export class ResourceManagementComponent implements OnInit {
     }else {
       const memberToAdd = {
         ...newTeamMember,
-        employeeRole: this.newteamMember.employeeRole
+        employeeRole: this.newteamMember.employeeRole,
+        isShadow: this.newteamMember.isShadow,
+        isDefaultProject: this.newteamMember.isDefaultProject
       };
   
       this.allTeamMembers.push(memberToAdd);
@@ -1583,7 +1592,7 @@ onAction(action: string, project: any) {
             if (this.projectDetails.length > 0) {
               if (this.projectDetails[0].billableType === "TNM") {
                 this.openAlertMod(
-                  this.alertTemplate,
+                  this.alertTemplateWithoutReload,
                   "This Employee is already mapped to TNM project. Can't add to another project or Team !!"
                 );
                 this.getBillableType = this.projectDetails.find(
@@ -2119,56 +2128,6 @@ TotalEmployeeCount(){
     });
   }
   
-  // addMemberRow(member) {
-  //   member.teamMembers.push({ showAdd: true });
-  //   member.teamMembers.forEach((tm, index) => tm.showAdd = index === member.teamMembers.length - 1);
-  // }
-
-  billabilities: string[] = ['Billable', 'Non-Billable', 'Shadow'];
-
-  addMemberRow(requirement: any) {
-    const newMember = {
-      name: this.newMember.name,
-      role: this.newMember.employeeRole,
-      billability: this.newMember.newBillableType,
-      empId: null,  // Set empId if necessary
-      showAdd: true,
-    };
-  
-    requirement.teamMembers.push(newMember);
-    requirement.assigned = requirement.teamMembers.length;
-  
-    // Clear new member input fields
-    this.newMember = {
-      empId: 0, name: '', newBillableType: '', employeeRole: [],
-      employeeTeamMappingId: undefined,
-      teamId: undefined,
-      isTeamLead: undefined,
-      billableType: undefined,
-      isShadow: false
-    };
-  }
-  
-  newShadow = {
-    name: '',
-    role: '',
-    billability: ''
-  };
-  
-  addShadowResource(member: any) {
-    if (this.newShadow.name.trim() !== '') {
-      const shadowResource = { ...this.newShadow };
-      member.shadowResources.push(shadowResource);
-  
-      // Reset new shadow object
-      this.newShadow = {
-        name: '',
-        role: '',
-        billability: ''
-      };
-    }
-  }
-  
   removeShadowResource(member: any, index: number) {
     member.shadowResources.splice(index, 1);
   }  
@@ -2224,6 +2183,7 @@ TotalEmployeeCount(){
   
   filterManagers() {
     const lowerText = this.searchManagerText.trim().toLowerCase();
+
     this.filteredManagerList = this.managerList.filter(manager =>
       manager.name.toLowerCase().includes(lowerText)
     );
@@ -2319,14 +2279,6 @@ closePopover(empId: string) {
   }
 }
 
-
-
-
-
-
-
-
-
 selectedMembers: any[] = [];
 employeeSelectionHistory:any[]=[];
 globalSelectAll: boolean = false;
@@ -2391,10 +2343,6 @@ onSelectionChange(team: any, object: any) {
   console.log("Employee Selection History:", this.employeeSelectionHistory);
 }
 
-
-
-  
-
 teamMemberList1: any[] = [];
 isTeamFullySelected(team: any): boolean {
   return team.teamMemberList.every((member: any) => member.selected);
@@ -2426,8 +2374,6 @@ toggleTeamSelection(team: any, event: any) {
   console.log("After deletion:", this.selectedMembers, this.employeeSelectionHistory);
 }
 
-
-
 isMemberSelected(team: any, member: any): boolean {
   return !!member.selected;
 }
@@ -2440,7 +2386,6 @@ areAllTeamsSelected(): boolean {
 
   return this.teamMemberList1.length > 0 && allTeamsHaveMembers && allMembersSelected;
 }
-
 
 toggleAllTeams(event: any): void {
   const isChecked = event.target.checked;
@@ -2497,5 +2442,50 @@ deleteResourceFromProjectBulk(template: TemplateRef<any>) {
       window.location.reload();
     });
 }
+
+  getPreviousDefaultProjectDetails(empId){
+    this.resourceManagementService.getPreviousDefaultProjectDetails(empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.previousDefaultProjects = response.serviceResponse;
+      } else {
+        console.error("Error employee informations");
+      }
+    });
+  }
+
+  onDefaultProjectCheckboxChange(template: TemplateRef<any>,empId) {
+    this.getPreviousDefaultProjectDetails(empId);
+    this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
+  }
+
+  filterDepartmentsInternalForm() {
+    const lowerText = this.searchText.toLowerCase();
+    this.filtered = this.allDeptList.filter(dept =>
+      dept.name.toLowerCase().includes(lowerText)
+    );
+    const selected = this.allDeptList.filter(dept =>
+    this.projectObj.departmentName.includes(dept.deptId)
+  );
+
+  const merged = [...new Map([...selected, ...this.filtered].map(item => [item.deptId, item])).values()];
+
+  this.filteredDepartmentsInternal = merged;
+  }
+
+  toggleSelectAllInternal() {
+    if (this.isAllSelected) {
+      this.projectObj.departmentName = [];
+      this.isAllSelected = false;
+    } else {
+      this.projectObj.departmentName = this.filteredDepartmentsInternal.map(dept => dept.deptId);
+      this.isAllSelected = true;
+    }
+  }
+
+  clearSelectionInternal(event: Event) {
+    event.stopPropagation();
+    this.projectObj.departmentName = [];
+    this.isAllSelected = false;
+  }
   
 }

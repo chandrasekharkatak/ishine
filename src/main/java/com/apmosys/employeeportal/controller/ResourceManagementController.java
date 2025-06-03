@@ -280,4 +280,10 @@ public class ResourceManagementController {
 	public ServiceResponse getAllPOPortalDumpInIshineTemp() {
 		return resourceManagementService.dumpPODataInIshine();
 	}
+	
+	@GetMapping("/getPreviousDefaultProjectDetails")
+	public ServiceResponse getPreviousDefaultProjectDetails(@RequestParam Long empId) {
+	    return resourceManagementService.getPreviousDefaultProjectDetails(empId);
+	}
+
 }

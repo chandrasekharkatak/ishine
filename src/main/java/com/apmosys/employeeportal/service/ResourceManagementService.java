@@ -49,6 +49,7 @@ import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExceptionReportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
+import com.apmosys.employeeportal.dto.GetPreviousDefaultProjectDetailsDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
@@ -295,15 +296,6 @@ public class ResourceManagementService {
 						return response;
 					}
 				}
-
-				// Find ProjectManager empId
-//			    Long employeementID = Long.parseLong(resourceManagementDTO.getProjectManager().split("-")[1]);
-//			    Long projManagerId = null;
-//			    Employee employee = employeeRepository.findByEmployeementId(employeementID);
-//			    if (employee != null) {
-//			        projManagerId = employee.getEmpId();
-//			    }
-
 				// Add project
 				Project newProject = new Project();
 				newProject.setProjectName(resourceManagementDTO.getName());
@@ -471,6 +463,7 @@ public class ResourceManagementService {
 										newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
 										newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis())); 
 										newEmpTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow(): null);
+										newEmpTeamMap.setIsDefaultProject(teamMember.getIsDefaultProject() != null ? teamMember.getIsDefaultProject(): null);
 										newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId() != null
 												? Long.parseLong(teamMember.getResourceOverviewId().toString())
 												: null);
@@ -487,6 +480,7 @@ public class ResourceManagementService {
 										newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis())); 
 										newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
 										newEmpTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
+										newEmpTeamMap.setIsDefaultProject(teamMember.getIsDefaultProject() != null ? teamMember.getIsDefaultProject(): null);
 										newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId() != null
 												? Long.parseLong(teamMember.getResourceOverviewId().toString())
 												: null);
@@ -520,6 +514,30 @@ public class ResourceManagementService {
 
 								}
 								List<EmployeeTeamMap> teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
+								
+								//Add default project mapping
+								
+								List<Long> defaultProjectEmpIds = teamObj.getTeamMemberList().stream()
+									    .filter(t -> t.getIsDefaultProject() != null && t.getIsDefaultProject() == 1)
+									    .map(TeamMemberDTO::getEmpId)
+									    .collect(Collectors.toList());
+
+								if (!defaultProjectEmpIds.isEmpty()) {
+								    DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
+								    defaultProjectUpdateDTO.setEmpIds(defaultProjectEmpIds);
+								    defaultProjectUpdateDTO.setProjectId(projectDbResponse.getProjectId());
+								    defaultProjectUpdateDTO.setUpdatedBy(resourceManagementDTO.getCreatedBy());
+
+								    ServiceResponse defaultProjectResponse = this.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
+
+								    if (!ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+								        System.out.println("Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
+								        logBuilder.append("\n Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
+								    } else {
+								        System.out.println("Default project mapping updated successfully.");
+								        logBuilder.append("\n Default project mapping updated successfully.");
+								    }
+								}
 
 								emailBody.append("</table><br><br>").append("Sincerely,<br>")
 										.append("<b>Team RMG - ApMoSys Technologies</b>").append("</body></html>");
@@ -664,6 +682,30 @@ public class ResourceManagementService {
 						teamPresent.setSpocId(teamObj.getSpocId());
 
 						Team teamDbResponse = teamRepository.save(teamPresent);
+						
+						//Add default project mapping
+						
+						List<Long> defaultProjectEmpIds = teamObj.getTeamMemberList().stream()
+							    .filter(t -> t.getIsDefaultProject() != null && t.getIsDefaultProject() == 1)
+							    .map(TeamMemberDTO::getEmpId)
+							    .collect(Collectors.toList());
+
+						if (!defaultProjectEmpIds.isEmpty()) {
+						    DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
+						    defaultProjectUpdateDTO.setEmpIds(defaultProjectEmpIds);
+						    defaultProjectUpdateDTO.setProjectId(projectObj.getProjectId());
+						    defaultProjectUpdateDTO.setUpdatedBy(resourceManagementDTO.getCreatedBy());
+
+						    ServiceResponse defaultProjectResponse = this.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
+
+						    if (!ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+						        System.out.println("Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
+//						        logBuilder.append("\n Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
+						    } else {
+						        System.out.println("Default project mapping updated successfully.");
+//						        logBuilder.append("\n Default project mapping updated successfully.");
+						    }
+						}
 
 						if (teamDbResponse != null) {
 							List<EmployeeTeamMap> alreadyMappedMember = employeeTeamMapRepository
@@ -694,10 +736,7 @@ public class ResourceManagementService {
 											updateMember.setUpdatedOn(LocalDateTime.now());
 											updateMember.setUpdatedBy(resourceManagementDTO.getCreatedBy());
 											updateMember.setIsShadow(newMember.getIsShadow() != null? newMember.getIsShadow(): null);
-//						                            updateMember.setBillable(newMember.getBillable());
-//						                            updateMember.setBillableType(newMember.getBillableType());
-//						                            updateMember.setShadowBillable(newMember.getShadowBillable());
-//						                            updateMember.setShadowBillableType(newMember.getShadowBillableType());
+											updateMember.setIsDefaultProject(newMember.getIsDefaultProject() != null ? newMember.getIsDefaultProject(): null);
 											updateMember.setResourceOverviewId(newMember.getResourceOverviewId() != null
 													? Long.parseLong(newMember.getResourceOverviewId().toString())
 													: null);
@@ -708,6 +747,30 @@ public class ResourceManagementService {
 							}
 							List<EmployeeTeamMap> updateMemberDbResponse = employeeTeamMapRepository
 									.saveAll(updateMemberList);
+							
+							//Add default project mapping
+							
+							List<Long> defaultProjectEmpIds2 = teamObj.getTeamMemberList().stream()
+								    .filter(t -> t.getIsDefaultProject() != null && t.getIsDefaultProject() == 1)
+								    .map(TeamMemberDTO::getEmpId)
+								    .collect(Collectors.toList());
+
+							if (!defaultProjectEmpIds2.isEmpty()) {
+							    DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
+							    defaultProjectUpdateDTO.setEmpIds(defaultProjectEmpIds2);
+							    defaultProjectUpdateDTO.setProjectId(projectObj.getProjectId());
+							    defaultProjectUpdateDTO.setUpdatedBy(resourceManagementDTO.getCreatedBy());
+
+							    ServiceResponse defaultProjectResponse = this.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
+
+							    if (!ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+							        System.out.println("Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
+//							        logBuilder.append("\n Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
+							    } else {
+							        System.out.println("Default project mapping updated successfully.");
+//							        logBuilder.append("\n Default project mapping updated successfully.");
+							    }
+							}
 
 							// Add teamMember mapping
 							ServiceResponse response2 = this.processNewTeamMembers(newTeamMember, teamDbResponse,
@@ -831,6 +894,7 @@ public class ResourceManagementService {
 									newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
 									newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis())); 
 									newEmpTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
+									newEmpTeamMap.setIsDefaultProject(teamMember.getIsDefaultProject() != null ? teamMember.getIsDefaultProject(): null);
 									newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId() != null
 											? Long.parseLong(teamMember.getResourceOverviewId().toString())
 											: null);
@@ -851,6 +915,29 @@ public class ResourceManagementService {
 							}
 
 							List<EmployeeTeamMap> teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
+							
+							//Add default project mapping
+							
+							List<Long> defaultProjectEmpIds = teamObj.getTeamMemberList().stream()
+								    .filter(t -> t.getIsDefaultProject() != null && t.getIsDefaultProject() == 1)
+								    .map(TeamMemberDTO::getEmpId)
+								    .collect(Collectors.toList());
+
+							if (!defaultProjectEmpIds.isEmpty()) {
+							    DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
+							    defaultProjectUpdateDTO.setEmpIds(defaultProjectEmpIds);
+							    defaultProjectUpdateDTO.setProjectId(resourceManagementDTO.getProjectId());
+							    defaultProjectUpdateDTO.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
+
+							    ServiceResponse defaultProjectResponse = this.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
+
+							    if (!ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+							        System.out.println("Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
+							    } else {
+							        System.out.println("Default project mapping updated successfully.");
+							    }
+							}
+
 
 							// Add default activity
 							ServiceResponse response3 = this.activityRealtedToTeam(teamMemberDbResponse, teamObj,
@@ -935,6 +1022,7 @@ public class ResourceManagementService {
 						empTeamMap.setTeamId(teamDbResponse.getTeamId());
 						empTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
 						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow(): null);
+						empTeamMap.setIsDefaultProject(newMember.getIsDefaultProject() != null ? newMember.getIsDefaultProject(): null);
 						empTeamMap.setResourceOverviewId(newMember.getResourceOverviewId() != null
 								? Long.parseLong(newMember.getResourceOverviewId().toString())
 								: null);
@@ -949,6 +1037,7 @@ public class ResourceManagementService {
 						empTeamMap.setTeamId(teamDbResponse.getTeamId());
 						empTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
 						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
+						empTeamMap.setIsDefaultProject(newMember.getIsDefaultProject() != null ? newMember.getIsDefaultProject(): null);
 						empTeamMap.setResourceOverviewId(newMember.getResourceOverviewId() != null
 								? Long.parseLong(newMember.getResourceOverviewId().toString())
 								: null);
@@ -956,6 +1045,27 @@ public class ResourceManagementService {
 					}
 
 					List<EmployeeTeamMap> teamMapDbResponse = employeeTeamMapRepository.saveAll(mapList);
+					
+					//default project maping
+					List<Long> defaultProjectEmpIds = teamMapDbResponse.stream()
+						    .filter(t -> t.getIsDefaultProject() != null && t.getIsDefaultProject() == 1)
+						    .map(EmployeeTeamMap::getEmpId)
+						    .collect(Collectors.toList());
+
+					if (!defaultProjectEmpIds.isEmpty()) {
+					    DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
+					    defaultProjectUpdateDTO.setEmpIds(defaultProjectEmpIds);
+					    defaultProjectUpdateDTO.setProjectId(resourceManagementDTO.getProjectId());
+					    defaultProjectUpdateDTO.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
+
+					    ServiceResponse defaultProjectResponse = this.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
+
+					    if (!ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+					        System.out.println("Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
+					    } else {
+					        System.out.println("Default project mapping updated successfully.");
+					    }
+					}
 
 					teamMapDbResponse.forEach((newAddedMember) -> {
 						if (resourceManagementDTO.getIsHOD().equals("true"))
@@ -2032,6 +2142,7 @@ public class ResourceManagementService {
 											prefixxTeamMember + empObj.getEmployeementId());
 									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
 									teamMemberDTO.setIsShadow(teamMemberObj.getIsShadow() != null ? teamMemberObj.getIsShadow() : null);
+									teamMemberDTO.setIsDefaultProject(teamMemberObj.getIsDefaultProject() != null ? teamMemberObj.getIsDefaultProject() : null);
 									teamMember.add(teamMemberDTO);
 								} else {
 									// Team Member
@@ -2046,6 +2157,7 @@ public class ResourceManagementService {
 									teamMemberDTO.setEmploymentIdEmployeeType(
 											prefixxTeamMember + empObj.getEmployeementId());
 									teamMemberDTO.setIsShadow(teamMemberObj.getIsShadow() != null ? teamMemberObj.getIsShadow() : null);
+									teamMemberDTO.setIsDefaultProject(teamMemberObj.getIsDefaultProject() != null ? teamMemberObj.getIsDefaultProject() : null);
 									teamMember.add(teamMemberDTO);
 								}
 							});
@@ -5449,6 +5561,7 @@ public class ResourceManagementService {
 		}   
 		return response;
 	}
+	
 	public ServiceResponse setDefaultProjectUpdateBillable(DefaultProjectUpdateDTO defaultProjectUpdateDTO) {
 		
 		ServiceResponse response = new ServiceResponse();
@@ -5566,17 +5679,6 @@ public class ResourceManagementService {
 		    return response;
 		}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	public ServiceResponse getAllExceptionReport() {
 	    ServiceResponse response = new ServiceResponse();
 	    try {
@@ -5609,4 +5711,42 @@ public class ResourceManagementService {
 	    return response;
 	}
 
+	public ServiceResponse getPreviousDefaultProjectDetails(Long empId) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getPreviousDefaultProjectDetails");
+		apiLogInfo.setApiUrl("/api/getPreviousDefaultProjectDetails");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("\n getPreviousDefaultProjectDetails ");
+		try {
+			
+			List<Object[]> details = projectRepository.getPreviousDefaultProjectDetails(empId);
+			if(!details.isEmpty()) {
+				 Object[] row = details.get(0); 
+	             GetPreviousDefaultProjectDetailsDTO dto = new GetPreviousDefaultProjectDetailsDTO();
+
+	             dto.setEmpId(row[0] != null ? ((Number) row[0]).longValue() : null);
+	             dto.setPrimaryProjectName(row[1] != null ? row[1].toString() : null);
+	             dto.setTeamName(row[2] != null ? row[2].toString() : null);
+	             dto.setStartDate(row[3] != null ? row[3].toString() : null); 
+	             dto.setClientName(row[4] != null ? row[4].toString() : null); 
+	             dto.setBillableType(row[5] != null ? row[5].toString() : null); 
+	             
+	 			 response.setServiceResponse(dto);
+				 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				 logBuilder.append("\n Default project details fetched successfully!");
+			}else {
+				response.setServiceResponse("No previous default project mapping!");
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				logBuilder.append("\n No previous default project mapping!");
+			}
+			return response;
+		}catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("\n Something went wrong!");
+		}
+		return response;
+	}
 }

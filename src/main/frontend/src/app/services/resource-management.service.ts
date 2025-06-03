@@ -103,4 +103,8 @@ export class ResourceManagementService {
   exceptionEmployeeReport(){
     return this.http.get(`${this.baseUrl}` + `api/exceptionEmployeeReport`);
   }
+  
+  getPreviousDefaultProjectDetails(empId: any){
+    return this.http.get(`${this.baseUrl}`+`api/getPreviousDefaultProjectDetails`, {params: { empId: empId }});
+  }
 }

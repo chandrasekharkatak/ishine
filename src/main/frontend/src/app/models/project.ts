@@ -67,4 +67,5 @@ export class Project{
 	projectViewId:any;
 	projectOverheadId:any;
 	projectOverheadName:any;
+	internalProjectType:any;
 }
