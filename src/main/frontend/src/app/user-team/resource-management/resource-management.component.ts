@@ -2183,12 +2183,27 @@ TotalEmployeeCount(){
   }  
   
   filterManagers() {
-    const lowerText = this.searchManagerText.trim().toLowerCase();
+  const lowerText = this.searchManagerText.trim().toLowerCase();
 
-    this.filteredManagerList = this.managerList.filter(manager =>
-      manager.name.toLowerCase().includes(lowerText)
-    );
-  }
+  const filtered = this.managerList.filter(manager =>
+    manager.name.toLowerCase().includes(lowerText)
+  );
+
+  const selectedManagers = this.managerList.filter(manager =>
+    this.projectObj.projectManagerId?.includes(manager.empId)
+  );
+
+  const selectedSet = new Set(filtered.map(emp => emp.empId));
+  const merged = [...filtered];
+
+  selectedManagers.forEach(manager => {
+    if (!selectedSet.has(manager.empId)) {
+      merged.push(manager);
+    }
+  });
+
+  this.filteredManagerList = merged;
+}
 
   toggleSelectAllManagers(): void {
     if (this.isAllManagersSelected) {
@@ -2210,13 +2225,28 @@ TotalEmployeeCount(){
     this.isAllManagersSelected = selectedManagers.length === this.filteredManagerList.length;
   }
 
-
   filterOverhead() {
-    const lowerText = this.searchOverheadText.trim().toLowerCase();
-    this.filteredOverheadList = this.overheadList.filter(overhead =>
-      overhead.name.toLowerCase().includes(lowerText)
-    );
-  }
+  const lowerText = this.searchOverheadText.trim().toLowerCase();
+
+  const filtered = this.managerList.filter(overhead =>
+    overhead.name.toLowerCase().includes(lowerText)
+  );
+
+  const selectedOverheads = this.overheadList.filter(overhead =>
+    this.projectObj.projectOverheadId?.includes(overhead.empId)
+  );
+
+  const selectedSet = new Set(filtered.map(emp => emp.empId));
+  const merged = [...filtered];
+
+  selectedOverheads.forEach(overhead => {
+    if (!selectedSet.has(overhead.empId)) {
+      merged.push(overhead);
+    }
+  });
+
+  this.filteredManagerList = merged;
+}
 
   toggleSelectAllOverhead(): void {
     if (this.isAllOverheadsSelected) {

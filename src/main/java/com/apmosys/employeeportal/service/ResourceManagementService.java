@@ -515,28 +515,15 @@ public class ResourceManagementService {
 								}
 								List<EmployeeTeamMap> teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
 								
-								//Add default project mapping
+								ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(teamMemberDbResponse, projectDbResponse.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
+
 								
-								List<Long> defaultProjectEmpIds = teamObj.getTeamMemberList().stream()
-									    .filter(t -> t.getIsDefaultProject() != null && t.getIsDefaultProject() == 1)
-									    .map(TeamMemberDTO::getEmpId)
-									    .collect(Collectors.toList());
-
-								if (!defaultProjectEmpIds.isEmpty()) {
-								    DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
-								    defaultProjectUpdateDTO.setEmpIds(defaultProjectEmpIds);
-								    defaultProjectUpdateDTO.setProjectId(projectDbResponse.getProjectId());
-								    defaultProjectUpdateDTO.setUpdatedBy(resourceManagementDTO.getCreatedBy());
-
-								    ServiceResponse defaultProjectResponse = this.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
-
-								    if (!ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
-								        System.out.println("Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
-								        logBuilder.append("\n Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
-								    } else {
-								        System.out.println("Default project mapping updated successfully.");
-								        logBuilder.append("\n Default project mapping updated successfully.");
-								    }
+								if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+								    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+								} else {
+								    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
 								}
 
 								emailBody.append("</table><br><br>").append("Sincerely,<br>")
@@ -605,6 +592,7 @@ public class ResourceManagementService {
 	public ServiceResponse projectIsPresent(Project projectObj, ResourceManagementDTO resourceManagementDTO,
 			List<Long> allTeam) {
 		ServiceResponse response = new ServiceResponse();
+		StringBuilder logBuilder = new StringBuilder();
 		LogDTO apiLogInfo = new LogDTO();
 
 		try {
@@ -682,30 +670,6 @@ public class ResourceManagementService {
 						teamPresent.setSpocId(teamObj.getSpocId());
 
 						Team teamDbResponse = teamRepository.save(teamPresent);
-						
-						//Add default project mapping
-						
-						List<Long> defaultProjectEmpIds = teamObj.getTeamMemberList().stream()
-							    .filter(t -> t.getIsDefaultProject() != null && t.getIsDefaultProject() == 1)
-							    .map(TeamMemberDTO::getEmpId)
-							    .collect(Collectors.toList());
-
-						if (!defaultProjectEmpIds.isEmpty()) {
-						    DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
-						    defaultProjectUpdateDTO.setEmpIds(defaultProjectEmpIds);
-						    defaultProjectUpdateDTO.setProjectId(projectObj.getProjectId());
-						    defaultProjectUpdateDTO.setUpdatedBy(resourceManagementDTO.getCreatedBy());
-
-						    ServiceResponse defaultProjectResponse = this.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
-
-						    if (!ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
-						        System.out.println("Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
-//						        logBuilder.append("\n Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
-						    } else {
-						        System.out.println("Default project mapping updated successfully.");
-//						        logBuilder.append("\n Default project mapping updated successfully.");
-						    }
-						}
 
 						if (teamDbResponse != null) {
 							List<EmployeeTeamMap> alreadyMappedMember = employeeTeamMapRepository
@@ -748,30 +712,17 @@ public class ResourceManagementService {
 							List<EmployeeTeamMap> updateMemberDbResponse = employeeTeamMapRepository
 									.saveAll(updateMemberList);
 							
-							//Add default project mapping
+							ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(updateMemberDbResponse, projectObj.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
+
 							
-							List<Long> defaultProjectEmpIds2 = teamObj.getTeamMemberList().stream()
-								    .filter(t -> t.getIsDefaultProject() != null && t.getIsDefaultProject() == 1)
-								    .map(TeamMemberDTO::getEmpId)
-								    .collect(Collectors.toList());
-
-							if (!defaultProjectEmpIds2.isEmpty()) {
-							    DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
-							    defaultProjectUpdateDTO.setEmpIds(defaultProjectEmpIds2);
-							    defaultProjectUpdateDTO.setProjectId(projectObj.getProjectId());
-							    defaultProjectUpdateDTO.setUpdatedBy(resourceManagementDTO.getCreatedBy());
-
-							    ServiceResponse defaultProjectResponse = this.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
-
-							    if (!ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
-							        System.out.println("Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
-//							        logBuilder.append("\n Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
-							    } else {
-							        System.out.println("Default project mapping updated successfully.");
-//							        logBuilder.append("\n Default project mapping updated successfully.");
-							    }
+							if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+							    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+							} else {
+							    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
 							}
-
+							
 							// Add teamMember mapping
 							ServiceResponse response2 = this.processNewTeamMembers(newTeamMember, teamDbResponse,
 									resourceManagementDTO, rmgMail, adminMail);
@@ -918,24 +869,15 @@ public class ResourceManagementService {
 							
 							//Add default project mapping
 							
-							List<Long> defaultProjectEmpIds = teamObj.getTeamMemberList().stream()
-								    .filter(t -> t.getIsDefaultProject() != null && t.getIsDefaultProject() == 1)
-								    .map(TeamMemberDTO::getEmpId)
-								    .collect(Collectors.toList());
+							ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(teamMemberDbResponse, projectObj.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
 
-							if (!defaultProjectEmpIds.isEmpty()) {
-							    DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
-							    defaultProjectUpdateDTO.setEmpIds(defaultProjectEmpIds);
-							    defaultProjectUpdateDTO.setProjectId(resourceManagementDTO.getProjectId());
-							    defaultProjectUpdateDTO.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
-
-							    ServiceResponse defaultProjectResponse = this.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
-
-							    if (!ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
-							        System.out.println("Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
-							    } else {
-							        System.out.println("Default project mapping updated successfully.");
-							    }
+							
+							if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+							    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+							} else {
+							    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
 							}
 
 
@@ -1005,6 +947,7 @@ public class ResourceManagementService {
 	private ServiceResponse processNewTeamMembers(List<TeamMemberDTO> newTeamMember, Team teamDbResponse,
 			ResourceManagementDTO resourceManagementDTO, String rmgMail, String adminMail) {
 		ServiceResponse response = new ServiceResponse();
+		StringBuilder logBuilder = new StringBuilder();
 		LogDTO apiLogInfo = new LogDTO();
 		try {
 
@@ -1046,25 +989,16 @@ public class ResourceManagementService {
 
 					List<EmployeeTeamMap> teamMapDbResponse = employeeTeamMapRepository.saveAll(mapList);
 					
-					//default project maping
-					List<Long> defaultProjectEmpIds = teamMapDbResponse.stream()
-						    .filter(t -> t.getIsDefaultProject() != null && t.getIsDefaultProject() == 1)
-						    .map(EmployeeTeamMap::getEmpId)
-						    .collect(Collectors.toList());
-
-					if (!defaultProjectEmpIds.isEmpty()) {
-					    DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
-					    defaultProjectUpdateDTO.setEmpIds(defaultProjectEmpIds);
-					    defaultProjectUpdateDTO.setProjectId(resourceManagementDTO.getProjectId());
-					    defaultProjectUpdateDTO.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
-
-					    ServiceResponse defaultProjectResponse = this.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
-
-					    if (!ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
-					        System.out.println("Failed to update default project mapping: " + defaultProjectResponse.getServiceResponse());
-					    } else {
-					        System.out.println("Default project mapping updated successfully.");
-					    }
+					//Add default project mapping
+					
+					ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(teamMapDbResponse, resourceManagementDTO.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
+					
+					if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+					    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+					} else {
+					    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
 					}
 
 					teamMapDbResponse.forEach((newAddedMember) -> {
@@ -5755,4 +5689,39 @@ public class ResourceManagementService {
 		}
 		return response;
 	}
+	
+	private ServiceResponse handleDefaultProjectUpdate(List<EmployeeTeamMap> teamMemberDbResponse, Integer projectId, Long updatedBy, StringBuilder logBuilder) {
+		
+		ServiceResponse response = new ServiceResponse();
+		
+	    List<Long> defaultProjectEmpIds = teamMemberDbResponse.stream()
+	        .filter(t -> t.getIsDefaultProject() != null && t.getIsDefaultProject() == 1)
+	        .map(EmployeeTeamMap::getEmpId)
+	        .collect(Collectors.toList());
+
+	    if (defaultProjectEmpIds.isEmpty()) {
+	    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("No default project mapping to update.");
+			logBuilder.append("\n No default project mapping to update.");
+			return response;
+	    }
+
+	    DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
+	    defaultProjectUpdateDTO.setEmpIds(defaultProjectEmpIds);
+	    defaultProjectUpdateDTO.setProjectId(projectId);
+	    defaultProjectUpdateDTO.setUpdatedBy(updatedBy);
+
+	    response = this.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
+
+	    if (ServiceResponse.STATUS_SUCCESS.equals(response.getServiceStatus())) {
+	        logBuilder.append("\nDefault project mapping updated successfully.");
+	        System.out.println("Default project mapping updated successfully.");
+	    } else {
+	        logBuilder.append("\nFailed to update default project mapping: ").append(response.getServiceResponse());
+	        System.out.println("Failed to update default project mapping: " + response.getServiceResponse());
+	    }
+
+	    return response;
+	}
+
 }
