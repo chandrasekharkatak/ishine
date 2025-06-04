@@ -4159,7 +4159,7 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/updateProjectResourcesAsInActiveBulk");
 		apiLogInfo.setLogLevel("INFO");
 		int failureCount = 0;
-
+ try {
 		for (ResourceManagementDTO resourceManagementDTO : resourceManagementDTOList) {
 
 			EmployeeTeamMap findResource = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActiveStatus(
@@ -4221,6 +4221,12 @@ public class ResourceManagementService {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(resultMessage.toString());
 		}
+		
+ }catch(Exception e) {
+	 e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Error while sending email: " + e.getMessage());
+ }
 
 		return response;
 	}

@@ -1395,7 +1395,7 @@ export class ResourceManagementComponent implements OnInit {
     this.newteamMember.employeeRole = null;
     // this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     // this.getAllEmployeesByRole(currentTeam.departmentList);
-    console.log("this.copyDepartment ", this.copyDepartment);
+    console.log("this.copyDepartment ", currentTeam);
     // this.getAllEmployeesByDepartmentIds(this.copyDepartment);
     this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     this.getAllEmployeesByRole(this.copyDepartment);
@@ -1408,7 +1408,7 @@ export class ResourceManagementComponent implements OnInit {
         //console.log(teamLeadObj, " :teamLeadObj");
         //console.log(this.teamObj.teamLeadId, " : this.teamObj.teamLeadId");
 
-        console.log("team.teammemberList ", team.allTeamMemberList);
+        console.log("team.teammemberList ", this.teamObj);
 
         this.teamObj.allTeamMemberList = team.teamMemberList?.filter(x => x.isTeamLead != true);
         if ((this.teamObj.allTeamMemberList != undefined || this.teamObj.allTeamMemberList != null) && this.teamObj.allTeamMemberList.length != 0) {
@@ -2057,11 +2057,12 @@ TotalEmployeeCount(){
           this.teamObj.teamLeadId = teamLeadObj[0]?.empId;
         }
         //console.log(teamLeadObj, " :teamLeadObj");
-        //console.log(this.teamObj.teamLeadId, " : this.teamObj.teamLeadId");
+        console.log(team, " : this.teamObj.teamLeadId");
 
-        console.log("team.teammemberList ", team.allTeamMemberList);
+        console.log("team.teammemberListj ", team.allTeamMemberList);
 
         this.teamObj.allTeamMemberList = team.teamMemberList?.filter(x => x.isTeamLead != true);
+        this.teamObj.teamId= team.teamId;
         if ((this.teamObj.allTeamMemberList != undefined || this.teamObj.allTeamMemberList != null) && this.teamObj.allTeamMemberList.length != 0) {
           this.isUpdation = true;
         } else {
@@ -2286,7 +2287,7 @@ onSelectionChange(team: any, object: any) {
   if (!this.selectedMembers) {
     this.selectedMembers = [];
   }
-
+  console.log("kmjhg",team);
   const existingTeamIndex = this.selectedMembers.findIndex(item => item.team.teamId === team.teamId);
 
   if (object.selected) {
@@ -2345,14 +2346,14 @@ onSelectionChange(team: any, object: any) {
 
 teamMemberList1: any[] = [];
 isTeamFullySelected(team: any): boolean {
-  return team.teamMemberList.every((member: any) => member.selected);
+  return team.allTeamMemberList.every((member: any) => member.selected);
  
 }
 
 toggleTeamSelection(team: any, event: any) {
   const isChecked = event.target.checked;
  
-  team.teamMemberList.forEach((member: any) => {
+  team.allTeamMemberList.forEach((member: any) => {
     if (member.selected !== isChecked) {
       member.selected = isChecked;
       this.onSelectionChange(team, member); 
@@ -2488,4 +2489,149 @@ deleteResourceFromProjectBulk(template: TemplateRef<any>) {
     this.isAllSelected = false;
   }
   
+
+selectedTeamData: any[] = [];
+hasSelectedMembers:boolean =false;
+
+getAllMembers(): any[] {
+  return this.teamObj?.allTeamMemberList || [];
+}
+
+
+getMembersForRequirement(resourceOverviewId: any): any[] {
+  return this.getAllMembers().filter(m => m.resourceOverviewId === resourceOverviewId);
+}
+
+
+isAllSelected1(): boolean {
+  const members = this.getAllMembers();
+  return members.length > 0 && members.every(m => m.selected);
+}
+
+isPartiallySelected(): boolean {
+  const members = this.getAllMembers();
+  return members.some(m => m.selected) && !this.isAllSelected1();
+}
+
+toggleSelectAll1(event: any): void {
+  const checked = event.target.checked;
+  this.getAllMembers().forEach(m => m.selected = checked);
+  this.getSelectedTeamData(); 
+}
+
+
+isRequirementFullySelected(requirement: any): boolean {
+  const members = this.getMembersForRequirement(requirement.resourceOverviewId);
+  return members.length > 0 && members.every(m => m.selected);
+}
+
+isRequirementPartiallySelected(requirement: any): boolean {
+  const members = this.getMembersForRequirement(requirement.resourceOverviewId);
+  return members.some(m => m.selected) && !this.isRequirementFullySelected(requirement);
+}
+
+toggleRequirementSelection(requirement: any, event: any): void {
+  const checked = event.target.checked;
+  this.getMembersForRequirement(requirement.resourceOverviewId).forEach(m => m.selected = checked);
+  this.getSelectedTeamData(); 
+}
+
+
+onIndividualSelectionChange(): void {
+  this.getSelectedTeamData(); 
+}
+
+trackByEmpId(index: number, member: any): number {
+  return member.empId;
+}
+
+removeTeamMember1(member: any): void {
+  // Find the index *before* any deletion
+  const index = this.teamObj.allTeamMemberList.findIndex(m => m.empId === member.empId);
+  
+  // Call the unified removal function
+  this.removeTeamMember(member, index);
+
+  // Update selection
+  this.getSelectedTeamData();
+}
+
+selectedTeamEntries: { empId: number; teamId: number }[] = [];
+
+
+getSelectedTeamData(): void {
+  const allMembers = this.getAllMembers();
+const selectedMembers = allMembers.filter(m => m.selected);
+
+const selectedEntries = selectedMembers.map(m => ({
+  empId: m.empId,
+  teamId: this.teamObj.teamId
+}));
+
+
+this.selectedTeamEntries = selectedEntries;
+
+
+
+  const groupedData = this.projectObj.resourceRequirements
+    .map(requirement => {
+      const membersForReq = selectedMembers.filter(
+        member => member.resourceOverviewId === requirement.resourceOverviewId
+      );
+
+      if (membersForReq.length === 0) return null;
+
+      return {
+        requirementDetails: {
+          role: requirement.role,
+          department: requirement.department,
+          experience: requirement.experience,
+          resourceOverviewId: requirement.resourceOverviewId
+        },
+        selectedMembers: membersForReq
+      };
+    })
+    .filter(group => group !== null);
+
+  this.selectedTeamData = groupedData;
+  this.hasSelectedMembers = this.selectedTeamEntries.length > 0;
+  console.log('Selected Team Data:', this.selectedTeamEntries); // Optional: view in console
+}
+
+// Utility: show "No team members" message
+hasNoTeamMembersFor1(resourceOverviewId: any): boolean {
+  return this.getMembersForRequirement(resourceOverviewId).length === 0;
+}
+
+deleteResourceFromProjectBulk1(template: TemplateRef<any>) {
+  this.selectedTeamEntries = this.selectedTeamEntries.map(entry => ({
+    ...entry,
+    endDate: this.lastDate1 || null
+  }));
+  console.log("After deletion:",this.selectedTeamEntries);
+  this.projectService.updateProjectResourcesAsInActiveBulk(this.selectedTeamEntries)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+         this.openAlertMod(template, response.serviceResponse);
+
+    
+        this.selectedTeamEntries = [];
+        this.employeeSelectionHistory = [];
+
+       
+        this.teamMemberList1.forEach(team => {
+  
+          team.employees.forEach(member => {
+            member.selected = false;
+          });
+        });
+
+         this.getExistingProjectsByUser(this.projectObj2.empId)
+  
+       
+      }
+       window.location.reload();
+    });
+}
 }
