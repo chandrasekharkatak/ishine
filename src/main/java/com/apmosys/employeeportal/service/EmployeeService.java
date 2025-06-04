@@ -127,6 +127,7 @@ import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
+import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.repository.UploadPolicyRepository;
@@ -225,6 +226,9 @@ public class EmployeeService {
 	
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
+	
+	@Autowired
+	ResourceRequirementRepository resourceRequirementRepository;
 	
 	@Autowired
 	private  UploadPolicyRepository uploadPolicyRepository;
@@ -541,14 +545,24 @@ public class EmployeeService {
 			}
 			
 			if(employeedto.getDefaultProjectId() != null) {
+				Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
+				String departmentname = dept.getName();
+				
+				Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
+				resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
+				
+				
+				
+				
+				
 				EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
 				employeeTeamMap.setEmpId(newEmployee.getEmpId());
 				employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
 				employeeTeamMap.setActive(2l);
 				employeeTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
 				employeeTeamMap.setEmployeeRole(employeeRole.toString());
-				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());		
-			
+				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
+				employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
 			   employeeTeamMapRepository.save(employeeTeamMap);
 			   
 			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
