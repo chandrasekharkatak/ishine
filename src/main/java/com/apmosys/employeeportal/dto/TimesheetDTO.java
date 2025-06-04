@@ -95,4 +95,5 @@ public class TimesheetDTO {
 	private String isApprenticeship;
 	
 	private List<EmployeeTimesheetDto> timeSheet;
+	private Long currentUser;
 }

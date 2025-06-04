@@ -81,6 +81,12 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 	public List<Object[]> getAllLeaveTimesheetsWithoutLeaveApplication(LocalDate start, LocalDate end);
 	
 	@Query(nativeQuery = true)
+	public List<Object[]> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(LocalDate start, LocalDate end,List<Long> deptIds);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(LocalDate start, LocalDate end,Long deptId);
+	
+	@Query(nativeQuery = true)
 	public List<Object[]> getInactiveActivitiesByTimesheetId(Long timesheetId);
 	
 	@Query(nativeQuery = true)

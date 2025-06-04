@@ -2174,6 +2174,7 @@ export class ReportListComponent implements OnInit {
     let timesheetObj = new Timesheet();
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
+    timesheetObj.currentUser = this.currentUser.empId;
     //console.log("timesheet obj  : ", timesheetObj)
 
     this.timesheetService.getAllLeaveTimesheetsWithoutLeaveApplication(timesheetObj).pipe(first()).subscribe((response: any) => {
