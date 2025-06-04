@@ -1715,10 +1715,10 @@
                                             style="width: 16px; height: 16px;" />
                                     </div>
                                     <div class="action-menu-wrapper" (clickOutside)="closePopover(member.empId)">
-                                        <button type="button" class="btn btn-outline-primary" (click)="togglePopover(member.empId)">
+                                        <button type="button" class="btn btn-outline-primary"  (click)="togglePopover(member.empId)">
                                           <i class="fa-solid fa-circle-exclamation"></i>
                                         </button>
-                                        <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3" style="position : initial;" >
+                                        <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3" style="position: initial;">
                                           <div class="info-line"><span class="label">Emp Id:</span> {{ employeeInformation.employmentId }}</div>
                                           <div class="info-line"><span class="label">Role:</span> {{ employeeInformation.jobRole }}</div>
                                           <div class="info-line"><span class="label">Billability Type:</span> {{ employeeInformation.billableType }}</div>
