@@ -13,7 +13,15 @@ public interface ReportDashboardService {
 	ServiceResponse getLeaveTrendAnalysisReport(LeaveDTO leaveDto);
 
 	ServiceResponse getEmployeeWorkLocationForSummary();
-	
+
 	ServiceResponse getDepartmentWiseBillableData(LeaveDTO leaveDto);
+	
+	ServiceResponse countforFresherLateral();
+	
+	ServiceResponse tableforFresherLateral();
+	
+	ServiceResponse countforBillabeEmployee();
+	
+	ServiceResponse tableforBillabeEmployee();
 
 }

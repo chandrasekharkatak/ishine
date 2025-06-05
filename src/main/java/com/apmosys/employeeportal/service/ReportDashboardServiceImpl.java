@@ -602,4 +602,24 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 		
 		return response;
 	}
+	//Fresher Lateral
+	public ServiceResponse countforFresherLateral()
+	{
+		return null;
+	}
+	public ServiceResponse tableforFresherLateral()
+	{
+		return null;
+	}
+	//Billable Employee Summary
+	public ServiceResponse countforBillabeEmployee()
+	{
+		return null;
+	}
+	
+	public ServiceResponse tableforBillabeEmployee()
+	{
+		return null;
+	}
+
 }
