@@ -15,5 +15,17 @@ public interface ReportDashboardService {
 	ServiceResponse getEmployeeWorkLocationForSummary();
 	
 	ServiceResponse getDepartmentWiseBillableData(LeaveDTO leaveDto);
+	
+	ServiceResponse getEmployeeStatusSummaryCount();
+	
+	ServiceResponse getEmployeeStatusSummary();
+
+	ServiceResponse getEmployeeGenderSummaryCount();
+	
+	ServiceResponse getEmployeeGenderSummary();
+	
+	ServiceResponse getEmployeeAgeSummaryCount();
+	
+	ServiceResponse getEmployeeAgeSummary();
 
 }
