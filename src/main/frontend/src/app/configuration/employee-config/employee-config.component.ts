@@ -462,7 +462,7 @@ export class EmployeeConfigComponent implements OnInit {
   DateFilterForDOR = (d: Date) => {
     const dateFormat = 'YYYY-MM-DD';
     const currentDate = new Date();
-    let dateOfJoining = this.employeeObj.dateOfJoining != (null || undefined) ? this.employeeObj.dateOfJoining : new Date();
+    let dateOfJoining = this.employeeObj.dateOfJoining != null && this.employeeObj.dateOfJoining !== undefined ? this.employeeObj.dateOfJoining : new Date();
     return (moment(d).format(dateFormat) >= moment(dateOfJoining).format(dateFormat) && moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
   }
 
@@ -2359,6 +2359,7 @@ export class EmployeeConfigComponent implements OnInit {
 
     this.destinationService.getDesignationByDeptId(designationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        console.log(response.serviceResponse)
         this.allDesignationList = response.serviceResponse;
         console.log(this.allDesignationList, " : allDesignationList");
       } else {
