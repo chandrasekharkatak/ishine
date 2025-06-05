@@ -23,5 +23,16 @@ public interface ReportDashboardService {
 	ServiceResponse countforBillabeEmployee();
 	
 	ServiceResponse tableforBillabeEmployee();
+	ServiceResponse getEmployeeStatusSummaryCount();
+	
+	ServiceResponse getEmployeeStatusSummary();
+
+	ServiceResponse getEmployeeGenderSummaryCount();
+	
+	ServiceResponse getEmployeeGenderSummary();
+	
+	ServiceResponse getEmployeeAgeSummaryCount();
+	
+	ServiceResponse getEmployeeAgeSummary();
 
 }

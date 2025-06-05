@@ -613,6 +613,13 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	}
 	//Billable Employee Summary
 	public ServiceResponse countforBillabeEmployee()
+	
+	//employee summary status graph
+	public ServiceResponse getEmployeeStatusSummaryCount()
+	{
+		return null;
+	}
+	public ServiceResponse getEmployeeStatusSummary()
 	{
 		return null;
 	}
@@ -622,4 +629,23 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 		return null;
 	}
 
+	//employee gender summary graph 
+	public ServiceResponse getEmployeeGenderSummaryCount()
+	{
+		return null;
+	}
+	public ServiceResponse getEmployeeGenderSummary()
+	{
+		return null;
+	}
+	
+	//employee age summary graph
+	public ServiceResponse getEmployeeAgeSummaryCount()
+	{
+		return null;
+	}
+	public ServiceResponse getEmployeeAgeSummary()
+	{
+		return null;
+	}
 }

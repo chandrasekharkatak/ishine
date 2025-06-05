@@ -81,6 +81,49 @@ public class ReportDashboardController {
 	public ServiceResponse tableforBillabeEmployee()
 	{
 		ServiceResponse response = reportDashboardService.tableforBillabeEmployee();
+	//for multiple graph queries 
+	// employee status summary graph 
+	@RequestMapping(value = "/getEmployeeStatusSummaryCount/{status}",method = RequestMethod.GET)
+	public ServiceResponse getEmployeeStatusSummaryCount()
+	{
+		ServiceResponse response = reportDashboardService.getEmployeeStatusSummary();
+		return response;
+	}
+	
+	@RequestMapping(value = "/getEmployeeStatusSummary/{status}",method = RequestMethod.GET)
+	public ServiceResponse getEmployeeStatusSummary()
+	{
+		ServiceResponse response = reportDashboardService.getEmployeeStatusSummary();
+		return response;
+	}
+	
+	
+	// employee gender summary graph
+	@RequestMapping(value = "/getEmployeeGenderSummaryCount/{gender}",method = RequestMethod.GET)
+	public ServiceResponse getEmployeeGenderSummaryCount()
+	{
+		ServiceResponse response = reportDashboardService.getEmployeeGenderSummaryCount();
+		return response;
+	}
+	
+	@RequestMapping(value = "/getEmployeeGenderSummary/{gender}",method = RequestMethod.GET)
+	public ServiceResponse getEmployeeGenderSummary()
+	{
+		ServiceResponse response = reportDashboardService.getEmployeeGenderSummary();
+		return response;
+	}
+	
+	@RequestMapping(value = "/getEmployeeAgeSummaryCount/{ageRange}",method = RequestMethod.GET)
+	public ServiceResponse getEmployeeAgeSummaryCount()
+	{
+		ServiceResponse response = reportDashboardService.getEmployeeAgeSummaryCount();
+		return response;
+	}
+	
+	@RequestMapping(value = "/getEmployeeAgeSummary/{ageRange}",method = RequestMethod.GET)
+	public ServiceResponse getEmployeeAgeSummary()
+	{
+		ServiceResponse response = reportDashboardService.getEmployeeAgeSummary();
 		return response;
 	}
 	
