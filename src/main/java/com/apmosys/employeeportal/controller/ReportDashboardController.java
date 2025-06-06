@@ -55,79 +55,37 @@ public class ReportDashboardController {
 		return response;
 	}
 	
-	//Fresher Lateral
-	@RequestMapping(value = "/countforFresherLateral",method = RequestMethod.GET)
-	public ServiceResponse countforFresherLateral()
-	{
-		ServiceResponse response = reportDashboardService.countforFresherLateral();
-		return response;
-	}
-	
-	@RequestMapping(value = "/tableforFresherLateral",method = RequestMethod.GET)
-	public ServiceResponse tableforFresherLateral()
-	{
-		ServiceResponse response = reportDashboardService.tableforFresherLateral();
-		return response;
-	}
-	
-	//Billable Employee Summary
-	@RequestMapping(value = "/countforBillabeEmployee",method = RequestMethod.GET)
-	public ServiceResponse countforBillabeEmployee()
-	{
-		ServiceResponse response = reportDashboardService.countforBillabeEmployee();
-		return response;
-	}
-	@RequestMapping(value = "/tableforBillabeEmployee",method = RequestMethod.GET)
-	public ServiceResponse tableforBillabeEmployee()
-	{
-		ServiceResponse response = reportDashboardService.tableforBillabeEmployee();
-	//for multiple graph queries 
-	// employee status summary graph 
-	@RequestMapping(value = "/getEmployeeStatusSummaryCount/{status}",method = RequestMethod.GET)
-	public ServiceResponse getEmployeeStatusSummaryCount()
-	{
-		ServiceResponse response = reportDashboardService.getEmployeeStatusSummary();
-		return response;
-	}
-	
-	@RequestMapping(value = "/getEmployeeStatusSummary/{status}",method = RequestMethod.GET)
-	public ServiceResponse getEmployeeStatusSummary()
-	{
-		ServiceResponse response = reportDashboardService.getEmployeeStatusSummary();
-		return response;
-	}
-	
-	
-	// employee gender summary graph
-	@RequestMapping(value = "/getEmployeeGenderSummaryCount/{gender}",method = RequestMethod.GET)
-	public ServiceResponse getEmployeeGenderSummaryCount()
-	{
-		ServiceResponse response = reportDashboardService.getEmployeeGenderSummaryCount();
-		return response;
-	}
-	
-	@RequestMapping(value = "/getEmployeeGenderSummary/{gender}",method = RequestMethod.GET)
-	public ServiceResponse getEmployeeGenderSummary()
-	{
-		ServiceResponse response = reportDashboardService.getEmployeeGenderSummary();
-		return response;
-	}
-	
-	@RequestMapping(value = "/getEmployeeAgeSummaryCount/{ageRange}",method = RequestMethod.GET)
-	public ServiceResponse getEmployeeAgeSummaryCount()
-	{
-		ServiceResponse response = reportDashboardService.getEmployeeAgeSummaryCount();
-		return response;
-	}
-	
-	@RequestMapping(value = "/getEmployeeAgeSummary/{ageRange}",method = RequestMethod.GET)
-	public ServiceResponse getEmployeeAgeSummary()
-	{
-		ServiceResponse response = reportDashboardService.getEmployeeAgeSummary();
-		return response;
-	}
-	
-	
-	
+//	//Fresher Lateral
+//	@RequestMapping(value = "/countforFresherLateral",method = RequestMethod.GET)
+//	public ServiceResponse countforFresherLateral()
+//	{
+//		ServiceResponse response = reportDashboardService.countforFresherLateral();
+//		return response;
+//	}
+//	
+//	@RequestMapping(value = "/tableforFresherLateral",method = RequestMethod.GET)
+//	public ServiceResponse tableforFresherLateral()
+//	{
+//		ServiceResponse response = reportDashboardService.tableforFresherLateral();
+//		return response;
+//	}
+//	
+//	//Billable Employee Summary
+//	@RequestMapping(value = "/countforBillabeEmployee",method = RequestMethod.GET)
+//	public ServiceResponse countforBillabeEmployee()
+//	{
+//		ServiceResponse response = reportDashboardService.countforBillabeEmployee();
+//		return response;
+//	}
 
+
+
+	@RequestMapping(value = "/getAllGraphEmployeeSummary" , method = RequestMethod.GET)
+	public ServiceResponse getAllGraphEmployeeSummary()
+	{
+		ServiceResponse response = reportDashboardService.getAllGraphEmployeeSummary();
+		return response;
+	}
+	
+	
 }

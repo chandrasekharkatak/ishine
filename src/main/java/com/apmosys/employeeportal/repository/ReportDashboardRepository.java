@@ -1,9 +1,95 @@
 package com.apmosys.employeeportal.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.apmosys.employeeportal.dto.ReportCountDTO;
 import com.apmosys.employeeportal.model.Employee;
 
 public interface ReportDashboardRepository extends JpaRepository<Employee, Long> {
 
+	//Grouped Query for employee status summary , gender summary and fresher-lateral summary
+	@Query(nativeQuery = true , value = "WITH employee_data AS (\n"
+			+ "    SELECT distinct \n"
+			+ "        e.gender,\n"
+			+ "        e.employmentstatus,\n"
+			+ "        e.experience,\n"
+			+ "        e.billable,\n"
+			+ "        e.date_of_birth,\n"
+			+ "        e.date_of_joining,\n"
+			+ "        e.is_apprenticeship,\n"
+			+ "        e.is_consultant,\n"
+			+ "        e.billable_type,\n"
+			+ "        e.emp_id\n"
+			+ "    FROM employee e \n"
+			+ "    left join job_role jr on e.job_role_id = jr.job_role_id\n"
+			+ "	left join department d on jr.dept_id = d.dept_id\n"
+			+ "	left join employee mg on e.manager_id = mg.emp_id \n"
+			+ "	left join employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0'\n"
+			+ "	left join teams t on etm.team_id = t.team_id and t.is_active = 'Y'\n"
+			+ "	left join projects p on t.project_id = p.project_id and p.active = 'true'\n"
+			+ "    WHERE 1=1\n"
+			+ "    and e.emp_id NOT BETWEEN 1 AND 6\n"
+//			+ "    and (:employeement_id is null or employeement_id in (:employeement_id))\n"
+//			+ "	and (:name IS NULL OR UPPER(name) LIKE CONCAT('%', UPPER(:name), '%'))\n"
+//			+ "	and (:dept_id is null or dept_id in (:dept_id))\n"
+//			+ "	and (:job_role_id is null or job_role_id in (:job_role_id))\n"
+//			+ "	and (:manager_id is null or mg.emp_id in (:manager_id))\n"
+//			+ "	and (:team_id is null or t.team_id in (:team_id))\n"
+//			+ "	and (:project_id is null or p.project_id in (:project_id))\n"
+//			+ "	and (:client_id is null or p.client_id in (:client_id))\n"
+//			+ "    and (:employmentstatus is null or UPPER(e.employmentstatus) like CONCAT('%', UPPER(:employmentstatus), '%'))\n"
+//			+ "    and (:date_of_joining is null or e.date_of_joining like CONCAT('%', :date_of_joining, '%'))\n"
+//			+ "    and (:city IS NULL OR UPPER(e.city) LIKE CONCAT('%', UPPER(:city), '%'))\n"
+//			+ "    and (:blood_group IS NULL OR UPPER(e.blood_group) LIKE CONCAT('%', UPPER(:blood_group), '%'))\n"
+//			+ "    and (:gender IS NULL OR UPPER(e.gender) LIKE CONCAT('%', UPPER(:gender), '%'))\n"
+//			+ "    and (:probation_period is null or e.probation_period in (:probation_period))\n"
+//			+ "    and (:notice_id is null or e.notice_id in (:notice_id))\n"
+//			+ "    and (:marital_status IS NULL OR UPPER(e.marital_status) LIKE CONCAT('%', UPPER(:marital_status), '%'))\n"
+//			+ "    and (:bank_name IS NULL OR UPPER(e.bank_name) LIKE CONCAT('%', UPPER(:bank_name), '%'))\n"
+//			+ "    and (:state IS NULL OR UPPER(e.state) LIKE CONCAT('%', UPPER(:state), '%'))\n"
+//			+ "    and (:created_on is null or e.created_on like CONCAT('%', :created_on, '%'))\n"
+//			+ "    and (:created_by is null or e.created_by in (:created_by))\n"
+//			+ "    and (:experience IS NULL OR UPPER(e.experience) LIKE CONCAT('%', UPPER(:experience), '%'))\n"
+//			+ "    and (:work_location IS NULL OR UPPER(e.work_location) LIKE CONCAT('%', UPPER(:work_location), '%'))\n"
+			+ ")\n"
+			+ "SELECT\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND billable = 'Yes' THEN 1 ELSE 0 END) AS Yes,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND billable = 'No' THEN 1 ELSE 0 END) AS No,\n"
+			+ "     SUM(CASE WHEN employmentstatus != 'InActive' AND billable = 'Other' THEN 1 ELSE 0 END) AS Billable_Other,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND TIMESTAMPDIFF(YEAR, date_of_birth, CURRENT_DATE()) BETWEEN 18 AND 25 THEN 1 ELSE 0 END) AS 'Years_18_25',\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND TIMESTAMPDIFF(YEAR, date_of_birth, CURRENT_DATE()) BETWEEN 26 AND 35 THEN 1 ELSE 0 END) AS 'Years_26_35',\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND TIMESTAMPDIFF(YEAR, date_of_birth, CURRENT_DATE()) BETWEEN 36 AND 45 THEN 1 ELSE 0 END) AS 'Years_36_45',\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND TIMESTAMPDIFF(YEAR, date_of_birth, CURRENT_DATE()) >= 46 THEN 1 ELSE 0 END) AS 'Years_above_45',\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND gender = 'Male' THEN 1 ELSE 0 END) AS Male,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND gender = 'Female' THEN 1 ELSE 0 END) AS Female,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND gender = 'Other' THEN 1 ELSE 0 END) AS Gender_Other,\n"
+			+ "    SUM(CASE WHEN employmentstatus = 'Confirmed' THEN 1 ELSE 0 END) AS Confirmed,\n"
+			+ "    SUM(CASE WHEN employmentstatus = 'Resigned' THEN 1 ELSE 0 END) AS Resigned,\n"
+			+ "    SUM(CASE WHEN employmentstatus = 'Probation' THEN 1 ELSE 0 END) AS Probation,\n"
+			+ "    SUM(CASE WHEN employmentstatus = 'Retain' THEN 1 ELSE 0 END) AS Retain,\n"
+			+ "    SUM(CASE WHEN employmentstatus = 'InActive' THEN 1 ELSE 0 END) AS InActive,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND experience = 'Experienced' THEN 1 ELSE 0 END) AS Experienced,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND experience = 'Fresher' THEN 1 ELSE 0 END) AS Fresher,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 >= 0 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Apprentice_Years_0_1,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Apprentice_Years_1_2,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Apprentice_Years_2_5,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Apprentice_Years_5_10,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Apprentice_Years_Above_10,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 >= 0 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Employees_Years_0_1,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Employees_Years_1_2,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Employees_Years_2_5,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Employees_Years_5_10,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Employees_Years_Above_10,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND billable_type = 'Fixed Cost' THEN 1 ELSE 0 END) AS Fixed_Cost,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND billable_type = 'TNM' THEN 1 ELSE 0 END) AS TNM,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND billable_type = 'Bench' THEN 1 ELSE 0 END) AS Bench,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND billable_type = 'Shadow' THEN 1 ELSE 0 END) AS Shadow,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND billable_type = 'InternalRNDProducts' THEN 1 ELSE 0 END) AS InternalRNDProducts\n"
+			+ "FROM employee_data")
+         public List<Object[]> getAllGraphEmployeeSummary();
+	
+	
 }

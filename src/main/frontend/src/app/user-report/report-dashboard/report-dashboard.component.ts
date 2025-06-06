@@ -6,6 +6,7 @@ import { first, groupBy } from 'rxjs/operators';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
+import { ReportService } from 'src/app/services/report-service.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { Query } from 'src/app/models/query';
 import * as moment from 'moment';
@@ -136,6 +137,24 @@ export class ReportDashboardComponent implements OnInit {
   filters: any = {};
   isSearchEnabled: boolean = false;
 
+   maleCount = 0;
+   femaleCount = 0;
+   otherCount = 0;
+
+  //  age summary
+
+   countBetween18and25 = 0;
+   countBetween25and35 = 0;
+  countBetween35and45 = 0;
+  countAbove45 = 0;
+
+   probationCount = 0;
+   confirmedCount = 0;
+   resignedCount = 0;
+   inActiveCount = 0;
+
+    fresherCount = 0;
+    experienceCount = 0;
 
   leaveSummaryColumns: any[] = ['Employee Id', 'employeeType', 'Full Name', 'Leave Type', 'Department', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   timesheetSummaryColumns: any[] = ['Employee Id', 'employeeType', 'Full Name', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By'];
@@ -178,6 +197,7 @@ export class ReportDashboardComponent implements OnInit {
     private domainService: DomainService,
     private authenticationService: AuthenticationService,
     public utilityService: UtilityService,
+    public reportService: ReportService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
@@ -187,6 +207,7 @@ export class ReportDashboardComponent implements OnInit {
     });
     this.sectionViewInit();
     this.preventBackButton();
+    this.getAllPieChartCount();
   }
 
   getSlicedProjects(projectList: Project[], count: number): Project[] {
@@ -1090,22 +1111,22 @@ export class ReportDashboardComponent implements OnInit {
     //Age Wise Graph
     // Total Experience Graph
     // Join vs Resign Graph
-    let fresherCount = 0;
-    let experienceCount = 0;
+    // let fresherCount = 0;
+    // let experienceCount = 0;
 
-    let probationCount = 0;
-    let confirmedCount = 0;
-    let resignedCount = 0;
-    let inActiveCount = 0;
+    // let probationCount = 0;
+    // let confirmedCount = 0;
+    // let resignedCount = 0;
+    // let inActiveCount = 0;
 
-    let maleCount = 0;
-    let femaleCount = 0;
-    let otherCount = 0;
+    // let maleCount = 0;
+    // let femaleCount = 0;
+    // let otherCount = 0;
 
-    let countBetween18and25 = 0;
-    let countBetween25and35 = 0;
-    let countBetween35and45 = 0;
-    let countAbove45 = 0;
+    // let countBetween18and25 = 0;
+    // let countBetween25and35 = 0;
+    // let countBetween35and45 = 0;
+    // let countAbove45 = 0;
 
     let experienceCountBetween0and1 = 0;
     let experienceCountBetween0and1Apprentice = 0;
@@ -1187,27 +1208,27 @@ export class ReportDashboardComponent implements OnInit {
 
 
 
-      if (employee.experience == 'Fresher' && employee.employmentstatus != 'InActive') fresherCount++;
-      else if (employee.experience == 'Experienced' && employee.employmentstatus != 'InActive') experienceCount++;
+      // if (employee.experience == 'Fresher' && employee.employmentstatus != 'InActive') fresherCount++;
+      // else if (employee.experience == 'Experienced' && employee.employmentstatus != 'InActive') experienceCount++;
 
-      if (employee.employmentstatus == "Probation") probationCount++;
-      else if (employee.employmentstatus == "Confirmed") confirmedCount++;
-      else if (employee.employmentstatus == "Resigned") resignedCount++;
-      else if (employee.employmentstatus == "InActive") inActiveCount++;
+      // if (employee.employmentstatus == "Probation") probationCount++;
+      // else if (employee.employmentstatus == "Confirmed") confirmedCount++;
+      // else if (employee.employmentstatus == "Resigned") resignedCount++;
+      // else if (employee.employmentstatus == "InActive") inActiveCount++;
 
-      if (employee.gender == 'male' && employee.employmentstatus != 'InActive') maleCount++;
-      else if (employee.gender == 'female' && employee.employmentstatus != 'InActive') femaleCount++;
-      else if (employee.gender == 'other' && employee.employmentstatus != 'InActive') otherCount++;
+      // if (employee.gender == 'male' && employee.employmentstatus != 'InActive') maleCount++;
+      // else if (employee.gender == 'female' && employee.employmentstatus != 'InActive') femaleCount++;
+      // else if (employee.gender == 'other' && employee.employmentstatus != 'InActive') otherCount++;
 
-      if (employee.dateOfBirth != null && employee.employmentstatus != 'InActive') {
-        let age = this.getAge(employee.dateOfBirth);
-        employee.age = age;
-        //console.log(age);
-        if (age >= 18 && age <= 25) countBetween18and25++;
-        else if (age > 25 && age <= 35) countBetween25and35++;
-        else if (age > 35 && age <= 45) countBetween35and45++;
-        else if (age > 45) countAbove45++;
-      }
+      // if (employee.dateOfBirth != null && employee.employmentstatus != 'InActive') {
+      //   let age = this.getAge(employee.dateOfBirth);
+      //   employee.age = age;
+      //   //console.log(age);
+      //   if (age >= 18 && age <= 25) countBetween18and25++;
+      //   else if (age > 25 && age <= 35) countBetween25and35++;
+      //   else if (age > 35 && age <= 45) countBetween35and45++;
+      //   else if (age > 45) countAbove45++;
+      // }
 
       // if(employee.dateOfJoining != null && employee.employmentstatus != 'InActive'){
       //   if(employee.totalExperience == null)employee.totalExperience = 0;
@@ -1536,19 +1557,19 @@ export class ReportDashboardComponent implements OnInit {
     */
     let employeeStatusData = [{
       name: "Probation",
-      y: probationCount
+      y: this.probationCount
     },
     {
       name: "Confirmed",
-      y: confirmedCount
+      y: this.confirmedCount
     },
     {
       name: "Resigned",
-      y: resignedCount
+      y: this.resignedCount
     },
     {
       name: "InActive",
-      y: inActiveCount
+      y: this.inActiveCount
     }];
 
     //console.log("leaveStatusData : ", employeeStatusData);
@@ -1628,17 +1649,19 @@ export class ReportDashboardComponent implements OnInit {
     Chart Data for - Male / Female - Gender Summary Graph.
    */
 
+    
+
     let genderData = [{
       name: "male",
-      y: maleCount
+      y: this.maleCount
     },
     {
       name: "female",
-      y: femaleCount
+      y: this.femaleCount
     },
     {
       name: "other",
-      y: otherCount
+      y: this.otherCount
     }];
 
     //console.log("genderData : ", genderData);
@@ -1658,19 +1681,19 @@ export class ReportDashboardComponent implements OnInit {
 
     let employeeAgeData = [{
       name: "18 to 25",
-      y: countBetween18and25
+      y: this.countBetween18and25
     },
     {
       name: "25 to 35",
-      y: countBetween25and35
+      y: this.countBetween25and35
     },
     {
       name: "35 to 45",
-      y: countBetween35and45
+      y: this.countBetween35and45
     },
     {
       name: "45+",
-      y: countAbove45
+      y: this.countAbove45
     }];
 
     //console.log("employeeAgeData : ", employeeAgeData);
@@ -1785,11 +1808,11 @@ export class ReportDashboardComponent implements OnInit {
 
     let fresherLateralData = [{
       name: "Fresher",
-      y: fresherCount
+      y: this.fresherCount
     },
     {
       name: "Lateral",
-      y: experienceCount
+      y: this.experienceCount
     }];
 
     //console.log("genderData : ", genderData);
@@ -4461,9 +4484,42 @@ openDepartmentWiseBillableEmployeeModalTable(deptName: any, billableType: any) {
     //console.log("Updated Filter : ", this.filters);
   }
 
+  getAllPieChartCount() {
+
+    this.reportService.getAllPieChartCount().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.maleCount = response.serviceResponse[0].genderMale;
+        this.femaleCount = response.serviceResponse[0].genderFemale;
+        this.otherCount = response.serviceResponse[0].genderOther;
+        this.countBetween18and25 = response.serviceResponse[0].age18to25;
+        this.countBetween25and35 = response.serviceResponse[0].age25to35;
+        this.countBetween35and45 = response.serviceResponse[0].age35to45;
+        this.countAbove45 = response.serviceResponse[0].ageAbove45;
+        this.probationCount = response.serviceResponse[0].employeeStatusProbation;
+        this.confirmedCount = response.serviceResponse[0].employeeStatusConfirmed;
+        this.resignedCount = response.serviceResponse[0].employeeStatusResigned;
+        this.inActiveCount = response.serviceResponse[0].employeeStatusInActive;
+        this.fresherCount = response.serviceResponse[0].fresherCount;
+        this.experienceCount = response.serviceResponse[0].lateralCount;
+        
+        console.log("Maleeeeeeee", this.maleCount);
+
+        
+    
+    
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  
+  }
+
+  
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 
 }
+
+

@@ -16,23 +16,6 @@ public interface ReportDashboardService {
 
 	ServiceResponse getDepartmentWiseBillableData(LeaveDTO leaveDto);
 	
-	ServiceResponse countforFresherLateral();
-	
-	ServiceResponse tableforFresherLateral();
-	
-	ServiceResponse countforBillabeEmployee();
-	
-	ServiceResponse tableforBillabeEmployee();
-	ServiceResponse getEmployeeStatusSummaryCount();
-	
-	ServiceResponse getEmployeeStatusSummary();
-
-	ServiceResponse getEmployeeGenderSummaryCount();
-	
-	ServiceResponse getEmployeeGenderSummary();
-	
-	ServiceResponse getEmployeeAgeSummaryCount();
-	
-	ServiceResponse getEmployeeAgeSummary();
-
+	//for employee status summary , gender summary , and fresher-lateral summary 
+	ServiceResponse getAllGraphEmployeeSummary();
 }
