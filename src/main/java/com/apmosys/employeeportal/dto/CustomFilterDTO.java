@@ -18,4 +18,5 @@ public class CustomFilterDTO {
 	String customQuery;
 	String startDate;
 	String endDate;
+	Long empId;
 }

@@ -7,7 +7,9 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
+import { employeeReport } from "src/app/models/employeeReport";
 import { Feature } from 'src/app/models/feature';
+import { FilteredTimesheet } from "src/app/models/filteredTimesheet";
 import { JobRole } from 'src/app/models/jobRole';
 import { Query } from 'src/app/models/query';
 import { Timesheet } from 'src/app/models/timesheet';
@@ -22,9 +24,6 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
-import { SortPipe } from 'src/app/sort.pipe';
-import { FilteredTimesheet } from "src/app/models/filteredTimesheet";
-import { employeeReport } from "src/app/models/employeeReport";
 
 class FilterData {
   title: any;
@@ -251,9 +250,12 @@ export class ReportListComponent implements OnInit {
     if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts")&& !deptName.includes("HR")){
       await this.getAllDepartmentsFromId();
       this.isDeptFilter = true;
+      
      }
      else{
+   
        await this.getAllDepartments();
+      
      }
     // const deptName = String(this.currentUser.departmentName).trim();
     this.sectionViewInit();
@@ -1211,6 +1213,7 @@ export class ReportListComponent implements OnInit {
             this.departments = response.serviceResponse;
             this.filteredDepartments = this.departments;
             resolve(response.serviceResponse);
+            
           } else {
             reject("Failed to fetch departments");
           }
@@ -1360,7 +1363,7 @@ export class ReportListComponent implements OnInit {
         { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
       ];
       // this.getAllLeaveApplicationsList();
-
+     
       this.getCustomLeaveApplicationsList(inActiveQuery, this.alertModal);
 
     }
@@ -1396,6 +1399,7 @@ export class ReportListComponent implements OnInit {
       let inActiveQuery = [
         { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
       ];
+        
       this.getCustomTimesheetApplicationsList(inActiveQuery, this.alertModal);
 
       //this.getAllTimesheetApplicationsList();
@@ -1422,7 +1426,8 @@ export class ReportListComponent implements OnInit {
     this.filters = {};
     this.isSearchEnabled = false;
 
-    this.storedDataList.forEach((object) => {
+  
+   this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Employee Report') {
         this.getCustomEmployeesList(object.queryList, this.alertModal);
       }
@@ -1432,9 +1437,13 @@ export class ReportListComponent implements OnInit {
       let inActiveQuery = [
         { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
       ];
+   
       this.getCustomEmployeesList(inActiveQuery, this.alertModal);
-      // this.getAllEmployeeList();
-    }
+
+      //this.getAllTimesheetApplicationsList();
+    
+}
+
 
     this.data = ''
   }
@@ -1554,6 +1563,7 @@ export class ReportListComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
+    queryObj.empId = this.currentUser.empId;
     if (queryObjList.length == 0) {
       this.getAllLeaveApplicationsList();
     } else {
@@ -1635,6 +1645,7 @@ export class ReportListComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
+    queryObj.empId = this.currentUser.empId;
     if (queryObjList == '') {
       this.getAllTimesheetApplicationsList();
     } else {
@@ -1705,6 +1716,7 @@ export class ReportListComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
+    queryObj.empId=this.currentUser.empId;
 
     if (queryObjList == '') {
       this.getAllEmployeeList();
