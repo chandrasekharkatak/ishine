@@ -1403,6 +1403,8 @@ public class TeamsService {
 					
 					dto.setCurrentApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
 					dto.setFinalApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
+					dto.setEmpId(object[26] != null ? Long.parseLong(object[26].toString()) : null)	;				
+					
 					dtoList.add(dto);					
 					});
 

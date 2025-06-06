@@ -70,7 +70,7 @@ export class DocumentComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     try {
       // this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-      // console.log("Priyadarshini ", this.employeesFor360);
+     
     } catch (error) {
       console.error("Error fetching employee details for 360 view", error);
     }
