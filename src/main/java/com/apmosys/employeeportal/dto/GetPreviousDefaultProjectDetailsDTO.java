@@ -13,7 +13,6 @@ public class GetPreviousDefaultProjectDetailsDTO {
 	
 	private Long empId;
 	private String primaryProjectName;
-	private String teamName;
 	private String clientName;
 	private String billableType;
 	private String startDate;

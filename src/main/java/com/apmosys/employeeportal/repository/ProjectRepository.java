@@ -124,4 +124,5 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getPreviousDefaultProjectDetails(Long empId);
+	
 }

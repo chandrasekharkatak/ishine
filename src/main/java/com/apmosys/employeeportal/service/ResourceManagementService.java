@@ -418,6 +418,7 @@ public class ResourceManagementService {
 									.append("</tr>");
 
 							if (teamDbResponse != null) {
+								List<Long> defaultProjectEmpIds = null;
 								List<EmployeeTeamMap> mapList = new ArrayList<EmployeeTeamMap>();
 								String ccMail = adminMail;
 								// Add team member in the team
@@ -463,10 +464,13 @@ public class ResourceManagementService {
 										newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
 										newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis())); 
 										newEmpTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow(): null);
-										newEmpTeamMap.setIsDefaultProject(teamMember.getIsDefaultProject() != null ? teamMember.getIsDefaultProject(): null);
 										newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId() != null
 												? Long.parseLong(teamMember.getResourceOverviewId().toString())
 												: null);
+										
+										if(teamMember.getIsDefaultProject() == 1)
+											defaultProjectEmpIds.add(teamMember.getEmpId());
+										
 										mapList.add(newEmpTeamMap);
 									} else {
 										StringBuilder employeeRole = new StringBuilder("");
@@ -480,10 +484,13 @@ public class ResourceManagementService {
 										newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis())); 
 										newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
 										newEmpTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
-										newEmpTeamMap.setIsDefaultProject(teamMember.getIsDefaultProject() != null ? teamMember.getIsDefaultProject(): null);
 										newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId() != null
 												? Long.parseLong(teamMember.getResourceOverviewId().toString())
 												: null);
+										
+										if(teamMember.getIsDefaultProject() == 1)
+											defaultProjectEmpIds.add(teamMember.getEmpId());
+										
 										mapList.add(newEmpTeamMap);
 									}
 
@@ -515,15 +522,16 @@ public class ResourceManagementService {
 								}
 								List<EmployeeTeamMap> teamMemberDbResponse = employeeTeamMapRepository.saveAll(mapList);
 								
-								ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(teamMemberDbResponse, projectDbResponse.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
+								if(!defaultProjectEmpIds.isEmpty())		{
+									ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(defaultProjectEmpIds, projectDbResponse.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
 
-								
-								if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
-								    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
-								} else {
-								    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+									if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+									    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+									} else {
+									    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+									    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+									}
 								}
 
 								emailBody.append("</table><br><br>").append("Sincerely,<br>")
@@ -672,6 +680,7 @@ public class ResourceManagementService {
 						Team teamDbResponse = teamRepository.save(teamPresent);
 
 						if (teamDbResponse != null) {
+							List<Long> defaultProjectEmpId = null;
 							List<EmployeeTeamMap> alreadyMappedMember = employeeTeamMapRepository
 									.findByTeamId(teamDbResponse.getTeamId());
 							List<TeamMemberDTO> newTeamMember = teamObj.getTeamMemberList();
@@ -679,6 +688,7 @@ public class ResourceManagementService {
 
 							// Update teamMember mapping
 							List<EmployeeTeamMap> updateMemberList = new ArrayList<EmployeeTeamMap>();
+							
 							for (EmployeeTeamMap presentMember : alreadyMappedMember) {
 								for (TeamMemberDTO newMember : newTeamMember) {
 									// Update teamMember mapping
@@ -700,10 +710,13 @@ public class ResourceManagementService {
 											updateMember.setUpdatedOn(LocalDateTime.now());
 											updateMember.setUpdatedBy(resourceManagementDTO.getCreatedBy());
 											updateMember.setIsShadow(newMember.getIsShadow() != null? newMember.getIsShadow(): null);
-											updateMember.setIsDefaultProject(newMember.getIsDefaultProject() != null ? newMember.getIsDefaultProject(): null);
 											updateMember.setResourceOverviewId(newMember.getResourceOverviewId() != null
 													? Long.parseLong(newMember.getResourceOverviewId().toString())
 													: null);
+											
+											if(newMember.getIsDefaultProject() == 1)
+												defaultProjectEmpId.add(newMember.getEmpId());
+											
 											updateMemberList.add(updateMember);
 										}
 									}
@@ -712,17 +725,18 @@ public class ResourceManagementService {
 							List<EmployeeTeamMap> updateMemberDbResponse = employeeTeamMapRepository
 									.saveAll(updateMemberList);
 							
-							ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(updateMemberDbResponse, projectObj.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
-
-							
-							if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
-							    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
-							} else {
-							    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+								if(!defaultProjectEmpId.isEmpty()) {
+									ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(defaultProjectEmpId, projectObj.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
+								
+								if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+								    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+								} else {
+								    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+								}
 							}
-							
+
 							// Add teamMember mapping
 							ServiceResponse response2 = this.processNewTeamMembers(newTeamMember, teamDbResponse,
 									resourceManagementDTO, rmgMail, adminMail);
@@ -816,6 +830,7 @@ public class ResourceManagementService {
 
 							List<EmployeeTeamMap> mapList = new ArrayList<EmployeeTeamMap>();
 							// Add team member in team
+							List<Long> defaultProjectEmpIds = null;
 
 							for (TeamMemberDTO teamMember : teamObj.getTeamMemberList()) {
 								EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
@@ -832,6 +847,10 @@ public class ResourceManagementService {
 									newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId() != null
 											? Long.parseLong(teamMember.getResourceOverviewId().toString())
 											: null);
+									
+									if(teamMember.getIsDefaultProject() == 1)
+									defaultProjectEmpIds.add(teamMember.getEmpId());
+									
 									mapList.add(newEmpTeamMap);
 								} else {
 									StringBuilder employeeRole = new StringBuilder("");
@@ -845,10 +864,13 @@ public class ResourceManagementService {
 									newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
 									newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis())); 
 									newEmpTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
-									newEmpTeamMap.setIsDefaultProject(teamMember.getIsDefaultProject() != null ? teamMember.getIsDefaultProject(): null);
 									newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId() != null
 											? Long.parseLong(teamMember.getResourceOverviewId().toString())
 											: null);
+									
+									if(teamMember.getIsDefaultProject() == 1)
+										defaultProjectEmpIds.add(teamMember.getEmpId());
+									
 									mapList.add(newEmpTeamMap);
 								}
 							}
@@ -869,18 +891,17 @@ public class ResourceManagementService {
 							
 							//Add default project mapping
 							
-							ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(teamMemberDbResponse, projectObj.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
-
+							if(!defaultProjectEmpIds.isEmpty()) {
+								ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(defaultProjectEmpIds, projectObj.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
 							
-							if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
-							    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
-							} else {
-							    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+								if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+								    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+								} else {
+								    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+								}
 							}
-
-
 							// Add default activity
 							ServiceResponse response3 = this.activityRealtedToTeam(teamMemberDbResponse, teamObj,
 									resourceManagementDTO, teamDbResponse);
@@ -950,7 +971,7 @@ public class ResourceManagementService {
 		StringBuilder logBuilder = new StringBuilder();
 		LogDTO apiLogInfo = new LogDTO();
 		try {
-
+			List<Long> defaultProjectEmpIds = null;
 			newTeamMember.forEach((newMember) -> {
 				List<EmployeeTeamMap> presentMember = employeeTeamMapRepository
 						.findFirstByEmpIdAndTeamIdAndActive(newMember.getEmpId(), teamDbResponse.getTeamId());
@@ -965,10 +986,13 @@ public class ResourceManagementService {
 						empTeamMap.setTeamId(teamDbResponse.getTeamId());
 						empTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
 						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow(): null);
-						empTeamMap.setIsDefaultProject(newMember.getIsDefaultProject() != null ? newMember.getIsDefaultProject(): null);
 						empTeamMap.setResourceOverviewId(newMember.getResourceOverviewId() != null
 								? Long.parseLong(newMember.getResourceOverviewId().toString())
 								: null);
+						
+						if(newMember.getIsDefaultProject() == 1)
+							defaultProjectEmpIds.add(newMember.getEmpId());
+						
 						mapList.add(empTeamMap);
 					} else {
 						StringBuilder employeeRole = new StringBuilder("");
@@ -980,25 +1004,29 @@ public class ResourceManagementService {
 						empTeamMap.setTeamId(teamDbResponse.getTeamId());
 						empTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
 						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
-						empTeamMap.setIsDefaultProject(newMember.getIsDefaultProject() != null ? newMember.getIsDefaultProject(): null);
 						empTeamMap.setResourceOverviewId(newMember.getResourceOverviewId() != null
 								? Long.parseLong(newMember.getResourceOverviewId().toString())
 								: null);
+						
+						if(newMember.getIsDefaultProject() == 1)
+							defaultProjectEmpIds.add(newMember.getEmpId());
+						
 						mapList.add(empTeamMap);
 					}
 
 					List<EmployeeTeamMap> teamMapDbResponse = employeeTeamMapRepository.saveAll(mapList);
 					
 					//Add default project mapping
-					
-					ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(teamMapDbResponse, resourceManagementDTO.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
-					
-					if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
-					    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
-					} else {
-					    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+					if(!defaultProjectEmpIds.isEmpty()) {
+						ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(defaultProjectEmpIds, resourceManagementDTO.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
+						
+						if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+						    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+						} else {
+						    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+						}
 					}
 
 					teamMapDbResponse.forEach((newAddedMember) -> {
@@ -2007,6 +2035,7 @@ public class ResourceManagementService {
 			} else {
 				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
 			}
+			final Integer projectId = projectObj.getProjectId();
 			System.err.println(" projectObj     " + projectObj.getProjectId());
 			if (projectObj != null) {
 				List<Team> teamList = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(), "Y");
@@ -2076,7 +2105,18 @@ public class ResourceManagementService {
 											prefixxTeamMember + empObj.getEmployeementId());
 									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
 									teamMemberDTO.setIsShadow(teamMemberObj.getIsShadow() != null ? teamMemberObj.getIsShadow() : null);
-									teamMemberDTO.setIsDefaultProject(teamMemberObj.getIsDefaultProject() != null ? teamMemberObj.getIsDefaultProject() : null);
+									
+									Integer flag = this.isDefaultProject(teamMemberObj.getEmpId(),projectId);
+									teamMemberDTO.setIsDefaultProject(flag != null ? flag: null);
+									
+									Map<String, Object> activeProjectInfo = this.getActiveProjectDetailsIfMultiple(teamMemberObj.getEmpId(), projectId);
+									if ((Boolean) activeProjectInfo.get("isMultipleActiveProjects")) {
+									    List<Map<String, Object>> otherProjects = (List<Map<String, Object>>) activeProjectInfo.get("projects");
+									    teamMemberDTO.setOtherActiveProjects(otherProjects);
+									} else {
+									    teamMemberDTO.setOtherActiveProjects(Collections.emptyList());
+									}
+									
 									teamMember.add(teamMemberDTO);
 								} else {
 									// Team Member
@@ -2091,7 +2131,18 @@ public class ResourceManagementService {
 									teamMemberDTO.setEmploymentIdEmployeeType(
 											prefixxTeamMember + empObj.getEmployeementId());
 									teamMemberDTO.setIsShadow(teamMemberObj.getIsShadow() != null ? teamMemberObj.getIsShadow() : null);
-									teamMemberDTO.setIsDefaultProject(teamMemberObj.getIsDefaultProject() != null ? teamMemberObj.getIsDefaultProject() : null);
+									
+									Integer flag = this.isDefaultProject(teamMemberObj.getEmpId(),projectId);
+									teamMemberDTO.setIsDefaultProject(flag != null ? flag: null);
+									
+									Map<String, Object> activeProjectInfo = this.getActiveProjectDetailsIfMultiple(teamMemberObj.getEmpId(), projectId);
+									if ((Boolean) activeProjectInfo.get("isMultipleActiveProjects")) {
+									    List<Map<String, Object>> otherProjects = (List<Map<String, Object>>) activeProjectInfo.get("projects");
+									    teamMemberDTO.setOtherActiveProjects(otherProjects);
+									} else {
+									    teamMemberDTO.setOtherActiveProjects(Collections.emptyList());
+									}
+									
 									teamMember.add(teamMemberDTO);
 								}
 							});
@@ -5609,7 +5660,7 @@ public class ResourceManagementService {
 		        }
 
 		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		        response.setServiceResponse("Updated " + empIds.size() + " employees successfully.");
+		        response.setServiceResponse("Updated " + empIds.size() + " employee(s) successfully.");
 		    } catch (Exception e) {
 		        e.printStackTrace();
 		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -5668,17 +5719,16 @@ public class ResourceManagementService {
 
 	             dto.setEmpId(row[0] != null ? ((Number) row[0]).longValue() : null);
 	             dto.setPrimaryProjectName(row[1] != null ? row[1].toString() : null);
-	             dto.setTeamName(row[2] != null ? row[2].toString() : null);
-	             dto.setStartDate(row[3] != null ? row[3].toString() : null); 
-	             dto.setClientName(row[4] != null ? row[4].toString() : null); 
-	             dto.setBillableType(row[5] != null ? row[5].toString() : null); 
+	             dto.setStartDate(row[2] != null ? row[2].toString() : null); 
+	             dto.setClientName(row[3] != null ? row[3].toString() : null); 
+	             dto.setBillableType(row[4] != null ? row[4].toString() : null); 
 	             
 	 			 response.setServiceResponse(dto);
 				 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				 logBuilder.append("\n Default project details fetched successfully!");
 			}else {
 				response.setServiceResponse("No previous default project mapping!");
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				logBuilder.append("\n No previous default project mapping!");
 			}
 			return response;
@@ -5690,24 +5740,21 @@ public class ResourceManagementService {
 		return response;
 	}
 	
-	private ServiceResponse handleDefaultProjectUpdate(List<EmployeeTeamMap> teamMemberDbResponse, Integer projectId, Long updatedBy, StringBuilder logBuilder) {
+	private ServiceResponse handleDefaultProjectUpdate(List<Long> empIds, Integer projectId, Long updatedBy, StringBuilder logBuilder) {
 		
 		ServiceResponse response = new ServiceResponse();
 		
-	    List<Long> defaultProjectEmpIds = teamMemberDbResponse.stream()
-	        .filter(t -> t.getIsDefaultProject() != null && t.getIsDefaultProject() == 1)
-	        .map(EmployeeTeamMap::getEmpId)
-	        .collect(Collectors.toList());
+		 List<Long> uniqueEmpIds = empIds.stream().distinct().collect(Collectors.toList());
 
-	    if (defaultProjectEmpIds.isEmpty()) {
-	    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("No default project mapping to update.");
-			logBuilder.append("\n No default project mapping to update.");
-			return response;
+	    if (uniqueEmpIds.isEmpty()) {
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("No default project mapping to update.");
+	        logBuilder.append("\n No default project mapping to update.");
+	        return response;
 	    }
 
 	    DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
-	    defaultProjectUpdateDTO.setEmpIds(defaultProjectEmpIds);
+	    defaultProjectUpdateDTO.setEmpIds(uniqueEmpIds);
 	    defaultProjectUpdateDTO.setProjectId(projectId);
 	    defaultProjectUpdateDTO.setUpdatedBy(updatedBy);
 
@@ -5722,6 +5769,61 @@ public class ResourceManagementService {
 	    }
 
 	    return response;
+	}
+	
+	public Map<String, Object> getActiveProjectDetailsIfMultiple(Long empId, Integer currentProjectId) {
+		
+	    Map<String, Object> result = new HashMap<>();
+
+	    List<Map<String, Object>> activeProjects = employeeTeamMapRepository.getActiveProjectIdAndProjectNameByEmpId(empId,currentProjectId); 
+	    
+	    List<Map<String, Object>> distinctProjects = activeProjects.stream()
+	            .collect(Collectors.collectingAndThen(
+	                Collectors.toMap(
+	                    map -> map.get("projectId"),
+	                    map -> map, 
+	                    (existing, replacement) -> existing 
+	                ),
+	                m -> new ArrayList<>(m.values())
+	            ));
+	    
+	    if (activeProjects.size() > 1) {
+	        result.put("isMultipleActiveProjects", true);
+	        result.put("projects", distinctProjects);
+	    } else {
+	        result.put("isMultipleActiveProjects", false);
+	        result.put("projects", Collections.emptyList());
+	    }
+
+	    return result;
+	}
+	
+	public Integer isDefaultProject(Long empId, Integer projectId) {
+		StringBuilder logs = new StringBuilder();
+	    try {
+	        EmpPrimaryProjectMapping empPrimaryProjectMapping = empPrimaryProjectMappingRepository.findByEmpId(empId);
+
+	        if (empPrimaryProjectMapping != null && empPrimaryProjectMapping.getPrimaryProjectId() != null) {
+	            if (Integer.parseInt(empPrimaryProjectMapping.getPrimaryProjectId().toString()) == projectId) {
+	            	System.err.println("The selected project ( projectId : " + projectId +  " ) is the default project for the employee ( empId :  " + empId );
+			        logs.append("The selected project ( projectId : " + projectId +  " ) is the default project for the employee ( empId :  " + empId );
+	                return 1;
+	            } else {
+	            	System.err.println("The selected project ( projectId : " + projectId +  " ) is not the default project for the employee ( empId :  " + empId );
+			        logs.append("The selected project ( projectId : " + projectId +  " ) is not the default project for the employee ( empId :  " + empId );
+	                return 0;
+	            }
+	        } else {
+	        	System.err.println("Mapping not found or null primaryProjectId");
+		        logs.append("\n Mapping not found or null primaryProjectId");
+	            return 0;
+	        }
+	    } catch (Exception e) {
+	        System.err.println("Error in isDefaultProject: " + e.getMessage());
+	        logs.append("\n Error in isDefaultProject: " + e.getMessage());
+	        e.printStackTrace();
+	        return 0;
+	    }
 	}
 
 }

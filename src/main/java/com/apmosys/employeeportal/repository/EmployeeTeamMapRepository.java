@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -233,5 +234,6 @@ List<Object[]> findEmployeeProjectTeamDetailsMatchedBothProjects(@Param("project
  @Query(nativeQuery = true,value ="select etm.emp_id from employee_team_mapping etm inner join teams t on t.team_id = etm.team_id inner join  projects p on p.project_id = t.project_id where etm.is_shadow = 1 and etm.active !=0 and t.is_active = 'Y' and p.project_id = :projectId and etm.emp_id IN :empIds")
  List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> empIds, @Param("projectId") Integer projectId);
 
-
+	 @Query(nativeQuery = true)
+	 List<Map<String, Object>> getActiveProjectIdAndProjectNameByEmpId(Long empId, Integer currentProjectId);
 }

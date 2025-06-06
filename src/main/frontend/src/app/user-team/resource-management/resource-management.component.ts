@@ -7,6 +7,7 @@ import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
+import { DefaultProjectUpdate } from 'src/app/models/defaultProjectUpdate';
 import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { EmployeeInformation } from 'src/app/models/employeeInformation';
@@ -92,6 +93,7 @@ export class ResourceManagementComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
   modalRef2: BsModalRef = new BsModalRef();
   modalRef1: BsModalRef = new BsModalRef();
+  modalRef3: BsModalRef = new BsModalRef();
 
   projectObj: Project = new Project();
   projectObj2: Project = new Project();
@@ -182,7 +184,7 @@ export class ResourceManagementComponent implements OnInit {
   departments: any[] = [];
   totalCount: any;
   projectRequirementsList: ProjectRequirements =  new ProjectRequirements();
-
+  selectedOtherProjectId: any;
   showSearchInput = true;
   teamMembers: TeamMember[] = [];
   newMember: TeamMember = new TeamMember;
@@ -202,7 +204,19 @@ export class ResourceManagementComponent implements OnInit {
   overheadList: any[] = [];
   previousDefaultProjects: PreviousDefaultProject = new PreviousDefaultProject();
   filtered:any[]=[];
+  searchMappedProjectText: any;
+  otherProjectList:any[]=[];
+  filteredOtherProjectList:any[]=[];
 
+  @ViewChild("previous_default_project")
+  previousDefaultProject: TemplateRef<any>;
+
+  @ViewChild("other_project_mappings")
+  otherProjectMappings: TemplateRef<any>;
+  searchTerm:any;
+  defaultProjectUpdate:DefaultProjectUpdate = new DefaultProjectUpdate();
+  defaultProjectUpdateEmpId:any;
+  
   constructor(
     private departmentService: DepartmentService,
     public validationService: ValidationService,
@@ -1429,6 +1443,11 @@ export class ResourceManagementComponent implements OnInit {
     this.alertMessage = message;
   }
 
+  openAlertMod3(template: TemplateRef<any>, message: any) {
+    this.modalRef3 = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
   openShowCreateForm(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   }
@@ -1449,6 +1468,12 @@ export class ResourceManagementComponent implements OnInit {
     console.log("cancel call ");
 
     this.modalRef2.hide();
+  }
+
+  cancelRequest3() {
+    console.log("cancel call 3");
+
+    this.modalRef3.hide();
   }
 
   previewTeamModal(template: TemplateRef<any>, teamObj: any, projectObj: any) {
@@ -1623,11 +1648,10 @@ onAction(action: string, project: any) {
 
 
   deleteResourceFromProject(template: TemplateRef<any>) {
-
-
     let projectObj = new Project();
     projectObj.teamId = this.projectObj2.teamId;
     projectObj.empId = this.projectObj2.empId;
+    projectObj.endDate = this.lastDate1;
 
     console.log("team details ", projectObj)
     this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
@@ -1641,10 +1665,6 @@ onAction(action: string, project: any) {
     })
 
   }
-
-  // againCall(){
-  //   this.getExistingProjectsByUser(this.projectObj);
-  // }
 
   openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
     this.getExistingProjectsByUser(employee.empId).then((projectDetails) => {
@@ -2026,10 +2046,10 @@ TotalEmployeeCount(){
     this.getResourceRequirementByPoProjectId(projectObj.id);
     }
 
-    // projectObj.resourceRequirements.forEach(requirement => {
-    //   requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
-    //   requirement.assigned = requirement.teamMembers.length;
-    // });
+    projectObj.resourceRequirements.forEach(requirement => {
+      requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
+      requirement.assigned = requirement.teamMembers.length;
+    });
 
     if(projectObj.resourceRequirements != null){
       this.projectObj.resourceRequirements.forEach(req => {
@@ -2478,15 +2498,28 @@ deleteResourceFromProjectBulk(template: TemplateRef<any>) {
     this.resourceManagementService.getPreviousDefaultProjectDetails(empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.previousDefaultProjects = response.serviceResponse;
+        this.modalRef = this.modalService.show(this.previousDefaultProject, { class: 'custom-modal' });
       } else {
+        this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
         console.error("Error employee informations");
       }
     });
   }
 
-  onDefaultProjectCheckboxChange(template: TemplateRef<any>,empId) {
-    this.getPreviousDefaultProjectDetails(empId);
-    this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
+  onDefaultProjectCheckboxChange(event: Event,member) {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    if (isChecked) {
+      member.isDefaultProject = 1;
+      this.getPreviousDefaultProjectDetails(member.empId);
+    } else {
+      member.isDefaultProject = 0;
+      if (member.otherActiveProjects && member.otherActiveProjects.length > 0) {
+      this.otherProjectList = member.otherActiveProjects;
+      this.filteredOtherProjectList = this.otherProjectList;
+      this.defaultProjectUpdateEmpId = member.empId;
+      this.modalRef = this.modalService.show(this.otherProjectMappings, { class: 'custom-modal' });
+      }
+    }
   }
 
   filterDepartmentsInternalForm() {
@@ -2664,4 +2697,39 @@ deleteResourceFromProjectBulk1(template: TemplateRef<any>) {
        window.location.reload();
     });
 }
+
+filterMappedProjects() {
+  const lowerText = this.searchMappedProjectText.trim().toLowerCase();
+  const filteredOtherProjectList = this.otherProjectList.filter(project =>
+    project.projectName.toLowerCase().includes(lowerText)
+  );
+}
+
+clearSelectionMappedProjects(event: Event): void {
+    event.stopPropagation();
+    // binding variable
+    // this.otherProjectList = [];
+  }
+
+  filterOtherProjects() {
+    const lowerSearch = this.searchTerm.toLowerCase();
+    this.filteredOtherProjectList = this.otherProjectList.filter(project =>
+      project.projectName.toLowerCase().includes(lowerSearch)
+    );
+  }
+
+  setDefaultProjectUpdateBillable(empId,projectId){
+    this.defaultProjectUpdate.empIds= [empId];
+    this.defaultProjectUpdate.projectId = projectId;
+    this.defaultProjectUpdate.updatedBy = this.currentUser.empId;
+    this.resourceManagementService.setDefaultProjectUpdateBillable(this.defaultProjectUpdate).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+      } else {
+        this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+        console.error("Error setting the default project!");
+      }
+    });
+  }
+
 }

@@ -285,5 +285,10 @@ public class ResourceManagementController {
 	public ServiceResponse getPreviousDefaultProjectDetails(@RequestParam Long empId) {
 	    return resourceManagementService.getPreviousDefaultProjectDetails(empId);
 	}
+	
+	@PostMapping("/setDefaultProjectUpdateBillable")
+	public ServiceResponse setDefaultProjectUpdateBillable(@RequestBody DefaultProjectUpdateDTO defaultProjectUpdateDTO) {
+		return resourceManagementService.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
+	}
 
 }
