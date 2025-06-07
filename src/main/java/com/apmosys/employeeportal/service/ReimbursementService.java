@@ -698,7 +698,7 @@ public class ReimbursementService {
 			if (existingReimbursementData.getLevel() == 1) {
 				updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
 
-				if (existingReimbursementData.getStatus() == "Approved") {
+				if ("Approved".equals(existingReimbursementData.getStatus())){
 
 					if (existingReimbursementData.getExpenditureType().equals("Food")) {
 						
@@ -781,7 +781,8 @@ public class ReimbursementService {
 				updateApprovalLevel(existingReimbursementData, currentTimestamp, reimbursementObj);
 				
 				//Before approval of levl 2
-				if(existingReimbursementData.getLevel2approverStatus() == "Approved") {
+				//if(existingReimbursementData.getLevel2approverStatus() == "Approved") {
+				if ("Approved".equals(existingReimbursementData.getLevel2approverStatus())) {
 				if (existingReimbursementData.getExpenditureType().equals("Food")) {
 					
 					 // To Accounts and HR
@@ -1242,7 +1243,8 @@ public ServiceResponse saveExpenditureType(ExpenditureTypeDTO expenditureTypeDTO
     	expenditureType.setIsActive("Y");
     	expenditureType.setCreatedBy(expenditureTypeDTO.getCreatedBy());
     	System.out.println(expenditureType.toString());
-
+    	Employee empName = employeeRepository.findByEmpId(expenditureTypeDTO.getCreatedBy());
+    	expenditureType.setCreatedByName(empName.getName());
     	ExpenditureType savedType = expenditureTypeRepository.save(expenditureType);
 
         serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1293,7 +1295,8 @@ public ServiceResponse saveTravelMode(TravelModeDTO travelModeDTO) {
         mode.setIsActive("Y");
         mode.setRequiresVehicleType(travelModeDTO.getRequiresVehicleType());
         mode.setCreatedBy(travelModeDTO.getCreatedBy());
-
+        Employee empName = employeeRepository.findByEmpId(travelModeDTO.getCreatedBy());
+        mode.setCreatedByName(empName.getName());
         reimbursementTravelModeRepository.save(mode);
 
         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1321,6 +1324,9 @@ public ServiceResponse getAllgetTravelModes() {
             dto.setIsActive(mode.getIsActive());
             dto.setCreatedBy(mode.getCreatedBy());
             dto.setCreatedOn(mode.getCreatedOn());
+            dto.setCreatedByName(mode.getCreatedByName());
+            
+            
 
 
 
@@ -1348,7 +1354,8 @@ public ServiceResponse saveVehicleType(TravelModeDTO travelModeDTO) {
     	vehicleType.setDescription(travelModeDTO.getDescription());
     	vehicleType.setIsActive("Y");
     	vehicleType.setCreatedBy(travelModeDTO.getCreatedBy());
-
+    	Employee empName = employeeRepository.findByEmpId(travelModeDTO.getCreatedBy());
+    	vehicleType.setCreatedByName(empName.getName());
     	VehicleType savedType = vehicleTypeRepository.save(vehicleType);
 
         serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1392,7 +1399,8 @@ public ServiceResponse saveFoodType(TravelModeDTO travelModeDTO) {
     	foodType.setDescription(travelModeDTO.getDescription());
     	foodType.setIsActive("Y");
     	foodType.setCreatedBy(travelModeDTO.getCreatedBy());
-
+    	Employee empName = employeeRepository.findByEmpId(travelModeDTO.getCreatedBy());
+    	foodType.setCreatedByName(empName.getName());
     	FoodType savedType = foodTypeRepository.save(foodType);
 
         serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

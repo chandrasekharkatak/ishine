@@ -281,7 +281,32 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/saveTravelData`,
     `${this.baseUrl}` + `api/uploadFile`,
     `${this.baseUrl}` + `api/updateTravelData`,
-    `${this.baseUrl}` + `api/revokeTravel`
+    `${this.baseUrl}` + `api/revokeTravel`,
+    `${this.baseUrl}`+`api/travel-reason/create`,
+    `${this.baseUrl}` + `api/getTravelReason`,
+    `${this.baseUrl}`+`api/saveTravelMode`,
+    `${this.baseUrl}` + `api/getTravelMode`,
+    `${this.baseUrl}`+`api/saveTravelClass`,
+    `${this.baseUrl}api/getTravelModeByReason`,
+    `${this.baseUrl}`+`api/saveHotelCategory`,
+    `${this.baseUrl}` + `api/getHotelCategory`,
+    `${this.baseUrl}`+`api/saveHotelSubCategory`,
+    `${this.baseUrl}` + `api/getHotelSubCategory`,
+    `${this.baseUrl}`+`api/saveCity`,
+    `${this.baseUrl}api/getTravelClassByMode`,
+    `${this.baseUrl}api/getCityBySubCategory`,
+    `${this.baseUrl}` + `api/getCity`,
+    `${this.baseUrl}` + `api/onGetTravelCass`,
+    `${this.baseUrl}`+`api/uploadKycDocument`,
+    `${this.baseUrl}` + `api/onGetFoodType`,
+    `${this.baseUrl}`+`api/saveFoodType`, 
+    `${this.baseUrl}` + `api/onGetVehicleType`,
+    `${this.baseUrl}`+`api/saveVehicleType`,
+    `${this.baseUrl}` + `api/getReimbursementTravelMode`,
+    `${this.baseUrl}`+`api/saveReimbursementTravelMode`,
+    `${this.baseUrl}`+`api/saveExpenditureType`,
+    `${this.baseUrl}` + `api/onGetExpenditureType`,
+    `${this.baseUrl}`+`api/markAsPaid`
 
   ]
 

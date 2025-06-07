@@ -78,9 +78,9 @@
                                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                                <!-- <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                                 </th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th> -->
                                 <!-- <th scope="col" class="info-label">Actions</th> -->
                               
                             </tr>
@@ -97,10 +97,10 @@
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
                                 <td>{{review.expenditureTypeName}}</td>
                                 <td>{{review.description}}</td>
-                                <td>{{review.createdBy}}</td>
-                                <td>{{review.createdOn || "NA"}}</td>
-                                <td>{{review.updatedBy || "NA"}}</td>
-                                <td>{{review.updatedOn || "NA"}}</td>
+                                <td>{{review.createdByName}}</td>
+                               <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <!-- <td>{{review.updatedBy || "NA"}}</td>
+                                <td>{{review.updatedOn || "NA"}}</td> -->
                              
                             </tr> 
 
@@ -193,8 +193,8 @@
                                 <td>{{review.modeType}}</td>
                                 <td>{{review.requiresVehicleType}}</td>
                                 <td>{{review.description}}</td>
-                                <td>{{review.createdBy || "NA"}}</td>
-                                <td>{{review.createdOn || "NA"}}</td>
+                                <td>{{review.createdByName}}</td>
+                                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
                           
                             </tr> 
 
@@ -268,9 +268,9 @@
                                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                                <!-- <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                                 </th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th> -->
                                 <!-- <th scope="col" class="info-label">Actions</th> -->
                                 
                             </tr>
@@ -288,10 +288,10 @@
 
                                 <td>{{review.vehicleTypeName}}</td>
                                 <td>{{review.description}}</td>
-                                <td>{{review.createdBy}}</td>
-                                <td>{{review.createdOn || "NA"}}</td>
-                                <td>{{review.updatedBy || "NA"}}</td>
-                                <td>{{review.updatedOn || "NA"}}</td>
+                               <td>{{review.createdByName}}</td>
+                                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <!-- <td>{{review.updatedBy || "NA"}}</td>
+                                <td>{{review.updatedOn || "NA"}}</td> -->
                             </tr> 
 
                         </tbody>
@@ -586,9 +586,9 @@
                                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                                <!-- <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                                 </th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th> -->
                                 <!-- <th scope="col" class="info-label">Actions</th> -->
                                 
                             </tr>
@@ -606,10 +606,10 @@
 
                                 <td>{{review.foodTypeName}}</td>
                                 <td>{{review.description || "NA"}}</td>
-                                <td>{{review.createdBy}}</td>
-                                <td>{{review.createdOn || "NA"}}</td>
-                                <td>{{review.updatedBy || "NA"}}</td>
-                                <td>{{review.updatedOn || "NA"}}</td>
+                                <td>{{review.createdByName}}</td>
+                                <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <!-- <td>{{review.updatedBy || "NA"}}</td>
+                                <td>{{review.updatedOn || "NA"}}</td> -->
                             </tr> 
 
                         </tbody>

@@ -168,12 +168,13 @@ export class ViewReimbursementComponent implements OnInit {
         const response: any = await this.reimbursementService.updateReimbursementData(newreimbursementData).toPromise();
 
         if (response.serviceStatus === "Success") {
-          this.openAlertMod2(template, "Success! Your data was updated successfully. !!");
+          this.openAlertMod2(template, "Success! Your data is updated successfully. !!");
 
           //alert("Success! Your data was updated successfully.");
           console.log('Updated Travel Request:', this.selectedReimbursementRequest);
-          this.modalRef.hide();
           this.onGetReimbursementInfo();
+          this.modalRef.hide();
+         
         } else {
           console.error('Error updating reimbursement request:', response.serviceResponse);
           this.openAlertMod2(template, "There was an issue updating the data.. !!");

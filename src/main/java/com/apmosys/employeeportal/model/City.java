@@ -27,7 +27,7 @@ public class City {
     private String description;
     private String isActive = "Y";
     private Long createdBy;
-
+    private String createdByName;
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
     private Timestamp createdOn;
 }

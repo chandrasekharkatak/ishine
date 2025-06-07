@@ -182,7 +182,7 @@
       </thead>
       <tbody>
         <ng-container
-          *ngFor="let key of objectKeys(groupedInvoiceData) | paginate: { itemsPerPage: 10, currentPage: page }">
+          *ngFor="let key of objectKeys(groupedInvoiceData) ">
           <ng-container *ngIf="groupedInvoiceData[key].invoices.length > 0">
             <tr *ngFor="let invoice of groupedInvoiceData[key].invoices; let i = index">
               <td *ngIf="i === 0" [attr.rowspan]="groupedInvoiceData[key].invoices.length">{{
@@ -235,8 +235,8 @@
         </ng-container>
       </tbody>
     </table>
-    <pagination-controls class="my-3 justify-content-center" (pageChange)="handlePageChange($event)">
-    </pagination-controls>
+    <!-- <pagination-controls class="my-3 justify-content-center" (pageChange)="handlePageChange($event)">
+    </pagination-controls> -->
   </div>
 </div>
 
@@ -602,7 +602,7 @@
             <div class="col-md-3">
               <label class="info-label"><span class="text-danger">*</span>Invoice No</label>
               <input type="text" class="form-control" [(ngModel)]="invoice.invoiceNo"
-                (blur)="checkInvoiceNumberPresentorNot(alert_message,invoice.invoiceNo)" name="invoiceNo{{i}}"
+                (blur)="checkInvoiceNumberAgainstResubmit(alert_message,invoice.invoiceNo)" name="invoiceNo{{i}}"
                 required />
 
             </div>

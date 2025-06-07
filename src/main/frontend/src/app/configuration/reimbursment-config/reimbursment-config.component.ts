@@ -285,6 +285,8 @@ toggleSearchReviewType() {
         this.openAlertMod(template, "Expenditure submitted successfully!");
         this.resetForm();
         this.modalRef.hide();
+        this.onGetExpenditureType();
+        this.showQuaterTable();
       }
       else {
         this.openAlertMod(template, "Submission failed. Try again.!");
@@ -348,6 +350,8 @@ toggleSearchReviewType() {
       // }
       this.openAlertMod(template, 'Travel Mode saved successfully!');
       this.resetForm();
+     this.onGetTravelMode();
+     this.subCategory();
     } catch (error) {
       console.error('API error:', error);
       this.openAlertMod(template, 'Unexpected error occurred!');
@@ -387,6 +391,8 @@ toggleSearchReviewType() {
         this.openAlertMod(template, "Vehicle submitted successfully!");
         this.resetForm();
         this.modalRef.hide();
+        this.classCategory();
+        this.onGetVehicleType();
       }
       else {
         this.openAlertMod(template, "Submission failed. Try again.!");
@@ -435,6 +441,8 @@ toggleSearchReviewType() {
         this.openAlertMod(template, "Food Type submitted successfully!");
         this.resetForm();
         this.modalRef.hide();
+        this.onGetFoodType();
+        this.foodTypeTable();
       }
       else {
         this.openAlertMod(template, "Submission failed. Try again.!");

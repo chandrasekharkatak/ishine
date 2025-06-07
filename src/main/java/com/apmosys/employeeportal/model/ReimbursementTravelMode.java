@@ -25,7 +25,7 @@ public class ReimbursementTravelMode {
     private String isActive;
     private String requiresVehicleType;
     private Long createdBy;
-
+    private String createdByName;
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
     private Timestamp createdOn;
 }

@@ -791,4 +791,19 @@ export class ViewTravelrequestComponent implements OnInit {
 
   }
 
+
+checkInvoiceNumberAgainstResubmit(template: TemplateRef<any>, invoiceNo) {
+    const invoice = {
+      invoiceNo: invoiceNo,
+      serialNo:this.serialNo
+    };
+    console.log("Test", this.invoices);
+    this.travelDesk.checkInvoiceNumberAgainstResubmit(invoice).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.invoices = [];
+        this.addInvoiceRow()
+        this.openAlertMod1(template, response.serviceResponse);
+      }
+    });
+  }
 }

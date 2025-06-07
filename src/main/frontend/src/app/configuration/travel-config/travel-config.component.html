@@ -88,9 +88,9 @@
                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
                 </th>
                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                <!-- <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                 </th>
-                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th> -->
                 <!-- <th scope="col" class="info-label">Action</th> -->
 
 
@@ -109,11 +109,10 @@
                 <th scope="col" class="info-label">{{10*(page-1)+i+1}}</th>
                 <td>{{review.travelReasonName}}</td>
                 <td>{{review.description}}</td>
-                <!-- <td>{{review.createdBy}}</td> -->
-                <td>Sakti Das</td>
+                 <td>{{review.createdByName}}</td> 
                 <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
-                <td>{{review.updatedBy}}</td>
-                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                <!-- <td>{{review.updatedBy}}</td>
+                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td> -->
                 <!-- <td>
                   <button class="btn btn-outline-danger" type="button"
                     (click)="openDeleteModal(delete_type_modal,review)"><em class="fa fa-trash"></em></button>&nbsp;
@@ -191,9 +190,9 @@
                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
                 </th> 
                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                <!-- <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                 </th>
-                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th> -->
                 <!-- <th scope="col" class="info-label">Actions</th> -->
               </tr>
               <tr app-column-filter-bar *ngIf="istravelMode && isSearchEnabledReview" [columnList]="reviewColumns1"
@@ -209,11 +208,10 @@
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
                                 <td>{{review.modeType}}</td>
                                 <td>{{review.description}}</td>
-                                <!-- <td>{{review.createdBy}}</td> -->
-                                <td>Sakti Das</td>
+                                <td>{{review.createdByName}}</td> 
                                 <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
-                                <td>{{review.updatedBy}}</td>
-                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <!-- <td>{{review.updatedBy}}</td>
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td> -->
                                 
                             </tr> 
 
@@ -286,9 +284,9 @@
                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
                 </th> 
                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                <!-- <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                 </th>
-                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th> -->
                 <!-- <th scope="col" class="info-label">Actions</th> -->
               </tr>
               <tr app-column-filter-bar *ngIf="isClass && isSearchEnabledReview" [columnList]="reviewColumns2"
@@ -304,11 +302,10 @@
                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
                 <td>{{review.travelClass}}</td>
                 <td>{{review.description}}</td>
-                <!-- <td>{{review.createdBy}}</td> -->
-                <td>Sakti Das</td>
+                 <td>{{review.createdByName}}</td> 
                 <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
-                <td>{{review.updatedBy}}</td>
-                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                <!-- <td>{{review.updatedBy}}</td>
+                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td> -->
                 
             </tr> 
 
@@ -380,9 +377,9 @@
                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
                 </th> 
                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                <!-- <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                 </th>
-                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th> -->
                 <!-- <th scope="col" class="info-label">Actions</th> -->
               </tr>
               <tr app-column-filter-bar *ngIf="isHotelCategory && isSearchEnabledReview" [columnList]="reviewColumns3"
@@ -398,11 +395,10 @@
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
                                 <td>{{review.hotelCategory}}</td>
                                 <td>{{review.description}}</td>
-                                <!-- <td>{{review.createdBy}}</td> -->
-                                <td>Sakti Das</td>
+                                 <td>{{review.createdByName}}</td> 
                                 <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
-                                <td>{{review.updatedBy}}</td>
-                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <!-- <td>{{review.updatedBy}}</td>
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td> -->
                                
                             </tr> 
 
@@ -473,9 +469,9 @@
                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
                 </th> 
                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                <!-- <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                 </th>
-                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th> -->
                 <!-- <th scope="col" class="info-label">Actions</th> -->
               </tr>
               <tr app-column-filter-bar *ngIf="isHotelSubCategory && isSearchEnabledReview" [columnList]="reviewColumns4"
@@ -491,11 +487,10 @@
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
                                 <td>{{review.hotelSubCategoryName}}</td>
                                 <td>{{review.description}}</td>
-                                <!-- <td>{{review.createdBy}}</td> -->
-                                <td>Sakti Das</td>
+                                 <td>{{review.createdByName}}</td> 
                                 <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
-                                <td>{{review.updatedBy}}</td>
-                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <!-- <td>{{review.updatedBy}}</td>
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td> -->
                                
                             </tr> 
 
@@ -566,9 +561,9 @@
                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By
                 </th> 
                 <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
-                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
+                <!-- <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
                 </th>
-                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th> -->
                 <!-- <th scope="col" class="info-label">Actions</th> -->
               </tr>
               <tr app-column-filter-bar *ngIf="isCity && isSearchEnabledReview" [columnList]="reviewColumns5"
@@ -584,11 +579,10 @@
                                 <th scope="col" class="info-label">{{items*(page-1)+i+1}}</th>
                                 <td>{{review.cityName}}</td>
                                 <td>{{review.description}}</td>
-                                <!-- <td>{{review.createdBy}}</td> -->
-                                <td>Sakti Das</td>
+                                 <td>{{review.createdByName}}</td> 
                                 <td>{{review.createdOn ? (review.createdOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
-                                <td>{{review.updatedBy}}</td>
-                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td>
+                                <!-- <td>{{review.updatedBy}}</td>
+                                <td>{{review.updatedOn ? (review.updatedOn | date: 'dd-MM-yyyy hh:mm:ss') : 'NA' }}</td> -->
                                
                             </tr> 
 
@@ -640,7 +634,7 @@
           <strong>Reason For Travel</strong>
       </div>
     <div class="card-body">
-      <form #reasonForm="ngForm" (ngSubmit)="submitTravelReason(alert_message,alert_message2)">
+      <form #reasonForm="ngForm" (ngSubmit)="submitTravelReason(alert_message1,alert_message2)">
         <div class="form-row">
           <!-- Travel Reason Name -->
           <div class="form-group col-md-4">
@@ -700,7 +694,7 @@
         <strong>Travel Mode</strong>
     </div>
     <div class="card-body">
-      <form #modeForm="ngForm" (ngSubmit)="submitTravelMode(alert_message,alert_message2)">
+      <form #modeForm="ngForm" (ngSubmit)="submitTravelMode(alert_message1,alert_message2)">
         <div class="row">
 
           <!-- Reason For Travel (Native select dropdown) -->
@@ -760,7 +754,7 @@
     </div>
     <div class="card-body">
 
-      <form #travelClassForm="ngForm" (ngSubmit)="submitTravelClass(alert_message,alert_message2)">
+      <form #travelClassForm="ngForm" (ngSubmit)="submitTravelClass(alert_message1,alert_message2)">
 
         <div class="row">
           <!-- Reason For Travel Dropdown -->
@@ -834,7 +828,7 @@
         <strong>Hotel Booking Category</strong>
     </div>
     <div class="card-body">
-      <form #reasonForm="ngForm" (ngSubmit)="submitHotelCategory(alert_message)">
+      <form #reasonForm="ngForm" (ngSubmit)="submitHotelCategory(alert_message1)">
         <div class="form-row">
           <!-- Hotel Category Name -->
           <div class="form-group col-md-4">

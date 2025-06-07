@@ -92,4 +92,10 @@ public class ReimbursmentBasedOnTravelRequestController {
 	public ResponseEntity<ServiceResponse> markAsPaid(@RequestBody TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
 		return ResponseEntity.ok(travelBasedService.markAsPaid(reimbursementRequestDTO));
 	}
+	
+	@RequestMapping(value = "/checkInvoiceNumberAgainstResubmit", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> checkInvoiceNumberAgainstResubmit(@RequestBody TravelBasedReimbursementRequestDTO reimbursementRequestDTO) {
+		return ResponseEntity.ok(travelBasedService.checkInvoiceNumberAgainstResubmit(reimbursementRequestDTO));
+	}
+	
 }

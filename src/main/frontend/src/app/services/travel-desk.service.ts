@@ -165,4 +165,8 @@ export class TravelDeskService {
     return this.http.post(`${this.baseUrl}`+`api/uploadKycDocument`,formData);
   }
   
+checkInvoiceNumberAgainstResubmit(invoiceDetails:any){
+    return this.http.post(`${this.baseUrl}`+`api/checkInvoiceNumberAgainstResubmit`,invoiceDetails);
+  }
+  
 }

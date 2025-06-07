@@ -405,6 +405,7 @@ docList: any[] = [];
         if (response.serviceStatus == "Success") {
           
           this.openAlertMod(template, response.serviceResponse);
+          this.fetchAllInvoice();
         } else {
 
           this.openAlertMod(template, response.serviceResponse);

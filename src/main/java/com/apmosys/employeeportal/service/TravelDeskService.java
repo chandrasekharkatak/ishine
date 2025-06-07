@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.File;
+import org.springframework.data.domain.Sort;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -11,6 +12,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -1195,7 +1197,8 @@ try {
 	        travelReason.setDescription(travelReasonDTO.getDescription());
 	        travelReason.setIsActive("Y");
 	        travelReason.setCreatedBy(travelReasonDTO.getCreatedBy());
-
+	        Employee empName = employeeRepository.findByEmpId(travelReasonDTO.getCreatedBy());
+	        travelReason.setCreatedByName(empName.getName());
 	        TravelReason savedReason = travelReasonRepository.save(travelReason);
 
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1212,7 +1215,8 @@ try {
 	public ServiceResponse getAllTravelReasons() {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
-	        List<TravelReason> reasonList = travelReasonRepository.findAll();
+	        List<TravelReason> reasonList = travelReasonRepository.findAll();				
+
 
 	        if (reasonList.isEmpty()) {
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -1247,7 +1251,8 @@ try {
 	        mode.setDescription(travelModeDTO.getDescription());
 	        mode.setIsActive("Y");
 	        mode.setCreatedBy(travelModeDTO.getCreatedBy());
-
+	        Employee empName = employeeRepository.findByEmpId(travelModeDTO.getCreatedBy());
+	        mode.setCreatedByName(empName.getName());
 	        travelModeRepository.save(mode);
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1298,6 +1303,7 @@ try {
 	            dto.setIsActive(mode.getIsActive());
 	            dto.setCreatedBy(mode.getCreatedBy());
 	            dto.setCreatedOn(mode.getCreatedOn());
+	            dto.setCreatedByName(mode.getCreatedByName());
 	            if (mode.getTravelReason() != null) {
 	                dto.setTravelReasonName(mode.getTravelReason().getTravelReasonName());
 	            } else {
@@ -1390,7 +1396,8 @@ try {
 	            travelClass.setDescription(dto.getDescription());
 	            travelClass.setCreatedBy(dto.getCreatedBy());
 	            travelClass.setIsActive("Y");
-
+	            Employee empName = employeeRepository.findByEmpId(dto.getCreatedBy());
+	            travelClass.setCreatedByName(empName.getName());
 	            travelClassRepository.save(travelClass);
 
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1667,7 +1674,8 @@ try {
 	        hotelCategory.setDescription(hotelCategoryDTO.getDescription());
 	        hotelCategory.setIsActive("Y");
 	        hotelCategory.setCreatedBy(hotelCategoryDTO.getCreatedBy()); 
-
+	        Employee empName = employeeRepository.findByEmpId(hotelCategoryDTO.getCreatedBy());
+	        hotelCategory.setCreatedByName(empName.getName());
 	        HotelCategory savedCategory = hotelCategoryRepository.save(hotelCategory);
 
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1725,7 +1733,8 @@ try {
 	        subCategory.setDescription(dto.getDescription());
 	        subCategory.setIsActive("Y");
 	        subCategory.setCreatedBy(dto.getCreatedBy());
-
+	        Employee empName = employeeRepository.findByEmpId(dto.getCreatedBy());
+	        subCategory.setCreatedByName(empName.getName());
 	        hotelSubCategoryRepository.save(subCategory);
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1783,7 +1792,8 @@ try {
 	        city.setDescription(dto.getDescription());
 	        city.setIsActive("Y");
 	        city.setCreatedBy(dto.getCreatedBy());
-
+	        Employee empName = employeeRepository.findByEmpId(dto.getCreatedBy());
+	        city.setCreatedByName(empName.getName());
 	        cityRepository.save(city);
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

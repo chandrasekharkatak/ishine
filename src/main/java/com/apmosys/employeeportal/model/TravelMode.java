@@ -24,7 +24,7 @@ public class TravelMode {
     private String description;
     private String isActive;
     private Long createdBy;
-
+    private String createdByName;
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
     private Timestamp createdOn;
 }

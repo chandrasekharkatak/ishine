@@ -23,10 +23,12 @@ public class TravelReason {
     private String isActive;
 
     private Long createdBy;
+    
     private Long updatedBy;
 
     @Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
     private Timestamp createdOn;
 
     private Timestamp updatedOn;
+    private String createdByName;
 }

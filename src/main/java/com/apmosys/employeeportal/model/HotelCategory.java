@@ -24,7 +24,7 @@ public class HotelCategory {
 
     private Long createdBy;
     private Long updatedBy;
-
+    private String createdByName;
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
     private Timestamp createdOn;
 

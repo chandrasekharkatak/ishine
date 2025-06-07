@@ -20,4 +20,5 @@ public class TravelModeDTO {
     private String vehicleTypeName;
     private String travelReasonName;
     private String foodTypeName;
+    private String createdByName;
 }

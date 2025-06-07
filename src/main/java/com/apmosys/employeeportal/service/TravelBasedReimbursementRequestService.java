@@ -831,4 +831,49 @@ public ServiceResponse updateUploadedFile(MultipartFile file, String displayName
 		return response;
       }
 	
+      
+      
+
+public ServiceResponse checkInvoiceNumberAgainstResubmit(TravelBasedReimbursementRequestDTO reimbursementDTO) {
+	 
+	 
+	 ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("checkInvoiceNumberAgainstResubmit");
+	    apiLogInfo.setApiUrl("/api/checkInvoiceNumberAgainstResubmit");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+//	    logBuilder.append("Newsletter: ").append(displayName)
+//	              .append(", uploadedBy: ").append(uploadedBy);
+
+	    try {
+	    	Boolean invoiceDetails= travelBasedReimbursementRequestRepository.canUpdateInvoiceSerial(reimbursementDTO.getInvoiceNo(),reimbursementDTO.getSerialNo());
+	       if(invoiceDetails) {
+	    	    response.setServiceResponse("Invoice Nuber is not present");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("Invoice Number is not present");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        } else {
+	        	 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse("Dublicate Invoice Number");
+		            response.setServiceMessage("Dublicate Invoice Number");
+		            apiLogInfo.setApiResponse("Dublicate Invoice Number");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    return response;
+	
+	
+}
 }
