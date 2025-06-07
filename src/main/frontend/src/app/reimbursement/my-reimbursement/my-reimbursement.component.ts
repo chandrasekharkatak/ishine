@@ -90,6 +90,8 @@ vehicleTypeList:any[] = [];
 
   onReasonSelect() {
     this.reimbursementObj.amount = 0;
+    this.reimbursementObj.travelMode =null;
+    this.reimbursementObj.vehicleType = null;
     console.log(this.reimbursementObj.expenditureType);
     if (this.reimbursementObj.expenditureType === 'Travel') {
       this.isTravel = true;

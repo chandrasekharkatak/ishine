@@ -167,6 +167,10 @@ export class MyTravelrequestComponent implements OnInit {
     location.reload();
   }
 
+  cancelRequest3() {
+    this.modalRef.hide();
+  }
+
   cancelRequest1() {
     this.modalRef.hide();
   }

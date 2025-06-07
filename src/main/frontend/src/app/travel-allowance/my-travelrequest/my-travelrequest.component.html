@@ -179,7 +179,7 @@
                             <span class="text-danger">*</span> Kyc Document
                         </label>
                         <div class="d-flex align-items-center">
-                            <input type="file" class="form-control" (change)="onFileSelected($event,alert_message)" />
+                            <input type="file" class="form-control" (change)="onFileSelected($event,alert_message3)" />
                         </div>
                     </div>
                 </div>
@@ -246,5 +246,13 @@
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest1()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+
+<ng-template #alert_message3>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest3()">OK</button>&nbsp;
     </div>
 </ng-template>
