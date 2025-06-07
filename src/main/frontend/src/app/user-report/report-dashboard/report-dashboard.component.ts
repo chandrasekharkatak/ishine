@@ -61,6 +61,12 @@ interface Project {
   projectName: string;
 }
 
+interface DepartmentKycCountDTO {
+  departmentName: string;
+  status: string;
+  empCount: number;
+}
+
 @Component({
   selector: 'app-report-dashboard',
   templateUrl: './report-dashboard.component.html',
@@ -215,8 +221,23 @@ export class ReportDashboardComponent implements OnInit {
   userMapping: any = {};
   feature = 'Reports';
 
+  departmentKycData: any[] = [];
+  kycChartData: any[] = [
+    {
+      name: 'Pending',
+      data: []
+    },
+    {
+      name: 'Completed',
+      data: []
+    }
+  ];
+
+  departmentCategories: string[] = [];
+  selectedYear: number;
 
   constructor(
+    private reportService: ReportService,
     private leaveService: LeaveService,
     private timesheetService: TimesheetService,
     private modalService: BsModalService,
@@ -227,7 +248,6 @@ export class ReportDashboardComponent implements OnInit {
     private domainService: DomainService,
     private authenticationService: AuthenticationService,
     public utilityService: UtilityService,
-    public reportService: ReportService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
@@ -237,6 +257,8 @@ export class ReportDashboardComponent implements OnInit {
     });
     this.sectionViewInit();
     this.preventBackButton();
+    this.loadDepartmentWiseKycData();
+    this.loadJoinResignData();
     this.getAllPieChartCount();
   }
 
@@ -2017,7 +2039,7 @@ export class ReportDashboardComponent implements OnInit {
 
 
     // console.log("finalEmpJoinResignData :", finalEmpJoinResignData);
-    this.renderMultiBarChart('Employee Join VS Resign', 'employeeJoinAndResign', finalEmpJoinResignData, 'Employee', this.openEmployeeJoinResignModalTable.bind(this));
+    // this.renderMultiBarChart('Employee Join VS Resign', 'employeeJoinAndResign', finalEmpJoinResignData, 'Employee', this.openEmployeeJoinResignModalTable.bind(this));
     // this.renderMultiBarChart('Employee Join VS Resign','employeeJoinAndResign',empJoinResignData,'Employee', this.openEmployeeJoinResignModalTable.bind(this));
 
     /*
@@ -2035,42 +2057,42 @@ export class ReportDashboardComponent implements OnInit {
       stack: 'base'
     }];
 
-    let departmentCategories = employeeByDepartment.map(dept => {
-      return [dept.departmentName]
-    });
+    // let departmentCategories = employeeByDepartment.map(dept => {
+    //   return [dept.departmentName]
+    // });
 
-    let departmentKycData = Object.entries(departmentList).map(entry => {
-      //console.log("entry : ", entry);
-      const name = entry[0];
-      const employeeList: any = entry[1];
+    // let departmentKycData = Object.entries(departmentList).map(entry => {
+    //   //console.log("entry : ", entry);
+    //   const name = entry[0];
+    //   const employeeList: any = entry[1];
 
-      let pendingCount = 0;
-      let completedCount = 0;
+    //   let pendingCount = 0;
+    //   let completedCount = 0;
 
-      employeeList.forEach(employee => {
-        if (employee.profileCompletedPercent == CHECK_PERCENT) {
-          completedCount++;
-        } else {
-          pendingCount++;
-        }
-      });
+    //   employeeList.forEach(employee => {
+    //     if (employee.profileCompletedPercent == CHECK_PERCENT) {
+    //       completedCount++;
+    //     } else {
+    //       pendingCount++;
+    //     }
+    //   });
 
-      return {
-        pending: pendingCount,
-        completed: completedCount,
-        departmentName: name
-      }
-    });
+    //   return {
+    //     pending: pendingCount,
+    //     completed: completedCount,
+    //     departmentName: name
+    //   }
+    // });
 
     //console.log("departmentKycData : ", departmentKycData);
-    departmentKycData.forEach(dept => {
-      kycChartData[0].data.push(dept.pending);
-      kycChartData[1].data.push(dept.completed);
-    });
+    // departmentKycData.forEach(dept => {
+    //   kycChartData[0].data.push(dept.pending);
+    //   kycChartData[1].data.push(dept.completed);
+    // });
 
     //console.log("kycChartData : ", kycChartData);
 
-    this.renderStackBarChart('Employee KYC Summary', 'employeeKycSummary', kycChartData, departmentCategories, 'Employee', this.openDepartmentWiseEmployeeKycModalTable.bind(this))
+    // this.renderStackBarChart('Employee KYC Summary', 'employeeKycSummary', kycChartData, departmentCategories, 'Employee', this.openDepartmentWiseEmployeeKycModalTable.bind(this))
 
 
     //  bar for billable type employee
@@ -4514,7 +4536,125 @@ openDepartmentWiseBillableEmployeeModalTable(deptName: any, billableType: any) {
     //console.log("Updated Filter : ", this.filters);
   }
 
-  getAllPieChartCount() {
+    loadDepartmentWiseKycData() {
+    this.reportService.getDepartmentWiseKycCount().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.processDepartmentKycData(response.serviceResponse);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+    processDepartmentKycData(kycDataList: DepartmentKycCountDTO[]) {
+    // Clear previous data
+    this.kycChartData[0].data = [];
+    this.kycChartData[1].data = [];
+    this.departmentCategories = [];
+    
+    // Group data by department
+    const departmentMap = new Map<string, { pending: number, completed: number }>();
+    
+    kycDataList.forEach(item => {
+      if (!departmentMap.has(item.departmentName)) {
+        departmentMap.set(item.departmentName, { pending: 0, completed: 0 });
+      }
+      
+      const deptData = departmentMap.get(item.departmentName)!;
+      if (item.status === 'Pending') {
+        deptData.pending = item.empCount;
+      } else if (item.status === 'Completed') {
+        deptData.completed = item.empCount;
+      }
+    });
+
+    // Convert map to array and sort by department name
+    this.departmentKycData = Array.from(departmentMap.entries())
+      .map(([departmentName, counts]) => ({
+        departmentName,
+        pending: counts.pending,
+        completed: counts.completed
+      }))
+      .sort((a, b) => a.departmentName.localeCompare(b.departmentName));
+
+    // Prepare chart data
+    this.departmentKycData.forEach(dept => {
+      this.departmentCategories.push(dept.departmentName);
+      this.kycChartData[0].data.push(dept.pending);
+      this.kycChartData[1].data.push(dept.completed);
+    });
+
+    // Render the chart
+    this.renderStackBarChart(
+      'Employee KYC Summary', 
+      'employeeKycSummary', 
+      this.kycChartData, 
+      this.departmentCategories, 
+      'Employee', 
+      this.openDepartmentWiseEmployeeKycModalTable.bind(this)
+    );
+  }
+
+
+  loadJoinResignData(): void {
+    let selectedYear = this.selectedYear || moment().year(); 
+    this.reportService.getJoinVsResignCount(selectedYear).pipe(first()).subscribe((response: any) => {
+        const monthlyData = response?.serviceResponse || [];
+
+        const joiningRegular = Array(12).fill(0);
+        const joiningApprentice = Array(12).fill(0);
+        const joiningConsultant = Array(12).fill(0);
+        const resigning = Array(12).fill(0);
+
+        const monthIndexMap: { [key: string]: number } = {
+          January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
+          July: 6, August: 7, September: 8, October: 9, November: 10, December: 11
+        };
+
+        monthlyData.forEach(item => {
+          const idx = monthIndexMap[item.monthName];
+          if (idx !== undefined) {
+            joiningRegular[idx] = item.regularCount || 0;
+            joiningApprentice[idx] = item.apprenticeCount || 0;
+            joiningConsultant[idx] = item.consultantCount || 0;
+            resigning[idx] = item.resignCount || 0;
+          }
+        });
+
+        const chartData = [
+          {
+            name: 'Joined Regular',
+            data: joiningRegular,
+            stack: 'joined',
+            color: '#1f77b4'
+          },
+          {
+            name: 'Joined Apprentice',
+            data: joiningApprentice,
+            stack: 'joined',
+            color: '#ff7f0e'
+          },
+          {
+            name: 'Joined Consultant',
+            data: joiningConsultant,
+            stack: 'joined',
+            color: '#2ca02c'
+          },
+          {
+            name: 'Resigned',
+            data: resigning,
+            stack: 'resigned',
+            color: '#d62728'
+          }
+        ];
+
+        this.renderMultiBarChart('Employee Join VS Resign', 'employeeJoinAndResign', chartData, 'Employee', this.openEmployeeJoinResignModalTable.bind(this));
+      },
+      (error) => {
+        console.error('API call failed:', error);
+      }
+    );
+  }  getAllPieChartCount() {
 
     this.reportService.getAllPieChartCount().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -4570,10 +4710,8 @@ openDepartmentWiseBillableEmployeeModalTable(deptName: any, billableType: any) {
         this.consultantCountForDisplay = response.serviceResponse[0].consultantCountDisplay;
         this.regularCountForDisplay = response.serviceResponse[0].regularCountDisplay;
 
-        console.log("Maleeeeeeee", this.maleCount);
+        console.log("Male count", this.maleCount);
 
-        
-    
     
       } else {
         console.error(response.serviceResponse);

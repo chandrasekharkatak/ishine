@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.ReportsQueryDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.serviceInterface.ReportDashboardService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -54,7 +55,7 @@ public class ReportDashboardController {
 		ServiceResponse response = reportDashboardService.getDepartmentWiseBillableData(leaveDto);
 		return response;
 	}
-	
+		
 	//for multiple graph queries 
 	// employee status summary graph 
 	@RequestMapping(value = "/getEmployeeStatusSummaryCount/{status}",method = RequestMethod.GET)
@@ -103,5 +104,26 @@ public class ReportDashboardController {
 	
 	
 	
+
+	@RequestMapping(value = "/getDepartmentWiseKycCount" ,method = RequestMethod.GET)
+	public ServiceResponse getDepartmentWiseEmployeeCount() {
+		
+		ServiceResponse response = reportDashboardService.getDepartmentWiseKycCount();
+		return response;
+	}
+	
+	@RequestMapping(value = "/getJoiningVsResignationCount" ,method = RequestMethod.POST)
+	public ServiceResponse getEmployeeExperienceCount(@RequestBody ReportsQueryDTO request) {
+		
+		ServiceResponse response = reportDashboardService.getJoiningVsResignationCount(request);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllGraphEmployeeSummary" , method = RequestMethod.GET)
+	public ServiceResponse getAllGraphEmployeeSummary()
+	{
+		ServiceResponse response = reportDashboardService.getAllGraphEmployeeSummary();
+		return response;
+	}
 
 }

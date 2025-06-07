@@ -1,10 +1,16 @@
 package com.apmosys.employeeportal.dto;
 
+import java.util.List;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ReportCountDTO {
 
 	//billable employee summary
@@ -68,6 +74,25 @@ public class ReportCountDTO {
 	private Long regularCountDisplay;
 	
 	
+	private String departmentName;
+    private String status;
+    private Long empCount;
+    
+    
+    public ReportCountDTO(String departmentName, String status, Long empCount) {
+        this.departmentName = departmentName;
+        this.status = status;
+        this.empCount = empCount;
+    }
+    
+
+	private Long totalEmployeeCount;
+    private Long probationCount;
+    private Long apprenticeCount;
+    private Long consultantCount;
+    private Long regularCount;
+    
+	
+	
 	
 }
-

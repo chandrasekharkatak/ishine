@@ -2,14 +2,151 @@ package com.apmosys.employeeportal.repository;
 
 import java.util.List;
 
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.apmosys.employeeportal.dto.ReportCountDTO;
 import com.apmosys.employeeportal.model.Employee;
 
 public interface ReportDashboardRepository extends JpaRepository<Employee, Long> {
+	
+    @Query(value = "SELECT " +
+            "d.name AS department_name, " +
+            "CASE WHEN e.is_user_info_updated = 'true' THEN 'Completed' ELSE 'Pending' END AS status, " +
+            "COUNT(DISTINCT e.emp_id) AS emp_count " +
+            "FROM employee e " +
+            "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+            "INNER JOIN department d ON d.dept_id = jr.dept_id " +
+            "WHERE e.employmentstatus <> 'InActive' " + 
+            "GROUP BY d.name, CASE WHEN e.is_user_info_updated = 'true' THEN 'Completed' ELSE 'Pending' END",
+    nativeQuery = true)
+   public List<Object[]> getDepartmentWiseKycCount();
+   
+   @Query(value = 
+		    "WITH ALL_EMPLOYEES AS ( " +
+		    "    SELECT DISTINCT e.emp_id emp_ids " +
+		    "    FROM employee e " +
+		    "    LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+		    "    LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+		    "    LEFT JOIN employee mg ON e.manager_id = mg.emp_id " +
+		    "    LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0' " +
+		    "    LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y' " +
+		    "    LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true' " +
+		    "    WHERE 1=1 " +
+		    "    AND e.emp_id NOT BETWEEN 1 AND 6 " +
+		    "    AND (:employeement_id IS NULL OR e.emp_id IN (:employeement_id)) " +
+		    "    AND (:name IS NULL OR UPPER(e.name) LIKE CONCAT('%', UPPER(:name), '%')) " +
+		    "    AND (:dept_id IS NULL OR d.dept_id IN (:dept_id)) " +
+		    "    AND (:job_role_id IS NULL OR jr.job_role_id IN (:job_role_id)) " +
+		    "    AND (:manager_id IS NULL OR mg.emp_id IN (:manager_id)) " +
+		    "    AND (:team_id IS NULL OR t.team_id IN (:team_id)) " +
+		    "    AND (:project_id IS NULL OR p.project_id IN (:project_id)) " +
+		    "    AND (:client_id IS NULL OR p.client_id IN (:client_id)) " +
+		    "    AND (:employmentstatus IS NULL OR UPPER(e.employmentstatus) LIKE CONCAT('%', UPPER(:employmentstatus), '%')) " +
+		    "    AND (:date_of_joining IS NULL OR e.date_of_joining LIKE CONCAT('%', :date_of_joining, '%')) " +
+		    "    AND (:city IS NULL OR UPPER(e.city) LIKE CONCAT('%', UPPER(:city), '%')) " +
+		    "    AND (:blood_group IS NULL OR UPPER(e.blood_group) LIKE CONCAT('%', UPPER(:blood_group), '%')) " +
+		    "    AND (:gender IS NULL OR UPPER(e.gender) LIKE CONCAT('%', UPPER(:gender), '%')) " +
+		    "    AND (:probation_period IS NULL OR e.probation_period IN (:probation_period)) " +
+		    "    AND (:notice_period IS NULL OR e.notice_period IN (:notice_period)) " +
+		    "    AND (:marital_status IS NULL OR UPPER(e.marital_status) LIKE CONCAT('%', UPPER(:marital_status), '%')) " +
+		    "    AND (:bank_name IS NULL OR UPPER(e.bank_name) LIKE CONCAT('%', UPPER(:bank_name), '%')) " +
+		    "    AND (:state IS NULL OR UPPER(e.state) LIKE CONCAT('%', UPPER(:state), '%')) " +
+		    "    AND (:created_on IS NULL OR e.created_on LIKE CONCAT('%', :created_on, '%')) " +
+		    "    AND (:created_by IS NULL OR e.created_by IN (:created_by)) " +
+		    "    AND (:experience IS NULL OR UPPER(e.experience) LIKE CONCAT('%', UPPER(:experience), '%')) " +
+		    "    AND (:work_location IS NULL OR UPPER(e.work_location) LIKE CONCAT('%', UPPER(:work_location), '%')) " +
+		    ") " +
+		    "SELECT * FROM ( " +
+		    "    SELECT COALESCE(j.month_name, r.month_name) AS month_name, " +
+		    "           COALESCE(j.year, r.year) AS year, " +
+		    "           j.apprentice_count, j.consultant_count, j.regular_count, " +
+		    "           COALESCE(r.total_emp_count, 0) resign_count " +
+		    "    FROM ( " +
+		    "        SELECT DATE_FORMAT(date_of_joining, '%M') AS month_name, " +
+		    "               YEAR(date_of_joining) AS year, " +
+		    "               COUNT(DISTINCT CASE WHEN is_apprenticeship = 'true' THEN emp_id END) AS apprentice_count, " +
+		    "               COUNT(DISTINCT CASE WHEN is_consultant = 'true' THEN emp_id END) AS consultant_count, " +
+		    "               COUNT(DISTINCT CASE " +
+		    "                   WHEN (is_consultant = 'false' AND is_apprenticeship = 'false') " +
+		    "                        OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '') " +
+		    "                   THEN emp_id END) AS regular_count " +
+		    "        FROM employee e1 " +
+		    "        WHERE date_of_joining IS NOT NULL " +
+		    "          AND e1.emp_id IN (SELECT emp_ids FROM ALL_EMPLOYEES) " +
+		    "        GROUP BY year, month_name " +
+		    "    ) j " +
+		    "    LEFT JOIN ( " +
+		    "        SELECT DATE_FORMAT(date_of_resign, '%M') AS month_name, " +
+		    "               YEAR(date_of_resign) AS year, " +
+		    "               COUNT(*) AS total_emp_count " +
+		    "        FROM employee e2 " +
+		    "        WHERE date_of_resign IS NOT NULL " +
+		    "          AND e2.emp_id IN (SELECT emp_ids FROM ALL_EMPLOYEES) " +
+		    "        GROUP BY year, month_name " +
+		    "    ) r ON j.year = r.year AND j.month_name = r.month_name " +
+		    "    UNION " +
+		    "    SELECT COALESCE(j.month_name, r.month_name) AS month_name, " +
+		    "           COALESCE(j.year, r.year) AS year, " +
+		    "           j.apprentice_count, j.consultant_count, j.regular_count, " +
+		    "           r.total_emp_count " +
+		    "    FROM ( " +
+		    "        SELECT DATE_FORMAT(date_of_joining, '%M') AS month_name, " +
+		    "               YEAR(date_of_joining) AS year, " +
+		    "               COUNT(DISTINCT CASE WHEN is_apprenticeship = 'true' THEN emp_id END) AS apprentice_count, " +
+		    "               COUNT(DISTINCT CASE WHEN is_consultant = 'true' THEN emp_id END) AS consultant_count, " +
+		    "               COUNT(DISTINCT CASE " +
+		    "                   WHEN (is_consultant = 'false' AND is_apprenticeship = 'false') " +
+		    "                        OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '') " +
+		    "                   THEN emp_id END) AS regular_count " +
+		    "        FROM employee e3 " +
+		    "        WHERE date_of_joining IS NOT NULL " +
+		    "          AND e3.emp_id IN (SELECT emp_ids FROM ALL_EMPLOYEES) " +
+		    "        GROUP BY year, month_name " +
+		    "    ) j " +
+		    "    RIGHT JOIN ( " +
+		    "        SELECT DATE_FORMAT(date_of_resign, '%M') AS month_name, " +
+		    "               YEAR(date_of_resign) AS year, " +
+		    "               COUNT(*) AS total_emp_count " +
+		    "        FROM employee e4 " +
+		    "        WHERE date_of_resign IS NOT NULL " +
+		    "          AND e4.emp_id IN (SELECT emp_ids FROM ALL_EMPLOYEES) " +
+		    "        GROUP BY year, month_name " +
+		    "    ) r ON j.year = r.year AND j.month_name = r.month_name " +
+		    "    WHERE j.month_name IS NULL " +
+		    ") AS combined_data " +
+		    "WHERE year = :year " +
+		    "ORDER BY year, STR_TO_DATE(CONCAT('01 ', month_name, ' 2012'), '%d %M %Y')", 
+		    nativeQuery = true)
+		List<Object[]> getJoiningVsResignationCount(
+		    @Param("employeement_id") List<Integer> employeement_id,
+		    @Param("name") String name,
+		    @Param("dept_id") List<Integer> dept_id,
+		    @Param("job_role_id") List<Integer> job_role_id,
+		    @Param("manager_id") List<Integer> manager_id,
+		    @Param("team_id") List<Integer> team_id,
+		    @Param("project_id") List<Integer> project_id,
+		    @Param("client_id") List<Integer> client_id,
+		    @Param("employmentstatus") String employmentstatus,
+		    @Param("date_of_joining") String date_of_joining,
+		    @Param("city") String city,
+		    @Param("blood_group") String blood_group,
+		    @Param("gender") String gender,
+		    @Param("probation_period") List<Integer> probation_period,
+		    @Param("notice_period") List<Integer> notice_period,
+		    @Param("marital_status") String marital_status,
+		    @Param("bank_name") String bank_name,
+		    @Param("state") String state,
+		    @Param("created_on") String created_on,
+		    @Param("created_by") List<Integer> created_by,
+		    @Param("experience") String experience,
+		    @Param("work_location") String work_location,
+		    @Param("year") Integer year
+		);
 
+   
 	//Grouped Query for employee status summary , gender summary and fresher-lateral summary
 	@Query(nativeQuery = true , value = "WITH employee_data AS (\n"
 			+ "    SELECT distinct \n"

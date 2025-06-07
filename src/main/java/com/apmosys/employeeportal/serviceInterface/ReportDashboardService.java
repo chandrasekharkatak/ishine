@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.serviceInterface;
 
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.ReportsQueryDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -30,4 +31,8 @@ public interface ReportDashboardService {
 
 	//for employee status summary , gender summary , and fresher-lateral summary 
 	ServiceResponse getAllGraphEmployeeSummary();
+	ServiceResponse getDepartmentWiseKycCount(); 
+	
+	ServiceResponse getJoiningVsResignationCount(ReportsQueryDTO request);
+
 }

@@ -13,6 +13,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -21,16 +23,20 @@ import org.dhatim.fastexcel.Worksheet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.ChartsCountDTO;
+import com.apmosys.employeeportal.dto.DepartmentWiseCountDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ReportCountDTO;
+import com.apmosys.employeeportal.dto.ReportsQueryDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.ReportDashboardRepository;
 import com.apmosys.employeeportal.repository.ReportDashboardRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
@@ -46,12 +52,12 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
-
-	@Autowired
-	EmployeeRepository employeeRepository;
 	
 	@Autowired
 	ReportDashboardRepository reportDashboardRepository;
+
+	@Autowired
+	EmployeeRepository employeeRepository;
 	
 	@Autowired	
 	StringToDateTimeParser stringToDateTimeParser;
@@ -729,4 +735,129 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	{
 		return null;
 	}
+	
+	public ServiceResponse getDepartmentWiseKycCount() {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getDepartmentWiseKycCount");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    
+	    try {
+	        logBuilder.append("Fetching department-wise KYC count data");
+	        
+	        List<Object[]> rawData = reportDashboardRepository.getDepartmentWiseKycCount();
+	        
+	        if (rawData != null && !rawData.isEmpty()) {
+	            List<DepartmentWiseCountDTO> kycCountList = rawData.stream()
+	                .map(row -> new DepartmentWiseCountDTO(
+	                    (String) row[0],     
+	                    (String) row[1],      
+	                    ((Number) row[2]).longValue()  
+	                ))
+	                .collect(Collectors.toList());
+	            
+	            // Optional: Group by department 
+//	            Map<String, List<DepartmentWiseCountDTO>> groupedByDepartment = kycCountList.stream()
+//	                .collect(Collectors.groupingBy(DepartmentWiseCountDTO::getDepartmentName));
+	            
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(kycCountList); 
+	            
+	            logBuilder.append(" - Successfully retrieved ").append(kycCountList.size()).append(" records");
+	            
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(new ArrayList<>());
+	            logBuilder.append(" - No data found");
+	        }
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong while fetching department-wise KYC count.");
+	        response.setServiceError(e.getMessage());
+	        
+	        logBuilder.append(" - Error occurred: ").append(e.getMessage());
+	    }
+	    
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+	
+	public ServiceResponse getJoiningVsResignationCount(ReportsQueryDTO request) {
+		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/getJoiningVsResignationCount");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+		
+try {
+	List<Object[]> counts = reportDashboardRepository.getJoiningVsResignationCount(
+            request.getEmployeement_id(),
+            request.getName(),
+            request.getDept_id(),
+            request.getJob_role_id(),
+            request.getManager_id(),
+            request.getTeam_id(),
+            request.getProject_id(),
+            request.getClient_id(),
+            request.getEmploymentstatus(),
+            request.getDate_of_joining(),
+            request.getCity(),
+            request.getBlood_group(),
+            request.getGender(),
+            request.getProbation_period(),
+            request.getNotice_id(),
+            request.getMarital_status(),
+            request.getBank_name(),
+            request.getState(),
+            request.getCreated_on(),
+            request.getCreated_by(),
+            request.getExperience(),
+            request.getWork_location(),
+            request.getYear()
+            );
+    
+    if (counts != null && !counts.isEmpty()) {
+        List<ChartsCountDTO> dtoList = new ArrayList<>();
+        
+    	counts.forEach((object)-> {
+    		ChartsCountDTO dto = new ChartsCountDTO();
+    		
+    		dto.setMonthName(object[0] !=null? object[0].toString() : null);
+    		dto.setYear(object[1] !=null ? Integer.parseInt(object[1].toString()) : null);
+    		dto.setApprenticeCount(object[2] != null ? Long.parseLong(object[2].toString()): null);
+    		dto.setConsultantCount(object[3] != null ? Long.parseLong(object[3].toString()): null);
+    		dto.setRegularCount(object[4] != null ? Long.parseLong(object[4].toString()): null);
+    		dto.setResignCount(object[5] != null ? Long.parseLong(object[5].toString()): null);
+    		dtoList.add(dto);
+    	});
+
+        
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(dtoList);
+        
+        logBuilder.append(" - Successfully retrieved ").append(counts.size()).append(" records");
+        
+    } else {
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(new ArrayList<>());
+        logBuilder.append(" No data found");
+    }
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			
+		}
+
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
 }
