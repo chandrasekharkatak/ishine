@@ -55,30 +55,6 @@ public class ReportDashboardController {
 		return response;
 	}
 	
-//	//Fresher Lateral
-//	@RequestMapping(value = "/countforFresherLateral",method = RequestMethod.GET)
-//	public ServiceResponse countforFresherLateral()
-//	{
-//		ServiceResponse response = reportDashboardService.countforFresherLateral();
-//		return response;
-//	}
-//	
-//	@RequestMapping(value = "/tableforFresherLateral",method = RequestMethod.GET)
-//	public ServiceResponse tableforFresherLateral()
-//	{
-//		ServiceResponse response = reportDashboardService.tableforFresherLateral();
-//		return response;
-//	}
-//	
-//	//Billable Employee Summary
-//	@RequestMapping(value = "/countforBillabeEmployee",method = RequestMethod.GET)
-//	public ServiceResponse countforBillabeEmployee()
-//	{
-//		ServiceResponse response = reportDashboardService.countforBillabeEmployee();
-//		return response;
-//	}
-
-
 
 	@RequestMapping(value = "/getAllGraphEmployeeSummary" , method = RequestMethod.GET)
 	public ServiceResponse getAllGraphEmployeeSummary()

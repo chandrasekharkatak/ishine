@@ -137,24 +137,54 @@ export class ReportDashboardComponent implements OnInit {
   filters: any = {};
   isSearchEnabled: boolean = false;
 
-   maleCount = 0;
-   femaleCount = 0;
-   otherCount = 0;
+  //Gender summary (pie)
+  maleCount = 0;
+  femaleCount = 0;
+  otherCount = 0;
+//Age summary(pie)
+  countBetween18and25 = 0;
+  countBetween25and35 = 0;
+ countBetween35and45 = 0;
+ countAbove45 = 0;
 
-  //  age summary
-
-   countBetween18and25 = 0;
-   countBetween25and35 = 0;
-  countBetween35and45 = 0;
-  countAbove45 = 0;
-
-   probationCount = 0;
-   confirmedCount = 0;
-   resignedCount = 0;
-   inActiveCount = 0;
-
-    fresherCount = 0;
-    experienceCount = 0;
+ //Employee status summary (pie)
+  probationCount = 0;
+  confirmedCount = 0;
+  resignedCount = 0;
+  inActiveCount = 0;
+//Fresher-lateral summary (pie)
+   fresherCount = 0;
+   experienceCount = 0;
+//Department wise Billable/Non-biallable employee summary (pie)
+  internalBillableCount = 0;
+  tnmBillableCount = 0;
+  fcBillableCount = 0;
+  shadowBillableCount = 0;
+  benchBillableCount = 0;
+//Billable Employee summary (pie)
+  billableCount = 0;
+  nonBillableCount = 0;
+  otherBillableCount = 0;
+//Employee Experience 
+//Employee
+  experienceCountBetween0and1 = 0;
+  experienceCountBetween1and2 = 0;
+  experienceCountBetween2and5 = 0;
+  experienceCountBetween5and10 = 0;
+  experienceCountAbove10 = 0;
+//Apprentice
+  experienceCountBetween0and1Apprentice = 0;
+  experienceCountBetween1and2Apprentice = 0;
+  experienceCountBetween2and5Apprentice = 0;
+  experienceCountBetween5and10Apprentice = 0;
+  experienceCountAbove10Apprentice = 0;
+  //Consultant
+  experienceCountBetween0and1Consultant = 0;
+  experienceCountBetween1and2Consultant = 0;
+  experienceCountBetween2and5Consultant = 0;
+  experienceCountBetween5and10Consultant = 0;
+  experienceCountAbove10Consultant = 0;
+  
 
   leaveSummaryColumns: any[] = ['Employee Id', 'employeeType', 'Full Name', 'Leave Type', 'Department', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   timesheetSummaryColumns: any[] = ['Employee Id', 'employeeType', 'Full Name', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By'];
@@ -1011,32 +1041,32 @@ export class ReportDashboardComponent implements OnInit {
   
   extractDataForBillable() {
 
-    let internalBillableCount = 0;
-    let tnmBillableCount = 0;
-    let fcBillableCount = 0;
-    let shadowBillableCount = 0;
-    let benchBillableCount = 0;
+    // let internalBillableCount = 0;
+    // let tnmBillableCount = 0;
+    // let fcBillableCount = 0;
+    // let shadowBillableCount = 0;
+    // let benchBillableCount = 0;
 
     const benchBillableEmployees: any[] = [];
     const Tnmcount:any[]=[];
 
     this.departmentWiseBillableEmployeeList.forEach((employee) => {
       // if (employee.billableType == 'TNM' && employee.employmentstatus != "InActive") tnmBillableCount++;
-      if (
-        employee.billableType == 'TNM' &&
-        employee.employmentstatus != "InActive" &&
-        employee.isApprenticeship != 'true' &&
-        employee.isConsultant != 'true' 
-      ) tnmBillableCount++;{
-        Tnmcount.push(employee);
-      }
-      if (employee.billableType == 'Bench' && employee.employmentstatus != "InActive") {
-        benchBillableCount++;
-        benchBillableEmployees.push(employee);
-      }
-      if (employee.billableType == 'Fixed Cost' && employee.employmentstatus != "InActive") fcBillableCount++;
-      if (employee.billableType == 'Shadow' && employee.employmentstatus != "InActive") shadowBillableCount++;
-      if (employee.billableType == 'InternalRNDProducts' && employee.employmentstatus != "InActive") internalBillableCount++;
+      // if (
+      //   employee.billableType == 'TNM' &&
+      //   employee.employmentstatus != "InActive" &&
+      //   employee.isApprenticeship != 'true' &&
+      //   employee.isConsultant != 'true' 
+      // ) tnmBillableCount++;{
+      //   Tnmcount.push(employee);
+      // }
+      // if (employee.billableType == 'Bench' && employee.employmentstatus != "InActive") {
+      //   benchBillableCount++;
+      //   benchBillableEmployees.push(employee);
+      // }
+      // if (employee.billableType == 'Fixed Cost' && employee.employmentstatus != "InActive") fcBillableCount++;
+      // if (employee.billableType == 'Shadow' && employee.employmentstatus != "InActive") shadowBillableCount++;
+      // if (employee.billableType == 'InternalRNDProducts' && employee.employmentstatus != "InActive") internalBillableCount++;
 
       let empTotalExperience = this.totalExperience(employee.dateOfJoining, employee.totalExperience);
       employee.totalExperience = empTotalExperience.toFixed(1);
@@ -1058,27 +1088,27 @@ export class ReportDashboardComponent implements OnInit {
 
     // billableChartByDepartment pie chart
     
-    console.log("TNM Count: ", tnmBillableCount);
+    console.log("TNM Count: ", this.tnmBillableCount);
 
     let deptWiseBillableType = [{
       name: "TNM",
-      y: tnmBillableCount
+      y: this.tnmBillableCount
     },
     {
       name: "Fixed Cost",
-      y: fcBillableCount
+      y: this.fcBillableCount
     },
     {
       name: "InternalRNDProducts",
-      y: internalBillableCount
+      y: this.internalBillableCount
     },
     {
       name: "Bench",
-      y: benchBillableCount
+      y: this.benchBillableCount
     },
     {
       name: "Shadow",
-      y: shadowBillableCount
+      y: this.shadowBillableCount
     }
     ]
     let checkDeptWiseData = deptWiseBillableType.filter(data => data.y != 0);
@@ -1102,7 +1132,7 @@ export class ReportDashboardComponent implements OnInit {
 
   extractData() {
     //Total Count
-    this.countOfAllEmployees = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive').length;
+    // this.countOfAllEmployees = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive').length;
     //console.log("Count of all employees : ",this.countOfAllEmployees);
 
     //Fresher / Lateral Graph (Fresher/Experienced)
@@ -1128,21 +1158,21 @@ export class ReportDashboardComponent implements OnInit {
     // let countBetween35and45 = 0;
     // let countAbove45 = 0;
 
-    let experienceCountBetween0and1 = 0;
-    let experienceCountBetween0and1Apprentice = 0;
-    let experienceCountBetween0and1Consultant = 0;
-    let experienceCountBetween1and2 = 0;
-    let experienceCountBetween1and2Apprentice = 0;
-    let experienceCountBetween1and2Consultant = 0;
-    let experienceCountBetween2and5 = 0;
-    let experienceCountBetween2and5Apprentice = 0;
-    let experienceCountBetween2and5Consultant = 0;
-    let experienceCountBetween5and10 = 0;
-    let experienceCountBetween5and10Apprentice = 0;
-    let experienceCountBetween5and10Consultant = 0;
-    let experienceCountAbove10 = 0;
-    let experienceCountAbove10Apprentice = 0;
-    let experienceCountAbove10Consultant = 0;
+    // let experienceCountBetween0and1 = 0;
+    // let experienceCountBetween0and1Apprentice = 0;
+    // let experienceCountBetween0and1Consultant = 0;
+    // let experienceCountBetween1and2 = 0;
+    // let experienceCountBetween1and2Apprentice = 0;
+    // let experienceCountBetween1and2Consultant = 0;
+    // let experienceCountBetween2and5 = 0;
+    // let experienceCountBetween2and5Apprentice = 0;
+    // let experienceCountBetween2and5Consultant = 0;
+    // let experienceCountBetween5and10 = 0;
+    // let experienceCountBetween5and10Apprentice = 0;
+    // let experienceCountBetween5and10Consultant = 0;
+    // let experienceCountAbove10 = 0;
+    // let experienceCountAbove10Apprentice = 0;
+    // let experienceCountAbove10Consultant = 0;
 
     let joiningJanCount = 0;
     let joiningFebCount = 0;
@@ -1170,9 +1200,9 @@ export class ReportDashboardComponent implements OnInit {
     let resignNovCount = 0;
     let resignDecCount = 0;
 
-    let billableCount = 0;
-    let nonBillableCount = 0;
-    let otherBillableCount = 0;
+    // let billableCount = 0;
+    // let nonBillableCount = 0;
+    // let otherBillableCount = 0;
 
     let joinApprenticeJanCount = 0;
     let joinApprenticeFebCount = 0;
@@ -1247,49 +1277,49 @@ export class ReportDashboardComponent implements OnInit {
         employee.totalExperience = empTotalExperience.toFixed(1);
 
         // Check for apprentices in the "0 to 1" experience category
-        if ((employee.totalExperience >= 0 && employee.totalExperience <= 1) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
-          experienceCountBetween0and1++;
-        } else if (employee.totalExperience >= 0 && employee.totalExperience <= 1 && employee.isApprenticeship === 'true') {
-          experienceCountBetween0and1Apprentice++;
-        } else if (employee.totalExperience >= 0 && employee.totalExperience <= 1 && employee.isConsultant === 'true') {
-          experienceCountBetween0and1Consultant++;
-        }
-        else if ((employee.totalExperience > 1 && employee.totalExperience <= 2) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
-          experienceCountBetween1and2++;
-        }
-        else if (employee.totalExperience > 1 && employee.totalExperience <= 2 && employee.isApprenticeship === 'true') {
-          experienceCountBetween1and2Apprentice++;
-        }
-        else if (employee.totalExperience > 1 && employee.totalExperience <= 2 && employee.isConsultant === 'true') {
-          experienceCountBetween1and2Consultant++;
-        }
-        else if ((employee.totalExperience > 2 && employee.totalExperience <= 5) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
-          experienceCountBetween2and5++;
-        }
-        else if (employee.totalExperience > 2 && employee.totalExperience <= 5 && employee.isApprenticeship === 'true') {
-          experienceCountBetween2and5Apprentice++;
-        }
-        else if (employee.totalExperience > 2 && employee.totalExperience <= 5 && employee.isConsultant === 'true') {
-          experienceCountBetween2and5Consultant++;
-        }
-        else if ((employee.totalExperience > 5 && employee.totalExperience <= 10) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
-          experienceCountBetween5and10++;
-        }
-        else if (employee.totalExperience > 5 && employee.totalExperience <= 10 && employee.isApprenticeship === 'true') {
-          experienceCountBetween5and10Apprentice++;
-        }
-        else if (employee.totalExperience > 5 && employee.totalExperience <= 10 && employee.isConsultant === 'true') {
-          experienceCountBetween5and10Consultant++;
-        }
-        else if ((employee.totalExperience > 10) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
-          experienceCountAbove10++;
-        }
-        else if (employee.totalExperience > 10 && employee.isApprenticeship === 'true') {
-          experienceCountAbove10Apprentice++;
-        }
-        else if (employee.totalExperience > 10 && employee.isConsultant === 'true') {
-          experienceCountAbove10Consultant++;
-        }
+      //   if ((employee.totalExperience >= 0 && employee.totalExperience <= 1) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
+      //     experienceCountBetween0and1++;
+      //   } else if (employee.totalExperience >= 0 && employee.totalExperience <= 1 && employee.isApprenticeship === 'true') {
+      //     experienceCountBetween0and1Apprentice++;
+      //   } else if (employee.totalExperience >= 0 && employee.totalExperience <= 1 && employee.isConsultant === 'true') {
+      //     experienceCountBetween0and1Consultant++;
+      //   }
+      //   else if ((employee.totalExperience > 1 && employee.totalExperience <= 2) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
+      //     experienceCountBetween1and2++;
+      //   }
+      //   else if (employee.totalExperience > 1 && employee.totalExperience <= 2 && employee.isApprenticeship === 'true') {
+      //     experienceCountBetween1and2Apprentice++;
+      //   }
+      //   else if (employee.totalExperience > 1 && employee.totalExperience <= 2 && employee.isConsultant === 'true') {
+      //     experienceCountBetween1and2Consultant++;
+      //   }
+      //   else if ((employee.totalExperience > 2 && employee.totalExperience <= 5) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
+      //     experienceCountBetween2and5++;
+      //   }
+      //   else if (employee.totalExperience > 2 && employee.totalExperience <= 5 && employee.isApprenticeship === 'true') {
+      //     experienceCountBetween2and5Apprentice++;
+      //   }
+      //   else if (employee.totalExperience > 2 && employee.totalExperience <= 5 && employee.isConsultant === 'true') {
+      //     experienceCountBetween2and5Consultant++;
+      //   }
+      //   else if ((employee.totalExperience > 5 && employee.totalExperience <= 10) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
+      //     experienceCountBetween5and10++;
+      //   }
+      //   else if (employee.totalExperience > 5 && employee.totalExperience <= 10 && employee.isApprenticeship === 'true') {
+      //     experienceCountBetween5and10Apprentice++;
+      //   }
+      //   else if (employee.totalExperience > 5 && employee.totalExperience <= 10 && employee.isConsultant === 'true') {
+      //     experienceCountBetween5and10Consultant++;
+      //   }
+      //   else if ((employee.totalExperience > 10) && (employee.isApprenticeship != 'true' || employee.isApprenticeship === null) && (employee.isConsultant != 'true' || employee.isConsultant === null)) {
+      //     experienceCountAbove10++;
+      //   }
+      //   else if (employee.totalExperience > 10 && employee.isApprenticeship === 'true') {
+      //     experienceCountAbove10Apprentice++;
+      //   }
+      //   else if (employee.totalExperience > 10 && employee.isConsultant === 'true') {
+      //     experienceCountAbove10Consultant++;
+      //   }
       }
 
 
@@ -1419,16 +1449,16 @@ export class ReportDashboardComponent implements OnInit {
       else if (employee.relievingMonth == 'November' && moment(employee.dateOfRelieving).year() == currentYear) resignNovCount++;
       else if (employee.relievingMonth == 'December' && moment(employee.dateOfRelieving).year() == currentYear) resignDecCount++;
 
-      if (employee.dateOfJoining != null && employee.employmentstatus != 'InActive') {
-        if (moment(dateToday).diff(moment(employee.dateOfJoining), 'months', true) > 6 && employee.employmentstatus == 'Probation') this.employeeInProbationAfter6MonthsCount++;
-      }
-      if (employee.employmentstatus != 'InActive' && employee.isApprenticeship === 'true') this.apprenticeCountForDisplay++;
-      if (employee.employmentstatus != 'InActive' && employee.isConsultant === 'true') this.consultantCountForDisplay++;
-      if (employee.employmentstatus != 'InActive' && employee.isConsultant != 'true' && employee.isApprenticeship != 'true') this.regularCountForDisplay++;
+      // if (employee.dateOfJoining != null && employee.employmentstatus != 'InActive') {
+      //   if (moment(dateToday).diff(moment(employee.dateOfJoining), 'months', true) > 6 && employee.employmentstatus == 'Probation') this.employeeInProbationAfter6MonthsCount++;
+      // }
+      // if (employee.employmentstatus != 'InActive' && employee.isApprenticeship === 'true') this.apprenticeCountForDisplay++;
+      // if (employee.employmentstatus != 'InActive' && employee.isConsultant === 'true') this.consultantCountForDisplay++;
+      // if (employee.employmentstatus != 'InActive' && employee.isConsultant != 'true' && employee.isApprenticeship != 'true') this.regularCountForDisplay++;
 
-      if ((employee.billable == 'Yes' && employee.billableType != null) && employee.employmentstatus != "InActive") billableCount++;
-      if ((employee.billable == 'No' && employee.billableType != null) && employee.employmentstatus != "InActive") nonBillableCount++;
-      if ((employee.billable == "Yes" || employee.billable == "No" || employee.billable == null) && employee.billableType == null && employee.employmentstatus != 'InActive') otherBillableCount++;
+      // if ((employee.billable == 'Yes' && employee.billableType != null) && employee.employmentstatus != "InActive") billableCount++;
+      // if ((employee.billable == 'No' && employee.billableType != null) && employee.employmentstatus != "InActive") nonBillableCount++;
+      // if ((employee.billable == "Yes" || employee.billable == "No" || employee.billable == null) && employee.billableType == null && employee.employmentstatus != 'InActive') otherBillableCount++;
 
       if (employee.profileCompletedPercent < 100.00) {
         this.profilestatus = "No";
@@ -1591,14 +1621,14 @@ export class ReportDashboardComponent implements OnInit {
 
     let billableTypeData = [{
       name: "Yes",
-      y: billableCount
+      y: this.billableCount
     }, {
       name: "No",
-      y: nonBillableCount
+      y: this.nonBillableCount
     },
     {
       name: "Other",
-      y: otherBillableCount
+      y: this.otherBillableCount
     }]
 
     let checkEmployeeBillableData = billableTypeData.filter(data => data.y != 0);
@@ -1649,7 +1679,7 @@ export class ReportDashboardComponent implements OnInit {
     Chart Data for - Male / Female - Gender Summary Graph.
    */
 
-    
+
 
     let genderData = [{
       name: "male",
@@ -1743,33 +1773,33 @@ export class ReportDashboardComponent implements OnInit {
     let experienceData = [
       {
         name: "0 to 1",
-        employeeCount: experienceCountBetween0and1,
-        apprenticeCount: experienceCountBetween0and1Apprentice,
-        consultantCount: experienceCountBetween0and1Consultant,
+        employeeCount: this.experienceCountBetween0and1,
+        apprenticeCount: this.experienceCountBetween0and1Apprentice,
+        consultantCount: this.experienceCountBetween0and1Consultant,
       },
       {
         name: "1 to 2",
-        employeeCount: experienceCountBetween1and2,
-        apprenticeCount: experienceCountBetween1and2Apprentice,
-        consultantCount: experienceCountBetween1and2Consultant,
+        employeeCount: this.experienceCountBetween1and2,
+        apprenticeCount: this.experienceCountBetween1and2Apprentice,
+        consultantCount: this.experienceCountBetween1and2Consultant,
       },
       {
         name: "2 to 5",
-        employeeCount: experienceCountBetween2and5,
-        apprenticeCount: experienceCountBetween2and5Apprentice,
-        consultantCount: experienceCountBetween2and5Consultant,
+        employeeCount: this.experienceCountBetween2and5,
+        apprenticeCount: this.experienceCountBetween2and5Apprentice,
+        consultantCount: this.experienceCountBetween2and5Consultant,
       },
       {
         name: "5 to 10",
-        employeeCount: experienceCountBetween5and10,
-        apprenticeCount: experienceCountBetween5and10Apprentice,
-        consultantCount: experienceCountBetween5and10Consultant,
+        employeeCount: this.experienceCountBetween5and10,
+        apprenticeCount: this.experienceCountBetween5and10Apprentice,
+        consultantCount: this.experienceCountBetween5and10Consultant,
       },
       {
         name: "10+",
-        employeeCount: experienceCountAbove10,
-        apprenticeCount: experienceCountAbove10Apprentice,
-        consultantCount: experienceCountAbove10Consultant,
+        employeeCount: this.experienceCountAbove10,
+        apprenticeCount: this.experienceCountAbove10Apprentice,
+        consultantCount: this.experienceCountAbove10Consultant,
       },
     ];
 
@@ -4488,20 +4518,58 @@ openDepartmentWiseBillableEmployeeModalTable(deptName: any, billableType: any) {
 
     this.reportService.getAllPieChartCount().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        //Gender summary count
         this.maleCount = response.serviceResponse[0].genderMale;
         this.femaleCount = response.serviceResponse[0].genderFemale;
         this.otherCount = response.serviceResponse[0].genderOther;
+        //Age summary count
         this.countBetween18and25 = response.serviceResponse[0].age18to25;
         this.countBetween25and35 = response.serviceResponse[0].age25to35;
         this.countBetween35and45 = response.serviceResponse[0].age35to45;
         this.countAbove45 = response.serviceResponse[0].ageAbove45;
+        //Employee status summary
         this.probationCount = response.serviceResponse[0].employeeStatusProbation;
         this.confirmedCount = response.serviceResponse[0].employeeStatusConfirmed;
         this.resignedCount = response.serviceResponse[0].employeeStatusResigned;
         this.inActiveCount = response.serviceResponse[0].employeeStatusInActive;
+        //Fresher-Lateral summary 
         this.fresherCount = response.serviceResponse[0].fresherCount;
         this.experienceCount = response.serviceResponse[0].lateralCount;
-        
+        //Department-wise Billable/Non-billable Employee summary
+        this.tnmBillableCount = response.serviceResponse[0].tnm;
+        this.fcBillableCount = response.serviceResponse[0].fixedCost;
+        this.internalBillableCount = response.serviceResponse[0].internalRNDProducts;
+        this.benchBillableCount = response.serviceResponse[0].bench;
+        this.shadowBillableCount = response.serviceResponse[0].shadow;
+        //Billable summary 
+        this.billableCount = response.serviceResponse[0].billableYes;
+        this.nonBillableCount = response.serviceResponse[0].billableNo;
+        //Employee experience
+        //Employee
+        this.experienceCountBetween0and1 = response.serviceResponse[0].employeeYears0to1;
+        this.experienceCountBetween1and2 = response.serviceResponse[0].employeeYears1to2;
+        this.experienceCountBetween2and5 = response.serviceResponse[0].employeeYears2to5;
+        this.experienceCountBetween5and10 = response.serviceResponse[0].employeeYears5to10;
+        this.experienceCountAbove10 = response.serviceResponse[0].employeeYearsAbove10;
+        //Apprentice
+        this.experienceCountBetween0and1Apprentice = response.serviceResponse[0].apprenticeYears0to1;
+        this.experienceCountBetween1and2Apprentice = response.serviceResponse[0].apprenticeYears1to2;
+        this.experienceCountBetween2and5Apprentice = response.serviceResponse[0].apprenticeYears2to5;
+        this.experienceCountBetween5and10Apprentice = response.serviceResponse[0].apprenticeYears5to10;
+        this.experienceCountAbove10Apprentice = response.serviceResponse[0].apprenticeYearsAbove10;
+        //Consultant
+        this.experienceCountBetween0and1Consultant = response.serviceResponse[0].consultantYear0to1;
+        this.experienceCountBetween1and2Consultant = response.serviceResponse[0].consultantYear1to2;
+        this.experienceCountBetween2and5Consultant = response.serviceResponse[0].consultantYear2to5;
+        this.experienceCountBetween5and10Consultant = response.serviceResponse[0].consultantYear5to10;
+        this.experienceCountAbove10Consultant = response.serviceResponse[0].consultantYearAbove10;
+
+        this.countOfAllEmployees = response.serviceResponse[0].totalEmployeeCountDisplay;
+        this.employeeInProbationAfter6MonthsCount = response.serviceResponse[0].probationCountDisplay;
+        this.apprenticeCountForDisplay = response.serviceResponse[0].apprenticeCountDisplay;
+        this.consultantCountForDisplay = response.serviceResponse[0].consultantCountDisplay;
+        this.regularCountForDisplay = response.serviceResponse[0].regularCountDisplay;
+
         console.log("Maleeeeeeee", this.maleCount);
 
         
