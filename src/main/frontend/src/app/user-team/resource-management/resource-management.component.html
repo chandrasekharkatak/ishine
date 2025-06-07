@@ -324,7 +324,7 @@
                                     mat-sort-header="isDraftProject|string">Approval
                                     Status</th>
                                 <th scope="col" class="info-label" style="max-width: fit-content;min-width: 300px;"
-                                    mat-sort-header="name|string">Project Name</th>
+                                    mat-sort-header="projectName|string">Project Name</th>
                                 <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
                                     mat-sort-header="poNo|string">PO Number</th>
                                 <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
@@ -399,10 +399,10 @@
                                                     (click)="openDatePicker(customDatePickerTemplate,project);closeMenu(i)">
                                                     <i class="fas fa-check-double"></i> Mark as Complete
                                                 </li>
-                                                <li *ngIf="userMapping.rmg_approval_option || userMapping.rmg_approval_option && project.isDraftProject === 'Pending For Approval' && !isHideButton"
+                                                <li *ngIf="userMapping.rmg_approval_option || userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !isHideButton"
                                                     (click)="onApproveProject(project);closeMenu(i)"><i
                                                         class="fas fa-square-check"></i> Approve</li>
-                                                <li *ngIf="userMapping.rmg_approval_option &&  project.isActive == 2  || userMapping.rmg_approval_option && project.isDraftProject === 'Pending For Approval' && !isHideButton"
+                                                <li *ngIf="userMapping.rmg_approval_option &&  project.isActive == 2  || userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !isHideButton"
                                                     (click)="openRejectModal(reject_project,project);closeMenu(i)"><i
                                                         class="fas fa-times"></i> Reject</li>
                                             </ul>
@@ -410,26 +410,32 @@
                                     </td>
                                     <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
                                     <td
-                                        [ngStyle]="{'color': (project.isDraftProject == 'Pending For Approval') ? 'orange' : (project.isDraftProject == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
-                                        <em>{{project.isDraftProject}}</em>
+                                        [ngStyle]="{'color': (project.draftStatus == 'Pending For Approval') ? 'orange' : (project.draftStatus == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
+                                        <em>{{project.draftStatus}}</em>
                                     </td>
-                                    <td *ngIf='project.isDraftProject == "Not Started"'>{{project.name}}</td>
-                                    <td *ngIf="project.id == null && project.isDraftProject != 'Not Started'"
+                                    <td *ngIf='project.draftStatus == "Not Started"'>{{project.projectName}}</td>
+                                    <td *ngIf="project.id == null && project.draftStatus != 'Not Started'"
                                         title="Click to view Project Details">
                                         <span style="cursor: pointer; color: blue;" id="clickablefor360"
                                             (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId">
-                                            {{ project.name }}
+                                            {{ project.projectName }}
                                         </span>
                                     </td>
-                                    <td *ngIf="project.projectId == null && project.isDraftProject != 'Not Started'"
+                                    <td *ngIf="project.projectId == null && project.draftStatus != 'Not Started'"
                                         title="Click to view Project Details">
                                         <span style="cursor: pointer; color: blue;" id="clickablefor360"
                                             (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId">
-                                            {{ project.name }}
+                                            {{ project.projectName }}
                                         </span>
                                     </td>
                                     <td>{{project.poNo}}</td>
-                                    <td>{{project.projectType}}</td>
+                                    <ng-container *ngIf="project.poProjectType">
+                                        <td>{{project.poProjectType}}</td>
+                                    </ng-container>
+                                    <ng-container *ngIf="!project.poProjectType">
+                                        <td>{{project.internalProjectType}}</td>
+                                    </ng-container>
+                                    
                                     <td id="clickablefor360"
                                         *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName && !isAccounts"
                                         [navigateToEmployee360]="project.emp360" style="cursor: pointer;"
@@ -440,9 +446,9 @@
                                     <td>{{project.clientName}}</td>
                                     <td>{{project.apmosysRM}}</td>
                                     <td>{{project.clientRM}}</td>
-                                    <td>{{project.startDate | date: 'dd/MM/yyyy'}}</td>
-                                    <td>{{project.endDate | date: 'dd/MM/yyyy'}}</td>
-                                    <td>{{project.clientState}}</td>
+                                    <td>{{project.poStartDate | date: 'dd/MM/yyyy'}}</td>
+                                    <td>{{project.poEndDate | date: 'dd/MM/yyyy'}}</td>
+                                    <td>{{project.state}}</td>
                                     <td>{{ project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td>
                                     <td>{{project.status}}</td>
                                     <!-- <td *ngIf="!isAccounts"> -->

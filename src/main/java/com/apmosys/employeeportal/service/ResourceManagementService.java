@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -53,6 +54,7 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.ProjectManagersDTO;
@@ -154,6 +156,7 @@ public class ResourceManagementService {
 	
 	@Autowired
 	ProjectTempRepo projectTempRepo;
+	
 	
 	@Autowired
 	ProjectOverheadMappingRepository projectOverheadMappingRepository;
@@ -5567,16 +5570,6 @@ public class ResourceManagementService {
 		}
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	public ServiceResponse getAllExceptionReport() {
 	    ServiceResponse response = new ServiceResponse();
 	    try {
@@ -5609,4 +5602,117 @@ public class ResourceManagementService {
 	    return response;
 	}
 
+	public ServiceResponse combinedDataListWithCount(ProjectFilterDTO projectFilterDTO) {
+		 ServiceResponse response = new ServiceResponse();
+		    StringBuilder logBuilder = new StringBuilder();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setLogLevel("INFO");
+
+		        if (projectFilterDTO == null) {
+		            return failResponse(response, apiLogInfo, "Invalid input: ProjectFilterDTO is null.");
+		        }
+		        try {
+		        	if(projectFilterDTO.getApprovalStatus()!=null && projectFilterDTO.getApprovalStatus().equalsIgnoreCase("All" ))
+		        		projectFilterDTO.setApprovalStatus(null);
+		        	CombinedPOInternalProjectResponse responseData = new CombinedPOInternalProjectResponse();
+		        Map<String,Integer> map = new HashMap<>();
+		        map.put("pendingForApprovalCount", projectRepository.getAllActiveProjecCountstList(projectFilterDTO.getDepartmentsids(),"true"));
+				map.put("approvedCount", projectRepository.getAllActiveProjecCountstList(projectFilterDTO.getDepartmentsids(),"false"));
+				map.put("completedCount", projectRepository.getAllCompleteProjectInShankhCountstList(projectFilterDTO.getDepartmentsids(),"Complete"));
+				map.put("notStartedCount",projectTempRepo.getAllNotStartedProjectCount());
+				map.put("rejectedCount", projectRepository.getAllActiveProjecCountstList(projectFilterDTO.getDepartmentsids(),"Rejected"));
+				map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(projectFilterDTO.getDepartmentsids(),"Complete"));
+		        
+		        List<Long> departmentsids = Optional.ofNullable(projectFilterDTO.getDepartmentsids()).orElse(new ArrayList<>());
+		        if(departmentsids.isEmpty()) {
+		        	departmentsids = null;
+		        }
+//		        Set<String> deptIdStrings = departmentsids.stream().map(String::valueOf).collect(Collectors.toSet());
+		        List<Object[]> results = projectRepository.getAllActiveProjectList(departmentsids,projectFilterDTO.getCompletionStatus(),projectFilterDTO.getApprovalStatus());		        
+		        List<ProjectFetchDTO> dtoList = new ArrayList<>();
+//
+		        for (Object[] row : results) {
+		        ProjectFetchDTO dto = new ProjectFetchDTO(
+		                (Integer) row[0],                      // projectId
+		                (Timestamp) row[1],                    // createdOn
+		                (String) row[2],                       // projectName
+		                (String) row[3],                       // state
+		                (Integer) row[4],                      // clientId
+		                row[5] != null ? ((BigInteger) row[5]).longValue() : null,     // poProjectId
+		                (String) row[6],                       // active
+		                (String) row[7],                       // syncProject
+		                row[8] != null ? ((BigInteger) row[8]).longValue() : null,     // createdBy
+		                row[9] != null ? ((BigInteger) row[9]).longValue() : null,     // updatedBy
+		                row[10] != null ? ((Timestamp) row[10]).toLocalDateTime() : null,               // updatedOn
+		                (String) row[11],                      // isDraftProject
+		                (String) row[12],                      // poEndDate
+		                (String) row[13],                      // poNo
+		                (String) row[14],                      // poProjectType
+		                (String) row[15],                      // poStartDate
+		                (String) row[16],                      // apmosysRM
+		                (String) row[17],                      // clientRM
+		                (String) row[18],                      // deptId
+		                (Boolean)row[19],                      // isRenewable
+		                (String) row[20],                      // status
+		                (String) row[21],                      // apmosysRmEmail
+		                (String) row[22],                      // projectCompletionDate
+		                (String) row[23],                      // projectStatus
+		                (String) row[24],                      // internalProjectType
+		                (String) row[25],					   // clientName
+		                (String) row[26]                       // draftStatus (calculated in SQL)
+		            );
+		            dtoList.add(dto);
+		        }
+		        
+		        if((projectFilterDTO.getCompletionStatus() == null && projectFilterDTO.getApprovalStatus()== null) ||
+		        (projectFilterDTO.getApprovalStatus().equalsIgnoreCase("Not Started") && projectFilterDTO.getCompletionStatus() == null)) {
+		        List<Object[]> results2 = projectTempRepo.getAllNotStartedProjectList();
+		        for (Object[] row : results2) {
+			        ProjectFetchDTO dto = new ProjectFetchDTO(
+			                (Integer) row[0],                      // projectTempId
+			                (Timestamp) row[1],                    // createdOn
+			                (String) row[2],                       // projectName
+			                (String) row[3],                       // state
+			                (Integer) row[4],                      // clientId
+			                row[5] != null ? ((BigInteger) row[5]).longValue() : null,     // poProjectId
+			                (String) row[6],                       // active
+			                (String) row[7],                       // syncProject
+			                row[8] != null ? ((BigInteger) row[8]).longValue() : null,     // createdBy
+			                row[9] != null ? ((BigInteger) row[9]).longValue() : null,     // updatedBy
+			                row[10] != null ? ((Timestamp) row[10]).toLocalDateTime() : null,               // updatedOn
+			                (String) row[11],                      // isDraftProject
+			                (String) row[12],                      // poEndDate
+			                (String) row[13],                      // poNo
+			                (String) row[14],                      // poProjectType
+			                (String) row[15],                      // poStartDate
+			                (String) row[16],                      // apmosysRM
+			                (String) row[17],                      // clientRM
+			                (String) row[18],                      // deptId
+			                (Boolean)row[19],                      // isRenewable
+			                (String) row[20],                      // status
+			                (String) row[21],                      // apmosysRmEmail
+			                (String) row[22],                      // projectCompletionDate
+			                (String) row[23],                      // projectStatus
+			                (String) row[24]                       // draftStatus (calculated in SQL)
+			            );
+			        dtoList.add(dto);
+			        }
+		        }
+		        responseData.setCombinedNewProjects(dtoList);
+		        responseData.setCounts(map);        
+		        System.out.println(dtoList);
+		        response.setServiceResponse(responseData);
+		        response.setServiceStatus(response.STATUS_SUCCESS);
+		        return response;
+		        }
+		        catch(Exception e) {
+		        	e.printStackTrace();
+		        	response.setServiceResponse(e.getMessage());
+		        	response.setServiceMessage("Something went wrong..!!");
+		        	response.setServiceStatus(response.SOMETHING_WENT_WRONG);
+		        	return response;
+		        }
+	}
+		        
+	
 }

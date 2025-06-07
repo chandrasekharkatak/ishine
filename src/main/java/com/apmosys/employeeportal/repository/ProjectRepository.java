@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.model.Project;
 
 @Repository
@@ -122,4 +123,80 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getExceptionEmployeeReport();
 	
+	@Query(value = "SELECT \n"
+			+ "    distinct p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
+			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
+			+ "    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name, \n"
+			+ "    CASE\n"
+			+ "        WHEN p.is_draft_project = 'true' THEN 'Pending For Approval'\n"
+			+ "        WHEN p.is_draft_project = 'false' THEN 'Approved'\n"
+			+ "        WHEN p.is_draft_project = 'Rejected' THEN 'Rejected'\n"
+			+ "        WHEN p.is_draft_project = 'Completed' THEN 'Completed'\n"
+			+ "        ELSE 'Un Mentioned Test Data'\n"
+			+ "    END AS draftStatus\n"
+			+ "FROM projects p\n"
+			+ "LEFT JOIN project_temp pt ON p.po_project_id = pt.po_project_id\n"
+			+ "LEFT JOIN clients c on p.client_id = c.client_id \n"
+			+ "INNER JOIN teams t on p.project_id = t.project_id\n"
+			+ "INNER JOIN employee_team_mapping etm on etm.team_id = t.team_id\n"
+			+ "INNER JOIN employee e on e.emp_id = etm.emp_id \n"
+			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id\n"
+			+ "INNER JOIN department d on d.dept_id = jr.dept_id\n"
+			+ "WHERE p.active = 'true' AND t.is_active != 'N' \n"
+			+ "AND etm.active != 0 AND e.employmentstatus != 'InActive' \n"
+			+ "AND d.dept_id IN (:deptIds) \n"
+//			+ "AND (:deptIds IS NULL OR d.dept_id IN (:deptIds)) \n"
+			+ "AND (:approvalStatus IS NULL OR p.is_draft_project = :approvalStatus ) \n"
+			+ "AND (:projectStatus IS NULL OR p.project_status = :projectStatus )",
+	       nativeQuery = true)
+	List<Object[]> getAllActiveProjectList(@Param("deptIds") List<Long> deptIds,@Param("projectStatus")String projectStatus,@Param("approvalStatus")String approvalStatus);
+	
+	@Query(value = "SELECT COUNT(DISTINCT p.project_id) AS distinct_project_count\n"
+			+ "FROM projects p\n"
+			+ "LEFT JOIN project_temp pt ON p.po_project_id = pt.po_project_id\n"
+			+ "INNER JOIN teams t on p.project_id = t.project_id\n"
+			+ "INNER JOIN employee_team_mapping etm on etm.team_id = t.team_id\n"
+			+ "INNER JOIN employee e on e.emp_id = etm.emp_id \n"
+			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id\n"
+			+ "INNER JOIN department d on d.dept_id = jr.dept_id\n"
+			+ "WHERE p.active = 'true' AND t.is_active != 'N' \n"
+			+ "AND etm.active != 0 AND e.employmentstatus != 'InActive' \n"
+			+ "AND d.dept_id IN (:deptIds)\n"
+			+ "AND (:approvalStatus IS NULL OR p.is_draft_project =:approvalStatus) ",
+	       nativeQuery = true)
+	Integer getAllActiveProjecCountstList(@Param("deptIds") List<Long> deptIds,@Param("approvalStatus")String approvalStatus);
+
+
+	@Query(value = "SELECT COUNT(DISTINCT p.project_id) AS distinct_project_count\n"
+			+ "FROM projects p\n"
+			+ "LEFT JOIN project_temp pt ON p.po_project_id = pt.po_project_id\n"
+			+ "INNER JOIN teams t on p.project_id = t.project_id\n"
+			+ "INNER JOIN employee_team_mapping etm on etm.team_id = t.team_id\n"
+			+ "INNER JOIN employee e on e.emp_id = etm.emp_id \n"
+			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id\n"
+			+ "INNER JOIN department d on d.dept_id = jr.dept_id\n"
+			+ "WHERE p.active = 'true' AND t.is_active != 'N' \n"
+			+ "AND etm.active != 0 AND e.employmentstatus != 'InActive' \n"
+			+ "AND d.dept_id IN (:deptIds) \n"
+//			+ "AND (:deptIds IS NULL OR d.dept_id IN (:deptIds)) \n"
+			+ "AND (:projectStatus IS NULL OR p.project_status = :projectStatus )",
+	       nativeQuery = true)
+	Integer getAllCompleteProjectInIshineCountstList(@Param("deptIds") List<Long> deptIds,@Param("projectStatus")String projectStatus);
+
+	@Query(value = "SELECT COUNT(DISTINCT p.project_id) AS distinct_project_count\n"
+			+ "FROM projects p\n"
+			+ "LEFT JOIN project_temp pt ON p.po_project_id = pt.po_project_id\n"
+			+ "INNER JOIN teams t on p.project_id = t.project_id\n"
+			+ "INNER JOIN employee_team_mapping etm on etm.team_id = t.team_id\n"
+			+ "INNER JOIN employee e on e.emp_id = etm.emp_id \n"
+			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id\n"
+			+ "INNER JOIN department d on d.dept_id = jr.dept_id\n"
+			+ "WHERE p.active = 'true' AND t.is_active != 'N' \n"
+			+ "AND etm.active != 0 AND e.employmentstatus != 'InActive' \n"
+			+ "AND d.dept_id IN (:deptIds) \n"
+//			+ "AND (:deptIds IS NULL OR d.dept_id IN (:deptIds)) \n"
+			+ "AND (:projectStatus IS NULL OR p.status = :projectStatus )",
+	       nativeQuery = true)
+	Integer getAllCompleteProjectInShankhCountstList(@Param("deptIds") List<Long> deptIds,@Param("projectStatus")String projectStatus);
 }

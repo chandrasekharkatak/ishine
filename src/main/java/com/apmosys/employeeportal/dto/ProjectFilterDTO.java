@@ -12,6 +12,7 @@ import lombok.ToString;
 public class ProjectFilterDTO {
 	
 	private String approvalStatus;
+	private String completionStatus;
 	private Long currentUserEmpId;
 	private List<Long> departmentsids;
 

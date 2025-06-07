@@ -268,7 +268,8 @@ export class ResourceManagementComponent implements OnInit {
     }
     // this.toggleSelectAllDept();
     this.projectFilterDTO.approvalStatus = "All";
-    this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+    this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+    this. projectFilterDTO.departmentsids = this.filteredDepartments.map(dept => dept.deptId);
     await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
 
     await this.RbacInternalProjects(this.projectFilterDTO);
@@ -1860,7 +1861,7 @@ onAction(action: string, project: any) {
   this.resourceManagementService.combinedPOINTERNALList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Success") {
       console.log(response.serviceResponse);
-      this.allProject_Po_Internal = response.serviceResponse.combinedProjects;
+      this.allProject_Po_Internal = response.serviceResponse.combinedNewProjects;
       this.tabCounts = response.serviceResponse.counts;
       this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
 

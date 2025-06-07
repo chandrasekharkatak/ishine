@@ -13,6 +13,7 @@ import lombok.ToString;
 public class CombinedPOInternalProjectResponse {
 	
 	    private List<ResourceManagementDTO> combinedProjects;
+	    private List<ProjectFetchDTO> combinedNewProjects;
 	    private Map<String, Integer> counts;
 
 }
