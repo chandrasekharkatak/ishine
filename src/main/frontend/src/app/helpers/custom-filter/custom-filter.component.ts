@@ -2,6 +2,8 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Query } from 'src/app/models/query';
 import { LeaveService } from 'src/app/services/leave.service';
 import { first } from 'rxjs/operators';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { User } from 'src/app/models/user';
 
 class Operator{
   name:string;
@@ -33,12 +35,13 @@ export class CustomFilterComponent implements OnInit {
   valueOptionList = [];
   keyword = "name";
   storedFilterData:storedData[] = [new storedData()];
-
+  currentUser:User;
   @Input() data: any;
   @Output() filterSubmitted:EventEmitter<any> =  new EventEmitter<any>(); 
   constructor(
-    private leaveService : LeaveService,
-  ) { }
+    private authenticationService:AuthenticationService,
+   private leaveService : LeaveService
+ ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
     this.columnList = this.data.columns;
@@ -70,6 +73,7 @@ export class CustomFilterComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.column = column;
+    queryObj.empId= this.currentUser.empId;
     this.leaveService.getValueOptionData(queryObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {        
         this.valueOptionList = response.serviceResponse;

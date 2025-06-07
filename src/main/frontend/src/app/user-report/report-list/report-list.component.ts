@@ -1556,6 +1556,7 @@ export class ReportListComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
+    queryObj.empId = this.currentUser.empId;
     if (queryObjList.length == 0) {
       this.getAllLeaveApplicationsList();
     } else {
@@ -1637,6 +1638,7 @@ export class ReportListComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
+    queryObj.empId = this.currentUser.empId;
     if (queryObjList == '') {
       this.getAllTimesheetApplicationsList();
     } else {
@@ -1707,6 +1709,7 @@ export class ReportListComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
+    queryObj.empId = this.currentUser.empId;
 
     if (queryObjList == '') {
       this.getAllEmployeeList();

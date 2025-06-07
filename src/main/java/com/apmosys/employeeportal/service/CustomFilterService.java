@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -251,12 +252,14 @@ public class CustomFilterService {
 		return query;
 	}
 
-	public List<Object[]> getCustomLeaveReport(String customQuery) {
+	public List<Object[]> getCustomLeaveReport(String customQuery,Long empId) {
 		try {
 
 			Session session = entityManager.unwrap(Session.class);
+			 String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
 
 			try {
+				
 
 				String q = "select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date,el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
 						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type,e.is_consultant,e.is_apprenticeship, el.leave_status_updated_by, el.manager_id, el.emp_id from employee_leave el "
@@ -269,7 +272,7 @@ public class CustomFilterService {
 						+ "INNER JOIN department d ON d.dept_id = jr.dept_id "
 						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = el.emp_id "
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id "
-						+ "LEFT JOIN projects p on p.project_id = t.project_id where " + customQuery
+						+ "LEFT JOIN projects p on p.project_id = t.project_id where " + customQuery +"AND jr.dept_id IN (" + deptList + ")"
 						+ " GROUP BY e.employeement_id, el.from_date";
 
 				System.out.println(q);
@@ -303,8 +306,7 @@ public class CustomFilterService {
 
 		try {
 			StringBuilder subQuery = createQueryForLeaveReport(leaveDTO.getQueryList());
-			List<Object[]> list = getCustomLeaveReport(subQuery.toString());
-			
+			List<Object[]> list = getCustomLeaveReport(subQuery.toString(),leaveDTO.getEmpId());			
 			System.out.println("SubQuery : "+subQuery);
 
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
@@ -832,11 +834,11 @@ public class CustomFilterService {
 		return query;
 	}
 
-	List<Object[]> getCustomEmployeeReport(String customQuery) {
+	List<Object[]> getCustomEmployeeReport(String customQuery,Long empId) {
 		try {
 			Session session = entityManager.unwrap(Session.class);
-
-			try {
+            String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
+            try {
 //				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
 //						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
 //						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
@@ -979,7 +981,7 @@ public class CustomFilterService {
 						+ "      AND t.is_active != 'N' \n"
 						+ "      AND pr.active != 'false'\n"
 						+ "    GROUP BY etm.emp_id\n"
-						+ ") emp_proj_client ON emp_proj_client.emp_id = e.emp_id where " + customQuery;
+						+ ") emp_proj_client ON emp_proj_client.emp_id = e.emp_id where " + customQuery +"AND jr.dept_id IN (" + deptList + ")";
 
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
@@ -1225,8 +1227,7 @@ public class CustomFilterService {
 			System.err.println(
 					" createQueryForEmployeeReport  :: employeeDTO.getQueryList()     " + employeeDTO.getQueryList());
 			StringBuilder subQuery = createQueryForEmployeeReport(employeeDTO.getQueryList());
-			List<Object[]> list = getCustomEmployeeReport(subQuery.toString());
-
+			List<Object[]> list = getCustomEmployeeReport(subQuery.toString(),employeeDTO.getEmpId());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			if (list != null) {
@@ -1507,14 +1508,15 @@ public class CustomFilterService {
 		return query;
 	}
 
-	List<Object[]> getCustomTimesheetReport(String customQuery) {
+	List<Object[]> getCustomTimesheetReport(String customQuery,Long empId) {
 		try {
 			Session session = entityManager.unwrap(Session.class);
+			String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
 
 			try {
 				String q = "SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, \n"
 						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, \n"
-						+ "et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type, e1.is_consultant, e1.is_apprenticeship, et.timesheet_status_updated_by,employee_timesheets.emp_id \n"
+						+ "et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type, e1.is_consultant, e1.is_apprenticeship, et.timesheet_status_updated_by,et.emp_id \n"
 						+ "FROM employee_timesheets et \n" + "INNER JOIN employee e1 on et.emp_id = e1.emp_id \n"
 						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id \n"
 						+ "LEFT JOIN job_role jr on e1.job_role_id=jr.job_role_id \n"
@@ -1523,7 +1525,7 @@ public class CustomFilterService {
 						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
 						+ "LEFT JOIN projects p on p.project_id = t.project_id \n"
 						+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id where \n"
-						+ customQuery 
+						+ customQuery +"AND jr.dept_id IN (" + deptList + ") \n"
 						+ "AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' \n"
 						+ "GROUP BY e1.employeement_id, et.date \n";
 
@@ -1554,7 +1556,7 @@ public class CustomFilterService {
 		try {
 
 			StringBuilder subQuery = createQueryForTimesheetReport(timesheetDTO.getQueryList());
-			List<Object[]> list = getCustomTimesheetReport(subQuery.toString());
+			List<Object[]> list = getCustomTimesheetReport(subQuery.toString(),timesheetDTO.getEmpId());
 
 			List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
 
@@ -2117,7 +2119,17 @@ public class CustomFilterService {
 		StringBuilder logBuilder = new StringBuilder();
 		try {
 
-			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
+			   String deptList = departmentRepository.findAccessibleDeptIdsForEmp(customFilterDTO.getEmpId());
+						 List<Integer> deptIds = Arrays.stream(deptList.split(","))
+								    .map(String::trim)
+								    .map(Integer::parseInt)
+								    .collect(Collectors.toList());
+						 List<Long> deptIdLongs = Arrays.stream(deptList.split(","))
+								    .map(String::trim)
+								    .map(Long::parseLong)    
+								    .collect(Collectors.toList());
+		 List<Object[]> allEmployeeList = employeeRepository.getAllEmployeesBasedOnUserLogined(deptIds);
+//			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			switch (customFilterDTO.getColumn()) {
@@ -2241,7 +2253,7 @@ public class CustomFilterService {
 				break;
 			}
 			case "Department": {
-				List<Department> departmentObj = departmentRepository.findAll();
+				 List<Department> departmentObj = departmentRepository.findByDeptIdIn(deptIdLongs);
 				if (!departmentObj.isEmpty()) {
 					departmentObj.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
