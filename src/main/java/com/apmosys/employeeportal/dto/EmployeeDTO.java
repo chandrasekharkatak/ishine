@@ -273,5 +273,10 @@ public class EmployeeDTO {
     private String selectedProjectId;
     private String hodDepartmentName;
     private String teamIds;
+    
+    private Integer inActiveFlag;
+    private Integer lowerAge;
+    private Integer upperAge;
+    
 	
 }

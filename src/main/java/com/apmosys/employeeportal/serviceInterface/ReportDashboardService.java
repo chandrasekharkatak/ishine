@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.serviceInterface;
 
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.ReportsQueryDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -17,22 +18,11 @@ public interface ReportDashboardService {
 
 	ServiceResponse getDepartmentWiseBillableData(LeaveDTO leaveDto);
 		
-	ServiceResponse getEmployeeStatusSummaryCount();
-	
-	ServiceResponse getEmployeeStatusSummary();
-
-	ServiceResponse getEmployeeGenderSummaryCount();
-	
-	ServiceResponse getEmployeeGenderSummary();
-	
-	ServiceResponse getEmployeeAgeSummaryCount();
-	
-	ServiceResponse getEmployeeAgeSummary();
 
 	//for employee status summary , gender summary , and fresher-lateral summary 
 	ServiceResponse getAllGraphEmployeeSummary();
-	ServiceResponse getDepartmentWiseKycCount(); 
-	
-	ServiceResponse getJoiningVsResignationCount(ReportsQueryDTO request);
 
+	ServiceResponse getAllPieGraphListSummary(EmployeeDTO employeeDto);
+	ServiceResponse getJoiningVsResignationCount(ReportsQueryDTO request) ;
+	ServiceResponse getDepartmentWiseKycCount() ;
 }

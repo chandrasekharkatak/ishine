@@ -627,62 +627,62 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	        object.forEach((count) -> {
 	            ReportCountDTO reportDto = new ReportCountDTO();
 	            
-	            // Billable Status (indices 0-2)
+	            // Billable Status 
 	            reportDto.setBillableYes(count[0] != null ? Long.parseLong(count[0].toString()) : 0L);
 	            reportDto.setBillableNo(count[1] != null ? Long.parseLong(count[1].toString()) : 0L);
 	            reportDto.setBillableOther(count[2] != null ? Long.parseLong(count[2].toString()) : 0L);
 	            
-	            // Age Groups (indices 3-6)
+	            // Age Groups 
 	            reportDto.setAge18to25(count[3] != null ? Long.parseLong(count[3].toString()) : 0L);
 	            reportDto.setAge25to35(count[4] != null ? Long.parseLong(count[4].toString()) : 0L);
 	            reportDto.setAge35to45(count[5] != null ? Long.parseLong(count[5].toString()) : 0L);
 	            reportDto.setAgeAbove45(count[6] != null ? Long.parseLong(count[6].toString()) : 0L);
 	            
-	            // Gender (indices 7-9)
+	            // Gender 
 	            reportDto.setGenderMale(count[7] != null ? Long.parseLong(count[7].toString()) : 0L);
 	            reportDto.setGenderFemale(count[8] != null ? Long.parseLong(count[8].toString()) : 0L);
 	            reportDto.setGenderOther(count[9] != null ? Long.parseLong(count[9].toString()) : 0L);
 	            
-	            // Employment Status (indices 10-14)
+	            // Employment Status 
 	            reportDto.setEmployeeStatusConfirmed(count[10] != null ? Long.parseLong(count[10].toString()) : 0L);
 	            reportDto.setEmployeeStatusResigned(count[11] != null ? Long.parseLong(count[11].toString()) : 0L);
 	            reportDto.setEmployeeStatusProbation(count[12] != null ? Long.parseLong(count[12].toString()) : 0L);
 	            reportDto.setEmployeeStatusRetain(count[13] != null ? Long.parseLong(count[13].toString()) : 0L);
 	            reportDto.setEmployeeStatusInActive(count[14] != null ? Long.parseLong(count[14].toString()) : 0L);
 	            
-	            // Experience Type (indices 15-16)
+	            // Experience Type 
 	            reportDto.setLateralCount(count[15] != null ? Long.parseLong(count[15].toString()) : 0L);
 	            reportDto.setFresherCount(count[16] != null ? Long.parseLong(count[16].toString()) : 0L);
 	            
-	            // Apprentice Years (indices 17-21)
+	            // Apprentice Years 
 	            reportDto.setApprenticeYears0to1(count[17] != null ? Long.parseLong(count[17].toString()) : 0L);
 	            reportDto.setApprenticeYears1to2(count[18] != null ? Long.parseLong(count[18].toString()) : 0L);
 	            reportDto.setApprenticeYears2to5(count[19] != null ? Long.parseLong(count[19].toString()) : 0L);
 	            reportDto.setApprenticeYears5to10(count[20] != null ? Long.parseLong(count[20].toString()) : 0L);
 	            reportDto.setApprenticeYearsAbove10(count[21] != null ? Long.parseLong(count[21].toString()) : 0L);
 	            
-	            // Employee Years (indices 22-26)
+	            // Employee Years 
 	            reportDto.setEmployeeYears0to1(count[22] != null ? Long.parseLong(count[22].toString()) : 0L);
 	            reportDto.setEmployeeYears1to2(count[23] != null ? Long.parseLong(count[23].toString()) : 0L);
 	            reportDto.setEmployeeYears2to5(count[24] != null ? Long.parseLong(count[24].toString()) : 0L);
 	            reportDto.setEmployeeYears5to10(count[25] != null ? Long.parseLong(count[25].toString()) : 0L);
 	            reportDto.setEmployeeYearsAbove10(count[26] != null ? Long.parseLong(count[26].toString()) : 0L);
 	            
-	            // Consultant Years (indices 27-31)
+	            // Consultant Years 
 	            reportDto.setConsultantYear0to1(count[27] != null ? Long.parseLong(count[27].toString()) : 0L);
 	            reportDto.setConsultantYear1to2(count[28] != null ? Long.parseLong(count[28].toString()) : 0L);
 	            reportDto.setConsultantYear2to5(count[29] != null ? Long.parseLong(count[29].toString()) : 0L);
 	            reportDto.setConsultantYear5to10(count[30] != null ? Long.parseLong(count[30].toString()) : 0L);
 	            reportDto.setConsultantYearAbove10(count[31] != null ? Long.parseLong(count[31].toString()) : 0L);
 	           
-	            // Billable Types (indices 32-36)
+	            // Billable Types 
 	            reportDto.setFixedCost(count[32] != null ? Long.parseLong(count[32].toString()) : 0L);
 	            reportDto.setTNM(count[33] != null ? Long.parseLong(count[33].toString()) : 0L);
 	            reportDto.setBench(count[34] != null ? Long.parseLong(count[34].toString()) : 0L);
 	            reportDto.setShadow(count[35] != null ? Long.parseLong(count[35].toString()) : 0L);
 	            reportDto.setInternalRNDProducts(count[36] != null ? Long.parseLong(count[36].toString()) : 0L);
 	            
-	            // Employee Counts (indices 37-41)
+	            // Employee Counts 
 	            reportDto.setTotalEmployeeCountDisplay(count[37] != null ? Long.parseLong(count[37].toString()) : 0L);
 	            reportDto.setProbationCountDisplay(count[38] != null ? Long.parseLong(count[38].toString()) : 0L);
 	            reportDto.setApprenticeCountDisplay(count[39] != null ? Long.parseLong(count[39].toString()) : 0L);
@@ -704,36 +704,40 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	    
 	    return response;
 	}
+	
+	public ServiceResponse getAllPieGraphListSummary(EmployeeDTO employeeDto) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getAllPieGraphListSummary");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
 
-	
-	//employee summary status graph
-	public ServiceResponse getEmployeeStatusSummaryCount()
-	{
-		return null;
-	}
-	public ServiceResponse getEmployeeStatusSummary()
-	{
-		return null;
-	}
-	
-	//employee gender summary graph 
-	public ServiceResponse getEmployeeGenderSummaryCount()
-	{
-		return null;
-	}
-	public ServiceResponse getEmployeeGenderSummary()
-	{
-		return null;
-	}
-	
-	//employee age summary graph
-	public ServiceResponse getEmployeeAgeSummaryCount()
-	{
-		return null;
-	}
-	public ServiceResponse getEmployeeAgeSummary()
-	{
-		return null;
+	    try {
+	        
+	        Integer inActiveFlag = employeeDto.getInActiveFlag() != null ? employeeDto.getInActiveFlag() : null;
+	        String employmentStatus = employeeDto.getEmploymentstatus() != null ? employeeDto.getEmploymentstatus() : null;
+	        String gender = employeeDto.getGender() != null ? employeeDto.getGender() : null;
+	        String billable = employeeDto.getBillable() != null ? employeeDto.getBillable() : null;
+	        String billableType = employeeDto.getBillableType() != null ? employeeDto.getBillableType() : null;
+	        String experience = employeeDto.getExperience() != null ? employeeDto.getExperience() : null;
+	        Integer lowerAge = employeeDto.getLowerAge()!= null ? employeeDto.getLowerAge() : null;
+	        Integer upperAge = employeeDto.getUpperAge() != null ? employeeDto.getUpperAge() : null;
+	        
+	        System.out.println(employeeDto);
+	        
+List<Object[]> object = reportDashboardRepository.getAllPieGraphListSummary(inActiveFlag, billable,billableType,employmentStatus,gender,experience,lowerAge,upperAge);
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(object); 
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	    }
+	    
+	    return response;
 	}
 	
 	public ServiceResponse getDepartmentWiseKycCount() {
