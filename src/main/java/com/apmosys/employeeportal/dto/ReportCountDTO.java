@@ -17,6 +17,7 @@ public class ReportCountDTO {
 	private Long employeeStatusConfirmed;
 	private Long employeeStatusResigned;
 	private Long employeeStatusInActive;
+	private Long employeeStatusRetain;
 	
 	//gender summary
 	private Long genderMale;
@@ -33,66 +34,40 @@ public class ReportCountDTO {
 	private Long fresherCount;
 	private Long lateralCount;
 	
-	//Employee Join vs Resign
-	//joined regular
-	private Long joiningJanCount;
-	private Long joiningFebCount;
-	private Long joiningMarCount;
-	private Long joiningAprilCount;
-	private Long joiningMayCount;
-	private Long joiningJuneCount;
-	private Long joiningJulyCount;
-	private Long joiningAugCount;
-	private Long joiningSepCount;
-	private Long joiningOctoberCount;
-	private Long joiningNovCount;
-	private Long joiningDecCount;
+	//Employee Experience 
+	private Long employeeYears0to1;
+	private Long employeeYears1to2;
+	private Long employeeYears2to5;
+	private Long employeeYears5to10;
+	private Long employeeYearsAbove10;
 	
-	//joined apprentice
-	private Long joinApprenticeJanCount;
-	private Long joinApprenticeFebCount;
-	private Long joinApprenticeMarCount;
-	private Long joinApprenticeAprCount;
-	private Long joinApprenticeMayCount;
-	private Long joinApprenticeJunCount;
-	private Long joinApprenticeJulCount;
-	private Long joinApprenticeAugCount;
-	private Long joinApprenticeSepCount;
-	private Long joinApprenticeOctCount;
-	private Long joinApprenticeNovCount;
-	private Long joinApprenticeDecCount;
+	private Long apprenticeYears0to1;
+	private Long apprenticeYears1to2;
+	private Long apprenticeYears2to5;
+	private Long apprenticeYears5to10;
+	private Long apprenticeYearsAbove10;
 	
-	//joined consultant 
-	private Long joinConsultantJanCount;
-	private Long joinConsultantFebCount;
-	private Long joinConsultantMarCount;
-	private Long joinConsultantAprCount;
-	private Long joinConsultantMayCount;
-	private Long joinConsultantJunCount;
-	private Long joinConsultantJulCount;
-	private Long joinConsultantAugCount;
-	private Long joinConsultantSepCount;
-	private Long joinConsultantOctCount;
-	private Long joinConsultantNovCount;
-	private Long joinConsultantDecCount;
+	private Long consultantYear0to1;
+	private Long consultantYear1to2;
+	private Long consultantYear2to5;
+	private Long consultantYear5to10;
+	private Long consultantYearAbove10;
 	
-	//resigned 
-	private Long resignJanCount;
-	private Long resignFebCount;
-	private Long resignMarCount;
-	private Long resignAprilCount;
-	private Long resignMayCount;
-	private Long resignJuneCount;
-	private Long resignJulyCount;
-	private Long resignAugCount;
-	private Long resignSepCount;
-	private Long resignOctoberCount;
-	private Long resignNovCount;
-	private Long resignDecCount;
+	//departmentwise billable / non-billable summary
+	private Long fixedCost;
+	private Long TNM;
+	private Long bench;
+	private Long shadow;
+	private Long internalRNDProducts;
 	
-	
-	
+	// for showing total counts only 
+	private Long totalEmployeeCountDisplay;
+	private Long probationCountDisplay;
+	private Long apprenticeCountDisplay;
+	private Long consultantCountDisplay;
+	private Long regularCountDisplay;
 	
 	
 	
 }
+

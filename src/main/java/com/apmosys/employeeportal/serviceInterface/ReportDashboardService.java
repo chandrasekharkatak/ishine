@@ -13,9 +13,9 @@ public interface ReportDashboardService {
 	ServiceResponse getLeaveTrendAnalysisReport(LeaveDTO leaveDto);
 
 	ServiceResponse getEmployeeWorkLocationForSummary();
-	
+
 	ServiceResponse getDepartmentWiseBillableData(LeaveDTO leaveDto);
-	
+		
 	ServiceResponse getEmployeeStatusSummaryCount();
 	
 	ServiceResponse getEmployeeStatusSummary();
@@ -28,4 +28,6 @@ public interface ReportDashboardService {
 	
 	ServiceResponse getEmployeeAgeSummary();
 
+	//for employee status summary , gender summary , and fresher-lateral summary 
+	ServiceResponse getAllGraphEmployeeSummary();
 }
