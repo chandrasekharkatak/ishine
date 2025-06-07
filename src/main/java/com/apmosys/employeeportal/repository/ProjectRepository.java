@@ -199,4 +199,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "AND (:projectStatus IS NULL OR p.status = :projectStatus )",
 	       nativeQuery = true)
 	Integer getAllCompleteProjectInShankhCountstList(@Param("deptIds") List<Long> deptIds,@Param("projectStatus")String projectStatus);
+	@Query(nativeQuery = true)
+	public List<Object[]> getPreviousDefaultProjectDetails(Long empId);
+	
 }

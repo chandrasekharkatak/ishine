@@ -93,7 +93,7 @@
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
-                                            <p class="info-label">Reffered Type</p>
+                                            <p class="info-label">Referred Type</p>
                                             <!-- <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p> -->
                                             <!-- <p class="info-text info-highlight">{{ currentEmployeeInfo.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{currentEmployeeInfo.employeementId}}</p>                                               -->
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.referedType}}</p>
@@ -101,7 +101,7 @@
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
-                                            <p class="info-label">Reffered Name</p>
+                                            <p class="info-label">Referred Name</p>
                                             <!-- <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p> -->
                                             <!-- <p class="info-text info-highlight">{{ currentEmployeeInfo.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{currentEmployeeInfo.employeementId}}</p>                                               -->
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.referedName}}</p>
@@ -804,7 +804,7 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label">Reffered Type</label>
+                                                <label class="info-label">Referred Type</label>
 
                                                 <select class="form-control" aria-hidden="true"
                                                     (change)="refferedChange()" [(ngModel)]="employeeObj.referedType">
@@ -818,7 +818,7 @@
                                     <div class="col-md-4 mb-0" *ngIf="referedTypeStatus">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label">Reffered Name</label>
+                                                <label class="info-label">Referred Name</label>
                                                 <input type="text" class="form-control" autocomplete="none" (keypress)="RestrictFullName($event)"
                                                     [(ngModel)]="employeeObj.referedName">
                                             </div>

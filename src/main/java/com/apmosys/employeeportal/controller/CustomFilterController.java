@@ -100,4 +100,6 @@ public class CustomFilterController {
 		ServiceResponse response = customFilterService.customQueryForDocument(newsletterDto);
 		return response;
 	}
+	
+	
 }

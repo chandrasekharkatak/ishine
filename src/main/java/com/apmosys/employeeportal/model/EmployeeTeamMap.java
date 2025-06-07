@@ -49,6 +49,5 @@ public class EmployeeTeamMap {
 	//added by rahul singh
     private Long resourceOverviewId;
     private Integer isShadow;
-    private Integer isDefaultProject;
 	
 }

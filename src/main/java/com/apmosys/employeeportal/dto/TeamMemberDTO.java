@@ -1,5 +1,8 @@
 package com.apmosys.employeeportal.dto;
 
+import java.util.List;
+import java.util.Map;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -16,21 +19,15 @@ public class TeamMemberDTO {
 	private String[] employeeRole;
 	private String isTeamLead;
 	private String startDate;
-	
-	// added for resource
-	
 	private String employeeName;
 	private Long employeementId;
 	private String employmentIdEmployeeType;
 	private String departmentName;
 	private Long id;
-	private Long shadowEmpId;
-	private String shadowEmployeeName;
-	private String shadowEmployeeEmploymentId;
-	private String shadowEmployeeDepartmentName;
 	private Integer isShadow;
 	private Integer isDefaultProject;
     private Long resourceOverviewId;
 	private SpocDTO shadow;
+	private List<Map<String, Object>> otherActiveProjects;
 	
 }

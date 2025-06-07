@@ -56,5 +56,32 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	Long findDepartmentIdOfSpoc(@Param("jobRoleId") Long jobRoleId);
 	
 	
+	 @Query(value = "SELECT \n"
+	 		+ "    CASE \n"
+	 		+ "        WHEN (\n"
+	 		+ "				d.name in ('Admin', 'Resource Management Group', 'Director', 'Super Admin', 'Accounts', 'HR') \n"
+	 		+ "					or\n"
+	 		+ "                jr.employee_role in ('SuperAdmin', 'Accounts')\n"
+	 		+ "			)\n"
+	 		+ "        THEN all_depts.dept_ids\n"
+	 		+ "        WHEN e.emp_id IN (SELECT hod_id FROM department) \n"
+	 		+ "        THEN hod_depts.dept_ids\n"
+	 		+ "        ELSE NULL\n"
+	 		+ "    END AS dept_id\n"
+	 		+ "FROM department d\n"
+	 		+ "INNER JOIN job_role jr ON jr.dept_id = d.dept_id\n"
+	 		+ "INNER JOIN employee e ON e.job_role_id = jr.job_role_id\n"
+	 		+ "LEFT JOIN (\n"
+	 		+ "    SELECT GROUP_CONCAT(DISTINCT d2.dept_id) AS dept_ids FROM department d2\n"
+	 		+ ") all_depts ON TRUE\n"
+	 		+ "LEFT JOIN (\n"
+	 		+ "    SELECT hod_id, GROUP_CONCAT(DISTINCT d3.dept_id) AS dept_ids FROM department d3 GROUP BY hod_id\n"
+	 		+ ") hod_depts ON hod_depts.hod_id = e.emp_id\n"
+	 		+ "WHERE e.emp_id = :empId"
+		        , nativeQuery = true)
+		    String findAccessibleDeptIdsForEmp(@Param("empId") Long empId);
+
+	
+
 	
 }
