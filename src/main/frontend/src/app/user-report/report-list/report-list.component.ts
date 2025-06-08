@@ -1349,6 +1349,20 @@ export class ReportListComponent implements OnInit {
     this.isSearchEnabled = false;
 
     //console.log(this.storedDataList, " : storeddatalist");
+    const today = new Date();
+  const oneMonthBefore = new Date();
+  oneMonthBefore.setMonth(today.getMonth() - 1);
+
+  // ✅ Format date as yyyy-MM-dd
+  const formatDate = (date: Date): string => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const currentDate = formatDate(today);
+  const oneMonthBeforeDate = formatDate(oneMonthBefore);
 
 
     this.storedDataList.forEach((object) => {
@@ -1359,7 +1373,11 @@ export class ReportListComponent implements OnInit {
 
     if (this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Leave Report')) {
       let inActiveQuery = [
-        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
+        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "AND" },
+        { column: "From Date", operator: ">=", value: oneMonthBeforeDate, conjunction: "AND" },
+        { column: "To Date", operator: "<=", value: currentDate, conjunction: "" }
+
+        
       ];
       // this.getAllLeaveApplicationsList();
 
@@ -1388,6 +1406,21 @@ export class ReportListComponent implements OnInit {
     this.filters = {};
     this.isSearchEnabled = false;
 
+    const today = new Date();
+  const oneMonthBefore = new Date();
+  oneMonthBefore.setMonth(today.getMonth() - 1);
+
+  // ✅ Format date as yyyy-MM-dd
+  const formatDate = (date: Date): string => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const currentDate = formatDate(today);
+  const oneMonthBeforeDate = formatDate(oneMonthBefore);
+
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Timesheet Report') {
         this.getCustomTimesheetApplicationsList(object.queryList, this.alertModal);
@@ -1396,7 +1429,9 @@ export class ReportListComponent implements OnInit {
 
     if (this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Timesheet Report')) {
       let inActiveQuery = [
-        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
+        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "AND" },
+        { column: "Date", operator: ">=", value: oneMonthBeforeDate, conjunction: "AND" },
+        { column: "Date", operator: "<=", value: currentDate, conjunction: "" }
       ];
       this.getCustomTimesheetApplicationsList(inActiveQuery, this.alertModal);
 
@@ -2066,8 +2101,8 @@ export class ReportListComponent implements OnInit {
     else if (this.timesheetReportFlag == true) {
       this.queryList = [
         { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" },
-        { column: "Date", operator: "=", value: formattedYesterday, conjunction: "" },
-        { column: "Date", operator: "=", value: formattedToday, conjunction: "" }
+        { column: "Date", operator: ">=", value: formattedYesterday, conjunction: "" },
+        { column: "Date", operator: "<=", value: formattedToday, conjunction: "" }
       ];
     } else {
       this.queryList = [
