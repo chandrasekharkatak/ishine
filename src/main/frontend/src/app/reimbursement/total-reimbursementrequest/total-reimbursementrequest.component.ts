@@ -283,6 +283,8 @@ selectedDocument: any;
         link.download = 'document';
         link.click();
       }
+    }else {
+      this.openAlertMod(template, "No Document to dipslay");
     }
   
 }
