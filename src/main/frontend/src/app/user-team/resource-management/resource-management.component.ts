@@ -154,7 +154,7 @@ export class ResourceManagementComponent implements OnInit {
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   filters: any = {};
   isSearchEnabled: boolean = false;
-  projectColumns: any[] = [ "blank", "blank","isDraftProject", "name", "poNo","projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "startDate", "endDate", "clientState", "createdOn", "status"];
+  projectColumns: any[] = [ "blank", "blank","draftStatus", "projectName", "poNo","projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
 
   projectDetails: any = [];
   copyDepartment: any = [];
@@ -935,7 +935,7 @@ export class ResourceManagementComponent implements OnInit {
   getTeamListByProjectName(project: any) {
     // this.previewTeamList = [];
     //console.log(" project    ",project);
-
+    project.active = null;
     this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectObj.teamList = response.serviceResponse;

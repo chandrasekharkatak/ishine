@@ -2033,7 +2033,7 @@ public class ResourceManagementService {
 		try {
 
 			Project projectObj = null;
-			if (resourceManagementDTO.getProjectType().equals("Internal")) {
+			if (resourceManagementDTO.getPoProjectId() == null) {
 				projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
 			} else {
 				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
@@ -5731,7 +5731,13 @@ public class ResourceManagementService {
 		        	departmentsids = null;
 		        }
 //		        Set<String> deptIdStrings = departmentsids.stream().map(String::valueOf).collect(Collectors.toSet());
-		        List<Object[]> results = projectRepository.getAllActiveProjectList(departmentsids,projectFilterDTO.getCompletionStatus(),projectFilterDTO.getApprovalStatus());		        
+		        List<Object[]> results = projectRepository.getAllActiveProjectList(departmentsids,projectFilterDTO.getCompletionStatus(),projectFilterDTO.getApprovalStatus());	
+//		        ServiceResponse teamCreatedProjectsResponse = alreadyCreatedTeam();
+//		        if (!ServiceResponse.STATUS_SUCCESS.equals(teamCreatedProjectsResponse.getServiceStatus())) {
+//		            return failResponse(response, apiLogInfo, "Failed to fetch already created team projects.");
+//		        }
+//		        List<ResourceManagementDTO> teamCreatedProjects = castList(teamCreatedProjectsResponse.getServiceResponse());
+
 		        List<ProjectFetchDTO> dtoList = new ArrayList<>();
 //
 		        for (Object[] row : results) {
@@ -5762,8 +5768,23 @@ public class ResourceManagementService {
 		                (String) row[23],                      // projectStatus
 		                (String) row[24],                      // internalProjectType
 		                (String) row[25],					   // clientName
-		                (String) row[26]                       // draftStatus (calculated in SQL)
+		                (String) row[26],                       // draftStatus (calculated in SQL)
+		                (String) row[27]						//projectViewId
 		            );
+		        if(row[0] != null && teamRepository.findByProjectId((Integer) row[0]) != null && !teamRepository.findByProjectId((Integer) row[0]).isEmpty()) {
+                	dto.setIsTeamCreated(true);
+                	
+                }
+		        else {
+		        	dto.setIsTeamCreated(false);
+		        }
+		        if(row[14] == null) {
+		        	dto.setProjectType((String) row[24]);		
+		        }
+		        else {
+		        	dto.setProjectType((String) row[14]);
+		        }
+		        dto.setId(row[5] != null ? ((BigInteger) row[5]).longValue() : null);
 		            dtoList.add(dto);
 		        }
 		        
@@ -5798,9 +5819,16 @@ public class ResourceManagementService {
 			                (String) row[23],                      // projectStatus
 			                (String) row[24]                       // draftStatus (calculated in SQL)
 			            );
-			        dtoList.add(dto);
+			        dto.setId(row[5] != null ? ((BigInteger) row[5]).longValue() : null);
+			        
+			        	dto.setProjectType((String) row[14]);
+			        
+		            dtoList.add(dto);
 			        }
+		        
 		        }
+		        
+		        
 		        responseData.setCombinedNewProjects(dtoList);
 		        responseData.setCounts(map);        
 		        System.out.println(dtoList);
@@ -5820,6 +5848,7 @@ public class ResourceManagementService {
 	
 	public ServiceResponse getPreviousDefaultProjectDetails(Long empId) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("getPreviousDefaultProjectDetails");
 		apiLogInfo.setApiUrl("/api/getPreviousDefaultProjectDetails");
 		apiLogInfo.setLogLevel("INFO");
