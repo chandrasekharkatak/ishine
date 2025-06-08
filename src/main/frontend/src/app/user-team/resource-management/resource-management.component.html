@@ -120,7 +120,7 @@
     </div>
     <button class="set-team-btn">Update Default Project</button>
 </div>
-<!-- <div *ngIf="!isBulkUpdateMode">
+<div *ngIf="!isBulkUpdateMode">
     <div class="modal-body">
         <div class="col-md-12">
             <p style="color: #061E5C; font-weight: bolder;">Individual Default Project Mapping</p>
@@ -133,7 +133,7 @@
                         <th scope="col" class="info-label">Project Name</th>
                         <th scope="col" class="info-label">Team Name</th>
                         <th scope="col" class="info-label">Employee Role</th>
-                        <th scope="col" class="info-label">Requirement Name</th>
+                        <th scope="col" class="info-label">Requirement</th>
                         <th scope="col" class="info-label">Action</th>
                     </tr>
                 </thead>
@@ -153,19 +153,6 @@
                             </mat-select>
                         </td>
                         <td>
-                            <label>Project Requirement</label>
-                            <mat-select [(ngModel)]="selectedOtherProjectId" disableOptionCentering>
-                                <mat-option disabled>
-                                    <input class="form-control" style="width: 100%; padding: 5px;" type="text"
-                                    [(ngModel)]="searchTerm" (ngModelChange)="filterOtherProjects()" placeholder="Search project..." />
-                                </mat-option>
-                                <mat-option [value]="null" disabled>Select</mat-option>
-                                <mat-option *ngFor="let project of filteredOtherProjectList" [value]="project.projectId">
-                                    {{ project.projectName }}
-                                </mat-option>
-                            </mat-select>
-                        </td>
-                        <td>
                             <div *ngIf="bulkProjectType == 'bench'">
                                 <label>Internal Project</label>
                                 <mat-select [(ngModel)]="defaultProjectUpdateBulk.projectId"  (selectionChange)="getTeamListForSelectedProject()" disableOptionCentering>
@@ -182,7 +169,7 @@
 
                             <div *ngIf="bulkProjectType == 'other'">
                                 <label>Other Project</label>
-                                <mat-select [(ngModel)]="defaultProjectUpdateBulk.projectId" (selectionChange)="getTeamListForSelectedProject()" disableOptionCentering>
+                                <mat-select [(ngModel)]="setDefaultProjectObj.projectId" (selectionChange)="getTeamListForSelectedProject()" disableOptionCentering>
                                     <mat-option disabled>
                                         <input class="form-control" style="width: 100%; padding: 5px;" type="text"
                                                 [(ngModel)]="searchTerm" (ngModelChange)="filterProjectsForDefaultBulkOther()" placeholder="Search project..." />
@@ -196,7 +183,7 @@
                         </td>
                         <td>
                             <label>Team Name</label>
-                            <mat-select [(ngModel)]="bulkTeamId" disableOptionCentering>
+                            <mat-select [(ngModel)]="setDefaultProjectObj.teamId" disableOptionCentering>
                                 <mat-option disabled>
                                     <input class="form-control" style="width: 100%; padding: 5px;" type="text"
                                     [(ngModel)]="searchTermTeam" (ngModelChange)="filterTeamsForDefaultBulk()" placeholder="Search team..." />
@@ -209,14 +196,14 @@
                         </td>
                         <td>
                             <label>Employee Role</label>
-                            <mat-select class="form-control" multiple [(ngModel)]="bulkRole">
+                            <mat-select class="form-control" multiple [(ngModel)]="setDefaultProjectObj.employeeRole">
                                 <mat-option value="" disabled>Select</mat-option>
                                 <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role }}</mat-option>
                             </mat-select>
                         </td>
                         <td>
                             <label>Project Requirement</label>
-                            <mat-select placeholder="Select Requirement" [(ngModel)]="bulkRole">
+                            <mat-select placeholder="Select Requirement" [(ngModel)]="setDefaultProjectObj.employeeRole">
                                 <mat-option *ngFor="let requirement of resourceRequirementListBulk"
                                     [value]="requirement.resourceOverviewId">
                                     Role - {{ requirement.role }} || Dept - {{ requirement.department }} || Exp - {{
@@ -225,14 +212,14 @@
                             </mat-select>
                         </td>
                         <td> 
-                            <button class="set-team-btn" >Set Default Project</button>
+                            <button class="set-team-btn" (click)="setProjectMappingAndDefaultProject(setDefaultProjectObj)" >Set Default Project</button>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
-</div> -->
+</div>
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isProjectTable}"
