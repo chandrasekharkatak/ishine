@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -50,6 +51,9 @@ import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExceptionReportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.GetPreviousDefaultProjectDetailsDTO;
+import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO;
+import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateTeamDTO;
+import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
@@ -64,6 +68,7 @@ import com.apmosys.employeeportal.dto.RMGProjectMappedEmployees;
 import com.apmosys.employeeportal.dto.RMGTeam;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
+import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
@@ -5825,5 +5830,303 @@ public class ResourceManagementService {
 	        return 0;
 	    }
 	}
+	
+	public ServiceResponse getProjectDetailsForBulkDefaultUpdate() {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getProjectDetailsForBulkDefaultUpdate");
+	    apiLogInfo.setApiUrl("/api/getProjectDetailsForBulkDefaultUpdate");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("\n getProjectDetailsForBulkDefaultUpdate ");
 
+	    try {
+	        List<Object[]> benchResults = projectRepository.getProjectDetailsForBulkDefaultUpdateBench();
+	        List<Object[]> otherResults = projectRepository.getProjectDetailsForBulkDefaultUpdateOther();
+
+	        List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> benchProjectList = mapResultsToDTOs(benchResults);
+	        List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> otherProjectList = mapResultsToDTOs(otherResults);
+
+	        Map<String, Object> resultMap = new HashMap<>();
+	        resultMap.put("benchProjectList", benchProjectList);
+	        resultMap.put("otherProjectList", otherProjectList);
+
+	        response.setServiceResponse(resultMap);
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        logBuilder.append("\n Bench and other project details fetched successfully!");
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Something went wrong!");
+	        logBuilder.append("\n Exception: ").append(e.getMessage());
+	    }
+
+	    return response;
+	}
+
+	private List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> mapResultsToDTOs(List<Object[]> projectList) {
+	    Map<Integer, GetProjectDetailsForBulkDefaultUpdateProjectDTO> projectMap = new LinkedHashMap<>();
+
+	    for (Object[] row : projectList) {
+	        Integer projectId = Integer.parseInt(row[0].toString());
+	        String projectName = row[1].toString();
+	        Long teamId = row[2] != null ? Long.parseLong(row[2].toString()) : null;
+	        String teamName = row[3] != null ? row[3].toString() : null;
+	        Long resourceOverviewId = row[4] != null ? Long.parseLong(row[4].toString()) : null;
+	        Integer count = row[5] != null ? Integer.parseInt(row[5].toString()) : null;
+	        String department = row[6] != null ? row[6].toString() : null;
+	        String experience = row[7] != null ? row[7].toString() : null;
+
+	        GetProjectDetailsForBulkDefaultUpdateProjectDTO projectDTO = projectMap.computeIfAbsent(projectId, id -> {
+	            GetProjectDetailsForBulkDefaultUpdateProjectDTO dto = new GetProjectDetailsForBulkDefaultUpdateProjectDTO();
+	            dto.setProjectId(id);
+	            dto.setProjectName(projectName);
+	            return dto;
+	        });
+
+	        if (teamId != null && projectDTO.getTeamList().stream().noneMatch(t -> t.getTeamId().equals(teamId))) {
+	            GetProjectDetailsForBulkDefaultUpdateTeamDTO teamDTO = new GetProjectDetailsForBulkDefaultUpdateTeamDTO();
+	            teamDTO.setTeamId(teamId);
+	            teamDTO.setTeamName(teamName);
+	            projectDTO.getTeamList().add(teamDTO);
+	        }
+
+	        if (resourceOverviewId != null && projectDTO.getResourceRequirement().stream().noneMatch(r -> r.getResourceOverviewId().equals(resourceOverviewId))) {
+	            ResourceRequirementDTO rr = new ResourceRequirementDTO();
+	            rr.setResourceOverviewId(resourceOverviewId);
+	            rr.setCount(count);
+	            rr.setDepartment(department);
+	            rr.setExperience(experience);
+	            projectDTO.getResourceRequirement().add(rr);
+	        }
+	    }
+
+	    return new ArrayList<>(projectMap.values());
+	}
+	
+	public ServiceResponse getEmployeeInformationBulk(List<Long> empIds) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getEmployeeInformationBulk");
+	    apiLogInfo.setApiUrl("/api/getEmployeeInformationBulk");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+
+	    try {
+	        List<Object[]> resultSet = projectRepository.getEmployeeInformationBulk(empIds);
+	        logBuilder.append("\n getEmployeeInformationBulk - Total Records: ").append(resultSet.size());
+
+	        List<EmployeeInformationDTO> resultDTO = new ArrayList<>();
+
+	        for (Object[] result : resultSet) {
+	            EmployeeInformationDTO dto = new EmployeeInformationDTO();
+	            dto.setEmpId(result[0] != null ? Long.parseLong(result[0].toString()) : null);
+	            dto.setEmploymentId(result[1] != null ? result[1].toString() : null);
+	            dto.setName(result[2] != null ? result[2].toString() : null);
+	            dto.setPreviousExperience(result[3] != null ? result[3].toString() : null);
+	            dto.setCurrentExperience(result[4] != null ? result[4].toString() : null);
+	            dto.setTotalExperience(result[5] != null ? result[5].toString() : null);
+	            dto.setBillableType(result[6] != null ? result[6].toString() : null);
+	            dto.setJobRole(result[7] != null ? result[7].toString() : null);
+	            dto.setDeptName(result[8] != null ? result[8].toString() : null);
+
+	            resultDTO.add(dto);
+	        }
+
+	        if (!resultDTO.isEmpty()) {
+	            response.setServiceResponse(resultDTO);
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            logBuilder.append("\n Employee information fetched successfully.");
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No data found for empIds: " + empIds);
+	            logBuilder.append("\n No data found for empIds: ").append(empIds);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Something went wrong!");
+	        logBuilder.append("\n Exception occurred: ").append(e.getMessage());
+	    }
+
+	    return response;
+	}
+	
+	@Transactional
+	public ServiceResponse setProjectMappingAndDefaultProject(SetProjectMappingAndDefaultProjectDTO dto) {
+		ServiceResponse response = new ServiceResponse();
+		StringBuilder logBuilder = new StringBuilder();
+		LogDTO apiLogInfo = new LogDTO();
+		try {
+			List<Long> defaultProjectEmpIds = new ArrayList<>();
+			
+			List<EmployeeTeamMapDTO> newTeamMember = new ArrayList<>();
+			
+	        for (Long empId : dto.getEmpId()) {
+	        	EmployeeTeamMapDTO member = new EmployeeTeamMapDTO();
+	            member.setEmpId(empId);
+	            member.setTeamId(dto.getTeamId());
+	            member.setEmployeeRole(dto.getEmployeeRole());
+	            member.setStartDate(new Timestamp(System.currentTimeMillis()));
+	            member.setIsDefaultProject(1);	            
+	            member.setResourceOverviewId(dto.getResourceOverViewId());
+	            newTeamMember.add(member);
+	        }
+			
+			newTeamMember.forEach((newMember) -> {
+				List<EmployeeTeamMap> presentMember = employeeTeamMapRepository
+						.findFirstByEmpIdAndTeamIdAndActive(newMember.getEmpId(), dto.getTeamId());
+
+				List<EmployeeTeamMap> mapList = new ArrayList<EmployeeTeamMap>();
+				EmployeeTeamMap empTeamMap = new EmployeeTeamMap();
+
+				if (presentMember.isEmpty()) {
+					
+						StringBuilder employeeRole = new StringBuilder("");
+						for (String empRole : newMember.getEmployeeRole()) {
+							employeeRole.append(empRole).append(",");
+						}
+						empTeamMap.setEmpId(newMember.getEmpId());
+						empTeamMap.setEmployeeRole(employeeRole.toString());
+						empTeamMap.setTeamId(dto.getTeamId());
+						empTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
+						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
+						empTeamMap.setResourceOverviewId(newMember.getResourceOverviewId() != null
+								? Long.parseLong(newMember.getResourceOverviewId().toString())
+								: null);
+						empTeamMap.setUpdatedBy(dto.getCreatedBy() != null ? dto.getCreatedBy() : null);
+						
+						if(newMember.getIsDefaultProject() != null) {
+							if( newMember.getIsDefaultProject() == 1) {
+								defaultProjectEmpIds.add(newMember.getEmpId());
+							}
+						}
+						
+						
+						mapList.add(empTeamMap);
+					
+
+					List<EmployeeTeamMap> teamMapDbResponse = employeeTeamMapRepository.saveAll(mapList);
+					
+					//Add default project mapping
+					if(!defaultProjectEmpIds.isEmpty()) {
+						ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(defaultProjectEmpIds, dto.getProjectId(), dto.getCreatedBy(), logBuilder);
+						
+						if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+						    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+						} else {
+						    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+						}
+					}
+
+					teamMapDbResponse.forEach((newAddedMember) -> {
+						newAddedMember.setActive(2L);
+
+						System.out.println(" newTeamMember   " + newAddedMember);
+
+						if (newAddedMember.getEmpId() != null) {
+							List<Object[]> employeeDetails = employeeRepository
+									.getEmployeeByEmpId(newAddedMember.getEmpId());
+							System.out.println("New member added: " + employeeDetails.get(0));
+
+							if (employeeDetails != null && !employeeDetails.isEmpty()) {
+								Object[] employeeDetailRow = employeeDetails.get(0);
+								String departmentId = employeeDetailRow[46] != null ? employeeDetailRow[46].toString()
+										: null;
+								System.out.println("Department ID: " + departmentId);
+
+								if (departmentId != null) {
+									List<String> employeeRoles = Arrays
+											.asList(newAddedMember.getEmployeeRole().split(","));
+									for (String role : employeeRoles) {
+										role = role.trim();
+										System.out.println("Processing role: " + role);
+
+										List<Activity> existingActivities = activitiesRepository
+												.findByDeptIdsAndEmployeeRoleAndTeamId(departmentId, role,
+														dto.getTeamId());
+
+										if (existingActivities.isEmpty()) {
+											System.out.println("No activities exist for Dept ID: " + departmentId
+													+ ", Role: " + role);
+
+											List<ActivityTemplate> activityTemplateList = activityTemplateRepository
+													.getByDeptIdAndEmployeeRoleType(Long.parseLong(departmentId), role);
+											if (!activityTemplateList.isEmpty()) {
+												for (ActivityTemplate activityTemplate : activityTemplateList) {
+													Activity newActivity = new Activity();
+													newActivity.setActivity(activityTemplate.getTemplateActivity());
+													newActivity.setTeamId(dto.getTeamId());
+													newActivity.setEmployeeRole(activityTemplate.getEmployeeRole());
+													newActivity.setDeptIds(activityTemplate.getDeptId().toString());
+													newActivity.getCommonProperty()
+															.setCreatedBy(dto.getCreatedBy());
+													activitiesRepository.save(newActivity);
+
+													System.out.println("New activity created: "
+															+ activityTemplate.getTemplateActivity());
+												}
+											} else {
+												System.out.println("No activity templates found for Dept ID: "
+														+ departmentId + ", Role: " + role);
+											}
+										} else {
+											System.out.println("Activities already exist for Dept ID: " + departmentId
+													+ ", Role: " + role);
+										}
+									}
+								} else {
+									System.out.println(
+											"Department ID is null for Employee ID: " + newAddedMember.getEmpId());
+								}
+							} else {
+								System.out.println(
+										"No employee details found for Employee ID: " + newAddedMember.getEmpId());
+							}
+						}
+
+						Employee findEmp = employeeRepository.findByEmpId(newAddedMember.getEmpId());
+						Employee managerEmail = employeeRepository.findByEmpId(findEmp.getManagerId());
+						String hodMail = employeeRepository.findHodMail(newAddedMember.getEmpId());
+
+						String ccMail = hodMail + "," + managerEmail.getEmail().toString() + "," + rmgMail + ","
+								+ adminMail;
+					
+						Project projectFind = projectRepository.findByProjectId(dto.getProjectId());
+						
+						try {
+							mailService.sendMailWithCC(findEmp.getEmail().toString(), ccMail,
+									"Regarding resource mapping to new project",
+									"Dear " + findEmp.getName() + "<br>" + "You have been mapped " + " under the project "
+											+ projectFind.getProjectName() + "<br><br><br>"
+											+ "Sincerely,<br>Team RMG - ApMoSys Technologies");
+						} catch (AddressException e) {
+							e.printStackTrace();
+						} catch (MessagingException e) {
+							e.printStackTrace();
+						}
+					});
+
+					employeeTeamMapRepository.saveAll(teamMapDbResponse);
+				}
+
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		return response;
+
+	}
+	
 }

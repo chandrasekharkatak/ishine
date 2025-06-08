@@ -17,7 +17,10 @@ import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
+import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
+import com.apmosys.employeeportal.dto.TeamMemberDTO;
+import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.service.ResourceManagementService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -289,6 +292,21 @@ public class ResourceManagementController {
 	@PostMapping("/setDefaultProjectUpdateBillable")
 	public ServiceResponse setDefaultProjectUpdateBillable(@RequestBody DefaultProjectUpdateDTO defaultProjectUpdateDTO) {
 		return resourceManagementService.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
+	}
+	
+	@GetMapping("/getProjectDetailsForBulkDefaultUpdate")
+	public ServiceResponse getProjectDetailsForBulkDefaultUpdate() {
+	    return resourceManagementService.getProjectDetailsForBulkDefaultUpdate();
+	}
+	
+	@PostMapping("/getEmployeeInformationBulk")
+	public ServiceResponse getEmployeeInformationBulk(@RequestBody List<Long> empIds) {
+	    return resourceManagementService.getEmployeeInformationBulk(empIds);
+	}
+	
+	@PostMapping("/setProjectMappingAndDefaultProject")
+	public ServiceResponse setProjectMappingAndDefaultProject(@RequestBody SetProjectMappingAndDefaultProjectDTO setProjectMappingAndDefaultProjectDTO ) {
+	    return resourceManagementService.setProjectMappingAndDefaultProject(setProjectMappingAndDefaultProjectDTO);
 	}
 
 }

@@ -125,4 +125,13 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getPreviousDefaultProjectDetails(Long empId);
 	
+	@Query(nativeQuery = true)
+	public List<Object[]> getProjectDetailsForBulkDefaultUpdateBench();
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getProjectDetailsForBulkDefaultUpdateOther();
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeInformationBulk(List<Long> empIds);
+	
 }

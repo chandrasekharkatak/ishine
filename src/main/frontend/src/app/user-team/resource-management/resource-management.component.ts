@@ -12,6 +12,7 @@ import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { EmployeeInformation } from 'src/app/models/employeeInformation';
 import { Feature } from 'src/app/models/feature';
+import { GetProjectDetailsForBulkDefaultUpdate } from 'src/app/models/getProjectDetailsForBulkDefaultUpdate';
 import { PreviousDefaultProject } from 'src/app/models/previousDefaultProject';
 import { Project } from 'src/app/models/project';
 import { ProjectFilterDTO } from 'src/app/models/projectFilterDTO';
@@ -30,6 +31,7 @@ import { ResourceManagementService } from 'src/app/services/resource-management.
 import { TeamService } from 'src/app/services/team.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { SetDefaultProjectObj } from 'src/app/models/setDefaultProjectObj';
 @Component({
   selector: 'app-resource-management',
   templateUrl: './resource-management.component.html',
@@ -216,7 +218,22 @@ export class ResourceManagementComponent implements OnInit {
   searchTerm:any;
   defaultProjectUpdate:DefaultProjectUpdate = new DefaultProjectUpdate();
   defaultProjectUpdateEmpId:any;
-  
+  deletionDate:any;
+  isBulkUpdateMode: boolean = true;
+  projectListBulk: GetProjectDetailsForBulkDefaultUpdate = new GetProjectDetailsForBulkDefaultUpdate();
+  filteredProjectsForDefaultBulkBench: any;
+  defaultProjectUpdateBulk:DefaultProjectUpdate = new DefaultProjectUpdate();
+  filteredProjectsForDefaultBulkOther:any;
+  benchProjectListBulk:any; 
+  otherProjectListBulk:any; 
+  bulkProjectType:any;
+  teamListBulk:any;
+  searchTermTeam:any;
+  filteredTeamsForDefaultBulk:any;
+  resourceRequirementListBulk:any;
+  bulkEmployeeList:EmployeeInformation[] = [];
+  setDefaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
+
   constructor(
     private departmentService: DepartmentService,
     public validationService: ValidationService,
@@ -297,7 +314,7 @@ export class ResourceManagementComponent implements OnInit {
     await this.ExceptionEmployeeReport();
     await this.RbacBothShankhInternal(this.projectFilterDTO);
     await this.ProjectLessEmployees(this.projectFilterDTO);
-    
+    await this.getProjectDetailsForBulkDefaultUpdate();
     await this.TotalEmployeeCount();
     // const deptName = String(this.currentUser.departmentName).trim();
     // const empRole = String(this.currentUser.employeeRole).trim();
@@ -2732,4 +2749,88 @@ clearSelectionMappedProjects(event: Event): void {
     });
   }
 
+  deleteResourceFromTeamModal(template: TemplateRef<any>, projectObj, teamId, empId) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.projectObj2 = projectObj;
+    this.projectObj2.teamId = teamId;
+    this.projectObj2.empId = empId;
+  }
+
+  getProjectDetailsForBulkDefaultUpdate(){
+    this.resourceManagementService.getProjectDetailsForBulkDefaultUpdate().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectListBulk =  response.serviceResponse;
+        this.benchProjectListBulk = this.projectListBulk.benchProjectList;
+        this.otherProjectListBulk = this.projectListBulk.otherProjectList;
+        this.filteredProjectsForDefaultBulkBench = this.benchProjectListBulk;
+        this.filteredProjectsForDefaultBulkOther = this.otherProjectListBulk;
+      } else {
+        this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Project List");
+        console.error("Unable to fetch Project List!");
+      }
+    });
+  }
+
+  filterProjectsForDefaultBulkBench() {
+    const lowerSearch = this.searchTerm.toLowerCase();
+    this.filteredProjectsForDefaultBulkBench = this.benchProjectListBulk.filter(project =>
+      project.projectName.toLowerCase().includes(lowerSearch)
+    );
+  }
+
+  filterProjectsForDefaultBulkOther() {
+    const lowerSearch = this.searchTerm.toLowerCase();
+    this.filteredProjectsForDefaultBulkOther = this.otherProjectListBulk.filter(project =>
+      project.projectName.toLowerCase().includes(lowerSearch)
+    );
+  }
+
+  getTeamListForSelectedProject(){
+    let selectedProjectId = this.setDefaultProjectObj.projectId;
+    
+    if (!selectedProjectId || !this.bulkProjectType) 
+    this.teamListBulk = [];
+    
+    const projectList = this.bulkProjectType === 'bench' ? this.benchProjectListBulk : this.otherProjectListBulk;
+    this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
+    this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
+    this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
+  }
+
+  filterTeamsForDefaultBulk() {
+    const lowerSearch = this.searchTermTeam.toLowerCase();
+    this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList.filter(team =>
+      team.teamName.toLowerCase().includes(lowerSearch)
+    );
+  }
+
+  filterResourceRequirementForDefaultBulk() {
+    const lowerSearch = this.searchTermTeam.toLowerCase();
+    this.resourceRequirementListBulk = this.teamListBulk.filter(team =>
+      team.teamName.toLowerCase().includes(lowerSearch)
+    );
+  }
+
+  getEmployeeInformationBulk(empIds){
+    this.resourceManagementService.getEmployeeInformationBulk(empIds).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.bulkEmployeeList =  response.serviceResponse;
+      } else {
+        this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
+        console.error("Unable to fetch Employee List!");
+      }
+    });
+  }
+
+  setProjectMappingAndDefaultProject(setDefaultProjectObj){
+    setDefaultProjectObj.empId = [123];
+    this.resourceManagementService.setProjectMappingAndDefaultProject(setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.bulkEmployeeList =  response.serviceResponse;
+      } else {
+        this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
+        console.error("Unable to fetch Employee List!");
+      }
+    });
+  }
 }

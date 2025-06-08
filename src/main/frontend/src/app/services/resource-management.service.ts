@@ -111,4 +111,16 @@ export class ResourceManagementService {
   setDefaultProjectUpdateBillable(defaultProjectUpdate){
     return this.http.post(`${this.baseUrl}` + `api/setDefaultProjectUpdateBillable`,defaultProjectUpdate);
   }
+
+  getProjectDetailsForBulkDefaultUpdate(){
+    return this.http.get(`${this.baseUrl}`+`api/getProjectDetailsForBulkDefaultUpdate`);
+  }
+
+  getEmployeeInformationBulk(empIds: any){
+    return this.http.post(`${this.baseUrl}`+`api/getEmployeeInformationBulk`, empIds);
+  }
+
+  setProjectMappingAndDefaultProject(setDefaultProjectObj: any){
+    return this.http.post(`${this.baseUrl}`+`api/setProjectMappingAndDefaultProjectDTO`, setDefaultProjectObj);
+  }  
 }
