@@ -254,7 +254,6 @@ public class CustomFilterService {
 
 	public List<Object[]> getCustomLeaveReport(String customQuery,Long empId) {
 		try {
-			 String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
 
 			Session session = entityManager.unwrap(Session.class);
 			 String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
