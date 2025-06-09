@@ -11,7 +11,7 @@ export class ReportService {
 
   constructor(private http : HttpClient) { }
 
-  getAllPieChartCount(){
+  getAllPieChartCount(): Observable<any> {
     return this.http.get(`${this.baseUrl}` + `api/getAllGraphEmployeeSummary`);
   }
 
@@ -23,7 +23,7 @@ export class ReportService {
     return this.http.post(`${this.baseUrl}` + `api/getJoiningVsResignationCount`, { year: selectedYear });
   }
 
-    getAllEmployeeCountDepartmentWise(){
+    getAllEmployeeCountDepartmentWise(): Observable<any> {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployeeCountDepartmentWise`);
   }
 

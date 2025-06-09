@@ -18,6 +18,7 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { DomainService } from 'src/app/services/domain.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
+import { forkJoin } from 'rxjs';
 
 //importing deleclation for cylinder chart..
 declare var require: any;
@@ -262,12 +263,6 @@ export class ReportDashboardComponent implements OnInit {
     });
     this.sectionViewInit();
     this.preventBackButton();
-    this.loadDepartmentWiseKycData();
-    this.loadJoinResignData();
-    this.getAllPieChartCount();
-    this.getAllEmployeeCountDepartmentWise();
-    this.getAllBillableTypeCount();
-    this.getEmployeeBillableSummary();
   }
 
   getSlicedProjects(projectList: Project[], count: number): Project[] {
@@ -306,6 +301,56 @@ export class ReportDashboardComponent implements OnInit {
     // this.getAllBillableEmployeeData();
     // this.getEmployeeWorkLocation();
     this.findAllDepartment();
+
+    // this.loadDepartmentWiseKycData();
+    // this.loadJoinResignData();
+    // this.getAllPieChartCount();
+    // this.getAllEmployeeCountDepartmentWise();
+    // this.getAllBillableTypeCount();
+    // this.getEmployeeBillableSummary();
+
+    let selectedYear = this.selectedYear || moment().year(); 
+    const selectedDeptIds: number[] = [];
+    forkJoin({
+    departmentKyc: this.reportService.getDepartmentWiseKycCount(),
+    joinResign: this.reportService.getJoinVsResignCount(selectedYear),
+    pieChart: this.reportService.getAllPieChartCount(),
+    deptWiseCount: this.reportService.getDepartmentWiseBillableNonBillableSummary(selectedDeptIds),
+    // billableCount: this.reportService.getAllBillableTypeCount(),
+    billableSummary: this.reportService.getAllEmployeeCountDepartmentWise()
+  }).subscribe((results) => {
+    if (results.departmentKyc.serviceStatus === 'Success') {
+      this.processDepartmentKycData(results.departmentKyc.serviceResponse);
+    } else {
+      console.error(results.departmentKyc.serviceResponse);
+    }
+
+    if (results.joinResign.serviceStatus === 'Success') {
+      this.processJoinResignCount(results.joinResign);
+    } else {
+      console.error(results.joinResign.serviceResponse);
+    }
+
+    if (results.pieChart.serviceStatus === 'Success') {
+      this.renderAllPieCharts(results.pieChart);
+    } else {
+      console.error(results.pieChart.serviceResponse);
+    }
+
+    if (results.deptWiseCount.serviceStatus === 'Success') {
+      const billableChartData = this.prepareBillableChartDataBillabe(results.deptWiseCount.serviceResponse);
+      this.renderEmployeeBillableSummaryChartWrapper(billableChartData);
+    } else {
+      console.error(results.departmentKyc.serviceResponse);
+    }
+
+    if (results.billableSummary.serviceStatus === 'Success') {
+      this.processDepartmentWiseCount(results.billableSummary.serviceResponse);
+    } else {
+      console.error(results.billableSummary.serviceResponse);
+    }
+
+  });
   }
 
   showFileUploadForm() {
@@ -419,7 +464,7 @@ export class ReportDashboardComponent implements OnInit {
   //       })
   //       console.log("this.departmentWiseBillableEmployeeList ", this.departmentWiseBillableEmployeeList);
   //     }
-  //     this.extractDataForBillable()
+  //     this.extractDataForiBllable()
   //   })
 
   // }
@@ -3284,7 +3329,7 @@ export class ReportDashboardComponent implements OnInit {
       plotOptions: {
         series: {
           cursor: 'pointer',
-          stacking: 'normal',  // Enable stacking for the 'Joined' categories
+          stacking: 'normal',  
           point: {
             events: {
               click: function (event) {
@@ -4585,7 +4630,7 @@ export class ReportDashboardComponent implements OnInit {
         pending: counts.pending,
         completed: counts.completed
       }))
-      .sort((a, b) => a.departmentName.localeCompare(b.departmentName));
+      .sort((a, b) => (b.pending + b.completed) - (a.pending + a.completed)); 
 
     // Prepare chart data
     this.departmentKycData.forEach(dept => {
@@ -4609,7 +4654,16 @@ export class ReportDashboardComponent implements OnInit {
   loadJoinResignData(): void {
     let selectedYear = this.selectedYear || moment().year(); 
     this.reportService.getJoinVsResignCount(selectedYear).pipe(first()).subscribe((response: any) => {
-        const monthlyData = response?.serviceResponse || [];
+          this.processJoinResignCount(response);
+      },
+      (error) => {
+        console.error('API call failed:', error);
+      }
+    );
+  }
+  
+  processJoinResignCount(response: any){
+            const monthlyData = response?.serviceResponse || [];
 
         const joiningRegular = Array(12).fill(0);
         const joiningApprentice = Array(12).fill(0);
@@ -4659,16 +4713,27 @@ export class ReportDashboardComponent implements OnInit {
         ];
 
         this.renderMultiBarChart('Employee Join VS Resign', 'employeeJoinAndResign', chartData, 'Employee', this.openEmployeeJoinResignModalTable.bind(this));
-      },
-      (error) => {
-        console.error('API call failed:', error);
-      }
-    );
-  }  getAllPieChartCount() {
+  }
+  
+  getAllPieChartCount() {
 
     this.reportService.getAllPieChartCount().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        //Gender summary count
+
+        this.renderAllPieCharts(response);
+        console.log("Male count", this.maleCount);
+
+    
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  
+  }
+
+  renderAllPieCharts(response : any) {
+
+            //Gender summary count
         this.maleCount = response.serviceResponse[0].genderMale;
         this.femaleCount = response.serviceResponse[0].genderFemale;
         this.otherCount = response.serviceResponse[0].genderOther;
@@ -4719,18 +4784,7 @@ export class ReportDashboardComponent implements OnInit {
         this.apprenticeCountForDisplay = response.serviceResponse[0].apprenticeCountDisplay;
         this.consultantCountForDisplay = response.serviceResponse[0].consultantCountDisplay;
         this.regularCountForDisplay = response.serviceResponse[0].regularCountDisplay;
-        this.renderAllPieCharts();
-        console.log("Male count", this.maleCount);
 
-    
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  
-  }
-
-  renderAllPieCharts() {
         let employeeStatusData = [{
       name: "Probation",
       y: this.probationCount
@@ -4899,7 +4953,8 @@ export class ReportDashboardComponent implements OnInit {
     } else {
       this.renderPlaceholderChart('Fresher - Lateral Summary', 'fresherLateralChart');
     }
-        let billableTypeData = [{
+
+    let billableTypeData = [{
       name: "Yes",
       y: this.billableCount
     }, {
@@ -4910,7 +4965,7 @@ export class ReportDashboardComponent implements OnInit {
       name: "Other",
       y: this.otherBillableCount
     }]
-
+    
     let checkEmployeeBillableData = billableTypeData.filter(data => data.y != 0);
     // console.log(" checkEmployeeBillableData ",checkEmployeeBillableData);
 
@@ -4919,6 +4974,37 @@ export class ReportDashboardComponent implements OnInit {
     } else {
       this.renderPlaceholderChart('Billable Employee Summary', 'billableChart');
     }
+    let deptWiseBillableType = [{
+      name: "TNM",
+      y: this.tnmBillableCount
+    },
+    {
+      name: "Fixed Cost",
+      y: this.fcBillableCount
+    },
+    {
+      name: "InternalRNDProducts",
+      y: this.internalBillableCount
+    },
+    {
+      name: "Bench",
+      y: this.benchBillableCount
+    },
+    {
+      name: "Shadow",
+      y: this.shadowBillableCount
+    }
+    ]
+    let checkDeptWiseData = deptWiseBillableType.filter(data => data.y != 0);
+
+    if (checkDeptWiseData && checkDeptWiseData.length != 0) {
+      // console.log("deptWiseBillabledata", deptWiseBillableType);
+      deptWiseBillableType.forEach(data => console.log(data));
+      this.renderPieSummaryChart('Department wise Billable/Non-Billable Employee Summary', 'billableChartByDepartment', deptWiseBillableType, 'Department wise Billable Data', this.openDepartmentWiseBillableEmployeeTableModal.bind(this));
+    } else {
+      this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summary', 'billableChartByDepartment');
+    }
+    
   }
 
 
@@ -4944,7 +5030,16 @@ export class ReportDashboardComponent implements OnInit {
   getAllEmployeeCountDepartmentWise() {
     this.reportService.getAllEmployeeCountDepartmentWise().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
-        const rawData = response.serviceResponse; // Array of arrays
+        this.processDepartmentWiseCount(response);
+
+      } else {
+        console.error(" Failed to get department-wise employee count:", response.serviceResponse);
+      }
+    });
+  }
+
+  processDepartmentWiseCount(response: any) {
+            const rawData = response; // Array of arrays
         const departmentMap: { [key: string]: any } = {};
 
         rawData.forEach(([departmentName, type, count]) => {
@@ -4988,13 +5083,7 @@ export class ReportDashboardComponent implements OnInit {
         //  Log the transformed data for verification
         console.log("departmentWiseEmployeeData:", this.departmentWiseEmployeeData);
         console.log("departmentWiseEmployeeCategories:", this.departmentWiseEmployeeCategories);
-
-      } else {
-        console.error(" Failed to get department-wise employee count:", response.serviceResponse);
-      }
-    });
   }
-
 
 //added by Dibya to call Department Wise Billable API
  getAllBillableTypeCount(departmentIds?: number[]) {
