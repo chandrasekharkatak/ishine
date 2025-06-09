@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { ProjectFilterDTO } from '../models/projectFilterDTO';
 import { Project } from '../models/project';
+import { ProjectFilterDTO } from '../models/projectFilterDTO';
 
 @Injectable({
   providedIn: 'root'
@@ -121,6 +121,6 @@ export class ResourceManagementService {
   }
 
   setProjectMappingAndDefaultProject(setDefaultProjectObj: any){
-    return this.http.post(`${this.baseUrl}`+`api/setProjectMappingAndDefaultProjectDTO`, setDefaultProjectObj);
+    return this.http.post(`${this.baseUrl}`+`api/setProjectMappingAndDefaultProject`, setDefaultProjectObj);
   }  
 }

@@ -396,7 +396,7 @@
                                                 </li>
                                                 <!-- <li (click)="onAction('Audit', project);closeMenu(i)"><i class="fas fa-clock"></i> Audit</li> -->
                                                 <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
-                                                    (click)="openDatePicker(customDatePickerTemplate,project);closeMenu(i)">
+                                                    (click)="openDatePicker(MarkAsCompleteDefaultProject,OtherProjectDefaultMapping,project);closeMenu(i)">
                                                     <i class="fas fa-check-double"></i> Mark as Complete
                                                 </li>
                                                 <li *ngIf="userMapping.rmg_approval_option || userMapping.rmg_approval_option && project.isDraftProject === 'Pending For Approval' && !isHideButton"
@@ -2177,7 +2177,8 @@
             </div>
         </div>
     
-        <button class="set-team-btn" (click)="setProjectMappingAndDefaultProject(setDefaultProjectObj)">Set Default Project</button>
+        <button class="set-team-btn" (click)="setProjectMappingAndDefaultProject(setDefaultProjectObj,customDatePickerTemplate)">Update Default Project</button>
+          <!-- <button class="set-team-btn mt-3">Update Default Project</button> -->
     
         <!-- Employee List -->
         <p class="section-title mt-4">Employee List</p>
@@ -2212,7 +2213,7 @@
             </table>
         </div>
     
-        <button class="set-team-btn mt-3">Update Default Project</button>
+      
         </div>
     
         <!-- Individual Mode -->
@@ -2234,12 +2235,12 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngIf="projectDetails.length === 0">
+                <tr *ngIf="bulkEmployeeList.length === 0">
                 <td colspan="8" class="text-center">No reportees have this user as manager.</td>
                 </tr>
-                <tr *ngFor="let project of projectDetails">
-                <td>{{ project.empId }}</td>
-                <td>{{ project.empName }}</td>
+                <tr *ngFor="let project of bulkEmployeeList">
+                <td>{{ project.employmentId }}</td>
+                <td>{{ project.name }}</td>
                 <td>
                     <mat-select [(ngModel)]="bulkProjectType">
                     <mat-option value="bench">Bench</mat-option>
@@ -2274,7 +2275,7 @@
                     </mat-select>
                 </td>
                 <td>
-                    <button class="set-team-btn" (click)="setProjectMappingAndDefaultProject(setDefaultProjectObj)">
+                    <button class="set-team-btn" (click)="setProjectMappingAndDefaultProject(setDefaultProjectObj,customDatePickerTemplate)">
                     Set Default Project
                     </button>
                 </td>
