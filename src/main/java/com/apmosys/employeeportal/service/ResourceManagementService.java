@@ -50,11 +50,13 @@ import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExceptionReportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeInformationForDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.GetPreviousDefaultProjectDetailsDTO;
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateTeamDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -6127,6 +6129,59 @@ public class ResourceManagementService {
 		}
 		return response;
 
+	}
+	
+	public ServiceResponse getEmployeeInformationForDefaultProject(OtherProjectSetDTO otherProjectSetDTO) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getEmployeeInformationForDefaultProject");
+	    apiLogInfo.setApiUrl("/api/getEmployeeInformationForDefaultProject");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+
+	    try {
+	        List<Object[]> resultSet = projectRepository.getEmployeeInformationBulk(otherProjectSetDTO.getEmpIds());
+	        logBuilder.append("\n getEmployeeInformationBulk - Total Records: ").append(resultSet.size());
+
+	        List<GetEmployeeInformationForDefaultProjectDTO> resultDTO = new ArrayList<>();
+
+	        for (Object[] result : resultSet) {
+	        	GetEmployeeInformationForDefaultProjectDTO dto = new GetEmployeeInformationForDefaultProjectDTO();
+	        	Long empId = Long.parseLong(result[0].toString());
+	            dto.setEmpId(result[0] != null ? Long.parseLong(result[0].toString()) : null);
+	            dto.setEmploymentId(result[1] != null ? result[1].toString() : null);
+	            dto.setName(result[2] != null ? result[2].toString() : null);
+	            
+	            Map<String, Object> activeProjectInfo = this.getActiveProjectDetailsIfMultiple(empId, otherProjectSetDTO.getProjectId());
+				if ((Boolean) activeProjectInfo.get("isMultipleActiveProjects")) {
+				    List<Map<String, Object>> otherProjects = (List<Map<String, Object>>) activeProjectInfo.get("projects");
+				    dto.setOtherActiveProjects(otherProjects);
+				} else {
+					dto.setOtherActiveProjects(Collections.emptyList());
+				}
+
+	            resultDTO.add(dto);
+	        }
+
+	        if (!resultDTO.isEmpty()) {
+	            response.setServiceResponse(resultDTO);
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            logBuilder.append("\n Employee information fetched successfully.");
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No data found for empIds: " + otherProjectSetDTO.getEmpIds());
+	            logBuilder.append("\n No data found for empIds: ").append(otherProjectSetDTO.getEmpIds());
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Something went wrong!");
+	        logBuilder.append("\n Exception occurred: ").append(e.getMessage());
+	    }
+
+	    return response;
 	}
 	
 }

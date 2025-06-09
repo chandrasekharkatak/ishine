@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
+import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
@@ -307,6 +308,11 @@ public class ResourceManagementController {
 	@PostMapping("/setProjectMappingAndDefaultProject")
 	public ServiceResponse setProjectMappingAndDefaultProject(@RequestBody SetProjectMappingAndDefaultProjectDTO setProjectMappingAndDefaultProjectDTO ) {
 	    return resourceManagementService.setProjectMappingAndDefaultProject(setProjectMappingAndDefaultProjectDTO);
+	}
+	
+	@PostMapping("/getEmployeeInformationForDefaultProject")
+	public ServiceResponse getEmployeeInformationForDefaultProject(@RequestBody OtherProjectSetDTO otherProjectSetDTO) {
+	    return resourceManagementService.getEmployeeInformationForDefaultProject(otherProjectSetDTO);
 	}
 
 }

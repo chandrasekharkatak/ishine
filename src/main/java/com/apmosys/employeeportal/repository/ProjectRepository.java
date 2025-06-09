@@ -134,4 +134,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInformationBulk(List<Long> empIds);
 	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeInformationForDefaultProject(List<Long> empIds);
+	
 }
