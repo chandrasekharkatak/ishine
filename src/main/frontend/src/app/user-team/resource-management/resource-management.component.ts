@@ -2274,7 +2274,8 @@ export class ResourceManagementComponent implements OnInit {
     //     }else{
     //        this.modalRef = this.modalService.show(template1, { class: 'modal-xl' });
     //     }
-
+    const today = new Date();
+    this.selectedDate = today.toISOString().split('T')[0];
     this.completedProjectDetails = project;
     this.getProjectDetailsForBulkDefaultUpdate();
   }
@@ -3033,8 +3034,7 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   setProjectMappingAndDefaultProject(setDefaultProjectObj, template: TemplateRef<any>) {
-    const today = new Date();
-    this.selectedDate = today.toISOString().split('T')[0];
+
     setDefaultProjectObj.empId = this.EmployessIds;
     if (setDefaultProjectObj.teamId !== null) {
       this.resourceManagementService.setProjectMappingAndDefaultProject(setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
