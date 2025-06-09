@@ -2537,9 +2537,9 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 		logBuilder.append("ManagerId : "+leaveDTO.getManagerId());
 		
 		try {
-			Long applicationCount = employeeLeaveRepository
+			String applicationCount = employeeLeaveRepository
 					.countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveDTO.getManagerId());
-			if (applicationCount == 0) {
+			if ( applicationCount.length() == 0) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No leave applications found.");
 				
@@ -2596,7 +2596,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 				} else {
 					employeeLeavesList.forEach((object) -> {
 						LeaveDTO dto = new LeaveDTO();
-						dto.setApplicationCount(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setApplicationCount(object[0] != null ? (object[0].toString()) : null);
 						dto.setLeaveType(object[1] != null ? object[1].toString() : null);
 						dto.setLeaveTypeCode(object[2] != null ? object[2].toString() : null);
 						dtoList.add(dto);
@@ -2647,7 +2647,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 				}else {
 					employeeLeaveList.forEach((object)->{
 						LeaveDTO dto = new LeaveDTO();
-						dto.setApplicationCount(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setApplicationCount(object[0] != null ? (object[0].toString()) : null);
 						dto.setLeaveType(object[1] != null ? object[1].toString() : null);
 						dto.setLeaveTypeCode(object[2] != null ? object[2].toString() : null);
 						dtoList.add(dto);	
@@ -2696,7 +2696,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 				} else {
 					employeeLeavesList.forEach((object) -> {
 						LeaveDTO dto = new LeaveDTO();
-						dto.setApplicationCount(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						dto.setApplicationCount(object[0] != null ? (object[0].toString()) : null);
 						dto.setLeaveType(object[1] != null ? object[1].toString() : null);
 						dto.setLeaveTypeCode(object[2] != null ? object[2].toString() : null);
 						dtoList.add(dto);

@@ -50,7 +50,7 @@ public interface EmployeeLeaveRepository extends JpaRepository<EmployeeLeave, Lo
 	public List<Object[]> getAllTeamCompOffHistoryViewByEmpId(Long empId, LocalDate fromDate, LocalDate toDate);
 
 	@Query(nativeQuery = true)
-	public Long countAllMyTeamsPendingLeaveApplicationsByManagerId(Integer managerId);
+	public String countAllMyTeamsPendingLeaveApplicationsByManagerId(Integer managerId);
 
 	public List<EmployeeLeave> findByLeaveTypeMasterId(Short oldLeaveTypeMasterId);
 

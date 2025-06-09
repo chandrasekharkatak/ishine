@@ -667,10 +667,10 @@ public class CompOffLeaveService {
 		logBuilder.append("managerId : " +leaveDTO.getManagerId());
 		try {
 
-			Long applicationCount = compOffLeaveRepository
+			String applicationCount = compOffLeaveRepository
 					.countPendingCompOffRequestsByManagerId(leaveDTO.getManagerId());
 
-			if (applicationCount == 0) {
+			if (applicationCount.length() == 0) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No compoff request(s) found.");
 				

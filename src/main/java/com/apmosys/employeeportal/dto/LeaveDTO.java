@@ -73,7 +73,7 @@ public class LeaveDTO {
 	private Long leaveStatusUpdatedBy;
 	private String leaveStatusUpdatedByName;
 	
-	private Long applicationCount;
+	private String applicationCount;
 	
 	private Integer rowNumber;
 	
