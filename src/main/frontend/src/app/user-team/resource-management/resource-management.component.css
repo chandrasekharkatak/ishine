@@ -1000,5 +1000,42 @@ thead {
   .checkbox-group label {
     margin: 0;
   }
+
+
+  .default-project-wrapper {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.08);
+  }
+  
+  .section-title {
+    color: #061E5C;
+    font-weight: bold;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .set-team-btn {
+    background-color: #061E5C;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .set-team-btn:hover {
+    background-color: #043b9a;
+  }
+  
+  .mat-select {
+    width: 100%;
+  }
+  
+  input.form-control {
+    margin: 5px 0;
+  }
+  
   
   
