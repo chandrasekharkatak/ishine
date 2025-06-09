@@ -1,9 +1,9 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { Query } from 'src/app/models/query';
-import { LeaveService } from 'src/app/services/leave.service';
 import { first } from 'rxjs/operators';
-import { AuthenticationService } from 'src/app/services/authentication.service';
+import { Query } from 'src/app/models/query';
 import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { LeaveService } from 'src/app/services/leave.service';
 
 class Operator{
   name:string;
@@ -29,19 +29,18 @@ export class CustomFilterComponent implements OnInit {
   {name:"Greater Than",symbol:">"},{name:"Less or Equal",symbol:"<="},{name:"Greater or equal",symbol:">="},
   {name:" Not Equal",symbol:"!="}];
   conjunctionList:Operator[]=[{name:"AND",symbol:"AND"},{name:"OR",symbol:"OR"}];
-  
+  currentUser:User;
   queryList:Query[]=[new Query()];
   invalidForm: boolean;
   valueOptionList = [];
   keyword = "name";
   storedFilterData:storedData[] = [new storedData()];
-  currentUser:User;
   @Input() data: any;
   @Output() filterSubmitted:EventEmitter<any> =  new EventEmitter<any>(); 
   constructor(
-    private authenticationService:AuthenticationService,
-   private leaveService : LeaveService
- ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
+     private authenticationService:AuthenticationService,
+    private leaveService : LeaveService
+  ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
     this.columnList = this.data.columns;
@@ -119,7 +118,7 @@ export class CustomFilterComponent implements OnInit {
           }
         });
 
-        //console.log(this.storedFilterData, " : this.storedFilterData");
+        console.log(this.storedFilterData, " : this.storedFilterData");
         
         let arrayToBeEmitted = [this.queryList,this.storedFilterData];
         this.filterSubmitted.emit(arrayToBeEmitted);

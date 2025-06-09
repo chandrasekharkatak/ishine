@@ -25,5 +25,11 @@ public class EmployeeTeamMapDTO {
 	private LocalDateTime updatedOn;
 	private String teamMemberName;
 	private Long teamMemberDeptId;
+    private Long id;
+    private Long shadowEmpId;
+    private String shadowBillable;
+    private String shadowBillableType;
+    private String billable;
+    private String billableType;
 	
 }

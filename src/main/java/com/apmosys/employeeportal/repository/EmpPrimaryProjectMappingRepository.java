@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,6 +15,8 @@ import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 public interface EmpPrimaryProjectMappingRepository extends JpaRepository<EmpPrimaryProjectMapping, Long>{
 
 	EmpPrimaryProjectMapping findByEmpId(Long empId);
+	
+	 List<EmpPrimaryProjectMapping> findByEmpIdIn(List<Long> empIds);
 	
 	    @Modifying
 	    @Transactional

@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -46,6 +47,8 @@ import com.apmosys.employeeportal.dto.AppreciationAndRewardsCountDto;
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
+import com.apmosys.employeeportal.dto.DefaultProjectEmployeeConfig;
+import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
@@ -124,6 +127,7 @@ import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
+import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.repository.UploadPolicyRepository;
@@ -197,6 +201,9 @@ public class EmployeeService {
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
 	
 	@Autowired
+	ResourceManagementService resourceManagementService;
+	
+	@Autowired
 	private LeavePolicyMasterRepository leavePolicyMasterRepository;
 
 	@Autowired
@@ -219,6 +226,9 @@ public class EmployeeService {
 	
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
+	
+	@Autowired
+	ResourceRequirementRepository resourceRequirementRepository;
 	
 	@Autowired
 	private  UploadPolicyRepository uploadPolicyRepository;
@@ -508,8 +518,8 @@ public class EmployeeService {
 			employee.setChild1(employeedto.getChild1());
 			employee.setChild2(employeedto.getChild2());
 			employee.setChild3(employeedto.getChild3());
-			employee.setBillable(employeedto.getBillable());
-			employee.setBillableType(employeedto.getBillableType());
+//			employee.setBillable(employeedto.getBillable());
+//			employee.setBillableType(employeedto.getBillableType());
 			employee.setIsTimesheetLockCheckEnable("true");
 			employee.setDesignationId(employeedto.getDesignationId());
 			employee.setIsConsultant(employeedto.getIsConsultant());
@@ -528,20 +538,51 @@ public class EmployeeService {
 				employee.setApprovalsTo(employeedto.getApprovalsTo());
 			}
 
-			Employee newEmployee = employeeRepository.save(employee);
-			
-			if (employeedto.getBillableType() != null && !employeedto.getBillableType().trim().isEmpty()) {
-			    FieldAlteration billableTypeAlteration = new FieldAlteration();
-			    billableTypeAlteration.setEmpId(newEmployee.getEmpId());
-			    billableTypeAlteration.setField("Billable Type");
-			    billableTypeAlteration.setValue(employeedto.getBillableType());
-			    billableTypeAlteration.setAlteredBy(employeedto.getCreatedBy().longValue());
-			    billableTypeAlteration.setUpdatedOn(LocalDateTime.now());
-
-			    fieldAlterationRepository.save(billableTypeAlteration);
+			Employee newEmployee = employeeRepository.save(employee);			
+			StringBuilder employeeRole = new StringBuilder("");
+			for (String empRole : employeedto.getDefaultTeamEmployeeRole()) {
+				employeeRole.append(empRole).append(",");
 			}
+			
+			if(employeedto.getDefaultProjectId() != null) {
+				Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
+				String departmentname = dept.getName();
+				
+				Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
+				resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
+				
+				
+				
+				
+				
+				EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
+				employeeTeamMap.setEmpId(newEmployee.getEmpId());
+				employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
+				employeeTeamMap.setActive(2l);
+				employeeTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
+				employeeTeamMap.setEmployeeRole(employeeRole.toString());
+				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
+				employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
+			   employeeTeamMapRepository.save(employeeTeamMap);
+			   
+			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
+			    if (project != null && project.getPoProjectId() == null) {
+			        project.setIsDraftProject("true");
+			        projectRepository.save(project);  
+			    }
+			   
+			   DefaultProjectUpdateDTO dto = new DefaultProjectUpdateDTO();
+			    dto.setUpdatedBy(employeedto.getCreatedBy().longValue()); 
+			    dto.setProjectId(employeedto.getDefaultProjectId());
+			    dto.setEmpIds(Collections.singletonList(newEmployee.getEmpId()));
 
-			if (newEmployee.getEmpId() != null) {
+			    resourceManagementService.setDefaultProjectUpdateBillable(dto);
+			   
+			   }
+					
+					
+						
+				if (newEmployee.getEmpId() != null) {
 
 				List<LeaveTypeMaster> leaveTypeMasterList = leaveTypeMasterRepository.findAll();
 
@@ -1221,7 +1262,15 @@ public class EmployeeService {
 					empDTO.setDomainList(domainIds.toArray(new Long[domainIds.size()]));
 					empDTO.setSpecializationList(specializationIds.toArray(new Long[specializationIds.size()]));
 				}
-
+				
+				EmpPrimaryProjectMapping employeeProject = empPrimaryProjectMappingRepository.findByEmpId(employeedto.getEmpId());
+				if(employeeProject!=null) {
+					Project project = projectRepository.findByProjectId(employeeProject.getPrimaryProjectId().intValue());
+					empDTO.setDefaultProjectName(project.getProjectName());					
+				}
+						
+						
+						
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(empDTO);
 				
@@ -4029,6 +4078,7 @@ public class EmployeeService {
 							dto.setDepartmentId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
 							dto.setEmployeementId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
 							dto.setBillableType(object[5] != null ? object[5].toString() : null);
+							dto.setEmploymentId(object[6] != null ? object[6].toString() : null);
 							employeeList.add(dto);
 						});
 						
@@ -4119,7 +4169,7 @@ public class EmployeeService {
 								dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
 								dto.setDepartmentId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
 								dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
-
+								dto.setEmploymentId(object[7] != null ? object[7].toString() : null);
 								dtoList.add(dto);
 
 							});
@@ -6669,58 +6719,32 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	public ServiceResponse updateDefaultProject(Long empId, String projectId,Long updatedBy) {
 		
 		ServiceResponse response = new ServiceResponse();
-		EmpPrimaryProjectMapping empPrimaryProjectMapping = new EmpPrimaryProjectMapping();
-		if(empId != null) {
-		empPrimaryProjectMapping = empPrimaryProjectMappingRepository.findByEmpId(empId);
-		if(empPrimaryProjectMapping == null && projectId != null && !projectId.isEmpty()) {
-			
-			EmpPrimaryProjectMapping empPrimaryProjectMappingNew = new EmpPrimaryProjectMapping();
+		if (empId == null || projectId == null || projectId.isEmpty()) {
+	        response.setServiceMessage("Please provide valid Employee Id and Project Id..!!");
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        return response;
+	    }
 
-			// empPrimaryProjectMappingNew.setEmpId(empId);
-			// empPrimaryProjectMappingNew.setPrimaryProjectId(Long.valueOf(projectId));			
-			// empPrimaryProjectMappingNew.setPrimaryProjectName(projectName);
-			// EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMappingNew);
-			Project project = projectRepository.findByProjectId(Integer.valueOf(projectId));
-			empPrimaryProjectMappingNew.setEmpId(empId);
-			empPrimaryProjectMappingNew.setPrimaryProjectId(Long.valueOf(projectId));			
-			empPrimaryProjectMappingNew.setPrimaryProjectName(project.getProjectName());
-			empPrimaryProjectMappingNew.setIsMapped("Y");
-			empPrimaryProjectMappingNew.setUpdatedBy(updatedBy);
-			empPrimaryProjectMappingNew.setUpdatedOn(LocalDateTime.now());	
-			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMappingNew);
-			
-			response.setServiceResponse(empPrimaryProjectMappingSaved);
-			response.setServiceMessage("Saved Succesfully...!!");
-			response.setServiceStatus(response.STATUS_SUCCESS);
-		
-		}
-		else if(empPrimaryProjectMapping != null && projectId != null && !projectId.isEmpty()) {
-			
-			empPrimaryProjectMapping.setPrimaryProjectId(Long.valueOf(projectId));	
-			Project project = projectRepository.findByProjectId(Integer.valueOf(projectId));
-			empPrimaryProjectMapping.setPrimaryProjectName(project.getProjectName());
-			empPrimaryProjectMapping.setUpdatedBy(updatedBy);
-			empPrimaryProjectMapping.setUpdatedOn(LocalDateTime.now());	
-			
-			EmpPrimaryProjectMapping empPrimaryProjectMappingSaved = empPrimaryProjectMappingRepository.save(empPrimaryProjectMapping);
-			
-			response.setServiceResponse(empPrimaryProjectMappingSaved);
-			response.setServiceMessage("Updated Succesfully...!!");
-			response.setServiceStatus(response.STATUS_SUCCESS);
-		}
-		
-		else {
-			response.setServiceMessage("Please provide the Project Id..!!");
-			response.setServiceStatus(response.STATUS_FAIL);
-		}
+	    try {
+	        
+	        DefaultProjectUpdateDTO defaultProjectUpdateDTO = new DefaultProjectUpdateDTO();
+	        defaultProjectUpdateDTO.setUpdatedBy(updatedBy);
+	        defaultProjectUpdateDTO.setProjectId(Integer.valueOf(projectId));
+	        defaultProjectUpdateDTO.setEmpIds(Collections.singletonList(empId));
+
+	       
+	        response = resourceManagementService.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceMessage("Exception occurred while updating default project.");
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceError(e.getMessage());
+	    }
+
+	    return response;
 	}
-		else {
-			response.setServiceMessage("Please provide the Employee Id..!!");
-			response.setServiceStatus(response.STATUS_FAIL);
-		}
-		
-		return response;
-	}
+
 	
 	
 	public ServiceResponse getExpiredPo() {
@@ -6949,6 +6973,285 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
+	}
+	
+	
+	public ServiceResponse getInternalProjectsAccToDepartmentSelected(DefaultProjectEmployeeConfig defaultProjectEmployeeConfig){
+		   ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/getInternalProjectsAccToDepartment");
+		    apiLogInfo.setLogLevel("INFO");
+		    try {
+		    	List<Object[]> getBenchOrOtherProjects = new ArrayList<>();
+		    	Long departmentId = defaultProjectEmployeeConfig.getDepartmentId();
+		    	if("Bench".equalsIgnoreCase(defaultProjectEmployeeConfig.getDefaultProjectType())){
+		    	getBenchOrOtherProjects= employeeRepository.getAllInternalBenchprojectsAndTeamDetailsForDepartmenFilter();
+		    	}else {
+		        getBenchOrOtherProjects = employeeRepository.getAllProjectsThatAreNotBench();
+		    	}
+		    	 Map<Integer, ProjectDTO> projectMap = new HashMap<>();
+		    	 
+		    	 for(Object[] row : getBenchOrOtherProjects) {
+		    		 
+		    		 Integer projectId = row[0]!=null ? Integer.parseInt(row[0].toString()) : null;
+		    		 String projectName = row[1]!=null ? row[1].toString():null;
+		    		 Long teamId = row[2]!=null ? Long.parseLong(row[2].toString()):null;
+		    		 String teamName = row[3]!=null ? row[3].toString():null;
+		    		 String deptIds = row[4]!=null ? row[4].toString():null;
+		    		 
+		    		 if (deptIds == null || !Arrays.asList(deptIds.split(",")).contains(departmentId.toString())) {
+		                 continue;
+		             }
+		    		 
+		    		 TeamDTO teamDTO = new TeamDTO();
+		             teamDTO.setTeamId(teamId);
+		             teamDTO.setTeamName(teamName);
+		             teamDTO.setDepartmentList(deptIds.split(","));
+		             
+		             if (projectMap.containsKey(projectId)) {
+		                 projectMap.get(projectId).getTeamList().add(teamDTO);
+		             } else {
+		               
+		                 ProjectDTO projectDTO = new ProjectDTO();
+		                 projectDTO.setProjectId(projectId);
+		                 projectDTO.setProjectName(projectName);
+		                 projectDTO.setTeamList(new ArrayList<>());
+		                 projectDTO.getTeamList().add(teamDTO);
+		                 projectMap.put(projectId, projectDTO);
+		             }
+		         }
+
+		         List<ProjectDTO> filteredProjects = new ArrayList<>(projectMap.values());
+		         response.setServiceResponse(filteredProjects);
+		         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		         apiLogInfo.setApiResponse("List fetched of size: " + filteredProjects.size());
+		    	
+		    }catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("An error occurred while processing the request.");
+		        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        apiLogInfo.setLogLevel("ERROR");
+		        response.setServiceError(e.getMessage());
+		    }
+
+		    logService.logMyInfo(httpRequest, apiLogInfo);
+		    return response;
+		}
+	
+	
+	public ServiceResponse getAllEmployeesBasedOnUserLogined(List<DepartmentDTO> deapartment) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("get_all_employee");
+		apiLogInfo.setApiUrl("/api/getAllEmployeesBasedOnUserLogined");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("getALLEmployees size : "+employeeRepository.getAllEmployees().size());
+		
+		String cacheKey = "allEmployees";
+		
+		if (employeeCache.containsKey(cacheKey)) {
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(employeeCache.get(cacheKey));
+            apiLogInfo.setApiResponse("Data fetched from cache. Size: " + employeeCache.get(cacheKey).size());
+            logService.logMyInfo(httpRequest, apiLogInfo);
+            return response;
+        }
+		
+		try {
+			String deptIdCsv = deapartment.stream()
+				    .map(DepartmentDTO::getDeptId)     
+				    .filter(Objects::nonNull)          
+				    .map(String::valueOf)              
+				    .collect(Collectors.joining(",")); 
+   List<Integer> deptIds = Arrays.stream(deptIdCsv.split(","))
+				    .map(String::trim)
+				    .map(Integer::parseInt)
+				    .collect(Collectors.toList());
+
+			List<Object[]> allEmployeeList = employeeRepository.getAllEmployeesBasedOnUserLogined(deptIds);
+			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+
+			if (allEmployeeList != null) {
+				allEmployeeList.forEach((object) -> {
+					EmployeeDTO empDTO = new EmployeeDTO();
+
+					empDTO.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					empDTO.setAadhar(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+					empDTO.setAboutMe(object[2] != null ? object[2].toString() : null);
+					empDTO.setAddress(object[3] != null ? object[3].toString() : null);
+					empDTO.setBankAccountNo(object[4] != null ? object[4].toString() : null);
+					empDTO.setBankIFSCCode(object[5] != null ? object[5].toString() : null);
+					empDTO.setBankName(object[6] != null ? object[6].toString() : null);
+					empDTO.setBloodGroup(object[7] != null ? object[7].toString() : null);
+					empDTO.setCity(object[8] != null ? object[8].toString() : null);
+					empDTO.setCountry(object[9] != null ? object[9].toString() : null);
+					empDTO.setCreatedBy(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
+					empDTO.setCreatedOn(object[11] != null ? (object[11].toString()) : null);
+					empDTO.setDateOfBirth(
+							object[12] != null ? stringToDateTimeParser.formatDateToString(object[12].toString())
+									: null);
+					empDTO.setDateOfJoining(
+							object[13] != null ? stringToDateTimeParser.formatDateToString(object[13].toString())
+									: null);
+					empDTO.setEmail(object[14] != null ? object[14].toString() : null);
+					empDTO.setEmergencyContactMobile(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+					empDTO.setEmergencyContactPerson(object[16] != null ? object[16].toString() : null);
+					empDTO.setEmploymentstatus(object[17] != null ? object[17].toString() : null);
+					empDTO.setEsicNumber(object[18] != null ? object[18].toString() : null);
+					empDTO.setFatherName(object[19] != null ? object[19].toString() : null);
+					empDTO.setGender(object[20] != null ? object[20].toString() : null);
+					empDTO.setGraduationType(object[21] != null ? object[21].toString() : null);
+					empDTO.setPursuing(object[22] != null ? object[22].toString() : null);
+					empDTO.setJobRoleId(object[23] != null ? Long.parseLong(object[23].toString()) : null);
+					empDTO.setLandline(object[24] != null ? Long.parseLong(object[24].toString()) : null);
+					empDTO.setManagerId(object[25] != null ? Long.parseLong(object[25].toString()) : null);
+					empDTO.setMaritalStatus(object[26] != null ? object[26].toString() : null);
+					empDTO.setMobileNo(object[27] != null ? Long.parseLong(object[27].toString()) : null);
+					empDTO.setMotherTongue(object[28] != null ? object[28].toString() : null);
+					empDTO.setName(object[29] != null ? object[29].toString() : null);
+					empDTO.setNoticePeriod(object[30] != null ? Short.parseShort(object[30].toString()) : null);
+					empDTO.setAlternateMobileNo(object[31] != null ? Long.parseLong(object[31].toString()) : null);
+					empDTO.setPanNumber(object[32] != null ? object[32].toString() : null);
+					empDTO.setPassportNumber(object[33] != null ? object[33].toString() : null);
+					empDTO.setPermanentAddress(object[34] != null ? object[34].toString() : null);
+					empDTO.setPfAccountNumber(object[35] != null ? object[35].toString() : null);
+					empDTO.setPincode(object[36] != null ? Integer.parseInt(object[36].toString()) : null);
+					empDTO.setPlaceOfBirth(object[37] != null ? object[37].toString() : null);
+					empDTO.setPassingGrade(object[38] != null ? object[38].toString() : null);
+					empDTO.setPreviousPfAccountNumber(object[39] != null ? object[39].toString() : null);
+					empDTO.setRelation(object[40] != null ? object[40].toString() : null);
+					empDTO.setState(object[41] != null ? object[41].toString() : null);
+					empDTO.setUan(object[42] != null ? object[42].toString() : null);
+					empDTO.setViewsOnOrganisation(object[43] != null ? object[43].toString() : null);
+					empDTO.setYearOfPassing(object[44] != null ? Short.parseShort(object[44].toString()) : null);
+					empDTO.setDepartmentId(object[45] != null ? Long.parseLong(object[45].toString()) : null);
+					empDTO.setJobRoleName(object[46] != null ? object[46].toString() : null);
+					empDTO.setDepartmentName(object[47] != null ? object[47].toString() : null);
+					empDTO.setWorkLocation(object[48] != null ? object[48].toString() : null);
+					empDTO.setProbationPeriod(object[49] != null ? Short.parseShort(object[49].toString()) : null);
+					empDTO.setEmpId(object[50] != null ? Long.parseLong(object[50].toString()) : null);
+					empDTO.setManagerName(object[51] != null ? object[51].toString() : null);
+					empDTO.setExperience(object[52] != null ? object[52].toString() : null);
+					empDTO.setBillable(object[53] != null ? (object[53].toString()) : null);
+					empDTO.setChild1(object[54] != null ? (object[54].toString()) : null);
+					empDTO.setChild2(object[55] != null ? (object[55].toString()) : null);
+					empDTO.setChild3(object[56] != null ? (object[56].toString()) : null);
+					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
+					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
+					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
+					empDTO.setDateOfResign(
+							object[60] != null ? stringToDateTimeParser.formatDateToString(object[60].toString())
+									: null);
+					empDTO.setInvalidAccessAttempt(object[61] != null ? Integer.parseInt(object[61].toString()) : null);
+					empDTO.setDateOfRelieving(
+							object[62] != null ? stringToDateTimeParser.formatDateToString(object[62].toString())
+									: null);
+					empDTO.setJobRoleName(object[63] != null ? (object[63].toString()) : null);	
+					empDTO.setUpdatedByName(object[64] != null ? (object[64].toString()) : null);	
+					empDTO.setCreatedByName(object[65] != null ? (object[65].toString()) : null);	
+					empDTO.setUpdatedOn(object[66] != null ? (object[66].toString()) : null);
+					empDTO.setIsTimesheetLockCheckEnable(object[67] != null ? (object[67].toString()) : null);
+					empDTO.setEmploymentReleaseStatus(object[68] != null ? (object[68].toString()) : null);
+					empDTO.setFailedAttempt(failedAttempt);
+					empDTO.setPipFlag(object[69] != null ? object[69].toString() : null);
+					empDTO.setPipId(object[70] != null ? Long.parseLong(object[70].toString()) : null );	
+					empDTO.setBillableType(object[71] != null ? object[71].toString() : null );	
+					empDTO.setProjectName(object[72] != null ? object[72].toString() : null);
+					empDTO.setClientName(object[73] != null ? object[73].toString() : null);
+					empDTO.setTeamName(object[74] != null ? object[74].toString() : null);
+					empDTO.setDesignationName(object[75] != null ? object[75].toString() : null);
+					empDTO.setIsConsultant(object[76] != null ? object[76].toString() : null);
+					empDTO.setIsApprenticeship(object[77] != null ? object[77].toString() : null);
+                    empDTO.setReportingManagerId(object[78] != null ? Long.parseLong(object[78].toString()) : null)	;
+                    empDTO.setReportingManagerName(object[79] != null ? object[79].toString() : null);
+                    empDTO.setEmployeeRole(object[80] != null ? object[80].toString() : null);                
+                    
+					empDTO.setReferedType(object[81] != null ? object[81].toString() : null);
+					empDTO.setReferedName(object[82] != null ? object[82].toString() : null);
+					empDTO.setEmployeeConfirmationDate(object[83] != null ? object[83].toString() : null);
+					empDTO.setHodId(object[84] != null ? Long.parseLong(object[84].toString()) : null );
+				    empDTO.setHodName(object[85] != null ? object[85].toString() : null);
+				    empDTO.setHodDepartmentName(object[86] != null ? object[86].toString() : null);
+					
+					
+					
+					if (object[87] != null && object[72] != null) {
+		                String projectIdStr = object[87].toString().trim();
+		                String projectNameStr = object[72].toString().trim();
+
+		                
+		                if (!projectIdStr.isEmpty() && !projectNameStr.isEmpty()) {
+		                    String[] projectIds = projectIdStr.split(",");
+		                    String[] projectNames = projectNameStr.split(",");
+
+		                    
+		                    List<ProjectDTO> projectList = new ArrayList<>();
+		                    int length = Math.min(projectIds.length, projectNames.length);
+		                    
+		                    for (int i = 0; i < length; i++) {
+		                        try {
+		                            ProjectDTO projectDTO = new ProjectDTO();
+		                            projectDTO.setProjectId(Integer.parseInt(projectIds[i].trim()));
+		                            projectDTO.setProjectName(projectNames[i].trim());
+		                            projectList.add(projectDTO);
+		                        } catch (NumberFormatException e) {
+		                            System.err.println("Invalid projectId: " + projectIds[i]);
+		                        }
+		                    }
+		                    empDTO.setProjectList(projectList);
+		                }
+		               
+
+		            }
+				
+					empDTO.setUpdatedBy(object[88] != null ? Long.parseLong(object[88].toString()) : null);
+
+					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
+					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
+					
+					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
+					
+//					 int totalEnabledQuarters = quarterCycleRepository.countByIsEnableAndIsActive();
+//					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn(
+//				                empDTO.getEmpId(), quarterCycleRepository.findAllEnabledQuarterIds()
+//				            );
+//					 
+//					 double performanceStatus = (totalEnabledQuarters > 0) 
+//							    ? ((double) completedQuarters / totalEnabledQuarters) * 100 
+//							    : 0.0;
+//					 performanceStatus = Double.parseDouble(String.format("%.2f", performanceStatus));
+//					 empDTO.setPerformanceStatusPercentage(performanceStatus);		 
+					dtoList.add(empDTO);
+				});
+			 employeeCache.put(cacheKey, dtoList);
+
+//	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	                response.setServiceResponse(dtoList);
+//	                apiLogInfo.setApiResponse("List fetched from DB and stored in cache. Size: " + dtoList.size());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee List is null.");
+				apiLogInfo.setApiResponse("Employee List is null.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			apiLogInfo.setLogLevel("ERROR");
+			response.setServiceError(e.getMessage());
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
 	}
 }
 	

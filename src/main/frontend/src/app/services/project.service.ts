@@ -72,4 +72,8 @@ updateProjectResourcesAsInActiveBulk(project: any){
   return this.http.post(`${this.baseUrl}` + `api/updateProjectResourcesAsInActiveBulk`, project);
 }
 
+deleteTeamsByIdsBulk(teamObj: any){
+  return this.http.post(`${this.baseUrl}` + `api/deleteTeamsByIdsBulk`, teamObj);
+}
+
 }

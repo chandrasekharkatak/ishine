@@ -377,4 +377,16 @@ updateDefaultProject(newemployeeObj : any){
    return this.http.post(`${this.baseUrl}` + `api/updateBulkBillableEmployeeReport`,payload);
  }
 
+ getEmployeeByNameAndEmpld(){
+  return this.http.get(`${this.baseUrl}` + `api/getEmployeeByNameAndEmpld`);
+ }
+
+ getProjectsAccToDepartmentSelected(payload:any){
+  return this.http.post(`${this.baseUrl}` + `api/getProjectsAccToDepartmentAndProjectType`,payload);
+ }
+
+ getAllEmployeesBasedOnUserLogined(details:any){
+  return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesBasedOnUserLogined`,details);
+ }
+ 
 }

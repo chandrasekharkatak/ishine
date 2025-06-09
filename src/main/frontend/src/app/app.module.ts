@@ -145,6 +145,8 @@ registerLocaleData(localeGb);
 
 
 import { LmstabComponent } from './lmstab/lmstab.component';
+import { FilterEmployeePipe } from './filter-employee.pipe';
+import { ViewEmployeeComponent } from './user-team/resource-management/view-employee/view-employee.component';
 import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
 import { SafePipe } from './safe.pipe';
 import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
@@ -269,6 +271,8 @@ import { ReimbursmentConfigComponent } from './configuration/reimbursment-config
      LMSComponent,
      BiomaxApprovalComponent,
      LmstabComponent,
+     FilterEmployeePipe,
+     ViewEmployeeComponent,
      TotalTravelrequestComponent,
      TotalReimbursementrequestComponent,
      SafePipe,

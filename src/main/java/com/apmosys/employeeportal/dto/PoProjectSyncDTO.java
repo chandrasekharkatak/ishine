@@ -18,7 +18,7 @@ public class PoProjectSyncDTO {
 	private String state;
 	private String projectName;
 	private String description;
-	private Long projectManagerId;
+	private List<Long> projectManagerId;
 	private Long empId;
 	private Timestamp approvedOn;
 	private Timestamp createdOn;
@@ -39,5 +39,8 @@ public class PoProjectSyncDTO {
     private String createdBy;
     private String updatedBy;
     private String updatedOn;
-	
+	private String projectManagerName;
+    private List<ProjectManagerMappingDTO> projectManagersList;
+	private List<ProjectManagersDTO> projectManagers;
+	private String internalProjectType;
 }

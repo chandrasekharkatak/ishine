@@ -203,5 +203,12 @@ export class Employee{
 	emp360:any;
 
 	selectedProjectId :any;
-
+	employmentId:any;
+	resourceOverviewId: any;
+	defaultprojectType:any;
+	defaultProjectId:any;
+	defaultProjectName:any;
+	defaultTeamId:any;
+	isShadowResource:any;
+	defaultTeamEmployeeRole:any;
 }

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
+import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
@@ -115,7 +116,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public Long countByJobRoleId(Long jobRoleId);
 
 	public Employee findByEmployeementId(Long employeementId);
-
 	
 	public List<Employee> findByMobileNo(Long employeementId);
 
@@ -566,6 +566,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query(value ="select DISTINCT emp_id from employee where employmentstatus !='Inactive'",nativeQuery=true)
     List<Long>findAllActiveEmployees();
     
+    @Query(nativeQuery = true)
+    public List<Object[]> getEmployeeByNameAndEmpld();
+	
     @Query(value="select billable_type from employee where emp_id = :empId",nativeQuery=true)
     String findBillableTypeByEmpId(@Param("empId") Long empId);
     
@@ -579,6 +582,77 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query(value="SELECT e.email FROM employee e WHERE e.emp_id = :hodId",nativeQuery=true)
     String findHodEmailById(@Param("hodId") Long hodId);
     
+    @Query(value ="select count(*) from employee where employmentstatus != 'InActive'",nativeQuery = true)
+    Long getTotalEmployeeCount();
+    
+    @Query("SELECT e FROM Employee e WHERE e.empId IN :empIds")
+    List<Employee> findByEmpIdIn(@Param("empIds") Set<Long> empIds);
+    @Query("SELECT e FROM Employee e WHERE e.empId IN :empIds")
+    List<Employee> findByEmpIdIn(@Param("empIds") List<Long> empIds);
+    
+    
+    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name from employee e \n"
+    		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
+    		+ "inner join department d on d.dept_id = jr.dept_id\n"
+    		+ "LEFT JOIN \n"
+    		+ "    employee em ON em.emp_id = e.manager_id\n"
+    		+ "WHERE NOT EXISTS (SELECT 1\n"
+    		+ "    FROM employee_team_mapping etm\n"
+    		+ "    JOIN teams t ON t.team_id = etm.team_id\n"
+    		+ "    JOIN projects p ON p.project_id = t.project_id\n"
+    		+ "    WHERE etm.emp_id = e.emp_id \n"
+    		+ "      AND etm.active != 0\n"
+    		+ "      AND t.is_active = 'Y'\n"
+    		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive'",nativeQuery = true)
+    List<Object[]> findAllEmployeesWithoutAnyProject();
+    
+    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name from employee e \n"
+    		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
+    		+ "inner join department d on d.dept_id = jr.dept_id\n"
+    		+ "LEFT JOIN \n"
+    		+ "    employee em ON em.emp_id = e.manager_id\n"
+    		+ "WHERE NOT EXISTS (SELECT 1\n"
+    		+ "    FROM employee_team_mapping etm\n"
+    		+ "    JOIN teams t ON t.team_id = etm.team_id\n"
+    		+ "    JOIN projects p ON p.project_id = t.project_id\n"
+    		+ "    WHERE etm.emp_id = e.emp_id \n"
+    		+ "      AND etm.active != 0\n"
+    		+ "      AND t.is_active = 'Y'\n"
+    		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive' and d.dept_id IN :deptIds",nativeQuery = true)
+    List<Object[]> findAllEmployeesWithoutProjectInDeptIds(@Param("deptIds") List<Long> deptIds);
+    
+    
+    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name from employee e \n"
+    		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
+    		+ "inner join department d on d.dept_id = jr.dept_id\n"
+    		+ "LEFT JOIN \n"
+    		+ "    employee em ON em.emp_id = e.manager_id\n"
+    		+ "WHERE NOT EXISTS (SELECT 1\n"
+    		+ "    FROM employee_team_mapping etm\n"
+    		+ "    JOIN teams t ON t.team_id = etm.team_id\n"
+    		+ "    JOIN projects p ON p.project_id = t.project_id\n"
+    		+ "    WHERE etm.emp_id = e.emp_id \n"
+    		+ "      AND etm.active != 0\n"
+    		+ "      AND t.is_active = 'Y'\n"
+    		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive' and d.dept_id = :deptId ",nativeQuery = true)
+    List<Object[]> findAllEmployeesWithoutProjectInDeptId(@Param("deptId") Long deptId);
+    
+    
+    
+    @Query(nativeQuery = true ,value ="select p.project_id,p.project_name,t.team_id,t.team_name,t.dept_ids from projects p inner join teams t on t.project_id = p.project_id  where p.po_project_id  IS NULL and p.internal_project_type = 'Bench' and p.active = 'true' and t.is_active = 'Y'")
+    List<Object[]> getAllInternalBenchprojectsAndTeamDetailsForDepartmenFilter();
+    
+    
+    @Query(nativeQuery = true,value ="select p.project_id,p.project_name,t.team_id,t.team_name,t.dept_ids from projects p inner join teams t on t.project_id = p.project_id  where p.internal_project_type = 'Internal' or p.internal_project_type IS NULL and p.active = 'true' and t.is_active = 'Y'")
+    List<Object[]> getAllProjectsThatAreNotBench();
+    
+    
+    @Modifying
+    @Transactional
+    @Query(nativeQuery = true,value ="update employee set billable = :billable,billable_type = :billableType where emp_id = :empId") 
+    void updateBillableFields(@Param("empId") Long empId, @Param("billable") String billable, @Param("billableType") String billableType);
+  
+
     @Query(nativeQuery = true, value="SELECT \n"
     		+ "    e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,\n"
     		+ "    e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"

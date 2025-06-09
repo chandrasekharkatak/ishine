@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,7 +13,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.service.ResourceManagementService;
@@ -176,7 +179,23 @@ public class ResourceManagementController {
 	public ServiceResponse sendEmailNotificationToBDTeam(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 	    return resourceManagementService.sendEmailNotificationToBDTeam(resourceManagementDTO);
 	}
-
+	
+	@GetMapping("/getEmployeeByNameAndEmpld")
+	public ServiceResponse getEmployeeByNameAndEmpld() {
+	    return resourceManagementService.getEmployeeByNameAndEmpld();
+	}
+	
+	 @PostMapping("/combinedPOINTERNALList")
+	    public ServiceResponse combinedPOINTERNALList(@RequestBody ProjectFilterDTO projectFilterDTO) {
+	        return resourceManagementService.combinedDataListWithCount(projectFilterDTO);
+	    }
+	 
+	@RequestMapping(value = "/deleteTeamsByIdsBulk", method = RequestMethod.POST)
+	public ServiceResponse deleteTeamsByIdsBulk(@RequestBody List<TeamDTO> teamDTO) {
+		
+		ServiceResponse response = resourceManagementService.deleteTeamsByIdsBulk(teamDTO);
+		return response;
+	}
 	
 	@RequestMapping(value = "/updateProjectResourcesAsInActiveBulk", method = RequestMethod.POST)
 	public ServiceResponse updateProjectResourcesAsInActiveBulk(@RequestBody List<ResourceManagementDTO> resourceManagementDTOList) {
@@ -189,6 +208,87 @@ public class ResourceManagementController {
 		
 		ServiceResponse response = resourceManagementService.updateProjectStartAndEndDate(resourceManagementDTO);
 		return response;
+	}
+	
+	@RequestMapping(value = "/completionDateOfProject", method = RequestMethod.POST)
+	public ServiceResponse completionDateOfProject(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		
+		ServiceResponse response = resourceManagementService.completionDateOfProject(resourceManagementDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/rbacInternalProjects", method = RequestMethod.POST)
+	public ServiceResponse getAllInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
+		ServiceResponse response = resourceManagementService.getAllInternalProjectsNewRMG(projectFilterDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/rbacShankhProjects", method = RequestMethod.POST)
+	public ServiceResponse getAllShankhProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
+		ServiceResponse response = resourceManagementService.getAllShankhProjectsNewRMG(projectFilterDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/rbacAllShankhInternalProjects", method = RequestMethod.POST)
+	public ServiceResponse getAllShankhInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
+		ServiceResponse response = resourceManagementService.getAllShankhInternalProjectsNewRMG(projectFilterDTO);
+		return response;
+	}
+	
+	
+	@RequestMapping(value = "/rbacBothShankhInternal", method = RequestMethod.POST)
+	public ServiceResponse getBothShankhInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
+		ServiceResponse response = resourceManagementService.getBothShankhInternalProjectsNewRMG(projectFilterDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/projectLessEmployees", method = RequestMethod.POST)
+	public ServiceResponse getEmployessWithoutProjects(@RequestBody ProjectFilterDTO projectFilterDTO) {
+		ServiceResponse response = resourceManagementService.getEmployessWithoutProjects(projectFilterDTO);
+		return response;
+	}
+	
+	
+	@RequestMapping(value = "/totalEmployeeCount", method = RequestMethod.GET)
+	public ServiceResponse totalEmployeeCount() {
+		ServiceResponse response = resourceManagementService.totalEmployeeCount();
+		return response;
+	}
+	
+	@GetMapping("/getResourceRequirementByPoProjectId")
+	public ServiceResponse getResourceRequirementByPoProjectId(@RequestParam Long id) {
+	    return resourceManagementService.getResourceRequirementByPoProjectId(id);
+	}
+	
+	@GetMapping("/getEmployeeInformation")
+	public ServiceResponse getEmployeeInformation(@RequestParam Long empId) {
+	    return resourceManagementService.getEmployeeInformation(empId);
+	}
+	
+	@GetMapping(value = "/exceptionEmployeeReport")
+	public ServiceResponse exceptionEmployeeReport( ) {
+		ServiceResponse response = resourceManagementService.getAllExceptionReport();
+		return response;
+	}
+
+	@PostMapping("/poCrudOperationsInIshine")
+	public ServiceResponse importAllNotStartedProjects(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		return resourceManagementService.crudOnAllNotstartedProjs(resourceManagementDTO);
+	}
+	
+	@GetMapping("/poDump")
+	public ServiceResponse getAllPOPortalDumpInIshineTemp() {
+		return resourceManagementService.dumpPODataInIshine();
+	}
+	
+	@GetMapping("/getPreviousDefaultProjectDetails")
+	public ServiceResponse getPreviousDefaultProjectDetails(@RequestParam Long empId) {
+	    return resourceManagementService.getPreviousDefaultProjectDetails(empId);
+	}
+	
+	@PostMapping("/setDefaultProjectUpdateBillable")
+	public ServiceResponse setDefaultProjectUpdateBillable(@RequestBody DefaultProjectUpdateDTO defaultProjectUpdateDTO) {
+		return resourceManagementService.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
 	}
 
 }

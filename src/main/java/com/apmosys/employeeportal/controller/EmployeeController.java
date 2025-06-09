@@ -20,6 +20,8 @@ import com.apmosys.employeeportal.dto.AppreciationAndRewardsCountDto;
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.AppreciationRequest;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
+import com.apmosys.employeeportal.dto.DefaultProjectEmployeeConfig;
+import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
@@ -558,6 +560,16 @@ public class EmployeeController {
 	@GetMapping("/getAllEmployeesWorkAnniversaryToday")
 	public ServiceResponse getAllEmployeesWorkAnniversaryToday() {
 	    return employeeService.getAllEmployeesWorkAnniversaryToday();
+	}
+	
+	@PostMapping("/getProjectsAccToDepartmentAndProjectType")
+	public ServiceResponse getInternalProjectsAccToDepartmentSelected(@RequestBody DefaultProjectEmployeeConfig defaultProjectEmployeeConfig) {
+		return employeeService.getInternalProjectsAccToDepartmentSelected(defaultProjectEmployeeConfig);
+	}
+	
+	@PostMapping("/getAllEmployeesBasedOnUserLogined")
+	public ServiceResponse getAllEmployeesBasedOnUserLogined(@RequestBody List<DepartmentDTO> department) {
+	    return employeeService.getAllEmployeesBasedOnUserLogined(department);
 	}
 	
 }

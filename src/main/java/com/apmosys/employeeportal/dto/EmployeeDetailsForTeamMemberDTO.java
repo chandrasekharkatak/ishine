@@ -22,4 +22,5 @@ public class EmployeeDetailsForTeamMemberDTO {
 	private String deptName;
 	private Long deptId;
 	private String isConsultant;
+    private Long resourceOverviewId;
 }

@@ -39,6 +39,7 @@ public class Project {
 	private String description;
 	private Long projectManagerId;
 	private Long empId;
+	@Column(name="approved_on")
 	private Timestamp approvedOn;
     
 	private Timestamp createdOn;
@@ -64,4 +65,8 @@ public class Project {
 	private String deptId;
 	private String status;
 	private String apmosysRmEmail;
+	private String projectCompletionDate;
+	private String projectStatus;
+	private String internalProjectType;
+	
 }

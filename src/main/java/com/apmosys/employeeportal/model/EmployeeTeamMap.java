@@ -47,5 +47,7 @@ public class EmployeeTeamMap {
 	
     private Long updatedBy;
 	//added by rahul singh
+    private Long resourceOverviewId;
+    private Integer isShadow;
 	
 }

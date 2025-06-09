@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Project } from '../models/project';
+import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
+import { ProjectFilterDTO } from '../models/projectFilterDTO';
+import { Project } from '../models/project';
 
 @Injectable({
   providedIn: 'root'
@@ -58,5 +59,56 @@ export class ResourceManagementService {
   sendEmailNotificationToBDTeam(project: Project){
     return this.http.post(`${this.baseUrl}` + `api/sendEmailNotificationToBDTeam`,project);
   }
+
+
+  completionDateOfProject(project: Project){
+    return this.http.post(`${this.baseUrl}` + `api/completionDateOfProject`,project);
+  }
   
+  combinedPOINTERNALList(ProjectFilterDTO:ProjectFilterDTO){
+    return this.http.post(`${this.baseUrl}` + `api/combinedPOINTERNALList`,ProjectFilterDTO);
+  }
+
+  rbacInternalProjects(ProjectFilterDTO:ProjectFilterDTO){
+    return this.http.post(`${this.baseUrl}` + `api/rbacInternalProjects`,ProjectFilterDTO);
+  }
+
+  rbacShankhProjects(ProjectFilterDTO:ProjectFilterDTO){
+    return this.http.post(`${this.baseUrl}` + `api/rbacShankhProjects`,ProjectFilterDTO);
+  }
+
+  rbacAllShankhInternalProjects(ProjectFilterDTO:ProjectFilterDTO){
+    return this.http.post(`${this.baseUrl}` + `api/rbacAllShankhInternalProjects`,ProjectFilterDTO);
+  }
+
+  rbacBothShankhInternal(ProjectFilterDTO:ProjectFilterDTO){
+    return this.http.post(`${this.baseUrl}` + `api/rbacBothShankhInternal`,ProjectFilterDTO);
+  }
+  projectLessEmployees(ProjectFilterDTO:ProjectFilterDTO){
+    return this.http.post(`${this.baseUrl}` + `api/projectLessEmployees`,ProjectFilterDTO);
+  }
+
+  getResourceRequirementByPoProjectId(id: any) {
+    return this.http.get(`${this.baseUrl}`+`api/getResourceRequirementByPoProjectId`, {params: { id: id }});
+  }
+
+  getEmployeeInformation(empId: any){
+    return this.http.get(`${this.baseUrl}`+`api/getEmployeeInformation`, {params: { empId: empId }});
+  }
+
+  totalEmployeeCount(){
+    return this.http.get(`${this.baseUrl}`+`api/totalEmployeeCount`);
+  }
+
+  exceptionEmployeeReport(){
+    return this.http.get(`${this.baseUrl}` + `api/exceptionEmployeeReport`);
+  }
+  
+  getPreviousDefaultProjectDetails(empId: any){
+    return this.http.get(`${this.baseUrl}`+`api/getPreviousDefaultProjectDetails`, {params: { empId: empId }});
+  }
+
+  setDefaultProjectUpdateBillable(defaultProjectUpdate){
+    return this.http.post(`${this.baseUrl}` + `api/setDefaultProjectUpdateBillable`,defaultProjectUpdate);
+  }
 }

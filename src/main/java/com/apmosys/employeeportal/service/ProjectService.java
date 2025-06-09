@@ -77,6 +77,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
+import com.apmosys.employeeportal.model.ProjectManagerMapping;
 import com.apmosys.employeeportal.model.ProjectsTemp;
 import com.apmosys.employeeportal.model.ProjectsTempRepository;
 import com.apmosys.employeeportal.model.Team;
@@ -293,18 +294,18 @@ public class ProjectService {
 				System.out.println("Pri 2 "+ firstClientOptional);
 			    Project projectObj = new Project();
 				projectObj.setProjectName(poProjectSyncDTO.getProjectName());
-				projectObj.setProjectManagerId(poProjectSyncDTO.getProjectManagerId());
 				projectObj.setClientId(firstClientOptional.getClientId());
 				projectObj.setState(poProjectSyncDTO.getState());
 				projectObj.setActive("true");
 				projectObj.setSyncProject("false");
 				projectObj.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
+				projectObj.setInternalProjectType(poProjectSyncDTO.getInternalProjectType());	
 				Project projectDbResponse =  projectRepository.save(projectObj);
 				System.out.println("Pri 3 "+ firstClientOptional);
 				if(projectDbResponse != null) {
 					// Add department mapping
 					for(String department: poProjectSyncDTO.getDepartmentList()) {
-						Department departmentObj = departmentRepository.findByName(department);
+						Department departmentObj = departmentRepository.findByDeptId(Long.parseLong(department));
 						ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
 						projectDeptMap.setProjectId(projectDbResponse.getProjectId());
 						projectDeptMap.setDeptId(departmentObj.getDeptId());
@@ -375,7 +376,7 @@ public class ProjectService {
 				projectdto.setProjectName(projectObj.getProjectName());
 				projectdto.setClientId(projectObj.getClientId());
 				projectdto.setDepartmentList(departmentArr);
-				projectdto.setProjectManagerId(projectObj.getProjectManagerId());
+//				projectdto.setProjectManagerId(projectObj.getProjectManagerId());
 				projectdto.setState(projectObj.getState());
 				projectdto.setProjectId(projectObj.getProjectId());
 				projectdto.setSyncProject(projectObj.getSyncProject());
@@ -424,7 +425,6 @@ public class ProjectService {
 			if(project != null) {
 				
 				project.setProjectName(poProjectSyncDTO.getProjectName());
-				project.setProjectManagerId(poProjectSyncDTO.getProjectManagerId());
 				project.setClientId(poProjectSyncDTO.getClientId());
 				project.setState(poProjectSyncDTO.getState());
 				project.setActive("true");

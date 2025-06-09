@@ -254,6 +254,7 @@ public class CustomFilterService {
 
 	public List<Object[]> getCustomLeaveReport(String customQuery,Long empId) {
 		try {
+			 String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
 
 			Session session = entityManager.unwrap(Session.class);
 			 String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
@@ -1565,7 +1566,6 @@ public class CustomFilterService {
 		try {
 			Session session = entityManager.unwrap(Session.class);
 			String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
-
 			try {
 				String q = "SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, \n"
 						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, \n"
@@ -1607,7 +1607,7 @@ public class CustomFilterService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("QueryList : " + timesheetDTO.getQueryList().size());
 		try {
-
+            System.err.print("test"+timesheetDTO.getEmpId());
 			StringBuilder subQuery = createQueryForTimesheetReport(timesheetDTO.getQueryList());
 			List<Object[]> list = getCustomTimesheetReport(subQuery.toString(),timesheetDTO.getEmpId());
 
@@ -2308,7 +2308,7 @@ public class CustomFilterService {
 				break;
 			}
 			case "Department": {
-				 List<Department> departmentObj = departmentRepository.findByDeptIdIn(deptIdLongs);
+				List<Department> departmentObj = departmentRepository.findByDeptIdIn(deptIdLongs);
 				if (!departmentObj.isEmpty()) {
 					departmentObj.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
