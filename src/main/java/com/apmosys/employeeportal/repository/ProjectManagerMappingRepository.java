@@ -27,5 +27,9 @@ public interface ProjectManagerMappingRepository extends JpaRepository<ProjectMa
 	@Modifying
 	@Query(nativeQuery = true)
 	public void deactivateByProjectId(@Param("projectId") Long projectId);
+	
+	@Query(nativeQuery = true, value="SELECT pmm.project_manager_id, e.name FROM project_manager_mapping pmm\n"
+			+ "INNER JOIN employee e on pmm.project_manager_id = e.emp_id where pmm.project_id = :projectId and pmm.active=1")
+	List<Object[]> getAllProjectManagerListWithName(@Param("projectId") Long projectId);
 
 }

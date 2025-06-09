@@ -383,6 +383,10 @@ export class ResourceManagementComponent implements OnInit {
     "Maharashtra",
   ];
 
+   getSlicedProjects(projectList: Project[], count: number): Project[] {
+    return projectList.slice(0, count);
+  }
+
   getAllProjects() {
     fetch(this.currentUser.poPortalAllProjectApi).then(res => res.json()).then(async data => {
       let allPoProject = data;
@@ -1504,6 +1508,7 @@ export class ResourceManagementComponent implements OnInit {
     });
     this.previewTeamList = [];
     this.projectObj = Object.assign({}, project);
+    console.log(this.projectObj,"this.projectObj");
     this.setManagerName(project);
     this.getTeamListByProjectName(project);
 

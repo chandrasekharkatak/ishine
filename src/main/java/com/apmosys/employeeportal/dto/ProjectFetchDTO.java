@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
+
+import com.apmosys.employeeportal.model.ProjectManagerMapping;
 
 @Getter
 @Setter
@@ -41,6 +44,10 @@ public class ProjectFetchDTO {
 	private Boolean isTeamCreated;
 	private String projectViewId;
 	private String projectType;
+	private List<ProjectManagersDTO> projectManagers;
+	private List<Long> projectManagerId;
+	private List<ProjectOverheadsDTO> projectOverheads;
+	private List<Long> projectOverheadId;
 
 	public ProjectFetchDTO(Integer projectId, Timestamp createdOn, String projectName, String state, Integer clientId,
 			Long poProjectId, String active, String syncProject, Long createdBy, Long updatedBy,

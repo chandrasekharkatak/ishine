@@ -2266,7 +2266,7 @@ public class ResourceManagementService {
 					List<ProjectOverheadsDTO> projectOverheadsList = new ArrayList<>();
 					List<String> projectOverheadNames = new ArrayList<>();
 
-					for (Object[] obj : result) {
+					for (Object[] obj : result2) {
 						if (obj[0] != null) {
 							projectOverheadIds.add(Long.parseLong(obj[0].toString()));
 						}
@@ -5717,6 +5717,10 @@ public class ResourceManagementService {
 		        try {
 		        	if(projectFilterDTO.getApprovalStatus()!=null && projectFilterDTO.getApprovalStatus().equalsIgnoreCase("All" ))
 		        		projectFilterDTO.setApprovalStatus(null);
+		        	else if(projectFilterDTO.getApprovalStatus()!=null && projectFilterDTO.getApprovalStatus().equalsIgnoreCase("Approved"))
+		        		projectFilterDTO.setApprovalStatus("false");
+		        	else if(projectFilterDTO.getApprovalStatus()!=null && projectFilterDTO.getApprovalStatus().equalsIgnoreCase("Pending For Approval"))
+		        		projectFilterDTO.setApprovalStatus("true");
 		        	CombinedPOInternalProjectResponse responseData = new CombinedPOInternalProjectResponse();
 		        Map<String,Integer> map = new HashMap<>();
 		        map.put("pendingForApprovalCount", projectRepository.getAllActiveProjecCountstList(projectFilterDTO.getDepartmentsids(),"true"));
@@ -5731,7 +5735,17 @@ public class ResourceManagementService {
 		        	departmentsids = null;
 		        }
 //		        Set<String> deptIdStrings = departmentsids.stream().map(String::valueOf).collect(Collectors.toSet());
-		        List<Object[]> results = projectRepository.getAllActiveProjectList(departmentsids,projectFilterDTO.getCompletionStatus(),projectFilterDTO.getApprovalStatus());	
+		        String ishineStatus = null;
+		        String poStatus = null;
+		        if(projectFilterDTO.getCompletionStatus()!=null) {
+		        if(projectFilterDTO.getCompletionStatus().equalsIgnoreCase("completedInIshine")&& projectFilterDTO.getCompletionStatus()!=null)  ishineStatus = "Completed";
+		        else if(projectFilterDTO.getCompletionStatus().equalsIgnoreCase("completed")&& projectFilterDTO.getCompletionStatus()!=null) poStatus = "Completed";
+		        }
+		        else {
+		        	ishineStatus = null;
+			        poStatus = null;
+		        }
+		        List<Object[]> results = projectRepository.getAllActiveProjectList(departmentsids,ishineStatus,poStatus,projectFilterDTO.getApprovalStatus());
 //		        ServiceResponse teamCreatedProjectsResponse = alreadyCreatedTeam();
 //		        if (!ServiceResponse.STATUS_SUCCESS.equals(teamCreatedProjectsResponse.getServiceStatus())) {
 //		            return failResponse(response, apiLogInfo, "Failed to fetch already created team projects.");
@@ -5772,7 +5786,7 @@ public class ResourceManagementService {
 		                (String) row[27]						//projectViewId
 		            );
 		        if(row[0] != null && teamRepository.findByProjectId((Integer) row[0]) != null && !teamRepository.findByProjectId((Integer) row[0]).isEmpty()) {
-                	dto.setIsTeamCreated(true);
+		        	dto.setIsTeamCreated(true);
                 	
                 }
 		        else {
@@ -5785,7 +5799,28 @@ public class ResourceManagementService {
 		        	dto.setProjectType((String) row[14]);
 		        }
 		        dto.setId(row[5] != null ? ((BigInteger) row[5]).longValue() : null);
-		            dtoList.add(dto);
+		        List<ProjectManagersDTO> pmlData = new ArrayList<>();
+		        List<Long> pmIds = new ArrayList<>();
+		        List<Object[]> pml = projectManagerMappingRepository.getAllProjectManagerListWithName(((Integer)row[0]).longValue());
+		        for(Object[] data : pml) {
+		        	ProjectManagersDTO pmd = new ProjectManagersDTO(((BigInteger)data[0]).longValue(),(String)data[1]);
+		        	pmIds.add(((BigInteger)data[0]).longValue());
+		        	pmlData.add(pmd);
+		        }
+		        List<Object[]> result2 = projectOverheadMappingRepository
+						.findProjectOverheadsPerProject(Long.parseLong(row[0].toString()));
+		        List<ProjectOverheadsDTO> projOverHeads = new ArrayList<>();
+		        List<Long> overHeadIds = new ArrayList<>();
+		        for(Object[] overHead : result2) {
+		        	ProjectOverheadsDTO overHeadData = new ProjectOverheadsDTO(Long.parseLong(overHead[0].toString()),(String)overHead[1]);
+		        	overHeadIds.add(Long.parseLong(overHead[0].toString()));
+		        	projOverHeads.add(overHeadData);
+		        }
+		        dto.setProjectManagerId(pmIds);     
+		        dto.setProjectManagers(pmlData);
+		        dto.setProjectOverheads(projOverHeads);
+		        dto.setProjectOverheadId(overHeadIds);
+		        dtoList.add(dto);
 		        }
 		        
 		        if((projectFilterDTO.getCompletionStatus() == null && projectFilterDTO.getApprovalStatus()== null) ||
@@ -5832,6 +5867,12 @@ public class ResourceManagementService {
 		        responseData.setCombinedNewProjects(dtoList);
 		        responseData.setCounts(map);        
 		        System.out.println(dtoList);
+//		        dtoList.forEach(data->{
+//		        	if(data.getProjectId()==1116) {
+//		        		System.out.println(data.getProjectManagerId());
+//		        		System.out.println(data.getProjectManagers());
+//		        	}
+//		        });
 		        response.setServiceResponse(responseData);
 		        response.setServiceStatus(response.STATUS_SUCCESS);
 		        return response;
@@ -5844,7 +5885,8 @@ public class ResourceManagementService {
 		        	return response;
 		        }
 	}
-		        
+		       
+	
 	
 	public ServiceResponse getPreviousDefaultProjectDetails(Long empId) {
 		ServiceResponse response = new ServiceResponse();
