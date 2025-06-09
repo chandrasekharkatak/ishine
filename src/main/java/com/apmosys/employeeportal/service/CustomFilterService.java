@@ -837,7 +837,8 @@ public class CustomFilterService {
 	List<Object[]> getCustomEmployeeReport(String customQuery,Long empId) {
 		try {
 			Session session = entityManager.unwrap(Session.class);
-            String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
+			String q;
+          
             try {
 //				String q="SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
 //						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
@@ -932,8 +933,9 @@ public class CustomFilterService {
 //						+ "AND t.is_active != 'N' \n"
 //						+ "AND pr.active != 'false'\n"
 //						+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id  where " + customQuery;
-				
-				String q = "SELECT \n"
+				if(empId != null) {
+					  String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
+				 q = "SELECT \n"
 						+ "    e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, \n"
 						+ "    e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
 						+ "    e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
@@ -982,7 +984,58 @@ public class CustomFilterService {
 						+ "      AND pr.active != 'false'\n"
 						+ "    GROUP BY etm.emp_id\n"
 						+ ") emp_proj_client ON emp_proj_client.emp_id = e.emp_id where " + customQuery +"AND jr.dept_id IN (" + deptList + ")";
-
+				}else {
+					 q = "SELECT \n"
+								+ "    e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, \n"
+								+ "    e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
+								+ "    e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
+								+ "    e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
+								+ "    e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
+								+ "    e.notice_period, e.alternate_mobile_no, e.pan_number, e.passport_number,\n"
+								+ "    e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
+								+ "    e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
+								+ "    e.views_on_organisation, e.year_of_passing, jr.dept_id, jr.name AS jobrolename,\n"
+								+ "    d.name AS departmentname, e.work_location, e.probation_period, e.emp_id, e2.name AS manager, \n"
+								+ "    e.experience, e.billable, e.child1, e.child2, e.child3, e.mothers_name, e.spouse, \n"
+								+ "    e.total_experience, emp_proj_client.project_name, emp_proj_client.client_name,emp_proj_client.project_id, e.updated_on, \n"
+								+ "    e4.name AS createdByName, e3.name AS updatedByName, e.designation_id, de.designation_name, \n"
+								+ "    e.updated_by, e.billable_type, emp_proj_client.team_name, e.is_consultant, e.is_apprenticeship, \n"
+								+ "    emp_proj_client.po_no, \n"
+								+ "    emp_proj_client.po_start_date, emp_proj_client.po_end_date, emp_proj_client.po_project_type, \n"
+								+ "\n"
+								+ "    (SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) \n"
+								+ "     FROM employee e_profile \n"
+								+ "     WHERE e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n"
+								+ "\n"
+								+ "FROM employee e\n"
+								+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+								+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+								+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
+								+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id\n"
+								+ "LEFT JOIN designation de ON de.designation_id = e.designation_id \n"
+								+ "LEFT JOIN employee e4 ON e.created_by = e4.emp_id\n"
+								+ "LEFT JOIN (\n"
+								+ "    SELECT \n"
+								+ "        etm.emp_id,\n"
+								+ "        GROUP_CONCAT(DISTINCT pr.project_id ORDER BY pr.project_id SEPARATOR ',') AS project_id,\n"
+								+ "        GROUP_CONCAT(DISTINCT pr.project_name ORDER BY pr.project_id SEPARATOR ',') AS project_name, \n"
+								+ "        GROUP_CONCAT(DISTINCT cl.client_name ORDER BY pr.project_id SEPARATOR ',') AS client_name,  \n"
+								+ "        GROUP_CONCAT(DISTINCT t.team_name ORDER BY pr.project_id SEPARATOR ',') AS team_name,\n"
+								+ "        GROUP_CONCAT(DISTINCT pr.po_no ORDER BY pr.project_id SEPARATOR ',') AS po_no,\n"
+								+ "        GROUP_CONCAT(DISTINCT pr.po_start_date ORDER BY pr.project_id SEPARATOR ',') AS po_start_date,\n"
+								+ "        GROUP_CONCAT(DISTINCT pr.po_end_date ORDER BY pr.project_id SEPARATOR ',') AS po_end_date,\n"
+								+ "        GROUP_CONCAT(DISTINCT pr.po_project_type ORDER BY pr.project_id SEPARATOR ',') AS po_project_type \n"
+								+ "    FROM employee_team_mapping etm \n"
+								+ "    LEFT JOIN teams t ON t.team_id = etm.team_id \n"
+								+ "    LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
+								+ "    LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
+								+ "    WHERE etm.active != 0 \n"
+								+ "      AND t.is_active != 'N' \n"
+								+ "      AND pr.active != 'false'\n"
+								+ "    GROUP BY etm.emp_id\n"
+								+ ") emp_proj_client ON emp_proj_client.emp_id = e.emp_id where " + customQuery ;
+				}
+				
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
 				System.out.println(query);
@@ -2118,6 +2171,8 @@ public class CustomFilterService {
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		try {
+			
+			if(customFilterDTO.getEmpId()!= null) {
 
 			   String deptList = departmentRepository.findAccessibleDeptIdsForEmp(customFilterDTO.getEmpId());
 						 List<Integer> deptIds = Arrays.stream(deptList.split(","))
@@ -2448,6 +2503,330 @@ public class CustomFilterService {
 			}
 			default:
 				break;
+			}
+			}else {
+				List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
+				List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+
+				switch (customFilterDTO.getColumn()) {
+				case "Employee Id": {
+					if (!allEmployeeList.isEmpty()) {
+						allEmployeeList.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object[0] != null ? object[0].toString() : null);
+							dtoList.add(dto);
+						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				case "Full Name": {
+					if (!allEmployeeList.isEmpty()) {
+						allEmployeeList.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object[29] != null ? object[29].toString() : null);
+							dtoList.add(dto);
+						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				case "Leave Type": {
+					List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
+					if (!leaveType.isEmpty()) {
+						leaveType.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object.getLeaveType());
+							dtoList.add(dto);
+						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				case "Team Name": {
+					List<Team> teamObj = teamRepository.findAll();
+					if (!teamObj.isEmpty()) {
+						teamObj.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object.getTeamName());
+							dtoList.add(dto);
+						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				case "Project Name": {
+					List<Project> projectObj = projectRepository.findAll();
+					if (!projectObj.isEmpty()) {
+						projectObj.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object.getProjectName());
+							dtoList.add(dto);
+						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				case "Po No":{
+					List<Project> projObj = projectRepository.findAll();
+					if(!projObj.isEmpty()) {
+						projObj.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object.getPoNo());
+							dtoList.add(dto);				
+							});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				
+				case "Po Project Type":{
+					List<String> projObj = projectRepository.finddistinctPoProjectType();
+					if(!projObj.isEmpty()) {
+						projObj.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object);
+							dtoList.add(dto);				
+							});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				case "Client Name": {
+					List<Client> clientObj = clientsRepository.findAll();
+					if (!clientObj.isEmpty()) {
+						clientObj.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object.getClientName());
+							dtoList.add(dto);
+						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				case "Department": {
+					 List<Department> departmentObj = departmentRepository.findAll();
+					 if (!departmentObj.isEmpty()) {
+						departmentObj.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object.getName());
+							dtoList.add(dto);
+						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				// timesheet / leave status
+				case "Status": {
+					String[] status = new String[] { "Pending", "Approved", "Rejected" };
+					for (String object : status) {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object);
+						dtoList.add(dto);
+					}
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					break;
+				}
+				case "Manager Name": {
+					List<Object[]> empObj = employeeRepository.getAllManagers();
+					if (!empObj.isEmpty()) {
+						empObj.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object[1] != null ? object[1].toString() : null);
+							dtoList.add(dto);
+						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				case "Job Role": {
+					List<JobRole> jobRoleObj = jobRoleRepository.findAll();
+					if (!jobRoleObj.isEmpty()) {
+						jobRoleObj.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object.getName());
+							dtoList.add(dto);
+						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				case "Manager": {
+					List<Object[]> empObj = employeeRepository.getAllManagers();
+					if (!empObj.isEmpty()) {
+						empObj.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object[1] != null ? object[1].toString() : null);
+							dtoList.add(dto);
+						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				case "Employment Status": {
+//					String[] status = new String[] { "Probation", "Confirmed", "Resigned", "InActive", "Reinstate" };
+					String[] status = new String[] { "Probation", "Confirmed", "Resigned", "InActive" };
+					for (String object : status) {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object);
+						dtoList.add(dto);
+					}
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					break;
+				}
+				case "Gender": {
+					String[] status = new String[] { "male", "female", "other" };
+					for (String object : status) {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object);
+						dtoList.add(dto);
+					}
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					break;
+				}
+				case "Day Type": {
+					String[] status = new String[] { "Working", "Holiday", "Non-working", "Public Holiday", "Leave",
+							"Week Off" };
+					for (String object : status) {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object);
+						dtoList.add(dto);
+					}
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					break;
+				}
+				case "Work Location": {
+					String[] state = new String[] { "Andaman & Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh",
+							"Assam", "BiNohar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and  Daman & Diu",
+							"Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu & Kashmir", "Jharkhand",
+							"Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur",
+							"Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim",
+							"Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal" };
+					for (String object : state) {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object);
+						dtoList.add(dto);
+					}
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				case "State": {
+					String[] state = new String[] { "Andaman & Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh",
+							"Assam", "Bihar", "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and  Daman & Diu",
+							"Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu & Kashmir", "Jharkhand",
+							"Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur",
+							"Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim",
+							"Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal" };
+					for (String object : state) {
+						EmployeeDTO dto = new EmployeeDTO();
+						dto.setName(object);
+						dtoList.add(dto);
+					}
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("dto list fetched.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}
+				case "Specialization": {
+					List<Specialization> allSpecialization = specializationRepository.findByIsActive("true");
+					if (!allSpecialization.isEmpty()) {
+						allSpecialization.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object.getSpecializationName());
+							dtoList.add(dto);
+						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				case "Domain": {
+					List<Domain> allDomain = domainRepository.findByIsActive("true");
+					if (!allDomain.isEmpty()) {
+						allDomain.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object.getDomainName());
+							dtoList.add(dto);
+						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				case "Designation": {
+					List<Designation> allDesignation = designationRepository.findAll();
+					if (!allDesignation.isEmpty()) {
+						allDesignation.forEach((object) -> {
+							EmployeeDTO dto = new EmployeeDTO();
+							dto.setName(object.getDesignationName());
+							dtoList.add(dto);
+						});
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(dtoList);
+						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+					break;
+				}
+				default:
+					break;
+				}
+
+				
 			}
 		} catch (Exception e) {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
