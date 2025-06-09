@@ -7,7 +7,7 @@ import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
-import { EmployeeProjectMapping } from 'src/app/models/defaultProject';
+
 import { DefaultProjectUpdate } from 'src/app/models/defaultProjectUpdate';
 import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
@@ -234,7 +234,7 @@ export class ResourceManagementComponent implements OnInit {
   filteredTeamsForDefaultBulk: any;
   resourceRequirementListBulk: any;
   bulkEmployeeList: EmployeeInformation[] = [];
-      employeeProjectMapping:EmployeeProjectMapping[]=[];
+
   setDefaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
 
   constructor(
@@ -2117,9 +2117,10 @@ export class ResourceManagementComponent implements OnInit {
 
 
   EmployessIds: number[] = [];
-  openDatePicker(template: TemplateRef<any>, template1: TemplateRef<any>, project: any) {
+  activeProjects: number[] = [];
+  openDatePicker(template: TemplateRef<any>, template1: TemplateRef<any>, project: any, template2: TemplateRef<any>) {
 
-
+    console.log("projectid", project);
     this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectObj.teamList = response.serviceResponse;
@@ -2186,20 +2187,29 @@ export class ResourceManagementComponent implements OnInit {
 
             return acc;
           }, []);
-
+          this.activeProjects = empIdsHavingActiveProjects;
+          this.EmployessIds = empIds;
           if (empIds.length !== 0 && empIdsHavingActiveProjects.length !== 0) {
             this.getEmployeeInformationBulk(empIds);
             this.modalRef4 = this.modalService.show(template, { class: 'modal-xl' });
+            this.setDefaultProjectObj.empIds = empIdsHavingActiveProjects;
+            this.setDefaultProjectObj.projectId = project.id;
+            this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
             this.modalRef = this.modalService.show(template1, { class: 'modal-xl' });
 
           } else if (empIds.length !== 0 && empIdsHavingActiveProjects.length === 0) {
-            this.EmployessIds = empIds;
+
             this.getEmployeeInformationBulk(empIds);
             this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-          } else if(empIds.length === 0 && empIdsHavingActiveProjects.length !== 0) {
+          } else if (empIds.length === 0 && empIdsHavingActiveProjects.length !== 0) {
+            this.setDefaultProjectObj.empIds = empIdsHavingActiveProjects;
+            this.setDefaultProjectObj.projectId = project.id;
+            this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
             this.modalRef = this.modalService.show(template1, { class: 'modal-xl' });
+          } else {
+            this.modalRef = this.modalService.show(template2, { class: 'modal-sm' });
           }
-            console.error("test",empIdsHavingActiveProjects,empIds);
+          console.error("test", empIdsHavingActiveProjects, empIds);
           // this.modalRef4 = this.modalService.show(template, { class: 'modal-xl' });
           this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
         }
@@ -2932,13 +2942,16 @@ export class ResourceManagementComponent implements OnInit {
     );
   }
 
-  setDefaultProjectUpdateBillable(empId, projectId) {
-    this.defaultProjectUpdate.empIds = [empId];
+  setDefaultProjectUpdateBillable(empId, projectId, template: TemplateRef<any>) {
+    this.defaultProjectUpdate.empIds = this.activeProjects;
     this.defaultProjectUpdate.projectId = projectId;
     this.defaultProjectUpdate.updatedBy = this.currentUser.empId;
     this.resourceManagementService.setDefaultProjectUpdateBillable(this.defaultProjectUpdate).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+        if (this.EmployessIds.length === 0) {
+          this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+        }
       } else {
         this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
         console.error("Error setting the default project!");
@@ -3027,7 +3040,9 @@ export class ResourceManagementComponent implements OnInit {
       this.resourceManagementService.setProjectMappingAndDefaultProject(setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.bulkEmployeeList = response.serviceResponse;
-          // this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+          if (this.activeProjects.length === 0) {
+            this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+          }
         } else {
           this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
           console.error("Unable to fetch Employee List!");
@@ -3036,4 +3051,21 @@ export class ResourceManagementComponent implements OnInit {
     }
 
   }
+
+  bulkEmployeeListActiveList: any[] = [];
+  getEmployeeInformationForDefaultProject(setDefaultProjectObj: any) {
+
+    this.resourceManagementService.getEmployeeInformationForDefaultProject(setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.bulkEmployeeListActiveList = response.serviceResponse;
+        console.error("Unable to fetch Employee List!", this.bulkEmployeeListActiveList);
+        // this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+      } else {
+        this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
+        console.error("Unable to fetch Employee List!");
+      }
+    });
+  }
+
+
 }

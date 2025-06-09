@@ -123,4 +123,8 @@ export class ResourceManagementService {
   setProjectMappingAndDefaultProject(setDefaultProjectObj: any){
     return this.http.post(`${this.baseUrl}`+`api/setProjectMappingAndDefaultProject`, setDefaultProjectObj);
   }  
+
+  getEmployeeInformationForDefaultProject(setDefaultProjectObj: any){
+    return this.http.post(`${this.baseUrl}`+`api/getEmployeeInformationForDefaultProject`, setDefaultProjectObj);
+  }
 }
