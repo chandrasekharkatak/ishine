@@ -30,13 +30,16 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActivityMap;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
@@ -49,6 +52,9 @@ public class TimesheetService {
 
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
+	
+	@Autowired
+	DepartmentRepository departmentRepository;
 	
 	@Autowired
 	AuditCustomRepository auditCustomRepository ;
@@ -70,6 +76,9 @@ public class TimesheetService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	JobRoleRepository jobRoleRepository;
 
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
@@ -1687,13 +1696,38 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("startDate : " +timesheetDTO.getStartDate()+ "endDate : " +timesheetDTO.getEndDate() );
 		try {
+			List<Object[]> timesheetList = new ArrayList<>();
 
 			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
 
 			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+			
+			Employee employee = employeeRepository.findByEmpId(timesheetDTO.getCurrentUser());
+			JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
 
-			List<Object[]> timesheetList = timesheetsRepository
-					.getAllLeaveTimesheetsWithoutLeaveApplication(start, end);
+			String role = jobRole.getEmployeeRole();
+			String name = jobRole.getName();
+			
+			if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+					|| name.equalsIgnoreCase("Super Admin")) {
+				 timesheetList = timesheetsRepository
+							.getAllLeaveTimesheetsWithoutLeaveApplication(start, end);
+			}
+			else if(departmentRepository.existsByHodId(timesheetDTO.getCurrentUser())) {
+				List<Long> deptIds = departmentRepository.findDeptIdsByHodId(timesheetDTO.getCurrentUser());
+				timesheetList = timesheetsRepository
+						.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(start, end,deptIds);
+			}else {
+				Employee employeee = employeeRepository.findByEmpId(timesheetDTO.getCurrentUser());
+				Long deptId = departmentRepository.findDepartmentofCurrentuser(employeee.getJobRoleId());
+				timesheetList = timesheetsRepository
+						.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(start, end,deptId);
+				
+			}
+			
+			
+
+		 
 
 			Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
 

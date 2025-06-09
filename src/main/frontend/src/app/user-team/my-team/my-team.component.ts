@@ -1377,6 +1377,7 @@ export class MyTeamComponent implements OnInit {
       leaveObj.toDate = this.toDate;
       leaveObj.deptId = this.currentUser.departmentId;
       leaveObj.employeeRole=this.currentUser.employeeRole;
+      leaveObj.empId = this.currentUser.empId
       this.teamViewService.getDepartmentLeaveHistory(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.departmentLeaveHistoryList = response.serviceResponse;
@@ -1736,10 +1737,13 @@ export class MyTeamComponent implements OnInit {
           data.toDate = moment(data.toDate).format(AppComponent.DATE_FORMAT);
           this.leaveHistoryObj.name = data.createdByName;
           this.leaveUser = data.createdByName;
-          let matchingleavecreatedByEmpId = this.allEmployeeList360.find(emp => emp.empId === data.empId);
-          data.emp360leavecreatedByEmpId = matchingleavecreatedByEmpId ? matchingleavecreatedByEmpId : {};
-          let matchingapproverempId = this.allEmployeeList360.find(emp => emp.empId === data.approverEmpId);
-          data.emp360approverempId = matchingapproverempId ? matchingapproverempId : {};
+          // let matchingleavecreatedByEmpId = this.allEmployeeList360.find(emp => emp.empId === data.empId);
+
+          // data.emp360leavecreatedByEmpId = matchingleavecreatedByEmpId ? matchingleavecreatedByEmpId : {};
+          data.emp360leavecreatedByEmpId = data.empId;
+          data.emp360approverempId =  data.approverEmpId;
+          // let matchingapproverempId = this.allEmployeeList360.find(emp => emp.empId === data.approverEmpId);
+          // data.emp360approverempId = matchingapproverempId ? matchingapproverempId : {};
         })
       }
     })

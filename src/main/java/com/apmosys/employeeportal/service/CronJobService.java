@@ -4541,7 +4541,7 @@ try {
 					    		  userSessionRepository.deleteById(session.getUserSessionId());
 					    	  }else if(elapsedMinsAfterLastCheck >= SESSION_CHECK_INACTIVE_LIMIT){
 					    		  user = session.getEmpId() + " - "+ " Time elapsed After Last Check : "+ elapsedMinsAfterLastCheck + " min.";
-//					    		  userSessionRepository.deleteById(session.getUserSessionId());
+					    		  userSessionRepository.deleteById(session.getUserSessionId());
 					    	  }
 					    	  
 					    	  if(user != null) {

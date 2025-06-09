@@ -41,6 +41,11 @@ public class ProxyController {
         logger.info("Proxying /browser/perfData/webVitals to Apmosys OAP...");
         return proxyToOAP("/browser/perfData/webVitals", entity);
     }
+    @PostMapping("/browser/perfData/resources")
+    public ResponseEntity<String> postResources(@RequestBody String entity) {
+        logger.info("Proxying /browser/perfData/resources to Apmosys OAP...");
+        return proxyToOAP("/browser/perfData/resources", entity);
+    }
     
     private ResponseEntity<String> proxyToOAP(String path, String body) {
         String url = OAP_BASE_URL + path;

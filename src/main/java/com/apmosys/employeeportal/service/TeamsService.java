@@ -1403,6 +1403,8 @@ public class TeamsService {
 					
 					dto.setCurrentApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
 					dto.setFinalApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
+					dto.setEmpId(object[26] != null ? Long.parseLong(object[26].toString()) : null)	;				
+					
 					dtoList.add(dto);					
 					});
 
@@ -1463,6 +1465,9 @@ public class TeamsService {
 					dto.setLeaveType(object[8] != null ? object[8].toString() : null);
 					dto.setLeaveStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
 					dto.setLeaveStatusUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					dto.setEmpId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+					
+					
 					System.out.println("object[10]"+object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dtoList.add(dto);					
 					});
@@ -2203,11 +2208,11 @@ public class TeamsService {
 			
 			if(leaveDTO.getEmployeeRole().equals("HOD")) {
 				 jobRoles = new ArrayList<String>(Arrays.asList("SuperAdmin"));
-				 objectList = employeeLeaveRepository.getDepartmentLeaveHistoryAndNotIn(leaveDTO.getDeptId(),start,end,jobRoles);
+				 objectList = employeeLeaveRepository.getDepartmentLeaveHistoryAndNotIn(leaveDTO.getEmpId(),start,end,jobRoles); 
 			}
 			if(leaveDTO.getEmployeeRole().equals("Manager")) {
 				 jobRoles = new ArrayList<String>(Arrays.asList("SuperAdmin","HOD"));
-				 objectList = employeeLeaveRepository.getDepartmentLeaveHistoryAndNotIn(leaveDTO.getDeptId(),start,end,jobRoles);
+				 objectList = employeeLeaveRepository.getDepartmentLeaveHistoryAndNotIn(leaveDTO.getEmpId(),start,end,jobRoles);
 			}
 			if(leaveDTO.getEmployeeRole().equals("SuperAdmin"))  {
 				 objectList = employeeLeaveRepository.getDepartmentLeaveHistory(leaveDTO.getDeptId(),start,end);

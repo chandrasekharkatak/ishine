@@ -240,7 +240,7 @@ export class ReportListComponent implements OnInit {
     });
     //console.log(this.feature, this.userMapping);
     await this.getAllDepartments();
-    this.sectionViewInit();
+    
     this.preventBackButton();
 
     const deptName = String(this.currentUser.departmentName).trim();
@@ -249,10 +249,14 @@ export class ReportListComponent implements OnInit {
     }
     const empRole = String(this.currentUser.employeeRole).trim();
     if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts")&& !deptName.includes("HR")){
+      await this.getAllDepartmentsFromId();
       this.isDeptFilter = true;
-    }
+     }
+     else{
+       await this.getAllDepartments();
+     }
     // const deptName = String(this.currentUser.departmentName).trim();
-    
+    this.sectionViewInit();
     this.onDepartmentSelectionChange();
   }
 
@@ -300,6 +304,8 @@ export class ReportListComponent implements OnInit {
     event.stopPropagation(); // prevent dropdown from closing
     this.employeeReportObj.deptId = [];
     this.isAllSelected = false;
+    this.searchText = '';
+    this.filterDepartments();
     // Optionally: refresh data
   }
 
@@ -519,6 +525,38 @@ export class ReportListComponent implements OnInit {
 
   }
 
+  selectedSingleEmployee: any;
+  selectedBillableTypeForSingle: any;
+  
+
+  showSingleUpdateModal(employee: any, template: TemplateRef<any>) {
+    this.selectedBillableTypeForSingle = employee.billableType; 
+    this.selectedSingleEmployee = {
+      ...employee,
+      oldBillableType: employee.originalBillableType || employee.billableTypeBeforeChange || ''
+    };
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl modal-dialog-centered' });
+  }
+  
+
+  onConfirmSingleBillableUpdate() {
+    const updatedBillable = this.selectedBillableTypeForSingle === 'TNM' ? 'Yes' : 'No';
+  
+    const payload = {
+      empId: this.selectedSingleEmployee.empId,
+      billableType: this.selectedBillableTypeForSingle,
+      billable: updatedBillable,
+      updatedBy: this.currentUser.empId
+    };
+  
+    this.employeeService.updateEmployeeReportBillableType(payload).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.openAlertMod(this.alertModalSync, response.serviceResponse);
+      }
+      this.modalRef?.hide();
+    });
+  }
+
 
   employeeList: any[] = [];
   projectList: any[] = [];
@@ -544,11 +582,6 @@ export class ReportListComponent implements OnInit {
         console.log(empRole);
         console.log(deptName);
         console.log(this.departments);
-        if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts")&& !deptName.includes("HR")){
-          this.employeeList = this.employeeList.filter(data => {
-            return String(data.departmentName).includes(deptName);
-            });
-        }
         this.flattenProjectList();
         this.editIndex = -1
       } else {
@@ -659,7 +692,7 @@ export class ReportListComponent implements OnInit {
 
   openBulkUpdateModal(template: TemplateRef<any>) {
     if (this.selectedEmployees.length > 0 && this.selectedBillableTypeForBulk) {
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl modal-dialog-centered' });
     }
   }
 
@@ -1153,6 +1186,25 @@ export class ReportListComponent implements OnInit {
   //   );
   // }
 
+  getAllDepartmentsFromId(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            this.departments = response.serviceResponse;
+            this.filteredDepartments = this.departments;
+            resolve(response.serviceResponse);
+          } else {
+            reject("Failed to fetch departments");
+          }
+        },
+        error: (error) => {
+          reject(error);
+        }
+      });
+    });
+  }
+
   getAllDepartments(): Promise<any> {
     return new Promise((resolve, reject) => {
       this.departmentService.getAllDepartments().pipe(first()).subscribe({
@@ -1297,6 +1349,20 @@ export class ReportListComponent implements OnInit {
     this.isSearchEnabled = false;
 
     //console.log(this.storedDataList, " : storeddatalist");
+    const today = new Date();
+  const oneMonthBefore = new Date();
+  oneMonthBefore.setMonth(today.getMonth() - 1);
+
+  // ✅ Format date as yyyy-MM-dd
+  const formatDate = (date: Date): string => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const currentDate = formatDate(today);
+  const oneMonthBeforeDate = formatDate(oneMonthBefore);
 
 
     this.storedDataList.forEach((object) => {
@@ -1307,7 +1373,11 @@ export class ReportListComponent implements OnInit {
 
     if (this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Leave Report')) {
       let inActiveQuery = [
-        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
+        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "AND" },
+        { column: "From Date", operator: ">=", value: oneMonthBeforeDate, conjunction: "AND" },
+        { column: "To Date", operator: "<=", value: currentDate, conjunction: "" }
+
+        
       ];
       // this.getAllLeaveApplicationsList();
 
@@ -1336,6 +1406,21 @@ export class ReportListComponent implements OnInit {
     this.filters = {};
     this.isSearchEnabled = false;
 
+    const today = new Date();
+  const oneMonthBefore = new Date();
+  oneMonthBefore.setMonth(today.getMonth() - 1);
+
+  // ✅ Format date as yyyy-MM-dd
+  const formatDate = (date: Date): string => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const currentDate = formatDate(today);
+  const oneMonthBeforeDate = formatDate(oneMonthBefore);
+
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Timesheet Report') {
         this.getCustomTimesheetApplicationsList(object.queryList, this.alertModal);
@@ -1344,7 +1429,9 @@ export class ReportListComponent implements OnInit {
 
     if (this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Timesheet Report')) {
       let inActiveQuery = [
-        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
+        { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "AND" },
+        { column: "Date", operator: ">=", value: oneMonthBeforeDate, conjunction: "AND" },
+        { column: "Date", operator: "<=", value: currentDate, conjunction: "" }
       ];
       this.getCustomTimesheetApplicationsList(inActiveQuery, this.alertModal);
 
@@ -1504,6 +1591,7 @@ export class ReportListComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
+    queryObj.empId = this.currentUser.empId;
     if (queryObjList.length == 0) {
       this.getAllLeaveApplicationsList();
     } else {
@@ -1585,6 +1673,7 @@ export class ReportListComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
+    queryObj.empId = this.currentUser.empId;
     if (queryObjList == '') {
       this.getAllTimesheetApplicationsList();
     } else {
@@ -1655,6 +1744,7 @@ export class ReportListComponent implements OnInit {
 
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
+    queryObj.empId = this.currentUser.empId;
 
     if (queryObjList == '') {
       this.getAllEmployeeList();
@@ -1852,8 +1942,10 @@ export class ReportListComponent implements OnInit {
     this.jobRoleService.updateJobRoleSubFeatureMapping(jobRoleObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
+        this.updatedRoleSubFeature = [];
       } else {
         this.openAlertMod(template, response.serviceResponse);
+        this.updatedRoleSubFeature = [];
       }
     });
   }
@@ -2009,8 +2101,8 @@ export class ReportListComponent implements OnInit {
     else if (this.timesheetReportFlag == true) {
       this.queryList = [
         { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" },
-        { column: "Date", operator: "=", value: formattedYesterday, conjunction: "" },
-        { column: "Date", operator: "=", value: formattedToday, conjunction: "" }
+        { column: "Date", operator: ">=", value: formattedYesterday, conjunction: "" },
+        { column: "Date", operator: "<=", value: formattedToday, conjunction: "" }
       ];
     } else {
       this.queryList = [
@@ -2120,6 +2212,7 @@ export class ReportListComponent implements OnInit {
     let timesheetObj = new Timesheet();
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
+    timesheetObj.currentUser = this.currentUser.empId;
     //console.log("timesheet obj  : ", timesheetObj)
 
     this.timesheetService.getAllLeaveTimesheetsWithoutLeaveApplication(timesheetObj).pipe(first()).subscribe((response: any) => {

@@ -268,6 +268,28 @@ public class DepartmentService {
 		return response;
 	}
 
+	public ServiceResponse getAllDepartmentsFromId(Long empId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+		
+		List<Department> deptList = departmentRepository.findByHodId(empId);
+		if(!deptList.isEmpty() && deptList!= null) {
+		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		serviceResponse.setServiceResponse(deptList);
+		return serviceResponse;
+		}else {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("No data found..!");
+			return serviceResponse;
+		}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			serviceResponse.setServiceResponse("Something Went Wrong.");
+			return serviceResponse;
+		}
+	}
 	public ServiceResponse updateDepartment(DepartmentDTO departmentDTO) {
 		ServiceResponse response = new ServiceResponse();
 		

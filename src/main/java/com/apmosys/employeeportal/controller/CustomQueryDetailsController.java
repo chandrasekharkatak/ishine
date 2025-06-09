@@ -34,7 +34,7 @@ public class CustomQueryDetailsController {
 	  }
 	  
 	  @PostMapping("/employeeBulkUpload")
-	    public ServiceResponse bulkUpload(@RequestParam("file") MultipartFile file) throws EncryptedDocumentException, InvalidFormatException {
+	  public ServiceResponse bulkUpload(@RequestParam("file") MultipartFile file,@RequestParam("uploadedBy") Long uploadedBy) throws EncryptedDocumentException, InvalidFormatException {
 	        ServiceResponse response = new ServiceResponse();
 	        
 	        if (file.isEmpty()) {
@@ -44,7 +44,7 @@ public class CustomQueryDetailsController {
 	        }
 
 	        try {
-	            response = customQueryDetailsService.bulkUpload(file);
+	        	response = customQueryDetailsService.bulkUpload(file,uploadedBy);
 	        } catch (Exception e) {
 	            e.printStackTrace();
 	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

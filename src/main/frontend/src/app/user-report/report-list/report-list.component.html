@@ -7,12 +7,12 @@
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.timesheet_report && !isAccounts"
       [ngClass]="{'active' : isTimesheetReportTable}" (click)="showTimesheetReportTable()">View Timesheet
       Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}" *ngIf="!isAccounts"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}" *ngIf="userMapping.acl && !isAccounts"
       (click)="showAccessControlListTable()">ACL(Access Control List)</button>
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isAccounts"
       [ngClass]="{'active' : isLeaveTimesheetReportTable}" (click)="showLeaveTimesheetReportTable()">Leave Timesheet
       Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQueryForm}" *ngIf="!isAccounts"
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQueryForm}" *ngIf="userMapping.custom_query_data && !isAccounts"
       (click)="showCustomQueryForm()">Custom Query Data</button>
   </div>
 </div>
@@ -424,7 +424,7 @@
       </div>
     </div> -->
 
-    <div class="d-flex justify-content-end" *ngIf="showDetails && !isDeptFilter">
+    <div class="d-flex justify-content-end" *ngIf="showDetails">
       <div class="col-md-3">
         <div class="form-group">
           <label class="info-label"><span class="text-danger">*</span>Department</label>
@@ -627,8 +627,8 @@
                     </div>
 
                     <div *ngIf="editIndex === i " style="display: flex; align-items: center; gap: 8px;">
-                      <select [(ngModel)]="employee.billableType"
-                        (change)="updateBillableType(employee, alert_message_sync)" style="width: 170px;">
+                      <select [(ngModel)]="employee.billableType"  (focus)="employee.billableTypeBeforeChange = employee.billableType"
+                        (change)="showSingleUpdateModal(employee, singleBillableTemplate)" style="width: 170px;">
                         <option *ngFor="let type of billableTypes" [value]="type">
                           {{ type }}
                         </option>
@@ -1479,7 +1479,7 @@
           <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Start Date</label>
             <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control"
-              autocomplete="none" [(ngModel)]="startDate" (inpu)="getAllLeaveTimesheets(alert_message)"
+              autocomplete="none" [(ngModel)]="startDate" (input)="getAllLeaveTimesheets(alert_message)"
               (keydown)="disableMannualDateInput()">
           </div>
         </div>
@@ -1630,11 +1630,95 @@
   </div>
 </ng-template>
 
-<ng-template #bulk_update_template>
+<!-- <ng-template #bulk_update_template>
   <div class="modal-body text-center">
     <p>Are you sure you want to update Billable Type for the selected employees?</p>
     <button type="button" class="btn btn-success"
       (click)="cancelRequest();onConfirmBulkBillableUpdate(alert_message_sync)">Yes, proceed</button>&nbsp;
     <button type="button" class="btn btn-danger" (click)="cancelRequest();">No, Cancel</button>&nbsp;
   </div>
+</ng-template> -->
+
+<ng-template #bulk_update_template>
+  <div class="modal-header">
+    <h5 class="modal-title">Confirm Billable Type Update</h5>
+  </div>
+  <div class="modal-body">
+    <p>
+      Are you sure you want to update <b>Billable Type</b> for the selected employees to
+      <b>{{ selectedBillableTypeForBulk }}</b>?
+    </p>
+
+    <div style="max-height: 400px; overflow-y: auto; margin-top: 15px;">
+      <table class="table table-bordered table-striped table-sm text-center">
+        <thead style="position: sticky; top: 0; background-color: white; z-index: 1;">
+          <tr>
+            <th class="text-center">Employee Id</th>
+            <th class="text-center">Employee Name</th>
+            <th class="text-center">Billable Type</th>
+            <th class="text-center">Department</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let emp of selectedEmployees">
+            <td class="text-center">A-{{ emp.employeementId }}</td>
+            <td class="text-center">{{ emp.name }}</td>
+            <td class="text-center">{{ emp.billableType }} → {{ selectedBillableTypeForBulk }}</td>
+            <td class="text-center">{{ emp.departmentName }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="text-center mt-3">
+      <button type="button" class="btn btn-success"
+        (click)="cancelRequest(); onConfirmBulkBillableUpdate(alert_message_sync)">
+        Yes, Proceed
+      </button>
+      &nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest();">No, Cancel</button>
+    </div>
+  </div>
 </ng-template>
+<!-- Single Billable Type Update Modal -->
+<ng-template #singleBillableTemplate>
+  <div class="modal-header">
+    <h5 class="modal-title">Confirm Billable Type Update</h5>
+  </div>
+  <div class="modal-body">
+    <p>
+      Are you sure you want to update <b>Billable Type</b> for the below employee to
+      <b>{{ selectedBillableTypeForSingle }}</b>?
+    </p>
+
+    <table class="table table-bordered table-striped table-sm text-center mt-3">
+      <thead>
+        <tr>
+          <th>Employee Id</th>
+          <th>Employee Name</th>
+          <th>Billable Type</th>
+          <th>Department</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="selectedSingleEmployee">
+          <td>A-{{ selectedSingleEmployee.employeementId }}</td>
+          <td>{{ selectedSingleEmployee.name }}</td>
+          <td>{{ selectedSingleEmployee.oldBillableType }} → {{ selectedBillableTypeForSingle }}</td>
+          <td>{{ selectedSingleEmployee.departmentName }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="text-center mt-3">
+      <button type="button" class="btn btn-success" (click)="onConfirmSingleBillableUpdate();cancelRequest()">
+        Yes, Proceed
+      </button>
+      &nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>
+    </div>
+  </div>
+</ng-template>
+
+
+

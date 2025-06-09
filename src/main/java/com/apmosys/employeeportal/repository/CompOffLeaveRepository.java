@@ -28,7 +28,7 @@ public interface CompOffLeaveRepository extends JpaRepository<CompOffLeave, Long
 	public List<Object[]> getAllCompOffRequestsByEmpId(Long empId);
 	
 	@Query(nativeQuery = true)
-	public Long countPendingCompOffRequestsByManagerId(Integer managerId);
+	public String countPendingCompOffRequestsByManagerId(Integer managerId);
 
 	public List<CompOffLeave> findByLeaveTypeMasterId(Short oldLeaveTypeMasterId);
 

@@ -38,13 +38,16 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 				"/employeeportal/api/resendOTP",
 				"/employeeportal/api/checkUserSession",
 				"/employeeportal/api/logoutUser",
-				"/employeeportal/api/downloadFileFromQrCode/**",
+				"/employeeportal/api/downloadFileFromQrCode",
+				"/employeeportal/api/downloadFileFromQrCode/textImg",
+				"/employeeportal/api/downloadFileFromQrCode/pdf",
 				"/employeeportal/api/getAllEmployees",
 				 "/browser/perfData",
 				    "/browser/errorLog",
 				    "/browser/errorLogs",
 				    "/v3/segment",
-				    "/v3/segments"
+				    "/v3/segments",
+				    "/browser/perfData/webVitals"
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(
@@ -94,8 +97,8 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 				return true;
 			}
 			
-			boolean isUserAuthenticated = true;
-//					authenticationService.checkUserToken(SESSION_TOKEN);
+			boolean isUserAuthenticated = 
+					authenticationService.checkUserToken(SESSION_TOKEN);
 
 			if (isUserAuthenticated) {
 				return true;

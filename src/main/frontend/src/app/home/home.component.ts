@@ -1023,9 +1023,10 @@ async ngOnInit(): Promise<void> {
         this.workAnniversaryList = response.serviceResponse;
         this.workAnniversaryList.forEach((employee) => {
           
-          let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
+          // let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
          
-          employee.emp360 = matchingEmployee ? matchingEmployee : {};
+          // employee.emp360 = matchingEmployee ? matchingEmployee : {};
+          employee.emp360 = employee.empId;
         });
         
       } else {
