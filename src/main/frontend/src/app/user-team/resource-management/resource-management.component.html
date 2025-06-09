@@ -329,7 +329,7 @@
                                     mat-sort-header="poNo|string">PO Number</th>
                                 <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
                                     mat-sort-header="projectType|string">Project Type</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 300px;"
                                     mat-sort-header="projectManagerName|string">Project
                                     Manager</th>
                                 <!-- <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Start Date</th>
@@ -432,13 +432,18 @@
 
                                     <td>{{project.projectType}}</td>
                                     
-                                    <td id="clickablefor360"
-                                        *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName && !isAccounts"
-                                        [navigateToEmployee360]="project.emp360" style="cursor: pointer;"
-                                        title="Click to view Employee 360">{{project.projectManagerName}}</td>
-                                    <td
-                                        *ngIf="!userMapping.my_team_resource_management_employee_360 || !project.projectManagerName">
-                                        {{project.projectManagerName}}</td>
+                                    <td>
+                                        <ng-container id="clickablefor360"
+                                            *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName && !isAccounts">
+                                                <span *ngFor="let managerData of project.projectManagers; let last = last" [navigateToEmployee360]="managerData.projectManagerId" style="cursor: pointer;"
+                                            title="Click to view Employee 360">{{managerData.projectManagerName}} {{!last ? ',' : ''}}</span>
+                                        </ng-container>
+                                        <ng-container *ngIf="!userMapping.my_team_resource_management_employee_360 || !project.projectManagerName">
+                                            <span *ngFor="let managerData of project.projectManagers; let last = last" style="cursor: pointer;">
+                                                {{managerData.projectManagerName}}{{!last ? ',' : ''}}
+                                            </span>
+                                        </ng-container>
+                                    </td>
                                     <td>{{project.clientName}}</td>
                                     <td>{{project.apmosysRM}}</td>
                                     <td>{{project.clientRM}}</td>
@@ -1059,7 +1064,7 @@
                                     <div class="form-group">
                                         <label>Project Name</label>
                                         <input type="text" class="form-control" disabled maxlength="255"
-                                            autocomplete="none" [(ngModel)]="projectObj.name">
+                                            autocomplete="none" [(ngModel)]="projectObj.projectName">
                                     </div>
                                 </div>
                             </div>
@@ -1088,7 +1093,7 @@
                                     <div class="form-group">
                                         <label>State</label>
                                         <input type="text" class="form-control" disabled maxlength="255"
-                                            autocomplete="none" [(ngModel)]="projectObj.clientState">
+                                            autocomplete="none" [(ngModel)]="projectObj.state">
                                     </div>
                                 </div>
                             </div>
@@ -1906,7 +1911,7 @@
             <div class="team-preview-row">
                 <div class="team-preview-field">
                     <label>Project Name</label>
-                    <input type="text" readonly [value]="projectObj?.name" />
+                    <input type="text" readonly [value]="projectObj?.projectName" />
                 </div>
                 <div class="team-preview-field">
                     <label>Client Name</label>
@@ -1925,7 +1930,7 @@
                 </div>
                 <div class="team-preview-field">
                     <label>State</label>
-                    <input type="text" readonly [value]="projectObj?.clientState" />
+                    <input type="text" readonly [value]="projectObj?.state" />
                 </div>
             </div>
 

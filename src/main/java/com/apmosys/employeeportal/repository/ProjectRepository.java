@@ -152,9 +152,10 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "AND d.dept_id IN (:deptIds) \n"
 //			+ "AND (:deptIds IS NULL OR d.dept_id IN (:deptIds)) \n"
 			+ "AND (:approvalStatus IS NULL OR p.is_draft_project = :approvalStatus ) \n"
-			+ "AND (:projectStatus IS NULL OR p.project_status = :projectStatus )",
+			+ "AND (:projectStatus IS NULL OR p.project_status = :projectStatus )"
+			+ "AND (:status IS NULL OR p.status = :status )",
 	       nativeQuery = true)
-	List<Object[]> getAllActiveProjectList(@Param("deptIds") List<Long> deptIds,@Param("projectStatus")String projectStatus,@Param("approvalStatus")String approvalStatus);
+	List<Object[]> getAllActiveProjectList(@Param("deptIds") List<Long> deptIds,@Param("projectStatus")String projectStatus, @Param("status")String status, @Param("approvalStatus")String approvalStatus);
 	
 	@Query(value = "SELECT COUNT(DISTINCT p.project_id) AS distinct_project_count\n"
 			+ "FROM projects p\n"
@@ -167,7 +168,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "WHERE p.active = 'true' AND t.is_active != 'N' \n"
 			+ "AND etm.active != 0 AND e.employmentstatus != 'InActive' \n"
 			+ "AND d.dept_id IN (:deptIds)\n"
-			+ "AND (:approvalStatus IS NULL OR p.is_draft_project =:approvalStatus) ",
+			+ "AND (:approvalStatus IS NULL OR p.is_draft_project =:approvalStatus)",
 	       nativeQuery = true)
 	Integer getAllActiveProjecCountstList(@Param("deptIds") List<Long> deptIds,@Param("approvalStatus")String approvalStatus);
 
