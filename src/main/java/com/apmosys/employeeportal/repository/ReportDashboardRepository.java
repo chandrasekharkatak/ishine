@@ -6,9 +6,12 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.apmosys.employeeportal.dto.ReportCountDTO;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.utility.ServiceResponse;
 
 public interface ReportDashboardRepository extends JpaRepository<Employee, Long> {
 	
@@ -296,5 +299,109 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         		     @Param("upper_age") Integer upperAge
         		 );
 	
-	
+	@Query(value = "SELECT " +
+	        "d.name AS departmentName, " +
+	        "CASE " +
+	        "    WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
+	        "    WHEN e.is_consultant = 'true' THEN 'Consultant' " +
+	        "    WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR " +
+	        "          (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) " +
+	        "    THEN 'Employee' " +
+	        "END AS type, " +
+	        "COUNT(DISTINCT e.emp_id) AS empCount " +
+	        "FROM employee e " +
+	        "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+	        "INNER JOIN department d ON d.dept_id = jr.dept_id " +
+	        "WHERE e.employmentstatus != 'InActive' " +
+	        "GROUP BY d.name, " +
+	        "CASE " +
+	        "    WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
+	        "    WHEN e.is_consultant = 'true' THEN 'Consultant' " +
+	        "    WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR " +
+	        "          (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) " +
+	        "    THEN 'Employee' " +
+	        "END", 
+	       nativeQuery = true)	
+       public List<Object[]> getAllEmployeeCountDepartmentWise();
+       
+      
+       
+       
+       @Query(value = "SELECT DISTINCT d.name AS department_name, " +
+               "e.billable_type AS billable_type, " +
+               "COUNT(DISTINCT e.emp_id) AS emp_count " +
+               "FROM employee e " +
+               "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+               "INNER JOIN department d ON jr.dept_id = d.dept_id " +
+               "WHERE e.employmentstatus != 'InActive' " +
+               "GROUP BY d.name, e.billable_type " +
+               "ORDER BY d.name, e.billable_type", 
+       nativeQuery = true)
+       public List<Object[]> getDepartmentWiseBillableNonBillableSummary();
+       
+       
+       
+       @Query(value = "SELECT DISTINCT " +
+    	        "d.name AS department_name, " +
+    	        "e.billable_type AS billable_type, " +
+    	        "COUNT(DISTINCT e.emp_id) AS emp_count " +
+    	        "FROM employee e " +
+    	        "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+    	        "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+    	        "LEFT JOIN employee mg ON e.manager_id = mg.emp_id " +
+    	        "LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0' " +
+    	        "LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y' " +
+    	        "LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true' " +
+    	        "WHERE 1=1 " +
+    	        "AND e.emp_id NOT BETWEEN 1 AND 6 " +
+    	        "AND e.employmentstatus != 'InActive' " +
+    	        "AND (:employeement_id IS NULL OR e.emp_id IN (:employeement_id)) " +
+    	        "AND (:name IS NULL OR UPPER(e.name) LIKE CONCAT('%', UPPER(:name), '%')) " +
+    	        "AND (:dept_id IS NULL OR d.dept_id IN (:dept_id)) " +
+    	        "AND (:job_role_id IS NULL OR jr.job_role_id IN (:job_role_id)) " +
+    	        "AND (:manager_id IS NULL OR mg.emp_id IN (:manager_id)) " +
+    	        "AND (:team_id IS NULL OR t.team_id IN (:team_id)) " +
+    	        "AND (:project_id IS NULL OR p.project_id IN (:project_id)) " +
+    	        "AND (:client_id IS NULL OR p.client_id IN (:client_id)) " +
+    	        "AND (:employmentstatus IS NULL OR UPPER(e.employmentstatus) LIKE CONCAT('%', UPPER(:employmentstatus), '%')) " +
+    	        "AND (:date_of_joining IS NULL OR e.date_of_joining LIKE CONCAT('%', :date_of_joining, '%')) " +
+    	        "AND (:city IS NULL OR UPPER(e.city) LIKE CONCAT('%', UPPER(:city), '%')) " +
+    	        "AND (:blood_group IS NULL OR UPPER(e.blood_group) LIKE CONCAT('%', UPPER(:blood_group), '%')) " +
+    	        "AND (:gender IS NULL OR UPPER(e.gender) LIKE CONCAT('%', UPPER(:gender), '%')) " +
+    	        "AND (:probation_period IS NULL OR e.probation_period IN (:probation_period)) " +
+    	        "AND (:notice_id IS NULL OR e.notice_id IN (:notice_id)) " +
+    	        "AND (:marital_status IS NULL OR UPPER(e.marital_status) LIKE CONCAT('%', UPPER(:marital_status), '%')) " +
+    	        "AND (:bank_name IS NULL OR UPPER(e.bank_name) LIKE CONCAT('%', UPPER(:bank_name), '%')) " +
+    	        "AND (:state IS NULL OR UPPER(e.state) LIKE CONCAT('%', UPPER(:state), '%')) " +
+    	        "AND (:created_on IS NULL OR e.created_on LIKE CONCAT('%', :created_on, '%')) " +
+    	        "AND (:created_by IS NULL OR e.created_by IN (:created_by)) " +
+    	        "AND (:experience IS NULL OR UPPER(e.experience) LIKE CONCAT('%', UPPER(:experience), '%')) " +
+    	        "AND (:work_location IS NULL OR UPPER(e.work_location) LIKE CONCAT('%', UPPER(:work_location), '%')) " +
+    	        "GROUP BY d.name, e.billable_type " +
+    	        "ORDER BY d.name, e.billable_type",
+    	        nativeQuery = true)
+    	List<Object[]> getSelectedDepartmentBillableSummary(
+    	    @Param("employeement_id") List<Long> list,
+    	    @Param("name") String name,
+    	    @Param("dept_id") List<Long> list2,
+    	    @Param("job_role_id") List<Long> list3,
+    	    @Param("manager_id") List<Long> list4,
+    	    @Param("team_id") List<Long> list5,
+    	    @Param("project_id") List<Long> list6,
+    	    @Param("client_id") List<Long> list7,
+    	    @Param("employmentstatus") String employmentStatus,
+    	    @Param("date_of_joining") String dateOfJoining,
+    	    @Param("city") String city,
+    	    @Param("blood_group") String bloodGroup,
+    	    @Param("gender") String gender,
+    	    @Param("probation_period") List<Integer> probationPeriod,
+    	    @Param("notice_id") List<Long> list8,
+    	    @Param("marital_status") String maritalStatus,
+    	    @Param("bank_name") String bankName,
+    	    @Param("state") String state,
+    	    @Param("created_on") String createdOn,
+    	    @Param("created_by") List<Long> list9,
+    	    @Param("experience") String experience,
+    	    @Param("work_location") String workLocation
+    	);
 }

@@ -22,4 +22,15 @@ export class ReportService {
     getJoinVsResignCount(selectedYear: number): Observable<any> {
     return this.http.post(`${this.baseUrl}` + `api/getJoiningVsResignationCount`, { year: selectedYear });
   }
+
+    getAllEmployeeCountDepartmentWise(){
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeeCountDepartmentWise`);
+  }
+
+  getDepartmentWiseBillableNonBillableSummary(departmentIds: number[]) {
+  return this.http.post<any>(
+    `${this.baseUrl}`+`api/getDepartmentWiseBillableNonBillableSummary`,
+    { departmentIds }  // sending even empty list if nothing is selected
+  );
+}
 }

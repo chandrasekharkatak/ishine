@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.serviceInterface;
 
+import java.util.List;
+
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.ReportsQueryDTO;
@@ -25,4 +27,10 @@ public interface ReportDashboardService {
 	ServiceResponse getAllPieGraphListSummary(EmployeeDTO employeeDto);
 	ServiceResponse getJoiningVsResignationCount(ReportsQueryDTO request) ;
 	ServiceResponse getDepartmentWiseKycCount() ;
-}
+	
+	
+	ServiceResponse  getAllEmployeeCountDepartmentWise();
+	
+	ServiceResponse getDepartmentWiseBillableNonBillableSummary(ReportsQueryDTO request);
+		}
+	

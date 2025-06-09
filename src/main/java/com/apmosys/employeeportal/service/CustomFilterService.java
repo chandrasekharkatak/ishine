@@ -997,7 +997,8 @@ public class CustomFilterService {
 						+ "    e.updated_by, e.billable_type, emp_proj_client.team_name, \n"  // Added comma here
 						+ "    emp_proj_client.po_no, \n"
 						+ "    emp_proj_client.po_start_date, emp_proj_client.po_end_date, emp_proj_client.po_project_type, \n"
-						+ "\n"
+						+ " \n"
+						+"  e.is_consultant, e.is_apprenticeship,\n" 
 						+ "    (SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) \n"
 						+ "     FROM employee e_profile \n"
 						+ "     WHERE e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n"

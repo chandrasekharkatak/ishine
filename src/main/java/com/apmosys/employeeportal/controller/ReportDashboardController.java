@@ -1,6 +1,10 @@
 package com.apmosys.employeeportal.controller;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -8,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.ReportsQueryDTO;
 import com.apmosys.employeeportal.dto.ReportsQueryDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.serviceInterface.ReportDashboardService;
@@ -88,5 +93,17 @@ public class ReportDashboardController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getAllEmployeeCountDepartmentWise",method = RequestMethod.GET)
+	public  ServiceResponse getAllEmployeeCountDepartmentWise() {
+		ServiceResponse	response=reportDashboardService.getAllEmployeeCountDepartmentWise();
+		return response;
+	}
+	
+	 @PostMapping("/getDepartmentWiseBillableNonBillableSummary")
+	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(
+	        @RequestBody ReportsQueryDTO request) {
+	    ServiceResponse response = reportDashboardService.getDepartmentWiseBillableNonBillableSummary(request);
+        return response;
+	}
 	
 }

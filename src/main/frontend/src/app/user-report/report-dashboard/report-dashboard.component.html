@@ -244,7 +244,7 @@
                                     <mat-form-field class="custom-width" placeholder="Department">
                                         <mat-select ngxMatSelect class="form-control" #departmentSelect="ngxMatSelect"
                                             [displayMember]="'name'" [valueMember]="'deptId'"
-                                            [source]="allDepartmentList" [useInfiniteScroll]="true" [multiple]="true"
+                                            [source]="allDepartmentList"  [useInfiniteScroll]="true" [multiple]="true"
                                             [(ngModel)]="departmentIds" (selectionChange)="onSelectionChange($event)">
                                             <mat-option [value]="dept.deptId"
                                                 *ngFor="let dept of departmentSelect.filteredSource">
