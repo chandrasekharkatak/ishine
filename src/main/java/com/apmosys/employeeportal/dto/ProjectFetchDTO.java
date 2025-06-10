@@ -48,6 +48,8 @@ public class ProjectFetchDTO {
 	private List<Long> projectManagerId;
 	private List<ProjectOverheadsDTO> projectOverheads;
 	private List<Long> projectOverheadId;
+	private List<String> department;
+	private List<ResourceRequirementDTO> resourceRequirements;
 
 	public ProjectFetchDTO(Integer projectId, Timestamp createdOn, String projectName, String state, Integer clientId,
 			Long poProjectId, String active, String syncProject, Long createdBy, Long updatedBy,

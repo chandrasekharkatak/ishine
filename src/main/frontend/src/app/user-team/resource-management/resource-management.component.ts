@@ -2074,7 +2074,7 @@ export class ResourceManagementComponent implements OnInit {
       requirement.assigned = requirement.teamMembers.length;
     });
 
-    if (projectObj.resourceRequirements != null) {
+    if (projectObj.resourceRequirements != null && projectObj.resourceRequirements.length != 0) {
       this.projectObj.resourceRequirements.forEach(req => {
         const assignedCount = this.teamObj.allTeamMemberList?.filter(member => member.resourceOverviewId === req.resourceOverviewId).length || 0;
         req.assigned = assignedCount;
@@ -2216,6 +2216,7 @@ export class ResourceManagementComponent implements OnInit {
     this.resourceManagementService.getResourceRequirementByPoProjectId(id).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectRequirementsList = response.serviceResponse;
+        this.projectObj.resourceRequirements
         this.loadingRequirements = false;
       } else {
         console.error("Error fetching project requirement list");

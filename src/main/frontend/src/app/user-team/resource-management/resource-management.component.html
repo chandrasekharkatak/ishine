@@ -1199,7 +1199,7 @@
                 <div class="form-group">
                     <div class="form-field">
                         <label>Project Name</label>
-                        <input type="text" disabled [(ngModel)]="projectObj.name" />
+                        <input type="text" disabled [(ngModel)]="projectObj.projectName" />
                     </div>
                     <div class="form-field">
                         <label>Po No</label>
@@ -1212,8 +1212,8 @@
                     <div class="form-field">
                         <label>Department</label>
                         <mat-select class="form-control" multiple [(ngModel)]="projectObj.department">
-                            <mat-option *ngFor="let dept of filteredDeptList" disabled
-                                [value]="dept.name">{{dept.name}}</mat-option>
+                            <mat-option *ngFor="let dept of projectObj.department" disabled
+                                [value]="dept">{{dept}}</mat-option>
                         </mat-select>
                     </div>
                     <div class="form-field">
@@ -1280,7 +1280,7 @@
                     </div>
                     <div class="form-field">
                         <label>State</label>
-                        <input type="text" disabled [(ngModel)]="projectObj.clientState" />
+                        <input type="text" disabled [(ngModel)]="projectObj.state" />
                     </div>
                 </div>
 

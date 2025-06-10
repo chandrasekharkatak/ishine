@@ -5823,6 +5823,22 @@ public class ResourceManagementService {
 		        	overHeadIds.add(Long.parseLong(overHead[0].toString()));
 		        	projOverHeads.add(overHeadData);
 		        }
+		        List<Object[]> resourceData = resourceRequirementRepository.findByProjectId((Integer) row[0]);
+		        List<ResourceRequirementDTO> resourceRequirements = new ArrayList<>();
+		        for(Object[] requirement : resourceData) {
+		        	ResourceRequirementDTO resourceReq = new ResourceRequirementDTO(
+		        			(String) requirement[0],
+		        			(Integer) requirement[1],
+		        			(String) requirement[2],
+		        			(String) requirement[3],
+		        		((BigInteger) requirement[4]).longValue(),
+		        			(Integer) requirement[5]
+		        			);
+		        	resourceRequirements.add(resourceReq);
+		        	}
+		        dto.setResourceRequirements(resourceRequirements);
+		        dto.setDepartment(resourceRequirementRepository.getAllDepartmentsFromProjectId((Integer) row[0])); 
+		        
 		        dto.setProjectManagerId(pmIds);     
 		        dto.setProjectManagers(pmlData);
 		        dto.setProjectOverheads(projOverHeads);
@@ -5864,7 +5880,23 @@ public class ResourceManagementService {
 			        dto.setId(row[5] != null ? ((BigInteger) row[5]).longValue() : null);
 			        
 			        	dto.setProjectType((String) row[14]);
+			        List<Object[]> tempRequirements = resourceRequirementTempRepo.findByPoProjectId(((BigInteger) row[5]).longValue());
+			        List<ResourceRequirementDTO> resourceRequirementsTemp = new ArrayList<>();
 			        
+			        for(Object[] requirement : tempRequirements) {
+			        	ResourceRequirementDTO resourceReq = new ResourceRequirementDTO(
+			        			(String) requirement[0],
+			        			(Integer) requirement[1],
+			        			(String) requirement[2],
+			        			(String) requirement[3],
+			        		((BigInteger) requirement[4]).longValue(),
+			        		((BigInteger) requirement[5]).longValue()
+			        			);
+			        	resourceRequirementsTemp.add(resourceReq);
+			        	}
+			        dto.setResourceRequirements(resourceRequirementsTemp);
+			        
+			        dto.setDepartment(resourceRequirementTempRepo.getAllDepartmentsFromPoProjectId(((BigInteger) row[5]).longValue()));
 		            dtoList.add(dto);
 			        }
 		        
