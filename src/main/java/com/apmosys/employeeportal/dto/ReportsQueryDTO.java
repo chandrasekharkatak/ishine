@@ -8,27 +8,29 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class ReportsQueryDTO {
-    private List<Integer> employeement_id;
+    private List<Long> employeementId;
     private String name;
-    private List<Integer> dept_id;
-    private List<Integer> job_role_id;
-    private List<Integer> manager_id;
-    private List<Integer> team_id;
-    private List<Integer> project_id;
-    private List<Integer> client_id;
+    private List<Long> deptId;
+    private List<Long> jobRoleId;
+    private List<Long> managerId;
+    private List<Long> teamId;
+    private List<Long> projectId;
+    private List<Long> clientId;
     private String employmentstatus;
-    private String date_of_joining;
+    private String dateOfJoining;
     private String city;
-    private String blood_group;
+    private String bloodGroup;
     private String gender;
-    private List<Integer> probation_period;
-    private List<Integer> notice_id;
-    private String marital_status;
-    private String bank_name;
+    private List<Long> probationPeriod;
+    private List<Long> noticePeriod;
+    private String maritalStatus;
+    private String bankName;
     private String state;
-    private String created_on;
-    private List<Integer> created_by;
+    private String createdOn;
+    private List<Long> createdBy;
     private String experience;
-    private String work_location;
-    private Integer year;
+    private String workLocation;
+    private Long year;
+    private String billableType;
+    
 }

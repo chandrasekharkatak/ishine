@@ -377,4 +377,7 @@ updateDefaultProject(newemployeeObj : any){
    return this.http.post(`${this.baseUrl}` + `api/updateBulkBillableEmployeeReport`,payload);
  }
 
+ getAllPieGraphListSummary(params: any){
+  return this.http.post(`${this.baseUrl}`+`api/getAllPieGraphListSummary`, params)
+}
 }

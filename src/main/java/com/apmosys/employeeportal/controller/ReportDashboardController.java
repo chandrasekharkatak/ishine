@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
-import com.apmosys.employeeportal.dto.ReportsQueryDTO;
+import com.apmosys.employeeportal.dto.PieChartListDTO;
+import com.apmosys.employeeportal.dto.PieParamDTO;
 import com.apmosys.employeeportal.dto.ReportsQueryDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.serviceInterface.ReportDashboardService;
@@ -87,9 +88,9 @@ public class ReportDashboardController {
 	}
 	
 	@RequestMapping(value = "/getAllPieGraphListSummary" , method = RequestMethod.POST)
-	public ServiceResponse getAllPieGraphListSummary(@RequestBody EmployeeDTO employeeDto)
+	public ServiceResponse getAllPieGraphListSummary(@RequestBody PieParamDTO pieParamDto)
 	{
-		ServiceResponse response = reportDashboardService.getAllPieGraphListSummary(employeeDto);
+		ServiceResponse response = reportDashboardService.getAllPieGraphListSummary(pieParamDto);
 		return response;
 	}
 	
@@ -99,11 +100,11 @@ public class ReportDashboardController {
 		return response;
 	}
 	
-	 @PostMapping("/getDepartmentWiseBillableNonBillableSummary")
-	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(
-	        @RequestBody ReportsQueryDTO request) {
-	    ServiceResponse response = reportDashboardService.getDepartmentWiseBillableNonBillableSummary(request);
-        return response;
-	}
-	
+//	 @PostMapping("/getDepartmentWiseBillableNonBillableSummary")
+//	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(
+//	        @RequestBody ReportsQueryDTO request) {
+//	    ServiceResponse response = reportDashboardService.getDepartmentWiseBillableNonBillableSummary(request);
+//        return response;
+//	}
+//	
 }
