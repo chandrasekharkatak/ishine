@@ -22,7 +22,7 @@ public interface ReportDashboardService {
 
 	ServiceResponse getDepartmentWiseBillableData(LeaveDTO leaveDto);
 		
-
+	ServiceResponse getEmployeeDetailsByDepartmentAndBillableType(ReportsQueryDTO request);
 	//for employee status summary , gender summary , and fresher-lateral summary 
 	ServiceResponse getAllGraphEmployeeSummary();
 

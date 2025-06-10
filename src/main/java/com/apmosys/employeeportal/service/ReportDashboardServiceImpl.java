@@ -33,6 +33,7 @@ import com.apmosys.employeeportal.dto.PieChartListDTO;
 import com.apmosys.employeeportal.dto.PieParamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ReportCountDTO;
+import com.apmosys.employeeportal.dto.ReportListDTO;
 import com.apmosys.employeeportal.dto.ReportsQueryDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.PortalConfig;
@@ -619,6 +620,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 		
 		return response;
 	}
+	//employee summary status graph
 	public ServiceResponse getAllGraphEmployeeSummary() {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
@@ -730,16 +732,16 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	        		pieParamDto.getUpperAge()
 	        );
 
-	        List<PieChartListDTO> dtoList = new ArrayList<>();
+	        List<ReportListDTO> dtoList = new ArrayList<>();
 
 	        object.forEach((obj) -> {
-	        	PieChartListDTO dto = new PieChartListDTO();
-	            dto.setEmpId(obj[0] != null ? obj[0].toString() : null);
-	            dto.setEmploymentType(obj[1] != null ? obj[1].toString() : null);
+	        	ReportListDTO dto = new ReportListDTO();
+	            dto.setEmployeementId(obj[0] != null ? obj[0].toString() : null);
+	            dto.setEmployeeType(obj[1] != null ? obj[1].toString() : null);
 	            dto.setName(obj[2] != null ? obj[2].toString() : null);
 	            dto.setExperience(obj[3] != null ? obj[3].toString() : null);
 	            dto.setDepartmentName(obj[4] != null ? obj[4].toString() : null);
-	            dto.setEmailId(obj[5] != null ? obj[5].toString() : null);
+	            dto.setEmail(obj[5] != null ? obj[5].toString() : null);
 	            dto.setManagerName(obj[6] != null ? obj[6].toString() : null);
 	            dto.setBillable(obj[7] != null ? obj[7].toString() : null);
 	            dto.setBillableType(obj[8] != null ? obj[8].toString() : null);
@@ -998,5 +1000,74 @@ try {
 //        }
 //        return response;
 //    }
+	
+	
+	  public ServiceResponse getEmployeeDetailsByDepartmentAndBillableType(ReportsQueryDTO request) {
+	        ServiceResponse response = new ServiceResponse();
+	        LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setApiUrl("/api/getEmployeeDetailsByDepartmentAndBillableType");
+	        apiLogInfo.setLogLevel("INFO");
+	        StringBuilder logBuilder = new StringBuilder();
+
+	        try {
+	            List<Object[]> employeeDetails = reportDashboardRepository.findEmployeesByDepartmentAndBillableType(
+	                    request.getDeptId()
+	                    ,request.getBillableType()
+	            );
+
+	            if (employeeDetails != null && !employeeDetails.isEmpty()) {
+	                List<ReportListDTO> dtoList = new ArrayList<>();
+
+	                employeeDetails.forEach((object) -> {
+	                	ReportListDTO dto = new ReportListDTO();
+	                    
+	                    dto.setEmployeementId(object[0] != null ? object[0].toString() : null);
+	                    dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
+	                    dto.setName(object[2] != null ? object[2].toString() : null);
+	                    dto.setExperience(object[3] != null ? object[3].toString() : null);
+	                    dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
+	                    dto.setEmail(object[5] != null ? object[5].toString() : null);
+	                    dto.setManagerName(object[6] != null ? object[6].toString() : null);
+	                    dto.setBillable(object[7] != null ? object[7].toString() : null);
+	                    dto.setBillableType(object[8] != null ? object[8].toString() : null);
+	                    dto.setProjectName(object[9] != null ? object[9].toString() : null);
+	                    dto.setClientName(object[10] != null ? object[10].toString() : null);
+	                    dto.setDateOfJoining(object[11] != null ? object[11].toString() : null);
+	                    dto.setMobileNo(object[12] != null ? object[12].toString() : null);
+	                    dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);
+	                    dto.setTotalExperience(object[14] != null ? object[14].toString() : null);
+	                    dto.setGender(object[15] != null ? object[15].toString() : null);
+	                    dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
+	                    dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
+	                    dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
+	                    
+	                    dtoList.add(dto);
+	                });
+
+	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                response.setServiceResponse(dtoList);
+
+	                logBuilder.append(" - Successfully retrieved ").append(employeeDetails.size()).append(" employee records");
+
+	            } else {
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse(new ArrayList<>());
+	                logBuilder.append(" No employee data found");
+	            }
+
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            response.setServiceResponse("Something Went Wrong.");
+	            response.setServiceError(e.getMessage());
+	            logBuilder.append(" Error occurred: ").append(e.getMessage());
+	        }
+
+	        apiLogInfo.setApiRequest(logBuilder.toString());
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+	        return response;
+	    }
+	
+
 	
 }

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
@@ -19,46 +20,44 @@ import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.serviceInterface.ReportDashboardService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
-
 @RestController
 @RequestMapping(path = "/api")
 public class ReportDashboardController {
-	
+
 	@Autowired
 	ReportDashboardService reportDashboardService;
-	
-	
-	@RequestMapping(value = "/getLast8DaysLeaveReport" ,method = RequestMethod.POST)
+
+	@RequestMapping(value = "/getLast8DaysLeaveReport", method = RequestMethod.POST)
 	public ServiceResponse getLast8DaysLeaveReport(@RequestBody LeaveDTO leaveDto) {
-		
+
 		ServiceResponse response = reportDashboardService.getLast8DaysLeaveReport(leaveDto);
 		return response;
 	}
-	
-	@RequestMapping(value = "/getLast9DaysTimesheetReport" ,method = RequestMethod.GET)
+
+	@RequestMapping(value = "/getLast9DaysTimesheetReport", method = RequestMethod.GET)
 	public ServiceResponse getLast9DaysTimesheetReport() {
-		
+
 		ServiceResponse response = reportDashboardService.getLast9DaysTimesheetReport();
 		return response;
 	}
-	
-	@RequestMapping(value = "/getLeaveTrendAnalysisReport" ,method = RequestMethod.POST)
+
+	@RequestMapping(value = "/getLeaveTrendAnalysisReport", method = RequestMethod.POST)
 	public ServiceResponse getLeaveTrendAnalysisReport(@RequestBody LeaveDTO leaveDto) {
-		
+
 		ServiceResponse response = reportDashboardService.getLeaveTrendAnalysisReport(leaveDto);
 		return response;
 	}
-	
-	@RequestMapping(value = "/getEmployeeWorkLocationForSummary" ,method = RequestMethod.GET)
+
+	@RequestMapping(value = "/getEmployeeWorkLocationForSummary", method = RequestMethod.GET)
 	public ServiceResponse getEmployeeWorkLocationForSummary() {
-		
+
 		ServiceResponse response = reportDashboardService.getEmployeeWorkLocationForSummary();
 		return response;
 	}
-	
-	@RequestMapping(value = "/getDepartmentWiseBillableData" ,method = RequestMethod.POST)
+
+	@RequestMapping(value = "/getDepartmentWiseBillableData", method = RequestMethod.POST)
 	public ServiceResponse getDepartmentWiseBillableData(@RequestBody LeaveDTO leaveDto) {
-		
+
 		ServiceResponse response = reportDashboardService.getDepartmentWiseBillableData(leaveDto);
 		return response;
 	}
@@ -93,6 +92,14 @@ public class ReportDashboardController {
 		ServiceResponse response = reportDashboardService.getAllPieGraphListSummary(pieParamDto);
 		return response;
 	}
+	@RequestMapping(value = "/getEmployeeBillableAndNonBillable",method = RequestMethod.POST)
+	public ServiceResponse getEmployeeBillableAndNonBillable(@RequestBody ReportsQueryDTO reportqueryDTO)
+	{
+		ServiceResponse response = new ServiceResponse();
+		response = reportDashboardService.getEmployeeDetailsByDepartmentAndBillableType(reportqueryDTO);
+		return response;
+	}
+
 	
 	@RequestMapping(value = "/getAllEmployeeCountDepartmentWise",method = RequestMethod.GET)
 	public  ServiceResponse getAllEmployeeCountDepartmentWise() {

@@ -406,4 +406,53 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
     	    @Param("experience") String experience,
     	    @Param("work_location") String workLocation
     	);
+
+
+		        		 @Query(nativeQuery = true ,value = "SELECT distinct " +
+        			        "CONCAT('A-', e.employeement_id) as EMP_ID, " +
+        			        "CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
+        			        "     WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular' " +
+        			        "     WHEN e.is_consultant = 'true' THEN 'Consultant' " +
+        			        "END AS EMPLOYMENT_TYPE, " +
+        			        "e.name NAME, " +
+        			        "e.experience EXPERIENCE, " +
+        			        "d.name DEPARTMENT_NAME, " +
+        			        "e.email EMAIL_ID, " +
+        			        "m.name MANAGER_NAME, " +
+        			        "e.billable BILLABLE, " +
+        			        "e.billable_type BILLABLE_TYPE, " +
+        			        "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, " +
+        			        "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, " +
+        			        "e.date_of_joining DATE_OF_JOINING, " +
+        			        "e.mobile_no MOBILE_NO, " +
+        			        "e.employmentstatus STATUS, " +
+        			        "e.total_experience TOTAL_EXPERIENCE, " +
+        			        "e.gender GENDER, " +
+        			        "e.work_location WORK_LOCATION, " +
+        			        "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age, " +
+        			        "e.is_user_info_updated KYC " +
+        			        "FROM employee e " +
+        			        "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+        			        "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+        			        "LEFT JOIN employee mg ON e.manager_id = mg.emp_id " +
+        			        "LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0' " +
+        			        "LEFT JOIN employee m ON m.emp_id = e.manager_id " +
+        			        "LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y' " +
+        			        "LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true' " +
+        			        "LEFT JOIN clients c ON p.client_id = c.client_id " +
+        			        "WHERE e.employmentstatus != 'InActive' " +
+        			        "AND d.dept_id IN (:deptIds) " +
+        			        "AND (" +
+        			        "    (:billableType = 'TNM' AND e.billable_type = 'TNM') OR " +
+        			        "    (:billableType = 'Shadow' AND e.billable_type = 'Shadow') OR " +
+        			        "    (:billableType = 'Bench' AND e.billable_type = 'Bench') OR " +
+        			        "    (:billableType = 'Fixed Cost' AND e.billable_type = 'Fixed Cost') OR " +
+        			        "    (:billableType = 'InternalRNDProducts' AND e.billable_type = 'InternalRNDProducts') " +
+        			        ") " +
+        			        "AND e.emp_id NOT BETWEEN 1 AND 6 " +
+        			        "GROUP BY e.emp_id")
+        			List<Object[]> findEmployeesByDepartmentAndBillableType(
+        			    @Param("deptIds") List<Long> deptIds,
+        			    @Param("billableType") String billableType
+        			);
 }
