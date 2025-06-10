@@ -1,11 +1,37 @@
-<div class="row mb-3">
+<!-- <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isProjectTable}"
             *ngIf="userMapping.view_all_rmg_projects" (click)="showViewProjects()">View All Projects</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCreation}"
             (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
     </div>
-</div>
+</div> -->
+<ng-container *ngIf="!showReportList">
+
+
+<div class="row mb-3 position-relative">
+    <div class="col-md-12 px-0 d-flex justify-content-between align-items-start">
+      
+      <!-- Existing Buttons -->
+      <div>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                [ngClass]="{'active': isProjectTable}"
+                *ngIf="userMapping.view_all_rmg_projects"
+                (click)="showViewProjects()">View All Projects</button>
+  
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                [ngClass]="{'active': isCreation}"
+                (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
+      </div>
+  
+      <!-- Top Right Toggle Button -->
+      <div>
+        <button type="button" class="btn btn-primary btn-sm" (click)="toggleReportView()">Toggle to Employee View</button>
+      </div>
+      
+    </div>
+  </div>
+  
 <!-- New content -->
 <div class="container bg-white" *ngIf="allProjectTable">
     <div class="row">
@@ -720,7 +746,7 @@
 
 
 <!-- start :: Create & Update Form -->
-<div class="row">
+<!-- <div class="row"> -->
     <div class="card col-md-12 px-0" *ngIf="isCreateForm">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Internal Project</strong>
@@ -2300,3 +2326,13 @@
         </div>
     </div>
 </ng-template>
+
+</ng-container>
+
+<ng-container *ngIf="showReportList">
+    <!-- Load report list page in an iframe -->
+    <div class="text-end mb-2">
+      <button type="button" class="btn btn-secondary btn-sm" (click)="toggleReportView()">Back</button>
+    </div>
+    <iframe [src]="reportListUrlSafe" width="100%" height="850px" frameborder="0"></iframe>
+</ng-container>

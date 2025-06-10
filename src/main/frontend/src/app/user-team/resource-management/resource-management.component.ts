@@ -2,6 +2,7 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { Sort } from '@angular/material/sort';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -33,6 +34,7 @@ import { ResourceManagementService } from 'src/app/services/resource-management.
 import { TeamService } from 'src/app/services/team.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { environment } from 'src/environments/environment';
 @Component({
   selector: 'app-resource-management',
   templateUrl: './resource-management.component.html',
@@ -56,6 +58,9 @@ export class ResourceManagementComponent implements OnInit {
     { value: 32, label: "Pending", icon: "fa-hourglass-half", iconColor: "#03A9F4", borderColor: "#03A9F4" }
   ];
 
+  showReportList = false;
+  reportListUrlSafe: SafeResourceUrl;
+
   totalEmployees = 0;
   sankhMappedEmployees: any;
   sankhMappedEmployeesList: any[] = [];
@@ -75,7 +80,7 @@ export class ResourceManagementComponent implements OnInit {
   statuses = ['Pending', 'Approved'];
   selectedEmployee = '';
   selectedStatus = '';
-
+ 
   // new cards changes.....................................................................
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
@@ -252,9 +257,13 @@ export class ResourceManagementComponent implements OnInit {
     private utilityService: UtilityService,
     private breadcrumbService: BreadcrumbService,
     private employee360Service: Employee360Service,
+    private sanitizer: DomSanitizer,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
+    const reportUrl = `${environment.baseUrl360}#/user-reports/report-list`;
+    this.reportListUrlSafe = this.sanitizer.bypassSecurityTrustResourceUrl(reportUrl);
+
   }
 
 
@@ -3073,5 +3082,18 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
+//router function
+// navigateToOtherPage() {
+//   const reportPageUrl = `${environment.baseUrl360}#/user-reports/report-list`;
+//   window.open(reportPageUrl, '_blank');
+//   //this.router.navigate(['/your-target-route']); 
+// }
+toggleReportView() {
+  this.showReportList = !this.showReportList;
+}
+
+goToReportList() {
+  this.router.navigate(['/user-reports/report-list']);
+}
 
 }
