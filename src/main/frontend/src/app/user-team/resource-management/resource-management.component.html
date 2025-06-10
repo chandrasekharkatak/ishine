@@ -1576,7 +1576,7 @@
                                                 (change)="onDefaultProjectCheckboxChange($event, member)"
                                                 [disabled]="!member.otherActiveProjects || member.otherActiveProjects.length === 0"
                                                 [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0 
-                                                            ? 'Default Project mapping cannot be changed as the resource has only this project mapping' 
+                                                            ? 'Only mapped to one project, cannot unset default to prevent null billability.' 
                                                             : null"
                                             />
                                         Default Project
@@ -1723,11 +1723,18 @@
                                             Shadow
                                         </label>
 
-                                        <label style="margin-left: 10px;">
-                                            <input type="checkbox" [(ngModel)]="member.isDefaultProject"
-                                                [ngModelOptions]="{standalone: true}"
-                                                (ngModelChange)="member.isDefaultProject = $event ? 1 : 0" (change)="onDefaultProjectCheckboxChange($event,member)"  />
-                                            Default Project
+                                        <label>
+                                            <input 
+                                                type="checkbox"
+                                                [(ngModel)]="member.isDefaultProject"
+                                                (ngModelChange)="member.isDefaultProject = $event ? 1 : 0"
+                                                (change)="onDefaultProjectCheckboxChange($event, member)"
+                                                [disabled]="!member.otherActiveProjects || member.otherActiveProjects.length === 0"
+                                                [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0 
+                                                            ? 'Only mapped to one project, cannot unset default to prevent null billability.' 
+                                                            : null"
+                                            />
+                                        Default Project
                                         </label>
                                     </div>
 
