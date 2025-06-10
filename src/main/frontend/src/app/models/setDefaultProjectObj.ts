@@ -5,4 +5,5 @@ export class SetDefaultProjectObj{
 	employeeRole:any;
 	resourceOverViewId:any;
 	createdBy:any;
+	empIds:any;
 }

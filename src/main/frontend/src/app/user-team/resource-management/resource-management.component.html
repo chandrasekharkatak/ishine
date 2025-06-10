@@ -1,11 +1,37 @@
-<div class="row mb-3">
+<!-- <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isProjectTable}"
             *ngIf="userMapping.view_all_rmg_projects" (click)="showViewProjects()">View All Projects</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCreation}"
             (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
     </div>
-</div>
+</div> -->
+<ng-container *ngIf="!showReportList">
+
+
+<div class="row mb-3 position-relative">
+    <div class="col-md-12 px-0 d-flex justify-content-between align-items-start">
+      
+      <!-- Existing Buttons -->
+      <div>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                [ngClass]="{'active': isProjectTable}"
+                *ngIf="userMapping.view_all_rmg_projects"
+                (click)="showViewProjects()">View All Projects</button>
+  
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                [ngClass]="{'active': isCreation}"
+                (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
+      </div>
+  
+      <!-- Top Right Toggle Button -->
+      <div>
+        <button type="button" class="btn btn-primary btn-sm" (click)="toggleReportView()">Toggle to Employee View</button>
+      </div>
+      
+    </div>
+  </div>
+  
 <!-- New content -->
 <div class="container bg-white" *ngIf="allProjectTable">
     <div class="row">
@@ -396,7 +422,7 @@
                                                 </li>
                                                 <!-- <li (click)="onAction('Audit', project);closeMenu(i)"><i class="fas fa-clock"></i> Audit</li> -->
                                                 <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
-                                                    (click)="openDatePicker(customDatePickerTemplate,project);closeMenu(i)">
+                                                    (click)="openDatePicker(MarkAsCompleteDefaultProject,OtherProjectDefaultMapping,project,customDatePickerTemplate);closeMenu(i)">
                                                     <i class="fas fa-check-double"></i> Mark as Complete
                                                 </li>
                                                 <li *ngIf="userMapping.rmg_approval_option || userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !isHideButton"
@@ -720,7 +746,7 @@
 
 
 <!-- start :: Create & Update Form -->
-<div class="row">
+<!-- <div class="row"> -->
     <div class="card col-md-12 px-0" *ngIf="isCreateForm">
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Internal Project</strong>
@@ -1576,7 +1602,7 @@
                                                 (change)="onDefaultProjectCheckboxChange($event, member)"
                                                 [disabled]="!member.otherActiveProjects || member.otherActiveProjects.length === 0"
                                                 [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0 
-                                                            ? 'Default Project mapping cannot be changed as the resource has only this project mapping' 
+                                                            ? 'Only mapped to one project, cannot unset default to prevent null billability.' 
                                                             : null"
                                             />
                                         Default Project
@@ -1723,11 +1749,18 @@
                                             Shadow
                                         </label>
 
-                                        <label style="margin-left: 10px;">
-                                            <input type="checkbox" [(ngModel)]="member.isDefaultProject"
-                                                [ngModelOptions]="{standalone: true}"
-                                                (ngModelChange)="member.isDefaultProject = $event ? 1 : 0" (change)="onDefaultProjectCheckboxChange($event,member)"  />
-                                            Default Project
+                                        <label>
+                                            <input 
+                                                type="checkbox"
+                                                [(ngModel)]="member.isDefaultProject"
+                                                (ngModelChange)="member.isDefaultProject = $event ? 1 : 0"
+                                                (change)="onDefaultProjectCheckboxChange($event, member)"
+                                                [disabled]="!member.otherActiveProjects || member.otherActiveProjects.length === 0"
+                                                [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0 
+                                                            ? 'Only mapped to one project, cannot unset default to prevent null billability.' 
+                                                            : null"
+                                            />
+                                        Default Project
                                         </label>
                                     </div>
 
@@ -2018,7 +2051,7 @@
                     <mat-option *ngFor="let project of filteredOtherProjectList" [value]="project.projectId">{{ project.projectName }}</mat-option>
                 </mat-select>
             </div>
-            <button class="set-team-btn" (click)="setDefaultProjectUpdateBillable(defaultProjectUpdateEmpId,selectedOtherProjectId)">Update Default Project</button>
+            <button class="set-team-btn" (click)="setDefaultProjectUpdateBillable(defaultProjectUpdateEmpId,selectedOtherProjectId,MarkAsCompleteDefaultProject)">Update Default Project</button>
         </div>
     </div>
 </ng-template>
@@ -2067,24 +2100,24 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngIf="projectDetails.length == 0 || (projectDetails| colFilter:filters:false).length == 0">
+                    <tr *ngIf="bulkEmployeeListActiveList.length == 0 || (bulkEmployeeListActiveList| colFilter:filters:false).length == 0">
                         <th colspan="3" class="text-center info-label">No reportees have this user as manager.</th>
                     </tr>
-                    <tr *ngFor="let project of projectDetails">
-                        <td>{{'emp.id'}}</td>
-                        <td>{{'emp.name'}}</td>
+                    <tr *ngFor="let project of bulkEmployeeListActiveList">
+                        <td>{{project.employmentId}}</td>
+                        <td>{{project.name}}</td>
                         <td>
                         <div class="form-group">
                                 <label>Project Name</label>
                                 <mat-select [(ngModel)]="selectedOtherProjectId" disableOptionCentering>
                                     <mat-option disabled><input class="form-control" style="display: flex ;width: 100%; padding: 5px;" type="text" [(ngModel)]="searchTerm" (ngModelChange)="filterOtherProjects()" placeholder="Search project..."/></mat-option>
                                     <mat-option [value]="null" disabled>Select</mat-option>
-                                    <mat-option *ngFor="let project of filteredOtherProjectList" [value]="project.projectId">{{ project.projectName }}</mat-option>
+                                    <mat-option *ngFor="let project of project.otherActiveProjects" [value]="project.projectId">{{ project.projectName }}</mat-option>
                                 </mat-select>
                             </div>
                         </td>
                         <td>     
-                            <button class="set-team-btn" (click)="setDefaultProjectUpdateBillable(defaultProjectUpdateEmpId,selectedOtherProjectId)">Update Default Project</button>
+                            <button class="set-team-btn" (click)="setDefaultProjectUpdateBillable(defaultProjectUpdateEmpId,selectedOtherProjectId,MarkAsCompleteDefaultProject)">Update Default Project</button>
                         </td>
                     </tr>
                 </tbody>
@@ -2184,7 +2217,8 @@
             </div>
         </div>
     
-        <button class="set-team-btn" (click)="setProjectMappingAndDefaultProject(setDefaultProjectObj)">Set Default Project</button>
+        <button class="set-team-btn" (click)="setProjectMappingAndDefaultProject(setDefaultProjectObj,customDatePickerTemplate)">Update Default Project</button>
+          <!-- <button class="set-team-btn mt-3">Update Default Project</button> -->
     
         <!-- Employee List -->
         <p class="section-title mt-4">Employee List</p>
@@ -2219,7 +2253,7 @@
             </table>
         </div>
     
-        <button class="set-team-btn mt-3">Update Default Project</button>
+      
         </div>
     
         <!-- Individual Mode -->
@@ -2241,12 +2275,12 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngIf="projectDetails.length === 0">
+                <tr *ngIf="bulkEmployeeList.length === 0">
                 <td colspan="8" class="text-center">No reportees have this user as manager.</td>
                 </tr>
-                <tr *ngFor="let project of projectDetails">
-                <td>{{ project.empId }}</td>
-                <td>{{ project.empName }}</td>
+                <tr *ngFor="let project of bulkEmployeeList">
+                <td>{{ project.employmentId }}</td>
+                <td>{{ project.name }}</td>
                 <td>
                     <mat-select [(ngModel)]="bulkProjectType">
                     <mat-option value="bench">Bench</mat-option>
@@ -2281,7 +2315,7 @@
                     </mat-select>
                 </td>
                 <td>
-                    <button class="set-team-btn" (click)="setProjectMappingAndDefaultProject(setDefaultProjectObj)">
+                    <button class="set-team-btn" (click)="setProjectMappingAndDefaultProject(setDefaultProjectObj,customDatePickerTemplate)">
                     Set Default Project
                     </button>
                 </td>
@@ -2292,3 +2326,13 @@
         </div>
     </div>
 </ng-template>
+
+</ng-container>
+
+<ng-container *ngIf="showReportList">
+    <!-- Load report list page in an iframe -->
+    <div class="text-end mb-2">
+      <button type="button" class="btn btn-secondary btn-sm" (click)="toggleReportView()">Back</button>
+    </div>
+    <iframe [src]="reportListUrlSafe" width="100%" height="850px" frameborder="0"></iframe>
+</ng-container>
