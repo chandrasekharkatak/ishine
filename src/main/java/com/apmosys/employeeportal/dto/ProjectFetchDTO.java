@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.dto;
 import java.sql.Timestamp;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import com.apmosys.employeeportal.model.ProjectManagerMapping;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class ProjectFetchDTO {
 	private Long id;
 	private Integer projectId;

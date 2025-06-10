@@ -666,6 +666,14 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
+  GetAllResourceRequirementForProject(project:Project){
+    this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
+       if (response.serviceStatus == "Success") {
+        this.projectObj.resourceRequirements = response.serviceResponse
+       }
+    });
+  }
+
   // Team
   getSubstring(str: string): string {
     return str.substring(0, 5); // or any logic you want
@@ -2068,6 +2076,7 @@ export class ResourceManagementComponent implements OnInit {
 
     this.allTeamList = [];
     this.projectObj = Object.assign({}, project);
+    this.GetAllResourceRequirementForProject(this.projectObj);
     this.getAllDepartmentList(project);
     this.getTeamListByProjectName(project);
     this.getEmployeeByNameAndEmpld();

@@ -127,4 +127,7 @@ export class ResourceManagementService {
   getEmployeeInformationForDefaultProject(setDefaultProjectObj: any){
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeInformationForDefaultProject`, setDefaultProjectObj);
   }
+  getAllResourceRequirementForProject(data:Project){
+    return this.http.post(`${this.baseUrl}`+`api/getAllResourceRequirementForProject`, data);
+  }
 }

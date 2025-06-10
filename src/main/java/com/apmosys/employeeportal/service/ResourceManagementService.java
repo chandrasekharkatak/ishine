@@ -5823,20 +5823,20 @@ public class ResourceManagementService {
 		        	overHeadIds.add(Long.parseLong(overHead[0].toString()));
 		        	projOverHeads.add(overHeadData);
 		        }
-		        List<Object[]> resourceData = resourceRequirementRepository.findByProjectId((Integer) row[0]);
-		        List<ResourceRequirementDTO> resourceRequirements = new ArrayList<>();
-		        for(Object[] requirement : resourceData) {
-		        	ResourceRequirementDTO resourceReq = new ResourceRequirementDTO(
-		        			(String) requirement[0],
-		        			(Integer) requirement[1],
-		        			(String) requirement[2],
-		        			(String) requirement[3],
-		        		((BigInteger) requirement[4]).longValue(),
-		        			(Integer) requirement[5]
-		        			);
-		        	resourceRequirements.add(resourceReq);
-		        	}
-		        dto.setResourceRequirements(resourceRequirements);
+//		        List<Object[]> resourceData = resourceRequirementRepository.findByProjectId((Integer) row[0]);
+//		        List<ResourceRequirementDTO> resourceRequirements = new ArrayList<>();
+//		        for(Object[] requirement : resourceData) {
+//		        	ResourceRequirementDTO resourceReq = new ResourceRequirementDTO(
+//		        			(String) requirement[0],
+//		        			(Integer) requirement[1],
+//		        			(String) requirement[2],
+//		        			(String) requirement[3],
+//		        		((BigInteger) requirement[4]).longValue(),
+//		        			(Integer) requirement[5]
+//		        			);
+//		        	resourceRequirements.add(resourceReq);
+//		        	}
+//		        dto.setResourceRequirements(resourceRequirements);
 		        dto.setDepartment(resourceRequirementRepository.getAllDepartmentsFromProjectId((Integer) row[0])); 
 		        
 		        dto.setProjectManagerId(pmIds);     
@@ -5880,21 +5880,21 @@ public class ResourceManagementService {
 			        dto.setId(row[5] != null ? ((BigInteger) row[5]).longValue() : null);
 			        
 			        	dto.setProjectType((String) row[14]);
-			        List<Object[]> tempRequirements = resourceRequirementTempRepo.findByPoProjectId(((BigInteger) row[5]).longValue());
-			        List<ResourceRequirementDTO> resourceRequirementsTemp = new ArrayList<>();
-			        
-			        for(Object[] requirement : tempRequirements) {
-			        	ResourceRequirementDTO resourceReq = new ResourceRequirementDTO(
-			        			(String) requirement[0],
-			        			(Integer) requirement[1],
-			        			(String) requirement[2],
-			        			(String) requirement[3],
-			        		((BigInteger) requirement[4]).longValue(),
-			        		((BigInteger) requirement[5]).longValue()
-			        			);
-			        	resourceRequirementsTemp.add(resourceReq);
-			        	}
-			        dto.setResourceRequirements(resourceRequirementsTemp);
+//			        List<Object[]> tempRequirements = resourceRequirementTempRepo.findByPoProjectId(((BigInteger) row[5]).longValue());
+//			        List<ResourceRequirementDTO> resourceRequirementsTemp = new ArrayList<>();
+//			        
+//			        for(Object[] requirement : tempRequirements) {
+//			        	ResourceRequirementDTO resourceReq = new ResourceRequirementDTO(
+//			        			(String) requirement[0],
+//			        			(Integer) requirement[1],
+//			        			(String) requirement[2],
+//			        			(String) requirement[3],
+//			        		((BigInteger) requirement[4]).longValue(),
+//			        		((BigInteger) requirement[5]).longValue()
+//			        			);
+//			        	resourceRequirementsTemp.add(resourceReq);
+//			        	}
+//			        dto.setResourceRequirements(resourceRequirementsTemp);
 			        
 			        dto.setDepartment(resourceRequirementTempRepo.getAllDepartmentsFromPoProjectId(((BigInteger) row[5]).longValue()));
 		            dtoList.add(dto);
@@ -5925,7 +5925,61 @@ public class ResourceManagementService {
 		        }
 	}
 		       
-	
+	public ServiceResponse getAllResourceRequirementForProject(ProjectFetchDTO projectFetchDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getAllResourceRequirementForProject");
+		apiLogInfo.setApiUrl("/api/getAllResourceRequirementForProject");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("\n getAllResourceRequirementForProject ");
+		try {
+		if(projectFetchDTO.getProjectId() == null) {
+			List<Object[]> tempRequirements = resourceRequirementTempRepo.findByPoProjectId(projectFetchDTO.getPoProjectId());
+	        List<ResourceRequirementDTO> resourceRequirementsTemp = new ArrayList<>();
+	        
+	        for(Object[] requirement : tempRequirements) {
+	        	ResourceRequirementDTO resourceReq = new ResourceRequirementDTO(
+	        			(String) requirement[0],
+	        			(Integer) requirement[1],
+	        			(String) requirement[2],
+	        			(String) requirement[3],
+	        		((BigInteger) requirement[4]).longValue(),
+	        		((BigInteger) requirement[5]).longValue()
+	        	);
+	        	resourceRequirementsTemp.add(resourceReq);
+	        }
+	        response.setServiceStatus(response.STATUS_SUCCESS);
+	        response.setServiceResponse(resourceRequirementsTemp);
+		}
+		else {
+			 List<Object[]> resourceData = resourceRequirementRepository.findByProjectId(projectFetchDTO.getProjectId());
+			 List<ResourceRequirementDTO> resourceRequirements = new ArrayList<>();
+		        for(Object[] requirement : resourceData) {
+		        	ResourceRequirementDTO resourceReq = new ResourceRequirementDTO(
+		        			(String) requirement[0],
+		        			(Integer) requirement[1],
+		        			(String) requirement[2],
+		        			(String) requirement[3],
+		        		((BigInteger) requirement[4]).longValue(),
+		        			(Integer) requirement[5]
+		        			);
+		        	resourceRequirements.add(resourceReq);
+		        	}
+		        response.setServiceStatus(response.STATUS_SUCCESS);
+		        response.setServiceResponse(resourceRequirements);
+		}
+		return response;
+		
+	}
+		catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(response.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse(e.getMessage());
+	        return response;
+		}
+	        
+	}
 	
 	public ServiceResponse getPreviousDefaultProjectDetails(Long empId) {
 		ServiceResponse response = new ServiceResponse();

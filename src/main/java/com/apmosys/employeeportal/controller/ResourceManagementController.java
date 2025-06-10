@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
@@ -313,6 +314,11 @@ public class ResourceManagementController {
 	@PostMapping("/getEmployeeInformationForDefaultProject")
 	public ServiceResponse getEmployeeInformationForDefaultProject(@RequestBody OtherProjectSetDTO otherProjectSetDTO) {
 	    return resourceManagementService.getEmployeeInformationForDefaultProject(otherProjectSetDTO);
+	}
+	
+	@PostMapping("/getAllResourceRequirementForProject")
+	public ServiceResponse getAllResourceRequirementForProject(@RequestBody ProjectFetchDTO projectFetchDTO) {
+		return resourceManagementService.getAllResourceRequirementForProject(projectFetchDTO);
 	}
 
 }
