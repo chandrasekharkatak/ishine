@@ -32,5 +32,46 @@ export class ReportService {
     `${this.baseUrl}`+`api/getDepartmentWiseBillableNonBillableSummary`,
     { departmentIds }  // sending even empty list if nothing is selected
   );
-}
+  }
+
+  getEmployeeDetailsByDepartmentAndBillableType(requestPayload: any): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}api/getEmployeeBillableAndNonBillable`, 
+      requestPayload
+    );
+  }
+
+  getEmployeeDetailsByEmploymentType(requestPayload: any): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}api/getEmployeeDetailsByEmploymentType`, 
+      requestPayload
+    );
+  }
+
+    getEmployeesByExperience(requestPayload: any): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}api/getEmployeesByExperience`, 
+      requestPayload
+    );
+  }
+
+  getDepartmentwiseEmployee(requestPayload: any): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}api/getDepartmentwiseEmployeesByType`, 
+      requestPayload
+    );
+  }
+
+    getDepartmentwiseEmployeeKyc(requestPayload: any): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}api/getEmployeeDetailsByDepartmentAndKyc`, 
+      requestPayload
+    );
+  }
+
+  getJoinVsResignEmployeeDetails(request: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/getJoinVsResignEmployeeDetails`,request);
+  }
+
+
 }

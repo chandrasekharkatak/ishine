@@ -33,6 +33,13 @@ public interface ReportDashboardService {
 	
 	ServiceResponse  getAllEmployeeCountDepartmentWise();
 	
-//	ServiceResponse getDepartmentWiseBillableNonBillableSummary(ReportsQueryDTO request);
+	ServiceResponse getDepartmentWiseBillableNonBillableSummary(ReportsQueryDTO request);
+	ServiceResponse getEmployeeDetailsByEmploymentType(ReportsQueryDTO request);
+	ServiceResponse getEmployeesByExperience(ReportsQueryDTO request);
+	ServiceResponse getEmployeeDetailsByDepartmentAndKyc(ReportsQueryDTO request);
+
+	ServiceResponse getDepartmentwiseEmployeesByType(ReportsQueryDTO request);
+	ServiceResponse getJoinVsResignEmployeeDetails(ReportsQueryDTO request);
+	
 		}
 	

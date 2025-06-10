@@ -925,81 +925,87 @@ try {
 	}
 	
 
-//    @Override
-//    public ServiceResponse getDepartmentWiseBillableNonBillableSummary(ReportsQueryDTO request) {
-//        ServiceResponse response = new ServiceResponse();
-//        ToLong_helper toLong_helper=new ToLong_helper();
-//        try {
-//            List<Object[]> data;
-//
-//            boolean isFilterEmpty =
-//                (request.getDept_id() == null || request.getDept_id().isEmpty()) &&
-//                (request.getEmployeement_id() == null || request.getEmployeement_id().isEmpty()) &&
-//                (request.getName() == null || request.getName().isEmpty()) &&
-//                (request.getJob_role_id() == null || request.getJob_role_id().isEmpty()) &&
-//                (request.getManager_id() == null || request.getManager_id().isEmpty()) &&
-//                (request.getTeam_id() == null || request.getTeam_id().isEmpty()) &&
-//                (request.getProject_id() == null || request.getProject_id().isEmpty()) &&
-//                (request.getClient_id() == null || request.getClient_id().isEmpty()) &&
-//                (request.getEmploymentstatus() == null || request.getEmploymentstatus().isEmpty()) &&
-//                (request.getDate_of_joining() == null || request.getDate_of_joining().isEmpty()) &&
-//                (request.getCity() == null || request.getCity().isEmpty()) &&
-//                (request.getBlood_group() == null || request.getBlood_group().isEmpty()) &&
-//                (request.getGender() == null || request.getGender().isEmpty()) &&
-//                (request.getProbation_period() == null || request.getProbation_period().isEmpty()) &&
-//                (request.getNotice_id() == null || request.getNotice_id().isEmpty()) &&
-//                (request.getMarital_status() == null || request.getMarital_status().isEmpty()) &&
-//                (request.getBank_name() == null || request.getBank_name().isEmpty()) &&
-//                (request.getState() == null || request.getState().isEmpty()) &&
-//                (request.getCreated_on() == null || request.getCreated_on().isEmpty()) &&
-//                (request.getCreated_by() == null || request.getCreated_by().isEmpty()) &&
-//                (request.getExperience() == null || request.getExperience().isEmpty()) &&
-//                (request.getWork_location() == null || request.getWork_location().isEmpty());
-//
-//            if (isFilterEmpty) {
-//                data = reportDashboardRepository.getDepartmentWiseBillableNonBillableSummary();
-//            } else {
-//                data = reportDashboardRepository.getSelectedDepartmentBillableSummary(
-//                        toLong_helper.convertToLongList(request.getEmployeement_id()),
-//                        request.getName(),
-//                        toLong_helper.convertToLongList(request.getDept_id()),
-//                        toLong_helper.convertToLongList(request.getJob_role_id()),
-//                        toLong_helper.convertToLongList(request.getManager_id()),
-//                        toLong_helper.convertToLongList(request.getTeam_id()),
-//                        toLong_helper.convertToLongList(request.getProject_id()),
-//                        toLong_helper.convertToLongList(request.getClient_id()),
-//                        request.getEmploymentstatus(),
-//                        request.getDate_of_joining(),
-//                        request.getCity(),
-//                        request.getBlood_group(),
-//                        request.getGender(),
-//                        request.getProbation_period(),
-//                        toLong_helper.convertToLongList(request.getNotice_id()),
-//                        request.getMarital_status(),
-//                        request.getBank_name(),
-//                        request.getState(),
-//                        request.getCreated_on(),
-//                        toLong_helper.convertToLongList(request.getCreated_by()),
-//                        request.getExperience(),
-//                        request.getWork_location()
-//                );
-//            }
-//
-//            if (data != null && !data.isEmpty()) {
-//                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//                response.setServiceResponse(data);
-//            } else {
-//                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//                response.setServiceResponse(Collections.emptyList());
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-//            response.setServiceResponse("Something Went Wrong.");
-//            response.setServiceError(e.getMessage());
-//        }
-//        return response;
-//    }
+	@Override
+	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(ReportsQueryDTO request) {
+	    ServiceResponse response = new ServiceResponse();
+	    ToLong_helper toLong_helper = new ToLong_helper();
+	    try {
+	        List<Object[]> data;
+
+	        boolean isFilterEmpty =
+	            (request.getDeptId() == null || request.getDeptId().isEmpty()) &&
+	            (request.getEmployeementId() == null || request.getEmployeementId().isEmpty()) &&
+	            (request.getName() == null || request.getName().isEmpty()) &&
+	            (request.getJobRoleId() == null || request.getJobRoleId().isEmpty()) &&
+	            (request.getManagerId() == null || request.getManagerId().isEmpty()) &&
+	            (request.getTeamId() == null || request.getTeamId().isEmpty()) &&
+	            (request.getProjectId() == null || request.getProjectId().isEmpty()) &&
+	            (request.getClientId() == null || request.getClientId().isEmpty()) &&
+	            (request.getEmploymentstatus() == null || request.getEmploymentstatus().isEmpty()) &&
+	            (request.getDateOfJoining() == null || request.getDateOfJoining().isEmpty()) &&
+	            (request.getCity() == null || request.getCity().isEmpty()) &&
+	            (request.getBloodGroup() == null || request.getBloodGroup().isEmpty()) &&
+	            (request.getGender() == null || request.getGender().isEmpty()) &&
+	            (request.getProbationPeriod() == null || request.getProbationPeriod().isEmpty()) &&
+	            (request.getNoticePeriod() == null || request.getNoticePeriod().isEmpty()) &&
+	            (request.getMaritalStatus() == null || request.getMaritalStatus().isEmpty()) &&
+	            (request.getBankName() == null || request.getBankName().isEmpty()) &&
+	            (request.getState() == null || request.getState().isEmpty()) &&
+	            (request.getCreatedOn() == null || request.getCreatedOn().isEmpty()) &&
+	            (request.getCreatedBy() == null || request.getCreatedBy().isEmpty()) &&
+	            (request.getExperience() == null || request.getExperience().isEmpty()) &&
+	            (request.getWorkLocation() == null || request.getWorkLocation().isEmpty()) &&
+	            (request.getYear() == null) &&
+	            (request.getBillableType() == null || request.getBillableType().isEmpty());
+
+	        if (isFilterEmpty) {
+	            data = reportDashboardRepository.getDepartmentWiseBillableNonBillableSummary();
+	        } else {
+	            data = reportDashboardRepository.getSelectedDepartmentBillableSummary(
+	                    request.getEmployeementId(),       // List<Long>
+	                    request.getName(),                 // String
+	                    request.getDeptId(),               // List<Long>
+	                    request.getJobRoleId(),            // List<Long>
+	                    request.getManagerId(),            // List<Long>
+	                    request.getTeamId(),               // List<Long>
+	                    request.getProjectId(),            // List<Long>
+	                    request.getClientId(),             // List<Long>
+	                    request.getEmploymentstatus(),     // String
+	                    request.getDateOfJoining(),        // String
+	                    request.getCity(),                 // String
+	                    request.getBloodGroup(),           // String
+	                    request.getGender(),               // String
+	                    request.getProbationPeriod(),     // List<Integer>
+	                    request.getNoticePeriod(),         // List<Long>
+	                    request.getMaritalStatus(),        // String
+	                    request.getBankName(),             // String
+	                    request.getState(),                // String
+	                    request.getCreatedOn(),            // String
+	                    request.getCreatedBy(),            // List<Long>
+	                    request.getExperience(),           // String
+	                    request.getWorkLocation(),         // String
+	                    request.getYear(),                 // Long
+	                    request.getBillableType()          // String
+	            );
+	        }
+
+
+	        if (data != null && !data.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(data);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(Collections.emptyList());
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	    }
+	    return response;
+	}
+
 	
 	
 	  public ServiceResponse getEmployeeDetailsByDepartmentAndBillableType(ReportsQueryDTO request) {
@@ -1068,6 +1074,343 @@ try {
 	        return response;
 	    }
 	
+	  public ServiceResponse getEmployeeDetailsByEmploymentType(ReportsQueryDTO request) {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/getEmployeeDetailsByEmploymentType");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    
+		    try {
+		        List<Object[]> employeeDetails = reportDashboardRepository.findEmployeesByEmploymentType(
+		                request.isApprentice(),
+		                request.isConsultant(),
+		                request.isRegular(),
+		                request.isProbation(),
+		                request.isAllEmp()
+		        );
+		        
+		        if (employeeDetails != null && !employeeDetails.isEmpty()) {
+		            List<ReportListDTO> dtoList = new ArrayList<>();
+		            employeeDetails.forEach((object) -> {
+		                ReportListDTO dto = new ReportListDTO();
+		                
+		                dto.setEmployeementId(object[0] != null ? object[0].toString() : null);
+		                dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
+		                dto.setName(object[2] != null ? object[2].toString() : null);
+		                dto.setExperience(object[3] != null ? object[3].toString() : null);
+		                dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
+		                dto.setEmail(object[5] != null ? object[5].toString() : null);
+		                dto.setManagerName(object[6] != null ? object[6].toString() : null);
+		                dto.setBillable(object[7] != null ? object[7].toString() : null);
+		                dto.setBillableType(object[8] != null ? object[8].toString() : null);
+		                dto.setProjectName(object[9] != null ? object[9].toString() : null);
+		                dto.setClientName(object[10] != null ? object[10].toString() : null);
+		                dto.setDateOfJoining(object[11] != null ? object[11].toString() : null);
+		                dto.setMobileNo(object[12] != null ? object[12].toString() : null);
+		                dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);
+		                dto.setTotalExperience(object[14] != null ? object[14].toString() : null);
+		                dto.setGender(object[15] != null ? object[15].toString() : null);
+		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
+		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
+		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
+		                
+		                dtoList.add(dto);
+		            });
+		            
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(dtoList);
+		            logBuilder.append(" - Successfully retrieved ").append(employeeDetails.size()).append(" employee records");
+		        } else {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse(new ArrayList<>());
+		            logBuilder.append(" No employee data found");
+		        }
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something Went Wrong.");
+		        response.setServiceError(e.getMessage());
+		        logBuilder.append(" Error occurred: ").append(e.getMessage());
+		    }
+		    
+		    apiLogInfo.setApiRequest(logBuilder.toString());
+		    logService.logMyInfo(httpRequest, apiLogInfo);
+		    return response;
+		}
 
-	
+	  public ServiceResponse getEmployeesByExperience(ReportsQueryDTO request) {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/getEmployeesByExperience");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+
+		    try {
+		        List<Object[]> employeeDetails = reportDashboardRepository.findEmployeesExperience(
+		            request.getEmployeeType(),
+		            request.getLowerValue(),
+		            request.getUpperValue()
+		        );
+
+		        if (employeeDetails != null && !employeeDetails.isEmpty()) {
+		            List<ReportListDTO> dtoList = new ArrayList<>();
+
+		            employeeDetails.forEach((object) -> {
+		                ReportListDTO dto = new ReportListDTO();
+
+		                dto.setEmployeementId(object[0] != null ? object[0].toString() : null);
+		                dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
+		                dto.setName(object[2] != null ? object[2].toString() : null);
+		                dto.setExperience(object[3] != null ? object[3].toString() : null);
+		                dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
+		                dto.setEmail(object[5] != null ? object[5].toString() : null);
+		                dto.setManagerName(object[6] != null ? object[6].toString() : null);
+		                dto.setBillable(object[7] != null ? object[7].toString() : null);
+		                dto.setBillableType(object[8] != null ? object[8].toString() : null);
+		                dto.setProjectName(object[9] != null ? object[9].toString() : null);
+		                dto.setClientName(object[10] != null ? object[10].toString() : null);
+		                dto.setDateOfJoining(object[11] != null ? object[11].toString() : null);
+		                dto.setMobileNo(object[12] != null ? object[12].toString() : null);
+		                dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);
+		                dto.setTotalExperience(object[14] != null ? object[14].toString() : null);
+		                dto.setGender(object[15] != null ? object[15].toString() : null);
+		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
+		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
+		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
+
+		                dtoList.add(dto);
+		            });
+
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(dtoList);
+
+		            logBuilder.append(" - Successfully retrieved ").append(employeeDetails.size()).append(" employee records");
+		            logBuilder.append(" for employee type: ").append(request.getEmployeeType());
+		            logBuilder.append(" with experience range: ").append(request.getLowerValue()).append(" to ").append(request.getUpperValue());
+
+		        } else {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse(new ArrayList<>());
+		            logBuilder.append(" No employee data found for employee type: ").append(request.getEmployeeType());
+		            logBuilder.append(" with experience range: ").append(request.getLowerValue()).append(" to ").append(request.getUpperValue());
+		        }
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something Went Wrong.");
+		        response.setServiceError(e.getMessage());
+		        logBuilder.append(" Error occurred: ").append(e.getMessage());
+		        logBuilder.append(" for employee type: ").append(request.getEmployeeType());
+		        logBuilder.append(" with experience range: ").append(request.getLowerValue()).append(" to ").append(request.getUpperValue());
+		    }
+
+		    apiLogInfo.setApiRequest(logBuilder.toString());
+		    logService.logMyInfo(httpRequest, apiLogInfo);
+		    return response;
+		}
+	  
+	  public ServiceResponse getEmployeeDetailsByDepartmentAndKyc(ReportsQueryDTO request) {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/getEmployeeDetailsByDepartmentAndKyc");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+
+		    try {
+		        List<Object[]> employeeDetails = reportDashboardRepository.findEmployeesByDepartmentAndKyc(
+		            request.getDeptId(),
+		            request.getIsUserInfoUpdated()
+		        );
+
+		        if (employeeDetails != null && !employeeDetails.isEmpty()) {
+		            List<ReportListDTO> dtoList = new ArrayList<>();
+
+		            employeeDetails.forEach((object) -> {
+		                ReportListDTO dto = new ReportListDTO();
+
+		                dto.setEmployeementId(object[0] != null ? object[0].toString() : null);
+		                dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
+		                dto.setName(object[2] != null ? object[2].toString() : null);
+		                dto.setExperience(object[3] != null ? object[3].toString() : null);
+		                dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
+		                dto.setEmail(object[5] != null ? object[5].toString() : null);
+		                dto.setManagerName(object[6] != null ? object[6].toString() : null);
+		                dto.setBillable(object[7] != null ? object[7].toString() : null);
+		                dto.setBillableType(object[8] != null ? object[8].toString() : null);
+		                dto.setProjectName(object[9] != null ? object[9].toString() : null);
+		                dto.setClientName(object[10] != null ? object[10].toString() : null);
+		                dto.setDateOfJoining(object[11] != null ? object[11].toString() : null);
+		                dto.setMobileNo(object[12] != null ? object[12].toString() : null);
+		                dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);
+		                dto.setTotalExperience(object[14] != null ? object[14].toString() : null);
+		                dto.setGender(object[15] != null ? object[15].toString() : null);
+		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
+		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
+		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
+
+		                dtoList.add(dto);
+		            });
+
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(dtoList);
+
+		            logBuilder.append(" - Successfully retrieved ").append(employeeDetails.size()).append(" employee records");
+		            logBuilder.append(" for departments: ").append(request.getDeptId());
+		            logBuilder.append(" with KYC status filter: ").append(request.getIsUserInfoUpdated());
+
+		        } else {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse(new ArrayList<>());
+		            logBuilder.append(" No employee data found for departments: ").append(request.getDeptId());
+		            logBuilder.append(" with KYC status filter: ").append(request.getIsUserInfoUpdated());
+		        }
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something Went Wrong.");
+		        response.setServiceError(e.getMessage());
+		        logBuilder.append(" Error occurred: ").append(e.getMessage());
+		        logBuilder.append(" for departments: ").append(request.getDeptId());
+		        logBuilder.append(" with KYC status filter: ").append(request.getIsUserInfoUpdated());
+		    }
+
+		    apiLogInfo.setApiRequest(logBuilder.toString());
+		    logService.logMyInfo(httpRequest, apiLogInfo);
+		    return response;
+		}
+	  
+	  public ServiceResponse getDepartmentwiseEmployeesByType(ReportsQueryDTO request) {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/getDepartmentwiseEmployeesByType");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+
+		    try {
+		        List<Object[]> employeeDetails = reportDashboardRepository.findDepartmentwiseEmployees(
+		            request.getDeptId(),
+		            request.getEmployeeType()
+		        );
+
+		        if (employeeDetails != null && !employeeDetails.isEmpty()) {
+		            List<ReportListDTO> dtoList = new ArrayList<>();
+
+		            employeeDetails.forEach((object) -> {
+		                ReportListDTO dto = new ReportListDTO();
+
+		                dto.setEmployeementId(object[0] != null ? object[0].toString() : null);
+		                dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
+		                dto.setName(object[2] != null ? object[2].toString() : null);
+		                dto.setExperience(object[3] != null ? object[3].toString() : null);
+		                dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
+		                dto.setEmail(object[5] != null ? object[5].toString() : null);
+		                dto.setManagerName(object[6] != null ? object[6].toString() : null);
+		                dto.setBillable(object[7] != null ? object[7].toString() : null);
+		                dto.setBillableType(object[8] != null ? object[8].toString() : null);
+		                dto.setProjectName(object[9] != null ? object[9].toString() : null);
+		                dto.setClientName(object[10] != null ? object[10].toString() : null);
+		                dto.setDateOfJoining(object[11] != null ? object[11].toString() : null);
+		                dto.setMobileNo(object[12] != null ? object[12].toString() : null);
+		                dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);
+		                dto.setTotalExperience(object[14] != null ? object[14].toString() : null);
+		                dto.setGender(object[15] != null ? object[15].toString() : null);
+		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
+		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
+		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
+
+		                dtoList.add(dto);
+		            });
+
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(dtoList);
+
+		            logBuilder.append(" - Successfully retrieved ").append(employeeDetails.size()).append(" employee records");
+		            logBuilder.append(" for departments: ").append(request.getDeptId());
+		            logBuilder.append(" with employee type: ").append(request.getEmployeeType());
+
+		        } else {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse(new ArrayList<>());
+		            logBuilder.append(" No employee data found for departments: ").append(request.getDeptId());
+		            logBuilder.append(" with employee type: ").append(request.getEmployeeType());
+		        }
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something Went Wrong.");
+		        response.setServiceError(e.getMessage());
+		        logBuilder.append(" Error occurred: ").append(e.getMessage());
+		        logBuilder.append(" for departments: ").append(request.getDeptId());
+		        logBuilder.append(" with employee type: ").append(request.getEmployeeType());
+		    }
+
+		    apiLogInfo.setApiRequest(logBuilder.toString());
+		    logService.logMyInfo(httpRequest, apiLogInfo);
+		    return response;
+		}
+	  public ServiceResponse getJoinVsResignEmployeeDetails(ReportsQueryDTO request) {
+	        ServiceResponse response = new ServiceResponse();
+	        LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setApiUrl("/api/getJoinVsResignEmployeeDetails");
+	        apiLogInfo.setLogLevel("INFO");
+
+	        StringBuilder logBuilder = new StringBuilder();
+
+	        try {
+	            logBuilder.append("Fetching getJoiningVsResignationCountList data");
+
+	            List<Object[]> data = reportDashboardRepository.getJoinVsResignEmployeeDetails(
+	                request.getEmployeeType(),
+	                request.getMonthName(),
+	                request.getYear()
+	            );
+	            List<ReportListDTO> dtoList = new ArrayList<>();
+	            
+	            data.forEach((object)-> {
+	            	ReportListDTO dto = new ReportListDTO();
+	            	dto.setEmployeementId(object[0] != null ? object[0].toString() : null);
+	                dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
+	                dto.setName(object[2] != null ? object[2].toString() : null);
+	                dto.setExperience(object[3] != null ? object[3].toString() : null);
+	                dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
+	                dto.setEmail(object[5] != null ? object[5].toString() : null);
+	                dto.setManagerName(object[6] != null ? object[6].toString() : null);
+	                dto.setBillable(object[7] != null ? object[7].toString() : null);
+	                dto.setBillableType(object[8] != null ? object[8].toString() : null);
+	                dto.setProjectName(object[9] != null ? object[9].toString() : null);
+	                dto.setClientName(object[10] != null ? object[10].toString() : null);
+	                dto.setDateOfJoining(object[11] != null ? object[11].toString() : null);
+	                dto.setMobileNo(object[12] != null ? object[12].toString() : null);
+	                dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);
+	                dto.setTotalExperience(object[14] != null ? object[14].toString() : null);
+	                dto.setGender(object[15] != null ? object[15].toString() : null);
+	                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
+	                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
+	                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
+	            	
+	                dtoList.add(dto);
+	            });
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(dtoList); // raw object for now
+
+	            logBuilder.append(" - Successfully retrieved ").append(data.size()).append(" records");
+
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	            response.setServiceResponse("Something went wrong while fetching join/resign employee details.");
+	            response.setServiceError(e.getMessage());
+
+	            logBuilder.append(" - Error occurred: ").append(e.getMessage());
+	        }
+
+	        // Print or store the log info
+	        System.out.println(logBuilder.toString());
+
+	        return response;
+	    }
 }

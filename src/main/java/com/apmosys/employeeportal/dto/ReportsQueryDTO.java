@@ -32,5 +32,14 @@ public class ReportsQueryDTO {
     private String workLocation;
     private Long year;
     private String billableType;
-    
+    private boolean apprentice;
+    private boolean consultant;
+    private boolean regular;
+    private boolean probation;
+    private boolean allEmp;
+    private String employeeType;
+    private Long lowerValue;
+    private Long upperValue;
+    private String isUserInfoUpdated;
+    private String monthName;
 }

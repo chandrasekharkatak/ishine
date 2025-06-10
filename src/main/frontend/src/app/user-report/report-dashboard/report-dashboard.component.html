@@ -646,15 +646,15 @@
                         <tr
                             *ngFor="let leave of modalSummaryList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                             <th class="info-label">{{20*(page-1)+i+1}}</th>
-                            <td>{{leave.empId}}</td>
-                            <td>{{leave.employmentType}}</td>
+                            <td>{{leave.employeementId}}</td>
+                            <td>{{leave.employeeType}}</td>
                             <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360"
                                 (click)="cancelRequest()" [navigateToEmployee360]="leave" style="cursor: pointer;"
                                 title="Click to view Employee 360" class="text-capitalize">{{leave.name}}</td>
                             <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.name}}</td>
                             <td>{{leave.experience}}</td>
                             <td class="text-capitalize">{{leave.departmentName}}</td>
-                            <td>{{leave.emailId}}</td>
+                            <td>{{leave.email}}</td>
                             <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{leave.managerName}}
                             </td>
                             <td class="text-capitalize" *ngIf="userMapping.reports_employee_360"
@@ -665,7 +665,7 @@
                             <td>{{leave.billable}}</td>
                             <td>{{leave.billableType}}</td>
 
-                            <td *ngIf="userMapping.report_project_view && leave.projectList">
+                            <!-- <td *ngIf="userMapping.report_project_view && leave.projectList">
                                 <ng-container *ngIf="show === i">
                                     <span *ngFor="let project of leave.projectList; let last = last" class="info-label"
                                         id="clickablefor360" (click)="cancelRequest()"
@@ -691,11 +691,20 @@
                                         ..{{ (show === i) ? '▲' : '▼' }}
                                     </a>
                                 </ng-container>
-                            </td>
-                            <td *ngIf="!userMapping.report_project_view || !leave.projectList">
+                            </td> -->
+                            <!-- <td *ngIf="!userMapping.report_project_view || !leave.projectList">
                                 <span *ngFor="let project of leave.projectList; let last = last" class="info-label">
                                     {{ project.projectName }}<span *ngIf="!last">, </span>
                                 </span>
+                            </td> -->
+                            <td>
+                                <ng-container *ngIf="leave.projectName">
+                                    {{ (show === i) ? leave.projectName : (leave.projectName | slice: 0:20) }}
+                                    <a *ngIf="leave.projectName.length > 20" (click)="show = (show === i ? -1 : i)"
+                                        style="cursor: pointer">
+                                        ..{{ (show === i) ? '▲' : '▼' }}
+                                    </a>
+                                </ng-container>
                             </td>
                             <td>
                                 <ng-container *ngIf="leave.clientName">
@@ -747,6 +756,7 @@
                     [hidden]="modalSummaryList.length == 0" (click)="exportToExcelWorkLocationSummary()"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
+            <div class="table-container">
             <table class="table  scrollable-table" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                     <tr>
@@ -788,6 +798,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
             <pagination-controls class="my-pagination" [hidden]="modalSummaryList.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls>
             <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"

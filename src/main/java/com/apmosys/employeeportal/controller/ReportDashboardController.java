@@ -107,11 +107,43 @@ public class ReportDashboardController {
 		return response;
 	}
 	
-//	 @PostMapping("/getDepartmentWiseBillableNonBillableSummary")
-//	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(
-//	        @RequestBody ReportsQueryDTO request) {
-//	    ServiceResponse response = reportDashboardService.getDepartmentWiseBillableNonBillableSummary(request);
-//        return response;
-//	}
-//	
+	 @PostMapping("/getDepartmentWiseBillableNonBillableSummary")
+	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(
+	        @RequestBody ReportsQueryDTO request) {
+	    ServiceResponse response = reportDashboardService.getDepartmentWiseBillableNonBillableSummary(request);
+        return response;
+	}
+	 
+	 @PostMapping("/getEmployeeDetailsByEmploymentType")
+	public ServiceResponse getEmployeeDetailsByEmploymentType(
+	        @RequestBody ReportsQueryDTO request) {
+	    ServiceResponse response = reportDashboardService.getEmployeeDetailsByEmploymentType(request);
+        return response;
+	}
+	 
+	 @RequestMapping(value = "/getEmployeesByExperience",method = RequestMethod.POST)
+		public  ServiceResponse getEmployeesByExperience(@RequestBody ReportsQueryDTO reportqueryDTO) {
+			ServiceResponse	response=reportDashboardService.getEmployeesByExperience(reportqueryDTO);
+			return response;
+		}
+	 
+	 @RequestMapping(value = "/getEmployeeDetailsByDepartmentAndKyc",method = RequestMethod.POST)
+		public  ServiceResponse getEmployeeDetailsByDepartmentAndKyc(@RequestBody ReportsQueryDTO reportqueryDTO) {
+			ServiceResponse	response=reportDashboardService.getEmployeeDetailsByDepartmentAndKyc(reportqueryDTO);
+			return response;
+		}
+		
+		@RequestMapping(value = "/getDepartmentwiseEmployeesByType",method = RequestMethod.POST)
+		public  ServiceResponse getDepartmentwiseEmployeesByType(@RequestBody ReportsQueryDTO reportqueryDTO) {
+			ServiceResponse	response=reportDashboardService.getDepartmentwiseEmployeesByType(reportqueryDTO);
+			return response;
+		}
+		
+		@RequestMapping(value = "/getJoinVsResignEmployeeDetails" ,method = RequestMethod.POST)
+		public ServiceResponse getJoinVsResignEmployeeDetails(@RequestBody ReportsQueryDTO request) {
+			
+			ServiceResponse response = reportDashboardService.getJoinVsResignEmployeeDetails(request);
+			return response;
+		}
+
 }
