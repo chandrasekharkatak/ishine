@@ -953,7 +953,7 @@ export class ResourceManagementComponent implements OnInit {
         }
       }
     });
-    this.cancelRequest();
+    this.cancelRequest3();
   }
 
   checkTeamName(template: TemplateRef<any>, team: any, teamIndex: any) {
@@ -1120,7 +1120,7 @@ export class ResourceManagementComponent implements OnInit {
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);
           } else {
-            this.openAlertMod(template, response.serviceResponse);
+            this.openAlertMod(template2, response.serviceResponse);
           }
         });
       } else {
@@ -1135,17 +1135,17 @@ export class ResourceManagementComponent implements OnInit {
                 // this.openAlertMod(template, response.serviceResponse);
               } else {
                 // this.cancelRequest();
-                // this.openAlertMod(template, response.serviceResponse);
+                // this.openAlertMod(template2, response.serviceResponse);
               }
             });
           } else {
-            this.openAlertMod(this.alertTemplate, response.serviceResponse);
+            this.openAlertMod(template2, response.serviceResponse);
           }
         });
       }
     }
     else {
-      this.openAlertMod(this.alertTemplate, "There are currently no teams to be set...!");
+      this.openAlertMod(template2, "There are currently no teams to be set...!");
     }
   }
 
