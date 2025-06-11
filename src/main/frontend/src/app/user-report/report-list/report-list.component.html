@@ -363,6 +363,7 @@
       <div class="col-md-12 table-header">
         <h1 class="table-header-title">Employee Report</h1>
       </div>
+      <button *ngIf="returnUrl" type="button" class="btn btn-secondary btn-sm" (click)="goBack()">Back</button>
     </div>
     <div class="col-md-3 col-sm-6 custom-control custom-switch">
       <input type="checkbox" class="custom-control-input" id="hierarchy-switch-1" [checked]="showDetails"

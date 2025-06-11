@@ -25,9 +25,9 @@
       </div>
   
       <!-- Top Right Toggle Button -->
-      <!-- <div>
-        <button type="button" class="btn btn-primary btn-sm" (click)="toggleReportView()">Toggle to Employee View</button>
-      </div> -->
+      <div>
+        <button type="button" class="btn btn-primary btn-sm" (click)="goToReportList()">Toggle to Employee View</button>
+      </div>
       
     </div>
   </div>
@@ -2332,7 +2332,9 @@
 <ng-container *ngIf="showReportList">
     <!-- Load report list page in an iframe -->
     <div class="text-end mb-2">
-      <button type="button" class="btn btn-secondary btn-sm" (click)="toggleReportView()">Back</button>
+      <!-- <button type="button" class="btn btn-secondary btn-sm" (click)="toggleReportView()">Back</button> -->
+      <!-- <button type="button" class="btn btn-primary btn-sm" (click)="goToReportList()">Go to Report List</button> -->
     </div>
-    <iframe [src]="reportListUrlSafe" width="100%" height="850px" frameborder="0"></iframe>
+    <!-- <iframe [src]="reportListUrlSafe" width="100%" height="850px" frameborder="0"></iframe> -->
+
 </ng-container>

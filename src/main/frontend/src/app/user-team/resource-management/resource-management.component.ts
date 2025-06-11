@@ -1,3 +1,4 @@
+import { formatDate } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -13,12 +14,15 @@ import { DefaultProjectUpdate } from 'src/app/models/defaultProjectUpdate';
 import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { EmployeeInformation } from 'src/app/models/employeeInformation';
+import { employeeReport } from 'src/app/models/employeeReport';
 import { Feature } from 'src/app/models/feature';
+import { FilteredTimesheet } from 'src/app/models/filteredTimesheet';
 import { GetProjectDetailsForBulkDefaultUpdate } from 'src/app/models/getProjectDetailsForBulkDefaultUpdate';
 import { PreviousDefaultProject } from 'src/app/models/previousDefaultProject';
 import { Project } from 'src/app/models/project';
 import { ProjectFilterDTO } from 'src/app/models/projectFilterDTO';
 import { ProjectRequirements } from 'src/app/models/projectRequirements';
+import { Query } from 'src/app/models/query';
 import { SetDefaultProjectObj } from 'src/app/models/setDefaultProjectObj';
 import { Team } from 'src/app/models/team';
 import { TeamMember } from 'src/app/models/teamMember';
@@ -35,6 +39,11 @@ import { TeamService } from 'src/app/services/team.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { environment } from 'src/environments/environment';
+class FilterData {
+  title: any;
+  columns: any;
+  queryList: any;
+}
 @Component({
   selector: 'app-resource-management',
   templateUrl: './resource-management.component.html',
@@ -85,6 +94,12 @@ export class ResourceManagementComponent implements OnInit {
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
+  @ViewChild("alert_message")
+  alertModal: TemplateRef<any>;
+
+  @ViewChild("alert_message_sync")
+  alertModalSync: TemplateRef<any>;
+
   @ViewChild("alert_message_without_reload")
   alertTemplateWithoutReload: TemplateRef<any>;
 
@@ -98,6 +113,7 @@ export class ResourceManagementComponent implements OnInit {
   sortColumnType: any;
 
   alertMessage: any;
+  alert_Message: any;
   modalRef: BsModalRef = new BsModalRef();
   modalRef2: BsModalRef = new BsModalRef();
   modalRef1: BsModalRef = new BsModalRef();
@@ -216,6 +232,7 @@ export class ResourceManagementComponent implements OnInit {
   searchMappedProjectText: any;
   otherProjectList: any[] = [];
   filteredOtherProjectList: any[] = [];
+  filterData: any = new FilterData();
 
   @ViewChild("previous_default_project")
   previousDefaultProject: TemplateRef<any>;
@@ -240,7 +257,161 @@ export class ResourceManagementComponent implements OnInit {
   resourceRequirementListBulk: any;
   bulkEmployeeList: EmployeeInformation[] = [];
 
+  //added later
+
+  designationData: string;   //Search Designation
+
+
+  isLeaveReportTable: boolean = false;
+  isTimesheetReportTable: boolean = false;
+  isEmployeeReportTable: boolean = false;
+  isAccessControlListTable: boolean = false;
+  isLeaveTimesheetReportTable: boolean = false
+  isCustomQueryForm: boolean = false;
+  isAccessFeatureMapping: boolean = false;
+  isDefaultFeatureMapping: boolean = false;
+
+  allEmployeeList: any[] = [];
+  deptWiseConsolidated: any[] = [];
+
+  allLeaveApplicationsList: any[] = [];
+  leaveApplicationsDataForExcel: any[] = [];
+
+  allTimesheetApplicationsList: any[] = [];
+  timesheetApplicationsDataForExcel: any[] = [];
+
+  allJobRoleList: any[] = [];
+  personaWiseJobRole: any[] = [];
+  accessControlList: any[] = [];
+  mappedSubFeatureList: any[] = [];
+  subfeatureList: any[] = [];
+  defaultMappingList: any[] = [];
+  defaultMappingListFilter: any[] = [];
+  updateDefaultMapping: any[] = [];
+
+  updatedRoleSubFeature: any[] = [];
+  hiddenColumnObj: any[] = [];
+  showColumnList: any[] = [];
+  filteringTimesheet: FilteredTimesheet = new FilteredTimesheet();
+
+  insideCols: any[] = [];
+
+  storedDataList: any[] = [];
+
+ // excelName: any;
+  jobRoleName: any;
+  departmentId: any;
+  selectedProjectId: any;
+ // employeeRole: any;
+  selectedColumnToShow: any;
+  
+
+  leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
+  employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
+  timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
+  filteredTimesheetReportColumns: any[] = [
+    'employeementId',
+    'employeeType',
+    'employeeName',
+    'departmentName',
+    'date',
+    'dayType',
+    'projectName',
+    'teamName',
+    'clientName',
+    'clientLocation',
+    'activity',
+    'description',
+    'managerName',
+    'status',
+    'totalTime',
+    'officeInTime',
+    'officeOutTime',
+    'leaveType',
+    'createdByName',
+    'createdOn'
+  ];
+
+  queryList: any[] = [];
+ // filterData: any = new FilterData();
+
+  columns: any[] = [];
+  paginateData: any[] = [];
+  pos: any;
+  release: boolean = true;
+  finalColumns: any[] = [];
+
+  allLeaveTimesheets: any[] = [];
+  endDate: any;
+  startDate: any;
+  employeeReportObj: employeeReport = new employeeReport();
+
+  customQuery: any;
+  leaveReportFlag: boolean = false;
+  timesheetReportFlag: boolean = false;
+  showDetails: boolean = false;
+  showDetailsTimesheet: boolean = false;
+  changeTable: boolean = true;
+
+  // filters: any = {};
+  // isSearchEnabled: boolean = false;
+
+  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
+  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
+  leaveReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
+  timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
+  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
+  // 'dateOfJoining', 'aadhar', 'aboutMe', 'address', 'permanentAddress', 'city', 'bloodGroup', 'dateOfBirth', 'gender', 'fatherName', 'panNumber', 'placeOfBirth', 'workLocation', 'probationPeriod', 'noticePeriod', 'country', 'totalExperience', 'emergencyContactMobile', 'emergencyContactPerson', 'landline', 'maritalStatus', 'motherTongue', 'alternateMobileNo', 'pincode', 'relation', 'state', 'viewsOnOrganisation', 'passportNumber', 'bankAccountNo', 'bankIFSCCode', 'bankName', 'pfAccountNumber', 'previousPfAccountNumber', 'uan', 'esicNumber', 'graduationType', 'pursuing', 'passingGrade', 'yearOfPassing',
+  leaveTimesheetReportColumn: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
+  defaultMappingColumns: any[] = ['tabName', 'featureName', 'subFeatureName'];
+  employeeReportColumnForDetailedProjecttttView: any[] = ['blank',
+    'projectName', 'projectManager', 'apmosysRM', 'clientRM',
+    'poStartDate', 'poEndDate', 'poNo', 'poProjectType', 'teamName',
+    'employeeName', 'jobRole', 'deptName', 'mobileNo', 'email',
+    'billable', 'billableType', 'effectiveStartDate'
+  ];
+  employeesFor360: any[] = [];
+ // departments: any[] = [];
+  allEmployee: any[] = [];
+  //filteredEmployees: any[] = [];
+  allProjectPOInternal: any[] = [];
+  tnmPoExpiredCount = 0;
+  tnmPOValidCount = 0;
+  fixedCostPoExpiredCount = 0;
+  fixedCostPoValidCount = 0;
+  internalCount = 0;
+  tnmProjectCount = 0;
+  fixedCostProjectCount = 0;
+  tnmPoProjectExpiredCount = 0;
+  fixedCostPoProjectExpiredCount = 0;
+  tnmPOProjectActiveCount = 0;
+  fixedCostPoProjectActiveCount = 0;
+  internalProjectCount = 0;
+  selectedDepartment: string = 'All';
+  flatProjectList: any[] = [];
+
+  activeBox: string | null = null;
+  isHovering: string | null = null;
+
+  tnmPoExpiredCountList: any[] = [];
+  tnmPOValidCountList: any[] = [];
+  fixedCostPoExpiredCountList: any[] = [];
+  fixedCostPoValidCountList: any[] = [];
+  internalCountList: any[] = [];
+  newemployeeObj: any;
+  updatedEmpObj: any;
+  show: number = -1;
+  filteredTimesheets: any;
+  toastr: any;
+  //isAccounts: boolean = false;
+  isDeptFilter: boolean = false;
+  dept:any;
+
+  //added
+
   setDefaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
+  projectSummary: {};
+  projectList: any[];
 
   constructor(
     private departmentService: DepartmentService,
@@ -340,7 +511,7 @@ export class ResourceManagementComponent implements OnInit {
     // }
   }
 
-
+  
   sectionViewInit() {
     if (this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin') {
       this.isHOD = true;
@@ -376,6 +547,8 @@ export class ResourceManagementComponent implements OnInit {
     // this.getManagerList();
     // this.alreadyCreatedTeam();
   }
+
+  
 
   showEditProjectForm(project: any) {
     this.isEditProject = true;
@@ -551,6 +724,7 @@ export class ResourceManagementComponent implements OnInit {
       dept.name.toLowerCase().includes(lowerText)
     );
   }
+  
 
   onDepartmentSelectionChange() {
     console.log(this.isAllSelected, "this.isAllSelected");
@@ -3103,7 +3277,11 @@ toggleReportView() {
 }
 
 goToReportList() {
-  this.router.navigate(['/user-reports/report-list']);
+  this.router.navigate(['/user-reports/report-list'], {
+    state: { returnUrl: this.router.url }
+  });
 }
+
+
 
 }

@@ -2,6 +2,7 @@ import { CdkDragDrop, CdkDragRelease, moveItemInArray } from "@angular/cdk/drag-
 import { formatDate, LocationStrategy } from '@angular/common';
 import { Component, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { Router } from "@angular/router";
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -14,6 +15,7 @@ import { JobRole } from 'src/app/models/jobRole';
 import { Query } from 'src/app/models/query';
 import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
+import { Location } from '@angular/common';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
@@ -207,7 +209,8 @@ export class ReportListComponent implements OnInit {
   toastr: any;
   isAccounts: boolean = false;
   isDeptFilter: boolean = false;
-  dept: any;
+  dept:any;
+  returnUrl: string | null = null;
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -221,10 +224,12 @@ export class ReportListComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private utilityService: UtilityService,
     private departmentService: DepartmentService,
+    private location: Location, private router: Router,
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
-
+    const navigation = this.router.getCurrentNavigation();
+    this.returnUrl = navigation?.extras?.state?.['returnUrl'] || null;
 
 
 
@@ -2824,6 +2829,14 @@ export class ReportListComponent implements OnInit {
     });
   }
 
+
+goBack() {
+  if (this.returnUrl) {
+    this.router.navigateByUrl(this.returnUrl);
+  } else {
+    this.location.back(); // fallback
+  }
+}
 
 
 }
