@@ -286,7 +286,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 		+ "    AND etm.active != 0 \n"
 		+ "    AND t.is_active = 'Y' \n"
 		+ "    AND e.employmentstatus != 'InActive' \n"
-		+ "    AND pmm.active = 1",nativeQuery = true)
+		+ "    AND pmm.active = 1 AND e.emp_id NOT BETWEEN 1 AND 6",nativeQuery = true)
 List<Object[]> findEmployeeProjectTeamDetailsMatchedBothProjects(@Param("projectIds") Set<Integer> projectIds);
 
  @Query(nativeQuery = true,value ="select etm.emp_id from employee_team_mapping etm inner join teams t on t.team_id = etm.team_id inner join  projects p on p.project_id = t.project_id where etm.is_shadow = 1 and etm.active !=0 and t.is_active = 'Y' and p.project_id = :projectId and etm.emp_id IN :empIds")

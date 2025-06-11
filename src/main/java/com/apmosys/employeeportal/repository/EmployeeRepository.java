@@ -609,7 +609,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "    WHERE etm.emp_id = e.emp_id \n"
     		+ "      AND etm.active != 0\n"
     		+ "      AND t.is_active = 'Y'\n"
-    		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive'",nativeQuery = true)
+    		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive' and e.emp_id NOT BETWEEN 1 AND 6",nativeQuery = true)
     List<Object[]> findAllEmployeesWithoutAnyProject();
     
     @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type from employee e \n"

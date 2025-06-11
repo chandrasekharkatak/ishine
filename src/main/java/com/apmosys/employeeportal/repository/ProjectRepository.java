@@ -105,10 +105,10 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getEmployeesByPoProjectId(String poProjectId);
 	
 	
-	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true' and po_project_type IS NULL")
+	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true' and po_project_id IS NULL")
 	 Set<Integer> findAllActiveInternalProjectIds();
 	 
-	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true' and po_project_type IS NOT NULL")
+	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true' and po_project_id IS NOT NULL")
 	 Set<Integer> findAllActiveShankhProjectIds();
 	 
 	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true'")
