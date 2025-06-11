@@ -841,7 +841,7 @@ public class ResourceManagementService {
 
 							List<EmployeeTeamMap> mapList = new ArrayList<EmployeeTeamMap>();
 							// Add team member in team
-							List<Long> defaultProjectEmpIds = null;
+							List<Long> defaultProjectEmpIds = new ArrayList<Long>();
 
 							for (TeamMemberDTO teamMember : teamObj.getTeamMemberList()) {
 								EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
