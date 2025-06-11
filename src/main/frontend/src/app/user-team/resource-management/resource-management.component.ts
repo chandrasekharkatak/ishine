@@ -415,6 +415,7 @@ export class ResourceManagementComponent implements OnInit {
   projectList: any[];
   employeeBenchRepot: any[] = [];
   employeeBench: any;
+  employeeBenchRepotMsg:any;
 
   constructor(
     private departmentService: DepartmentService,
@@ -3378,7 +3379,9 @@ ExceptionEmployeeReport(projectFilterDTO: ProjectFilterDTO){
         // console.log("this.employeeBenchRepot", this.employeeBenchRepot)
       }
       else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+        // this.openAlertMod(this.alertTemplate, response.serviceResponse);
+        this.employeeBenchRepotMsg = response.serviceResponse;
+        this.employeeBench = 0;
       }
     });
   }
