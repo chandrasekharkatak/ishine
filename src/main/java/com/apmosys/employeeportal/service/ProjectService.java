@@ -1823,7 +1823,7 @@ public class ProjectService {
                  .append("INNER JOIN client_locations cl ON cl.client_id = p.client_id ")
                  .append("INNER JOIN clients c ON c.client_id = p.client_id ")
                  .append("LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id ")
-                 .append("WHERE e.employmentstatus != 'InActive' AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' AND p.project_id IS NOT NULL ")
+                 .append("WHERE e.employmentstatus != 'InActive' AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' AND p.project_id IS NOT NULL and e.emp_id not between 1 and 6 ")
 	             .append(buildInnerWhereClause(poProjectType, flag))
 	             .append(buildOuterWhereClause(billableType, deptIds));
         } else {
@@ -1917,7 +1917,7 @@ public class ProjectService {
 	    		+ "    INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
 	    		+ "    INNER JOIN department d ON d.dept_id = j.dept_id \n"
 	    		+ "    INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
-	    		+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ");
+	    		+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6 ");
 
 	    if (dto != null) {
 	        query.append(buildInnerWhereClause(dto.getPoProjectType(), dto.getFlag()))
@@ -1942,7 +1942,7 @@ public class ProjectService {
 	    		+ "    INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
 	    		+ "    INNER JOIN department d ON d.dept_id = j.dept_id \n"
 	    		+ "    INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
-	    		+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ");
+	    		+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6 ");
 
 	    if (dto != null) {
 	        query.append(buildInnerWhereClause(dto.getPoProjectType(), dto.getFlag()))

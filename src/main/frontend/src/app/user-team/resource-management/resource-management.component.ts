@@ -1657,7 +1657,7 @@ isBulkDelete:boolean=false;
       this.addMemberCtrl.reset();
       this.selectedRequirement = null;
     }
-    this.teamMemberCtrl.reset();
+    // this.teamMemberCtrl.reset();
   }
 
 
