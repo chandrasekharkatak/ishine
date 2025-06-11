@@ -107,9 +107,8 @@ export class ViewEmployeeComponent implements OnInit {
     }
     return listData.map(item => item.projectManagerName).join(', ');
   }
+
   exportToExcel(): void {
-
-
     this.excelName = 'Employee_Details_Report.xlsx';
 
     const dataForTable = []
@@ -278,11 +277,18 @@ get filteredBenchEmployeeList() {
 
 onSearchException(searchParams: any): void {
   const searchKeys = Object.keys(searchParams);
-  this.filteredEmployeeData = this.allEmployeeData.filter(emp =>
-    searchKeys.every(key =>
-      emp[key]?.toString().toLowerCase().includes(searchParams[key].toLowerCase())
-    )
-  );
+  
+  this.filteredEmployeeData = this.allEmployeeData.filter(employee => {
+    return searchKeys.every(key => {
+      const topLevelMatch = employee[key]?.toString().toLowerCase().includes(searchParams[key].toLowerCase());
+      
+      const nestedMatch = employee.rmgProjects?.some(project =>
+        project[key]?.toString().toLowerCase().includes(searchParams[key].toLowerCase())
+      );
+
+      return topLevelMatch || nestedMatch;
+    });
+  });
 }
   
 }

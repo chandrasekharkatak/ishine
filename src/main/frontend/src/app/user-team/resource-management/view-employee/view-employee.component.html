@@ -249,7 +249,7 @@ matSort (matSortChange)="sortData($event)"
                         </tr>
                     </ng-container>
 
-                    <ng-container *ngFor="let employee of allEmployeeData | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                    <ng-container *ngFor="let employee of filteredEmployeeData | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                         <ng-container *ngFor="let project of employee.rmgProjects; let j = index">
                             <tr>
                                 <td class="text-center" *ngIf="j === 0" [attr.rowspan]="employee.rmgProjects.length">{{ i + 1 }}</td>
@@ -269,28 +269,6 @@ matSort (matSortChange)="sortData($event)"
                             </tr>
                         </ng-container>
                     </ng-container>
-                    
-
-                    
-                    <!-- <ng-container
-                        *ngFor="let employee of allEmployeeData | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                        <tr>
-                            <td class="text-center">{{ i + 1 }}</td>
-                            <td class="text-center">A-{{employee.employmentId}}</td>
-                            <td class="text-center">{{employee.employeeName}}</td>
-                            <td class="text-center">{{employee.department}}</td>
-                           
-                            <td class="text-center">{{employee.billableType }}</td>
-                            <td class="text-center">{{employee.projectName}}</td>
-                            <td class="text-center">{{employee.clientName}}</td>
-                            <td class="text-center">{{employee.apmosysRM}}</td>
-                            <td class="text-center">{{employee.clientRM}}</td>
-                            <td class="text-center">{{employee.poNumber}}</td>
-                            <td class="text-center">{{employee.poProjectType}}</td>
-                            <td class="text-center">{{employee.poStartDate}}</td>
-                            <td class="text-center">{{employee.poEndDate}}</td>
-                        </tr>
-                    </ng-container> -->
                 </tbody>
             </table>
             <div class="row col-md-12">
