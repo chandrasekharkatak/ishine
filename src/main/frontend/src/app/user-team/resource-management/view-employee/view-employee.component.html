@@ -349,7 +349,7 @@ matSort (matSortChange)="sortData($event)"
 
                     </ng-container>
                     <ng-container
-                        *ngFor="let employee of filteredBenchEmployeeList | paginate: { itemsPerPage: 5, currentPage: page }; let eIndex = index">
+                        *ngFor="let employee of filteredBenchEmployeeList | paginate: { itemsPerPage: 10, currentPage: page }; let eIndex = index">
                         <ng-container *ngFor="let empProject of employee.rmgprojects;let pIndex = index">
                             <ng-container *ngFor="let empTeam of empProject.rmgTeam; let tIndex = index">
                                 <tr>

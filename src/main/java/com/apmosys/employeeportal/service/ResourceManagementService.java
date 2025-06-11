@@ -2459,7 +2459,7 @@ public class ResourceManagementService {
 
 		try {
 			Project projectObj = null;
-			if (resourceManagementDTO.getProjectType().equals("Internal"))
+			if (resourceManagementDTO.getProjectType().equals("InternalRNDProducts"))
 				projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
 			else
 				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
@@ -2491,7 +2491,7 @@ public class ResourceManagementService {
 
 						// Send Project/Team detail JSON to PoPortal
 						ServiceResponse poPortalResponse = null;
-						if (!resourceManagementDTO.getProjectType().equals("Internal")) {
+						if (!resourceManagementDTO.getProjectType().equals("InternalRNDProducts")) {
 							poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
 
 							if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
@@ -2805,7 +2805,7 @@ public class ResourceManagementService {
 		System.err.println(" Anurag sync PO portal    ::   " + resourceManagementDTO);
 		try {
 			Project projectObj = null;
-			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
+			if (!resourceManagementDTO.getProjectType().equals("InternalRNDProducts")) {
 				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
 				System.err.println(" projectObj   " + projectObj.getPoProjectId());
 				List<PoProjectSyncDTO> projectInfo = new ArrayList<PoProjectSyncDTO>();
@@ -3060,7 +3060,7 @@ public class ResourceManagementService {
 				allInternalProject.forEach((object) -> {
 					ResourceManagementDTO projectDTO = new ResourceManagementDTO();
 
-					projectDTO.setProjectType("Internal");
+					projectDTO.setProjectType("InternalRNDProducts");
 					projectDTO.setName(object[0] != null ? object[0].toString() : null);
 //					projectDTO.setProjectManager(object[10] != null ? "A-".concat(object[10].toString()) : null);
 					projectDTO.setProjectManagerName(object[2] != null ? object[2].toString() : null);
@@ -3340,7 +3340,7 @@ public class ResourceManagementService {
 
 		try {
 			Project projObj = null;
-			if (dto.getProjectType().equals("Internal")) {
+			if (dto.getProjectType().equals("InternalRNDProducts")) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("This is marked as an internal project !");
 				return response;
@@ -4382,7 +4382,7 @@ public class ResourceManagementService {
 
 		try {
 			Project projObj = null;
-			if (resourceManagementDTO.getProjectType().equals("Internal")) {
+			if (resourceManagementDTO.getProjectType().equals("InternalRNDProducts")) {
 				projObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
 
 			} else {
@@ -5934,7 +5934,7 @@ public class ResourceManagementService {
 		        Map<String,Integer> map = new HashMap<>();
 		        map.put("pendingForApprovalCount", projectRepository.getAllActiveProjecCountstList(projectFilterDTO.getDepartmentsids(),"true"));
 				map.put("approvedCount", projectRepository.getAllActiveProjecCountstList(projectFilterDTO.getDepartmentsids(),"false"));
-				map.put("completedCount", projectRepository.getAllCompleteProjectInShankhCountstList(projectFilterDTO.getDepartmentsids(),"Complete"));
+				map.put("completedCount", projectRepository.getAllCompleteProjectInShankhCountstList(projectFilterDTO.getDepartmentsids()));
 				map.put("notStartedCount",projectTempRepo.getAllNotStartedProjectCount());
 				map.put("rejectedCount", projectRepository.getAllActiveProjecCountstList(projectFilterDTO.getDepartmentsids(),"Rejected"));
 				map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(projectFilterDTO.getDepartmentsids(),"Complete"));
@@ -5954,7 +5954,14 @@ public class ResourceManagementService {
 		        	ishineStatus = null;
 			        poStatus = null;
 		        }
-		        List<Object[]> results = projectRepository.getAllActiveProjectList(departmentsids,ishineStatus,poStatus,projectFilterDTO.getApprovalStatus());
+		        List<Object[]> results = new ArrayList<>();
+		        if(projectFilterDTO.getCompletionStatus()==null) {
+		        	
+		         results = projectRepository.getAllActiveProjectList(departmentsids,ishineStatus,poStatus,projectFilterDTO.getApprovalStatus());
+		        }
+		        else {
+		         results = projectRepository.getAllActiveCompletedProjectList(departmentsids,ishineStatus,poStatus,projectFilterDTO.getApprovalStatus());
+		        }
 //		        ServiceResponse teamCreatedProjectsResponse = alreadyCreatedTeam();
 //		        if (!ServiceResponse.STATUS_SUCCESS.equals(teamCreatedProjectsResponse.getServiceStatus())) {
 //		            return failResponse(response, apiLogInfo, "Failed to fetch already created team projects.");
@@ -6050,7 +6057,7 @@ public class ResourceManagementService {
 		        }
 		        
 		        if((projectFilterDTO.getCompletionStatus() == null && projectFilterDTO.getApprovalStatus()== null) ||
-		        (projectFilterDTO.getApprovalStatus().equalsIgnoreCase("Not Started") && projectFilterDTO.getCompletionStatus() == null)) {
+		        ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) && projectFilterDTO.getCompletionStatus() == null)) {
 		        List<Object[]> results2 = projectTempRepo.getAllNotStartedProjectList();
 		        for (Object[] row : results2) {
 			        ProjectFetchDTO dto = new ProjectFetchDTO(

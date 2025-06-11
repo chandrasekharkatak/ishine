@@ -445,10 +445,10 @@
                                                     (click)="openDatePicker(MarkAsCompleteDefaultProject,OtherProjectDefaultMapping,project,customDatePickerTemplate);closeMenu(i)">
                                                     <i class="fas fa-check-double"></i> Mark as Complete
                                                 </li>
-                                                <li *ngIf="userMapping.rmg_approval_option || userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !isHideButton"
+                                                <li *ngIf=" userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !isHideButton"
                                                     (click)="onApproveProject(project);closeMenu(i)"><i
                                                         class="fas fa-square-check"></i> Approve</li>
-                                                <li *ngIf="userMapping.rmg_approval_option  || userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !isHideButton"
+                                                <li *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !isHideButton"
                                                     (click)="openRejectModal(reject_project,project);closeMenu(i)"><i
                                                         class="fas fa-times"></i> Reject</li>
                                             </ul>

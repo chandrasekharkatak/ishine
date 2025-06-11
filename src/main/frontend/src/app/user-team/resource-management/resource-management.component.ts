@@ -806,9 +806,18 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   selectStatusTab(status: string) {
-    this.selectedStatusTab = status;
+     this.selectedStatusTab = status;
+    console.log(this.selectedStatusTab)
     console.log(this.selectedStatusTab, "this.selectedStatusTab");
     this.projectFilterDTO.approvalStatus = this.selectedStatusTab;
+    if(this.selectedStatusTab == "Completed"){
+      this.projectFilterDTO.completionStatus = this.selectedStatusTab;
+      this.projectFilterDTO.approvalStatus = "All";
+    }
+    else{
+      this.projectFilterDTO.completionStatus = null;
+    }
+    console.log(this.projectFilterDTO)
     this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
   }
 
