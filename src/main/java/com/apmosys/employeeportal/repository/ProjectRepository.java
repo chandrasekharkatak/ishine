@@ -226,4 +226,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInformationForDefaultProject(List<Long> empIds);
 	
+	@Query(nativeQuery = true)
+	public List<Object[]> getBenchEmployeeMoreThan30Days();
+	
 }

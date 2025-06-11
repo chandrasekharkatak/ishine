@@ -18,21 +18,26 @@ export class ViewEmployeeComponent implements OnInit {
   sortColumnType: any;
   sortDirection = 'asc';
   allProjectTable: boolean = false;
-  tableColumns: any[] = ['blank', 'employeementId', 'name', 'department', 'billableType', 'billable', 'projectName', 'clientName', 'apmosysRM', 'clientRM', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'projectManagerName', 'teamName', 'employeeRole', 'status'];
-  tableColumnsNotMapped: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'managerName', 'jobRoleName'];
-  exceptionTableColumns: any[] = ['blank', 'employmentId', 'employeeName', 'department', 'billableType', 'projectName', 'clientName', 'apmosysRM', 'clientRM', 'poNumber', 'poProjectType', 'poStartDate', 'poEndDate'];
+  tableColumns :any[]= ['blank','employeementId','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
+  tableColumnsNotMapped : any[] = ['blank','employeementId','name','departmentName','managerName','jobRoleName'] ;
+  exceptionTableColumns: any[] = ['blank','employmentId','employeeName','department','billableType','projectName','clientName','apmosysRM','clientRM','poNumber','poProjectType','poStartDate','poEndDate'];
+  tableColumnsBench :any[]= ['blank','employeementId','name','department','billableType','billable','onBenchDate','daysOnBench','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
   filters: any = {};
   page = 1;
   isSearchEnabled: boolean = false;
-  excelName: any;
-  constructor(private exportExcelService: ExportExcelService,
+  excelName : any;
+  filtersBench: any = {};
+  filteredEmployeeData: any[] = [];
+
+  constructor(private exportExcelService :ExportExcelService,
     private breadcrumbService: BreadcrumbService
   ) { }
 
   ngOnInit(): void {
     // this.exportToExcel();
-    console.log(this.catagory, "catagory")
-    console.log(this.allEmployeeData, "allEmployeeData")
+    console.log(this.catagory,"catagory")
+    console.log(this.allEmployeeData,"allEmployeeData")
+    this.filteredEmployeeData = [...this.allEmployeeData];
   }
 
   sortData(sort: Sort) {
@@ -66,10 +71,24 @@ export class ViewEmployeeComponent implements OnInit {
     }, 0);
   }
 
+  //    getHierarchicalSrNo(eIndex: number, pIndex: number, tIndex: number): string {
+  //   const globalProjectIndex = this.getGlobalProjectIndex(eIndex) + 1;
+  //   return `${globalProjectIndex}.${pIndex + 1}.${tIndex + 1}`;
+  // }
   getHierarchicalSrNo(eIndex: number, pIndex: number, tIndex: number): string {
-    const globalProjectIndex = this.getGlobalProjectIndex(eIndex) + 1;
-    return `${globalProjectIndex}.${pIndex + 1}.${tIndex + 1}`;
+    const employee = this.allEmployeeData[(this.page - 1) * 5 + eIndex];
+    const totalProjects = employee.rmgprojects?.length || 0;
+    const totalTeams = employee.rmgprojects?.[pIndex]?.rmgTeam?.length || 0;
+
+    const globalIndex = this.getGlobalProjectIndex(eIndex) + 1;
+
+    if (totalProjects > 1 || totalTeams > 1) {
+      return `${globalIndex}.${pIndex + 1}.${tIndex + 1}`;
+    } else {
+      return `${globalIndex}`;
+    }
   }
+
   getGlobalProjectIndex(localPIndex: number): number {
     const itemsPerPage = 5; // Match with HTML
     return (this.page - 1) * itemsPerPage + localPIndex;
@@ -181,46 +200,89 @@ export class ViewEmployeeComponent implements OnInit {
 
     this.exportExcelService.exportTableDataToExcel(dataForTable, excelName);
   }
-  filteredEmployeeData: any;
 
-  onSearchException(searchObj: any) {
-    const searchText = (text: string) => text?.toString().toLowerCase() || '';
-    this.filteredEmployeeData = [...this.allEmployeeData];
-    this.filteredEmployeeData = this.allEmployeeData.filter(employee => {
-      // Check top-level employee fields
-      const matchesEmployee = Object.keys(searchObj).some(key => {
-        const value = searchText(searchObj[key]);
-        if (!value) return false;
+exportExceptionToExcelBench(): void {
+  const excelName = 'Exception_Employee_Details_Report.xlsx';
 
-        return (
-          searchText(employee[key]).includes(value)
-        );
+  const dataForTable: any[] = [];
+
+  this.allEmployeeData.forEach((employee: any) => {
+    employee.rmgprojects?.forEach((project: any) => {
+      project.rmgTeam?.forEach((team: any) => {
+        dataForTable.push({
+          "Employment Id": employee.employeementId,
+          "Employee Name": employee.name,
+          "Department": employee.department,
+          "Billable Type": employee.billableType,
+          "Billable": employee.billable,
+          "On Bench Date": employee.onBenchDate,
+          "Days On Bench": employee.daysOnBench,
+          "Project Name": project.projectName,
+          "Client Name": project.clientName,
+          "Apmosys RM": project.apmosysRM,
+          "Client RM": project.clientRM,
+          "PO No.": project.poNo,
+          "PO Project Type": project.poProjectType,
+          "PO Start Date": project.poStartDate,
+          "PO End Date": project.poEndDate,
+          "Project Managers": this.nameListToString(project.projectManagers),
+          "Team Name": team.teamName,
+          "Employee Role": team.employeeRole,
+          "Status": team.status
+        });
       });
+    });
+  });
 
-      // If not matched in employee level, check inside projects
-      const matchingProjects = employee.rmgProjects?.filter(project =>
-        Object.keys(searchObj).some(key => {
-          const value = searchText(searchObj[key]);
-          if (!value) return false;
+  this.exportExcelService.exportTableDataToExcel(dataForTable, excelName);
+}
 
-          return (
-            searchText(project[key]).includes(value)
-          );
-        })
-      );
+onBenchSearch(searchData: any) {
+  this.page = 1;
+  this.filtersBench = searchData;
+}
 
-      // If projects match, keep only those matching projects
-      if (matchingProjects?.length) {
-        employee.rmgProjects = matchingProjects;
+get filteredBenchEmployeeList() {
+  if (!this.filtersBench || Object.keys(this.filtersBench).length === 0) {
+    return this.allEmployeeData;
+  }
+
+  return this.allEmployeeData.filter(employee => {
+    return Object.keys(this.filtersBench).every(key => {
+      const searchValue = this.filtersBench[key]?.toLowerCase?.().trim() || '';
+
+      if (employee[key] && employee[key].toString().toLowerCase().includes(searchValue)) {
         return true;
       }
 
-      // Return true if employee matches directly
-      return matchesEmployee;
+      if (employee.rmgprojects) {
+        return employee.rmgprojects.some(project => {
+          if (project[key] && project[key].toString().toLowerCase().includes(searchValue)) {
+            return true;
+          }
+
+          if (project.rmgTeam) {
+            return project.rmgTeam.some(team => {
+              return team[key] && team[key].toString().toLowerCase().includes(searchValue);
+            });
+          }
+
+          return false;
+        });
+      }
+
+      return false;
     });
-  }
+  });
+}
 
-
-
-
+onSearchException(searchParams: any): void {
+  const searchKeys = Object.keys(searchParams);
+  this.filteredEmployeeData = this.allEmployeeData.filter(emp =>
+    searchKeys.every(key =>
+      emp[key]?.toString().toLowerCase().includes(searchParams[key].toLowerCase())
+    )
+  );
+}
+  
 }

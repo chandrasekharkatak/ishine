@@ -26,8 +26,4 @@ public class RMGProject {
 	private List<RMGTeam> rmgTeam;
 	private List<ProjectManagersDTO> projectManagers;
 	
-	
-	
-	
-
 }

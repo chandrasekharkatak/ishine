@@ -130,4 +130,8 @@ export class ResourceManagementService {
   getAllResourceRequirementForProject(data:Project){
     return this.http.post(`${this.baseUrl}`+`api/getAllResourceRequirementForProject`, data);
   }
+
+  getBenchEmployeeMoreThan30Days(){
+    return this.http.get(`${this.baseUrl}`+`api/getBenchEmployeeMoreThan30Days`);
+  }
 }

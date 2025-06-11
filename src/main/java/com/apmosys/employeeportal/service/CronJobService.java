@@ -5743,7 +5743,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 		
 		@Async
-		@Scheduled(cron = "0 0/5 * ? * *")
+//		@Scheduled(cron = "0 0/5 * ? * *")
 		//@Scheduled(cron = "0 9 12 * * ?")
 		@Transactional
 		public void getProjectCloneFromPoPortal() {

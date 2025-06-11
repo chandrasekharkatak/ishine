@@ -9,5 +9,10 @@ export class EmployeeInformation{
 	billableType:any;
 	jobRole:any;
 	deptName:any;
+	projectId:any;
+	teamId:any;
+	employeeRole:any;
+	resourceOverViewId:any;
+	projectType:any;
 
 }

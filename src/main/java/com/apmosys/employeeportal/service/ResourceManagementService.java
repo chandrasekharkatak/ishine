@@ -43,6 +43,7 @@ import org.springframework.web.client.HttpServerErrorException.InternalServerErr
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
@@ -56,7 +57,6 @@ import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.GetPreviousDefaultProjectDetailsDTO;
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateTeamDTO;
-import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
@@ -691,7 +691,7 @@ public class ResourceManagementService {
 						Team teamDbResponse = teamRepository.save(teamPresent);
 
 						if (teamDbResponse != null) {
-							List<Long> defaultProjectEmpId = new ArrayList<>();
+							List<Long> defaultProjectEmpId = new ArrayList<Long>();
 							List<EmployeeTeamMap> alreadyMappedMember = employeeTeamMapRepository
 									.findByTeamId(teamDbResponse.getTeamId());
 							List<TeamMemberDTO> newTeamMember = teamObj.getTeamMemberList();
@@ -725,7 +725,7 @@ public class ResourceManagementService {
 													? Long.parseLong(newMember.getResourceOverviewId().toString())
 													: null);
 											
-											if(newMember.getIsDefaultProject() == 1)
+											if(newMember.getIsDefaultProject() == 1 && newMember.getEmpId()!= null)
 												defaultProjectEmpId.add(newMember.getEmpId());
 											
 											updateMemberList.add(updateMember);
@@ -736,17 +736,17 @@ public class ResourceManagementService {
 							List<EmployeeTeamMap> updateMemberDbResponse = employeeTeamMapRepository
 									.saveAll(updateMemberList);
 							
-								if(!defaultProjectEmpId.isEmpty()) {
+								if(!defaultProjectEmpId.isEmpty() && defaultProjectEmpId != null) {
 									ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(defaultProjectEmpId, projectObj.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
 								
-								if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
-								    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
-								} else {
-								    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+									if (ServiceResponse.STATUS_SUCCESS.equals(defaultProjectResponse.getServiceStatus())) {
+									    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+									    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+									} else {
+									    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+									    response.setServiceResponse(defaultProjectResponse.getServiceResponse());
+									}
 								}
-							}
 
 							// Add teamMember mapping
 							ServiceResponse response2 = this.processNewTeamMembers(newTeamMember, teamDbResponse,
@@ -6344,7 +6344,7 @@ public class ResourceManagementService {
 
 	    for (Object[] row : projectList) {
 	        Integer projectId = Integer.parseInt(row[0].toString());
-	        String projectName = row[1].toString();
+	        String projectName = row[1] != null ? row[1].toString() : null;
 	        Long teamId = row[2] != null ? Long.parseLong(row[2].toString()) : null;
 	        String teamName = row[3] != null ? row[3].toString() : null;
 	        Long resourceOverviewId = row[4] != null ? Long.parseLong(row[4].toString()) : null;
@@ -6656,4 +6656,133 @@ public class ResourceManagementService {
 	    return response;
 	}
 	
+	public ServiceResponse getBenchEmployeeMoreThan30Days() {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getBenchEmployeeMoreThan30Days");
+	    apiLogInfo.setApiUrl("/api/getBenchEmployeeMoreThan30Days");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+
+	    try {
+	        List<Object[]> resultSet = projectRepository.getBenchEmployeeMoreThan30Days();
+	        logBuilder.append("\n getBenchEmployeeMoreThan30Days - Total Records: ").append(resultSet.size());
+
+	        Map<Long, BenchEmployeeDetailsDTO> employeeMap = new HashMap<>();
+
+	        for (Object[] row : resultSet) {
+	            Long empId = ((Number) row[0]).longValue();
+	            String empName = (String) row[1];
+	            String employmentId = (String) row[2];
+	            String billable = (String) row[3];
+	            String billableType = (String) row[4];
+	            String department = (String) row[5];
+
+	            Integer projectId = ((Number) row[6]).intValue();
+	            String projectName = (String) row[7];
+	            Long poProjectId = row[8] != null ? ((Number) row[8]).longValue() : null;
+	            String poStartDate = row[9] != null ? String.valueOf(row[9]) : null;
+	            String poEndDate = row[10] != null ? String.valueOf(row[10]) : null;
+	            String apmosysRM = (String) row[11];
+	            String clientRM = (String) row[12];
+	            String poProjectType = (String) row[13];
+	            String poNo = (String) row[14];
+	            String clientName = (String) row[15];
+
+	            Long teamId = ((Number) row[16]).longValue();
+	            String teamName = (String) row[17];
+	            String teamIsActive = (String) row[18];
+	            String employeeRole = (String) row[19];
+	            String teamStatus = String.valueOf(row[20]);
+	            
+	            Long projectManagerId = ((Number) row[21]).longValue();
+	            String projectManagerName = (String) row[22];
+	            
+	            Date onBenchDateObj = (Date) row[23];
+	            String onBenchDate = onBenchDateObj.toString(); 
+	        	Long daysOnBench =  ((Number)row[24]).longValue();
+	            
+	            BenchEmployeeDetailsDTO employee = employeeMap.computeIfAbsent(empId, id -> {
+	                BenchEmployeeDetailsDTO e = new BenchEmployeeDetailsDTO();
+	                e.setEmpId(empId);
+	                e.setName(empName);
+	                e.setEmployeementId(employmentId);
+	                e.setBillable(billable);
+	                e.setBillableType(billableType);
+	                e.setDepartment(department);
+	                e.setDaysOnBench(daysOnBench);
+	                e.setOnBenchDate(onBenchDate);
+	                e.setRmgprojects(new ArrayList<>());
+	                return e;
+	            });
+
+	            RMGProject project = employee.getRmgprojects().stream()
+	                    .filter(p -> p.getProjectId().equals(projectId))
+	                    .findFirst()
+	                    .orElse(null);
+
+	            if (project == null) {
+	                project = new RMGProject();
+	                project.setProjectId(projectId);
+	                project.setProjectName(projectName);
+	                project.setPoProjectId(poProjectId);
+	                project.setPoStartDate(poStartDate);
+	                project.setPoEndDate(poEndDate);
+	                project.setApmosysRM(apmosysRM);
+	                project.setClientRM(clientRM);
+	                project.setPoProjectType(poProjectType);
+	                project.setPoNo(poNo);
+	                project.setClientName(clientName);
+	                project.setRmgTeam(new ArrayList<>());
+	                project.setProjectManagers(new ArrayList<>());
+	                employee.getRmgprojects().add(project);
+	            }
+
+	            boolean teamExists = project.getRmgTeam().stream()
+	                    .anyMatch(t -> t.getTeamId().equals(teamId));
+
+	            if (!teamExists) {
+	                RMGTeam team = new RMGTeam();
+	                team.setTeamId(teamId);
+	                team.setTeamName(teamName);
+	                team.setIsActive(teamIsActive);
+	                team.setEmployeeRole(employeeRole);
+	                team.setStatus(teamStatus);
+	                project.getRmgTeam().add(team);
+	            }
+
+	            boolean managerExists = project.getProjectManagers().stream()
+	                    .anyMatch(pm -> pm.getProjectManagerName().equals(projectManagerName));
+
+	            if (!managerExists) {
+	                ProjectManagersDTO pmDTO = new ProjectManagersDTO();
+	                pmDTO.setProjectManagerId(projectManagerId);
+	                pmDTO.setProjectManagerName(projectManagerName);
+	                project.getProjectManagers().add(pmDTO);
+	            }
+	        }
+
+	        List<BenchEmployeeDetailsDTO> resultDTO = new ArrayList<>(employeeMap.values());
+
+	        if (!resultDTO.isEmpty()) {
+	            response.setServiceResponse(resultDTO);
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            logBuilder.append("\n Resource requirement fetched successfully.");
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No employee found in bench that has exceeded 30 days!");
+	            logBuilder.append("\n No employee found in bench that has exceeded 30 days! ");
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Something went wrong!");
+	        logBuilder.append("\n Exception occurred: ").append(e.getMessage());
+	    }
+
+	    return response;
+	}
+
 }

@@ -17,5 +17,4 @@ public class RMGTeam {
 	private String employeeRole;
 	private String status;
 
-
 }
