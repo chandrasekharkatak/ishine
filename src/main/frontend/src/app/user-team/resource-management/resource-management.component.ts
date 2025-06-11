@@ -118,6 +118,7 @@ export class ResourceManagementComponent implements OnInit {
   modalRef3: BsModalRef = new BsModalRef();
   modalRef4: BsModalRef = new BsModalRef();
   modalRef5: BsModalRef = new BsModalRef();
+  modalRefTeamMember: BsModalRef = new BsModalRef();
 
   projectObj: Project = new Project();
   projectObj2: Project = new Project();
@@ -960,7 +961,7 @@ export class ResourceManagementComponent implements OnInit {
         }
       }
     });
-    this.cancelRequest3();
+    this.hideTeamMemberModal();
   }
 
   checkTeamName(template: TemplateRef<any>, team: any, teamIndex: any) {
@@ -1656,6 +1657,7 @@ isBulkDelete:boolean=false;
       this.addMemberCtrl.reset();
       this.selectedRequirement = null;
     }
+    this.teamMemberCtrl.reset();
   }
 
 
@@ -2346,7 +2348,7 @@ ExceptionEmployeeReport(projectFilterDTO: ProjectFilterDTO){
       });
     }
 
-    this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
+    this.modalRefTeamMember = this.modalService.show(template, { class: 'custom-modal' });
 
     this.allTeamMembers = [];
     this.teamObj.teamLeadId = '';
@@ -3470,6 +3472,10 @@ goToReportList() {
   });
 }
 
-
+  hideTeamMemberModal(): void {
+    if (this.modalRefTeamMember) {
+      this.modalRefTeamMember.hide();
+    }
+  }
 
 }
