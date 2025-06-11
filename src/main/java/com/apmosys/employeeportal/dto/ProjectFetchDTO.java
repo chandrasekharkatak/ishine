@@ -18,7 +18,7 @@ public class ProjectFetchDTO {
 	private Long id;
 	private Integer projectId;
 	private Timestamp createdOn;
-	private String projectName;
+	private String name;
 	private String state;
 	private Integer clientId;
 	private Long poProjectId;
@@ -43,7 +43,7 @@ public class ProjectFetchDTO {
 	private String internalProjectType;
 	private String clientName;
 	private String draftStatus;
-	private Boolean isTeamCreated;
+	private String isTeamCreated;
 	private String projectViewId;
 	private String projectType;
 	private List<ProjectManagersDTO> projectManagers;
@@ -54,18 +54,17 @@ public class ProjectFetchDTO {
 	private List<ResourceRequirementDTO> resourceRequirements;
 
 	public ProjectFetchDTO(Integer projectId, Timestamp createdOn, String projectName, String state, Integer clientId,
-			Long poProjectId, String active, String syncProject, Long createdBy, Long updatedBy,
+			Long poProjectId, String syncProject, Long createdBy, Long updatedBy,
 			LocalDateTime updatedOn, String isDraftProject, String poEndDate, String poNo, String poProjectType,
 			String poStartDate, String apmosysRM, String clientRM, String deptId, Boolean isRenewable, String status,
 			String apmosysRmEmail, String projectCompletionDate, String projectStatus, String internalProjectType,String clientName,
-			String draftStatus, Boolean isTeamCreated) {
+			String draftStatus, String isTeamCreated) {
 		this.projectId = projectId;
 		this.createdOn = createdOn;
-		this.projectName = projectName;
+		this.name = projectName;
 		this.state = state;
 		this.clientId = clientId;
 		this.poProjectId = poProjectId;
-		this.active = active;
 		this.syncProject = syncProject;
 		this.createdBy = createdBy;
 		this.updatedBy = updatedBy;
@@ -97,7 +96,7 @@ public class ProjectFetchDTO {
 			String draftStatus) {
 		this.projectId = projectId;
 		this.createdOn = createdOn;
-		this.projectName = projectName;
+		this.name = projectName;
 		this.state = state;
 		this.clientId = clientId;
 		this.poProjectId = poProjectId;
@@ -129,7 +128,7 @@ public class ProjectFetchDTO {
 			String draftStatus, String projectViewId) {
 		this.projectId = projectId;
 		this.createdOn = createdOn;
-		this.projectName = projectName;
+		this.name = projectName;
 		this.state = state;
 		this.clientId = clientId;
 		this.poProjectId = poProjectId;

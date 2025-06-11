@@ -690,7 +690,7 @@ public class ResourceManagementService {
 						Team teamDbResponse = teamRepository.save(teamPresent);
 
 						if (teamDbResponse != null) {
-							List<Long> defaultProjectEmpId = null;
+							List<Long> defaultProjectEmpId = new ArrayList<>();
 							List<EmployeeTeamMap> alreadyMappedMember = employeeTeamMapRepository
 									.findByTeamId(teamDbResponse.getTeamId());
 							List<TeamMemberDTO> newTeamMember = teamObj.getTeamMemberList();
@@ -981,7 +981,7 @@ public class ResourceManagementService {
 		StringBuilder logBuilder = new StringBuilder();
 		LogDTO apiLogInfo = new LogDTO();
 		try {
-			List<Long> defaultProjectEmpIds = null;
+			List<Long> defaultProjectEmpIds = new ArrayList<>();
 			newTeamMember.forEach((newMember) -> {
 				List<EmployeeTeamMap> presentMember = employeeTeamMapRepository
 						.findFirstByEmpIdAndTeamIdAndActive(newMember.getEmpId(), teamDbResponse.getTeamId());
@@ -5769,7 +5769,7 @@ public class ResourceManagementService {
 		                (String) row[3],                       // state
 		                (Integer) row[4],                      // clientId
 		                row[5] != null ? ((BigInteger) row[5]).longValue() : null,     // poProjectId
-		                (String) row[6],                       // active
+//		                (String) row[6],                       // active
 		                (String) row[7],                       // syncProject
 		                row[8] != null ? ((BigInteger) row[8]).longValue() : null,     // createdBy
 		                row[9] != null ? ((BigInteger) row[9]).longValue() : null,     // updatedBy
@@ -5793,11 +5793,11 @@ public class ResourceManagementService {
 		                (String) row[27]						//projectViewId
 		            );
 		        if(row[0] != null && teamRepository.findByProjectId((Integer) row[0]) != null && !teamRepository.findByProjectId((Integer) row[0]).isEmpty()) {
-		        	dto.setIsTeamCreated(true);
+		        	dto.setIsTeamCreated("true");
                 	
                 }
 		        else {
-		        	dto.setIsTeamCreated(false);
+		        	dto.setIsTeamCreated("false");
 		        }
 		        if(row[14] == null) {
 		        	dto.setProjectType((String) row[24]);		
@@ -5806,6 +5806,7 @@ public class ResourceManagementService {
 		        	dto.setProjectType((String) row[14]);
 		        }
 		        dto.setId(row[5] != null ? ((BigInteger) row[5]).longValue() : null);
+		        dto.setIsDraftProject((String) row[26]);
 		        List<ProjectManagersDTO> pmlData = new ArrayList<>();
 		        List<Long> pmIds = new ArrayList<>();
 		        List<Object[]> pml = projectManagerMappingRepository.getAllProjectManagerListWithName(((Integer)row[0]).longValue());
