@@ -119,6 +119,7 @@ export class ResourceManagementComponent implements OnInit {
   modalRef1: BsModalRef = new BsModalRef();
   modalRef3: BsModalRef = new BsModalRef();
   modalRef4: BsModalRef = new BsModalRef();
+  modalRef5: BsModalRef = new BsModalRef();
 
   projectObj: Project = new Project();
   projectObj2: Project = new Project();
@@ -1530,12 +1531,67 @@ export class ResourceManagementComponent implements OnInit {
 
   }
 
-
-  openDeleteModalForTeamBulk(template: TemplateRef<any>, alert_message: TemplateRef<any>, teamObj, project) {
+isBulkDelete:boolean=false;
+  openDeleteModalForTeamBulk(template: TemplateRef<any>, alert_message: TemplateRef<any>, teamObj, project,template1: TemplateRef<any>,template2: TemplateRef<any>,) {
+    this.isBulkDelete= true;
+    this.currentProjectDetails = project.projectId;
     this.tempTeam = teamObj;
     this.projectdetails1 = project;
+     const empIds: number[] = this.selectedTeamsDetails.reduce((acc: number[], team: any) => {
+            const members = Array.isArray(team.teamMemberList) ? team.teamMemberList : [];
+
+            members.forEach(member => {
+              if (
+                Array.isArray(member.otherActiveProjects) &&
+                member.otherActiveProjects.length === 0 &&
+                member.isDefaultProject === 1
+              ) {
+                acc.push(member.empId);
+              }
+            });
+
+            return acc;
+          }, []);
+
+          const empIdsHavingActiveProjects: number[] = this.selectedTeamsDetails.reduce((acc: number[], team: any) => {
+            const members = Array.isArray(team.teamMemberList) ? team.teamMemberList : [];
+
+            members.forEach(member => {
+              if (
+                Array.isArray(member.otherActiveProjects) &&
+                member.otherActiveProjects.length !== 0 &&
+                member.isDefaultProject === 1
+              ) {
+                acc.push(member.empId);
+              }
+            });
+
+            return acc;
+          }, []);
+          this.activeProjects = empIdsHavingActiveProjects;
+          this.EmployessIds = empIds;
+          if (empIds.length !== 0 && empIdsHavingActiveProjects.length !== 0) {
+            this.getEmployeeInformationBulk(empIds);
+            this.modalRef4 = this.modalService.show(template1, { class: 'modal-xl' });
+            this.setDefaultProjectObj.empIds = empIdsHavingActiveProjects;
+            this.setDefaultProjectObj.projectId = project.projectId;
+            this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
+            this.modalRef = this.modalService.show(template2, { class: 'modal-xl' });
+
+          } else if (empIds.length !== 0 && empIdsHavingActiveProjects.length === 0) {
+            this.getEmployeeInformationBulk(empIds);
+            this.modalRef4 = this.modalService.show(template1, { class: 'modal-xl' });
+          } else if (empIds.length === 0 && empIdsHavingActiveProjects.length !== 0) {
+            this.setDefaultProjectObj.empIds = empIdsHavingActiveProjects;
+            this.setDefaultProjectObj.projectId = project.projectId;
+            this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
+            this.modalRef = this.modalService.show(template2, { class: 'modal-xl' });
+          } else {
+            this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+          }
+   
     console.log("tesmp", this.projectdetails1);
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.getProjectDetailsForBulkDefaultUpdate();
   }
 
 
@@ -2054,6 +2110,7 @@ export class ResourceManagementComponent implements OnInit {
         : moment().format('YYYY-MM-DD');
       console.log("Testing for end date", this.lastDate);
     });
+   
   }
 
 
@@ -2323,6 +2380,7 @@ ExceptionEmployeeReport(projectFilterDTO: ProjectFilterDTO){
   activeProjects: number[] = [];
   currentProjectDetails: any;
   openDatePicker(template: TemplateRef<any>, template1: TemplateRef<any>, project: any, template2: TemplateRef<any>) {
+    this.isBulkDelete= false;
     this.currentProjectDetails = project.projectId;
     const today = new Date();
     this.selectedDate = today.toISOString().split('T')[0];
@@ -2414,7 +2472,7 @@ ExceptionEmployeeReport(projectFilterDTO: ProjectFilterDTO){
             this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
             this.modalRef = this.modalService.show(template1, { class: 'modal-xl' });
           } else {
-            this.modalRef = this.modalService.show(template2, { class: 'modal-sm' });
+            this.modalRef5 = this.modalService.show(template2, { class: 'modal-sm' });
           }
           console.error("test", empIdsHavingActiveProjects, empIds);
           // this.modalRef4 = this.modalService.show(template, { class: 'modal-xl' });
@@ -2553,13 +2611,13 @@ ExceptionEmployeeReport(projectFilterDTO: ProjectFilterDTO){
 
         this.resourceManagementService.completionDateOfProject(this.completedProjectDetails).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
-            this.selectedDate = '';
-            this.modalRef.hide();
+             this.selectedDate = '';
+             this.closeModal1();
             console.log('Selected Date:', response.serviceResponse);
             this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
           } else {
             this.selectedDate = '';
-            this.modalRef.hide();
+            this.modalRef5.hide();
             this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
           }
         });
@@ -2595,8 +2653,8 @@ ExceptionEmployeeReport(projectFilterDTO: ProjectFilterDTO){
   }
 
   closeModal1() {
-    this.selectedDate = '';
-    this.modalRef.hide();
+     this.selectedDate = '';
+    this.modalRef5.hide();
   }
   closeModal() {
     this.modalRef.hide();
@@ -3318,6 +3376,7 @@ ExceptionEmployeeReport(projectFilterDTO: ProjectFilterDTO){
           this.getEmployeeInformationBulk(this.EmployessIds);
           console.log("empId", this.activeProjects.length, this.EmployessIds.length);
           if (this.activeProjects.length === 0 && this.EmployessIds.length === 0) {
+            this.modalRef4.hide();
             this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
           }
         } else {
@@ -3338,10 +3397,11 @@ ExceptionEmployeeReport(projectFilterDTO: ProjectFilterDTO){
         if (response.serviceStatus == "Success") {
           this.bulkEmployeeList = response.serviceResponse;
           this.EmployessIds = [];
+          setDefaultProjectObj =[];
           // this.getEmployeeInformationBulk(this.EmployessIds);
-          this.modalRef.hide();
+          this.modalRef4.hide();
           if (this.activeProjects.length === 0 && this.EmployessIds.length === 0) {
-            this.modalRef4 = this.modalService.show(template, { class: 'modal-sm' });
+            this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
           } else {
             this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the Employees default Projects");
           }
