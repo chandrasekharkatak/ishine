@@ -324,7 +324,7 @@ export class ResourceManagementComponent implements OnInit {
     await this.RbacShankhProjects(this.projectFilterDTO);
 
     await this.RbacAllShankhInternalProjects(this.projectFilterDTO);
-    await this.ExceptionEmployeeReport();
+    await this.ExceptionEmployeeReport(this.projectFilterDTO);
     await this.RbacBothShankhInternal(this.projectFilterDTO);
     await this.ProjectLessEmployees(this.projectFilterDTO);
     await this.getProjectDetailsForBulkDefaultUpdate();
@@ -1984,19 +1984,19 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
-  ExceptionEmployeeReport() {
-    this.resourceManagementService.exceptionEmployeeReport().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        console.log(response.serviceResponse);
-        this.exceptionEmployeesList = response.serviceResponse;
-        this.exceptionEmployees = this.exceptionEmployeesList.length;
-        console.log("this.exceptionEmployeesList", this.exceptionEmployeesList)
-      }
-      else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
+ExceptionEmployeeReport(projectFilterDTO: ProjectFilterDTO){
+  this.resourceManagementService.exceptionEmployeeReport(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+     if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.exceptionEmployeesList = response.serviceResponse;
+      this.exceptionEmployees = this.exceptionEmployeesList.length;
+      console.log("this.exceptionEmployeesList",this.exceptionEmployeesList)
+     }
+     else{
+      this.openAlertMod(this.alertTemplate, response.serviceResponse);
+     }
+});
+}
 
   RbacBothShankhInternal(projectFilterDTO: ProjectFilterDTO) {
     this.resourceManagementService.rbacBothShankhInternal(projectFilterDTO).pipe(first()).subscribe((response: any) => {

@@ -207,7 +207,7 @@ export class ReportListComponent implements OnInit {
   toastr: any;
   isAccounts: boolean = false;
   isDeptFilter: boolean = false;
-  dept:any;
+  dept: any;
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -239,27 +239,32 @@ export class ReportListComponent implements OnInit {
     });
     //console.log(this.feature, this.userMapping);
     await this.getAllDepartments();
-    
+
     this.preventBackButton();
 
     const deptName = String(this.currentUser.departmentName).trim();
-    if(deptName === "Accounts" ){
+    if (deptName === "Accounts") {
       this.isAccounts = true;
     }
     const empRole = String(this.currentUser.employeeRole).trim();
-    if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts")&& !deptName.includes("HR")){
+    if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")) {
       await this.getAllDepartmentsFromId();
       this.isDeptFilter = true;
-      
-     }
-     else{
-   
-       await this.getAllDepartments();
-      
-     }
+
+    }
+    else {
+
+      await this.getAllDepartments();
+
+    }
     // const deptName = String(this.currentUser.departmentName).trim();
     this.sectionViewInit();
     this.onDepartmentSelectionChange();
+    this.getTotalActiveEmployeeCount();
+    this.getTotalActiveEmployeeCountInDepartments();
+    this.projectLessEmployeesDepartmentWise();
+    this.employeesMappedProjectsDepartmentWise();
+    console.log("lalalalala ngoninit", this.employeeReportObj.deptId);
   }
 
   getSlicedProjects(projectList: Project[], count: number): Project[] {
@@ -287,6 +292,7 @@ export class ReportListComponent implements OnInit {
       this.employeeReportObj.deptId = this.filteredDepartments.map(dept => dept.deptId);
       this.isAllSelected = true;
       this.getEmployeeReportData();
+      console.log("lalalalala toggle", this.employeeReportObj.deptId);
     }
     // this.getEmployeeReportData();
 
@@ -323,6 +329,116 @@ export class ReportListComponent implements OnInit {
   //   this.showSearchBar = !this.showSearchBar;
   // }
 
+  totalInshineEmployeeCount: any;
+  getTotalActiveEmployeeCount() {
+    this.employeeService.getTotalActiveEmployeeCount().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.totalInshineEmployeeCount = response.serviceResponse;
+      } else {
+        console.error("API Error: ", response.serviceError || "Unknown error");
+      }
+    });
+  }
+  totalDepartmentWiseEmployeeCount: any;
+  getTotalActiveEmployeeCountInDepartments() {
+    this.employeeService.getTotalActiveEmployeeCountInDepartments(this.employeeReportObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.totalDepartmentWiseEmployeeCount = response.serviceResponse;
+      } else {
+        console.error("API Error: ", response.serviceError || "Unknown error");
+      }
+    });
+  }
+
+  projectLessEmployeesDepartwise: any[] = [];
+  projectLessEmployeesDepartwiseCount: any;
+  billableCountsNotMApped:{type :any; count:any }[] = [];
+  projectLessEmployeesDepartmentWise() {
+    this.employeeService.projectLessEmployeesDepartmentWise(this.employeeReportObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.projectLessEmployeesDepartwise = response.serviceResponse;
+        this.projectLessEmployeesDepartwiseCount = this.projectLessEmployeesDepartwise.length;
+        const billableTypeMap = new Map<string, number>();
+
+        this.projectLessEmployeesDepartwise.forEach(emp => {
+          const type = emp.billableType;
+          if (type) {
+            billableTypeMap.set(type, (billableTypeMap.get(type) || 0) + 1);
+          }
+        });
+
+        // Filter only those with count > 0 and convert to array
+        this.billableCountsNotMApped = Array.from(billableTypeMap.entries())
+          .filter(([_, count]) => count > 0)
+          .map(([type, count]) => ({ type, count }))
+          .sort((a, b) => a.type.length - b.type.length);
+      } else {
+        console.error("API Error: ", response.serviceError || "Unknown error");
+      }
+    });
+  }
+
+
+  employeesWithProjectDeptWise: any[] = [];
+  employeesWithProjectDeptWiseCount: any;
+  mappedBillableCounts: { type: any; count: any }[] = [];
+  employeesMappedProjectsDepartmentWise() {
+    this.employeeService.employeesMappedProjectsDepartmentWise(this.employeeReportObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.employeesWithProjectDeptWise = response.serviceResponse;
+        this.employeesWithProjectDeptWiseCount = this.employeesWithProjectDeptWise.length;
+
+        const billableTypeMap = new Map<string, number>();
+
+        this.employeesWithProjectDeptWise.forEach(emp => {
+          const type = emp.billableType;
+          if (type) {
+            billableTypeMap.set(type, (billableTypeMap.get(type) || 0) + 1);
+          }
+        });
+
+        // Filter only those with count > 0 and convert to array
+        this.mappedBillableCounts = Array.from(billableTypeMap.entries())
+          .filter(([_, count]) => count > 0)
+          .map(([type, count]) => ({ type, count }))
+          .sort((a, b) => a.type.length - b.type.length);
+      } else {
+        console.error("API Error: ", response.serviceError || "Unknown error");
+      }
+    });
+  }
+
+  employeeData: any[] = [];
+  catagory: any
+  openModalProjectLess(template: TemplateRef<any>, catagory: string) {
+
+    this.employeeData = this.projectLessEmployeesDepartwise;
+    this.catagory = catagory;
+
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  }
+
+  openModalEmployeesWithProjects(template: TemplateRef<any>, catagory: string) {
+    this.employeeData = this.employeesWithProjectDeptWise;
+    this.catagory = catagory;
+
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+
+  }
+
+  activeInfoPopup: any;
+
+ 
+ 
+
+  toggleInfoPopup(target: string): void {
+    this.activeInfoPopup = this.activeInfoPopup === target ? null : target;
+  }
+
+  closeInfoPopup(event: MouseEvent) {
+    event.stopPropagation();
+    this.activeInfoPopup = null;
+  }
 
 
 
@@ -330,8 +446,15 @@ export class ReportListComponent implements OnInit {
   onDepartmentSelectionChange() {
     if (!this.isAllSelected && this.employeeReportObj.deptId.length > 0) {
       this.getEmployeeReportData();
+      this.getTotalActiveEmployeeCountInDepartments();
+      this.projectLessEmployeesDepartmentWise();
+      this.employeesMappedProjectsDepartmentWise();
+      console.log("deptbodyselectionchange", this.employeeReportObj.deptId);
     }
   }
+
+
+
 
 
   flattenProjectList() {
@@ -507,7 +630,7 @@ export class ReportListComponent implements OnInit {
 
   editIndex: number = -1;
   billableTypes: string[] = ['Bench', 'Fixed Cost', 'Shadow', 'InternalRNDProducts', 'TNM'];
-  updateBillableType(employee: any,template: TemplateRef<any>) {
+  updateBillableType(employee: any, template: TemplateRef<any>) {
     const updatedBillable = employee.billableType === 'TNM' ? 'Yes' : 'No';
 
     const payload = {
@@ -529,28 +652,28 @@ export class ReportListComponent implements OnInit {
 
   selectedSingleEmployee: any;
   selectedBillableTypeForSingle: any;
-  
+
 
   showSingleUpdateModal(employee: any, template: TemplateRef<any>) {
-    this.selectedBillableTypeForSingle = employee.billableType; 
+    this.selectedBillableTypeForSingle = employee.billableType;
     this.selectedSingleEmployee = {
       ...employee,
       oldBillableType: employee.originalBillableType || employee.billableTypeBeforeChange || ''
     };
     this.modalRef = this.modalService.show(template, { class: 'modal-xl modal-dialog-centered' });
   }
-  
+
 
   onConfirmSingleBillableUpdate() {
     const updatedBillable = this.selectedBillableTypeForSingle === 'TNM' ? 'Yes' : 'No';
-  
+
     const payload = {
       empId: this.selectedSingleEmployee.empId,
       billableType: this.selectedBillableTypeForSingle,
       billable: updatedBillable,
       updatedBy: this.currentUser.empId
     };
-  
+
     this.employeeService.updateEmployeeReportBillableType(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.openAlertMod(this.alertModalSync, response.serviceResponse);
@@ -704,7 +827,7 @@ export class ReportListComponent implements OnInit {
     const updatedBillable = this.selectedBillableTypeForBulk === 'TNM' ? 'Yes' : 'No';
     const empIds = this.selectedEmployees.map(emp => emp.empId);
     const payload = {
-      empIds: empIds, 
+      empIds: empIds,
       billableType: this.selectedBillableTypeForBulk,
       billable: updatedBillable,
       updatedBy: this.currentUser.empId
@@ -714,7 +837,7 @@ export class ReportListComponent implements OnInit {
       (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.openAlertMod(this.alertModalSync, response.serviceResponse);
-          this.selectedEmployees = []; 
+          this.selectedEmployees = [];
           this.selectedBillableTypeForBulk = '';
           this.masterSelected = false;
         } else {
@@ -1215,7 +1338,7 @@ export class ReportListComponent implements OnInit {
             this.departments = response.serviceResponse;
             this.filteredDepartments = this.departments;
             resolve(response.serviceResponse);
-            
+
           } else {
             reject("Failed to fetch departments");
           }
@@ -1383,7 +1506,7 @@ export class ReportListComponent implements OnInit {
         
       ];
       // this.getAllLeaveApplicationsList();
-     
+
       this.getCustomLeaveApplicationsList(inActiveQuery, this.alertModal);
 
     }
@@ -1436,7 +1559,7 @@ export class ReportListComponent implements OnInit {
         { column: "Date", operator: ">=", value: oneMonthBeforeDate, conjunction: "AND" },
         { column: "Date", operator: "<=", value: currentDate, conjunction: "" }
       ];
-        
+
       this.getCustomTimesheetApplicationsList(inActiveQuery, this.alertModal);
 
       //this.getAllTimesheetApplicationsList();
@@ -1463,8 +1586,8 @@ export class ReportListComponent implements OnInit {
     this.filters = {};
     this.isSearchEnabled = false;
 
-  
-   this.storedDataList.forEach((object) => {
+
+    this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Employee Report') {
         this.getCustomEmployeesList(object.queryList, this.alertModal);
       }
@@ -1474,12 +1597,12 @@ export class ReportListComponent implements OnInit {
       let inActiveQuery = [
         { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }
       ];
-   
+
       this.getCustomEmployeesList(inActiveQuery, this.alertModal);
 
       //this.getAllTimesheetApplicationsList();
-    
-}
+
+    }
 
 
     this.data = ''

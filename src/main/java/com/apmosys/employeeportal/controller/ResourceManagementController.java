@@ -14,7 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
+
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
+
+import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
+
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
@@ -240,6 +244,12 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/employeesMappedProjectsDepartmentWise", method = RequestMethod.POST)
+	public ServiceResponse employeesMappedProjectsDepartmentWise(@RequestBody GetEmployeeProjectReportPayloadDTO getEmployeeProjectReportPayloadDTO ) {
+		ServiceResponse response = resourceManagementService.employeesMappedProjectsDepartmentWise(getEmployeeProjectReportPayloadDTO);
+		return response;
+	}
+	
 	
 	@RequestMapping(value = "/rbacBothShankhInternal", method = RequestMethod.POST)
 	public ServiceResponse getBothShankhInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
@@ -253,10 +263,30 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	@PostMapping(value = "/exceptionEmployeeReport")
+	public ServiceResponse exceptionEmployeeReport( @RequestBody ProjectFilterDTO projectFilterDTO) {
+		ServiceResponse response = resourceManagementService.getAllExceptionReport(projectFilterDTO);
+		return response;
+	}
+	
+	@RequestMapping(value = "/projectLessEmployeesDepartmentWise", method = RequestMethod.POST)
+	public ServiceResponse getEmployessWithoutProjectsDepartmentWise(@RequestBody GetEmployeeProjectReportPayloadDTO getEmployeeProjectReportPayloadDTO) {
+		ServiceResponse response = resourceManagementService.getEmployessWithoutProjectsDepartmentWise(getEmployeeProjectReportPayloadDTO);
+		return response;
+	}
+	
+	
+	
 	
 	@RequestMapping(value = "/totalEmployeeCount", method = RequestMethod.GET)
 	public ServiceResponse totalEmployeeCount() {
 		ServiceResponse response = resourceManagementService.totalEmployeeCount();
+		return response;
+	}
+	
+	@RequestMapping(value = "/totalEmployeeCountInDepartments", method = RequestMethod.POST)
+	public ServiceResponse totalEmployeeCountInDepartments(@RequestBody GetEmployeeProjectReportPayloadDTO getEmployeeProjectReportPayloadDTO) {
+		ServiceResponse response = resourceManagementService.totalEmployeeCountInDepartments(getEmployeeProjectReportPayloadDTO);
 		return response;
 	}
 	
@@ -270,11 +300,7 @@ public class ResourceManagementController {
 	    return resourceManagementService.getEmployeeInformation(empId);
 	}
 	
-	@GetMapping(value = "/exceptionEmployeeReport")
-	public ServiceResponse exceptionEmployeeReport( ) {
-		ServiceResponse response = resourceManagementService.getAllExceptionReport();
-		return response;
-	}
+	
 
 	@PostMapping("/poCrudOperationsInIshine")
 	public ServiceResponse importAllNotStartedProjects(@RequestBody ResourceManagementDTO resourceManagementDTO) {
