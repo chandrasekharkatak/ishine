@@ -173,9 +173,67 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 			+ "    AND etm.active != 0 \n"
 			+ "    AND t.is_active = 'Y' \n"
 			+ "    AND e.employmentstatus != 'InActive' \n"
-			+ "    AND pmm.active = 1",
+			+ "    AND pmm.active = 1 AND e.emp_id NOT BETWEEN 1 AND 6 ",
     nativeQuery = true)
 List<Object[]> findEmployeeProjectTeamDetailsByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+
+
+@Query(value = "SELECT \n"
+		+ "    e.emp_id, \n"
+		+ "    e.employeement_id, \n"
+		+ "    e.billable, \n"
+		+ "    e.billable_type, \n"
+		+ "    e.name, \n"
+		+ "    d.name AS departmentname,\n"
+		+ "    p.project_id, \n"
+		+ "    p.project_name, \n"
+		+ "    p.po_project_id, \n"
+		+ "    p.po_start_date, \n"
+		+ "    p.po_end_date,\n"
+		+ "    p.apmosysrm, \n"
+		+ "    p.clientrm, \n"
+		+ "    p.po_project_type, \n"
+		+ "    p.po_no, \n"
+		+ "    c.client_name,\n"
+		+ "    t.team_id, \n"
+		+ "    t.team_name, \n"
+		+ "    t.is_active, \n"
+		+ "    etm.employee_role, \n"
+		+ "    etm.active,  \n"
+		+ "    pm.emp_id AS project_manager_id, \n"
+		+ "    pm.name AS project_manager_name\n"
+		+ "FROM \n"
+		+ "    employee_team_mapping etm\n"
+		+ "RIGHT JOIN \n"
+		+ "    employee e ON e.emp_id = etm.emp_id\n"
+		+ "RIGHT JOIN \n"
+		+ "    teams t ON t.team_id = etm.team_id\n"
+		+ "INNER JOIN \n"
+		+ "    projects p ON p.project_id = t.project_id\n"
+		+ "INNER JOIN \n"
+		+ "    clients c ON c.client_id = p.client_id\n"
+		+ "INNER JOIN \n"
+		+ "    job_role jr ON jr.job_role_id = e.job_role_id\n"
+		+ "INNER JOIN \n"
+		+ "    department d ON d.dept_id = jr.dept_id\n"
+		+ "LEFT JOIN \n"
+		+ "    project_manager_mapping pmm ON pmm.project_id = p.project_id\n"
+		+ "LEFT JOIN \n"
+		+ "    employee pm ON pm.emp_id = pmm.project_manager_id\n"
+		+ "WHERE \n"
+		+ "    p.project_id IN :projectIds\n"
+		+ "    AND etm.active != 0 \n"
+		+ "    AND t.is_active = 'Y' \n"
+		+ "    AND e.employmentstatus != 'InActive' \n"
+		+ "    AND pmm.active = 1 AND d.dept_id IN :deptIds AND e.emp_id NOT BETWEEN 1 AND 6",
+nativeQuery = true)
+List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("projectIds") Set<Integer> projectIds,@Param("deptIds")List<Long> deptIds);
+
+
+
+
+
+
 
 @Query(value ="SELECT \n"
 		+ "    e.emp_id, \n"

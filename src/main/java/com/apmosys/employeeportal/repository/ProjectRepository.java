@@ -123,6 +123,13 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getExceptionEmployeeReport();
 	
+	@Query(nativeQuery = true)
+	public List<Object[]> getExceptionEmployeeReportInDepartments(List<Long> deptIds);
+	
+	
+	@Query(nativeQuery = true)
+	List <Object[]> getExceptionEmployeeReportInDepartment(Long deptId);
+	
 	@Query(value = "SELECT \n"
 			+ "    distinct p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
 			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"

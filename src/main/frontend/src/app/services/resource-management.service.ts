@@ -100,8 +100,8 @@ export class ResourceManagementService {
     return this.http.get(`${this.baseUrl}`+`api/totalEmployeeCount`);
   }
 
-  exceptionEmployeeReport(){
-    return this.http.get(`${this.baseUrl}` + `api/exceptionEmployeeReport`);
+  exceptionEmployeeReport(ProjectFilterDTO:ProjectFilterDTO){
+    return this.http.post(`${this.baseUrl}` + `api/exceptionEmployeeReport`,ProjectFilterDTO);
   }
   
   getPreviousDefaultProjectDetails(empId: any){

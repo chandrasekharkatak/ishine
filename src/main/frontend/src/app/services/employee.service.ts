@@ -388,5 +388,21 @@ updateDefaultProject(newemployeeObj : any){
  getAllEmployeesBasedOnUserLogined(details:any){
   return this.http.post(`${this.baseUrl}` + `api/getAllEmployeesBasedOnUserLogined`,details);
  }
+
+ getTotalActiveEmployeeCount(){
+  return this.http.get(`${this.baseUrl}` + `api/totalEmployeeCount`);
+ }
+
+ getTotalActiveEmployeeCountInDepartments(employeeReport:any){
+  return this.http.post(`${this.baseUrl}` + `api/totalEmployeeCountInDepartments`,employeeReport);
+ }
+
+ projectLessEmployeesDepartmentWise(employeeReport:any){
+  return this.http.post(`${this.baseUrl}` + `api/projectLessEmployeesDepartmentWise`,employeeReport);
+ }
+
+ employeesMappedProjectsDepartmentWise(employeeReport:any){
+  return this.http.post(`${this.baseUrl}` + `api/employeesMappedProjectsDepartmentWise`,employeeReport);
+ }
  
 }

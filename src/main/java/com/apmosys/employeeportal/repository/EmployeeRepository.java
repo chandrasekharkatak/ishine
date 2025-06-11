@@ -582,8 +582,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query(value="SELECT e.email FROM employee e WHERE e.emp_id = :hodId",nativeQuery=true)
     String findHodEmailById(@Param("hodId") Long hodId);
     
-    @Query(value ="select count(*) from employee where employmentstatus != 'InActive'",nativeQuery = true)
+    @Query(value ="select count(*) from employee where employmentstatus != 'InActive' and emp_id NOT BETWEEN 1 and 6",nativeQuery = true)
     Long getTotalEmployeeCount();
+    
+    @Query(value = "select count(*) from employee e \n"
+    		+ "inner join job_role jr on jr.job_role_id = e.job_role_id \n"
+    		+ "inner join department d on jr.dept_id = d.dept_id \n"
+    		+ " where e.employmentstatus != 'InActive' and d.dept_id IN :deptIds and e.emp_id NOT BETWEEN 1 AND 6",nativeQuery = true)
+    Long getTotalEmployeeCountInDepartments(@Param("deptIds") List<Long>deptIds);
     
     @Query("SELECT e FROM Employee e WHERE e.empId IN :empIds")
     List<Employee> findByEmpIdIn(@Param("empIds") Set<Long> empIds);
@@ -605,6 +611,21 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "      AND t.is_active = 'Y'\n"
     		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive'",nativeQuery = true)
     List<Object[]> findAllEmployeesWithoutAnyProject();
+    
+    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type from employee e \n"
+    		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
+    		+ "inner join department d on d.dept_id = jr.dept_id\n"
+    		+ "LEFT JOIN \n"
+    		+ "    employee em ON em.emp_id = e.manager_id\n"
+    		+ "WHERE NOT EXISTS (SELECT 1\n"
+    		+ "    FROM employee_team_mapping etm\n"
+    		+ "    JOIN teams t ON t.team_id = etm.team_id\n"
+    		+ "    JOIN projects p ON p.project_id = t.project_id\n"
+    		+ "    WHERE etm.emp_id = e.emp_id \n"
+    		+ "      AND etm.active != 0\n"
+    		+ "      AND t.is_active = 'Y'\n"
+    		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive' and d.dept_id IN :departmentIds AND e.emp_id NOT BETWEEN 1 AND 6",nativeQuery = true)
+    List<Object[]> findAllEmployeesWithoutAnyProjectDepartmentWise(@Param("departmentIds") List<Long> departmentIds);
     
     @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name from employee e \n"
     		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"

@@ -4,8 +4,9 @@
       [ngClass]="{'active' : isEmployeeReportTable}" (click)="showEmployeeReportTable()">View Employee Report</button>
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.leave_report && !isAccounts"
       [ngClass]="{'active' : isLeaveReportTable}" (click)="showLeaveReportTable()">View Leave Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.timesheet_report && !isAccounts"
-      [ngClass]="{'active' : isTimesheetReportTable}" (click)="showTimesheetReportTable()">View Timesheet
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+      *ngIf="userMapping.timesheet_report && !isAccounts" [ngClass]="{'active' : isTimesheetReportTable}"
+      (click)="showTimesheetReportTable()">View Timesheet
       Report</button>
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}" *ngIf="userMapping.acl && !isAccounts"
       (click)="showAccessControlListTable()">ACL(Access Control List)</button>
@@ -460,8 +461,8 @@
 
 
 
-    <div *ngIf="showDetails">
-       <div class="dashboard-container">
+    <div class="row" *ngIf="showDetails">
+      <div class=" dashboard-container">
         <div class="card" *ngFor="let box of ['TNM', 'Fixed Cost', 'Monitoring', 'Internal']"
           [ngClass]="{ 'active-box': activeBox === box }">
           <div class="card-header">
@@ -503,10 +504,62 @@
             </div>
           </div>
         </div>
+        <!-- Employee Summary Column -->
+        <div class="employee-summary">
+          <div class="summary-box">
+            <h3>Employees in iShine</h3>
+            <div class="count">{{totalInshineEmployeeCount}}</div>
+          </div>
+         
+
+          <div class="summary-box" (click)="openModalProjectLess(employee_data, 'Not Mapped')">
+            <button class="info-btn" (click)="toggleInfoPopup('unmapped'); $event.stopPropagation()"
+              title="Show Billable Type Count">
+              <i class="fa-solid fa-circle-info"></i>
+
+            </button>
+
+            <h3>Unmapped Employees</h3>
+
+            <div class="count-text">{{ projectLessEmployeesDepartwiseCount }}</div>
+            <div *ngIf="activeInfoPopup === 'unmapped'" class="tooltip-label-wrapper">
+              <div *ngFor="let item of billableCountsNotMApped; let i = index" class="tooltip-label">
+                {{ item.type }}: {{ item.count }}
+              </div>
+            </div>
+          </div>
+
+          <div class="summary-box" (click)="openModalEmployeesWithProjects(employee_data, 'All Mapped')">
+            <button class="info-btn mapped" (click)="toggleInfoPopup('mapped'); $event.stopPropagation()"
+              title="Show Billable Type Count">
+              <i class="fa-solid fa-circle-info"></i>
+            </button>
+          
+            <h3>Mapped Employees</h3>
+            <div class="count">{{ employeesWithProjectDeptWiseCount }}</div>
+          
+            <!-- 👇 Tooltip for mapped -->
+            <div *ngIf="activeInfoPopup === 'mapped'"  class="tooltip-label-wrapper-mapped">
+              <div *ngFor="let item of mappedBillableCounts; let i = index" class="tooltip-label-mapped">
+                {{ item.type }}: {{ item.count }}
+              </div>
+            </div>
+          </div>
+          <div class="summary-box">
+            <h3>Employees by Department</h3>
+            <div class="count">{{totalDepartmentWiseEmployeeCount}}</div>
+          </div>
+          
+        </div>
+
       </div>
 
 
     </div>
+
+
+
+
     <div class="col-md-3 col-sm-6 custom-control custom-switch justify-content-end"
       *ngIf="showDetails && employeeReportObj.category === 'Employee'">
       <input type="checkbox" class="custom-control-input" id="hierarchy-switch-2" (change)="toggleTableView()"
@@ -770,7 +823,7 @@
                         </select>
                       </div>
                       <div>
-                        <button  type="button" class="btn btn-sm btn-outline-primary ml-2 "
+                        <button type="button" class="btn btn-sm btn-outline-primary ml-2 "
                           style="float: right; margin-top: 1px;" (click)="updateDefaultProject(employee)">
                           Submit
                         </button>
@@ -897,7 +950,7 @@
 
       </div>
     </div>
-   
+
     <!-- existing -->
     <div class="row" *ngIf="!showDetails">
       <div class="col-md-12">
@@ -1720,5 +1773,14 @@
   </div>
 </ng-template>
 
-
-
+<ng-template #employee_data>
+  <div class="modal-header">
+    <b>Employee Information</b>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body mb-3">
+    <app-view-employee [allEmployeeData]="employeeData" [catagory]="catagory"></app-view-employee>
+  </div>
+</ng-template>
