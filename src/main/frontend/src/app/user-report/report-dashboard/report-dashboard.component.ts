@@ -19,6 +19,8 @@ import { DomainService } from 'src/app/services/domain.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
 import { forkJoin } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 //importing deleclation for cylinder chart..
 declare var require: any;
@@ -217,6 +219,7 @@ export class ReportDashboardComponent implements OnInit {
   allDepartmentList: any[] = [];
   currentUser: User;
   show: number = -1;
+  yearList: number[] = [];
 
   //property for cylinder charts
   public activity;
@@ -266,6 +269,11 @@ export class ReportDashboardComponent implements OnInit {
     });
     this.sectionViewInit();
     this.preventBackButton();
+    this.selectedYear = moment().year(); 
+    this.yearList = [];
+    for (let i = 0; i < 10; i++) {
+      this.yearList.push(moment().year() - i);
+    }
   }
 
   getSlicedProjects(projectList: Project[], count: number): Project[] {
@@ -305,12 +313,12 @@ export class ReportDashboardComponent implements OnInit {
     // this.getEmployeeWorkLocation();
     this.findAllDepartment();
 
-    this.loadDepartmentWiseKycData();
-    this.loadJoinResignData();
-    this.getAllPieChartCount();
-    this.getAllEmployeeCountDepartmentWise();
+    // this.loadDepartmentWiseKycData();
+    // this.loadJoinResignData();
+    // this.getAllPieChartCount();
+    // this.getAllEmployeeCountDepartmentWise();
     // this.getAllBillableTypeCount();
-    this.getEmployeeBillableSummary();
+    // this.getEmployeeBillableSummary();
 
     let selectedYear = this.selectedYear || moment().year(); 
     const selectedDeptIds: number[] = [];
@@ -356,6 +364,55 @@ export class ReportDashboardComponent implements OnInit {
   //   // }
 
   // });
+
+  forkJoin({
+  pieChart: this.reportService.getAllPieChartCount().pipe(
+    catchError(error => of({ serviceStatus: 'Error', error }))
+  ),
+  deptWiseCount: this.reportService.getDepartmentWiseBillableNonBillableSummary(selectedDeptIds).pipe(
+    catchError(error => of({ serviceStatus: 'Error', error }))
+  ),
+  billableSummary: this.reportService.getAllEmployeeCountDepartmentWise().pipe(
+    catchError(error => of({ serviceStatus: 'Error', error }))
+  ),
+  departmentKyc: this.reportService.getDepartmentWiseKycCount().pipe(
+    catchError(error => of({ serviceStatus: 'Error', error }))
+  ),
+  joinResign: this.reportService.getJoinVsResignCount(selectedYear).pipe(
+    catchError(error => of({ serviceStatus: 'Error', error }))
+  )
+}).subscribe(results => {
+  if (results.pieChart.serviceStatus === 'Success') {
+    this.renderAllPieCharts(results.pieChart);
+  } else {
+    console.error('PieChart failed:', results.pieChart.error);
+  }
+
+  if (results.deptWiseCount.serviceStatus === 'Success') {
+    const billableChartData = this.prepareBillableChartDataBillabe(results.deptWiseCount.serviceResponse);
+    this.renderEmployeeBillableSummaryChartWrapper(billableChartData);
+  } else {
+    console.error('DeptWiseCount failed:', results.deptWiseCount.error);
+  }
+
+  if (results.billableSummary.serviceStatus === 'Success') {
+    this.processDepartmentWiseCount(results.billableSummary.serviceResponse);
+  } else {
+    console.error('BillableSummary failed:', results.billableSummary.error);
+  }
+
+  if (results.departmentKyc.serviceStatus === 'Success') {
+    this.processDepartmentKycData(results.departmentKyc.serviceResponse);
+  } else {
+    console.error('DepartmentKyc failed:', results.departmentKyc.error);
+  }
+
+  if (results.joinResign.serviceStatus === 'Success') {
+    this.processJoinResignCount(results.joinResign);
+  } else {
+    console.error('JoinVsResign failed:', results.joinResign.error);
+  }
+});
   }
 
   showFileUploadForm() {
@@ -1115,6 +1172,9 @@ export class ReportDashboardComponent implements OnInit {
   onSelectionChange(event: any) {
     // this.getCustomDepartmentWiseBillableEmployeesList(this.departmentIds);
     // this.getAllBillableTypeCount(this.departmentIds);
+    // this.selectedYear = event.target.value;
+    this.loadJoinResignData();
+
   }
 
   profileKycStatus = "";
@@ -5519,9 +5579,9 @@ private getDepartmentIdsByName(deptName: string): number[] {
     if (checkDeptWiseData && checkDeptWiseData.length != 0) {
       // console.log("deptWiseBillabledata", deptWiseBillableType);
       deptWiseBillableType.forEach(data => console.log(data));
-      this.renderPieSummaryChart('Department wise Billable/Non-Billable Employee Summary', 'billableChartByDepartment', deptWiseBillableType, 'Department wise Billable Data', this.openDepartmentWiseBillableEmployeeTableModal.bind(this));
+      this.renderPieSummaryChart('Employee Billable/Non-Billable Summary', 'billableChartByDepartment', deptWiseBillableType, 'Department wise Billable Data', this.openDepartmentWiseBillableEmployeeTableModal.bind(this));
     } else {
-      this.renderPlaceholderChart('Department wise Billable/Non-Billable Employee Summary', 'billableChartByDepartment');
+      this.renderPlaceholderChart('Employee Billable/Non-Billable Summary', 'billableChartByDepartment');
     }
     
   }
@@ -5679,7 +5739,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
     } else {
       console.error("Error fetching employee billable summary data:", response.serviceResponse);
       this.renderPlaceholderChart(
-        'Employee Billable/Non-Billable Summary',
+        'Department wise Billable/Non-Billable Employee Summary',
         'billableEmployeeSummary'
       );
     }
@@ -5742,7 +5802,7 @@ prepareBillableChartDataBillabe(rawData: any[]): any[] {
 
 renderEmployeeBillableSummaryChartWrapper(billableChartData: any[]) {
   this.renderStackBarChart(
-    'Employee Billable/Non-Billable Summary',
+    'Department wise Billable/Non-Billable Employee Summary',
     'billableEmployeeSummary',
     billableChartData,
     this.billableChartCategories, // X-axis: departments

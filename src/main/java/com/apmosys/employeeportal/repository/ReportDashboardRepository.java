@@ -98,7 +98,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND billable_type = 'Shadow' THEN 1 ELSE 0 END) AS Shadow,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND billable_type = 'InternalRNDProducts' THEN 1 ELSE 0 END) AS InternalRNDProducts,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' THEN 1 ELSE 0 END) AS Total_Employee,\n"
-			+ "    SUM(CASE WHEN employmentstatus = 'Probation' and TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) > 6 then 1 ELSE 0 end) as probation_count,\n"
+			+ "    SUM(CASE WHEN employmentstatus = 'Probation' and TIMESTAMPDIFF(DAY, date_of_joining, CURRENT_DATE()) > 180 then 1 ELSE 0 end) as probation_count,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' THEN 1 ELSE 0 END) as apprentice_count,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_consultant = 'true' THEN 1 ELSE 0 END) as consultant_count,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) THEN 1 ELSE 0 END) as regular_count\n"
@@ -501,7 +501,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         			        "     or (:consultant = true and e.is_consultant = 'true') " +
         			        "     or (:regular = true and ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR " +
         			        "                              (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = ''))) " +
-        			        "     or (:probation = true and e.employmentstatus = 'Probation') " +
+        			        "     or (:probation = true and e.employmentstatus = 'Probation' and TIMESTAMPDIFF(DAY, e.date_of_joining, current_date()) > 180) " +
         			        "     or (:allEmp = true)) " +
         			        "and e.emp_id NOT BETWEEN 1 AND 6 " +
         			        "GROUP BY e.emp_id", nativeQuery = true)
@@ -512,6 +512,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         			        @Param("probation") boolean probation,
         			        @Param("allEmp") boolean allEmp
         			);
+
         			
         			@Query(nativeQuery = true, value = "SELECT distinct \n"
         					+ "	CONCAT('A-', e.employeement_id) as EMP_ID,\n"
