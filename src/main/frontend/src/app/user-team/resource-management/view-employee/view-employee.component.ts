@@ -336,5 +336,23 @@ exportExceptionToExcel1(): void {
   this.exportExcelService.exportTableDataToExcel(dataForTable, excelName);
 }
 
+exportNotMappedToExcel(): void {
+  const excelName = 'Not_Mapped_Employee_Report.xlsx';
+
+  const dataForTable = this.allEmployeeData.map((employee: any, index: number) => {
+    return {
+      "Sr No.": index + 1,
+      "Employment Id": "A-" + employee.employeementId,
+      "Employee Name": employee.name,
+      "Department": employee.departmentName,
+      "Manager Name": employee.managerName,
+      "Employee Role": employee.jobRoleName
+    };
+  });
+
+  this.exportExcelService.exportTableDataToExcel(dataForTable, excelName);
+}
+
+
   
 }

@@ -133,11 +133,19 @@ matSort (matSortChange)="sortData($event)"
 </ng-container>
 <ng-container *ngIf="catagory === 'Not Mapped'">
     <div class="row md-2">
+        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" style="display: flex;
+        justify-content: left;
+        max-width: fit-content;
+        padding: 5px; border: 2px solid #053885;border-radius: 20%;">
+            <i class="fa fa-download" style="color: #053885;display: flex;
+            justify-content: left;
+            max-width: fit-content;" (click)="exportNotMappedToExcel()"></i>
+        </div>
         <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0" style="display: flex;
                     justify-content: left;
                     max-width: fit-content;
                     padding: 5px; border: 2px solid #053885;border-radius: 20%;">
-            <a (click)="toggleSearch()" style="color: #193d8a; background-color: #b7cedb;">
+            <a (click)="toggleSearch()" style="color: #193d8a;">
                 <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
@@ -208,7 +216,7 @@ matSort (matSortChange)="sortData($event)"
                         justify-content: left;
                         max-width: fit-content;
                         padding: 5px; border: 2px solid #053885;border-radius: 20%;">
-            <a (click)="toggleSearch()" style="color: #193d8a; background-color: #b7cedb;">
+            <a (click)="toggleSearch()" style="color: #193d8a;">
                 <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
@@ -294,7 +302,7 @@ matSort (matSortChange)="sortData($event)"
                     justify-content: left;
                     max-width: fit-content;
                     padding: 5px; border: 2px solid #053885;border-radius: 20%;">
-            <a (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">
+            <a (click)="toggleSearch()" style="color: #193d8a;">
                 <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
