@@ -177,30 +177,30 @@ export class ViewEmployeeComponent implements OnInit {
   }
 
 
-  exportExceptionToExcel1(): void {
-    const excelName = 'Exception_Employee_Details_Report.xlsx';
+  // exportExceptionToExcel1(): void {
+  //   const excelName = 'Exception_Employee_Details_Report.xlsx';
 
-    const dataForTable = this.allEmployeeData.map((employee: any) => {
-      return {
-        "Employment Id": "A-" + employee.employmentId,
-        "Employee Name": employee.employeeName,
-        "Department": employee.department,
-        "Billable Type": employee.billableType,
-        "Project Name": employee.projectName,
-        "Client Name": employee.clientName,
-        "Apmosys RM": employee.apmosysRM,
-        "Client RM": employee.clientRM,
-        "PO No.": employee.poNumber,
-        "PO Project Type": employee.poProjectType,
-        "PO Start Date": employee.poStartDate,
-        "PO End Date": employee.poEndDate
-      };
-    });
+  //   const dataForTable = this.allEmployeeData.map((employee: any) => {
+  //     return {
+  //       "Employment Id": "A-" + employee.employmentId,
+  //       "Employee Name": employee.employeeName,
+  //       "Department": employee.department,
+  //       "Billable Type": employee.billableType,
+  //       "Project Name": employee.projectName,
+  //       "Client Name": employee.clientName,
+  //       "Apmosys RM": employee.apmosysRM,
+  //       "Client RM": employee.clientRM,
+  //       "PO No.": employee.poNumber,
+  //       "PO Project Type": employee.poProjectType,
+  //       "PO Start Date": employee.poStartDate,
+  //       "PO End Date": employee.poEndDate
+  //     };
+  //   });
 
-    this.exportExcelService.exportTableDataToExcel(dataForTable, excelName);
-  }
+  //   this.exportExcelService.exportTableDataToExcel(dataForTable, excelName);
+  // }
 
-exportExceptionToExcelBench(): void {
+exportToExcelBench(): void {
   const excelName = 'Exception_Employee_Details_Report.xlsx';
 
   const dataForTable: any[] = [];
@@ -290,5 +290,51 @@ onSearchException(searchParams: any): void {
     });
   });
 }
+
+exportExceptionToExcel1(): void {
+  const excelName = 'Exception_Employee_Details_Report.xlsx';
+
+  const dataForTable: any[] = [];
+
+  this.allEmployeeData.forEach((employee: any) => {
+    if (employee.rmgProjects?.length) {
+      employee.rmgProjects.forEach((project: any) => {
+        dataForTable.push({
+          "Employment Id": "A-" + employee.employmentId,
+          "Employee Name": employee.employeeName,
+          "Department": employee.department,
+          "Billable Type": employee.billableType,
+          "Project Name": project.projectName,
+          "Client Name": project.clientName,
+          "Apmosys RM": project.apmosysRM,
+          "Client RM": project.clientRM,
+          "PO No.": project.poNo,
+          "PO Project Type": project.poProjectType,
+          "PO Start Date": project.poStartDate,
+          "PO End Date": project.poEndDate
+        });
+      });
+    } else {
+      // Optional: Handle employees with no rmgProjects
+      dataForTable.push({
+        "Employment Id": "A-" + employee.employmentId,
+        "Employee Name": employee.employeeName,
+        "Department": employee.department,
+        "Billable Type": employee.billableType,
+        "Project Name": '',
+        "Client Name": '',
+        "Apmosys RM": '',
+        "Client RM": '',
+        "PO No.": '',
+        "PO Project Type": '',
+        "PO Start Date": '',
+        "PO End Date": ''
+      });
+    }
+  });
+
+  this.exportExcelService.exportTableDataToExcel(dataForTable, excelName);
+}
+
   
 }
