@@ -1822,10 +1822,10 @@
                             autocomplete="none" [(ngModel)]="lastDate">
                     </div>
                 </div>
-                <button type="button" class="btn btn-success" *ngIf="selectedTeamsDetails.length"
+                <button type="button" class="btn btn-success" 
                     (click)="deleteTeamsByIdsBulk(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
-                <button type="button" class="btn btn-success" *ngIf="!selectedTeamsDetails.length"
-                    (click)="deleteTeam(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
+                <!-- <button type="button" class="btn btn-success" *ngIf="!selectedTeamsDetails.length"
+                    (click)="deleteTeam(alert_message);cancelRequest()">Yes, proceed</button>&nbsp; -->
                 <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
             </div>
         </div>

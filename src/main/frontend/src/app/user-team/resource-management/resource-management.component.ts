@@ -1,4 +1,3 @@
-import { formatDate } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -22,7 +21,6 @@ import { PreviousDefaultProject } from 'src/app/models/previousDefaultProject';
 import { Project } from 'src/app/models/project';
 import { ProjectFilterDTO } from 'src/app/models/projectFilterDTO';
 import { ProjectRequirements } from 'src/app/models/projectRequirements';
-import { Query } from 'src/app/models/query';
 import { SetDefaultProjectObj } from 'src/app/models/setDefaultProjectObj';
 import { Team } from 'src/app/models/team';
 import { TeamMember } from 'src/app/models/teamMember';
@@ -1158,7 +1156,7 @@ export class ResourceManagementComponent implements OnInit {
         this.projectObj.teamList = response.serviceResponse;
         console.log(this.projectObj, "projectofthisteam");
 
-        this.projectCompletionDate = this.projectObj.endDate ? moment(this.projectObj.endDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
+       this.projectCompletionDate = this.projectObj.poEndDate ? moment(this.projectObj.poEndDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
         console.log(this.projectCompletionDate, " this.projectObj.endDtae");
         this.projectObj.teamList.forEach((obj) => {
           obj.departmentList = obj.departmentList?.map(x => +x);
@@ -1514,6 +1512,7 @@ export class ResourceManagementComponent implements OnInit {
   openDeleteModalForTeam(template: TemplateRef<any>, alert_message: TemplateRef<any>, teamObj, project) {
     this.tempTeam = teamObj;
     this.projectdetails1 = project;
+    console
 
     if (!this.tempTeam.teamId) {
       this.openAlertMod(alert_message, "Team is missing. Cannot proceed.");
@@ -2105,8 +2104,8 @@ isBulkDelete:boolean=false;
     const detailsList = Array.isArray(this.projectdetails1) ? this.projectdetails1 : [this.projectdetails1];
 
     detailsList.forEach(details => {
-      this.lastDate = details.endDate
-        ? moment(details.endDate).format('YYYY-MM-DD')
+      this.lastDate = details.poEndDate
+        ? moment(details.poEndDate).format('YYYY-MM-DD')
         : moment().format('YYYY-MM-DD');
       console.log("Testing for end date", this.lastDate);
     });
@@ -2391,7 +2390,7 @@ ExceptionEmployeeReport(projectFilterDTO: ProjectFilterDTO){
         this.projectObj.teamList = response.serviceResponse;
         console.log(this.projectObj, "projectofthisteam");
 
-        this.projectCompletionDate = this.projectObj.endDate ? moment(this.projectObj.endDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
+        this.projectCompletionDate = this.projectObj.poEndDate ? moment(this.projectObj.poEndDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
         console.log(this.projectCompletionDate, " this.projectObj.endDtae");
         this.projectObj.teamList.forEach((obj) => {
           obj.departmentList = obj.departmentList?.map(x => +x);
