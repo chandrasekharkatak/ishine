@@ -433,7 +433,9 @@ export class ReportListComponent implements OnInit {
 
   activeInfoPopup: any;
 
- 
+  closeModal() {
+    this.modalRef.hide();
+  }
  
 
   toggleInfoPopup(target: string): void {
