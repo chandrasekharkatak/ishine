@@ -85,6 +85,17 @@
 
                     <div class="col-md-2" style="display: flex;
               justify-content: left;
+              max-width: fit-content;" (click)="selectStatusTab('CompletedWithTeam')"
+                        [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithTeam'}">
+                        <div class="mini-card1" style="border-left: 4px solid #7836c4;">
+                            <div class="value fw-bold" style="color: #7836c4;">{{tabCounts.completedWithEmployeeCount}}</div>
+                            <div class="label text-muted">Completed In Sankh With Team<i
+                                    class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #7836c4;"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-2" style="display: flex;
+              justify-content: left;
               max-width: fit-content;" (click)="selectStatusTab('completedInIshine')"
                         [ngClass]="{'selected-card': selectedStatusTab === 'completedInIshine'}">
                         <div class="mini-card1" style="border-left: 4px solid #17ceee;">

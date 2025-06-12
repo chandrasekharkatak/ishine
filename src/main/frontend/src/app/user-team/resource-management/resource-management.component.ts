@@ -814,6 +814,10 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.completionStatus = this.selectedStatusTab;
       this.projectFilterDTO.approvalStatus = "All";
     }
+    else if(this.selectedStatusTab == "CompletedWithTeam"){
+      this.projectFilterDTO.completionStatus = this.selectedStatusTab;
+      this.projectFilterDTO.approvalStatus = "All";
+    }
     else{
       this.projectFilterDTO.completionStatus = null;
     }

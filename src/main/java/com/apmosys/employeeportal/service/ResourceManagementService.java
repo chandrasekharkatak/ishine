@@ -5935,6 +5935,7 @@ public class ResourceManagementService {
 		        map.put("pendingForApprovalCount", projectRepository.getAllActiveProjecCountstList(projectFilterDTO.getDepartmentsids(),"true"));
 				map.put("approvedCount", projectRepository.getAllActiveProjecCountstList(projectFilterDTO.getDepartmentsids(),"false"));
 				map.put("completedCount", projectRepository.getAllCompleteProjectInShankhCountstList(projectFilterDTO.getDepartmentsids()));
+				map.put("completedWithEmployeeCount", projectRepository.completedInSankhButTeamMapped(projectFilterDTO.getDepartmentsids()));
 				map.put("notStartedCount",projectTempRepo.getAllNotStartedProjectCount());
 				map.put("rejectedCount", projectRepository.getAllActiveProjecCountstList(projectFilterDTO.getDepartmentsids(),"Rejected"));
 				map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(projectFilterDTO.getDepartmentsids(),"Complete"));
@@ -5959,14 +5960,12 @@ public class ResourceManagementService {
 		        	
 		         results = projectRepository.getAllActiveProjectList(departmentsids,ishineStatus,poStatus,projectFilterDTO.getApprovalStatus());
 		        }
+		        else if("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+		        	results = projectRepository.completedInSankhButTeamMappedList(departmentsids);
+		        }
 		        else {
 		         results = projectRepository.getAllActiveCompletedProjectList(departmentsids,ishineStatus,poStatus,projectFilterDTO.getApprovalStatus());
 		        }
-//		        ServiceResponse teamCreatedProjectsResponse = alreadyCreatedTeam();
-//		        if (!ServiceResponse.STATUS_SUCCESS.equals(teamCreatedProjectsResponse.getServiceStatus())) {
-//		            return failResponse(response, apiLogInfo, "Failed to fetch already created team projects.");
-//		        }
-//		        List<ResourceManagementDTO> teamCreatedProjects = castList(teamCreatedProjectsResponse.getServiceResponse());
 
 		        List<ProjectFetchDTO> dtoList = new ArrayList<>();
 //
@@ -6033,20 +6032,6 @@ public class ResourceManagementService {
 		        	overHeadIds.add(Long.parseLong(overHead[0].toString()));
 		        	projOverHeads.add(overHeadData);
 		        }
-//		        List<Object[]> resourceData = resourceRequirementRepository.findByProjectId((Integer) row[0]);
-//		        List<ResourceRequirementDTO> resourceRequirements = new ArrayList<>();
-//		        for(Object[] requirement : resourceData) {
-//		        	ResourceRequirementDTO resourceReq = new ResourceRequirementDTO(
-//		        			(String) requirement[0],
-//		        			(Integer) requirement[1],
-//		        			(String) requirement[2],
-//		        			(String) requirement[3],
-//		        		((BigInteger) requirement[4]).longValue(),
-//		        			(Integer) requirement[5]
-//		        			);
-//		        	resourceRequirements.add(resourceReq);
-//		        	}
-//		        dto.setResourceRequirements(resourceRequirements);
 		        dto.setDepartment(resourceRequirementRepository.getAllDepartmentsFromProjectId((Integer) row[0])); 
 		        
 		        dto.setProjectManagerId(pmIds);     
