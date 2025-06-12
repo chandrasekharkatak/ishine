@@ -312,7 +312,7 @@
                     </ng-template>
                 </div>
                 <div class="label" style="color: #ee0a0a;">
-                    Exception report of Employee mapping <i class="fa fa-link" style="color: #ee0a0a;"></i>
+                    Employees on Bench but Assigned to Other Projects <i class="fa fa-link" style="color: #ee0a0a;"></i>
                 </div>
                 <div class="text-primary text-end small">View Employees</div>
                 </div>
@@ -1457,8 +1457,8 @@
                     <h3 class="modal-title">Project Requirements</h3>
 
                     <div class="stats-row">
-                        <div class="stat-box m-1">
-                            <p>Total Requirements</p>
+                        <div class="stat-box m-1" *ngIf="projectObj.poProjectType === 'TNM'">
+                            <p>Requirements</p>
                             <h4>
                                 <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
                                     {{ projectRequirementsList.totalRequirements || 0 }}
@@ -1473,7 +1473,7 @@
                                 </ng-container>
                             </h4>
                         </div>
-                        <div class="stat-box m-1">
+                        <div class="stat-box m-1" *ngIf="projectObj.poProjectType === 'TNM'">
                             <p>Difference</p>
                             <h4>
                                 <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
