@@ -206,9 +206,9 @@ export class ReportDashboardComponent implements OnInit {
 
   employeeColumns: any[] = ['Employee Id', 'employeeType', 'Full Name', 'Department', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
   employeeSummaryColumns: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'experience', 'departmentName', 'email', 'managerName', 'billable', 'billableType', 'projectName', 'clientName', 'dateOfJoining', 'mobileNo', 'employmentstatus', 'totalExperience', 'gender', 'workLocation', 'age', 'profileKycStatus'];
-  workLocationSummaryColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'projectName', 'clientName', 'teamName', 'clientLocation', 'date'];
+  workLocationSummaryColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'projectName', 'clientName', 'workLocation', 'clientLocation', 'departmentName','managerName','billable','billableType','totalExperience'];
   LeaveTrendAnalysisGraphColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'status'];
-  leaveSummaryTableColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'status'];
+  leaveSummaryTableColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'status','typeOfLeave'];
   timesheetSummaryTableColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName', 'email', 'managerName', 'mobileNo', 'pendingEodCount', 'legend'];
   eodSegregationTableColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName', 'email', 'managerName', 'mobileNo', 'date', 'dayType', 'totalWorkingHours'];
 
@@ -246,6 +246,8 @@ export class ReportDashboardComponent implements OnInit {
   departmentCategories: string[] = [];
   selectedYear: number;
   isLoading: boolean;
+  modalLeaveData: any[];
+  modalSummary: { date: string; leaveType: string; totalDays: number; employeeCount: number; };
 
   constructor(
     private reportService: ReportService,
@@ -313,12 +315,14 @@ export class ReportDashboardComponent implements OnInit {
     // this.getEmployeeWorkLocation();
     this.findAllDepartment();
 
+    // this.getLeaveTrendDetails();
     // this.loadDepartmentWiseKycData();
     // this.loadJoinResignData();
     // this.getAllPieChartCount();
     // this.getAllEmployeeCountDepartmentWise();
     // this.getAllBillableTypeCount();
     // this.getEmployeeBillableSummary();
+    this.getEmployeeWorkLocation();
 
     let selectedYear = this.selectedYear || moment().year(); 
     const selectedDeptIds: number[] = [];
@@ -380,7 +384,12 @@ export class ReportDashboardComponent implements OnInit {
   ),
   joinResign: this.reportService.getJoinVsResignCount(selectedYear).pipe(
     catchError(error => of({ serviceStatus: 'Error', error }))
+  ),
+  leaveTrend: this.reportService.getLeaveTrendDetails().pipe(
+    catchError(error => of({ serviceStatus: 'Error', error }))
   )
+
+
 }).subscribe(results => {
   if (results.pieChart.serviceStatus === 'Success') {
     this.renderAllPieCharts(results.pieChart);
@@ -412,6 +421,14 @@ export class ReportDashboardComponent implements OnInit {
   } else {
     console.error('JoinVsResign failed:', results.joinResign.error);
   }
+
+  if (results.leaveTrend.serviceStatus === 'Success') {
+      this.leaveTrendAnalysisList = results.leaveTrend.serviceResponse;
+      this.extractLeaveTrendAnalysisData();
+  } else {
+    console.error('LeaveTrend failed:', results.leaveTrend.error);
+  }
+
 });
   }
 
@@ -1020,13 +1037,60 @@ export class ReportDashboardComponent implements OnInit {
   //   });
   // }
 
-  // openWorkLocationSummaryTableModal(category: any): void {
-  //   this.modalTitle = "Work Location: " + category;
-  //   this.modalSummaryList = this.employeeWorkLocationList.filter(x => x.clientLocation === category);
-  //   console.log("Modal Summary List: ", this.modalSummaryList);
-
-  //   this.modalRef = this.modalService.show(this.workLocationSummaryTemplate, { class: 'modal-xl' });
-  // }
+ openWorkLocationSummaryTableModal(category: any): void {
+  this.modalTitle = "Work Location: " + category;
+  this.modalSummaryList = []; // Clear previous data
+  
+  console.log("Fetching details for location: ", category);
+  
+  // Prepare request payload
+  const requestPayload = {
+    workLocation: category
+  };
+  
+  // Call backend API to get specific location details
+  this.reportService.getWorkLocationSummaryDetails(requestPayload)
+    .pipe(first())
+    .subscribe(
+      (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.modalSummaryList = response.serviceResponse;
+          console.log("Modal Summary List from backend: ", this.modalSummaryList);
+          
+          // Process employee data if needed (similar to your original logic)
+          this.modalSummaryList.forEach(data => {
+            // Add prefix to employment ID if needed
+            if (data.employeementId && !data.employeementId.startsWith('A-')) {
+              data.employeementId = "A-".concat(data.employeementId);
+            }
+            
+            // Set employee type based on your business logic if not already set
+            if (!data.employeeType) {
+              if (data.isConsultant === 'true') {
+                data.employeeType = "Consultant";
+              } else if (data.isApprenticeship === 'true') {
+                data.employeeType = "Apprentice";
+              } else {
+                data.employeeType = "Regular";
+              }
+            }
+          });
+          
+          // Open the modal after data is loaded
+          this.modalRef = this.modalService.show(this.workLocationSummaryTemplate, { 
+            class: 'modal-xl' 
+          });
+          
+        } else {
+          console.error('Error fetching work location summary:', response.serviceResponse);
+          // Optionally show error message to user
+        }
+      },
+      (error) => {
+        console.error('API call failed:', error);
+      }
+    );
+}
 
 
   // getAllEmployeeList() {
@@ -3077,7 +3141,7 @@ export class ReportDashboardComponent implements OnInit {
         //   depth: 60,
         //   viewDistance: 40,
         // },
-        backgroundColor: '#f4f6f7',
+        // backgroundColor: '#f4f6f7',
       },
       title: {
         text: chartName,
@@ -3245,7 +3309,7 @@ export class ReportDashboardComponent implements OnInit {
       yAxis: {
         min: 0,
         title: {
-          text: 'No. of Timesheets Filled at Work Location',
+          text: 'No. of Employees',
           align: 'high',
           style: {
             fontWeight: 'bold',
@@ -3498,63 +3562,63 @@ export class ReportDashboardComponent implements OnInit {
   }
 
 
-  renderLineGraphChart(chartName: any, chartId: any, chartData: any, labelName: any, category: any, openMod: any) {
-    HighCharts.chart(chartId, {
-      title: {
-        text: chartName,
-        style: {
-          color: '#000000',
-          fontWeight: 'bold'
-        }
-      },
-      yAxis: {
-        title: {
-          text: 'Number of Leaves',
-          style: {
-            color: '#000000',
-            fontWeight: 'bold'
-          }
-        },
-        labels: {
-          overflow: 'justify',
-          style: {
-            color: '#000000',
-            fontWeight: 'bold'
-          }
-        }
-      },
-      xAxis: {
-        categories: category,
-        labels: {
-          overflow: 'justify',
-          style: {
-            color: '#000000',
-            fontWeight: 'bold'
-          }
-        }
-      },
-      plotOptions: {
-        series: {
-          label: {
-            connectorAllowed: false
-          },
-          point: {
-            events: {
-              click: function (event) {
-                if (chartId == 'leaveTrendAnalysis') {
-                  openMod(event.point.series.name, this.category);
-                }
-              }
-            },
-          },
-        }
-      },
-      credits: {
-        enabled: false,
-      },
-      series: chartData
-    });
-  }
+  // renderLineGraphChart(chartName: any, chartId: any, chartData: any, labelName: any, category: any, openMod: any) {
+  //   HighCharts.chart(chartId, {
+  //     title: {
+  //       text: chartName,
+  //       style: {
+  //         color: '#000000',
+  //         fontWeight: 'bold'
+  //       }
+  //     },
+  //     yAxis: {
+  //       title: {
+  //         text: 'Number of Leaves',
+  //         style: {
+  //           color: '#000000',
+  //           fontWeight: 'bold'
+  //         }
+  //       },
+  //       labels: {
+  //         overflow: 'justify',
+  //         style: {
+  //           color: '#000000',
+  //           fontWeight: 'bold'
+  //         }
+  //       }
+  //     },
+  //     xAxis: {
+  //       categories: category,
+  //       labels: {
+  //         overflow: 'justify',
+  //         style: {
+  //           color: '#000000',
+  //           fontWeight: 'bold'
+  //         }
+  //       }
+  //     },
+  //     plotOptions: {
+  //       series: {
+  //         label: {
+  //           connectorAllowed: false
+  //         },
+  //         point: {
+  //           events: {
+  //             click: function (event) {
+  //               if (chartId == 'leaveTrendAnalysis') {
+  //                 openMod(event.point.series.name, this.category);
+  //               }
+  //             }
+  //           },
+  //         },
+  //       }
+  //     },
+  //     credits: {
+  //       enabled: false,
+  //     },
+  //     series: chartData
+  //   });
+  // }
 
   renderStackBarChart(chartName: any, chartId: any, chartData: any, categories: any, labelName: any, openMod: any) {
 
@@ -4908,20 +4972,20 @@ capitalizeFirstLetter(text: string) {
 }
 
 
-  openLeaveAnalysisTableModel(pointName: any, category: any) {
-    this.sortColumn = [];
-    this.sortColumnType = [];
-    this.sortDirection = '';
-    this.data = ''
-    this.modalSummaryList = [];
-    this.resetSearch();
+  // openLeaveAnalysisTableModel(pointName: any, category: any) {
+  //   this.sortColumn = [];
+  //   this.sortColumnType = [];
+  //   this.sortDirection = '';
+  //   this.data = ''
+  //   this.modalSummaryList = [];
+  //   this.resetSearch();
 
-    let modalTableList = this.leaveTrendAnalysisList;
-    this.page = 1;
-    this.modalTitle = pointName + " taken on " + category;
-    this.modalSummaryList = modalTableList.filter(x => x.leaveType == pointName && x.fromDate == category);
-    this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-xl' });
-  }
+  //   let modalTableList = this.leaveTrendAnalysisList;
+  //   this.page = 1;
+  //   this.modalTitle = pointName + " taken on " + category;
+  //   this.modalSummaryList = modalTableList.filter(x => x.leaveType == pointName && x.fromDate == category);
+  //   this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-xl' });
+  // }
 
   // openWorkLocationSummaryTableModal(category:any){
   //   this.sortColumn=[];
@@ -5405,10 +5469,8 @@ private getDepartmentIdsByName(deptName: string): number[] {
       y: this.otherCount
     }];
 
-    //console.log("genderData : ", genderData);
 
     let checkGenderData = genderData.filter(data => data.y != 0);
-    //console.log("checkGenderData :", checkGenderData);
 
     if (checkGenderData && checkGenderData.length != 0) {
       this.renderPieSummaryChart('Gender Summary', 'genderSummary', genderData, 'Employee Summary', this.openGenderSummaryModalTable.bind(this));
@@ -5416,9 +5478,6 @@ private getDepartmentIdsByName(deptName: string): number[] {
       this.renderPlaceholderChart('Gender Summary', 'genderSummary');
     }
 
-    /*
-   Chart Data for - Age Summary Graph.
-  */
 
     let employeeAgeData = [{
       name: "18 to 25",
@@ -5437,10 +5496,8 @@ private getDepartmentIdsByName(deptName: string): number[] {
       y: this.countAbove45
     }];
 
-    //console.log("employeeAgeData : ", employeeAgeData);
 
     let checkEmployeeAgeData = employeeAgeData.filter(data => data.y != 0);
-    //console.log("checkGenderData :", checkGenderData);
 
     if (checkEmployeeAgeData && checkEmployeeAgeData.length != 0) {
       this.renderPieSummaryChart('Age Summary', 'employeeAgeSummary', employeeAgeData, 'Employee Summary', this.openAgeSummayModalTable.bind(this));
@@ -5480,10 +5537,8 @@ private getDepartmentIdsByName(deptName: string): number[] {
       },
     ];
 
-    // Categories (Experience Ranges)
     let totalExperienceCategories = experienceData.map(exp => exp.name);
 
-    // Series Data (for employees and apprentices)
     let employeeSeries = experienceData.map(exp => exp.employeeCount);
     let apprenticeSeries = experienceData.map(exp => exp.apprenticeCount);
     let consultantSeries = experienceData.map(exp => exp.consultantCount);
@@ -5509,9 +5564,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
     );
 
 
-    /*
-    Chart Data for - Employee Fresher - Lateral Graph Data.
-   */
+
 
     let fresherLateralData = [{
       name: "Fresher",
@@ -5546,7 +5599,6 @@ private getDepartmentIdsByName(deptName: string): number[] {
     }]
     
     let checkEmployeeBillableData = billableTypeData.filter(data => data.y != 0);
-    // console.log(" checkEmployeeBillableData ",checkEmployeeBillableData);
 
     if (checkEmployeeBillableData && checkEmployeeBillableData.length != 0) {
       this.renderPieSummaryChart('Billable Employee Summary', 'billableChart', billableTypeData, 'Billable Data', this.openBillableEmployeeTableModal.bind(this));
@@ -5577,7 +5629,6 @@ private getDepartmentIdsByName(deptName: string): number[] {
     let checkDeptWiseData = deptWiseBillableType.filter(data => data.y != 0);
 
     if (checkDeptWiseData && checkDeptWiseData.length != 0) {
-      // console.log("deptWiseBillabledata", deptWiseBillableType);
       deptWiseBillableType.forEach(data => console.log(data));
       this.renderPieSummaryChart('Employee Billable/Non-Billable Summary', 'billableChartByDepartment', deptWiseBillableType, 'Department wise Billable Data', this.openDepartmentWiseBillableEmployeeTableModal.bind(this));
     } else {
@@ -5590,7 +5641,6 @@ private getDepartmentIdsByName(deptName: string): number[] {
 
 
 
-  //added by Dibya to call Department Wise Employee Count Graph
   renderDepartmentWiseEmployeeChartWrapper() {
     console.log("departmentWiseEmployeeData:", this.departmentWiseEmployeeData);
     console.log("departmentWiseEmployeeCategories:", this.departmentWiseEmployeeCategories);
@@ -5605,7 +5655,6 @@ private getDepartmentIdsByName(deptName: string): number[] {
     );
   }
 
-  //added by Dibya custom api for department wise employee count
   getAllEmployeeCountDepartmentWise() {
     this.reportService.getAllEmployeeCountDepartmentWise().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -5618,7 +5667,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
   }
 
   processDepartmentWiseCount(response: any) {
-            const rawData = response; // Array of arrays
+            const rawData = response; 
         const departmentMap: { [key: string]: any } = {};
 
         rawData.forEach(([departmentName, type, count]) => {
@@ -5644,7 +5693,6 @@ private getDepartmentIdsByName(deptName: string): number[] {
 
         const departmentData = Object.values(departmentMap);
 
-        // Sort departments by employee count descending
         departmentData.sort((a: any, b: any) => b.employeeCount - a.employeeCount);
 
         this.departmentWiseEmployeeData = departmentData.map(dept => ({
@@ -5659,12 +5707,10 @@ private getDepartmentIdsByName(deptName: string): number[] {
         this.departmentWiseEmployeeCategories = departmentData.map(dept => dept.departmentName);
 
         this.renderDepartmentWiseEmployeeChartWrapper();
-        //  Log the transformed data for verification
         console.log("departmentWiseEmployeeData:", this.departmentWiseEmployeeData);
         console.log("departmentWiseEmployeeCategories:", this.departmentWiseEmployeeCategories);
   }
 
-//added by Dibya to call Department Wise Billable API
  getAllBillableTypeCount(departmentIds?: number[]) {
   const selectedDeptIds = departmentIds && departmentIds.length > 0 ? departmentIds : [];
 
@@ -5687,7 +5733,6 @@ private getDepartmentIdsByName(deptName: string): number[] {
 
 
 
-  //added by Transform raw  for departmentwise billable employee count response into chart format
   prepareBillableChartData(rawData: any[]): { name: string, y: number }[] {
     const billableTypeMap: { [key: string]: number } = {};
 
@@ -5705,7 +5750,6 @@ private getDepartmentIdsByName(deptName: string): number[] {
   }
 
 
-  // added by Dibya to Renders chart using processed data fro Department Wise Billable Employee
   renderDepartmentWiseBillablePieChart(data: { name: string, y: number }[]) {
     const filteredData = data.filter(entry => entry.y !== 0);
      
@@ -5727,7 +5771,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
 
 
   getEmployeeBillableSummary() {
-  const selectedDeptIds: number[] = []; // Empty array to fetch all departments
+  const selectedDeptIds: number[] = []; 
 
   this.reportService.getDepartmentWiseBillableNonBillableSummary(selectedDeptIds).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Success") {
@@ -5748,22 +5792,19 @@ private getDepartmentIdsByName(deptName: string): number[] {
 
 
 prepareBillableChartDataBillabe(rawData: any[]): any[] {
-  const departmentTotalCountMap = new Map<string, number>(); // Total count per department
+  const departmentTotalCountMap = new Map<string, number>(); 
   const departmentSet = new Set<string>();
   const typeSet = new Set<string>();
 
-  // First pass: collect all types and total count per department
   rawData.forEach(([dept, type, count]) => {
     if (!dept || !type) return;
 
     departmentSet.add(dept);
     typeSet.add(type);
 
-    // Track total count per department
     departmentTotalCountMap.set(dept, (departmentTotalCountMap.get(dept) || 0) + count);
   });
 
-  // Sort departments by total count descending
   const sortedDepartments = Array.from(departmentSet).sort((a, b) => {
     const aCount = departmentTotalCountMap.get(a) || 0;
     const bCount = departmentTotalCountMap.get(b) || 0;
@@ -5773,12 +5814,10 @@ prepareBillableChartDataBillabe(rawData: any[]): any[] {
   const typeList = Array.from(typeSet);
   const typeToDataMap = new Map<string, number[]>();
 
-  // Initialize arrays for each type
   typeList.forEach(type => {
     typeToDataMap.set(type, new Array(sortedDepartments.length).fill(0));
   });
 
-  // Populate data arrays
   rawData.forEach(([dept, type, count]) => {
     const deptIndex = sortedDepartments.indexOf(dept);
     if (deptIndex !== -1 && type) {
@@ -5789,10 +5828,8 @@ prepareBillableChartDataBillabe(rawData: any[]): any[] {
     }
   });
 
-  // Save department names to use on x-axis
   this.billableChartCategories = sortedDepartments;
 
-  // Return chart series data
   return Array.from(typeToDataMap.entries()).map(([type, data]) => ({
     name: type,
     data: data,
@@ -5805,20 +5842,262 @@ renderEmployeeBillableSummaryChartWrapper(billableChartData: any[]) {
     'Department wise Billable/Non-Billable Employee Summary',
     'billableEmployeeSummary',
     billableChartData,
-    this.billableChartCategories, // X-axis: departments
+    this.billableChartCategories, 
     'Employee',
     this.openDepartmentWiseBillableEmployeeModalTable.bind(this)
   );
 }
 
+  getLeaveTrendDetails() {
+  this.leaveSumarryList = [];
+  
+  this.reportService.getLeaveTrendDetails().pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.leaveTrendAnalysisList = response.serviceResponse;
+      this.extractLeaveTrendAnalysisData();
+    } else {
+      console.error(response.serviceResponse);
+    }
+  });
+}
 
+extractLeaveTrendAnalysisData() {
+  this.leaveSumarryList = [];
 
+  if (!this.leaveTrendAnalysisList || this.leaveTrendAnalysisList.length === 0) {
+    console.log("No leave trend data available");
+    return;
+  }
 
+  const leaveTypes = [...new Set(this.leaveTrendAnalysisList.map(item => item.typeOfLeave))];
+  const uniqueDates = [...new Set(this.leaveTrendAnalysisList.map(item => item.leaveDate))];
+  
+  const sortedDates = uniqueDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
+  const formattedDateRange = sortedDates.map(date => {
+    return moment(date).format('MMM DD'); 
+  });
 
+  let chartData = [];
 
+  leaveTypes.forEach(leaveType => {
+    const leaveTypeData = {
+      type: 'line',
+      name: leaveType,
+      data: []
+    };
+
+    sortedDates.forEach(date => {
+      const dayData = this.leaveTrendAnalysisList.find(item => 
+        item.typeOfLeave === leaveType && item.leaveDate === date
+      );
+      
+      leaveTypeData.data.push(dayData ? dayData.totalLeaveDays : 0);
+    });
+
+    chartData.push(leaveTypeData);
+  });
+
+  console.log("Final ChartData:", chartData);
+  console.log("Date Range:", formattedDateRange);
+
+  this.renderLineGraphChart(
+    'Leave Trend Analysis Graph', 
+    'leaveTrendAnalysis', 
+    chartData, 
+    'No. of Leaves', 
+    formattedDateRange, 
+    this.openLeaveAnalysisTableModel.bind(this)
+  );
+}
+
+renderLineGraphChart(title: string, containerId: string, seriesData: any[], yAxisTitle: string, categories: string[], clickCallback?: Function) {
+  const chartOptions: Highcharts.Options = {
+    chart: {
+      type: 'line',
+      height: 300
+    },
+    title: {
+      text: title,
+      style: {
+          color: '#000000',
+          fontWeight: 'bold'
+        }
+    },
+    xAxis: {
+      categories: categories,
+      labels: {
+          overflow: 'justify',
+          style: {
+            color: '#000000',
+            fontWeight: 'bold'
+          }
+      }
+    },
+    yAxis: {
+      title: {
+        text: yAxisTitle,
+        style: {
+            color: '#000000',
+            fontWeight: 'bold'
+          }
+      },
+      min: 0,
+      labels: {
+          overflow: 'justify',
+          style: {
+            color: '#000000',
+            fontWeight: 'bold'
+          }
+        }
+    },
+    tooltip: {
+      shared: true,
+      formatter: function() {
+        let tooltipText = `<b>${this.x}</b><br/>`;
+        this.points?.forEach(point => {
+          tooltipText += `<span style="color:${point.color}">${point.series.name}</span>: <b>${point.y}</b> days<br/>`;
+        });
+        return tooltipText;
+      }
+    },
+    plotOptions: {
+      line: {
+        dataLabels: {
+          enabled: false
+        },
+        enableMouseTracking: true,
+        marker: {
+          enabled: true,
+          radius: 4
+        }
+      },
+      series: {
+        cursor: 'pointer',
+        label: {
+            connectorAllowed: false
+          },
+        point: {
+          events: {
+            click: function() {
+              if (clickCallback) {
+                clickCallback(this.category, this.series.name, this.y);
+              }
+            }
+          }
+        }
+      }
+    },
+    credits: {
+        enabled: false,
+    },
+    legend: {
+      enabled: true,
+      align: 'center',
+      verticalAlign: 'bottom'
+    },
+    series: seriesData
+  };
+
+  Highcharts.chart(containerId, chartOptions);
+}
+
+convertDateFormat(dateStr: string): string {
+  try {
+    if (dateStr.includes('-') && dateStr.length === 10) {
+      return dateStr;
+    }
+    
+    const currentYear = new Date().getFullYear();
+    const parsedDate = moment(`${dateStr} ${currentYear}`, 'MMM DD YYYY');
+    
+    if (!parsedDate.isValid()) {
+      console.error('Invalid date format:', dateStr);
+      return dateStr; 
+    }
+    
+    return parsedDate.format('YYYY-MM-DD');
+  } catch (error) {
+    console.error('Error converting date format:', error);
+    return dateStr; 
+  }
+}
+
+openLeaveAnalysisTableModel(date: string, leaveType: string, value: number) {
+  console.log(`Clicked on ${leaveType} for ${date}: ${value} days`);
+  
+  const formattedDate = this.convertDateFormat(date);
+  
+  const request = {
+    fetchDate: formattedDate, 
+    typeOfLeave: leaveType     
+  };
+  
+  console.log('Request payload:', request);
+  
+  this.leaveService.getLeaveTrendAnalysis(request).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      const detailedLeaveData = response.serviceResponse;
+      console.log('Detailed leave data:', detailedLeaveData);
+      
+      this.modalTitle = `${leaveType} Details - ${moment(date).format('MMM DD, YYYY')}`;
+      this.modalSummaryList = detailedLeaveData;
+      this.modalSummary = {
+        date: date,
+        leaveType: leaveType,
+        totalDays: value,
+        employeeCount: detailedLeaveData.length
+      };
+  
+      this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-xl' });
+    } else {
+      console.error('Error fetching detailed leave analysis:', response.serviceResponse);
+    }
+  }, (error) => {
+    console.error('Service call failed:', error);
+  });
+}
+
+getEmployeeWorkLocation(): void {
+  this.reportService.getWorkLocationDetails().pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === "Success") {
+      this.renderWorkLocationData(response.serviceResponse);
+      
+    } else {
+      console.error('Error fetching work location details:', response.serviceResponse);
+    }
+  }, (error) => {
+    console.error('API call failed:', error);
+  });
+}
+
+renderWorkLocationData(response: any): void {
+        const workLocationData = response;
+      console.log("Work location data from backend: ", workLocationData);
+      
+      const employeeWorkLocationChartData = workLocationData.map((item: any) => ([
+        item.clientLocation, 
+        item.employeeCOUNT
+      ]));
+      
+      const employeeWorkLocationCategories = workLocationData.map((item: any) => item.clientLocation);
+      
+      console.log("Chart data: ", employeeWorkLocationChartData);
+      console.log("Categories: ", employeeWorkLocationCategories);
+      
+      this.renderColumnBarSummaryChartForWorkLocation(
+        'Employee Work Location Summary',
+        'employeeWorkLocationSummary',
+        employeeWorkLocationChartData,
+        employeeWorkLocationCategories,
+        'employee',
+        this.openWorkLocationSummaryTableModal.bind(this)
+      );
+}
 
 }
+
+
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 

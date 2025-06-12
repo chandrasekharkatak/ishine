@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -91,7 +92,11 @@ public class ReportCountDTO {
     private Long apprenticeCount;
     private Long consultantCount;
     private Long regularCount;
-    
+    private String typeOfLeave;
+    private LocalDate leaveDate;
+    private Long totalLeaveDays;
+    private String clientLocation;
+    private Long EmployeeCOUNT;
 	
 	
 	

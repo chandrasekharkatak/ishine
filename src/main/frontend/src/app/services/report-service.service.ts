@@ -73,5 +73,16 @@ export class ReportService {
     return this.http.post(`${this.baseUrl}` + `api/getJoinVsResignEmployeeDetails`,request);
   }
 
+  getLeaveTrendDetails(): Observable<any> {
+    return this.http.get(`${this.baseUrl}api/getLeaveTrendDetails`);
+  }
+
+  getWorkLocationDetails(): Observable<any> {
+    return this.http.get(`${this.baseUrl}api/getWorkLocationDetails`);
+  }
+
+ getWorkLocationSummaryDetails(requestPayload: any): Observable<any> { 
+   return this.http.post(`${this.baseUrl}api/getWorkLocationSummaryDetails`, requestPayload);
+ }
 
 }

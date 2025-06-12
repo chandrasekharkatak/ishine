@@ -13,8 +13,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +30,7 @@ import com.apmosys.employeeportal.dto.ChartsCountDTO;
 import com.apmosys.employeeportal.dto.DepartmentWiseCountDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.LeaveTrendAnalysisDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PieChartListDTO;
 import com.apmosys.employeeportal.dto.PieParamDTO;
@@ -36,6 +39,7 @@ import com.apmosys.employeeportal.dto.ReportCountDTO;
 import com.apmosys.employeeportal.dto.ReportListDTO;
 import com.apmosys.employeeportal.dto.ReportsQueryDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.WorkLocationCountDTO;
 import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
@@ -77,6 +81,8 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	
 	@Autowired
 	private ReportDashboardRepository reportDashboardRepository;
+	
+	ConcurrentHashMap<String, List<Object[]>> worklocationMap = new ConcurrentHashMap<String, List<Object[]>>();
 
 	@Override
 	public ServiceResponse getLast8DaysLeaveReport(LeaveDTO leaveDto) {
@@ -1413,4 +1419,195 @@ try {
 
 	        return response;
 	    }
+	  
+	  public ServiceResponse getLeaveTrendDetails() {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/getLeaveTrendDetails");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    
+		    try {
+		        logBuilder.append("Fetching leave trend data");
+		        
+		        List<Object[]> data = reportDashboardRepository.getLeaveTrend();
+		        List<ReportCountDTO> dtoList = new ArrayList<>();
+		        
+		        data.forEach((object) -> {
+		            ReportCountDTO dto = new ReportCountDTO();
+		            dto.setTypeOfLeave(object[0] != null ? object[0].toString() : null);
+		            dto.setLeaveDate(object[1] != null ? LocalDate.parse(object[1].toString()) : null);
+		            dto.setTotalLeaveDays(object[2] != null ? Long.parseLong(object[2].toString()) : 0);
+		            
+		            dtoList.add(dto);
+		        });
+		        
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse(dtoList);
+		        logBuilder.append(" - Successfully retrieved ").append(data.size()).append(" leave trend records");
+		        
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something went wrong while fetching leave trend details.");
+		        response.setServiceError(e.getMessage());
+		        logBuilder.append(" - Error occurred: ").append(e.getMessage());
+		    }
+		    
+		    System.out.println(logBuilder.toString());
+		    return response;
+		}
+	  public ServiceResponse getLeaveTrendAnalysis(ReportsQueryDTO request) {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/getLeaveTrendAnalysis");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    
+		    try {
+		        logBuilder.append("Fetching leave trend analysis data");
+		        
+		        List<Object[]> data = reportDashboardRepository.leaveTrendAnalysis(
+		            request.getFetchDate(),
+		            request.getTypeOfLeave()
+		        );
+		        List<LeaveTrendAnalysisDTO> dtoList = new ArrayList<>();
+		        
+		        data.forEach((object) -> {
+		            LeaveTrendAnalysisDTO dto = new LeaveTrendAnalysisDTO();
+		            dto.setEmployeementId(object[0] != null ? (object[0].toString()) : null);
+		            dto.setDepartmentName(object[1] != null ? object[1].toString() : null);
+		            dto.setEmployeeName(object[2] != null ? object[2].toString() : null);
+		            dto.setFromDate(object[3] != null ? LocalDate.parse(object[3].toString()) : null);
+		            dto.setToDate(object[4] != null ? LocalDate.parse(object[4].toString()) : null);
+		            dto.setStatus(object[5] != null ? object[5].toString() : null);
+		            dto.setFromDateDayType(object[6] != null ? object[6].toString() : null);
+		            dto.setToDateDayType(object[7] != null ? object[7].toString() : null);
+		            dto.setEmployeeType(object[8] != null ? object[8].toString() : null);
+		            dto.setManagerId(object[9] != null ? (object[9].toString()) : null);
+		            dto.setTypeOfLeave(object[10] != null ? object[10].toString() : null);
+		            dto.setLeaveDate(object[11] != null ? LocalDate.parse(object[11].toString()) : null);
+		            
+		            dtoList.add(dto);
+		        });
+		        
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse(dtoList);
+		        logBuilder.append(" - Successfully retrieved ").append(data.size()).append(" leave trend analysis records");
+		        
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something went wrong while fetching leave trend analysis details.");
+		        response.setServiceError(e.getMessage());
+		        logBuilder.append(" - Error occurred: ").append(e.getMessage());
+		    }
+		    
+		    System.out.println(logBuilder.toString());
+		    return response;
+		}
+	  
+	  public ServiceResponse getWorkLocationDetails() {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/getWorkLocationDetails");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+
+		    try {
+		        logBuilder.append("Fetching work location data");
+		        
+		        List<Object[]> data;
+		        List<WorkLocationCountDTO> dtoList = new ArrayList<>();
+		        
+		        if(!worklocationMap.isEmpty()) {
+		        	data = worklocationMap.get("Success");
+		        }else {
+		        	data = reportDashboardRepository.getWorkLocation();
+		        	worklocationMap.put("Success", data);
+		        }
+
+		        data.forEach((object) -> {
+		            WorkLocationCountDTO dto = new WorkLocationCountDTO();
+		            dto.setClientLocation(object[0] != null ? object[0].toString() : null);
+		            dto.setEmployeeCOUNT(object[1] != null ? Long.parseLong(object[1].toString()) : 0);
+
+		            dtoList.add(dto);
+		        });
+
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse(dtoList);
+		        logBuilder.append(" - Successfully retrieved ").append(data.size()).append(" work location records");
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something went wrong while fetching work location details.");
+		        response.setServiceError(e.getMessage());
+		        logBuilder.append(" - Error occurred: ").append(e.getMessage());
+		    }
+
+		    System.out.println(logBuilder.toString());
+		    return response;
+		}
+	  
+	  public ServiceResponse getWorkLocationSummaryDetails(ReportsQueryDTO reportQueryDTO) {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/getWorkLocationSummaryDetails");
+		    apiLogInfo.setLogLevel("INFO");
+
+		    StringBuilder logBuilder = new StringBuilder();
+
+		    try {
+		        logBuilder.append("Fetching work location summary data for location: ").append(reportQueryDTO.getWorkLocation());
+
+		        List<Object[]> data = reportDashboardRepository.workLocationSummary(reportQueryDTO.getWorkLocation());
+		        List<ReportListDTO> dtoList = new ArrayList<>();
+
+		        data.forEach((object) -> {
+		            ReportListDTO dto = new ReportListDTO();
+		            dto.setEmployeementId(object[0] != null ? object[0].toString() : null);
+		            dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
+		            dto.setName(object[2] != null ? object[2].toString() : null);
+//		            dto.setExperience(object[3] != null ? object[3].toString() : null);
+		            dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
+		            dto.setEmail(object[5] != null ? object[5].toString() : null);
+		            dto.setManagerName(object[6] != null ? object[6].toString() : null);
+		            dto.setBillable(object[7] != null ? object[7].toString() : null);
+		            dto.setBillableType(object[8] != null ? object[8].toString() : null);
+		            dto.setProjectName(object[9] != null ? object[9].toString() : null);
+		            dto.setClientName(object[10] != null ? object[10].toString() : null);
+//		            dto.setDateOfJoining(object[11] != null ? object[11].toString() : null);
+//		            dto.setMobileNo(object[12] != null ? object[12].toString() : null);
+//		            dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);
+		            dto.setTotalExperience(object[14] != null ? object[14].toString() : null);
+//		            dto.setGender(object[15] != null ? object[15].toString() : null);
+		            dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
+		            // For client_location, we can set it in workLocation or add it as a custom field
+		             dto.setClientLocation(object[17] != null ? object[17].toString() : null); 
+//		            dto.setAge(object[18] != null ? Integer.parseInt(object[18].toString()) : null);
+//		            dto.setProfileKycStatus(object[19] != null ? object[19].toString() : null);
+
+		            dtoList.add(dto);
+		        });
+
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse(dtoList);
+
+		        logBuilder.append(" - Successfully retrieved ").append(data.size()).append(" work location summary records");
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something went wrong while fetching work location summary details.");
+		        response.setServiceError(e.getMessage());
+
+		        logBuilder.append(" - Error occurred: ").append(e.getMessage());
+		    }
+
+		    System.out.println(logBuilder.toString());
+
+		    return response;
+		}
 }

@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import lombok.Data;
@@ -42,4 +43,6 @@ public class ReportsQueryDTO {
     private Long upperValue;
     private String isUserInfoUpdated;
     private String monthName;
+    private LocalDate fetchDate;
+    private String typeOfLeave;
 }
