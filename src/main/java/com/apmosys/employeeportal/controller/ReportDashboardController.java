@@ -145,5 +145,30 @@ public class ReportDashboardController {
 			ServiceResponse response = reportDashboardService.getJoinVsResignEmployeeDetails(request);
 			return response;
 		}
+		
+		@RequestMapping(value = "/getLeaveTrendDetails",method = RequestMethod.GET)
+		public  ServiceResponse getLeaveTrendDetails() {
+			ServiceResponse	response=reportDashboardService.getLeaveTrendDetails();
+			return response;
+		}
+		@RequestMapping(value = "/getLeaveTrendAnalysis" ,method = RequestMethod.POST)
+		public ServiceResponse getLeaveTrendAnalysis(@RequestBody ReportsQueryDTO request) {
+			
+			ServiceResponse response = reportDashboardService.getLeaveTrendAnalysis(request);
+			return response;
+		}
+		
+		@RequestMapping(value = "/getWorkLocationDetails",method = RequestMethod.GET)
+		public  ServiceResponse getWorkLocationDetails() {
+			ServiceResponse	response=reportDashboardService.getWorkLocationDetails();
+			return response;
+		}
+		
+		@RequestMapping(value = "/getWorkLocationSummaryDetails" ,method = RequestMethod.POST)
+		public ServiceResponse getWorkLocationSummaryDetails(@RequestBody ReportsQueryDTO request) {
+			
+			ServiceResponse response = reportDashboardService.getWorkLocationSummaryDetails(request);
+			return response;
+		}
 
 }

@@ -40,6 +40,10 @@ public interface ReportDashboardService {
 
 	ServiceResponse getDepartmentwiseEmployeesByType(ReportsQueryDTO request);
 	ServiceResponse getJoinVsResignEmployeeDetails(ReportsQueryDTO request);
+	ServiceResponse getLeaveTrendDetails();
 	
+	ServiceResponse getLeaveTrendAnalysis(ReportsQueryDTO request);
+	ServiceResponse getWorkLocationDetails();
+	ServiceResponse getWorkLocationSummaryDetails(ReportsQueryDTO reportQueryDTO);
 		}
 	

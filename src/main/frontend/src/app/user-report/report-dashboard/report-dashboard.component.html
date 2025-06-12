@@ -443,168 +443,140 @@
 <div class="row" *ngIf="isEmployeeDashboard">
   <div class="col-md-12">
     <div class="card px-0">
-      <div class="card-body">
-        <div class="row text-center">
-          <div
-            class="col-sm-12 col-md-6 col-lg-2 graph d-flex flex-column justify-content-center align-items-center"
-          >
-            <small
-              class="chart-title mouse"
-              (click)="openTotalCountModal('All Active Employee')"
-              >Employee Count</small
-            >
-            <h4
-              class="card-title mouse"
-              (click)="openTotalCountModal('All Active Employee')"
-            >
-              {{ countOfAllEmployees }}
-            </h4>
-            <small
-              class="chart-title mouse"
-              (click)="
-                openTotalCountModal('Employee In Probation(After 6 months)')
-              "
-              >Employee In Probation<br />(After 6 months) Count</small
-            >
-            <h4
-              class="card-title mouse"
-              (click)="
-                openTotalCountModal('Employee In Probation(After 6 months)')
-              "
-            >
-              {{ employeeInProbationAfter6MonthsCount }}
-            </h4>
-            <small
-              class="chart-title mouse"
-              (click)="openTotalCountModal('Apprentice Count')"
-            >
-              Apprentice Count
-            </small>
-            <h4
-              class="card-title mouse"
-              (click)="openTotalCountModal('Apprentice Count')"
-            >
-              {{ apprenticeCountForDisplay }}
-            </h4>
-            <small
-              class="chart-title mouse"
-              (click)="openTotalCountModal('Consultant Count')"
-            >
-              Consultant Count
-            </small>
-            <h4
-              class="card-title mouse"
-              (click)="openTotalCountModal('Consultant Count')"
-            >
-              {{ consultantCountForDisplay }}
-            </h4>
-            <small
-              class="chart-title mouse"
-              (click)="openTotalCountModal('Regular Count')"
-            >
-              Regular Count
-            </small>
-            <h4
-              class="card-title mouse"
-              (click)="openTotalCountModal('Regular Count')"
-            >
-              {{ regularCountForDisplay }}
-            </h4>
-          </div>
-          <div class="col-sm-12 col-md-6 col-lg-5 graph">
-            <div id="departmentWiseEmployee" style="height: 300px"></div>
-          </div>
-          <div class="col-sm-12 col-md-6 col-lg-5 graph">
-            <div id="employeeExperienceSummary" style="height: 300px"></div>
-          </div>
-
-          <!-- added by anurag for billable pie chart -->
-          <div class="row col-md-12">
-            <div class="col-sm-5 col-md-5 col-lg-5 graph">
-              <div id="billableChart" style="height: 300px"></div>
+<div class="card-body">
+  <div class="row text-center">
+    <!-- Employee Count Cards Row - Changed to horizontal layout -->
+    <div class="col-12">
+      <div class="row mb-4 g-2">
+        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+          <div class="employee-count-card" (click)="openTotalCountModal('All Active Employee')">
+            <div class="count-icon">
+              <i class="fas fa-users"></i>
             </div>
-
-            <div class="col-sm-7 col-md-7 col-lg-7 graph">
-              <!-- <div class="form-group"> -->
-              <!-- <label class="info-label"><span class="text-danger">*</span>Department</label> -->
-              <div class="row">
-                <div class="col-md-3 " style="margin-left: 0 px !important">
-                  <label class=""><b>Year</b></label
-                  >&nbsp;
-                  <mat-form-field class="w-50" placeholder="Year">
-                    <mat-select
-                      [(ngModel)]="selectedYear"
-                      (selectionChange)="onSelectionChange($event)"
-                    >
-                      <mat-option [value]="year" *ngFor="let year of yearList">
-                        {{ year }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-                <div class="col-md-9">
-                  <div
-                    id="employeeJoinAndResign"
-                    style="height: 400px; width: 450px"
-                  ></div>
-                </div>
-              </div>
+            <h4 class="card-title">{{ countOfAllEmployees }}</h4>
+            <small class="chart-title">Total<br/>Employees</small>
+          </div>
+        </div>
+        
+        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+          <div class="employee-count-card" (click)="openTotalCountModal('Employee In Probation(After 6 months)')">
+            <div class="count-icon">
+              <i class="fas fa-user-clock"></i>
             </div>
+            <h4 class="card-title">{{ employeeInProbationAfter6MonthsCount }}</h4>
+            <small class="chart-title">Employee In<br/>Probation<br/>(After 6 Months)</small>
           </div>
-
-          <!-- end -->
-
-          <div class="col-sm-12 col-md-6 col-lg-4 graph">
-            <div id="employeeStatus" style="height: 300px"></div>
-          </div>
-          <div class="col-sm-12 col-md-6 col-lg-4 graph">
-            <div id="genderSummary" style="height: 300px"></div>
-          </div>
-          <div class="col-sm-12 col-md-6 col-lg graph">
-            <div id="employeeAgeSummary" style="height: 300px"></div>
-          </div>
-
-          <div class="col-sm-12 col-md-6 col-lg-4 graph">
-            <div id="fresherLateralChart" style="height: 300px"></div>
-          </div>
-          <div class="col-sm-12 col-md-6 col-lg-4 graph mouse">
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-primary mx-1 float-right"
-              (click)="
-                openFilterModal(
-                  filter,
-                  leaveSummaryColumns,
-                  'Filter Leave Trend Chart'
-                )
-              "
-            >
-              <i class="fa-solid fa-filter"></i>
-            </button>
-            <div id="leaveTrendAnalysis" style="height: 300px"></div>
-          </div>
-          <div class="col-sm-12 col-md-6 col-lg-4 graph">
-            <div id="billableChartByDepartment" style="height: 300px"></div>
-          </div>
-
-          <div class="col-sm-12 col-md-6 col-lg-5 graph">
-            <div id="employeeWorkLocationSummary" style="height: 300px"></div>
-          </div>
-          <div class="col-sm-12 col-md-6 col-lg-7 graph">
-            <div id="employeeKycSummary" style="height: 300px"></div>
-          </div>
-
-          <!-- billable non billable stackbar chart by anurag -->
-
-          <div class="col-sm-12 col-md-12 col-lg-12 graph">
-            <div class="scrollable-container" style="height: 400px">
-              <div id="billableEmployeeSummary"></div>
+        </div>
+        
+        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+          <div class="employee-count-card" (click)="openTotalCountModal('Apprentice Count')">
+            <div class="count-icon">
+              <i class="fas fa-graduation-cap"></i>
             </div>
+            <h4 class="card-title">{{ apprenticeCountForDisplay }}</h4>
+            <small class="chart-title">Apprentice<br/>Count</small>
           </div>
-
-          <!-- end -->
+        </div>
+        
+        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+          <div class="employee-count-card" (click)="openTotalCountModal('Consultant Count')">
+            <div class="count-icon">
+              <i class="fas fa-user-tie"></i>
+            </div>
+            <h4 class="card-title">{{ consultantCountForDisplay }}</h4>
+            <small class="chart-title">Consultant<br/>Count</small>
+          </div>
+        </div>
+        
+        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+          <div class="employee-count-card" (click)="openTotalCountModal('Regular Count')">
+            <div class="count-icon">
+              <i class="fas fa-user-check"></i>
+            </div>
+            <h4 class="card-title">{{ regularCountForDisplay }}</h4>
+            <small class="chart-title">Regular<br/>Count</small>
+          </div>
         </div>
       </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="col-sm-12 col-md-6 col-lg-6 graph">
+      <div id="departmentWiseEmployee" style="height: 300px"></div>
+    </div>
+    <div class="col-sm-12 col-md-6 col-lg-6 graph">
+      <div id="employeeExperienceSummary" style="height: 300px"></div>
+    </div>
+
+    <!-- added by anurag for billable pie chart -->
+    <div class="row col-md-12">
+      <div class="col-sm-5 col-md-5 col-lg-5 graph">
+        <div id="billableChart" style="height: 300px"></div>
+      </div>
+
+      <div class="col-sm-7 col-md-7 col-lg-7 graph">
+        <div class="row">
+          <div class="col-md-3" style="margin-left: 0 px !important">
+            <label class=""><b>Year</b></label>&nbsp;
+            <mat-form-field class="w-50" placeholder="Year">
+              <mat-select [(ngModel)]="selectedYear" (selectionChange)="onSelectionChange($event)">
+                <mat-option [value]="year" *ngFor="let year of yearList">
+                  {{ year }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+          <div class="col-md-9">
+            <div id="employeeJoinAndResign" style="height: 400px; width: 450px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- end -->
+
+    <div class="col-sm-12 col-md-6 col-lg-4 graph">
+      <div id="employeeStatus" style="height: 300px"></div>
+    </div>
+    <div class="col-sm-12 col-md-6 col-lg-4 graph">
+      <div id="genderSummary" style="height: 300px"></div>
+    </div>
+    <div class="col-sm-12 col-md-6 col-lg graph">
+      <div id="employeeAgeSummary" style="height: 300px"></div>
+    </div>
+
+    <div class="col-sm-12 col-md-6 col-lg-4 graph">
+      <div id="fresherLateralChart" style="height: 300px"></div>
+    </div>
+    <div class="col-sm-12 col-md-6 col-lg-4 graph mouse">
+      <!-- <button
+        type="button"
+        class="btn btn-sm btn-outline-primary mx-1 float-right"
+        (click)="openFilterModal(filter, leaveSummaryColumns, 'Filter Leave Trend Chart')"
+      >
+        <i class="fa-solid fa-filter"></i>
+      </button> -->
+      <div id="leaveTrendAnalysis" style="height: 300px"></div>
+    </div>
+    <div class="col-sm-12 col-md-6 col-lg-4 graph">
+      <div id="billableChartByDepartment" style="height: 300px"></div>
+    </div>
+
+    <div class="col-sm-12 col-md-6 col-lg-5 graph">
+      <div id="employeeWorkLocationSummary" style="height: 300px"></div>
+    </div>
+    <div class="col-sm-12 col-md-6 col-lg-7 graph">
+      <div id="employeeKycSummary" style="height: 300px"></div>
+    </div>
+
+    <!-- billable non billable stackbar chart by anurag -->
+    <div class="col-sm-12 col-md-12 col-lg-12 graph">
+      <div class="scrollable-container" style="height: 400px">
+        <div id="billableEmployeeSummary"></div>
+      </div>
+    </div>
+    <!-- end -->
+  </div>
+</div>
     </div>
   </div>
 </div>
@@ -714,6 +686,13 @@
               >
                 Status
               </th>
+              <th
+                scope="col"
+                class="info-label wide-col"
+                mat-sort-header="typeOfLeave|string"
+              >
+                Type of Leave
+              </th>
             </tr>
             <tr
               app-column-filter-bar
@@ -743,7 +722,7 @@
               "
             >
               <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
-              <td>A-{{ leave.employeementId }}</td>
+              <td>{{ leave.employeementId }}</td>
               <td>{{ leave.employeeType }}</td>
               <td *ngIf="!userMapping.reports_employee_360">
                 {{ leave.employeeName }}
@@ -764,6 +743,7 @@
               <td>{{ leave.fromDateDayType }}</td>
               <td>{{ leave.toDateDayType }}</td>
               <td>{{ leave.status }}</td>
+              <td>{{ leave.typeOfLeave }}</td>
             </tr>
           </tbody>
         </table>
@@ -1592,9 +1572,9 @@
               <th
                 scope="col"
                 class="info-label wide-col"
-                mat-sort-header="teamName|string"
+                mat-sort-header="workLocation|string"
               >
-                Team Name
+                Work Location
               </th>
               <th
                 scope="col"
@@ -1606,9 +1586,37 @@
               <th
                 scope="col"
                 class="info-label wide-col"
-                mat-sort-header="date|date"
+                mat-sort-header="departmentName|string"
               >
-                Working Date
+                Department Name
+              </th>
+              <th
+                scope="col"
+                class="info-label wide-col"
+                mat-sort-header="managerName|string"
+              >
+                Manager Name
+              </th>
+              <th
+                scope="col"
+                class="info-label wide-col"
+                mat-sort-header="billable|string"
+              >
+                Billable 
+              </th>
+              <th
+                scope="col"
+                class="info-label wide-col"
+                mat-sort-header="billableType|string"
+              >
+                Billable Type
+              </th>
+              <th
+                scope="col"
+                class="info-label wide-col"
+                mat-sort-header="totalExperience|number"
+              >
+                Total Experience
               </th>
             </tr>
             <tr
@@ -1644,26 +1652,27 @@
               <td
                 class="text-capitalize"
                 id="clickablefor360"
-                *ngIf="userMapping.reports_employee_360"
                 [navigateToEmployee360]="emp"
                 style="cursor: pointer"
                 title="Click to view Employee 360"
                 class="text-capitalize"
                 class="text-capitalize"
               >
-                {{ emp.employeeName }}
+                {{ emp.name }}
               </td>
               <td
-                class="text-capitalize"
-                *ngIf="!userMapping.reports_employee_360"
                 class="text-capitalize"
               >
                 {{ emp.projectName }}
               </td>
               <td class="text-capitalize">{{ emp.clientName }}</td>
-              <td class="text-capitalize">{{ emp.teamName }}</td>
+              <td class="text-capitalize">{{ emp.workLocation }}</td>
               <td class="text-capitalize">{{ emp.clientLocation }}</td>
-              <td>{{ emp.date }}</td>
+              <td>{{ emp.departmentName }}</td>
+              <td>{{ emp.managerName }}</td>
+              <td>{{ emp.billable }}</td>
+              <td>{{ emp.billableType }}</td>
+              <td>{{ emp.totalExperience }}</td>
             </tr>
           </tbody>
         </table>
