@@ -89,27 +89,31 @@ import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-
 import { ViewPerformanceComponent } from './user-performance/view-performance/view-performance.component';
 import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
 import { PerformanceManagementSystemComponent } from './user-performance/performance-management-system/performance-management-system.component';
+import { ProjectInsightsTabComponent } from './project-insights/project-insights-tab.component';
+import { ProjectInsightProjconfigComponent } from './user-team/project-insight-projconfig/project-insight-projconfig.component';
 
 const routes: Routes = [
-  {path:'', redirectTo:'home', pathMatch:'full'},
-  {path:'login', component: LoginComponent, canActivate: [AuthGuard]},
-  {path:'home', component: HomeComponent, canActivate: [AuthGuard]},
-  {path:'update-info', component: UserUpdateInfoComponent, canActivate: [AuthGuard],
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent, canActivate: [AuthGuard] },
+  { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
+  {
+    path: 'update-info', component: UserUpdateInfoComponent, canActivate: [AuthGuard],
     children: [
       { path: 'employee-info', component: EmployeeInfoComponent, },
       { path: 'document-upload', component: DocumentUploadComponent, },
       { path: 'info-preview', component: InformationPreviewComponent, },
     ]
   },
-  {path:'user-profile', component: UserProfileComponent, canActivate: [AuthGuard]},
-  {path:'configuration', component: ConfigurationComponent, canActivate: [AuthGuard], 
+  { path: 'user-profile', component: UserProfileComponent, canActivate: [AuthGuard] },
+  {
+    path: 'configuration', component: ConfigurationComponent, canActivate: [AuthGuard],
     children: [
       { path: 'employee', component: EmployeeConfigComponent, },
       { path: 'domain', component: DomainConfigComponent, },
       { path: 'department', component: DeptConfigComponent, },
       { path: 'role', component: RoleConfigComponent, },
       { path: 'leave', component: LeaveConfigComponent, },
-    //  { path: 'team', component: TeamConfigComponent, },
+      //  { path: 'team', component: TeamConfigComponent, },
       { path: 'home-config', component: HomeConfigComponent, },
       { path: 'portal-config', component: PortalConfigComponent, },
       { path: 'survey-config', component: SurveyConfigComponent, },
@@ -120,66 +124,74 @@ const routes: Routes = [
       { path: 'document', component: DocumentComponent, },
       { path: 'other', component: OthersComponent, },
       { path: 'rewards-config', component: RewardsConfigComponent, },
-      
-      { path: 'performance-config' , component: PerformanceConfigComponent},
-      { path: 'project-insight-config' , component: ProjectInsightsConfigComponent}
+
+      { path: 'performance-config', component: PerformanceConfigComponent },
+      // { path: 'project-insight-config' , component: ProjectInsightsConfigComponent}
     ]
   },
-  {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
+  {
+    path: 'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
     children: [
       { path: 'leave', component: LeaveComponent, },
       { path: 'holiday', component: HolidaysComponent, },
       { path: 'compOff', component: CompOffComponent, },
     ]
   },
-  {path:'user-timesheet', component: UserTimesheetComponent, canActivate: [AuthGuard],
+  {
+    path: 'user-timesheet', component: UserTimesheetComponent, canActivate: [AuthGuard],
     children: [
       { path: 'my-timesheet', component: MyTimesheetComponent, },
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
       { path: 'biomax-request', component: BiomaxApprovalComponent, },
-    
+
     ]
   },
-  {path:'user-leaves/:tabName', component: UserLeavesComponent, canActivate: [AuthGuard],
+  {
+    path: 'user-leaves/:tabName', component: UserLeavesComponent, canActivate: [AuthGuard],
     children: [
       { path: 'leave', component: LeaveComponent, },
       { path: 'holiday', component: HolidaysComponent, },
       { path: 'compOff', component: CompOffComponent, },
-     
+
     ]
   },
-  {path:'user-timesheet/:tabName', component: UserTimesheetComponent, canActivate: [AuthGuard],
+  {
+    path: 'user-timesheet/:tabName', component: UserTimesheetComponent, canActivate: [AuthGuard],
     children: [
       { path: 'my-timesheet', component: MyTimesheetComponent, },
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
       { path: 'biomax-request', component: BiomaxApprovalComponent, },
     ]
   },
-  {path:'user-team', component: UserTeamComponent, canActivate: [AuthGuard],
+  {
+    path: 'user-team', component: UserTeamComponent, canActivate: [AuthGuard],
     children: [
       { path: 'my-team', component: MyTeamComponent, },
       { path: 'team-member', component: TeamMemberComponent, },
       { path: 'team-config', component: TeamConfigComponent, },
+      { path: 'project-insight-config', component: ProjectInsightProjconfigComponent, },
       { path: 'resource-management', component: ResourceManagementComponent, },
-      { path:'resource-management/:id', component: ResourceManagementComponent,},
+      { path: 'resource-management/:id', component: ResourceManagementComponent, },
     ]
   },
-  {path:'user-reports', component: UserReportComponent, canActivate: [AuthGuard],
+  {
+    path: 'user-reports', component: UserReportComponent, canActivate: [AuthGuard],
     children: [
       { path: 'report-list', component: ReportListComponent, },
       { path: 'report-dashboard', component: ReportDashboardComponent },
-      { path: 'query-master', component: QueryMasterComponent},
-      { path: 'attendance-reconciliation', component: AttendanceReconciliationComponent},
+      { path: 'query-master', component: QueryMasterComponent },
+      { path: 'attendance-reconciliation', component: AttendanceReconciliationComponent },
     ]
   },
-  {path:'rewards-tab', component: RewardsComponent, canActivate: [AuthGuard],
-       children: [
+  {
+    path: 'rewards-tab', component: RewardsComponent, canActivate: [AuthGuard],
+    children: [
       { path: 'rewards-and-recognisation', component: RewardsAndRecognisationComponent, },
-      { path: 'rewardsappreciation', component: AppreciationComponent,},
+      { path: 'rewardsappreciation', component: AppreciationComponent, },
     ]
   },
-  {path:'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard]},
-  
+  { path: 'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard] },
+
   // {path:'employee-360', component: Employee360Component,
   //    children: [
   //     { path: 'profile', component: Employee360ProfileComponent, },
@@ -192,8 +204,8 @@ const routes: Routes = [
   //     { path: 'lms', component: LMSComponent, },
   //   ]
   // },
-  { 
-    path: 'employee-360/:id', 
+  {
+    path: 'employee-360/:id',
     component: Employee360Component,
     resolve: { employeeData: Employee360Resolver },
     children: [
@@ -206,32 +218,33 @@ const routes: Routes = [
       { path: 'appreciation', component: Employee360AppreciationComponent },
       { path: 'lms', component: LMSComponent },
     ],
-   
+
   },
-  
-  {path:'project-view', component: ProjectViewComponent},
-  {path:'lms-tab', component: LmstabComponent, canActivate: [AuthGuard]},
-  {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
-  {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
-  {path:'user-survey/:id', component: UserSurveyComponent, canActivate: [AuthGuard]},
+
+  { path: 'project-view', component: ProjectViewComponent },
+  { path: 'lms-tab', component: LmstabComponent, canActivate: [AuthGuard] },
+  { path: 'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard] },
+  { path: 'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard] },
+  { path: 'user-survey/:id', component: UserSurveyComponent, canActivate: [AuthGuard] },
   { path: 'user-survey/:id/edit', component: UserSurveyComponent, canActivate: [AuthGuard] },
-  {path:'recruitment', component: RecruitmentComponent, canActivate: [AuthGuard]},
-  {path: 'user-exit', component: UserExitComponent, canActivate: [AuthGuard],
+  { path: 'recruitment', component: RecruitmentComponent, canActivate: [AuthGuard] },
+  {
+    path: 'user-exit', component: UserExitComponent, canActivate: [AuthGuard],
     children: [
       { path: 'my-resignation', component: MyResignationComponent, },
-      { path:'my-resignation/:id', component: MyResignationComponent, },
+      { path: 'my-resignation/:id', component: MyResignationComponent, },
       { path: 'resignation', component: ResignationComponent, },
     ]
   },
-  {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
-  {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},
-  {path:'user-requests', component: UserRequestsComponent, canActivate: [AuthGuard]},
+  { path: 'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard] },
+  { path: 'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard] },
+  { path: 'user-requests', component: UserRequestsComponent, canActivate: [AuthGuard] },
   {
-    path: 'user-performance', 
-    component: UserPerformanceComponent, 
+    path: 'user-performance',
+    component: UserPerformanceComponent,
     canActivate: [AuthGuard],
     children: [
-      
+
       { path: '', redirectTo: 'performance-dashboard', pathMatch: 'full' },
       { path: 'performance-dashboard', component: PerformanceDashboardComponent },
       { path: 'team-dashboard', component: TeamDashboardComponent },
@@ -241,36 +254,37 @@ const routes: Routes = [
       { path: 'performance-management-system', component: PerformanceManagementSystemComponent },
     ]
   },
-  {path:'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard]},
-  {path:'helpdesk', component: HelpdeskComponent},
-  {path:'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard]},
-  {path:'release-notes', component: UserReleasenotesComponent, canActivate: [AuthGuard]},
-  {path:'newsletters', component: NewsletterComponent, canActivate: [AuthGuard]},
-  {path:'travelDesk', component: TravelAllowanceComponent, canActivate: [AuthGuard],
-    children:[
-      {path:'', redirectTo:'my-travelrequest', pathMatch:'full'},
-      {path:'my-travelrequest', component:MyTravelrequestComponent},
-      {path:'view-travelrequest', component:ViewTravelrequestComponent},
-      {path:'approve-travelrequest', component:TravelrequestapprovalComponent}
+  { path: 'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard] },
+  { path: 'helpdesk', component: HelpdeskComponent },
+  { path: 'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard] },
+  { path: 'release-notes', component: UserReleasenotesComponent, canActivate: [AuthGuard] },
+  { path: 'newsletters', component: NewsletterComponent, canActivate: [AuthGuard] },
+  {
+    path: 'travelDesk', component: TravelAllowanceComponent, canActivate: [AuthGuard],
+    children: [
+      { path: '', redirectTo: 'my-travelrequest', pathMatch: 'full' },
+      { path: 'my-travelrequest', component: MyTravelrequestComponent },
+      { path: 'view-travelrequest', component: ViewTravelrequestComponent },
+      { path: 'approve-travelrequest', component: TravelrequestapprovalComponent }
     ]
   },
-  {path:'reimbursement', component: ReimbursementComponent, canActivate: [AuthGuard],
-    children:[
-      {path:'', redirectTo:'my-reimbursement', pathMatch:'full'},
-      {path:'my-reimbursement', component:MyReimbursementComponent},
-      {path:'view-reimbursement', component:ViewReimbursementComponent},
-      {path:'approve-reimbursement', component:ReimbursementapprovalComponent}
-      
+  {
+    path: 'reimbursement', component: ReimbursementComponent, canActivate: [AuthGuard],
+    children: [
+      { path: '', redirectTo: 'my-reimbursement', pathMatch: 'full' },
+      { path: 'my-reimbursement', component: MyReimbursementComponent },
+      { path: 'view-reimbursement', component: ViewReimbursementComponent },
+      { path: 'approve-reimbursement', component: ReimbursementapprovalComponent }
     ]
   },
-  {path:'qr-code', component: QrCodeGeneratorComponent, canActivate: [AuthGuard]},
-  {path:'**', redirectTo:'home', pathMatch:'full'},
-  
+  { path: 'qr-code', component: QrCodeGeneratorComponent, canActivate: [AuthGuard] },
+  { path: '**', redirectTo: 'home', pathMatch: 'full' },
+
   //  {path:'**', redirectTo:'home', pathMatch:'full'},
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes,{ onSameUrlNavigation: 'reload' })],
+  imports: [RouterModule.forRoot(routes, { onSameUrlNavigation: 'reload' })],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

@@ -152,6 +152,8 @@ import { LmstabComponent } from './lmstab/lmstab.component';
 import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
 import { ProjectInsightsComponent } from './configuration/project-insights/project-insights.component';
 import { HighlightPipe } from './highlight.pipe';
+import { ProjectInsightsTabComponent } from './project-insights/project-insights-tab.component';
+import { ProjectInsightProjconfigComponent } from './user-team/project-insight-projconfig/project-insight-projconfig.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -283,7 +285,9 @@ registerLocaleData(localeGb);
      BiomaxApprovalComponent,
      LmstabComponent,
      ProjectInsightsComponent,
-     HighlightPipe
+     HighlightPipe,
+     ProjectInsightsTabComponent,
+     ProjectInsightProjconfigComponent
 
     //TestComponent
   ],

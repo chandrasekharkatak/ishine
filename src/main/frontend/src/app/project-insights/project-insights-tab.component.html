@@ -1,0 +1,38 @@
+<div class="mt-5">
+    <app-breadcrumb></app-breadcrumb>
+</div>
+
+<div class="row px-0">
+    <div class="col-md-12">
+        <div class="card">
+            <ul class="nav nav-tabs config__tabs" id="configTab" role="tablist">
+                <li class="nav-item config__tab-item" (click)="removeActiveTab()">
+                    <a class="nav-link config__tab-item__link" id="home-tab" data-toggle="tab" role="tab"
+                        aria-controls="home" aria-selected="true" routerLink="home">Home</a>
+                </li>
+
+                <li class="nav-item config__tab-item" (click)="removeActiveTab()">
+                    <a class="nav-link config__tab-item__link" id="dashboard-tab" data-toggle="tab" role="tab"
+                        aria-controls="dashboard" aria-selected="true" routerLink="dashboard">Dashboard</a>
+                </li>
+
+                <li class="nav-item config__tab-item" (click)="removeActiveTab()">
+                    <a class="nav-link config__tab-item__link" id="project-tab" data-toggle="tab" role="tab"
+                        aria-controls="project" aria-selected="true" routerLink="project">Project</a>
+                </li>
+
+                <li class="nav-item config__tab-item" (click)="removeActiveTab()">
+                    <a class="nav-link config__tab-item__link" id="configuration-tab" data-toggle="tab" role="tab"
+                        aria-controls="configuration" aria-selected="true" routerLink="configuration">Configuration</a>
+                </li>
+            </ul>
+        
+            <!-- tab Containers -->
+            <div class="tab-content" id="userTabContent">
+                <div class="config__tab-container">
+                    <router-outlet class="tab-pane fade" role="tabpanel"></router-outlet>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
