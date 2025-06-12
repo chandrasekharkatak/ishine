@@ -33,6 +33,11 @@
     <!-- New content -->
     <div class="container bg-white" *ngIf="allProjectTable">
         <div class="row">
+            <div class="col-md-4 mb-2">
+                <h5>Project Report</h5>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-md-8">
                 <!-- Status Cards -->
                 <div class="row mb-3" style="display: flex;
@@ -78,7 +83,7 @@
                         [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
                         <div class="mini-card1" style="border-left: 4px solid #00ec33;">
                             <div class="value fw-bold" style="color: #00ec33;">{{tabCounts.completedCount}}</div>
-                            <div class="label text-muted">Completed In Sankh<i
+                            <div class="label text-muted">Completed In Shankh<i
                                     class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #00ec33;"></i></div>
                         </div>
                     </div>
@@ -89,7 +94,7 @@
                         [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithTeam'}">
                         <div class="mini-card1" style="border-left: 4px solid #7836c4;">
                             <div class="value fw-bold" style="color: #7836c4;">{{tabCounts.completedWithEmployeeCount}}</div>
-                            <div class="label text-muted">Completed In Sankh With Team<i
+                            <div class="label text-muted">Completed In Shankh But Active Team<i
                                     class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #7836c4;"></i></div>
                         </div>
                     </div>
@@ -197,148 +202,140 @@
 
         </div>
 
-
+        <div class="row">
+            <div class="col-md-4 mb-2">
+                <h5>Employee Report</h5>
+            </div>
+        </div>
           
-          <div class="row">
-
+        <div class="row">
             <div class="col-md-4 mb-2">
                 <div class="mini-card">
-                  <strong>Total ApMoSys Employees</strong><br />
-                  <h2>{{ totalEmployees }}</h2>
+                    <strong>Total ApMoSys Employees</strong><br />
+                    <h2>{{ totalEmployees }}</h2>
                 </div>
-              </div>
+            </div>
 
             <div class="col-md-4 mb-2">
-              <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'Sankh')">
+                <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'Shankh')">
                 <div class="value">
-                  <ng-container *ngIf="sankhMappedEmployees !== null && sankhMappedEmployees !== undefined; else loading1">
+                    <ng-container *ngIf="sankhMappedEmployees !== null && sankhMappedEmployees !== undefined; else loading1">
                     {{ sankhMappedEmployees }}
-                  </ng-container>
-                  <ng-template #loading1>
+                    </ng-container>
+                    <ng-template #loading1>
                     <i class="fa fa-spinner fa-spin text-secondary"></i>
-                  </ng-template>
+                    </ng-template>
                 </div>
                 <div class="label weight" style="color: #2E7D32;">
-                  Mapped to Shankh Projects <i class="fa fa-link" style="color: #2E7D32;"></i>
+                    Mapped to Shankh Projects <i class="fa fa-link" style="color: #2E7D32;"></i>
                 </div>
                 <div class="text-primary text-end small">View Employees</div>
-              </div>
+                </div>
             </div>
-          
+            
             <div class="col-md-4 mb-2">
-              <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'Internal')">
-                <div class="value">
-                  <ng-container *ngIf="internalMappedEmployees !== null && internalMappedEmployees !== undefined; else loading2">
-                    {{ internalMappedEmployees }}
-                  </ng-container>
-                  <ng-template #loading2>
-                    <i class="fa fa-spinner fa-spin text-secondary"></i>
-                  </ng-template>
+                <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'Internal')">
+                    <div class="value">
+                        <ng-container *ngIf="internalMappedEmployees !== null && internalMappedEmployees !== undefined; else loading2">
+                        {{ internalMappedEmployees }}
+                        </ng-container>
+                        <ng-template #loading2>
+                        <i class="fa fa-spinner fa-spin text-secondary"></i>
+                        </ng-template>
+                    </div>
+                    <div class="label" style="color: #F9A825;">
+                        Mapped to Internal Projects <i class="fa fa-link" style="color: #F9A825;"></i>
+                    </div>
+                    <div class="text-primary text-end small">View Employees</div>
                 </div>
-                <div class="label" style="color: #F9A825;">
-                  Mapped to Internal Projects <i class="fa fa-link" style="color: #F9A825;"></i>
-                </div>
-                <div class="text-primary text-end small">View Employees</div>
-              </div>
             </div>
-          
+            
             <div class="col-md-4 mb-2">
-              <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'Both')">
-                <div class="value">
-                  <ng-container *ngIf="mappedToBothEmployees !== null && mappedToBothEmployees !== undefined; else loading3">
-                    {{ mappedToBothEmployees }}
-                  </ng-container>
-                  <ng-template #loading3>
-                    <i class="fa fa-spinner fa-spin text-secondary"></i>
-                  </ng-template>
+                <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'Both')">
+                    <div class="value">
+                        <ng-container *ngIf="mappedToBothEmployees !== null && mappedToBothEmployees !== undefined; else loading3">
+                        {{ mappedToBothEmployees }}
+                        </ng-container>
+                        <ng-template #loading3>
+                        <i class="fa fa-spinner fa-spin text-secondary"></i>
+                        </ng-template>
+                    </div>
+                    <div class="label weight" style="color: #820beb;">
+                        Mapped to Internal and Shankh Projects <i class="fa fa-link" style="color: #ff74f8;"></i>
+                    </div>
+                    <div class="text-primary text-end small">View Employees</div>
                 </div>
-                <div class="label weight" style="color: #820beb;">
-                  Mapped to Internal and Sankh Projects <i class="fa fa-link" style="color: #ff74f8;"></i>
-                </div>
-                <div class="text-primary text-end small">View Employees</div>
-              </div>
             </div>
-          
+            
             <div class="col-md-4 mb-2">
-              <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'Not Mapped')">
-                <div class="value">
-                  <ng-container *ngIf="employeesWithoutProject !== null && employeesWithoutProject !== undefined; else loading4">
-                    {{ employeesWithoutProject }}
-                  </ng-container>
-                  <ng-template #loading4>
-                    <i class="fa fa-spinner fa-spin text-secondary"></i>
-                  </ng-template>
+                <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'Not Mapped')">
+                    <div class="value">
+                        <ng-container *ngIf="employeesWithoutProject !== null && employeesWithoutProject !== undefined; else loading4">
+                        {{ employeesWithoutProject }}
+                        </ng-container>
+                        <ng-template #loading4>
+                        <i class="fa fa-spinner fa-spin text-secondary"></i>
+                        </ng-template>
+                    </div>
+                    <div class="label weight text-danger">
+                        Employees Not Mapped to Any Project <i class="fa fa-unlink text-danger"></i>
+                    </div>
+                    <div class="text-primary text-end small">View Employees</div>
                 </div>
-                <div class="label weight text-danger">
-                  Employees Not Mapped to Project <i class="fa fa-unlink text-danger"></i>
-                </div>
-                <div class="text-primary text-end small">View Employees</div>
-              </div>
             </div>
-          
+            
             <div class="col-md-4 mb-2">
-              <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'All Mapped')">
-                <div class="value">
-                  <ng-container *ngIf="allMappedEmployees !== null && allMappedEmployees !== undefined; else loading5">
-                    {{ allMappedEmployees }}
-                  </ng-container>
-                  <ng-template #loading5>
-                    <i class="fa fa-spinner fa-spin text-secondary"></i>
-                  </ng-template>
+                <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'All Mapped')">
+                    <div class="value">
+                        <ng-container *ngIf="allMappedEmployees !== null && allMappedEmployees !== undefined; else loading5">
+                        {{ allMappedEmployees }}
+                        </ng-container>
+                        <ng-template #loading5>
+                        <i class="fa fa-spinner fa-spin text-secondary"></i>
+                        </ng-template>
+                    </div>
+                    <div class="label weight" style="color: #6F1D1B;">
+                        Employees Mapped to Project <i class="fa fa-link" style="color: #6F1D1B;"></i>
+                    </div>
+                    <div class="text-primary text-end small">View Employees</div>
                 </div>
-                <div class="label weight" style="color: #6F1D1B;">
-                  Employees Mapped to Projects <i class="fa fa-link" style="color: #6F1D1B;"></i>
-                </div>
-                <div class="text-primary text-end small">View Employees</div>
-              </div>
             </div>
-          
+            
             <div class="col-md-4 mb-2">
-              <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'Exception')">
+                <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'Exception')">
                 <div class="value">
-                  <ng-container *ngIf="exceptionEmployees !== null && exceptionEmployees !== undefined; else loading5">
+                    <ng-container *ngIf="exceptionEmployees !== null && exceptionEmployees !== undefined; else loading5">
                     {{ exceptionEmployees }}
-                  </ng-container>
-                  <ng-template #loading5>
+                    </ng-container>
+                    <ng-template #loading5>
                     <i class="fa fa-spinner fa-spin text-secondary"></i>
-                  </ng-template>
+                    </ng-template>
                 </div>
                 <div class="label" style="color: #ee0a0a;">
-                  Exception report of Employee mapping <i class="fa fa-link" style="color: #ee0a0a;"></i>
+                    Exception report of Employee mapping <i class="fa fa-link" style="color: #ee0a0a;"></i>
                 </div>
                 <div class="text-primary text-end small">View Employees</div>
-              </div>
+                </div>
             </div>
-          
+            
             <div class="col-md-4 mb-2">
-              <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'OnBench')">
+                <div class="mini-card" (click)="EmployeeViewDataModel(employee_data,'OnBench')">
                 <div class="value">
-                  <ng-container *ngIf="employeeBench !== null && employeeBench !== undefined; else loading5">
+                    <ng-container *ngIf="employeeBench !== null && employeeBench !== undefined; else loading5">
                     {{ employeeBench }}
-                  </ng-container>
-                  <ng-template #loading5>
+                    </ng-container>
+                    <ng-template #loading5>
                     <i class="fa fa-spinner fa-spin text-secondary"></i>
-                  </ng-template>
+                    </ng-template>
                 </div>
                 <div class="label" style="color: #144552;">
-                  Employee On Bench For More Than 30 Days <i class="fa fa-link" style="color: #144552;"></i>
+                    Employee On Bench For More Than 30 Days <i class="fa fa-link" style="color: #144552;"></i>
                 </div>
                 <div class="text-primary text-end small">View Employees</div>
-              </div>
+                </div>
             </div>
-          </div>
-          
-
+        </div>
     </div>
-
-
-
-
-    <!-- New content -->
-
-
-
-
 
     <!-- start :: View Projects -->
     <div class="row" *ngIf="allProjectTable">
@@ -2225,7 +2222,7 @@
             </div>
 
             <!-- Bulk Update Mode -->
-            <div *ngIf="isBulkUpdateMode" class="bulk-mode-section mb-4">
+            <div *ngIf="!isBulkUpdateMode" class="bulk-mode-section mb-4">
                 <p class="section-title">Bulk Default Project Mapping</p>
 
                 <div class="row align-items-end flex-wrap g-3 mb-3">
@@ -2357,7 +2354,7 @@
             </div>
 
             <!-- Individual Mode -->
-            <div *ngIf="!isBulkUpdateMode" class="individual-mode-section">
+            <div *ngIf="isBulkUpdateMode" class="individual-mode-section">
                 <p class="section-title">Individual Default Project Mapping</p>
 
                 <div class="table-responsive">
