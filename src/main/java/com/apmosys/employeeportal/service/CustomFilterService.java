@@ -936,7 +936,7 @@ public class CustomFilterService {
 				if(empId != null) {
 					  String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
 				 q = "SELECT \n"
-						+ "    e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, \n"
+				 		+ "    e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, \n"
 						+ "    e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
 						+ "    e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
 						+ "    e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
@@ -947,12 +947,13 @@ public class CustomFilterService {
 						+ "    e.views_on_organisation, e.year_of_passing, jr.dept_id, jr.name AS jobrolename,\n"
 						+ "    d.name AS departmentname, e.work_location, e.probation_period, e.emp_id, e2.name AS manager, \n"
 						+ "    e.experience, e.billable, e.child1, e.child2, e.child3, e.mothers_name, e.spouse, \n"
-						+ "    e.total_experience, emp_proj_client.project_name, emp_proj_client.client_name,emp_proj_client.project_id, e.updated_on, \n"
+						+ "    e.total_experience, emp_proj_client.project_name, emp_proj_client.client_name, emp_proj_client.project_id, e.updated_on, \n"
 						+ "    e4.name AS createdByName, e3.name AS updatedByName, e.designation_id, de.designation_name, \n"
-						+ "    e.updated_by, e.billable_type, emp_proj_client.team_name, e.is_consultant, e.is_apprenticeship, \n"
+						+ "    e.updated_by, e.billable_type, emp_proj_client.team_name, \n"  // Added comma here
 						+ "    emp_proj_client.po_no, \n"
 						+ "    emp_proj_client.po_start_date, emp_proj_client.po_end_date, emp_proj_client.po_project_type, \n"
-						+ "\n"
+						+ " \n"
+						+"  e.is_consultant, e.is_apprenticeship,\n" 
 						+ "    (SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) \n"
 						+ "     FROM employee e_profile \n"
 						+ "     WHERE e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n"
@@ -1069,45 +1070,85 @@ public class CustomFilterService {
 			try {
 
 
-				String q = "SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
-						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
-						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
-						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
-						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,\n"
-						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
-						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
-						+ "e.views_on_organisation, e.year_of_passing,\n" + "jr.dept_id, jr.name as jobrolename,\n"
-						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
-						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,emp_proj_client.project_name, emp_proj_client.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
-						+ "e.designation_id,de.designation_name,e.updated_by,e.billable_type, \n"
-						+ "(SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) FROM\n"
-						+ "employee e_profile WHERE\n"
-						+ "e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n" + "FROM employee e\n"
-						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
-						+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
-						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
-						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id\n"
-						+ "LEFT JOIN designation de ON de.designation_id = e.designation_id \n"
-						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id\n"
-						+ "LEFT JOIN (SELECT etm.emp_id, GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, GROUP_CONCAT(DISTINCT cl.client_name) AS client_name \n"
-						+ "FROM employee_team_mapping etm \n"
-						+ "LEFT JOIN teams t ON t.team_id = etm.team_id \n"
-						+ "LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
-						+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
-						+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id  where d.dept_id IN (" + deptIds + ") GROUP BY \n"
-								+ "    e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, e.bank_name, e.blood_group, \n"
-								+ "    e.city, e.country, e.created_by, e.created_on, e.date_of_birth, e.date_of_joining, e.email, \n"
-								+ "    e.emergency_contact_mobile, e.emergency_contact_person, e.employmentstatus, e.esic_number, e.father_name, \n"
-								+ "    e.gender, e.graduation_type, e.pursuing, e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, \n"
-								+ "    e.mother_tongue, e.name, e.notice_period, e.alternate_mobile_no, e.pan_number, e.passport_number, \n"
-								+ "    e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade, e.previous_pf_account_number, \n"
-								+ "    e.relation, e.state, e.uan, e.views_on_organisation, e.year_of_passing, jr.dept_id, jr.name, \n"
-								+ "    d.name, e.work_location, e.probation_period, e.emp_id, e2.name, e.experience, \n"
-								+ "    e.billable, e.child1, e.child2, e.child3, e.mothers_name, e.spouse, e.total_experience, emp_proj_client.project_name, \n"
-								+ "    emp_proj_client.client_name, e.updated_on, e4.name, e3.name, \n"
-								+ "    e.designation_id, de.designation_name, e.updated_by, e.billable_type";
-
+//				String q = "SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
+//						+ "e.date_of_joining, e.email, e.emergency_contact_mobile, e.emergency_contact_person,\n"
+//						+ "e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing,\n"
+//						+ "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name,\n"
+//						+ "e.notice_period, e.alternate_mobile_no,  e.pan_number, e.passport_number,\n"
+//						+ "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade,\n"
+//						+ "e.previous_pf_account_number, e.relation, e.state, e.uan,\n"
+//						+ "e.views_on_organisation, e.year_of_passing,\n" + "jr.dept_id, jr.name as jobrolename,\n"
+//						+ "d.name as departmentname, e.work_location, e.probation_period, e.emp_id, e2.name as manager, e.experience,\n"
+//						+ "e.billable,e.child1,e.child2,e.child3,e.mothers_name,e.spouse,e.total_experience,emp_proj_client.project_name, emp_proj_client.client_name, e.updated_on,e4.name as createdByName, e3.name as updatedByName,\n"
+//						+ "e.designation_id,de.designation_name,e.updated_by,e.billable_type,e.is_consultant,is_apprenticeship \n"
+//						+ "(SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) FROM\n"
+//						+ "employee e_profile WHERE\n"
+//						+ "e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n" + "FROM employee e\n"
+//						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+//						+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+//						+ "INNER JOIN employee e2 ON e.manager_id = e2.emp_id\n"
+//						+ "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id\n"
+//						+ "LEFT JOIN designation de ON de.designation_id = e.designation_id \n"
+//						+ "LEFT JOIN employee e4 on e.created_by = e4.emp_id\n"
+//						+ "LEFT JOIN (SELECT etm.emp_id, GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, GROUP_CONCAT(DISTINCT cl.client_name) AS client_name \n"
+//						+ "FROM employee_team_mapping etm \n"
+//						+ "LEFT JOIN teams t ON t.team_id = etm.team_id \n"
+//						+ "LEFT JOIN projects pr ON pr.project_id = t.project_id \n"
+//						+ "LEFT JOIN clients cl ON cl.client_id = pr.client_id \n"
+//						+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id  where d.dept_id IN (" + deptIds + ") GROUP BY \n"
+//								+ "    e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, e.bank_name, e.blood_group, \n"
+//								+ "    e.city, e.country, e.created_by, e.created_on, e.date_of_birth, e.date_of_joining, e.email, \n"
+//								+ "    e.emergency_contact_mobile, e.emergency_contact_person, e.employmentstatus, e.esic_number, e.father_name, \n"
+//								+ "    e.gender, e.graduation_type, e.pursuing, e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, \n"
+//								+ "    e.mother_tongue, e.name, e.notice_period, e.alternate_mobile_no, e.pan_number, e.passport_number, \n"
+//								+ "    e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade, e.previous_pf_account_number, \n"
+//								+ "    e.relation, e.state, e.uan, e.views_on_organisation, e.year_of_passing, jr.dept_id, jr.name, \n"
+//								+ "    d.name, e.work_location, e.probation_period, e.emp_id, e2.name, e.experience, \n"
+//								+ "    e.billable, e.child1, e.child2, e.child3, e.mothers_name, e.spouse, e.total_experience, emp_proj_client.project_name, \n"
+//								+ "    emp_proj_client.client_name, e.updated_on, e4.name, e3.name, \n"
+//								+ "    e.designation_id, de.designation_name, e.updated_by, e.billable_type,e.is_consultant,is_apprenticeship";
+//
+				  
 				
+				String q = 
+					    "SELECT e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, e.bank_name, e.blood_group, " +
+					    "e.city, e.country, e.created_by, e.created_on, e.date_of_birth, e.date_of_joining, e.email, e.emergency_contact_mobile, " +
+					    "e.emergency_contact_person, e.employmentstatus, e.esic_number, e.father_name, e.gender, e.graduation_type, e.pursuing, " +
+					    "e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, e.mother_tongue, e.name, e.notice_period, " +
+					    "e.alternate_mobile_no, e.pan_number, e.passport_number, e.permanent_address, e.pf_account_number, e.pincode, " +
+					    "e.place_of_birth, e.passing_grade, e.previous_pf_account_number, e.relation, e.state, e.uan, e.views_on_organisation, " +
+					    "e.year_of_passing, jr.dept_id, jr.name AS jobrolename, d.name AS departmentname, e.work_location, e.probation_period, " +
+					    "e.emp_id, e2.name AS manager, e.experience, e.billable, e.child1, e.child2, e.child3, e.mothers_name, e.spouse, " +
+					    "e.total_experience, emp_proj_client.project_name, emp_proj_client.client_name, e.updated_on, e4.name AS createdByName, " +
+					    "e3.name AS updatedByName, e.designation_id, de.designation_name, e.updated_by, e.billable_type, e.is_consultant, " +
+					    "e.is_apprenticeship, " +
+					    "(SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) FROM employee e_profile WHERE e_profile.emp_id = e.emp_id) " +
+					    "AS profile_completion_percentage " +
+					    "FROM employee e " +
+					    "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id " +
+					    "INNER JOIN department d ON d.dept_id = jr.dept_id " +
+					    "INNER JOIN employee e2 ON e.manager_id = e2.emp_id " +
+					    "LEFT JOIN employee e3 ON e.updated_by = e3.emp_id " +
+					    "LEFT JOIN designation de ON de.designation_id = e.designation_id " +
+					    "LEFT JOIN employee e4 ON e.created_by = e4.emp_id " +
+					    "LEFT JOIN (SELECT etm.emp_id, GROUP_CONCAT(DISTINCT pr.project_name) AS project_name, " +
+					    "GROUP_CONCAT(DISTINCT cl.client_name) AS client_name FROM employee_team_mapping etm " +
+					    "LEFT JOIN teams t ON t.team_id = etm.team_id " +
+					    "LEFT JOIN projects pr ON pr.project_id = t.project_id " +
+					    "LEFT JOIN clients cl ON cl.client_id = pr.client_id GROUP BY etm.emp_id) emp_proj_client " +
+					    "ON emp_proj_client.emp_id = e.emp_id " +
+					    "WHERE d.dept_id IN (" + deptIds + ") " +
+					    "GROUP BY e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, e.bank_name, " +
+					    "e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth, e.date_of_joining, e.email, " +
+					    "e.emergency_contact_mobile, e.emergency_contact_person, e.employmentstatus, e.esic_number, e.father_name, " +
+					    "e.gender, e.graduation_type, e.pursuing, e.job_role_id, e.landline, e.manager_id, e.marital_status, e.mobile_no, " +
+					    "e.mother_tongue, e.name, e.notice_period, e.alternate_mobile_no, e.pan_number, e.passport_number, " +
+					    "e.permanent_address, e.pf_account_number, e.pincode, e.place_of_birth, e.passing_grade, e.previous_pf_account_number, " +
+					    "e.relation, e.state, e.uan, e.views_on_organisation, e.year_of_passing, jr.dept_id, jr.name, d.name, e.work_location, " +
+					    "e.probation_period, e.emp_id, e2.name, e.experience, e.billable, e.child1, e.child2, e.child3, e.mothers_name, e.spouse, " +
+					    "e.total_experience, emp_proj_client.project_name, emp_proj_client.client_name, e.updated_on, e4.name, e3.name, " +
+					    "e.designation_id, de.designation_name, e.updated_by, e.billable_type, e.is_consultant, e.is_apprenticeship";
+
 				System.out.println(q);
 				Query query = session.createSQLQuery(q);
 				System.out.println(query);
@@ -1142,6 +1183,8 @@ public class CustomFilterService {
 					" createQueryForEmployeeReport  :: employeeDTO.getQueryList()     " + ids);
 //			StringBuilder subQuery = createQueryForDepartmentWiseBillableEmployeeReport(ids);
 			List<Object[]> list = getDepartmentWiseBillableEmployeeReport(ids);
+			
+//			System.out.println(list);
 
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
@@ -1225,7 +1268,11 @@ public class CustomFilterService {
 					empDTO.setDesignationName(object[66] != null ? (object[66].toString()) : null);
 					empDTO.setUpdatedBy(object[67] != null ? Long.parseLong(object[67].toString()) : null);
 					empDTO.setBillableType(object[68] != null ? object[68].toString() : null);
+					empDTO.setIsConsultant(object[69] != null ? object[69].toString() : null);
+					empDTO.setIsApprenticeship(object[70] != null ? object[70].toString() : null);
 					
+
+
 //					empDTO.setAge(object[70] != null ? Long.parseLong(object[70].toString()) : null);
 //					empDTO.setTotalExperience(object[69] != null ? Float.parseFloat(object[69].toString()) : null);		
 					

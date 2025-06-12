@@ -7,7 +7,7 @@ export class QuarterCycle{
     financialYear:any;
     quarterCycle:any;
     createdBy:any;
-    createdOn:any ;
+    createdOn:any;
     updatedBy:any;
     UpdatedOn:any;
     isActive:any;

@@ -280,4 +280,9 @@ public class EmployeeDTO {
     private Long defaultTeamId;
     private Integer isShadowResource;
     private String[] defaultTeamEmployeeRole;
+    private Integer inActiveFlag;
+    private Integer lowerAge;
+    private Integer upperAge;
+    
+	
 }
