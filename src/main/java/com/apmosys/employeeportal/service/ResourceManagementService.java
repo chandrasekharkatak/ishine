@@ -6041,7 +6041,7 @@ public class ResourceManagementService {
 		                (String) row[3],                       // state
 		                (Integer) row[4],                      // clientId
 		                row[5] != null ? ((BigInteger) row[5]).longValue() : null,     // poProjectId
-//		                (String) row[6],                       // active
+		                null,                       // active
 		                (String) row[7],                       // syncProject
 		                row[8] != null ? ((BigInteger) row[8]).longValue() : null,     // createdBy
 		                row[9] != null ? ((BigInteger) row[9]).longValue() : null,     // updatedBy
@@ -6062,8 +6062,9 @@ public class ResourceManagementService {
 		                (String) row[24],                      // internalProjectType
 		                (String) row[25],					   // clientName
 		                (String) row[26],                       // draftStatus (calculated in SQL)
-		                (String) row[27]						//projectViewId
+		                (String) row[27]						//projectViewId (Calculated in query)
 		            );
+		        System.out.println(dto);
 		        if(row[0] != null && teamRepository.findByProjectId((Integer) row[0]) != null && !teamRepository.findByProjectId((Integer) row[0]).isEmpty()) {
 		        	dto.setIsTeamCreated("true");
                 	
