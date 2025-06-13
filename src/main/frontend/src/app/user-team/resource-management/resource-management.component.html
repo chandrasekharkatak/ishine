@@ -1424,6 +1424,19 @@
                             </mat-autocomplete>
                         </div>
 
+                        <div class="form-field">
+                            <label>Team Lead</label>
+                            <mat-select ngxMatSelect class="form-control" #selectTeamLead="ngxMatSelect"
+                                [displayMember]="'name'" [valueMember]="'empId'" [source]="teamLeadsList"
+                                [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="teamObj.teamLeadId"
+                                (selectionChange)="setTeamLead(teamObj.teamLeadId)">
+                                <mat-option [value]="teamLead.empId"
+                                    *ngFor="let teamLead of selectTeamLead.filteredSource">
+                                    {{teamLead.name}}
+                                </mat-option>
+                            </mat-select>
+                        </div>
+
                         <div class="button-group">
                             <button class="icon-button"
                                 (click)="openTeamMembersModal(teamMemberTemplate,projectObj,teamObj)">

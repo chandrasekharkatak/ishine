@@ -6324,7 +6324,7 @@ public class ResourceManagementService {
 	                m -> new ArrayList<>(m.values())
 	            ));
 	    
-	    if (activeProjects.size() > 1) {
+	    if (!activeProjects.isEmpty()) {
 	        result.put("isMultipleActiveProjects", true);
 	        result.put("projects", distinctProjects);
 	    } else {
