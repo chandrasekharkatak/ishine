@@ -18,7 +18,7 @@ export class ViewEmployeeComponent implements OnInit {
   sortColumnType: any;
   sortDirection = 'asc';
   allProjectTable: boolean = false;
-  tableColumns :any[]= ['blank','employeementId','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
+  tableColumns :any[]= ['blank','blank','employeementId','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
   tableColumnsNotMapped : any[] = ['blank','employeementId','name','departmentName','managerName','jobRoleName'] ;
   exceptionTableColumns: any[] = ['blank','employmentId','employeeName','department','billableType','projectName','clientName','apmosysRM','clientRM','poNumber','poProjectType','poStartDate','poEndDate'];
   tableColumnsBench :any[]= ['blank','employeementId','name','department','billableType','billable','onBenchDate','daysOnBench','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
@@ -28,6 +28,7 @@ export class ViewEmployeeComponent implements OnInit {
   excelName : any;
   filtersBench: any = {};
   filteredEmployeeData: any[] = [];
+  expandedEmployees: Set<number> = new Set();
 
   constructor(private exportExcelService :ExportExcelService,
     private breadcrumbService: BreadcrumbService
@@ -38,6 +39,32 @@ export class ViewEmployeeComponent implements OnInit {
     console.log(this.catagory,"catagory")
     console.log(this.allEmployeeData,"allEmployeeData")
     this.filteredEmployeeData = [...this.allEmployeeData];
+  }
+
+  toggleEmployeeExpansion(employeeIndex: number): void {
+    const globalIndex = this.getGlobalEmployeeIndex(employeeIndex);
+    if (this.expandedEmployees.has(globalIndex)) {
+      this.expandedEmployees.delete(globalIndex);
+    } else {
+      this.expandedEmployees.add(globalIndex);
+    }
+  }
+
+  isEmployeeExpanded(employeeIndex: number): boolean {
+    const globalIndex = this.getGlobalEmployeeIndex(employeeIndex);
+    return this.expandedEmployees.has(globalIndex);
+  }
+
+  getGlobalEmployeeIndex(localIndex: number): number {
+    return (this.page - 1) * 5 + localIndex;
+  }
+
+  hasMultipleSubRows(employee: any): boolean {
+    if (!employee.rmgprojects) return false;
+    const totalSubRows = employee.rmgprojects.reduce((acc: number, project: any) => {
+      return acc + (project.rmgTeam?.length || 0);
+    }, 0);
+    return totalSubRows > 1;
   }
 
   sortData(sort: Sort) {

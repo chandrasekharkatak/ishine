@@ -282,6 +282,8 @@ export class ReportDashboardComponent implements OnInit {
     return projectList.slice(0, count);
   }
 
+
+
   preventBackButton() {
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(() => {
