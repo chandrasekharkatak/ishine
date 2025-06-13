@@ -1141,7 +1141,8 @@
                                     <div class="col-md-4 mb-0" *ngIf="deptSelected && !isUpdation">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Default Project Type</label>
+                                                <label class="info-label"><span class="text-danger">*</span>Default
+                                                    Project Type</label>
                                                 <select class="form-control" aria-hidden="true"
                                                     [(ngModel)]="employeeObj.defaultprojectType"
                                                     (change)="getProjectsAccToDepartmentSelected()">
@@ -1156,7 +1157,8 @@
                                     <div class="col-md-4 mb-0" *ngIf="showProjectDropdown && !isUpdation">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Default Project</label>
+                                                <label class="info-label"><span class="text-danger">*</span>Default
+                                                    Project</label>
                                                 <select class="form-control" aria-hidden="true"
                                                     [(ngModel)]="employeeObj.defaultProjectId"
                                                     (change)="onProjectChange($event)">
@@ -1167,16 +1169,18 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
 
                                     <!-- Default Team + Shadow Resource Checkbox -->
                                     <div class="col-md-4 mb-0" *ngIf="showTeamDropdown && !isUpdation">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Default Team</label>
+                                                <label class="info-label"><span class="text-danger">*</span>Default
+                                                    Team</label>
                                                 <div class="d-flex align-items-center justify-content-between">
                                                     <select class="form-control me-2" style="width: 75%;"
-                                                        [(ngModel)]="employeeObj.defaultTeamId" (click)="onTeamChange($event)">
+                                                        [(ngModel)]="employeeObj.defaultTeamId"
+                                                        (click)="onTeamChange($event)">
                                                         <option selected value="" disabled>Select</option>
                                                         <option *ngFor="let team of teamList" [value]="team.teamId">
                                                             {{ team.teamName }}
@@ -1200,64 +1204,91 @@
                                         </div>
                                     </div>
 
+                                   
+                                    <!-- Resource Requirement Dropdown -->
+                                    <div class="col-md-4 mb-0" *ngIf="showResourceRequirementDropdown && !isUpdation">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Resource
+                                                    Requirement</label>
+                                                <select class="form-control"
+                                                    [(ngModel)]="employeeObj.selectedResourceOverviewId">
+                                                    <option value="" disabled selected>Select</option>
+                                                    <option *ngFor="let requirement of resourceRequirements"
+                                                        [value]="requirement.resourceOverviewId">
+                                                        Role - {{ requirement.role }} || Dept - {{
+                                                        requirement.department }} || Exp - {{ requirement.experience }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
                                     <div class="col-md-4 mb-0" *ngIf="showEmployeeRoleDropdown && !isUpdation">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Employee Role</label>
-                                                <mat-select class="form-control" multiple [(ngModel)]="employeeObj.defaultTeamEmployeeRole">
-                                                    <mat-option selected="selected" value="" disabled>Select</mat-option>
+                                                <label class="info-label"><span class="text-danger">*</span>Employee
+                                                    Role</label>
+                                                <mat-select class="form-control" multiple
+                                                    [(ngModel)]="employeeObj.defaultTeamEmployeeRole">
+                                                    <mat-option selected="selected" value=""
+                                                        disabled>Select</mat-option>
                                                     <mat-option *ngFor="let role of employeeRole"
                                                         [value]="role">{{role}}</mat-option>
                                                 </mat-select>
                                             </div>
                                         </div>
                                     </div>
+
+
                                     <div class="col-md-4 mb-0" *ngIf="!isCreation && employeeObj.defaultProjectName ">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Default Project Name</label>
+                                                <label class="info-label"><span class="text-danger">*</span>Default
+                                                    Project Name</label>
 
-                                                <input type="text" 
-                                                    class="form-control" 
+                                                <input type="text" class="form-control"
                                                     [(ngModel)]="employeeObj.defaultProjectName"
-                                                     [disabled]="isUpdation">
+                                                    [disabled]="isUpdation">
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0" *ngIf="!isCreation">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Billable<span class="custom-tooltip-wrapper">
-                                                    <i class="fa fa-info-circle info-icon"></i>
-                                                    <span class="custom-tooltip-text">Billability is as per Billable Type</span>
-                                                  </span></label>
+                                                <label class="info-label"><span
+                                                        class="text-danger">*</span>Billable<span
+                                                        class="custom-tooltip-wrapper">
+                                                        <i class="fa fa-info-circle info-icon"></i>
+                                                        <span class="custom-tooltip-text">Billability is as per Billable
+                                                            Type</span>
+                                                    </span></label>
 
-                                                <input type="text" 
-                                                    class="form-control" 
-                                                    [(ngModel)]="employeeObj.billable"
-                                                     [disabled]="isUpdation">
+                                                <input type="text" class="form-control"
+                                                    [(ngModel)]="employeeObj.billable" [disabled]="isUpdation">
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0" *ngIf="!isCreation">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Billable Type  <span class="custom-tooltip-wrapper">
-                                                    <i class="fa fa-info-circle info-icon"></i>
-                                                    <span class="custom-tooltip-text">
-                                                      The employee's billable type cannot be updated here.<br>
-                                                      &nbsp;Please update it in the Employee Report or RMG page.
-                                                    </span>
-                                                  </span></label>
+                                                <label class="info-label"><span class="text-danger">*</span>Billable
+                                                    Type <span class="custom-tooltip-wrapper">
+                                                        <i class="fa fa-info-circle info-icon"></i>
+                                                        <span class="custom-tooltip-text">
+                                                            The employee's billable type cannot be updated here.<br>
+                                                            &nbsp;Please update it in the Employee Report or RMG page.
+                                                        </span>
+                                                    </span></label>
 
-                                                <input type="text" 
-                                                    class="form-control" 
-                                                    [(ngModel)]="employeeObj.billableType"
-                                                     [disabled]="isUpdation">
+                                                <input type="text" class="form-control"
+                                                    [(ngModel)]="employeeObj.billableType" [disabled]="isUpdation">
                                             </div>
                                         </div>
                                     </div>
-        
+
 
 
                                 </div>

@@ -211,4 +211,5 @@ export class Employee{
 	defaultTeamId:any;
 	isShadowResource:any;
 	defaultTeamEmployeeRole:any;
+	selectedResourceOverviewId:any;
 }
