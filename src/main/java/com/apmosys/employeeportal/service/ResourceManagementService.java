@@ -6828,7 +6828,7 @@ public class ResourceManagementService {
 	    return response;
 	}
 	
-	public ServiceResponse getBenchEmployeeMoreThan30Days() {
+	public ServiceResponse getBenchEmployeeMoreThan30Days(Long deptId) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("getBenchEmployeeMoreThan30Days");
@@ -6838,7 +6838,7 @@ public class ResourceManagementService {
 	    StringBuilder logBuilder = new StringBuilder();
 
 	    try {
-	        List<Object[]> resultSet = projectRepository.getBenchEmployeeMoreThan30Days();
+	        List<Object[]> resultSet = projectRepository.getBenchEmployeeMoreThan30Days(deptId);
 	        logBuilder.append("\n getBenchEmployeeMoreThan30Days - Total Records: ").append(resultSet.size());
 
 	        Map<Long, BenchEmployeeDetailsDTO> employeeMap = new HashMap<>();

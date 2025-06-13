@@ -417,6 +417,7 @@ export class ResourceManagementComponent implements OnInit {
   employeeBenchRepot: any[] = [];
   employeeBench: any;
   employeeBenchRepotMsg:any;
+  deptId:any;
 
   constructor(
     private scroller: ViewportScroller,
@@ -3419,7 +3420,8 @@ ExceptionEmployeeReport(projectFilterDTO: ProjectFilterDTO){
   }
 
   getBenchEmployeeMoreThan30Days() {
-    this.resourceManagementService.getBenchEmployeeMoreThan30Days().pipe(first()).subscribe((response: any) => {
+    this.deptId = this.currentUser.departmentId;
+    this.resourceManagementService.getBenchEmployeeMoreThan30Days(this.deptId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         console.log(response.serviceResponse);
         this.employeeBenchRepot = response.serviceResponse;
