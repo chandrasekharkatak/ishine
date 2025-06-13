@@ -1,7 +1,7 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_team" [ngClass]="{'active' : isTeamForm && isCreation}" (click)="showCreateTeamForm()">Add New Team</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_teams || userMapping.update_team || userMapping.delete_team" [ngClass]="{'active' : isTeamTable}" (click)="showViewTeams()">View Teams</button>
+        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_team" [ngClass]="{'active' : isTeamForm && isCreation}" (click)="showCreateTeamForm()">Add New Team</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_teams || userMapping.update_team || userMapping.delete_team" [ngClass]="{'active' : isTeamTable}" (click)="showViewTeams()">View Teams</button> -->
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activities || userMapping.update_activity || userMapping.delete_activity" [ngClass]="{'active' : isActivityTable}" (click)="showViewActivities()">View Activities</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.activity_template" [ngClass]="{'active' : isActivityTemplate && isActivityCreate}" (click)="showActivityTemplate()">Activity Template</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_activity_template" [ngClass]="{'active' : isActivityTemplateTable}" (click)="showActivityTemplateTable()">View Activity Template</button>
@@ -9,8 +9,8 @@
 </div>
 
 <!-- start :: Create & Update Team -->
-<div class="row">
-    <div class="card col-md-12 px-0" *ngIf="isTeamForm">
+<!-- <div class="row">
+    <div class="card col-md-12 px-0" *ngIf="isTeamForm"> 
         <div class="card-header text-center text-uppercase">
             
                 <button type="button" class="btn btn-outline-primary btn-sm active ng-star-inserted mx-1"  style="float: left;" *ngIf="isUpdation" (click)="showViewTeams1()"><em><i
@@ -22,17 +22,6 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <!-- <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.projectId" [disabled]="isUpdation">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option *ngFor="let project of allProjectListByManagerId" value="{{project.projectId}}">{{project.projectName}}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div> -->
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
@@ -68,10 +57,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Department</label>
-                            <!-- <mat-select class="form-control" multiple [(ngModel)]="teamObj.departmentList" (selectionChange)="getAllEmployeesByDepartmentIds();getAllEmployeesByRole()">
-                                <mat-option selected="selected" value="" disabled>Select</mat-option>
-                                <mat-option *ngFor="let dept of allDeptList" [value]="dept">{{dept.name}}</mat-option>
-                            </mat-select> -->
+                            
 
                             <mat-select ngxMatSelect class="form-control"
                                   #departmentSelect="ngxMatSelect"
@@ -87,10 +73,6 @@
                                     {{dept.name}}
                                   </mat-option>
                             </mat-select>
-                                <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.deptId" (change)="getAllEmployeesByDepartmentIds();getAllEmployeesByRole()">
-                                    <option selected="selected" value="" disabled>Select</option>
-                                    <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">{{dept.name}}</option>
-                                </select> -->
                         </div>
                     </div>
                 </div>
@@ -114,15 +96,10 @@
                                     {{teamLead.name}}
                                   </mat-option>
                                 </mat-select>
-                            <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="teamObj.teamLeadId">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option *ngFor="let teamLead of teamLeadsList" value="{{teamLead.empId}}">{{teamLead.name}}</option>
-                            </select> -->
                         </div>
                     </div>
                 </div>
             </div>
-             <!-- Update Existing Members -->
             <div *ngIf="isUpdation && teamObj.allTeamMemberList[0]" class="container-fluid px-0">
                 <div class="row ml-1 mt-5">
                     <h3>Existing Team Members</h3>
@@ -140,7 +117,6 @@
                         <div class="mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
-                                    <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
                                     <mat-select class="form-control" multiple [(ngModel)]="teamMember.employeeRole">
                                         <mat-option selected="selected" value="" disabled>Select</mat-option>
                                         <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
@@ -159,7 +135,7 @@
                     </div>
                 </div>
             </div>
-            <!-- New Team Members -->
+            
             <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class="container-fluid px-0">
                 <div class="row ml-1 mt-5">
                     <h3>New Team Members</h3>
@@ -177,7 +153,6 @@
                         <div class="mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
-                                    <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
                                     <mat-select class="form-control" multiple [(ngModel)]="teamMember.employeeRole">
                                         <mat-option selected="selected" value="" disabled>Select</mat-option>
                                         <mat-option *ngFor="let role of employeeRole" [value]="role" disabled>{{role}}</mat-option>
@@ -192,7 +167,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Add New Team Members -->
+            
             <div class="row ml-1 mt-5">
                 <h3>Add Team Members</h3>
             </div>
@@ -200,10 +175,7 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="newteamMember.empId">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option *ngFor="let employee of employeeListByDept" value="{{employee.empId}}" [disabled]="employee.isSelected">{{employee.name}}</option>
-                            </select> -->
+                            
                             <mat-select ngxMatSelect class="form-control"
                                   #addMemberSelect="ngxMatSelect"
                                   [displayMember]="'name'"
@@ -226,7 +198,7 @@
                     <div class="mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
-                                <!-- <label class="info-label"><span class="text-danger">*</span></label> -->
+                                
                                 <mat-select class="form-control" multiple [(ngModel)]="newteamMember.employeeRole" [disabled]="!teamObj.departmentList">
                                     <mat-option selected="selected" value="" disabled>Select</mat-option>
                                     <mat-option *ngFor="let role of employeeRole" [value]="role">{{role}}</mat-option>
@@ -244,7 +216,7 @@
                     </div>
                 </div>
             </div>
-        <!--
+       
             <div *ngFor="let teamMember of allTeamMembers; let i = index" class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
@@ -266,7 +238,7 @@
                     </div>
                 </div>
             </div>
-        -->
+       
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button *ngIf="isCreation && userMapping.add_team" type="submit" class="btn btn-primary btn-sm mx-1" [disabled]="allTeamMembers && allTeamMembers.length == 0" (click)="onCreateTeam(alert_message)">Create Team</button>
@@ -275,11 +247,11 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
 <!-- end :: create & update Team -->
 
 <!-- start :: View Teams -->
-<div class="row" *ngIf="isTeamTable">
+<!-- <div class="row" *ngIf="isTeamTable">
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
@@ -308,10 +280,6 @@
                                 </mat-select>
 
 
-                        <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="selectedProject" (change)="getAllTeamsByProjectId(selectedProject)">
-                            <option selected="selected" value="" disabled>Select</option>
-                            <option *ngFor="let project of allProjectListByManagerId" value="{{project.projectId}}">{{project.projectName}}</option>
-                        </select> -->
                     </div>
                    
                     
@@ -329,9 +297,7 @@
                     </select>
                 </div>
             </div>
-            <!-- <div class="col-md-3 mt-4 pt-2 mb-2">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
-            </div> -->
+            
         </div>
         <div class="row">
             <div class="col-md-12">
@@ -390,7 +356,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
 <!-- end :: View Teams -->
 
 
@@ -398,7 +364,7 @@
 <div class="row">
     <div class="card col-md-12 px-0" *ngIf="isActivityForm">
 
-        <div class="px-0">
+        <div class="px-0" >
             <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="isCreation" (click)="showViewActivities()"><em><i
                class="fa-solid fa-arrow-left-long"></i></em></button>
         </div>

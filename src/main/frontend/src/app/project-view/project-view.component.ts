@@ -120,46 +120,22 @@ export class ProjectViewComponent implements OnInit {
     this.employee360Service.getTeamInfo(project).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === "Success") {
-          this.teamMemberList = response.serviceResponse;
+          this.teamMemberList = response.serviceResponse.teamDetails;
           // console.log("getTeamInfo ", this.teamMemberList);
 
-          const groupedData = {};
-
-          this.teamMemberList.forEach((member) => {
-            const teamKey = member.teamId;
-
-            if (!groupedData[teamKey]) {
-              groupedData[teamKey] = {
-                teamId: member.teamId,
-                teamName: member.teamName,
-                employees: [],
-                projectId: member.projectId,
-                projectName: member.projectName
-              };
-            }
-
-            groupedData[teamKey].employees.push({
-              empId: member.empId,
-              employeeName: member.employeeName,
-              employeeRole: member.employeeRole ? member.employeeRole.split(',').filter(role => role.trim() !== '').join(', ') : "",
-              startDate: member.startDate ? moment(member.startDate).format('YYYY-MM-DD') : null,
-              billableType: member.billableType,
-              lastDate: member.poEndDate ? moment(member.poEndDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
-              active: member.active,
-              emp360: {}
-            });
-
-            groupedData[teamKey].employees = groupedData[teamKey].employees || [];
-          });
-
-          this.teamMemberList = Object.values(groupedData);
-
+         if (Array.isArray(this.teamMemberList)) {
           this.teamMemberList.forEach((team) => {
-            team.employees.forEach((employee) => {
-              employee.emp360 = employee.empId;
-            });
+            if (Array.isArray(team.teamMemberDetails)) {
+              team.teamMemberDetails.forEach((employee) => {
+                employee.emp360 = employee.empId;
+              });
+            }
           });
-          // console.log("Formatted Team Data: ", this.teamMemberList);
+        } else {
+          console.warn("teamMemberList is not an array:", this.teamMemberList);
+        }
+
+          console.log("Formatted Team Data: ", this.teamMemberList);
         } else {
           console.warn("Failed to fetch team info");
         }
@@ -325,13 +301,13 @@ export class ProjectViewComponent implements OnInit {
 
 
   isTeamFullySelected(team: any): boolean {
-    return team.employees.every((member: any) => member.selected);
+    return team.teamMemberDetails.every((member: any) => member.selected);
   }
   
   toggleTeamSelection(team: any, event: any) {
     const isChecked = event.target.checked;
   
-    team.employees.forEach((member: any) => {
+    team.teamMemberDetails.forEach((member: any) => {
       member.selected = isChecked;
       this.onSelectionChange(team, member);
   
@@ -366,20 +342,27 @@ export class ProjectViewComponent implements OnInit {
   }
     
   areAllTeamsSelected(): boolean {
-    const allTeamsHaveMembers = this.teamMemberList.every(team => team.employees.length > 0);
-    const allMembersSelected = this.teamMemberList.every(team =>
-      team.employees.every((member: any) => member.selected)
-    );
-  
-    return this.teamMemberList.length > 0 && allTeamsHaveMembers && allMembersSelected;
+  if (!Array.isArray(this.teamMemberList)) {
+    return false;
   }
+
+  const allTeamsHaveMembers = this.teamMemberList.every(team => Array.isArray(team.teamMemberDetails) && team.teamMemberDetails.length > 0);
+
+  const allMembersSelected = this.teamMemberList.every(team =>
+    Array.isArray(team.teamMemberDetails) &&
+    team.teamMemberDetails.every((member: any) => member.selected)
+  );
+
+  return this.teamMemberList.length > 0 && allTeamsHaveMembers && allMembersSelected;
+}
+
   
   
   toggleAllTeams(event: any): void {
     const isChecked = event.target.checked;
   
     this.teamMemberList.forEach(team => {
-      team.employees.forEach(member => {
+      team.teamMemberDetails.forEach(member => {
         if (member.selected !== isChecked) {
           member.selected = isChecked;
           this.onSelectionChange(team, member); // Reuse your main logic
@@ -415,7 +398,7 @@ export class ProjectViewComponent implements OnInit {
   
           // ✅ Uncheck all members
           this.teamMemberList.forEach(team => {
-            team.employees.forEach(member => {
+            team.teamMemberDetails.forEach(member => {
               member.selected = false;
             });
           });
