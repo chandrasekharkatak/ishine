@@ -223,7 +223,7 @@ public class ResourceManagementService {
 
 		try {
 			Project projObj = null;
-			if (resourceManagementDTO.getProjectType().equals("Internal")) {
+			if (resourceManagementDTO.getProjectType().equals("InternalRNDProducts")) {
 				projObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
 
 			} else {
@@ -5919,7 +5919,7 @@ public class ResourceManagementService {
 		 ServiceResponse response = new ServiceResponse();
 		    LogDTO apiLogInfo = new LogDTO();
 		    apiLogInfo.setLogLevel("INFO");
-
+		    	
 		        if (projectFilterDTO == null) {
 		            return failResponse(response, apiLogInfo, "Invalid input: ProjectFilterDTO is null.");
 		        }
