@@ -228,19 +228,19 @@ public class ResourceManagementController {
 	
 	@RequestMapping(value = "/rbacInternalProjects", method = RequestMethod.POST)
 	public ServiceResponse getAllInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
-		ServiceResponse response = resourceManagementService.getAllInternalProjectsNewRMG(projectFilterDTO);
+		ServiceResponse response = resourceManagementService.nEWgetAllInternalProjectsNewRMG(projectFilterDTO);
 		return response;
 	}
 	
 	@RequestMapping(value = "/rbacShankhProjects", method = RequestMethod.POST)
 	public ServiceResponse getAllShankhProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
-		ServiceResponse response = resourceManagementService.getAllShankhProjectsNewRMG(projectFilterDTO);
+		ServiceResponse response = resourceManagementService.nEWgetAllShankhProjectsNewRMG(projectFilterDTO);
 		return response;
 	}
 	
 	@RequestMapping(value = "/rbacAllShankhInternalProjects", method = RequestMethod.POST)
 	public ServiceResponse getAllShankhInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
-		ServiceResponse response = resourceManagementService.getAllShankhInternalProjectsNewRMG(projectFilterDTO);
+		ServiceResponse response = resourceManagementService.nEWgetAllShankhInternalProjectsNewRMG(projectFilterDTO);
 		return response;
 	}
 	
@@ -253,7 +253,7 @@ public class ResourceManagementController {
 	
 	@RequestMapping(value = "/rbacBothShankhInternal", method = RequestMethod.POST)
 	public ServiceResponse getBothShankhInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
-		ServiceResponse response = resourceManagementService.getBothShankhInternalProjectsNewRMG(projectFilterDTO);
+		ServiceResponse response = resourceManagementService.nEWgetBOTHShankhInternalProjectsNewRMG(projectFilterDTO);
 		return response;
 	}
 	

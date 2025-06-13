@@ -4451,7 +4451,10 @@ public class ResourceManagementService {
 		}
 		return response;
 	}
-	public ServiceResponse getAllInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
+	
+	
+	
+	public ServiceResponse nEWgetAllInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
 		ServiceResponse response = new ServiceResponse();
 		if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -4460,39 +4463,50 @@ public class ResourceManagementService {
 		}
 
 		try {
-			Employee employee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
-			JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+			Long empIdd = projectFilterDTO.getCurrentUserEmpId();
+		    Employee employee = employeeRepository.findByEmpId(empIdd);
+		    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+		    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
 
-			String role = jobRole.getEmployeeRole();
-			String name = jobRole.getName();
+		    String departmentName = department.getName();
+		    String role = jobRole.getEmployeeRole();
+		    String name = jobRole.getName();
 
-			Set<Integer> internalProjectIds = new HashSet<>();
-			if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
-					|| name.equalsIgnoreCase("Super Admin")) {
-				internalProjectIds = projectRepository.findAllActiveInternalProjectIds();
-			} 
-				else if (departmentRepository.existsByHodId(projectFilterDTO.getCurrentUserEmpId())) {
-					List<Long> deptIds = departmentRepository.findDeptIdsByHodId(projectFilterDTO.getCurrentUserEmpId());
-					List<Team> activeTeams = teamRepository.findAllActiveTeamsOfInternalProjects();
+		    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+		    Set<Integer> internalProjectIds = new HashSet<>();
 
-					internalProjectIds = activeTeams.stream().filter(team -> {
-						String teamDeptIdsStr = team.getDeptIds();
-						if (teamDeptIdsStr == null || teamDeptIdsStr.isBlank())
-							return false;
+		    
+		    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+		            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+		            || specialDepartments.contains(departmentName)) {
+		        internalProjectIds = projectRepository.findAllActiveInternalProjectIds();
+		    } else {
+		       
+		        internalProjectIds = projectRepository.findInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
 
-						List<Long> teamDeptIds = Arrays.stream(teamDeptIdsStr.split(",")).map(String::trim)
-								.filter(s -> !s.isEmpty()).map(Long::parseLong).collect(Collectors.toList());
+		       
+		        if (departmentRepository.existsByHodId(empIdd)) {
+		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empIdd);
+		            List<Team> activeTeams = teamRepository.findAllActiveTeamsOfInternalProjects();
 
-						return teamDeptIds.stream().anyMatch(deptIds::contains);
-					}).map(Team::getProjectId).collect(Collectors.toSet());
-			}
-			else if (teamRepository.existsBySpocId(projectFilterDTO.getCurrentUserEmpId())) {
-				internalProjectIds = teamRepository
-						.findActiveInternalProjectIdsBySpocId(projectFilterDTO.getCurrentUserEmpId());
+		            Set<Integer> hodProjects = activeTeams.stream().filter(team -> {
+		                String teamDeptIdsStr = team.getDeptIds();
+		                if (teamDeptIdsStr == null || teamDeptIdsStr.isBlank()) return false;
+
+		                List<Long> teamDeptIds = Arrays.stream(teamDeptIdsStr.split(","))
+		                    .map(String::trim)
+		                    .filter(s -> !s.isEmpty())
+		                    .map(Long::parseLong)
+		                    .collect(Collectors.toList());
+
+		                return teamDeptIds.stream().anyMatch(deptIds::contains);
+		            }).map(Team::getProjectId).collect(Collectors.toSet());
+
+		            internalProjectIds.addAll(hodProjects);
+		        }
+		    }
+
 			
-			} else {
-				internalProjectIds = projectRepository.findAllActiveInternalProjectIds();
-			}
 
 			internalProjectIds = filterProjectidsApprovalStatusDepartmentFilter(internalProjectIds,
 					projectFilterDTO.getApprovalStatus(), projectFilterDTO.getDepartmentsids());
@@ -4596,54 +4610,67 @@ public class ResourceManagementService {
 		}
 		return response;
 	}
-
-	public ServiceResponse getAllShankhProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
+	
+	
+	public ServiceResponse nEWgetAllShankhProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
 		ServiceResponse response = new ServiceResponse();
-		String approvalStatus = projectFilterDTO.getApprovalStatus();
-		List<Long> departmentsids = projectFilterDTO.getDepartmentsids();
 		if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(Collections.emptyList());
 			return response;
 		}
+
 		try {
-			Employee employee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
-			JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+			Long empIdd = projectFilterDTO.getCurrentUserEmpId();
+		    Employee employee = employeeRepository.findByEmpId(empIdd);
+		    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+		    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
 
-			String role = jobRole.getEmployeeRole();
-			String name = jobRole.getName();
+		    String departmentName = department.getName();
+		    String role = jobRole.getEmployeeRole();
+		    String name = jobRole.getName();
 
-			Set<Integer> internalProjectIds = new HashSet<>();
-			if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
-					|| name.equalsIgnoreCase("Super Admin")) {
-				internalProjectIds = projectRepository.findAllActiveShankhProjectIds();
-			}  else if (departmentRepository.existsByHodId(projectFilterDTO.getCurrentUserEmpId())) {
-				List<Long> deptIds = departmentRepository.findDeptIdsByHodId(projectFilterDTO.getCurrentUserEmpId());
-				List<Team> activeTeams = teamRepository.findAllActiveTeamsOfShankhProjects();
+		    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+		    Set<Integer> shankhProjectIds = new HashSet<>();
 
-				internalProjectIds = activeTeams.stream().filter(team -> {
-					String teamDeptIdsStr = team.getDeptIds();
-					if (teamDeptIdsStr == null || teamDeptIdsStr.isBlank())
-						return false;
+		    
+		    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+		            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+		            || specialDepartments.contains(departmentName)) {
+		    	shankhProjectIds = projectRepository.findAllActiveShankhProjectIds();
+		    } else {
+		       
+		    	shankhProjectIds = projectRepository.findShankhProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
 
-					List<Long> teamDeptIds = Arrays.stream(teamDeptIdsStr.split(",")).map(String::trim)
-							.filter(s -> !s.isEmpty()).map(Long::parseLong).collect(Collectors.toList());
+		       
+		        if (departmentRepository.existsByHodId(empIdd)) {
+		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empIdd);
+		            List<Team> activeTeams = teamRepository.findAllActiveTeamsOfShankhProjects();
 
-					return teamDeptIds.stream().anyMatch(deptIds::contains);
-				}).map(Team::getProjectId).collect(Collectors.toSet());
-			}else if (teamRepository.existsBySpocId(projectFilterDTO.getCurrentUserEmpId())) {
-				internalProjectIds = teamRepository
-						.findActiveShankhProjectIdsBySpocId(projectFilterDTO.getCurrentUserEmpId());
-			}
-			else {
-				internalProjectIds = projectRepository.findAllActiveShankhProjectIds();
-			}
+		            Set<Integer> hodProjects = activeTeams.stream().filter(team -> {
+		                String teamDeptIdsStr = team.getDeptIds();
+		                if (teamDeptIdsStr == null || teamDeptIdsStr.isBlank()) return false;
 
-			internalProjectIds = filterProjectidsApprovalStatusDepartmentFilter(internalProjectIds,
+		                List<Long> teamDeptIds = Arrays.stream(teamDeptIdsStr.split(","))
+		                    .map(String::trim)
+		                    .filter(s -> !s.isEmpty())
+		                    .map(Long::parseLong)
+		                    .collect(Collectors.toList());
+
+		                return teamDeptIds.stream().anyMatch(deptIds::contains);
+		            }).map(Team::getProjectId).collect(Collectors.toSet());
+
+		            shankhProjectIds.addAll(hodProjects);
+		        }
+		    }
+
+			
+
+		    shankhProjectIds = filterProjectidsApprovalStatusDepartmentFilter(shankhProjectIds,
 					projectFilterDTO.getApprovalStatus(), projectFilterDTO.getDepartmentsids());
 
 			List<Object[]> rawData = employeeTeamMapRepository
-					.findEmployeeProjectTeamDetailsByProjectIds(internalProjectIds);
+					.findEmployeeProjectTeamDetailsByProjectIds(shankhProjectIds);
 
 			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
@@ -4678,6 +4705,164 @@ public class ResourceManagementService {
 					newDto.setEmpId(empId);
 					newDto.setEmployeementId(employeementId);
 					newDto.setName(empName);
+					
+					newDto.setDepartment(deptName)	;
+					newDto.setBillable(billable);
+					newDto.setBillableType(billableType);
+					newDto.setRmgprojects(new ArrayList<>());
+					return newDto;
+				});
+
+				// Find existing project in employee's projects list or create new
+				RMGProject existingProject = dto.getRmgprojects().stream()
+						.filter(p -> p.getProjectId().equals(projectId)).findFirst().orElse(null);
+
+				if (existingProject == null) {
+					RMGProject rmgProject = new RMGProject();
+					rmgProject.setProjectId(projectId);
+					rmgProject.setProjectName(projectName);
+					rmgProject.setPoProjectId(poProjectId);
+					rmgProject.setPoStartDate(poStartDate);
+					rmgProject.setPoEndDate(poEndDate);
+					rmgProject.setApmosysRM(apmosysRM);
+					rmgProject.setClientRM(clientRM);
+					rmgProject.setPoProjectType(poProjectType);
+					rmgProject.setPoNo(poNo);
+					rmgProject.setClientName(clientName);
+					rmgProject.setRmgTeam(new ArrayList<>());
+					rmgProject.setProjectManagers(new ArrayList<>());
+					
+					dto.getRmgprojects().add(rmgProject);
+					existingProject = rmgProject;
+				}
+
+				// Add team details to the project
+				RMGTeam rmgTeam = new RMGTeam();
+				rmgTeam.setTeamId(teamId);
+				rmgTeam.setTeamName(teamName);
+				rmgTeam.setIsActive(teamIsActive);
+				rmgTeam.setEmployeeRole(employeeRole);
+				rmgTeam.setStatus(active == 1 ? "Approved" : "Pending for Approval");
+
+				existingProject.getRmgTeam().add(rmgTeam);
+				if (projectManagerId != null && projectManagerName != null) {
+	                boolean alreadyExists = existingProject.getProjectManagers().stream()
+	                        .anyMatch(pm -> pm.getProjectManagerId().equals(projectManagerId));
+
+	                if (!alreadyExists) {
+	                    ProjectManagersDTO managerDTO = new ProjectManagersDTO();
+	                    managerDTO.setProjectManagerId(projectManagerId);
+	                    managerDTO.setProjectManagerName(projectManagerName);
+	                    existingProject.getProjectManagers().add(managerDTO);
+	                }
+	            }
+	        }
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(new ArrayList<>(employeeMap.values()));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Error: " + e.getMessage());
+		}
+		return response;
+	}
+	
+	public ServiceResponse nEWgetAllShankhInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
+		ServiceResponse response = new ServiceResponse();
+		if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(Collections.emptyList());
+			return response;
+		}
+
+		try {
+			Long empIdd = projectFilterDTO.getCurrentUserEmpId();
+		    Employee employee = employeeRepository.findByEmpId(empIdd);
+		    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+		    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
+
+		    String departmentName = department.getName();
+		    String role = jobRole.getEmployeeRole();
+		    String name = jobRole.getName();
+
+		    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+		    Set<Integer> allshankhInternalProjectIds = new HashSet<>();
+
+		    
+		    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+		            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+		            || specialDepartments.contains(departmentName)) {
+		    	allshankhInternalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
+		    } else {
+		       
+		    	allshankhInternalProjectIds = projectRepository.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
+
+		       
+		        if (departmentRepository.existsByHodId(empIdd)) {
+		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empIdd);
+		            List<Team> activeTeams = teamRepository.findAllActiveTeamsOfShankhInternalProjects();
+
+		            Set<Integer> hodProjects = activeTeams.stream().filter(team -> {
+		                String teamDeptIdsStr = team.getDeptIds();
+		                if (teamDeptIdsStr == null || teamDeptIdsStr.isBlank()) return false;
+
+		                List<Long> teamDeptIds = Arrays.stream(teamDeptIdsStr.split(","))
+		                    .map(String::trim)
+		                    .filter(s -> !s.isEmpty())
+		                    .map(Long::parseLong)
+		                    .collect(Collectors.toList());
+
+		                return teamDeptIds.stream().anyMatch(deptIds::contains);
+		            }).map(Team::getProjectId).collect(Collectors.toSet());
+
+		            allshankhInternalProjectIds.addAll(hodProjects);
+		        }
+		    }
+
+			
+
+		    allshankhInternalProjectIds = filterProjectidsApprovalStatusDepartmentFilter(allshankhInternalProjectIds,
+					projectFilterDTO.getApprovalStatus(), projectFilterDTO.getDepartmentsids());
+
+			List<Object[]> rawData = employeeTeamMapRepository
+					.findEmployeeProjectTeamDetailsByProjectIds(allshankhInternalProjectIds);
+
+			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
+
+			for (Object[] row : rawData) {
+				Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
+				Long employeementId = row[1] != null ? Long.parseLong(row[1].toString()) : null;
+				String billable = row[2] != null ? row[2].toString() : null;
+				String billableType = row[3] != null ? row[3].toString() : null;
+				String empName = row[4] != null ? row[4].toString() : null;
+				String deptName = row[5] != null ? row[5].toString() : null;
+				Integer projectId = row[6] != null ? Integer.parseInt(row[6].toString()) : null;
+				String projectName = row[7] != null ? row[7].toString() : null;
+				Long poProjectId = row[8] != null ? Long.parseLong(row[8].toString()) : null;
+				String poStartDate = row[9] != null ? row[9].toString() : null;
+				String poEndDate = row[10] != null ? row[10].toString() : null;
+				String apmosysRM = row[11] != null ? row[11].toString() : null;
+				String clientRM = row[12] != null ? row[12].toString() : null;
+				String poProjectType = row[13] != null ? row[13].toString() : null;
+				String poNo = row[14] != null ? row[14].toString() : null;
+				String clientName = row[15] != null ? row[15].toString() : null;
+				Long teamId = row[16] != null ? Long.parseLong(row[16].toString()) : null;
+				String teamName = row[17] != null ? row[17].toString() : null;
+				String teamIsActive = row[18] != null ? row[18].toString() : null;
+				String employeeRole = row[19] != null ? row[19].toString() : null;
+				Integer active = row[20] != null ? Integer.parseInt(row[20].toString()) : null;
+				Long projectManagerId = row[21] != null ? Long.parseLong(row[21].toString()) : null;
+				String projectManagerName = row[22] != null ? row[22].toString() : null;
+
+
+				RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(empId, k -> {
+					RMGProjectMappedEmployees newDto = new RMGProjectMappedEmployees();
+					newDto.setEmpId(empId);
+					newDto.setEmployeementId(employeementId);
+					newDto.setName(empName);
+					
 					newDto.setDepartment(deptName)	;
 					newDto.setBillable(billable);
 					newDto.setBillableType(billableType);
@@ -4741,148 +4926,9 @@ public class ResourceManagementService {
 		return response;
 	}
 
-	public ServiceResponse getAllShankhInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
-		ServiceResponse response = new ServiceResponse();
-
-		if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(Collections.emptyList());
-			return response;
-		}
-		try {
-			Employee employee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
-			JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
-
-			String role = jobRole.getEmployeeRole();
-			String name = jobRole.getName();
-
-			Set<Integer> internalProjectIds = new HashSet<>();
-			if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
-					|| name.equalsIgnoreCase("Super Admin")) {
-				internalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
-			}  else if (departmentRepository.existsByHodId(projectFilterDTO.getCurrentUserEmpId())) {
-				List<Long> deptIds = departmentRepository.findDeptIdsByHodId(projectFilterDTO.getCurrentUserEmpId());
-				List<Team> activeTeams = teamRepository.findAllActiveTeamsOfShankhInternalProjects();
-
-				internalProjectIds = activeTeams.stream().filter(team -> {
-					String teamDeptIdsStr = team.getDeptIds();
-					if (teamDeptIdsStr == null || teamDeptIdsStr.isBlank())
-						return false;
-
-					List<Long> teamDeptIds = Arrays.stream(teamDeptIdsStr.split(",")).map(String::trim)
-							.filter(s -> !s.isEmpty()).map(Long::parseLong).collect(Collectors.toList());
-
-					return teamDeptIds.stream().anyMatch(deptIds::contains);
-				}).map(Team::getProjectId).collect(Collectors.toSet());
-			} else if (teamRepository.existsBySpocId(projectFilterDTO.getCurrentUserEmpId())) {
-				internalProjectIds = teamRepository
-						.findActiveShankhInternalProjectIdsBySpocId(projectFilterDTO.getCurrentUserEmpId());
-			}
-			else {
-				internalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
-			}
-
-			internalProjectIds = filterProjectidsApprovalStatusDepartmentFilter(internalProjectIds,
-					projectFilterDTO.getApprovalStatus(), projectFilterDTO.getDepartmentsids());
-
-			List<Object[]> rawData = employeeTeamMapRepository
-					.findEmployeeProjectTeamDetailsByProjectIds(internalProjectIds);
-
-			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
-
-			for (Object[] row : rawData) {
-				Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
-				Long employeementId = row[1] != null ? Long.parseLong(row[1].toString()) : null;
-				String billable = row[2] != null ? row[2].toString() : null;
-				String billableType = row[3] != null ? row[3].toString() : null;
-				String empName = row[4] != null ? row[4].toString() : null;
-				String deptName = row[5] != null ? row[5].toString() : null;
-				Integer projectId = row[6] != null ? Integer.parseInt(row[6].toString()) : null;
-				String projectName = row[7] != null ? row[7].toString() : null;
-				Long poProjectId = row[8] != null ? Long.parseLong(row[8].toString()) : null;
-				String poStartDate = row[9] != null ? row[9].toString() : null;
-				String poEndDate = row[10] != null ? row[10].toString() : null;
-				String apmosysRM = row[11] != null ? row[11].toString() : null;
-				String clientRM = row[12] != null ? row[12].toString() : null;
-				String poProjectType = row[13] != null ? row[13].toString() : null;
-				String poNo = row[14] != null ? row[14].toString() : null;
-				String clientName = row[15] != null ? row[15].toString() : null;
-				Long teamId = row[16] != null ? Long.parseLong(row[16].toString()) : null;
-				String teamName = row[17] != null ? row[17].toString() : null;
-				String teamIsActive = row[18] != null ? row[18].toString() : null;
-				String employeeRole = row[19] != null ? row[19].toString() : null;
-				Integer active = row[20] != null ? Integer.parseInt(row[20].toString()) : null;
-				Long projectManagerId = row[21] != null ? Long.parseLong(row[21].toString()) : null;
-				String projectManagerName = row[22] != null ? row[22].toString() : null;
+	
 
 
-				RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(empId, k -> {
-					RMGProjectMappedEmployees newDto = new RMGProjectMappedEmployees();
-					newDto.setEmpId(empId);
-					newDto.setEmployeementId(employeementId);
-					newDto.setName(empName);
-					newDto.setDepartment(deptName)	;
-					newDto.setBillable(billable);
-					newDto.setBillableType(billableType);
-					newDto.setRmgprojects(new ArrayList<>());
-					return newDto;
-				});
-
-				// Find existing project in employee's projects list or create new
-				RMGProject existingProject = dto.getRmgprojects().stream()
-						.filter(p -> p.getProjectId().equals(projectId)).findFirst().orElse(null);
-
-				if (existingProject == null) {
-					RMGProject rmgProject = new RMGProject();
-					rmgProject.setProjectId(projectId);
-					rmgProject.setProjectName(projectName);
-					rmgProject.setPoProjectId(poProjectId);
-					rmgProject.setPoStartDate(poStartDate);
-					rmgProject.setPoEndDate(poEndDate);
-					rmgProject.setApmosysRM(apmosysRM);
-					rmgProject.setClientRM(clientRM);
-					rmgProject.setPoProjectType(poProjectType);
-					rmgProject.setPoNo(poNo);
-					rmgProject.setClientName(clientName);
-					rmgProject.setRmgTeam(new ArrayList<>());
-					rmgProject.setProjectManagers(new ArrayList<>());
-					
-					dto.getRmgprojects().add(rmgProject);
-					existingProject = rmgProject;
-				}
-
-				// Add team details to the project
-				RMGTeam rmgTeam = new RMGTeam();
-				rmgTeam.setTeamId(teamId);
-				rmgTeam.setTeamName(teamName);
-				rmgTeam.setIsActive(teamIsActive);
-				rmgTeam.setEmployeeRole(employeeRole);
-				rmgTeam.setStatus(active == 1 ? "Approved" : "Pending for Approval");
-
-				existingProject.getRmgTeam().add(rmgTeam);
-				if (projectManagerId != null && projectManagerName != null) {
-	                boolean alreadyExists = existingProject.getProjectManagers().stream()
-	                        .anyMatch(pm -> pm.getProjectManagerId().equals(projectManagerId));
-
-	                if (!alreadyExists) {
-	                    ProjectManagersDTO managerDTO = new ProjectManagersDTO();
-	                    managerDTO.setProjectManagerId(projectManagerId);
-	                    managerDTO.setProjectManagerName(projectManagerName);
-	                    existingProject.getProjectManagers().add(managerDTO);
-	                }
-	            }
-	        }
-
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(new ArrayList<>(employeeMap.values()));
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Error: " + e.getMessage());
-		}
-		return response;
-	} 
 	
 	
 	public ServiceResponse employeesMappedProjectsDepartmentWise(GetEmployeeProjectReportPayloadDTO getEmployeeProjectReportPayloadDTO ) {
@@ -4992,7 +5038,7 @@ public class ResourceManagementService {
 		return response;
 	} 
 	
-	public ServiceResponse getBothShankhInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
+	public ServiceResponse nEWgetBOTHShankhInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
 		ServiceResponse response = new ServiceResponse();
 
 		if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
@@ -5001,43 +5047,54 @@ public class ResourceManagementService {
 			return response;
 		}
 		try {
-			Employee employee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
-			JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+			Long empIdd = projectFilterDTO.getCurrentUserEmpId();
+		    Employee employee = employeeRepository.findByEmpId(empIdd);
+		    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+		    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
 
-			String role = jobRole.getEmployeeRole();
-			String name = jobRole.getName();
+		    String departmentName = department.getName();
+		    String role = jobRole.getEmployeeRole();
+		    String name = jobRole.getName();
 
-			Set<Integer> internalProjectIds = new HashSet<>();
-			if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
-					|| name.equalsIgnoreCase("Super Admin")) {
-				internalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
-			} else if (departmentRepository.existsByHodId(projectFilterDTO.getCurrentUserEmpId())) {
-				List<Long> deptIds = departmentRepository.findDeptIdsByHodId(projectFilterDTO.getCurrentUserEmpId());
-				List<Team> activeTeams = teamRepository.findAllActiveTeamsOfShankhInternalProjects();
+		    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+		    Set<Integer> allshankhInternalProjectIds = new HashSet<>();
 
-				internalProjectIds = activeTeams.stream().filter(team -> {
-					String teamDeptIdsStr = team.getDeptIds();
-					if (teamDeptIdsStr == null || teamDeptIdsStr.isBlank())
-						return false;
+		    
+		    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+		            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+		            || specialDepartments.contains(departmentName)) {
+		    	allshankhInternalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
+		    } else {
+		       
+		    	allshankhInternalProjectIds = projectRepository.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
 
-					List<Long> teamDeptIds = Arrays.stream(teamDeptIdsStr.split(",")).map(String::trim)
-							.filter(s -> !s.isEmpty()).map(Long::parseLong).collect(Collectors.toList());
+		       
+		        if (departmentRepository.existsByHodId(empIdd)) {
+		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empIdd);
+		            List<Team> activeTeams = teamRepository.findAllActiveTeamsOfShankhInternalProjects();
 
-					return teamDeptIds.stream().anyMatch(deptIds::contains);
-				}).map(Team::getProjectId).collect(Collectors.toSet());
-			} else if (teamRepository.existsBySpocId(projectFilterDTO.getCurrentUserEmpId())) {
-				internalProjectIds = teamRepository
-						.findActiveShankhInternalProjectIdsBySpocId(projectFilterDTO.getCurrentUserEmpId());
-			}
-			else {
-				internalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
-			}
+		            Set<Integer> hodProjects = activeTeams.stream().filter(team -> {
+		                String teamDeptIdsStr = team.getDeptIds();
+		                if (teamDeptIdsStr == null || teamDeptIdsStr.isBlank()) return false;
 
-			internalProjectIds = filterProjectidsApprovalStatusDepartmentFilter(internalProjectIds,
+		                List<Long> teamDeptIds = Arrays.stream(teamDeptIdsStr.split(","))
+		                    .map(String::trim)
+		                    .filter(s -> !s.isEmpty())
+		                    .map(Long::parseLong)
+		                    .collect(Collectors.toList());
+
+		                return teamDeptIds.stream().anyMatch(deptIds::contains);
+		            }).map(Team::getProjectId).collect(Collectors.toSet());
+
+		            allshankhInternalProjectIds.addAll(hodProjects);
+		        }
+		    }
+
+		    allshankhInternalProjectIds = filterProjectidsApprovalStatusDepartmentFilter(allshankhInternalProjectIds,
 					projectFilterDTO.getApprovalStatus(), projectFilterDTO.getDepartmentsids());
 
 			List<Object[]> rawData = employeeTeamMapRepository
-					.findEmployeeProjectTeamDetailsMatchedBothProjects(internalProjectIds);
+					.findEmployeeProjectTeamDetailsMatchedBothProjects(allshankhInternalProjectIds);
 
 			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
@@ -5139,16 +5196,22 @@ public class ResourceManagementService {
 		ServiceResponse response = new ServiceResponse();
 		
 		try {
-			Employee employee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
-			JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+			Long empIdd = projectFilterDTO.getCurrentUserEmpId();
+		    Employee employee = employeeRepository.findByEmpId(empIdd);
+		    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+		    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
 
-			String role = jobRole.getEmployeeRole();
-			String name = jobRole.getName();
+		    String departmentName = department.getName();
+		    String role = jobRole.getEmployeeRole();
+		    String name = jobRole.getName();
+
+		    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
 			
 			 List<Object[]> employeesWithoutProjects = new ArrayList<>();
 			
-			if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
-					|| name.equalsIgnoreCase("Super Admin")) {
+			 if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+			            || specialDepartments.contains(departmentName)) {
 				employeesWithoutProjects = employeeRepository.findAllEmployeesWithoutAnyProject();
 			}else if(departmentRepository.existsByHodId(projectFilterDTO.getCurrentUserEmpId())) {
 				List<Long> deptIds = departmentRepository.findDeptIdsByHodId(projectFilterDTO.getCurrentUserEmpId());

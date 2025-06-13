@@ -64,6 +64,7 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Asset;
@@ -6998,6 +6999,11 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		    		 Long teamId = row[2]!=null ? Long.parseLong(row[2].toString()):null;
 		    		 String teamName = row[3]!=null ? row[3].toString():null;
 		    		 String deptIds = row[4]!=null ? row[4].toString():null;
+		    		 Long resourceOverviewId = row[5] != null ? Long.parseLong(row[5].toString()) : null;
+		    		 String department = row[6] != null ? row[6].toString() : null;
+		    		 Integer count = row[7] != null ? Integer.parseInt(row[7].toString()) : null;
+		    		 String experience = row[8] != null ? row[8].toString() : null;
+		    		 String role = row[9] != null ? row[9].toString() : null;
 		    		 
 		    		 if (deptIds == null || !Arrays.asList(deptIds.split(",")).contains(departmentId.toString())) {
 		                 continue;
@@ -7008,8 +7014,23 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		             teamDTO.setTeamName(teamName);
 		             teamDTO.setDepartmentList(deptIds.split(","));
 		             
+		             ResourceRequirementDTO resourceRequirementDTO = new ResourceRequirementDTO();
+		             resourceRequirementDTO.setResourceOverviewId(resourceOverviewId);
+		             resourceRequirementDTO.setDepartment(department);
+		             resourceRequirementDTO.setCount(count);
+		             resourceRequirementDTO.setExperience(experience);
+		             resourceRequirementDTO.setRole(role);
+		             resourceRequirementDTO.setProjectId(projectId);
+
 		             if (projectMap.containsKey(projectId)) {
-		                 projectMap.get(projectId).getTeamList().add(teamDTO);
+		                 ProjectDTO existingProject = projectMap.get(projectId);
+		                 existingProject.getTeamList().add(teamDTO);
+
+		                 if (existingProject.getResourceRequirement() == null) {
+		                     existingProject.setResourceRequirement(new ArrayList<>());
+		                 }
+		                 existingProject.getResourceRequirement().add(resourceRequirementDTO);
+
 		             } else {
 		               
 		                 ProjectDTO projectDTO = new ProjectDTO();

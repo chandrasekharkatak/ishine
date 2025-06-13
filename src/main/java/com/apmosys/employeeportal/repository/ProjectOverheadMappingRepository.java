@@ -19,4 +19,10 @@ public interface ProjectOverheadMappingRepository extends JpaRepository<ProjectO
 	@Query(nativeQuery = true)
 	public List<Object[]>findProjectOverheadsPerProject(@Param("projectId") Long projectId);
 	
+	@Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END " +
+            "FROM project_overhead_mapping pom " +
+            "JOIN projects p ON p.project_id = pom.project_id " +
+            "WHERE p.active = 'true' AND p.po_project_id IS NULL AND pom.project_overhead_id = :empId", nativeQuery = true)
+boolean isUserProjectOverheadOfAnyActiveInternalProject(@Param("empId") Long empId);
+	
 }

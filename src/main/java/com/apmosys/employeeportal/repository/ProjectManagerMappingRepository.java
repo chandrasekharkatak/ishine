@@ -31,5 +31,11 @@ public interface ProjectManagerMappingRepository extends JpaRepository<ProjectMa
 	@Query(nativeQuery = true, value="SELECT pmm.project_manager_id, e.name FROM project_manager_mapping pmm\n"
 			+ "INNER JOIN employee e on pmm.project_manager_id = e.emp_id where pmm.project_id = :projectId and pmm.active=1")
 	List<Object[]> getAllProjectManagerListWithName(@Param("projectId") Long projectId);
+	
+	@Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END " +
+            "FROM project_manager_mapping pm " +
+            "JOIN projects p ON p.project_id = pm.project_id " +
+            "WHERE p.active = 'true' AND p.po_project_id IS NULL AND pm.project_manager_id = :empId", nativeQuery = true)
+boolean isUserProjectManagerOfAnyActiveInternalProject(@Param("empId") Long empId);
 
 }
