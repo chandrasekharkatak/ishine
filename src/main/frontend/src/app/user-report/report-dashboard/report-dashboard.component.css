@@ -1,33 +1,35 @@
 .my-pagination::ng-deep .ngx-pagination .current {
-    background: #193d8a  !important;
+    background: #193d8a !important;
 }
 
-.my-pagination::ng-deep{
+.my-pagination::ng-deep {
     padding-top: 10px;
 }
 
-.table-scroll{
+.table-scroll {
     overflow: auto;
     padding-inline: 2rem;
 }
 
-.chart-title{
-    font-size: 18px;
+.chart-title {
+    font-size: 13px;
     text-transform: capitalize;
-    color: #333333;
+    color: #000000;
     user-select: none;
+    line-height: 1.2;
+    font-weight: 550;
 }
 
-.mouse{
+.mouse {
     cursor: pointer;
 }
 
-.count-graph{
+.count-graph {
     width: 200px;
     background-color: #7cb5ec;
 }
 
-.graph{
+.graph {
     border-right: .5px solid #d0d0d0;
     border-bottom: .5px solid #d0d0d0;
     overflow: hidden;
@@ -38,7 +40,73 @@
     border-right: none;
 }
 
-@media (max-width: 991.98px) { 
+/* Employee count cards styling - NEW HORIZONTAL LAYOUT */
+.employee-count-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px 10px;
+    text-align: center;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 130px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+    word-wrap: break-word;
+}
+
+.employee-count-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    border-color: #193d8a;
+}
+
+.employee-count-card h4 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #333;
+    margin: 5px 0;
+    line-height: 1.1;
+}
+
+.employee-count-card small {
+    font-size: 12px;
+    color: #141414;
+    line-height: 1.1;
+    text-align: center;
+    font-weight: 500;
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
+
+/* Icon styling for employee cards */
+.count-icon {
+    font-size: 1.3rem;
+    margin-bottom: 5px;
+    color: #193d8a;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1199.98px) {
+    .employee-count-card {
+        height: 120px;
+        padding: 12px 8px;
+    }
+    
+    .employee-count-card h4 {
+        font-size: 1.6rem;
+    }
+    
+    .count-icon {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 991.98px) {
     .graph:nth-child(2n) {
         border-right: none;
     }
@@ -46,27 +114,80 @@
     .graph:nth-child(3n) {
         border-right: .5px solid #d0d0d0;
     }
+    
+    .employee-count-card {
+        height: 110px;
+        padding: 10px 6px;
+    }
+    
+    .employee-count-card h4 {
+        font-size: 1.5rem;
+    }
+    
+    .employee-count-card small {
+        font-size: 10px;
+    }
 }
 
-@media (max-width: 768px) { 
-    .graph, 
-    .graph:nth-child(2n), 
-    .graph:nth-child(3n){
+@media (max-width: 768px) {
+    .graph,
+    .graph:nth-child(2n),
+    .graph:nth-child(3n) {
         border-right: none;
     }
 
     .graph:last-child {
         border-bottom: none;
     }
+
+    .employee-count-card {
+        height: 100px;
+        padding: 8px 5px;
+    }
+
+    .employee-count-card h4 {
+        font-size: 1.4rem;
+        margin: 3px 0;
+    }
+
+    .count-icon {
+        font-size: 1.1rem;
+        margin-bottom: 3px;
+    }
+
+    .employee-count-card small {
+        font-size: 9px;
+        line-height: 1.0;
+    }
 }
 
+@media (max-width: 576px) {
+    .employee-count-card {
+        height: 95px;
+        padding: 6px 4px;
+    }
 
-.scrollable-table{
+    .employee-count-card h4 {
+        font-size: 1.2rem;
+        margin: 2px 0;
+    }
+
+    .count-icon {
+        font-size: 1rem;
+        margin-bottom: 2px;
+    }
+    
+    .employee-count-card small {
+        font-size: 8px;
+    }
+}
+
+.scrollable-table {
     width: 92vw;
     height: 70vh;
-} 
+}
 
-.wide-col{
+.wide-col {
     min-width: 180px;
 }
 
@@ -75,19 +196,20 @@
     top: -0.7px;
     z-index: 10;
     background: #e9ecef;
-  }
+}
 
-.info-label{
+.info-label {
     width: 300px;
 }
 
-.table-header{
+.table-header {
     width: 90%;
     height: 50px;
     background: var(--ghost-white);
     margin-bottom: 1em;
 }
-.custom-width{
+
+.custom-width {
     width: 50px;
 }
 
@@ -106,7 +228,6 @@ table {
 th {
     overflow: hidden;
     text-overflow: ellipsis;
-
 }
 
 thead {
@@ -114,8 +235,9 @@ thead {
     top: 0.7;
     z-index: 100;
 }
+
 .export-button {
     position: absolute;
-   right: 0%;
-   top: -25px;
+    right: 0%;
+    top: -25px;
 }

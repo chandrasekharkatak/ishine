@@ -40,6 +40,8 @@ public class ProjectDTO {
     private String role;
     private Integer count;
     private String experience;
+    private List<ResourceRequirementDTO> resourceRequirement;
+    
     private List<ResourceManagementDTO> bulkSyncList;
 
 }

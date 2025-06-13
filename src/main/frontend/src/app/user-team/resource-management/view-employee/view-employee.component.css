@@ -36,3 +36,177 @@ thead {
     right: 0%;
     /* top:-25px; */
   }
+
+.expand-cell {
+  width: 50px;
+  padding: 8px 4px !important;
+}
+
+.btn-expand {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  color: #004894;
+}
+
+.btn-expand:hover {
+  background-color: #f8f9fa;
+  color: #004a98;
+}
+
+.btn-expand:active {
+  transform: scale(0.95);
+}
+
+.no-expand-indicator {
+  color: #6c757d;
+  font-size: 12px;
+}
+
+.main-employee-row {
+  background-color: #ffffff;
+  /* border-left: 3px solid #007bff; */
+  font-weight: 400;
+  transition: all 0.3s ease;
+}
+
+/* .main-employee-row.expanded {
+  background-color: #e3f2fd;
+  border-left-color: #2196f3;
+} */
+
+/* Sub-row Styles */
+.sub-row {
+  background-color: #ffffff;
+  border-left: 3px solid #dee2e6;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* .sub-row:hover {
+  background-color: #f8f9fa;
+}
+
+.sub-row-indicator {
+  color: #6c757d;
+  font-size: 12px;
+  font-family: monospace;
+} */
+
+.sub-row-empty {
+  background-color: #ffffff;
+  position: relative;
+}
+
+.sub-row-empty::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px;
+  height: 1px;
+  background-color: #ffffff;
+}
+
+/* Animation for expand/collapse */
+.sub-row {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease;
+  max-height: 100px;
+}
+
+.sub-row.ng-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+  max-height: 0;
+}
+
+.sub-row.ng-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 100px;
+}
+
+.sub-row.ng-leave {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 100px;
+}
+
+.sub-row.ng-leave-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  max-height: 0;
+}
+
+/* Table enhancements */
+/* .table {
+  border-collapse: separate;
+  border-spacing: 0;
+} */
+
+/* .table th,
+.table td {
+  border-right: 1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
+  vertical-align: middle;
+} */
+
+.table th:first-child,
+.table td:first-child {
+  border-left: 1px solid #dee2e6;
+}
+
+/* .table thead th {
+  border-top: 1px solid #dee2e6;
+  background-color: #e9ecef;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+} */
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .expand-cell {
+    width: 40px;
+  }
+  
+  .btn-expand {
+    padding: 2px 4px;
+    font-size: 12px;
+  }
+  
+  .sub-row-indicator {
+    font-size: 10px;
+  }
+}
+
+.table-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Custom scrollbar for table container */
+.table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

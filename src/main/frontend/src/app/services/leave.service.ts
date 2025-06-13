@@ -310,4 +310,8 @@ getPipDetailsByEmpId(leaveObj: Leave) {
 isManager(leaveObj: Leave) {
   return this.http.post(`${this.baseUrl}` + `api/isManager`, leaveObj);
 }
+
+getLeaveTrendAnalysis(request: any): Observable<any> {
+  return this.http.post(`${this.baseUrl}api/getLeaveTrendAnalysis`, request);
+}
 }

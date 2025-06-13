@@ -319,4 +319,106 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getBenchEmployeeMoreThan30Days();
 	
+	@Query(value = "SELECT DISTINCT p.project_id FROM projects p " +
+            "JOIN project_manager_mapping pm ON p.project_id = pm.project_id " +
+            "WHERE pm.project_manager_id = :empId AND p.active = 'true' AND p.po_project_id IS NULL", nativeQuery = true)
+  Set<Integer> findActiveInternalProjectIdsByProjectManager(@Param("empId") Long empId);
+	
+	@Query(value = "SELECT DISTINCT p.project_id FROM projects p " +
+            "JOIN project_overhead_mapping pom ON p.project_id = pom.project_id " +
+            "WHERE pom.project_overhead_id = :empId AND p.active = 'true' AND p.po_project_id IS NULL", nativeQuery = true)
+  Set<Integer> findActiveInternalProjectIdsByProjectOverhead(@Param("empId") Long empId);
+	
+	
+	@Query(nativeQuery = true,value ="(\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL AND pm.project_manager_id = :empId\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN project_overhead_mapping po ON p.project_id = po.project_id\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL AND po.project_overhead_id = :empId\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN teams t ON p.project_id = t.project_id\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL\n"
+			+ "          AND t.is_active = 'Y' AND t.spoc_id = :empId\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN teams t ON p.project_id = t.project_id\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL\n"
+			+ "          AND t.is_active = 'Y' AND t.team_lead_id = :empId\n"
+			+ "    )")
+	Set<Integer> findInternalProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
+	
+	
+	@Query(nativeQuery = true,value ="(\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NOT NULL AND pm.project_manager_id = 14\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN project_overhead_mapping po ON p.project_id = po.project_id\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NOT NULL AND po.project_overhead_id = 14\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN teams t ON p.project_id = t.project_id\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NOT NULL\n"
+			+ "          AND t.is_active = 'Y' AND t.spoc_id = 14\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN teams t ON p.project_id = t.project_id\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NOT NULL\n"
+			+ "          AND t.is_active = 'Y' AND t.team_lead_id = 14\n"
+			+ "    )")
+	Set<Integer> findShankhProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
+	
+	@Query(nativeQuery = true,value="(\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
+			+ "        WHERE p.active = 'true'  AND pm.project_manager_id = 14\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN project_overhead_mapping po ON p.project_id = po.project_id\n"
+			+ "        WHERE p.active = 'true' AND po.project_overhead_id = 14\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN teams t ON p.project_id = t.project_id\n"
+			+ "        WHERE p.active = 'true' \n"
+			+ "          AND t.is_active = 'Y' AND t.spoc_id = 14\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN teams t ON p.project_id = t.project_id\n"
+			+ "        WHERE p.active = 'true'\n"
+			+ "          AND t.is_active = 'Y' AND t.team_lead_id = 14\n"
+			+ "    )")
+	Set<Integer> findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
+	
 }

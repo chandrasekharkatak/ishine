@@ -405,4 +405,7 @@ updateDefaultProject(newemployeeObj : any){
   return this.http.post(`${this.baseUrl}` + `api/employeesMappedProjectsDepartmentWise`,employeeReport);
  }
  
+ getAllPieGraphListSummary(params: any){
+  return this.http.post(`${this.baseUrl}`+`api/getAllPieGraphListSummary`, params)
+}
 }
