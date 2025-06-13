@@ -1,4 +1,5 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { ViewportScroller } from '@angular/common';
 import { FormControl } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { Sort } from '@angular/material/sort';
@@ -193,7 +194,7 @@ export class ResourceManagementComponent implements OnInit {
   isAllSelected: boolean = false;
   tabCounts: any;
   searchQuery: any;
-  selectedEmpId: any;
+  selectedEmpId: any = 0;
   deptIdList: any[] = [];
   employeeList: Employee[] = [];
   filteredEmployees: Employee[] = [];
@@ -418,6 +419,7 @@ export class ResourceManagementComponent implements OnInit {
   employeeBenchRepotMsg:any;
 
   constructor(
+    private scroller: ViewportScroller,
     private departmentService: DepartmentService,
     public validationService: ValidationService,
     private employeeService: EmployeeService,
@@ -808,6 +810,9 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   selectStatusTab(status: string) {
+    const documentHeight = document.body.scrollHeight;
+    this.scroller.scrollToPosition([0, documentHeight]);
+    
      this.selectedStatusTab = status;
     console.log(this.selectedStatusTab)
     console.log(this.selectedStatusTab, "this.selectedStatusTab");
@@ -2308,13 +2313,16 @@ ExceptionEmployeeReport(projectFilterDTO: ProjectFilterDTO){
   }
 
   onEmployeeSelected(event: any) {
-    const selectedName = event.option.value;
-    const selectedEmp = this.employeeList.find(emp => emp.name === selectedName);
+    const selectedEmp = event.option.value;
     if (selectedEmp) {
       this.selectedEmpId = selectedEmp.empId;
       console.log('Selected Employee ID:', this.selectedEmpId);
     }
   }
+
+  isEmployeeInList(list: any[]): boolean {
+  return list?.some(emp => emp.empId === this.selectedEmpId);
+ }
 
   displayEmployee(emp: any): string {
     console.log("emp", emp)

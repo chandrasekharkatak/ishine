@@ -1036,6 +1036,11 @@ thead {
   input.form-control {
     margin: 5px 0;
   }
+
+  .glow-card {
+  box-shadow: 0 0 12px 3px rgba(12, 141, 247, 0.6);
+  transition: box-shadow 0.3s ease-in-out;
+ }
   
   
    .form-container1 {

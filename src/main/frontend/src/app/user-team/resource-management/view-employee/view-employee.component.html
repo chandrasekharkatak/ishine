@@ -100,7 +100,7 @@ matSort (matSortChange)="sortData($event)"
                         </button>
                     </td>
                     
-                    <td class="text-center">{{ getHierarchicalSrNo(eIndex, 0, 0) }}</td>
+                    <td class="text-center">{{ getGlobalProjectIndex(eIndex) + 1 }}</td>
                     <td class="text-center">A-{{employee.employeementId}}</td>
                     <td class="text-center">{{employee.name}}</td>
                     <td class="text-center">{{employee.department}}</td>
@@ -208,7 +208,7 @@ matSort (matSortChange)="sortData($event)"
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
         </div>
-                <div class="col d-flex align-items-center ">
+        <div class="col d-flex align-items-center ">
           <span class="font-weight-bold text-muted small">
             Displaying:
             {{ (filteredEmployeeData | colFilter : filters : false).length }} of
@@ -295,68 +295,108 @@ matSort (matSortChange)="sortData($event)"
       </div>
     </div>
     <div class="row">
-        <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
-            [tableTHeadTrId]="'projectInfoTHeadTr'">
-            <table class="table" id="project-info" matSort>
-                <thead class="thead-light">
-                    <tr id="projectInfoTHeadTr">
-                        <th scope="col" class="info-label" style=" min-width: 120px;">Sr No.</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Employment Id</th>
-                        <th scope="col" class="info-label" style=" min-width: 300px;">Employee Name</th>
-                        <th scope="col" class="info-label" style=" min-width: 300px;">Department</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Billable Type</th>
-                      
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Project Name</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Client Name</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Apmosys RM</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Client RM</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">PO No.</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">PO Project Type</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">PO Start Date</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">PO End Date</th>
-                      
+<div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
+    <table class="table" id="project-info" matSort>
+        <thead class="thead-light">
+            <tr id="projectInfoTHeadTr">
+                <th scope="col" class="info-label" style="min-width: 50px;">
+                    <i class="fa-solid fa-up-right-and-down-left-from-center" title="Expand/Collapse"></i>
+                </th>
+                <th scope="col" class="info-label" style="min-width: 120px;">Sr No.</th>
+                <th scope="col" class="info-label" style="min-width: 200px;">Employment Id</th>
+                <th scope="col" class="info-label" style="min-width: 300px;">Employee Name</th>
+                <th scope="col" class="info-label" style="min-width: 300px;">Department</th>
+                <th scope="col" class="info-label" style="min-width: 200px;">Billable Type</th>
 
-                    </tr>
-                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="exceptionTableColumns"
-                        (onSearch)="onSearchException($event)">
-                    </tr>
-                </thead>
-                <tbody>
-                    <ng-container *ngIf="allEmployeeData.length == 0">
-                        <tr>
-                            <th colspan="10" style="max-width: fit-content;" class="text-center info-label">No details
-                                to display...</th>
+                <th scope="col" class="info-label" style="min-width: 200px;">Project Name</th>
+                <th scope="col" class="info-label" style="min-width: 200px;">Client Name</th>
+                <th scope="col" class="info-label" style="min-width: 200px;">Apmosys RM</th>
+                <th scope="col" class="info-label" style="min-width: 200px;">Client RM</th>
+                <th scope="col" class="info-label" style="min-width: 200px;">PO No.</th>
+                <th scope="col" class="info-label" style="min-width: 200px;">PO Project Type</th>
+                <th scope="col" class="info-label" style="min-width: 200px;">PO Start Date</th>
+                <th scope="col" class="info-label" style="min-width: 200px;">PO End Date</th>
+            </tr>
+            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="exceptionTableColumns" (onSearch)="onSearchException($event)">
+            </tr>
+        </thead>
+        <tbody>
+            <ng-container *ngIf="allEmployeeData.length == 0">
+                <tr>
+                    <th colspan="14" class="text-center info-label">No details to display...</th>
+                </tr>
+            </ng-container>
+
+            <ng-container *ngFor="let employee of filteredEmployeeData | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                <!-- Main Employee Row -->
+                <tr class="main-employee-row" [class.expanded]="isEmployeeExpanded(i)">
+                    <td class="text-center expand-cell">
+                        <button 
+                            *ngIf="employee.rmgProjects?.length > 1"
+                            class="btn-expand"
+                            (click)="toggleEmployeeExpansion(i)"
+                            [title]="isEmployeeExpanded(i) ? 'Collapse' : 'Expand'">
+                            <i class="fas" 
+                               [class.fa-chevron-down]="!isEmployeeExpanded(i)"
+                               [class.fa-chevron-up]="isEmployeeExpanded(i)"></i>
+                        </button>
+                    </td>
+                    <td class="text-center">{{ i + 1 }}</td>
+                    <td class="text-center">A-{{employee.employmentId}}</td>
+                    <td class="text-center">{{employee.employeeName}}</td>
+                    <td class="text-center">{{employee.department}}</td>
+                    <td class="text-center">{{employee.billableType}}</td>
+
+                    <ng-container *ngIf="employee.rmgProjects?.length > 0">
+                        <td class="text-center">{{employee.rmgProjects[0].projectName}}</td>
+                        <td class="text-center">{{employee.rmgProjects[0].clientName}}</td>
+                        <td class="text-center">{{employee.rmgProjects[0].apmosysRM}}</td>
+                        <td class="text-center">{{employee.rmgProjects[0].clientRM}}</td>
+                        <td class="text-center">{{employee.rmgProjects[0].poNo}}</td>
+                        <td class="text-center">{{employee.rmgProjects[0].poProjectType}}</td>
+                        <td class="text-center">{{employee.rmgProjects[0].poStartDate}}</td>
+                        <td class="text-center">{{employee.rmgProjects[0].poEndDate}}</td>
+                    </ng-container>
+
+                    <ng-container *ngIf="!employee.rmgProjects || employee.rmgProjects.length === 0">
+                        <td class="text-center" colspan="8">-</td>
+                    </ng-container>
+                </tr>
+
+                <!-- Sub Rows -->
+                <ng-container *ngIf="isEmployeeExpanded(i)">
+                    <ng-container *ngFor="let project of employee.rmgProjects; let j = index">
+                        <tr *ngIf="j !== 0" class="sub-row" [@slideInOut]="'in'">
+                            <td class="text-center">
+                                <span class="sub-row-indicator"></span>
+                            </td>
+                            <td class="text-center">{{ i + 1 }}.{{ j + 1 }}</td>
+                            <td class="text-center sub-row-empty"></td>
+                            <td class="text-center sub-row-empty"></td>
+                            <td class="text-center sub-row-empty"></td>
+                            <td class="text-center sub-row-empty"></td>
+
+                            <td class="text-center">{{project.projectName}}</td>
+                            <td class="text-center">{{project.clientName}}</td>
+                            <td class="text-center">{{project.apmosysRM}}</td>
+                            <td class="text-center">{{project.clientRM}}</td>
+                            <td class="text-center">{{project.poNo}}</td>
+                            <td class="text-center">{{project.poProjectType}}</td>
+                            <td class="text-center">{{project.poStartDate}}</td>
+                            <td class="text-center">{{project.poEndDate}}</td>
                         </tr>
                     </ng-container>
+                </ng-container>
+            </ng-container>
+        </tbody>
+    </table>
 
-                    <ng-container *ngFor="let employee of filteredEmployeeData | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                        <ng-container *ngFor="let project of employee.rmgProjects; let j = index">
-                            <tr>
-                                <td class="text-center" *ngIf="j === 0" [attr.rowspan]="employee.rmgProjects.length">{{ i + 1 }}</td>
-                                <td class="text-center" *ngIf="j === 0" [attr.rowspan]="employee.rmgProjects.length">A-{{employee.employmentId}}</td>
-                                <td class="text-center" *ngIf="j === 0" [attr.rowspan]="employee.rmgProjects.length">{{employee.employeeName}}</td>
-                                <td class="text-center" *ngIf="j === 0" [attr.rowspan]="employee.rmgProjects.length">{{employee.department}}</td>
-                                <td class="text-center" *ngIf="j === 0" [attr.rowspan]="employee.rmgProjects.length">{{employee.billableType}}</td>
-                                
-                                <td class="text-center">{{project.projectName}}</td>
-                                <td class="text-center">{{project.clientName}}</td>
-                                <td class="text-center">{{project.apmosysRM}}</td>
-                                <td class="text-center">{{project.clientRM}}</td>
-                                <td class="text-center">{{project.poNo}}</td>
-                                <td class="text-center">{{project.poProjectType}}</td>
-                                <td class="text-center">{{project.poStartDate}}</td>
-                                <td class="text-center">{{project.poEndDate}}</td>
-                            </tr>
-                        </ng-container>
-                    </ng-container>
-                </tbody>
-            </table>
-            <div class="row col-md-12">
-                <pagination-controls class="my-pagination" [hidden]="allEmployeeData.length == 0"
-                    (pageChange)="handlePageChange($event)"></pagination-controls>
+    <div class="row col-md-12">
+        <pagination-controls class="my-pagination" [hidden]="allEmployeeData.length == 0" (pageChange)="handlePageChange($event)">
+        </pagination-controls>
+    </div>
+</div>
 
-            </div>
-        </div>
     </div>
 </ng-container>
 
@@ -391,93 +431,138 @@ matSort (matSortChange)="sortData($event)"
         <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
             [tableTHeadTrId]="'projectInfoTHeadTr'">
             <table class="table" id="project-info" matSort>
-                <thead class="thead-light">
-                    <tr id="projectInfoTHeadTr">
-                        <th scope="col" class="info-label" style=" min-width: 120px;">Sr No.</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Employment Id</th>
-                        <th scope="col" class="info-label" style=" min-width: 300px;">Employee Name</th>
-                        <th scope="col" class="info-label" style=" min-width: 300px;">Department</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Billable Type</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Is Billable</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">On Bench Date</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">No Of Days In Bench</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Project Name</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Client Name</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Apmosys RM</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Client RM</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">PO No.</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">PO Project Type</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">PO Start Date</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">PO End Date</th>
-                        <th scope="col" class="info-label" style=" min-width: 250px;">Project Manager Name</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Team Name</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Employee Role</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Status</th>
+                
+<thead class="thead-light">
+    <tr id="projectInfoTHeadTr">
+        <th scope="col" class="info-label" style="min-width: 50px;">
+            <i class="fa-solid fa-up-right-and-down-left-from-center" title="Expand/Collapse"></i>
+        </th>
 
-                    </tr>
-                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="tableColumnsBench"
-                        (onSearch)="onBenchSearch($event)">
-                    </tr>
-                </thead>
-                <tbody>
-                    <ng-container *ngIf="allEmployeeData.length == 0">
-                        <tr>
-                            <th colspan="10" style="max-width: fit-content;" class="text-center info-label">No details
-                                to display...</th>
-                        </tr>
+        <th scope="col" class="info-label" style="min-width: 80px;">Sr No.</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">Employment Id</th>
+        <th scope="col" class="info-label" style="min-width: 300px;">Employee Name</th>
+        <th scope="col" class="info-label" style="min-width: 300px;">Department</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">Billable Type</th>
+        <th scope="col" class="info-label" style="min-width: 120px;">Is Billable</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">On Bench Date</th>
+        <th scope="col" class="info-label" style="min-width: 140px;">No Of Days In Bench</th>
+        <th scope="col" class="info-label" style="min-width: 280px;">Project Name</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">Client Name</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">Apmosys RM</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">Client RM</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">PO No.</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">PO Project Type</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">PO Start Date</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">PO End Date</th>
+        <th scope="col" class="info-label" style="min-width: 250px;">Project Manager Name</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">Team Name</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">Employee Role</th>
+        <th scope="col" class="info-label" style="min-width: 120px;">Status</th>
+    </tr>
+    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="tableColumnsBench" (onSearch)="onBenchSearch($event)">
+    </tr>
+</thead>
 
-                    </ng-container>
-                    <ng-container
-                        *ngFor="let employee of filteredBenchEmployeeList | paginate: { itemsPerPage: 10, currentPage: page }; let eIndex = index">
-                        <ng-container *ngFor="let empProject of employee.rmgprojects;let pIndex = index">
-                            <ng-container *ngFor="let empTeam of empProject.rmgTeam; let tIndex = index">
-                                <tr>
+<tbody>
+    <ng-container *ngIf="filteredBenchEmployeeList.length == 0">
+        <tr>
+            <th colspan="21" class="text-center info-label">No details to display...</th>
+        </tr>
+    </ng-container>
 
-                                    <td class="text-center">{{ getHierarchicalSrNo(eIndex, pIndex, tIndex ) }}</td>
-                                    <td class="text-center" *ngIf="pIndex === 0 && tIndex === 0"
-                                        [attr.rowspan]="getRowspanForProject(employee)">{{employee.employeementId}}
-                                    </td>
-                                    <td class="text-center" *ngIf="pIndex === 0 && tIndex === 0"
-                                        [attr.rowspan]="getRowspanForProject(employee)">{{employee.name}}</td>
-                                    <td class="text-center" *ngIf="pIndex === 0 && tIndex === 0"
-                                        [attr.rowspan]="getRowspanForProject(employee)">{{employee.department}}</td>
-                                    <td class="text-center" *ngIf="pIndex === 0 && tIndex === 0"
-                                        [attr.rowspan]="getRowspanForProject(employee)">{{employee.billableType}}</td>
-                                    <td class="text-center" *ngIf="pIndex === 0 && tIndex === 0"
-                                        [attr.rowspan]="getRowspanForProject(employee)">{{employee.billable}}</td>
-                                    <td class="text-center" *ngIf="pIndex === 0 && tIndex === 0"
-                                        [attr.rowspan]="getRowspanForProject(employee)">{{employee.onBenchDate}}</td>
-                                    <td class="text-center" *ngIf="pIndex === 0 && tIndex === 0"
-                                        [attr.rowspan]="getRowspanForProject(employee)">{{employee.daysOnBench}}</td>
-                                    <td class="text-center" *ngIf="tIndex === 0"
-                                        [attr.rowspan]="getLength(empProject.rmgTeam)">{{empProject.projectName}}</td>
-                                    <td class="text-center" *ngIf="tIndex === 0"
-                                        [attr.rowspan]="getLength(empProject.rmgTeam)">{{empProject.clientName}}</td>
-                                    <td class="text-center" *ngIf="tIndex === 0"
-                                        [attr.rowspan]="getLength(empProject.rmgTeam)">{{empProject.apmosysRM}}</td>
-                                    <td class="text-center" *ngIf="tIndex === 0"
-                                        [attr.rowspan]="getLength(empProject.rmgTeam)">{{empProject.clientRM}}</td>
-                                    <td class="text-center" *ngIf="tIndex === 0"
-                                        [attr.rowspan]="getLength(empProject.rmgTeam)">{{empProject.poNo}}</td>
-                                    <td class="text-center" *ngIf="tIndex === 0"
-                                        [attr.rowspan]="getLength(empProject.rmgTeam)">{{empProject.poProjectType}}</td>
-                                    <td class="text-center" *ngIf="tIndex === 0"
-                                        [attr.rowspan]="getLength(empProject.rmgTeam)">{{empProject.poStartDate | date:
-                                        'dd-MM-yyyy'}}</td>
-                                    <td class="text-center" *ngIf="tIndex === 0"
-                                        [attr.rowspan]="getLength(empProject.rmgTeam)">{{empProject.poEndDate | date:
-                                        'dd-MM-yyyy'}}</td>
-                                    <td class="text-center" *ngIf="tIndex === 0"
-                                        [attr.rowspan]="getLength(empProject.rmgTeam)">
-                                        {{nameListToString(empProject.projectManagers)}}</td>
-                                    <td class="text-center">{{empTeam.teamName}}</td>
-                                    <td class="text-center">{{empTeam.employeeRole}}</td>
-                                    <td class="text-center">{{empTeam.status}}</td>
-                                </tr>
-                            </ng-container>
+    <ng-container *ngFor="let employee of filteredBenchEmployeeList | paginate: { itemsPerPage: 10, currentPage: page }; let eIndex = index">
+
+        <tr class="main-employee-row" [class.expanded]="isEmployeeExpanded(eIndex)">
+
+            <td class="text-center expand-cell">
+                <button *ngIf="hasMultipleSubRows(employee)" 
+                        class="btn-expand"
+                        (click)="toggleEmployeeExpansion(eIndex)" 
+                        [title]="isEmployeeExpanded(eIndex) ? 'Collapse' : 'Expand'">
+                    <i class="fas" 
+                       [class.fa-chevron-down]="!isEmployeeExpanded(eIndex)"
+                       [class.fa-chevron-up]="isEmployeeExpanded(eIndex)"></i>
+                </button>
+            </td>
+
+            <td class="text-center">{{ getGlobalProjectIndex(eIndex) + 1 }}</td>
+            <td class="text-center">{{ employee.employeementId }}</td>
+            <td class="text-center">{{ employee.name }}</td>
+            <td class="text-center">{{ employee.department }}</td>
+            <td class="text-center">{{ employee.billableType }}</td>
+            <td class="text-center">{{ employee.billable }}</td>
+            <td class="text-center">{{ employee.onBenchDate | date: 'dd-MM-yyyy' }}</td>
+            <td class="text-center">{{ employee.daysOnBench }}</td>
+
+            <ng-container *ngIf="employee.rmgprojects?.length > 0">
+                <ng-container *ngIf="employee.rmgprojects[0] as firstProject">
+                    <td class="text-center">{{ firstProject.projectName }}</td>
+                    <td class="text-center">{{ firstProject.clientName }}</td>
+                    <td class="text-center">{{ firstProject.apmosysRM }}</td>
+                    <td class="text-center">{{ firstProject.clientRM }}</td>
+                    <td class="text-center">{{ firstProject.poNo }}</td>
+                    <td class="text-center">{{ firstProject.poProjectType }}</td>
+                    <td class="text-center">{{ firstProject.poStartDate | date: 'dd-MM-yyyy' }}</td>
+                    <td class="text-center">{{ firstProject.poEndDate | date: 'dd-MM-yyyy' }}</td>
+                    <td class="text-center">{{ nameListToString(firstProject.projectManagers) }}</td>
+
+                    <ng-container *ngIf="firstProject.rmgTeam?.length > 0">
+                        <ng-container *ngIf="firstProject.rmgTeam[0] as firstTeam">
+                            <td class="text-center">{{ firstTeam.teamName }}</td>
+                            <td class="text-center">{{ firstTeam.employeeRole }}</td>
+                            <td class="text-center">{{ firstTeam.status }}</td>
                         </ng-container>
                     </ng-container>
-                </tbody>
+                    <ng-container *ngIf="!firstProject.rmgTeam || firstProject.rmgTeam.length === 0">
+                        <td colspan="3" class="text-center">-</td>
+                    </ng-container>
+                </ng-container>
+            </ng-container>
+
+            <ng-container *ngIf="!employee.rmgprojects || employee.rmgprojects.length === 0">
+                <td class="text-center" colspan="12">-</td>
+            </ng-container>
+        </tr>
+
+        <ng-container *ngIf="isEmployeeExpanded(eIndex)">
+            <ng-container *ngFor="let empProject of employee.rmgprojects; let pIndex = index">
+                <ng-container *ngFor="let empTeam of empProject.rmgTeam; let tIndex = index">
+
+                    <tr *ngIf="!(pIndex === 0 && tIndex === 0)" 
+                        class="sub-row" 
+                        [@slideInOut]="'in'">
+                        
+                        <td class="text-center"><span class="sub-row-indicator"></span></td>
+                        
+                        <td class="text-center">{{ getHierarchicalSrNo(eIndex, pIndex, tIndex) }}</td>
+
+                        <td class="sub-row-empty" colspan="7"></td>
+
+                        <ng-container *ngIf="tIndex === 0">
+                            <td class="text-center">{{ empProject.projectName }}</td>
+                            <td class="text-center">{{ empProject.clientName }}</td>
+                            <td class="text-center">{{ empProject.apmosysRM }}</td>
+                            <td class="text-center">{{ empProject.clientRM }}</td>
+                            <td class="text-center">{{ empProject.poNo }}</td>
+                            <td class="text-center">{{ empProject.poProjectType }}</td>
+                            <td class="text-center">{{ empProject.poStartDate | date: 'dd-MM-yyyy' }}</td>
+                            <td class="text-center">{{ empProject.poEndDate | date: 'dd-MM-yyyy' }}</td>
+                            <td class="text-center">{{ nameListToString(empProject.projectManagers) }}</td>
+                        </ng-container>
+                        
+                        <ng-container *ngIf="tIndex !== 0">
+                            <td class="sub-row-empty" colspan="9"></td>
+                        </ng-container>
+
+                        <td class="text-center">{{ empTeam.teamName }}</td>
+                        <td class="text-center">{{ empTeam.employeeRole }}</td>
+                        <td class="text-center">{{ empTeam.status }}</td>
+                    </tr>
+                </ng-container>
+            </ng-container>
+        </ng-container>
+    </ng-container>
+</tbody>
             </table>
             <div class="row col-md-12">
                 <pagination-controls class="my-pagination" [hidden]="allEmployeeData.length == 0"
