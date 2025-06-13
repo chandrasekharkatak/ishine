@@ -74,4 +74,5 @@ public class ResourceManagementDTO {
     private String projectOverheadName;
     private List<ProjectOverheadMappingDTO> projectOverheadsList;
 	private List<ProjectOverheadsDTO> projectOverheads;
+	private Integer isDefaultProject;
 }

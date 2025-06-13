@@ -3671,7 +3671,8 @@ public class ResourceManagementService {
 					dto.setProjectName(object[9] != null ? object[9].toString() : null);
 					dto.setClientId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dto.setClientName(object[11] != null ? object[11].toString() : null);
-
+					Integer flag = this.isDefaultProject(object[2] != null ? Long.parseLong(object[2].toString()) : null,resourceManagementDTO.getProjectId());
+					dto.setIsDefaultProject(flag != null ? flag: null);
 					result.add(dto);
 				});
 

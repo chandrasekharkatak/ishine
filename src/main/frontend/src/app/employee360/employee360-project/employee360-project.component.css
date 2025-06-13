@@ -13,3 +13,55 @@
     overflow: hidden !important; 
     position: relative; 
   }
+
+
+
+
+
+  .team-preview-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .team-preview-field label {
+    font-weight: bold;
+    color: #061e5c;
+    margin-bottom: 5px;
+  }
+  
+  .team-preview-field input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f8f8f8;
+    font-size: 14px;
+  }
+
+  .team-preview-field mat-select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f8f8f8;
+    font-size: 14px;
+  }
+
+
+   .set-team-btn {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 20px;
+    background-color: #2e2e82;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+  }
+
+
+   .default-project-wrapper {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.08);
+  }

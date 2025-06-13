@@ -310,7 +310,7 @@ thead {
   }
   
   .form-container {
-    max-width: 900px;
+    max-width: 780px;
     background: white;
     padding: 30px;
     margin: auto;
@@ -1038,4 +1038,10 @@ thead {
   }
   
   
+   .form-container1 {
+    max-width: 60%;
+    background: white;
+    padding: 30px;
+    margin: auto;
+  }
   

@@ -1419,7 +1419,7 @@
 
                         <div class="form-field">
                             <label>Team Lead</label>
-                            <mat-select ngxMatSelect class="form-control name-field" #selectTeamLead="ngxMatSelect"
+                            <mat-select ngxMatSelect class="form-select name-field" #selectTeamLead="ngxMatSelect"
                                 [displayMember]="'name'" [valueMember]="'empId'" [source]="teamLeadsList"
                                 [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="teamObj.teamLeadId"
                                 (selectionChange)="setTeamLead(teamObj.teamLeadId)">
@@ -1431,6 +1431,7 @@
                         </div>
 
                         <div class="button-group">
+
                             <button class="icon-button"
                                 (click)="openTeamMembersModal(teamMemberTemplate,projectObj,teamObj)">
                                 <i class="fa-solid fa-user-plus"></i>
@@ -1862,10 +1863,10 @@
                     </div>
                 </div>
                 <button type="button" class="btn btn-success" 
-                    (click)="deleteTeamsByIdsBulk(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
+                    (click)="deleteTeamsByIdsBulk(alert_message);cancelRequest5()">Yes, proceed</button>&nbsp;
                 <!-- <button type="button" class="btn btn-success" *ngIf="!selectedTeamsDetails.length"
                     (click)="deleteTeam(alert_message);cancelRequest()">Yes, proceed</button>&nbsp; -->
-                <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+                <button type="button" class="btn btn-danger" (click)="cancelRequest5()">No, Cancel</button>&nbsp;
             </div>
         </div>
     </ng-template>
