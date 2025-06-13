@@ -44,7 +44,7 @@ export class ProjectViewComponent implements OnInit {
   sortColumnType: any;
 
   lastDate: any;
-  employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
+  employeesColumns: any[] = ['blank', 'teamName', 'spoc', 'teamLeadName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   constructor(
     private breadcrumbService: BreadcrumbService,
     private modalService: BsModalService,

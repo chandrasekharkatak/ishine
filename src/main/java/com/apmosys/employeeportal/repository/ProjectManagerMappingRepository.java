@@ -15,7 +15,7 @@ public interface ProjectManagerMappingRepository extends JpaRepository<ProjectMa
 
 	
 	@Query(nativeQuery = true)
-	public List<Object[]>findProjectManagersPerProject(@Param("projectId") Long projectId);
+	public List<Object[]>findProjectManagersPerProject(Long projectId);
 	
 	public List<ProjectManagerMapping> findByProjectId(Long projectId);
 	

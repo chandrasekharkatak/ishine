@@ -37,6 +37,15 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label>Project Overhead</label>
+                                <input type="text" class="form-control" disabled maxlength="255" autocomplete="none"
+                                    [(ngModel)]="projectObj.projectOverheadName">
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-md-4 mb-0">
@@ -82,6 +91,16 @@
                                             [checked]="areAllTeamsSelected()"
                                             (change)="toggleAllTeams($event)">Team Name
                                         </th>
+                                        <th scope="col" class="info-label" mat-sort-header="teamName|string">
+                                            <input type="checkbox"
+                                            [checked]="areAllTeamsSelected()"
+                                            (change)="toggleAllTeams($event)">SPOC
+                                        </th>
+                                        <th scope="col" class="info-label" mat-sort-header="teamName|string">
+                                            <input type="checkbox"
+                                            [checked]="areAllTeamsSelected()"
+                                            (change)="toggleAllTeams($event)">Team Lead Name
+                                        </th>
                                         <th></th>
                                         <th scope="col" class="info-label" mat-sort-header="employeeName|string">
 
@@ -118,6 +137,24 @@
                                                            [checked]="isTeamFullySelected(team)"
                                                            (change)="toggleTeamSelection(team, $event)">
                                                     {{ team.teamName }}
+                                                  </td>
+                                                  <td *ngIf="j === 0" [attr.rowspan]="team.employees?.length">
+                                                    <input type="checkbox"
+                                                           [checked]="isTeamFullySelected(team)"
+                                                           (change)="toggleTeamSelection(team, $event)">
+                                                    {{ team.teamName }}
+                                                  </td>
+                                                  <td *ngIf="j === 0" [attr.rowspan]="team.employees?.length">
+                                                    <input type="checkbox"
+                                                           [checked]="isTeamFullySelected(team)"
+                                                           (change)="toggleTeamSelection(team, $event)">
+                                                    {{ team.spoc ? team.spoc : 'NA' }}
+                                                  </td>
+                                                  <td *ngIf="j === 0" [attr.rowspan]="team.employees?.length">
+                                                    <input type="checkbox"
+                                                           [checked]="isTeamFullySelected(team)"
+                                                           (change)="toggleTeamSelection(team, $event)">
+                                                    {{ team.teamLeadName ? team.teamLeadName : 'NA' }}
                                                   </td>
                                                     <td>
                                                         <input type="checkbox" [(ngModel)]="member.selected"

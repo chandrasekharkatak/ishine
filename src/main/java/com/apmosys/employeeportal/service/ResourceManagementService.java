@@ -3482,6 +3482,7 @@ public class ResourceManagementService {
 		try {
 			List<Object[]> projectInfo = projectRepository
 					.getProjectInfo(Integer.parseInt(resourceManagementDTO.getProjectViewId().toString()));
+			Project projObj = projectRepository.findByPoProjectId(Long.parseLong(resourceManagementDTO.getProjectViewId()));
 			List<ResourceManagementDTO> result = new ArrayList<>();
 			if (!projectInfo.isEmpty()) {
 				projectInfo.forEach(object -> {
@@ -3490,13 +3491,14 @@ public class ResourceManagementService {
 					dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
 					dto.setProjectName(object[1] != null ? object[1].toString() : null);
 
-					List<Object[]> proj = projectManagerMappingRepository.findProjectManagersPerProject(
-							Long.parseLong(resourceManagementDTO.getProjectViewId().toString()));
+					List<Object[]> resultManager = projectManagerMappingRepository
+							.findProjectManagersPerProject(Long.parseLong(projObj.getProjectId().toString()));
 
 					List<Long> projectManagerIds = new ArrayList<>();
+					List<ProjectManagersDTO> projectManagersList = new ArrayList<>();
 					List<String> projectManagerNames = new ArrayList<>();
 
-					for (Object[] obj : proj) {
+					for (Object[] obj : resultManager) {
 						if (obj[0] != null) {
 							projectManagerIds.add(Long.parseLong(obj[0].toString()));
 						}
@@ -3504,6 +3506,11 @@ public class ResourceManagementService {
 						if (obj[1] != null) {
 							projectManagerNames.add(obj[1].toString());
 						}
+
+						ProjectManagersDTO dtoManager = new ProjectManagersDTO();
+						dtoManager.setProjectManagerId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+						dtoManager.setProjectManagerName(obj[1] != null ? obj[1].toString() : null);
+						projectManagersList.add(dtoManager);
 					}
 
 					String commaSeparatedNames = String.join(", ", projectManagerNames);
@@ -3511,6 +3518,37 @@ public class ResourceManagementService {
 					dto.setProjectManagerId(projectManagerIds);
 					dto.setProjectManagerName(commaSeparatedNames);
 					commaSeparatedNames = "";
+					dto.setProjectManagers(projectManagersList);
+
+					
+					List<Object[]> result2 = projectOverheadMappingRepository
+							.findProjectOverheadsPerProject(Long.parseLong(projObj.getProjectId().toString()));
+
+					List<Long> projectOverheadIds = new ArrayList<>();
+					List<ProjectOverheadsDTO> projectOverheadsList = new ArrayList<>();
+					List<String> projectOverheadNames = new ArrayList<>();
+
+					for (Object[] obj : result2) {
+						if (obj[0] != null) {
+							projectOverheadIds.add(Long.parseLong(obj[0].toString()));
+						}
+
+						if (obj[1] != null) {
+							projectOverheadNames.add(obj[1].toString());
+						}
+
+						ProjectOverheadsDTO overheadDto = new ProjectOverheadsDTO();
+						overheadDto.setProjectOverheadId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+						overheadDto.setProjectOverheadName(obj[1] != null ? obj[1].toString() : null);
+						projectOverheadsList.add(overheadDto);
+					}
+
+					String commaSeparatedName = String.join(", ", projectManagerNames);
+
+					dto.setProjectOverheadId(projectOverheadIds);
+					dto.setProjectOverheadName(commaSeparatedName);
+					commaSeparatedName = "";
+					dto.setProjectOverheads(projectOverheadsList);
 
 					dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
 					dto.setClientState(object[5] != null ? object[5].toString() : null);
@@ -3556,6 +3594,7 @@ public class ResourceManagementService {
 		try {
 			List<Object[]> projectInfo = projectRepository
 					.getPoProjectInfo(Long.parseLong(resourceManagementDTO.getProjectViewId().toString()));
+			Project projObj = projectRepository.findByPoProjectId(Long.parseLong(resourceManagementDTO.getProjectViewId()));
 			List<ResourceManagementDTO> result = new ArrayList<>();
 			if (!projectInfo.isEmpty()) {
 				projectInfo.forEach(object -> {
@@ -3563,13 +3602,14 @@ public class ResourceManagementService {
 
 					dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
 
-					List<Object[]> proj = projectManagerMappingRepository.findProjectManagersByPoProjectId(
-							Long.parseLong(resourceManagementDTO.getProjectViewId().toString()));
+					List<Object[]> resultManager = projectManagerMappingRepository
+							.findProjectManagersPerProject(Long.parseLong(projObj.getProjectId().toString()));
 
 					List<Long> projectManagerIds = new ArrayList<>();
+					List<ProjectManagersDTO> projectManagersList = new ArrayList<>();
 					List<String> projectManagerNames = new ArrayList<>();
 
-					for (Object[] obj : proj) {
+					for (Object[] obj : resultManager) {
 						if (obj[0] != null) {
 							projectManagerIds.add(Long.parseLong(obj[0].toString()));
 						}
@@ -3577,6 +3617,11 @@ public class ResourceManagementService {
 						if (obj[1] != null) {
 							projectManagerNames.add(obj[1].toString());
 						}
+
+						ProjectManagersDTO dtoManager = new ProjectManagersDTO();
+						dtoManager.setProjectManagerId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+						dtoManager.setProjectManagerName(obj[1] != null ? obj[1].toString() : null);
+						projectManagersList.add(dtoManager);
 					}
 
 					String commaSeparatedNames = String.join(", ", projectManagerNames);
@@ -3584,8 +3629,38 @@ public class ResourceManagementService {
 					dto.setProjectManagerId(projectManagerIds);
 					dto.setProjectManagerName(commaSeparatedNames);
 					commaSeparatedNames = "";
+					dto.setProjectManagers(projectManagersList);
 
-					dto.setProjectManagerName(object[3] != null ? object[3].toString() : null);
+					
+					List<Object[]> result2 = projectOverheadMappingRepository
+							.findProjectOverheadsPerProject(Long.parseLong(projObj.getProjectId().toString()));
+
+					List<Long> projectOverheadIds = new ArrayList<>();
+					List<ProjectOverheadsDTO> projectOverheadsList = new ArrayList<>();
+					List<String> projectOverheadNames = new ArrayList<>();
+
+					for (Object[] obj : result2) {
+						if (obj[0] != null) {
+							projectOverheadIds.add(Long.parseLong(obj[0].toString()));
+						}
+
+						if (obj[1] != null) {
+							projectOverheadNames.add(obj[1].toString());
+						}
+
+						ProjectOverheadsDTO overheadDto = new ProjectOverheadsDTO();
+						overheadDto.setProjectOverheadId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+						overheadDto.setProjectOverheadName(obj[1] != null ? obj[1].toString() : null);
+						projectOverheadsList.add(overheadDto);
+					}
+
+					String commaSeparatedName = String.join(", ", projectManagerNames);
+
+					dto.setProjectOverheadId(projectOverheadIds);
+					dto.setProjectOverheadName(commaSeparatedName);
+					commaSeparatedName = "";
+					dto.setProjectOverheads(projectOverheadsList);
+
 					dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
 					dto.setClientState(object[5] != null ? object[5].toString() : null);
 
@@ -3663,7 +3738,7 @@ public class ResourceManagementService {
 					dto.setTeamName(object[1] != null ? object[1].toString() : null);
 					dto.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
 					dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
-					dto.setEmployeeRole(object[4] != null ? object[4].toString().toString() : null);
+					dto.setEmployeeRole(object[4] != null ? object[4].toString() : null);
 					dto.setBillableType(object[5] != null ? object[5].toString() : null);
 					dto.setStartDate(object[6] != null ? object[6].toString() : null);
 					dto.setActive(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
@@ -3673,6 +3748,9 @@ public class ResourceManagementService {
 					dto.setClientName(object[11] != null ? object[11].toString() : null);
 					Integer flag = this.isDefaultProject(object[2] != null ? Long.parseLong(object[2].toString()) : null,resourceManagementDTO.getProjectId());
 					dto.setIsDefaultProject(flag != null ? flag: null);
+					dto.setSpoc(object[12] != null ? object[12].toString() : null);
+					dto.setTeamLeadName(object[13] != null ? object[13].toString() : null);
+
 					result.add(dto);
 				});
 

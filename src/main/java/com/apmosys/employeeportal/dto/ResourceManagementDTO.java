@@ -75,4 +75,8 @@ public class ResourceManagementDTO {
     private List<ProjectOverheadMappingDTO> projectOverheadsList;
 	private List<ProjectOverheadsDTO> projectOverheads;
 	private Integer isDefaultProject;
+	
+	private String spoc;
+    private String teamLeadName;
+
 }
