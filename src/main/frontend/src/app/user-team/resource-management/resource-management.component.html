@@ -475,13 +475,12 @@
                                             {{project.name ? project.name : 'NA' }}
                                         </span>
                                     </td>
-                                    <!-- <td *ngIf="project.draftStatus != 'Not Started'"
+                                    <td *ngIf="project.draftStatus == 'Not Started'"
                                         title="Click to view Project Details">
-                                        <span style="cursor: pointer; color: blue;" id="clickablefor360"
-                                            (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId">
+                                        <span>
                                             {{ project.projectName }}
                                         </span>
-                                    </td> -->
+                                    </td>
                                     <td>{{project.poNo ? project.poNo : 'NA' }}</td>
 
                                     <td>{{project.projectType ? project.projectType : 'NA' }} </td>
@@ -1426,7 +1425,7 @@
 
                         <div class="form-field">
                             <label>Team Lead</label>
-                            <mat-select ngxMatSelect class="form-control" #selectTeamLead="ngxMatSelect"
+                            <mat-select ngxMatSelect class="form-control name-field" #selectTeamLead="ngxMatSelect"
                                 [displayMember]="'name'" [valueMember]="'empId'" [source]="teamLeadsList"
                                 [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="teamObj.teamLeadId"
                                 (selectionChange)="setTeamLead(teamObj.teamLeadId)">
@@ -1459,6 +1458,7 @@
                     <button class="set-team-btn"
                         (click)="createDraftProjectInfo(alert_message,alert_message_without_reload)">Set Team</button>
                 </div>
+
             </div>
         </div>
     </ng-template>

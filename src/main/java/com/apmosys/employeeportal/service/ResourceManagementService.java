@@ -2061,6 +2061,7 @@ public class ResourceManagementService {
 						teamdto.setTeamName(object.getTeamName());
 						teamdto.setDepartmentList(object.getDeptIds().split(","));
 						teamdto.setSpocId(object.getSpocId());
+						teamdto.setTeamLeadId(object.getTeamLeadId() != null ? object.getTeamLeadId() : null);
 
 						List<Object[]> spocDetailsList = teamRepository.getSpocDetils(object.getSpocId());
 						if (!spocDetailsList.isEmpty()) {
