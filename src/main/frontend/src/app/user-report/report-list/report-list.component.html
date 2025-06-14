@@ -463,6 +463,26 @@
 
 
     <div class="row" *ngIf="showDetails">
+      <div class="row">
+            <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
+                <label class="info-label" style="justify-self: left;">Navigate to Employee 360:</label>
+            </div>
+      </div>
+      <div class="row mb-3">
+            <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
+                <input id="employeeSearch" type="text" class="form-select custom-select-style"
+                    style="min-width: 50px;" placeholder="Search by Name or Emp ID" aria-label="Search employee"
+                    [formControl]="employeeCtrl" [matAutocomplete]="auto">
+
+                <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
+                    [displayWith]="displayEmployee">
+                    <mat-option *ngFor="let emp of filteredEmployees" [value]="emp"
+                      [navigateToEmployee360]="emp.empId">
+                        {{ emp.name }}
+                    </mat-option>
+                </mat-autocomplete>
+            </div>
+        </div>
       <div class=" dashboard-container">
         <div class="card" *ngFor="let box of ['TNM', 'Fixed Cost', 'Monitoring', 'Internal']"
           [ngClass]="{ 'active-box': activeBox === box }">
@@ -513,7 +533,7 @@
           </div>
          
 
-          <div class="summary-box" (click)="openModalProjectLess(employee_data, 'Not Mapped')">
+          <div class="summary-box" (click)="openModalProjectLess(employee_data, 'Not Mapped')" [ngClass]="{ 'glow-card': isEmployeeInList(projectLessEmployeesDepartwise) }">
             <button class="info-btn" (click)="toggleInfoPopup('unmapped'); $event.stopPropagation()"
               title="Show Billable Type Count">
               <i class="fa-solid fa-circle-info"></i>
@@ -530,7 +550,7 @@
             </div>
           </div>
 
-          <div class="summary-box" (click)="openModalEmployeesWithProjects(employee_data, 'All Mapped')">
+          <div class="summary-box" (click)="openModalEmployeesWithProjects(employee_data, 'All Mapped')" [ngClass]="{ 'glow-card': isEmployeeInList(employeesWithProjectDeptWise) }">
             <button class="info-btn mapped" (click)="toggleInfoPopup('mapped'); $event.stopPropagation()"
               title="Show Billable Type Count">
               <i class="fa-solid fa-circle-info"></i>

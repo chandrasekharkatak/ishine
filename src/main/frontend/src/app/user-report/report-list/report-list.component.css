@@ -600,6 +600,23 @@ td {
   animation: slideInLeft 0.3s ease;
 }
 
+.glow-card {
+  box-shadow: 0 0 12px 3px rgba(47, 183, 2, 0.6);
+  transition: box-shadow 0.3s ease-in-out;
+ }
+
+.custom-select-style {
+  border: 2px solid #053885;
+  color: #053885;
+  border-radius: 0.375rem;
+  padding: 0.15rem 0.75rem;
+  height: calc(1.5rem + 2px);
+  font-size: 1rem;
+  background-color: #fff;
+  width: 90%;
+  min-width: 280px;
+} 
+
 /* Optional: Smooth in animation */
 @keyframes slideInLeft {
   from {

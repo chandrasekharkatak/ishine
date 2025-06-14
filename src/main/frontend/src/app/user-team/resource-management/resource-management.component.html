@@ -193,7 +193,7 @@
                         <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
                             [displayWith]="displayEmployee">
                             <mat-option *ngFor="let emp of filteredEmployees" [value]="emp"
-                                >
+                            [navigateToEmployee360]="emp.empId">
                                 {{ emp.name }}
                             </mat-option>
                         </mat-autocomplete>

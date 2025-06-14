@@ -26,6 +26,7 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
+import { FormControl } from "@angular/forms";
 
 class FilterData {
   title: any;
@@ -211,6 +212,8 @@ export class ReportListComponent implements OnInit {
   isDeptFilter: boolean = false;
   dept:any;
   returnUrl: string | null = null;
+  employeeCtrl = new FormControl();
+  selectedEmpId: any = 0;
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -269,6 +272,7 @@ export class ReportListComponent implements OnInit {
     this.getTotalActiveEmployeeCountInDepartments();
     this.projectLessEmployeesDepartmentWise();
     this.employeesMappedProjectsDepartmentWise();
+    this.getEmployeeByNameAndEmpld();
     console.log("lalalalala ngoninit", this.employeeReportObj.deptId);
   }
 
@@ -2840,11 +2844,35 @@ goBack() {
   }
 }
 
-
+onEmployeeSelected(event: any) {
+  const selectedEmp = event.option.value;
+  if (selectedEmp) {
+    this.selectedEmpId = selectedEmp.empId;
+    console.log('Selected Employee ID:', this.selectedEmpId);
+  }
 }
 
+displayEmployee(emp: any): string {
+  console.log("emp", emp)
+  return emp ? `${emp.name}` : '';
+}
 
+isEmployeeInList(list: any[]): boolean {
+  return list?.some(emp => emp.empId === this.selectedEmpId);
+}
 
+getEmployeeByNameAndEmpld() {
+  this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === 'Success') {
+      this.employeeList = response.serviceResponse;
+      this.filteredEmployees = this.employeeList;
+    } else {
+      // this.openAlertMod(this.alertTemplate, response.serviceResponse);
+    }
+  });
+}
+
+}
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
