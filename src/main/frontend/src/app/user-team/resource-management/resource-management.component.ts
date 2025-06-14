@@ -422,7 +422,8 @@ export class ResourceManagementComponent implements OnInit {
   employeeBench: any;
   employeeBenchRepotMsg: any;
   deptId: any;
-
+  teamLeadCtrl = new FormControl();
+  filteredTeamLeads: Employee[] = [];
 
   constructor(
     private scroller: ViewportScroller,
@@ -484,13 +485,24 @@ export class ResourceManagementComponent implements OnInit {
     this.getEmployeeByNameAndEmpld();
 
     this.employeeCtrl.valueChanges
-      .pipe(
-        startWith(''),
-        map(value => this.filterEmployees(value))
-      )
-      .subscribe(filtered => {
-        this.filteredEmployees = filtered;
-      });
+    .pipe(
+      startWith(''),
+      map(value => typeof value === 'string' ? value : value?.name || ''),
+      map(name => this.filterEmployees(name))
+    )
+    .subscribe(filtered => {
+      this.filteredEmployees = filtered;
+    });
+
+    this.teamLeadCtrl.valueChanges
+    .pipe(
+      startWith(''),
+      map(value => typeof value === 'string' ? value : value?.name || ''),
+      map(name => this.filterTeamLeads(name))
+    )
+    .subscribe(filtered => {
+      this.filteredTeamLeads = filtered;
+    });
 
     if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
       this.toggleSearch();
@@ -520,7 +532,7 @@ export class ResourceManagementComponent implements OnInit {
     await this.ProjectLessEmployees(this.projectFilterDTO);
     await this.getProjectDetailsForBulkDefaultUpdate();
     await this.TotalEmployeeCount();
-    await this.getBenchEmployeeMoreThan30Days();
+    await this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
     // const deptName = String(this.currentUser.departmentName).trim();
     // const empRole = String(this.currentUser.employeeRole).trim();
     // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
@@ -893,11 +905,10 @@ export class ResourceManagementComponent implements OnInit {
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
-
         let filterDepartmentList = this.employeeListByDept.map(y => y.departmentId);
         this.teamLeadsList = employeeList.filter(x => departmentList?.includes(x.departmentId));
         this.teamLeadsList = this.teamLeadsList.sort((a, b) => a.name.localeCompare(b.name));
-
+        this.filteredTeamLeads = [...this.teamLeadsList];
       } else {
         console.error(response.serviceResponse)
       }
@@ -1193,6 +1204,7 @@ export class ResourceManagementComponent implements OnInit {
         this.projectObj.teamList.forEach((obj) => {
           obj.departmentList = obj.departmentList?.map(x => +x);
           this.copyDepartment = obj.departmentList;
+          // this.getAllEmployeesByRole(this.copyDepartment);
 
           if (obj.teamMemberList) {
             obj.teamMemberList.forEach((member) => {
@@ -1234,6 +1246,9 @@ export class ResourceManagementComponent implements OnInit {
       }
     });
     this.getManagerList();
+    // console.log("teamObj.teamLeadId ",this.teamObj.teamLeadId);
+    // console.log("teamLeadsList ",this.teamLeadsList);
+
   }
 
   // getTeamListByProjectName(project: any) {
@@ -2314,6 +2329,8 @@ export class ResourceManagementComponent implements OnInit {
       if (response.serviceStatus === 'Success') {
         this.employeeList = response.serviceResponse;
         this.filteredEmployees = this.employeeList;
+        this.teamLeadsList = this.employeeList;
+        this.filteredTeamLeads = this.teamLeadsList;
       } else {
         this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
@@ -2332,6 +2349,7 @@ export class ResourceManagementComponent implements OnInit {
     const selectedEmp = event.option.value;
     if (selectedEmp) {
       this.selectedEmpId = selectedEmp.empId;
+      this.employeeCtrl.setValue(selectedEmp.name);
       console.log('Selected Employee ID:', this.selectedEmpId);
     }
   }
@@ -2341,8 +2359,11 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   displayEmployee(emp: any): string {
-    console.log("emp", emp)
-    return emp ? `${emp.name}` : '';
+    console.log("emp", emp);  // This is helpful for debugging
+    if (typeof emp === 'string') {
+      return emp;  // User is typing or you manually set value to string
+    }
+    return emp && emp.name ? emp.name : '';
   }
 
    openSummaryModal(template: TemplateRef<any>, selectedEmpId: any) {
@@ -3741,9 +3762,8 @@ getProjectTimesheetSummaryData() {
     });
   }
 
-  getBenchEmployeeMoreThan30Days() {
-    this.deptId = this.currentUser.departmentId;
-    this.resourceManagementService.getBenchEmployeeMoreThan30Days(this.deptId).pipe(first()).subscribe((response: any) => {
+  getBenchEmployeeMoreThan30Days(projectFilterDTO: ProjectFilterDTO) {
+    this.resourceManagementService.getBenchEmployeeMoreThan30Days(projectFilterDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         console.log(response.serviceResponse);
         this.employeeBenchRepot = response.serviceResponse;
@@ -3778,6 +3798,24 @@ getProjectTimesheetSummaryData() {
     if (this.modalRefTeamMember) {
       this.modalRefTeamMember.hide();
     }
+  }
+
+  displayTeamLead(emp: any): string {
+    console.log("emp", emp)
+    return emp ? `${emp.name}` : '';
+  }
+
+  onTeamLeadSelected(event: any) {
+    const selectedTeamLead = event.option.value;
+  this.teamObj.teamLeadId = selectedTeamLead.empId;
+  }
+
+  filterTeamLeads(searchText: string) {
+    const lowerText = (searchText || '').toLowerCase();
+    return this.teamLeadsList.filter(emp =>
+      emp.name.toLowerCase().includes(lowerText) ||
+      emp.employmentId.toLowerCase().includes(lowerText)
+    );
   }
 
 }

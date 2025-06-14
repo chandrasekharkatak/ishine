@@ -617,6 +617,27 @@ td {
   min-width: 280px;
 } 
 
+.rounded-button {
+  flex: 1;
+  border-radius: 20px;
+  padding: 8px 0;
+  background-color: white;
+  border: 1px solid black;
+  font-weight: 600;
+  text-align: center;
+  font-size: medium;
+  cursor: pointer;
+}
+
+.summary-button {
+  color: rgb(114, 15, 48);
+  margin-left: auto;
+}
+
+.details-button {
+  color: rgb(48, 119, 141);
+}
+
 /* Optional: Smooth in animation */
 @keyframes slideInLeft {
   from {

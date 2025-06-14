@@ -6233,7 +6233,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		}
 
 		@Async
-		@Scheduled(cron = "0 46 12 * * ?")
+//		@Scheduled(cron = "0 5 17 * * ?")
 		@Transactional
 		public void getResourceRequirementFromPoPortal() {
 		    LogDTO apiLogInfo = new LogDTO();

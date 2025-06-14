@@ -448,16 +448,17 @@ matSort (matSortChange)="sortData($event)"
         <th scope="col" class="info-label" style="min-width: 140px;">No Of Days In Bench</th>
         <th scope="col" class="info-label" style="min-width: 280px;">Project Name</th>
         <th scope="col" class="info-label" style="min-width: 200px;">Client Name</th>
+        <th scope="col" class="info-label" style="min-width: 250px;">Project Manager Name</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">Team Name</th>
+        <th scope="col" class="info-label" style="min-width: 200px;">Employee Role</th>
+        <th scope="col" class="info-label" style="min-width: 120px;">Status</th>
         <th scope="col" class="info-label" style="min-width: 200px;">Apmosys RM</th>
         <th scope="col" class="info-label" style="min-width: 200px;">Client RM</th>
         <th scope="col" class="info-label" style="min-width: 200px;">PO No.</th>
         <th scope="col" class="info-label" style="min-width: 200px;">PO Project Type</th>
         <th scope="col" class="info-label" style="min-width: 200px;">PO Start Date</th>
         <th scope="col" class="info-label" style="min-width: 200px;">PO End Date</th>
-        <th scope="col" class="info-label" style="min-width: 250px;">Project Manager Name</th>
-        <th scope="col" class="info-label" style="min-width: 200px;">Team Name</th>
-        <th scope="col" class="info-label" style="min-width: 200px;">Employee Role</th>
-        <th scope="col" class="info-label" style="min-width: 120px;">Status</th>
+        
     </tr>
     <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="tableColumnsBench" (onSearch)="onBenchSearch($event)">
     </tr>
@@ -498,12 +499,6 @@ matSort (matSortChange)="sortData($event)"
                 <ng-container *ngIf="employee.rmgprojects[0] as firstProject">
                     <td class="text-center">{{ firstProject.projectName }}</td>
                     <td class="text-center">{{ firstProject.clientName }}</td>
-                    <td class="text-center">{{ firstProject.apmosysRM }}</td>
-                    <td class="text-center">{{ firstProject.clientRM }}</td>
-                    <td class="text-center">{{ firstProject.poNo }}</td>
-                    <td class="text-center">{{ firstProject.poProjectType }}</td>
-                    <td class="text-center">{{ firstProject.poStartDate | date: 'dd-MM-yyyy' }}</td>
-                    <td class="text-center">{{ firstProject.poEndDate | date: 'dd-MM-yyyy' }}</td>
                     <td class="text-center">{{ nameListToString(firstProject.projectManagers) }}</td>
 
                     <ng-container *ngIf="firstProject.rmgTeam?.length > 0">
@@ -513,6 +508,13 @@ matSort (matSortChange)="sortData($event)"
                             <td class="text-center">{{ firstTeam.status }}</td>
                         </ng-container>
                     </ng-container>
+                    <td class="text-center">{{ firstProject.apmosysRM }}</td>
+                    <td class="text-center">{{ firstProject.clientRM }}</td>
+                    <td class="text-center">{{ firstProject.poNo }}</td>
+                    <td class="text-center">{{ firstProject.poProjectType }}</td>
+                    <td class="text-center">{{ firstProject.poStartDate | date: 'dd-MM-yyyy' }}</td>
+                    <td class="text-center">{{ firstProject.poEndDate | date: 'dd-MM-yyyy' }}</td>
+                    
                     <ng-container *ngIf="!firstProject.rmgTeam || firstProject.rmgTeam.length === 0">
                         <td colspan="3" class="text-center">-</td>
                     </ng-container>

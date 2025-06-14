@@ -182,7 +182,7 @@
                 </div>
                 <div class="row">
                     <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                        <label class="info-label" style="justify-self: left;">Navigate to Employee 360:</label>
+                        <label class="info-label" style="justify-self: left;">Global Employee Search:</label>
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -390,9 +390,9 @@
                     </div>
                     <div class="col d-flex align-items-center ">
                         <span class="font-weight-bold text-muted small">
-                            Displaying:
-                            {{ (allProject_Po_Internal | colFilter : filters : false).length }} of
-                            {{ allProject_Po_Internal.length }} employees
+                          Displaying:
+                          {{ (allProject_Po_Internal | colFilter : filters : false).length }} of
+                          {{ allProject_Po_Internal.length }} projects
                         </span>
                     </div>
 
@@ -1473,15 +1473,16 @@
 
                         <div class="form-field">
                             <label>Team Lead</label>
-                            <mat-select ngxMatSelect class="form-select name-field" #selectTeamLead="ngxMatSelect"
-                                [displayMember]="'name'" [valueMember]="'empId'" [source]="teamLeadsList"
-                                [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="teamObj.teamLeadId"
-                                (selectionChange)="setTeamLead(teamObj.teamLeadId)">
-                                <mat-option [value]="teamLead.empId"
-                                    *ngFor="let teamLead of selectTeamLead.filteredSource">
-                                    {{teamLead.name}}
+                            <input type="text" class="form-select name-field" placeholder="Search by Emp ID or Name"
+                                aria-label="Search employee" [formControl]="teamLeadCtrl" [matAutocomplete]="teamLeadAuto"
+                                [(ngModel)]="teamObj.teamLead">
+                            <mat-autocomplete #teamLeadAuto="matAutocomplete" [displayWith]="displayTeamLead"
+                                (optionSelected)="onTeamLeadSelected($event)">
+                                <mat-option *ngFor="let employee of filteredTeamLeads "
+                                    [value]="employee">
+                                    {{ employee.name }}
                                 </mat-option>
-                            </mat-select>
+                            </mat-autocomplete>
                         </div>
 
                         <div class="button-group">

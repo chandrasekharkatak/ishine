@@ -347,9 +347,9 @@ public class ResourceManagementController {
 		return resourceManagementService.getAllResourceRequirementForProject(projectFetchDTO);
 	}
 	
-	@GetMapping("/getBenchEmployeeMoreThan30Days")
-	public ServiceResponse getBenchEmployeeMoreThan30Days(@RequestParam Long deptId) {
-	    return resourceManagementService.getBenchEmployeeMoreThan30Days(deptId);
+	@PostMapping("/getBenchEmployeeMoreThan30Days")
+	public ServiceResponse getBenchEmployeeMoreThan30Days(@RequestBody ProjectFilterDTO projectFilterDTO) {
+	    return resourceManagementService.getBenchEmployeeMoreThan30Days(projectFilterDTO);
 	}
 	
 	

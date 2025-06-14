@@ -2076,6 +2076,16 @@ public class ResourceManagementService {
 							spocDTO.setEmploymentId(spoc[2].toString());
 							teamdto.setSpoc(spocDTO);
 						}
+						
+						List<Object[]> teamLeadDetailsList = teamRepository.getSpocDetils(object.getTeamLeadId());
+						if (!teamLeadDetailsList.isEmpty()) {
+							Object[] teamLead = teamLeadDetailsList.get(0);
+							SpocDTO teamLeadDTO = new SpocDTO();
+							teamLeadDTO.setEmpId(Long.parseLong(teamLead[0].toString()));
+							teamLeadDTO.setName(teamLead[1].toString());
+							teamLeadDTO.setEmploymentId(teamLead[2].toString());
+							teamdto.setTeamLead(teamLeadDTO);
+						}
 
 						// Get teamMembers Info
 						List<EmployeeTeamMap> empTeamMapping = employeeTeamMapRepository
@@ -5331,12 +5341,10 @@ public class ResourceManagementService {
 			}else if(departmentRepository.existsByHodId(projectFilterDTO.getCurrentUserEmpId())) {
 				List<Long> deptIds = departmentRepository.findDeptIdsByHodId(projectFilterDTO.getCurrentUserEmpId());
 				employeesWithoutProjects = employeeRepository.findAllEmployeesWithoutProjectInDeptIds(deptIds);
-			}else if(teamRepository.existsBySpocId(projectFilterDTO.getCurrentUserEmpId())){
+			}else {
 				Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
 				Long deptId = departmentRepository.findDepartmentIdOfSpoc(employeee.getJobRoleId());
 				employeesWithoutProjects = employeeRepository.findAllEmployeesWithoutProjectInDeptId(deptId);
-			}else {
-				employeesWithoutProjects = employeeRepository.findAllEmployeesWithoutAnyProject();
 			}
 			
 			
@@ -6983,7 +6991,7 @@ public class ResourceManagementService {
 	    return response;
 	}
 	
-	public ServiceResponse getBenchEmployeeMoreThan30Days(Long deptId) {
+	public ServiceResponse getBenchEmployeeMoreThan30Days(ProjectFilterDTO projectFilterDTO) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("getBenchEmployeeMoreThan30Days");
@@ -6993,7 +7001,31 @@ public class ResourceManagementService {
 	    StringBuilder logBuilder = new StringBuilder();
 
 	    try {
-	        List<Object[]> resultSet = projectRepository.getBenchEmployeeMoreThan30Days(deptId);
+	    	Long empIdd = projectFilterDTO.getCurrentUserEmpId();
+		    Employee employee1 = employeeRepository.findByEmpId(empIdd);
+		    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee1.getJobRoleId());
+		    Department department1 = departmentRepository.findByDeptId(jobRole.getDeptId());
+
+		    String departmentName = department1.getName();
+		    String role = jobRole.getEmployeeRole();
+		    String name = jobRole.getName();
+
+		    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+			
+			 List<Object[]> resultSet = new ArrayList<>();
+			
+			 if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+			            || specialDepartments.contains(departmentName)) {
+				 resultSet = projectRepository.getBenchEmployeeMoreThan30Days();
+			 }else if(departmentRepository.existsByHodId(projectFilterDTO.getCurrentUserEmpId())) {
+					List<Long> deptIds = departmentRepository.findDeptIdsByHodId(projectFilterDTO.getCurrentUserEmpId());
+					resultSet = projectRepository.getBenchEmployeeMoreThan30DaysInDeptIds(deptIds);
+			}else {
+				Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+				Long deptId = departmentRepository.findDepartmentIdOfSpoc(employeee.getJobRoleId());
+				resultSet = projectRepository.getBenchEmployeeMoreThan30DaysInDeptId(deptId);
+			}
 	        logBuilder.append("\n getBenchEmployeeMoreThan30Days - Total Records: ").append(resultSet.size());
 
 	        Map<Long, BenchEmployeeDetailsDTO> employeeMap = new HashMap<>();

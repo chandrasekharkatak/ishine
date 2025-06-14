@@ -5,7 +5,7 @@ import { Sort } from '@angular/material/sort';
 import { Router } from "@angular/router";
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { first } from 'rxjs/operators';
+import { first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
 import { employeeReport } from "src/app/models/employeeReport";
@@ -27,6 +27,8 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
 import { FormControl } from "@angular/forms";
+import * as Highcharts from "highcharts";
+import { ResourceManagementService } from "src/app/services/resource-management.service";
 
 class FilterData {
   title: any;
@@ -179,6 +181,7 @@ export class ReportListComponent implements OnInit {
   departments: any[] = [];
   allEmployee: any[] = [];
   filteredEmployees: any[] = [];
+  filteredEmployees2: Employee[] = [];
   allProjectPOInternal: any[] = [];
   tnmPoExpiredCount = 0;
   tnmPOValidCount = 0;
@@ -214,6 +217,11 @@ export class ReportListComponent implements OnInit {
   returnUrl: string | null = null;
   employeeCtrl = new FormControl();
   selectedEmpId: any = 0;
+  summaryModalRef: BsModalRef;
+  projectSummaryData: any[] = [];
+  @ViewChild("alert_message")
+  alertTemplate: TemplateRef<any>;
+
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -228,6 +236,7 @@ export class ReportListComponent implements OnInit {
     private utilityService: UtilityService,
     private departmentService: DepartmentService,
     private location: Location, private router: Router,
+    private resourceManagementService: ResourceManagementService,
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -273,6 +282,17 @@ export class ReportListComponent implements OnInit {
     this.projectLessEmployeesDepartmentWise();
     this.employeesMappedProjectsDepartmentWise();
     this.getEmployeeByNameAndEmpld();
+
+    this.employeeCtrl.valueChanges
+        .pipe(
+          startWith(''),
+          map(value => typeof value === 'string' ? value : value?.name || ''),
+          map(name => this.filterEmployees2(name))
+        )
+        .subscribe(filtered => {
+          this.filteredEmployees2 = filtered;
+        });
+    
     console.log("lalalalala ngoninit", this.employeeReportObj.deptId);
   }
 
@@ -2848,14 +2868,18 @@ onEmployeeSelected(event: any) {
   const selectedEmp = event.option.value;
   if (selectedEmp) {
     this.selectedEmpId = selectedEmp.empId;
+    this.employeeCtrl.setValue(selectedEmp.name);
     console.log('Selected Employee ID:', this.selectedEmpId);
   }
 }
 
 displayEmployee(emp: any): string {
-  console.log("emp", emp)
-  return emp ? `${emp.name}` : '';
-}
+    console.log("emp", emp);  // This is helpful for debugging
+    if (typeof emp === 'string') {
+      return emp;  // User is typing or you manually set value to string
+    }
+    return emp && emp.name ? emp.name : '';
+  }
 
 isEmployeeInList(list: any[]): boolean {
   return list?.some(emp => emp.empId === this.selectedEmpId);
@@ -2865,12 +2889,163 @@ getEmployeeByNameAndEmpld() {
   this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === 'Success') {
       this.employeeList = response.serviceResponse;
-      this.filteredEmployees = this.employeeList;
+      this.filteredEmployees2 = this.employeeList;
     } else {
       // this.openAlertMod(this.alertTemplate, response.serviceResponse);
     }
   });
 }
+
+filterEmployees2(searchText: string) {
+    const lowerText = (searchText || '').toLowerCase();
+    return this.employeeList.filter(emp =>
+      emp.name.toLowerCase().includes(lowerText) ||
+      emp.employmentId.toLowerCase().includes(lowerText)
+    );
+  }
+
+  openSummaryModal(template: TemplateRef<any>, selectedEmpId: any) {
+    this.summaryModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.selectedEmpId = selectedEmpId;
+    
+    this.getProjectTimesheetSummaryData();
+  }
+
+  closeSummaryModal() {
+    this.summaryModalRef.hide();
+  }
+
+  getProjectTimesheetSummaryData() {
+      // 1. Check if the current user and their empId are available.
+      if (!this.selectedEmpId) {
+        this.openAlertMod(this.alertTemplate, "Cannot fetch summary. User information is missing.");
+        console.error("Current user or empId is not available.");
+        // Close the modal or show an error state in the chart container if the modal is already open
+        if (this.summaryModalRef) {
+          // You could display an error message inside the modal body here
+          document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Could not load data: User not identified.</p>';
+        }
+        return;
+      }
+  
+      // 2. Create the DTO object to send to the backend.
+      const resourceManagementDTO = {
+        empId: this.selectedEmpId
+      };
+  
+      // 3. Pass the DTO to the service call.
+      console.log("================================",resourceManagementDTO);
+      this.resourceManagementService.getProjectTimesheetSummary(resourceManagementDTO).pipe(first()).subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            this.projectSummaryData = response.serviceResponse;
+            
+            if (this.projectSummaryData && this.projectSummaryData.length > 0) {
+              this.processProjectSummaryData(this.projectSummaryData);
+            } else {
+              // Handle the case where the API succeeds but returns no data
+              document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center">No timesheet summary data found for your projects.</p>';
+            }
+          } else {
+            // this.openAlertMod(this.alertTemplate, "Failed to load project summary data.");
+            console.error(response.serviceResponse);
+            document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Error:No timesheets filled till date</p>';
+          }
+        },
+        error: (err) => {
+          this.openAlertMod(this.alertTemplate, "An error occurred while fetching summary data.");
+          console.error(err);
+          document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">A server error occurred. Please try again later.</p>';
+        }
+      });
+    }
+  
+    processProjectSummaryData(summaryData: any[]) {
+        const categories = [];
+        const seriesData = [];
+  
+        // Sort data by totalTimesheetsFilled in descending order and take top 20 for better visualization
+        const sortedData = summaryData
+            .sort((a, b) => b.totalTimesheetsFilled - a.totalTimesheetsFilled)
+            .slice(0, 20);
+  
+        sortedData.forEach(item => {
+            categories.push(item.projectName);
+            seriesData.push(item.totalTimesheetsFilled);
+        });
+  
+        const chartData = [{
+            name: 'Timesheets Filled',
+            data: seriesData,
+            color: '#0275d8' // A bootstrap primary-like color
+        }];
+  
+        this.renderColumnChart(
+            'Top 20 Projects by Timesheets Filled',
+            'projectTimesheetSummaryChart',
+            chartData,
+            categories
+        );
+    }
+  
+    renderColumnChart(chartName: any, chartId: any, chartData: any, categories: any) {
+      Highcharts.chart(chartId, {
+          chart: {
+              type: 'column',
+          },
+          title: {
+              text: chartName,
+              style: {
+                  fontWeight: 'bold',
+                  color: '#000000'
+              }
+          },
+          xAxis: {
+              categories: categories,
+              title: {
+                  text: 'Projects'
+              },
+              labels: {
+                  rotation: -45, // Rotate labels to prevent overlap
+                  style: {
+                      fontSize: '11px',
+                      fontFamily: 'Verdana, sans-serif'
+                  }
+              }
+          },
+          yAxis: {
+              min: 0,
+              title: {
+                  text: 'Total Timesheets Filled',
+                  align: 'high'
+              },
+              labels: {
+                  overflow: 'justify'
+              }
+          },
+          tooltip: {
+              valueSuffix: ' timesheets'
+          },
+          plotOptions: {
+              column: {
+                  dataLabels: {
+                      enabled: true,
+                      format: '{y}',
+                      style: {
+                        fontSize: '10px',
+                      }
+                  }
+              }
+          },
+          credits: {
+              enabled: false,
+          },
+          legend: {
+              enabled: false // Not needed for a single series chart
+          },
+          series: chartData
+      });
+    }
 
 }
 

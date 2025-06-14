@@ -60,4 +60,5 @@ public class TeamDTO {
 	private String employeeName;
 	private SpocDTO spoc;
 	private Long spocId;
+	private SpocDTO teamLead;
 }
