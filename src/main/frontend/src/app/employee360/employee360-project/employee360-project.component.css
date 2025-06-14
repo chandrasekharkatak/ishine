@@ -65,3 +65,12 @@
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0,0,0,0.08);
   }
+
+     .form-field input, 
+  .form-field mat-select {
+    padding: 10px;
+    /* border-radius: 20px; */
+    border: 2px solid #0a0a6a;
+    outline: none;
+    min-height: 45px;
+  }

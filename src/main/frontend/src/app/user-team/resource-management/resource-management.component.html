@@ -1600,7 +1600,7 @@
                                         <!-- Right: Button (only shown if members are selected) -->
                                         <div *ngIf="selectedMembers.length > 0">
                                             <button class="btn btn-sm btn-primary"
-                                                (click)="deleteResourceModalBulk(delete_modal_template_bulk)">
+                                                (click)="deleteResourceModalBulk(delete_modal_template_bulk,MarkAsCompleteDefaultProject,OtherProjectDefaultMapping,projectObj)">
                                                 Remove Members
                                             </button>
                                         </div>
@@ -1737,7 +1737,7 @@
                         </div>
 
                         <button *ngIf="hasSelectedMembers" class="btn btn-sm btn-primary"
-                            (click)="deleteResourceModalBulk(delete_modal_template_bulk1)">
+                            (click)="deleteResourceModalBulk(delete_modal_template_bulk1,MarkAsCompleteDefaultProject,OtherProjectDefaultMapping,projectObj)">
                             Remove Members
                         </button>
                     </div>
@@ -2099,10 +2099,10 @@
                 </div>
             </div>
             <button type="button" class="btn btn-success" *ngIf="selectedMembers.length > 0"
-                (click)="deleteResourceFromProjectBulk(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
+                (click)="deleteResourceFromProjectBulk(alert_message);cancelRequest5()">Yes, proceed</button>&nbsp;
             <button type="button" class="btn btn-success" *ngIf="!selectedMembers.length"
-                (click)="deleteResourceFromProject(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
-            <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+                (click)="deleteResourceFromProject(alert_message);cancelRequest5()">Yes, proceed</button>&nbsp;
+            <button type="button" class="btn btn-danger" (click)="cancelRequest5()">No, Cancel</button>&nbsp;
         </div>
     </ng-template>
 
@@ -2119,9 +2119,9 @@
                 </div>
             </div>
             <button type="button" class="btn btn-success" *ngIf="hasSelectedMembers"
-                (click)="deleteResourceFromProjectBulk1(alert_message_without_reload);cancelRequest()">Yes,
+                (click)="deleteResourceFromProjectBulk1(alert_message_without_reload);cancelRequest5()">Yes,
                 proceed</button>&nbsp;
-            <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+            <button type="button" class="btn btn-danger" (click)="cancelRequest5()">No, Cancel</button>&nbsp;
         </div>
     </ng-template>
 
@@ -2215,12 +2215,19 @@
                                 </div>
                             </td>
                             <td>
-                                <button class="set-team-btn"  *ngIf="!isBulkDelete"
+                                <button class="set-team-btn"  *ngIf="!isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects "
                                     (click)="setDefaultProjectUpdateForActiveProject(project,selectedOtherProjectId,customDatePickerTemplate)">Update
                                     Default Project</button>
-                                    <button class="set-team-btn" *ngIf="isBulkDelete"
+                                    <button class="set-team-btn" *ngIf="isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
                                     (click)="setDefaultProjectUpdateForActiveProject(project,selectedOtherProjectId,delete_team_modal)">Update
                                     Default Project</button>
+                                    <button class="set-team-btn" *ngIf="!isBulkDelete && isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
+                                    (click)="setDefaultProjectUpdateForActiveProject(project,selectedOtherProjectId,delete_modal_template_bulk)">Update
+                                    Default Project</button>
+                                     <button class="set-team-btn" *ngIf="!isBulkDelete && isBulkDeleteResource && isBulkDeleteResourceFromTNMProjects"
+                                    (click)="setDefaultProjectUpdateForActiveProject(project,selectedOtherProjectId,delete_modal_template_bulk1)">Update
+                                    Default Project</button>
+                                    
                             </td>
                         </tr>
                     </tbody>
@@ -2328,12 +2335,19 @@
                     </div>
                 </div>
 
-                <button class="set-team-btn" *ngIf="!isBulkDelete"
+                <button class="set-team-btn" *ngIf="!isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
                     (click)="setProjectMappingAndDefaultProjectBulk(setDefaultProjectObj,customDatePickerTemplate)">Update
                     Default Project</button>
-                     <button class="set-team-btn" *ngIf="isBulkDelete"
+                     <button class="set-team-btn" *ngIf="isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
                     (click)="setProjectMappingAndDefaultProjectBulk(setDefaultProjectObj,delete_team_modal)">Update
                     Default Project</button>
+                     <button class="set-team-btn" *ngIf="isBulkDeleteResource && !isBulkDelete && !isBulkDeleteResourceFromTNMProjects"
+                    (click)="setProjectMappingAndDefaultProjectBulk(setDefaultProjectObj,delete_modal_template_bulk)">Update
+                    Default Project</button>
+                    <button class="set-team-btn" *ngIf="!isBulkDeleteResource && !isBulkDelete && isBulkDeleteResourceFromTNMProjects"
+                    (click)="setProjectMappingAndDefaultProjectBulk(setDefaultProjectObj,delete_modal_template_bulk1)">Update
+                    Default Project</button>
+                    
                 <!-- <button class="set-team-btn mt-3">Update Default Project</button> -->
 
                 <!-- Employee List -->
@@ -2437,14 +2451,24 @@
                                     </mat-select>
                                 </td>
                                 <td>
-                                    <button class="set-team-btn" *ngIf="!isBulkDelete"
+                                    <button class="set-team-btn" *ngIf="!isBulkDelete  && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
                                         (click)="setProjectMappingAndDefaultProject(customDatePickerTemplate,emp)">
                                         Set Default Project
                                     </button> 
-                                    <button class="set-team-btn" *ngIf="isBulkDelete"
+                                    <button class="set-team-btn" *ngIf="isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
                                         (click)="setProjectMappingAndDefaultProject(delete_team_modal,emp)">
                                         Set Default Project
                                     </button>
+                                     <button class="set-team-btn" *ngIf="isBulkDeleteResource && !isBulkDelete && !isBulkDeleteResourceFromTNMProjects"
+                                        (click)="setProjectMappingAndDefaultProject(delete_modal_template_bulk,emp)">
+                                        Set Default Project
+                                    </button>
+                                    <button class="set-team-btn" *ngIf="isBulkDeleteResource && !isBulkDelete && isBulkDeleteResourceFromTNMProjects"
+                                        (click)="setProjectMappingAndDefaultProject(delete_modal_template_bulk1,emp)">
+                                        Set Default Project
+                                    </button>
+                                     
+                                    
                                  
                                 </td>
                             </tr>

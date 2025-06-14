@@ -680,8 +680,10 @@ export class Employee360ProjectComponent implements OnInit {
         this.bulkEmployeeList = response.serviceResponse;
         console.error("Unable to fetch Employee List!", this.bulkEmployeeList);
       } else {
-        this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
-        console.error("Unable to fetch Employee List!");
+           if (this.EmployessIds.length !== 0) {
+          this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
+          console.error("Unable to fetch Employee List!");
+        }
       }
     });
   }
@@ -705,11 +707,13 @@ export class Employee360ProjectComponent implements OnInit {
         this.bulkEmployeeListActiveList = response.serviceResponse;
         console.error("Unable to fetch Employee List!", this.bulkEmployeeListActiveList);
         // this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-      }
-      // } else {
-      //   this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
-      //   console.error("Unable to fetch Employee List!");
-      // }
+      
+       } else {
+            if (this.activeProjects.length !== 0) {
+          this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
+          console.error("Unable to fetch Employee List!");
+        }
+       }
     });
   }
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];

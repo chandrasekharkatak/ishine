@@ -75,7 +75,7 @@
                         <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'"
                             [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
                             <button *ngIf="selectedMembers.length > 0" class="btn btn-sm btn-primary mt-2"
-                                (click)="deleteResourceModalBulk(delete_modal_template)">
+                                (click)="deleteResourceModalBulk(MarkAsCompleteDefaultProject,OtherProjectDefaultMapping,delete_modal_template,projectObj)">
                                 Remove Members
                             </button>
                             <table class="table" id="projectInfo" matSort (matSortChange)="sortData($event)">
@@ -91,9 +91,11 @@
                                             [checked]="areAllTeamsSelected()"
                                             (change)="toggleAllTeams($event)">Team Name
                                         </th>
-                                        <th scope="col" class="info-label" mat-sort-header="spoc|string">SPOC
+                                        <th scope="col" class="info-label" mat-sort-header="teamName|string">
+                                            SPOC
                                         </th>
-                                        <th scope="col" class="info-label" mat-sort-header="teamLeadName|string">Team Lead Name
+                                        <th scope="col" class="info-label" mat-sort-header="teamName|string">
+                                            Team Lead Name
                                         </th>
                                         <th></th>
                                         <th scope="col" class="info-label" mat-sort-header="employeeName|string">
@@ -132,10 +134,10 @@
                                                            (change)="toggleTeamSelection(team, $event)">
                                                     {{ team.teamName }}
                                                   </td>
-                                                  <td *ngIf="j === 0" [attr.rowspan]="team.teamMemberDetails?.length">
+                                                  <td *ngIf="j === 0" [attr.rowspan]="team.employees?.length">
                                                     {{ team.spoc ? team.spoc : 'NA' }}
                                                   </td>
-                                                  <td *ngIf="j === 0" [attr.rowspan]="team.teamMemberDetails?.length">
+                                                  <td *ngIf="j === 0" [attr.rowspan]="team.employees?.length">
                                                     {{ team.teamLeadName ? team.teamLeadName : 'NA' }}
                                                   </td>
                                                     <td>
@@ -204,9 +206,289 @@
             </div>
         </div>
         <button type="button" class="btn btn-success" *ngIf="selectedMembers.length > 0"
-            (click)="deleteResourceFromProjectBulk(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
+            (click)="deleteResourceFromProjectBulk(alert_message);cancelRequest5()">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-success" *ngIf="!selectedMembers.length"
-            (click)="deleteResourceFromProject(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+            (click)="deleteResourceFromProject(alert_message);cancelRequest5()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest5()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
+
+
+
+
+
+<ng-template #OtherProjectDefaultMapping>
+        <div class="modal-body text-center team-preview-field">
+            <p class="section-title mt-4">Employees with Other Project Mappings Eligible for Default Project Assignment
+            </p>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped" id="projectTable">
+                    <thead class="thead-light" id="teamMembersInfoTHead">
+                        <tr id="teamMembersInfoTHeadTr">
+                            <th scope="col" class="info-label">Emp Id</th>
+                            <th scope="col" class="info-label">Employee Name</th>
+                            <th scope="col" class="info-label">Project Name</th>
+                            <th scope="col" class="info-label">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- <tr *ngIf="bulkEmployeeListActiveList.length === 0 || (bulkEmployeeListActiveList| colFilter:filters:false).length === 0">
+                        <th colspan="3" class="text-center info-label">No reportees have this user as manager.</th>
+                    </tr> -->
+                        <tr *ngFor="let project of bulkEmployeeListActiveList">
+                            <td>{{project.employmentId}}</td>
+                            <td>{{project.name}}</td>
+                            <td>
+                                <div class="form-group">
+                                    <label>Project Name</label>
+                                    <mat-select [(ngModel)]="selectedOtherProjectId" disableOptionCentering>
+                                        <mat-option disabled><input class="form-control"
+                                                style="display: flex ;width: 100%; padding: 5px;" type="text"
+                                                [(ngModel)]="searchTerm" (ngModelChange)="filterOtherProjects()"
+                                                placeholder="Search project..." /></mat-option>
+                                        <mat-option [value]="null" disabled>Select</mat-option>
+                                        <mat-option *ngFor="let project of project.otherActiveProjects"
+                                            [value]="project.projectId">{{ project.projectName }}</mat-option>
+                                    </mat-select>
+                                </div>
+                            </td>
+                            <td>
+                                <button class="set-team-btn"  *ngIf="!isBulkDelete"
+                                    (click)="setDefaultProjectUpdateForActiveProject(project,selectedOtherProjectId,delete_modal_template)">Update
+                                    Default Project</button>
+                                    <button class="set-team-btn" *ngIf="isBulkDelete"
+                                    (click)="setDefaultProjectUpdateForActiveProject(project,selectedOtherProjectId,delete_modal_template)">Update
+                                    Default Project</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </ng-template>
+
+<ng-template #MarkAsCompleteDefaultProject>
+        <div class="default-project-wrapper container-fluid p-3">
+            <!-- Header and Toggle Switch -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="table-header-title">Employee(s) With New Default Project Mappings Requirement</h1>
+                <i class="fa-solid" [ngClass]="isBulkUpdateMode ? 'fa-toggle-on' : 'fa-toggle-off'"
+                    style="font-size: 24px; cursor: pointer; color: #061E5C;"
+                    (click)="isBulkUpdateMode = !isBulkUpdateMode">
+                </i>
+            </div>
+
+            <!-- Bulk Update Mode -->
+            <div *ngIf="!isBulkUpdateMode" class="bulk-mode-section mb-4">
+                <p class="section-title">Bulk Default Project Mapping</p>
+
+                <div class="row align-items-end flex-wrap g-3 mb-3">
+                    <!-- Project Type -->
+                    <div class="col-md-4 form-field">
+                        <label>Project Type</label>
+                        <mat-select class="form-control" [(ngModel)]="bulkProjectType" disableOptionCentering>
+                            <mat-option [value]="null" disabled>Select</mat-option>
+                            <mat-option [value]="'bench'">Bench</mat-option>
+                            <mat-option [value]="'other'">Other</mat-option>
+                        </mat-select>
+                    </div>
+
+                    <!-- Internal or Other Project -->
+                    <div class="col-md-4 form-field" *ngIf="bulkProjectType == 'bench'">
+                        <label>Internal Project</label>
+                        <mat-select class="form-control" [(ngModel)]="setDefaultProjectObj.projectId"
+                            (selectionChange)="getTeamListForSelectedProject()" disableOptionCentering>
+                            <mat-option disabled>
+                                <input class="form-control" style="width: 100%; padding: 5px;" type="text"
+                                    [(ngModel)]="searchTerm" (ngModelChange)="filterProjectsForDefaultBulkBench()"
+                                    placeholder="Search project..." />
+                            </mat-option>
+                            <mat-option [value]="null" disabled>Select</mat-option>
+                            <mat-option *ngFor="let project of filteredProjectsForDefaultBulkBench"
+                                [value]="project.projectId">
+                                {{ project.projectName }}
+                            </mat-option>
+                        </mat-select>
+                    </div>
+
+                    <div class="col-md-4 form-field" *ngIf="bulkProjectType == 'other'">
+                        <label>Other Project</label>
+                        <mat-select class="form-control" [(ngModel)]="setDefaultProjectObj.projectId"
+                            (selectionChange)="getTeamListForSelectedProject()" disableOptionCentering>
+                            <mat-option disabled>
+                                <input class="form-control" style="width: 100%; padding: 5px;" type="text"
+                                    [(ngModel)]="searchTerm" (ngModelChange)="filterProjectsForDefaultBulkOther()"
+                                    placeholder="Search project..." />
+                            </mat-option>
+                            <mat-option [value]="null" disabled>Select</mat-option>
+                            <mat-option *ngFor="let project of filteredProjectsForDefaultBulkOther"
+                                [value]="project.projectId">
+                                {{ project.projectName }}
+                            </mat-option>
+                        </mat-select>
+                    </div>
+
+                    <!-- Team -->
+                    <div class="col-md-4 form-field">
+                        <label>Team Name</label>
+                        <mat-select class="form-control" [(ngModel)]="setDefaultProjectObj.teamId"
+                            disableOptionCentering>
+                            <mat-option disabled>
+                                <input class="form-control" style="width: 100%; padding: 5px;" type="text"
+                                    [(ngModel)]="searchTermTeam" (ngModelChange)="filterTeamsForDefaultBulk()"
+                                    placeholder="Search team..." />
+                            </mat-option>
+                            <mat-option [value]="null" disabled>Select</mat-option>
+                            <mat-option *ngFor="let team of filteredTeamsForDefaultBulk" [value]="team.teamId">
+                                {{ team.teamName }}
+                            </mat-option>
+                        </mat-select>
+         </div>
+
+                    <!-- Role -->
+                    <div class="col-md-4 form-field">
+                        <label>Employee Role</label>
+                        <mat-select multiple [(ngModel)]="setDefaultProjectObj.employeeRole">
+                            <mat-option value="" disabled>Select</mat-option>
+                            <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role }}</mat-option>
+                        </mat-select>
+                    </div>
+
+                    <!-- Requirement -->
+                    <div class="col-md-4 form-field" *ngIf="resourceRequirementListBulk?.length">
+                        <label>Project Requirement</label>
+                        <mat-select [(ngModel)]="setDefaultProjectObj.resourceOverViewId">
+                            <mat-option *ngFor="let req of resourceRequirementListBulk"
+                                [value]="req.resourceOverviewId">
+                                Role - {{ req.role }} || Dept - {{ req.department }} || Exp - {{ req.experience }} y
+                            </mat-option>
+                        </mat-select>
+                    </div>
+                </div>
+
+                <button class="set-team-btn" *ngIf="!isBulkDelete"
+                    (click)="setProjectMappingAndDefaultProjectBulk(setDefaultProjectObj,delete_modal_template)">Update
+                    Default Project</button>
+                     <button class="set-team-btn" *ngIf="isBulkDelete"
+                    (click)="setProjectMappingAndDefaultProjectBulk(setDefaultProjectObj,delete_modal_template)">Update
+                    Default Project</button>
+                <!-- <button class="set-team-btn mt-3">Update Default Project</button> -->
+
+                <!-- Employee List -->
+                <p class="section-title mt-4">Employee List</p>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Sr.No</th>
+                                <th>Emp Id</th>
+                                <th>Employee Name</th>
+                                <th>Department</th>
+                                <th>Job Role</th>
+                                <th>Billable Type</th>
+                                <th>Previous Exp</th>
+                                <th>Current Exp</th>
+                                <th>Total Exp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let emp of bulkEmployeeList; let i = index">
+                                <td>{{ i + 1 }}</td>
+                                <td>{{ emp.employmentId }}</td>
+                                <td>{{ emp.name }}</td>
+                                <td>{{ emp.deptName }}</td>
+                                <td>{{ emp.jobRole }}</td>
+                                <td>{{ emp.billableType }}</td>
+                                <td>{{ emp.previousExperience }}</td>
+                                <td>{{ emp.currentExperience }}</td>
+                                <td>{{ emp.totalExperience }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+
+            </div>
+
+            <!-- Individual Mode -->
+            <div *ngIf="isBulkUpdateMode" class="individual-mode-section">
+                <p class="section-title">Individual Default Project Mapping</p>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Emp Id</th>
+                                <th>Name</th>
+                                <th>Project Type</th>
+                                <th>Project</th>
+                                <th>Team</th>
+                                <th>Role</th>
+                                <th>Requirement</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="bulkEmployeeList.length === 0">
+                                <td colspan="8" class="text-center">No reportees have this user as manager.</td>
+                            </tr>
+                            <tr *ngFor="let emp of bulkEmployeeList">
+                                <td>{{ emp.employmentId }}</td>
+                                <td>{{ emp.name }}</td>
+                                <td>
+                                    <mat-select [(ngModel)]="emp.projectType">
+                                        <mat-option value="bench">Bench</mat-option>
+                                        <mat-option value="other">Other</mat-option>
+                                    </mat-select>
+                                </td>
+                                <td>
+                                    <mat-select [(ngModel)]="emp.projectId"
+                                        (selectionChange)="getTeamListForSelectedProject1(emp)">
+                                        <mat-option
+                                            *ngFor="let proj of (emp.projectType === 'bench' ? filteredProjectsForDefaultBulkBench : filteredProjectsForDefaultBulkOther)"
+                                            [value]="proj.projectId">
+                                            {{ proj.projectName }}
+                                        </mat-option>
+                                    </mat-select>
+                                </td>
+                                <td>
+                                    <mat-select [(ngModel)]="emp.teamId">
+                                        <mat-option *ngFor="let team of filteredTeamsForDefaultBulk"
+                                            [value]="team.teamId">
+                                            {{ team.teamName }}
+                                        </mat-option>
+                                    </mat-select>
+                                </td>
+                                <td>
+                                    <mat-select multiple [(ngModel)]="emp.employeeRole">
+                                        <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role
+                                            }}</mat-option>
+                                    </mat-select>
+                                </td>
+                                <td>
+                                    <mat-select [(ngModel)]="emp.resourceOverViewId">
+                                        <mat-option *ngFor="let req of resourceRequirementListBulk"
+                                            [value]="req.resourceOverviewId">
+                                            Role - {{ req.role }} || Dept - {{ req.department }} || Exp - {{
+                                            req.experience }} y
+                                        </mat-option>
+                                    </mat-select>
+                                </td>
+                                <td>
+                                    <button class="set-team-btn" *ngIf="!isBulkDelete"
+                                        (click)="setProjectMappingAndDefaultProject(delete_modal_template,emp)">
+                                        Set Default Project
+                                    </button> 
+                                    <button class="set-team-btn" *ngIf="isBulkDelete"
+                                        (click)="setProjectMappingAndDefaultProject(delete_modal_template,emp)">
+                                        Set Default Project
+                                    </button>
+                                 
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </ng-template>
