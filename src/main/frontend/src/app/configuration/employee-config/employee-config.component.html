@@ -1145,7 +1145,7 @@
                                                     Project Type</label>
                                                 <select class="form-control" aria-hidden="true"
                                                     [(ngModel)]="employeeObj.defaultprojectType"
-                                                    (change)="getProjectsAccToDepartmentSelected()">
+                                                    (change)="getProjectsAccToDepartmentSelected(alert_message)">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Bench">Bench</option>
                                                     <option value="Other">Other</option>

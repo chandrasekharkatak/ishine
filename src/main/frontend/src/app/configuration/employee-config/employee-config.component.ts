@@ -619,7 +619,11 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraft = false;
     this.isDraftTable = false;
     this.page = 1;
-
+    this.showResourceRequirementDropdown = false;
+    this.deptSelected = false;
+    this.showProjectDropdown = false;
+    this.showTeamDropdown = false;
+    this.showEmployeeRoleDropdown = false;
     this.reset();
     this.getManagerList();
     this.getAllDepartmentList();
@@ -681,7 +685,12 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.dateOfBirth = '';
     this.employeeObj.billable = '';
     this.employeeObj.employeeType = '';
-
+    this.employeeObj.defaultprojectType ='';
+    this.employeeObj.defaultProjectId ='';
+    this.employeeObj.defaultTeamId ='';
+    this.employeeObj.isShadowResource = '';
+    this.employeeObj.selectedResourceOverviewId ='';
+    this.employeeObj.defaultTeamEmployeeRole =[];
     this.allEmployeeList = [];
     this.filteredJobRoleList = [];
     this.allCertificationList = [];
@@ -1585,16 +1594,16 @@ export class EmployeeConfigComponent implements OnInit {
 
     console.log("on create",employee);
 
-    // this.employeeService.createEmployee(employee).pipe(first()).subscribe((response: any) => {
-    //   if (response.serviceStatus == "Success") {
-    //     this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
-    //     this.openAlertMod(template, response.serviceResponse);
-    //     this.showTable();
-    //   } else {
-    //     this.openAlertMod(template, response.serviceResponse);
-    //   }
+    this.employeeService.createEmployee(employee).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
+        this.openAlertMod(template, response.serviceResponse);
+        this.showTable();
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
 
-    // });
+    });
   }
 
   checkEmployeementId(template: TemplateRef<any>) {
@@ -2005,7 +2014,7 @@ export class EmployeeConfigComponent implements OnInit {
   showProjectDropdown: any;
   showTeamDropdown: any;
   showEmployeeRoleDropdown: any;
-  getProjectsAccToDepartmentSelected() {
+  getProjectsAccToDepartmentSelected(template: TemplateRef<any>) {
     this.showProjectDropdown = true;
     this.showTeamDropdown = false;
     this.showEmployeeRoleDropdown = false;
@@ -2016,7 +2025,14 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.getProjectsAccToDepartmentSelected(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.projectList = response.serviceResponse;
+         if (this.projectList.length === 0) {
+        this.showProjectDropdown = false;
+        this.openAlertMod(template, 'No project exists for the selected department. Please contact RMG to create one.');
       } else {
+        this.showProjectDropdown = true;
+      }
+      } else {
+         this.showProjectDropdown = false;
         alert(response.serviceResponse);
       }
     });
@@ -2041,6 +2057,7 @@ export class EmployeeConfigComponent implements OnInit {
     } else {
       this.resourceRequirements = [];
       this.showResourceRequirementDropdown = false;
+      this.employeeObj.selectedResourceOverviewId = null;
     }
   }
 
