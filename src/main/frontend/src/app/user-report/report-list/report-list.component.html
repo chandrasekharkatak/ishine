@@ -371,7 +371,63 @@
       <label class="custom-control-label" for="hierarchy-switch-1">Show Detailed Project View</label>
     </div>
 
-    <div class="row" *ngIf="!showDetails">
+    <div class="d-flex justify-content-between align-items-start mb-3" style="width: 100%;">
+  
+  <!-- Left Section (Employee 360 Search) -->
+    <div>
+        <div style="margin-top: 15px;">
+          <label class="info-label">Navigate to Employee 360:</label>
+        </div>
+        <div>
+          <input id="employeeSearch" type="text" class="form-select custom-select-style"
+            style="min-width: 300px;" placeholder="Search by Name or Emp ID" aria-label="Search employee"
+            [formControl]="employeeCtrl" [matAutocomplete]="auto">
+
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
+            [displayWith]="displayEmployee">
+            <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
+              {{ emp.name }}
+            </mat-option>
+          </mat-autocomplete>
+        </div>
+      </div>
+
+      <!-- Right Section (Department Select) -->
+      <div *ngIf="showDetails" style="min-width: 300px;">
+        <div class="form-group">
+          <label class="info-label"><span class="text-danger">*</span>Department</label>
+
+          <mat-select class="form-control" multiple [(ngModel)]="employeeReportObj.deptId"
+            (selectionChange)="onDepartmentSelectionChange()">
+            
+            <!-- Search Input -->
+            <mat-option class="non-selectable" disabled>
+              <div style="display: flex; align-items: center;">
+                <input type="text" placeholder="Search Department" [(ngModel)]="searchText"
+                  (ngModelChange)="filterDepartments()" class="form-control" style="width: 100%; padding: 5px;" />
+
+                <button *ngIf="employeeReportObj.deptId?.length > 0" (click)="clearSelection($event)"
+                  style="margin-left: 5px; background: none; border: none; cursor: pointer;" title="Clear Selection">
+                  Clear
+                </button>
+              </div>
+            </mat-option>
+
+            <!-- Select All / Deselect All -->
+            <mat-option (click)="toggleSelectAll()" [disabled]="departments.length === 0">
+              {{ isAllSelected ? 'Deselect All' : 'Select All' }}
+            </mat-option>
+
+            <!-- Department Options -->
+            <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
+              {{ dept.name }}
+            </mat-option>
+          </mat-select>
+        </div>
+      </div>
+    </div>
+
+    <!-- <div class="row" *ngIf="!showDetails">
       <div class="form-group ml-auto col-md-6 col-lg-3">
         <div class="row">
           <div class="col-2 col-sm-2 col-md-2 col-lg-2">
@@ -380,12 +436,9 @@
               <i class="fa-solid fa-filter"></i>
             </button>
           </div>
-          <!-- <div class="col-10 col-sm-10 col-md-10 col-lg-10">
-              <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
-            </div> -->
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- <div class="container mt-3 d-flex justify-content-end" *ngIf="showDetails">
       <select id="department" class="form-control w-auto d-inline-block" (change)="onDepartmentChange($event)">
@@ -394,11 +447,11 @@
       </select>
     </div> -->
 
-    <div class="d-flex justify-content-end " *ngIf="showDetails && !isAccounts">
+    <!-- <div class="d-flex justify-content-end " *ngIf="showDetails && !isAccounts">
       <button class="btn btn-outline-primary btn-sm" (click)="poProjectSync(alert_message_sync)">
         <i class="fa fa-sync-alt me-1"></i> Sync PO
       </button>
-    </div>
+    </div> -->
     <!-- <div class="d-flex justify-content-end" *ngIf="showDetails">
       <div class="col-md-3">
         <div class="form-group">
@@ -426,63 +479,7 @@
       </div>
     </div> -->
 
-    <div class="d-flex justify-content-end" *ngIf="showDetails">
-      <div class="col-md-3">
-        <div class="form-group">
-          <label class="info-label"><span class="text-danger">*</span>Department</label>
-
-          <mat-select class="form-control" multiple [(ngModel)]="employeeReportObj.deptId"
-            (selectionChange)="onDepartmentSelectionChange()">
-            <!-- Search Input (non-selectable) -->
-            <mat-option class="non-selectable" disabled>
-              <div style="display: flex; align-items: center;">
-                <input type="text" placeholder="Search Department" [(ngModel)]="searchText"
-                  (ngModelChange)="filterDepartments()" class="form-control" style="width: 100%; padding: 5px;" />
-
-                <button *ngIf="employeeReportObj.deptId?.length > 0" (click)="clearSelection($event)"
-                  style="margin-left: 5px; background: none; border: none; cursor: pointer;" title="Clear Selection">
-                  Clear
-                </button>
-              </div>
-            </mat-option>
-
-            <!-- Select All/Deselect All -->
-            <mat-option (click)="toggleSelectAll()" [disabled]="departments.length === 0">
-              {{ isAllSelected ? 'Deselect All' : 'Select All' }}
-            </mat-option>
-
-            <!-- Department options -->
-            <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
-              {{ dept.name }}
-            </mat-option>
-          </mat-select>
-        </div>
-      </div>
-    </div>
-
-
-
     <div class="row" *ngIf="showDetails">
-      <div class="row">
-            <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                <label class="info-label" style="justify-self: left;">Navigate to Employee 360:</label>
-            </div>
-      </div>
-      <div class="row mb-3">
-            <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                <input id="employeeSearch" type="text" class="form-select custom-select-style"
-                    style="min-width: 50px;" placeholder="Search by Name or Emp ID" aria-label="Search employee"
-                    [formControl]="employeeCtrl" [matAutocomplete]="auto">
-
-                <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
-                    [displayWith]="displayEmployee">
-                    <mat-option *ngFor="let emp of filteredEmployees" [value]="emp"
-                      [navigateToEmployee360]="emp.empId">
-                        {{ emp.name }}
-                    </mat-option>
-                </mat-autocomplete>
-            </div>
-        </div>
       <div class=" dashboard-container">
         <div class="card" *ngFor="let box of ['TNM', 'Fixed Cost', 'Monitoring', 'Internal']"
           [ngClass]="{ 'active-box': activeBox === box }">
@@ -981,11 +978,27 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="export-button">
+        <!-- <div class="export-button">
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
             [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()"><em
               class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div> -->
+        <div class="export-button d-flex align-items-center gap-2">
+
+          <!-- Filter Button -->
+          <button type="button" id="buttonPosition" class="btn btn-sm btn-outline-primary mt-1"
+            (click)="openFilterModal(filter, employeeColumns, 'Filter Employee Report')">
+            <i class="fa-solid fa-filter"></i>
+          </button>
+
+          <!-- Excel Export Button -->
+          <button type="button" class="btn btn-sm btn-outline-primary mt-1 excel-button"
+            [hidden]="allEmployeeList.length == 0" (click)="exportToExcel()">
+            <em class="fa fa-file-arrow-down fa-2x"></em>
+          </button>
+
         </div>
+
         <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
           [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
           <table class="table " id="employeeReport" matSort (matSortChange)="sortData($event)">
