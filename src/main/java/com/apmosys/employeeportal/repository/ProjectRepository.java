@@ -399,7 +399,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getEmployeeInformationForDefaultProject(List<Long> empIds);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getBenchEmployeeMoreThan30Days();
+	public List<Object[]> getBenchEmployeeMoreThan30Days(Long deptId);
 	
 	@Query(value = "SELECT DISTINCT p.project_id FROM projects p " +
             "JOIN project_manager_mapping pm ON p.project_id = pm.project_id " +

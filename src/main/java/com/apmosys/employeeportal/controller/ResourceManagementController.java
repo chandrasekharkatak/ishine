@@ -348,8 +348,8 @@ public class ResourceManagementController {
 	}
 	
 	@GetMapping("/getBenchEmployeeMoreThan30Days")
-	public ServiceResponse getBenchEmployeeMoreThan30Days() {
-	    return resourceManagementService.getBenchEmployeeMoreThan30Days();
+	public ServiceResponse getBenchEmployeeMoreThan30Days(@RequestParam Long deptId) {
+	    return resourceManagementService.getBenchEmployeeMoreThan30Days(deptId);
 	}
 
 }

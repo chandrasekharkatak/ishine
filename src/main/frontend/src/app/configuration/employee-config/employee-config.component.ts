@@ -1583,16 +1583,18 @@ export class EmployeeConfigComponent implements OnInit {
       return;
     }
 
-    this.employeeService.createEmployee(employee).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
-        this.openAlertMod(template, response.serviceResponse);
-        this.showTable();
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
+    console.log("on create",employee);
 
-    });
+    // this.employeeService.createEmployee(employee).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.employeeService.deleteDraftEmployee(this.employeeObj); // deleting draft once employee is created
+    //     this.openAlertMod(template, response.serviceResponse);
+    //     this.showTable();
+    //   } else {
+    //     this.openAlertMod(template, response.serviceResponse);
+    //   }
+
+    // });
   }
 
   checkEmployeementId(template: TemplateRef<any>) {
@@ -2032,8 +2034,19 @@ export class EmployeeConfigComponent implements OnInit {
       this.teamList = [];
       this.showTeamDropdown = false;
     }
+
+    if (selectedProject && selectedProject.resourceRequirement && selectedProject.resourceRequirement.length > 0) {
+      this.resourceRequirements = selectedProject.resourceRequirement;
+      this.showResourceRequirementDropdown = true;
+    } else {
+      this.resourceRequirements = [];
+      this.showResourceRequirementDropdown = false;
+    }
   }
 
+
+  showResourceRequirementDropdown: boolean = false;
+  resourceRequirements: any[] = [];
   onTeamChange(event: any) {
     const selectedTeamId = +event.target.value;
     const selectedTeam = this.teamList.find(t => t.teamId === selectedTeamId);
@@ -2046,6 +2059,8 @@ export class EmployeeConfigComponent implements OnInit {
       this.showEmployeeRoleDropdown = false;
     }
   }
+
+
 
 
 

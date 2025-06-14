@@ -171,15 +171,16 @@ export class TeamConfigComponent implements OnInit {
   }
 
   sectionViewInit() {
-    if (this.userMapping.add_team) {
-      this.showCreateTeamForm();
-    } else if (this.userMapping.view_teams || this.userMapping.update_team || this.userMapping.delete_team) {
-      this.showViewTeams();
+    // if (this.userMapping.add_team) {
+    //   this.showCreateTeamForm();
+    // } else if (this.userMapping.view_teams || this.userMapping.update_team || this.userMapping.delete_team) {
+    //   this.showViewTeams();
+    // } else 
+    if (this.userMapping.view_activities || this.userMapping.update_activity || this.userMapping.delete_activity) {
+      this.showViewActivities();
     } else if (this.userMapping.add_activity) {
       this.showCreateActivityForm();
-    } else if (this.userMapping.view_activities || this.userMapping.update_activity || this.userMapping.delete_activity) {
-      this.showViewActivities();
-    }
+    } 
   }
 
   showCreateTeamForm() {
@@ -301,7 +302,7 @@ export class TeamConfigComponent implements OnInit {
 
     this.isTeamForm = false;
     this.isTeamTable = false;
-    this.isActivityTable = false;
+    this.isActivityTable = true;
     this.isUpdation = false;
     this.isActivityTemplate = false;
     this.isActivityCreate = false;

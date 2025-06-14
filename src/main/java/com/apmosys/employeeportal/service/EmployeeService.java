@@ -549,8 +549,8 @@ public class EmployeeService {
 				Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
 				String departmentname = dept.getName();
 				
-				Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
-				resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
+//				Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
+//				resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
 				
 				
 				
@@ -563,7 +563,7 @@ public class EmployeeService {
 				employeeTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
 				employeeTeamMap.setEmployeeRole(employeeRole.toString());
 				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
-				employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
+				employeeTeamMap.setResourceOverviewId(employeedto.getSelectedResourceOverviewId());
 			   employeeTeamMapRepository.save(employeeTeamMap);
 			   
 			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
@@ -7005,42 +7005,47 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		    		 String experience = row[8] != null ? row[8].toString() : null;
 		    		 String role = row[9] != null ? row[9].toString() : null;
 		    		 
-		    		 if (deptIds == null || !Arrays.asList(deptIds.split(",")).contains(departmentId.toString())) {
-		                 continue;
-		             }
-		    		 
-		    		 TeamDTO teamDTO = new TeamDTO();
-		             teamDTO.setTeamId(teamId);
-		             teamDTO.setTeamName(teamName);
-		             teamDTO.setDepartmentList(deptIds.split(","));
-		             
-		             ResourceRequirementDTO resourceRequirementDTO = new ResourceRequirementDTO();
-		             resourceRequirementDTO.setResourceOverviewId(resourceOverviewId);
-		             resourceRequirementDTO.setDepartment(department);
-		             resourceRequirementDTO.setCount(count);
-		             resourceRequirementDTO.setExperience(experience);
-		             resourceRequirementDTO.setRole(role);
-		             resourceRequirementDTO.setProjectId(projectId);
+		    		 if (deptIds != null && !deptIds.isEmpty() && departmentId != null) {
+		    		        List<String> deptIdList = Arrays.asList(deptIds.split(","));
+		    		        if (!deptIdList.contains(departmentId.toString())) continue;
+		    		    }
 
-		             if (projectMap.containsKey(projectId)) {
-		                 ProjectDTO existingProject = projectMap.get(projectId);
-		                 existingProject.getTeamList().add(teamDTO);
+		    		    ProjectDTO project = projectMap.computeIfAbsent(projectId, id -> {
+		    		        ProjectDTO dto = new ProjectDTO();
+		    		        dto.setProjectId(projectId);
+		    		        dto.setProjectName(projectName);
+		    		        dto.setTeamList(new ArrayList<>());
+		    		        dto.setResourceRequirement(new ArrayList<>());
+		    		        return dto;
+		    		    });
 
-		                 if (existingProject.getResourceRequirement() == null) {
-		                     existingProject.setResourceRequirement(new ArrayList<>());
-		                 }
-		                 existingProject.getResourceRequirement().add(resourceRequirementDTO);
+		    		    // Add team
+		    		    if (teamId != null) {
+		    		        boolean teamExists = project.getTeamList().stream()
+		    		            .anyMatch(team -> team.getTeamId().equals(teamId));
+		    		        if (!teamExists) {
+		    		            TeamDTO teamDTO = new TeamDTO();
+		    		            teamDTO.setTeamId(teamId);
+		    		            teamDTO.setTeamName(teamName);
+		    		            if (deptIds != null && !deptIds.trim().isEmpty()) {
+		    		                String[] deptArray = deptIds.split("\\s*,\\s*"); // trims spaces too
+		    		                teamDTO.setDepartmentList(deptArray);
+		    		            }
+		    		            project.getTeamList().add(teamDTO);
+		    		        }
+		    		    }
 
-		             } else {
-		               
-		                 ProjectDTO projectDTO = new ProjectDTO();
-		                 projectDTO.setProjectId(projectId);
-		                 projectDTO.setProjectName(projectName);
-		                 projectDTO.setTeamList(new ArrayList<>());
-		                 projectDTO.getTeamList().add(teamDTO);
-		                 projectMap.put(projectId, projectDTO);
-		             }
-		         }
+		    		    // Add resource requirement
+		    		    if (resourceOverviewId != null) {
+		    		        ResourceRequirementDTO resourceDTO = new ResourceRequirementDTO();
+		    		        resourceDTO.setResourceOverviewId(resourceOverviewId);
+		    		        resourceDTO.setDepartment(department);
+		    		        resourceDTO.setCount(count);
+		    		        resourceDTO.setExperience(experience);
+		    		        resourceDTO.setRole(role);
+		    		        project.getResourceRequirement().add(resourceDTO);
+		    		    }
+		    		}
 
 		         List<ProjectDTO> filteredProjects = new ArrayList<>(projectMap.values());
 		         response.setServiceResponse(filteredProjects);

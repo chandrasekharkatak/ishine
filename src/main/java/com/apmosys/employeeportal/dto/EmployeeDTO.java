@@ -283,6 +283,7 @@ public class EmployeeDTO {
     private Integer inActiveFlag;
     private Integer lowerAge;
     private Integer upperAge;
+    private Long selectedResourceOverviewId;
     
 	
 }

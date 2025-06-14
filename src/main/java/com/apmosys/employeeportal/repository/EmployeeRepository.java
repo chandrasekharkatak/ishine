@@ -673,7 +673,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "rr.resource_overview_id, rr.department,rr.count,rr.experience, rr.role \n"
     		+ "from projects p \n"
     		+ "inner join teams t on t.project_id = p.project_id  \n"
-    		+ "inner join resource_requirement rr on rr.project_id = p.project_id\n"
+    		+ "left join resource_requirement rr on rr.project_id = p.project_id\n"
     		+ "where p.internal_project_type = 'InternalRNDProducts' or p.internal_project_type IS NULL ")
     List<Object[]> getAllProjectsThatAreNotBench();
     

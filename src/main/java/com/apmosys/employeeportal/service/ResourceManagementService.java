@@ -76,6 +76,9 @@ import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
+import com.apmosys.employeeportal.dto.TeamInfoProjectDTO;
+import com.apmosys.employeeportal.dto.TeamInfoTeamDTO;
+import com.apmosys.employeeportal.dto.TeamInfoTeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamSpocDTO;
 import com.apmosys.employeeportal.model.Activity;
@@ -2061,6 +2064,7 @@ public class ResourceManagementService {
 						teamdto.setTeamName(object.getTeamName());
 						teamdto.setDepartmentList(object.getDeptIds().split(","));
 						teamdto.setSpocId(object.getSpocId());
+						teamdto.setTeamLeadId(object.getTeamLeadId() != null ? object.getTeamLeadId() : null);
 
 						List<Object[]> spocDetailsList = teamRepository.getSpocDetils(object.getSpocId());
 						if (!spocDetailsList.isEmpty()) {
@@ -3481,6 +3485,8 @@ public class ResourceManagementService {
 		try {
 			List<Object[]> projectInfo = projectRepository
 					.getProjectInfo(Integer.parseInt(resourceManagementDTO.getProjectViewId().toString()));
+			Project projObj = projectRepository.findByProjectId(Integer.parseInt(resourceManagementDTO.getProjectViewId()));
+			System.out.println(projObj);
 			List<ResourceManagementDTO> result = new ArrayList<>();
 			if (!projectInfo.isEmpty()) {
 				projectInfo.forEach(object -> {
@@ -3489,13 +3495,14 @@ public class ResourceManagementService {
 					dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
 					dto.setProjectName(object[1] != null ? object[1].toString() : null);
 
-					List<Object[]> proj = projectManagerMappingRepository.findProjectManagersPerProject(
-							Long.parseLong(resourceManagementDTO.getProjectViewId().toString()));
+					List<Object[]> resultManager = projectManagerMappingRepository
+							.findProjectManagersPerProject(Long.parseLong(projObj.getProjectId().toString()));
 
 					List<Long> projectManagerIds = new ArrayList<>();
+					List<ProjectManagersDTO> projectManagersList = new ArrayList<>();
 					List<String> projectManagerNames = new ArrayList<>();
 
-					for (Object[] obj : proj) {
+					for (Object[] obj : resultManager) {
 						if (obj[0] != null) {
 							projectManagerIds.add(Long.parseLong(obj[0].toString()));
 						}
@@ -3503,6 +3510,11 @@ public class ResourceManagementService {
 						if (obj[1] != null) {
 							projectManagerNames.add(obj[1].toString());
 						}
+
+						ProjectManagersDTO dtoManager = new ProjectManagersDTO();
+						dtoManager.setProjectManagerId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+						dtoManager.setProjectManagerName(obj[1] != null ? obj[1].toString() : null);
+						projectManagersList.add(dtoManager);
 					}
 
 					String commaSeparatedNames = String.join(", ", projectManagerNames);
@@ -3510,6 +3522,37 @@ public class ResourceManagementService {
 					dto.setProjectManagerId(projectManagerIds);
 					dto.setProjectManagerName(commaSeparatedNames);
 					commaSeparatedNames = "";
+					dto.setProjectManagers(projectManagersList);
+
+					
+					List<Object[]> result2 = projectOverheadMappingRepository
+							.findProjectOverheadsPerProject(Long.parseLong(projObj.getProjectId().toString()));
+
+					List<Long> projectOverheadIds = new ArrayList<>();
+					List<ProjectOverheadsDTO> projectOverheadsList = new ArrayList<>();
+					List<String> projectOverheadNames = new ArrayList<>();
+
+					for (Object[] obj : result2) {
+						if (obj[0] != null) {
+							projectOverheadIds.add(Long.parseLong(obj[0].toString()));
+						}
+
+						if (obj[1] != null) {
+							projectOverheadNames.add(obj[1].toString());
+						}
+
+						ProjectOverheadsDTO overheadDto = new ProjectOverheadsDTO();
+						overheadDto.setProjectOverheadId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+						overheadDto.setProjectOverheadName(obj[1] != null ? obj[1].toString() : null);
+						projectOverheadsList.add(overheadDto);
+					}
+
+					String commaSeparatedName = String.join(", ", projectManagerNames);
+
+					dto.setProjectOverheadId(projectOverheadIds);
+					dto.setProjectOverheadName(commaSeparatedName);
+					commaSeparatedName = "";
+					dto.setProjectOverheads(projectOverheadsList);
 
 					dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
 					dto.setClientState(object[5] != null ? object[5].toString() : null);
@@ -3555,6 +3598,7 @@ public class ResourceManagementService {
 		try {
 			List<Object[]> projectInfo = projectRepository
 					.getPoProjectInfo(Long.parseLong(resourceManagementDTO.getProjectViewId().toString()));
+			Project projObj = projectRepository.findByPoProjectId(Long.parseLong(resourceManagementDTO.getProjectViewId()));
 			List<ResourceManagementDTO> result = new ArrayList<>();
 			if (!projectInfo.isEmpty()) {
 				projectInfo.forEach(object -> {
@@ -3562,13 +3606,14 @@ public class ResourceManagementService {
 
 					dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
 
-					List<Object[]> proj = projectManagerMappingRepository.findProjectManagersByPoProjectId(
-							Long.parseLong(resourceManagementDTO.getProjectViewId().toString()));
+					List<Object[]> resultManager = projectManagerMappingRepository
+							.findProjectManagersPerProject(Long.parseLong(projObj.getProjectId().toString()));
 
 					List<Long> projectManagerIds = new ArrayList<>();
+					List<ProjectManagersDTO> projectManagersList = new ArrayList<>();
 					List<String> projectManagerNames = new ArrayList<>();
 
-					for (Object[] obj : proj) {
+					for (Object[] obj : resultManager) {
 						if (obj[0] != null) {
 							projectManagerIds.add(Long.parseLong(obj[0].toString()));
 						}
@@ -3576,6 +3621,11 @@ public class ResourceManagementService {
 						if (obj[1] != null) {
 							projectManagerNames.add(obj[1].toString());
 						}
+
+						ProjectManagersDTO dtoManager = new ProjectManagersDTO();
+						dtoManager.setProjectManagerId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+						dtoManager.setProjectManagerName(obj[1] != null ? obj[1].toString() : null);
+						projectManagersList.add(dtoManager);
 					}
 
 					String commaSeparatedNames = String.join(", ", projectManagerNames);
@@ -3583,8 +3633,38 @@ public class ResourceManagementService {
 					dto.setProjectManagerId(projectManagerIds);
 					dto.setProjectManagerName(commaSeparatedNames);
 					commaSeparatedNames = "";
+					dto.setProjectManagers(projectManagersList);
 
-					dto.setProjectManagerName(object[3] != null ? object[3].toString() : null);
+					
+					List<Object[]> result2 = projectOverheadMappingRepository
+							.findProjectOverheadsPerProject(Long.parseLong(projObj.getProjectId().toString()));
+
+					List<Long> projectOverheadIds = new ArrayList<>();
+					List<ProjectOverheadsDTO> projectOverheadsList = new ArrayList<>();
+					List<String> projectOverheadNames = new ArrayList<>();
+
+					for (Object[] obj : result2) {
+						if (obj[0] != null) {
+							projectOverheadIds.add(Long.parseLong(obj[0].toString()));
+						}
+
+						if (obj[1] != null) {
+							projectOverheadNames.add(obj[1].toString());
+						}
+
+						ProjectOverheadsDTO overheadDto = new ProjectOverheadsDTO();
+						overheadDto.setProjectOverheadId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+						overheadDto.setProjectOverheadName(obj[1] != null ? obj[1].toString() : null);
+						projectOverheadsList.add(overheadDto);
+					}
+
+					String commaSeparatedName = String.join(", ", projectManagerNames);
+
+					dto.setProjectOverheadId(projectOverheadIds);
+					dto.setProjectOverheadName(commaSeparatedName);
+					commaSeparatedName = "";
+					dto.setProjectOverheads(projectOverheadsList);
+
 					dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
 					dto.setClientState(object[5] != null ? object[5].toString() : null);
 
@@ -3653,39 +3733,73 @@ public class ResourceManagementService {
 
 		try {
 			List<Object[]> teamInfo = projectRepository.getTeamInfo(resourceManagementDTO.getProjectId());
-			List<ResourceManagementDTO> result = new ArrayList<>();
-			if (!teamInfo.isEmpty()) {
-				teamInfo.forEach(object -> {
-					ResourceManagementDTO dto = new ResourceManagementDTO();
+		    
+		    Map<Long, TeamInfoTeamDTO> teamMap = new LinkedHashMap<>();
 
-					dto.setTeamId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					dto.setTeamName(object[1] != null ? object[1].toString() : null);
-					dto.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-					dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
-					dto.setEmployeeRole(object[4] != null ? object[4].toString().toString() : null);
-					dto.setBillableType(object[5] != null ? object[5].toString() : null);
-					dto.setStartDate(object[6] != null ? object[6].toString() : null);
-					dto.setActive(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
-					dto.setProjectId(object[8] != null ? Integer.parseInt(object[8].toString()) : null);
-					dto.setProjectName(object[9] != null ? object[9].toString() : null);
-					dto.setClientId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
-					dto.setClientName(object[11] != null ? object[11].toString() : null);
+		    TeamInfoProjectDTO projectDetails = new TeamInfoProjectDTO();
+		    List<TeamInfoTeamDTO> teams = new ArrayList<>();
 
-					result.add(dto);
-				});
+		    if (!teamInfo.isEmpty()) {
+		        Object[] firstRow = teamInfo.get(0);
+		        projectDetails.setProjectId(firstRow[8] != null ? Integer.parseInt(firstRow[8].toString()) : null);
+		        projectDetails.setProjectName(firstRow[9] != null ? firstRow[9].toString() : null);
+		        projectDetails.setClientId(firstRow[10] != null ? Long.parseLong(firstRow[10].toString()) : null);
+		        projectDetails.setClientName(firstRow[11] != null ? firstRow[11].toString() : null);
+		    }
 
-				if (teamInfo != null) {
-					response.setServiceResponse(result);
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					apiLogInfo.setApiResponse("projectInfoList fetched");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		    for (Object[] object : teamInfo) {
+		        Long teamId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+		        TeamInfoTeamDTO team = teamMap.get(teamId);
+
+		        if (team == null) {
+		            team = new TeamInfoTeamDTO();
+		            team.setTeamId(teamId);
+		            team.setTeamName(object[1] != null ? object[1].toString() : null);
+		            team.setTeamLeadName(object[13] != null ? object[13].toString() : null);
+		            team.setSpoc(object[12] != null ? object[12].toString() : null);
+		            team.setTeamMemberDetails(new ArrayList<>());
+
+		            teamMap.put(teamId, team);
+		            teams.add(team);
+		        }
+
+		        TeamInfoTeamMemberDTO member = new TeamInfoTeamMemberDTO();
+		        member.setEmpId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+		        member.setEmployeeName(object[3] != null ? object[3].toString() : null);
+		        member.setEmployeeRole(object[4] != null ? object[4].toString() : null);
+		        member.setBillableType(object[5] != null ? object[5].toString() : null);
+		        member.setStartDate(object[6] != null ? object[6].toString() : null);
+		        member.setActive(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
+		        member.setIsDefaultProject(
+		            this.isDefaultProject(
+		                member.getEmpId(), resourceManagementDTO.getProjectId()
+		            )
+		        );
+				
+				Map<String, Object> activeProjectInfo = this.getActiveProjectDetailsIfMultiple(member.getEmpId(), resourceManagementDTO.getProjectId());
+				if ((Boolean) activeProjectInfo.get("isMultipleActiveProjects")) {
+				    List<Map<String, Object>> otherProjects = (List<Map<String, Object>>) activeProjectInfo.get("projects");
+				    member.setOtherActiveProjects(otherProjects);
 				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("No team found.");
-					apiLogInfo.setApiResponse("No team Found");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					member.setOtherActiveProjects(Collections.emptyList());
 				}
-			}
+
+		        team.getTeamMemberDetails().add(member);
+		    }
+
+		    projectDetails.setTeamDetails(teams);
+
+		    if (!teamInfo.isEmpty()) {
+		        response.setServiceResponse(projectDetails);
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        apiLogInfo.setApiResponse("projectInfoList fetched");
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		    } else {
+		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse("No team found.");
+		        apiLogInfo.setApiResponse("No team Found");
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		    }
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -6474,7 +6588,7 @@ public class ResourceManagementService {
 	                m -> new ArrayList<>(m.values())
 	            ));
 	    
-	    if (activeProjects.size() > 1) {
+	    if (!activeProjects.isEmpty()) {
 	        result.put("isMultipleActiveProjects", true);
 	        result.put("projects", distinctProjects);
 	    } else {
@@ -6864,7 +6978,7 @@ public class ResourceManagementService {
 	    return response;
 	}
 	
-	public ServiceResponse getBenchEmployeeMoreThan30Days() {
+	public ServiceResponse getBenchEmployeeMoreThan30Days(Long deptId) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("getBenchEmployeeMoreThan30Days");
@@ -6874,7 +6988,7 @@ public class ResourceManagementService {
 	    StringBuilder logBuilder = new StringBuilder();
 
 	    try {
-	        List<Object[]> resultSet = projectRepository.getBenchEmployeeMoreThan30Days();
+	        List<Object[]> resultSet = projectRepository.getBenchEmployeeMoreThan30Days(deptId);
 	        logBuilder.append("\n getBenchEmployeeMoreThan30Days - Total Records: ").append(resultSet.size());
 
 	        Map<Long, BenchEmployeeDetailsDTO> employeeMap = new HashMap<>();
