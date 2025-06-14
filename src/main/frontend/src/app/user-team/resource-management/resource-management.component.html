@@ -804,7 +804,7 @@
             <div class="team-preview-row">
                 <div class="team-preview-field">
                     <label><span class="text-danger">*</span>Department</label>
-                    <mat-select [multiple]="true" [(ngModel)]="projectObj.departmentName">
+                    <mat-select [multiple]="true" [(ngModel)]="projectObj.deptId">
                         <mat-option class="non-selectable" disabled>
                             <div style="display: flex; align-items: center;">
                                 <input type="text" [(ngModel)]="searchText"
@@ -1239,8 +1239,8 @@
         <div class="modal-body text-center">
             <p>Are you sure want to delete Team ?</p>
             <button type="button" class="btn btn-success"
-                (click)="cancelRequest();deleteResourceModal1(delete_modal_template1)">Yes</button>&nbsp;
-            <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+                (click)="cancelRequest5();deleteResourceModal1(delete_modal_template1)">Yes</button>&nbsp;
+            <button type="button" class="btn btn-danger" (click)="cancelRequest5()">No, Cancel</button>&nbsp;
         </div>
     </ng-template>
 
@@ -1874,10 +1874,10 @@
                     </div>
                 </div>
                 <button type="button" class="btn btn-success" 
-                    (click)="deleteTeamsByIdsBulk(alert_message);cancelRequest5()">Yes, proceed</button>&nbsp;
+                    (click)="deleteTeamsByIdsBulk(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
                 <!-- <button type="button" class="btn btn-success" *ngIf="!selectedTeamsDetails.length"
                     (click)="deleteTeam(alert_message);cancelRequest()">Yes, proceed</button>&nbsp; -->
-                <button type="button" class="btn btn-danger" (click)="cancelRequest5()">No, Cancel</button>&nbsp;
+                <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
             </div>
         </div>
     </ng-template>
@@ -2224,7 +2224,7 @@
                                     <button class="set-team-btn" *ngIf="!isBulkDelete && isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
                                     (click)="setDefaultProjectUpdateForActiveProject(project,selectedOtherProjectId,delete_modal_template_bulk)">Update
                                     Default Project</button>
-                                     <button class="set-team-btn" *ngIf="!isBulkDelete && isBulkDeleteResource && isBulkDeleteResourceFromTNMProjects"
+                                     <button class="set-team-btn" *ngIf="!isBulkDelete && !isBulkDeleteResource && isBulkDeleteResourceFromTNMProjects"
                                     (click)="setDefaultProjectUpdateForActiveProject(project,selectedOtherProjectId,delete_modal_template_bulk1)">Update
                                     Default Project</button>
                                     
@@ -2463,7 +2463,7 @@
                                         (click)="setProjectMappingAndDefaultProject(delete_modal_template_bulk,emp)">
                                         Set Default Project
                                     </button>
-                                    <button class="set-team-btn" *ngIf="isBulkDeleteResource && !isBulkDelete && isBulkDeleteResourceFromTNMProjects"
+                                    <button class="set-team-btn" *ngIf="!isBulkDeleteResource && !isBulkDelete && isBulkDeleteResourceFromTNMProjects"
                                         (click)="setProjectMappingAndDefaultProject(delete_modal_template_bulk1,emp)">
                                         Set Default Project
                                     </button>

@@ -43,4 +43,5 @@ public class PoProjectSyncDTO {
     private List<ProjectManagerMappingDTO> projectManagersList;
 	private List<ProjectManagersDTO> projectManagers;
 	private String internalProjectType;
+	private String deptId;
 }
