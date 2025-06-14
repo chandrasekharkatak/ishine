@@ -3605,7 +3605,7 @@ public class ResourceManagementService {
 					ResourceManagementDTO dto = new ResourceManagementDTO();
 
 					dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
-
+					dto.setProjectName(object[1] != null ? object[1].toString() : null);
 					List<Object[]> resultManager = projectManagerMappingRepository
 							.findProjectManagersPerProject(Long.parseLong(projObj.getProjectId().toString()));
 
