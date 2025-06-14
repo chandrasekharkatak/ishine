@@ -14,6 +14,9 @@ public class ProjectFilterDTO {
 	private String approvalStatus;
 	private String completionStatus;
 	private Long currentUserEmpId;
+	private Boolean isAdmin;
+	private Boolean isHod;
+	private Boolean isOther;
 	private List<Long> departmentsids;
 
 }

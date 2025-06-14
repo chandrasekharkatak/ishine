@@ -150,10 +150,11 @@ public class ProjectFetchDTO {
 		this.apmosysRmEmail = apmosysRmEmail;
 		this.projectCompletionDate = projectCompletionDate;
 		this.projectStatus = projectStatus;
-		this.internalProjectType = internalProjectType;
+		this.projectType = internalProjectType;
 		this.clientName = clientName;
 		this.draftStatus = draftStatus;
 		this.projectViewId = projectViewId;
+//		this.projectType = projectType;
 	}
 
 }

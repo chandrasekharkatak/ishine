@@ -407,7 +407,7 @@ export class ResourceManagementComponent implements OnInit {
   //isAccounts: boolean = false;
   isDeptFilter: boolean = false;
   dept:any;
-
+  isAdminOrHod = true;
   //added
 
   setDefaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
@@ -455,11 +455,18 @@ export class ResourceManagementComponent implements OnInit {
     if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") &&
       !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")) {
       await this.getAllDepartmentsFromId();
+      this.projectFilterDTO.isHod = true
     }
     else {
       await this.getAllDepartments();
+      if(this.filteredDepartments != null)
+      this.projectFilterDTO.isAdmin = true;
+      else{
+      this.projectFilterDTO.isOther = true
+      this.isAdminOrHod = false;
+      }
     }
-
+    console.log(this.projectFilterDTO);
     this.route.params.subscribe((params: Params) => {
       this.currentProjectId = params['id'];
     });
@@ -491,7 +498,7 @@ export class ResourceManagementComponent implements OnInit {
     // this.toggleSelectAllDept();
     this.projectFilterDTO.approvalStatus = "All";
     this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
-    this. projectFilterDTO.departmentsids = this.filteredDepartments.map(dept => dept.deptId);
+    // this. projectFilterDTO.departmentsids = this.filteredDepartments.map(dept => dept.deptId);
     await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
 
     await this.RbacInternalProjects(this.projectFilterDTO);
