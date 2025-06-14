@@ -226,7 +226,7 @@ public class ResourceManagementService {
 
 		try {
 			Project projObj = null;
-			if (resourceManagementDTO.getProjectType().equals("InternalRNDProducts")) {
+			if (resourceManagementDTO.getProjectType().equals("Internal")) {
 				projObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
 
 			} else {
@@ -2463,7 +2463,7 @@ public class ResourceManagementService {
 
 		try {
 			Project projectObj = null;
-			if (resourceManagementDTO.getProjectType().equals("InternalRNDProducts"))
+			if (resourceManagementDTO.getProjectType().equals("Internal"))
 				projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
 			else
 				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
@@ -2495,7 +2495,7 @@ public class ResourceManagementService {
 
 						// Send Project/Team detail JSON to PoPortal
 						ServiceResponse poPortalResponse = null;
-						if (!resourceManagementDTO.getProjectType().equals("InternalRNDProducts")) {
+						if (!resourceManagementDTO.getProjectType().equals("Internal")) {
 							poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
 
 							if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
@@ -2809,7 +2809,7 @@ public class ResourceManagementService {
 		System.err.println(" Anurag sync PO portal    ::   " + resourceManagementDTO);
 		try {
 			Project projectObj = null;
-			if (!resourceManagementDTO.getProjectType().equals("InternalRNDProducts")) {
+			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
 				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
 				System.err.println(" projectObj   " + projectObj.getPoProjectId());
 				List<PoProjectSyncDTO> projectInfo = new ArrayList<PoProjectSyncDTO>();
@@ -3064,7 +3064,7 @@ public class ResourceManagementService {
 				allInternalProject.forEach((object) -> {
 					ResourceManagementDTO projectDTO = new ResourceManagementDTO();
 
-					projectDTO.setProjectType("InternalRNDProducts");
+					projectDTO.setProjectType("Internal");
 					projectDTO.setName(object[0] != null ? object[0].toString() : null);
 //					projectDTO.setProjectManager(object[10] != null ? "A-".concat(object[10].toString()) : null);
 					projectDTO.setProjectManagerName(object[2] != null ? object[2].toString() : null);
@@ -3344,7 +3344,7 @@ public class ResourceManagementService {
 
 		try {
 			Project projObj = null;
-			if (dto.getProjectType().equals("InternalRNDProducts")) {
+			if (dto.getProjectType().equals("Internal")) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("This is marked as an internal project !");
 				return response;
@@ -4496,7 +4496,7 @@ public class ResourceManagementService {
 
 		try {
 			Project projObj = null;
-			if (resourceManagementDTO.getProjectType().equals("InternalRNDProducts")) {
+			if (resourceManagementDTO.getProjectType().equals("Internal")) {
 				projObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
 
 			} else {
@@ -6424,8 +6424,12 @@ public class ResourceManagementService {
 					dto.setId(row[5] != null ? ((BigInteger) row[5]).longValue() : null);
 
 					dto.setProjectType((String) row[14]);
-					dto.setDepartment(resourceRequirementTempRepo
-							.getAllDepartmentsFromPoProjectId(((BigInteger) row[5]).longValue()));
+					if(row[5] != null) {
+						dto.setDepartment(resourceRequirementTempRepo
+								.getAllDepartmentsFromPoProjectId(Long.parseLong(row[5].toString())));
+					}else {
+						dto.setDepartment(null);
+					}
 					dtoList.add(dto);
 				}
 

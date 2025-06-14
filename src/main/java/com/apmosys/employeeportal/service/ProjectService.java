@@ -300,6 +300,7 @@ public class ProjectService {
 				projectObj.setSyncProject("false");
 				projectObj.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
 				projectObj.setInternalProjectType(poProjectSyncDTO.getInternalProjectType());	
+				projectObj.setIsDraftProject("Not Started");
 				Project projectDbResponse =  projectRepository.save(projectObj);
 				System.out.println("Pri 3 "+ firstClientOptional);
 				if(projectDbResponse != null) {
