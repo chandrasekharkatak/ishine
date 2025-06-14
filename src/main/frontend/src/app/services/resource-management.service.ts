@@ -134,4 +134,8 @@ export class ResourceManagementService {
   getBenchEmployeeMoreThan30Days(deptId){
     return this.http.get(`${this.baseUrl}`+`api/getBenchEmployeeMoreThan30Days`,{params: { deptId: deptId }});
   }
+
+  getProjectTimesheetSummary(request:any){
+    return this.http.post(`${this.baseUrl}` + `api/getProjectTimesheetSummary`,request);
+  }
 }

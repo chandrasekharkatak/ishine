@@ -351,5 +351,12 @@ public class ResourceManagementController {
 	public ServiceResponse getBenchEmployeeMoreThan30Days(@RequestParam Long deptId) {
 	    return resourceManagementService.getBenchEmployeeMoreThan30Days(deptId);
 	}
+	
+	
+	@RequestMapping(value = "/getProjectTimesheetSummary", method = RequestMethod.POST)
+	public ServiceResponse getProjectTimesheetSummary(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+		ServiceResponse response = resourceManagementService.getProjectTimesheetSummary(resourceManagementDTO);
+		return response;
+	}
 
 }

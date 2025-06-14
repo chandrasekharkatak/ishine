@@ -75,6 +75,7 @@ import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
+import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TeamInfoProjectDTO;
 import com.apmosys.employeeportal.dto.TeamInfoTeamDTO;
@@ -7107,6 +7108,61 @@ public class ResourceManagementService {
 	        response.setServiceResponse("Something went wrong!");
 	        logBuilder.append("\n Exception occurred: ").append(e.getMessage());
 	    }
+
+	    return response;
+	}
+	
+	
+	public ServiceResponse getProjectTimesheetSummary(ResourceManagementDTO resourceManagementDTO) {
+
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Project 360");
+	    apiLogInfo.setApiUrl("/api/getProjectTimesheetSummary");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Fetching timesheet summary for emp_id: ")
+	              .append(resourceManagementDTO.getEmpId());
+
+	    try {
+	        List<Object[]> summaryData = projectRepository
+	            .getProjectTimesheetSummaryByEmpId(resourceManagementDTO.getEmpId());
+
+	        List<SummaryChartDTO> result = new ArrayList<>();
+
+	        if (!summaryData.isEmpty()) {
+	            for (Object[] row : summaryData) {
+	            	SummaryChartDTO dto = new SummaryChartDTO();
+
+	                dto.setProjectName(row[0] != null ? row[0].toString() : null);
+	                dto.setTotalTimesheetsFilled(row[1] != null ? Long.parseLong(row[1].toString()) : 0);
+
+	                result.add(dto);
+	            }
+
+	            response.setServiceResponse(result);
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            apiLogInfo.setApiResponse("Project timesheet summary fetched");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No timesheet data found for the employee.");
+	            apiLogInfo.setApiResponse("No data found");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
 
 	    return response;
 	}

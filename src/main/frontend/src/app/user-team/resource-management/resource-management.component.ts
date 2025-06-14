@@ -5,11 +5,11 @@ import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
+import * as Highcharts from 'highcharts';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
-
 import { DefaultProjectUpdate } from 'src/app/models/defaultProjectUpdate';
 import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
@@ -88,6 +88,9 @@ export class ResourceManagementComponent implements OnInit {
   statuses = ['Pending', 'Approved'];
   selectedEmployee = '';
   selectedStatus = '';
+
+   summaryModalRef: BsModalRef;
+  projectSummaryData: any[] = [];
 
   // new cards changes.....................................................................
   @ViewChild("alert_message")
@@ -2341,6 +2344,157 @@ export class ResourceManagementComponent implements OnInit {
     console.log("emp", emp)
     return emp ? `${emp.name}` : '';
   }
+
+   openSummaryModal(template: TemplateRef<any>, selectedEmpId: any) {
+    this.summaryModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.selectedEmpId = selectedEmpId;
+    
+    this.getProjectTimesheetSummaryData();
+  }
+
+  closeSummaryModal() {
+    this.summaryModalRef.hide();
+  }
+
+getProjectTimesheetSummaryData() {
+    // 1. Check if the current user and their empId are available.
+    if (!this.selectedEmpId) {
+      this.openAlertMod(this.alertTemplateWithoutReload, "Cannot fetch summary. User information is missing.");
+      console.error("Current user or empId is not available.");
+      // Close the modal or show an error state in the chart container if the modal is already open
+      if (this.summaryModalRef) {
+        // You could display an error message inside the modal body here
+        document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Could not load data: User not identified.</p>';
+      }
+      return;
+    }
+
+    // 2. Create the DTO object to send to the backend.
+    const resourceManagementDTO = {
+      empId: this.selectedEmpId
+    };
+
+    // 3. Pass the DTO to the service call.
+    console.log("================================",resourceManagementDTO);
+    this.resourceManagementService.getProjectTimesheetSummary(resourceManagementDTO).pipe(first()).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.projectSummaryData = response.serviceResponse;
+          
+          if (this.projectSummaryData && this.projectSummaryData.length > 0) {
+            this.processProjectSummaryData(this.projectSummaryData);
+          } else {
+            // Handle the case where the API succeeds but returns no data
+            document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center">No timesheet summary data found for your projects.</p>';
+          }
+        } else {
+          // this.openAlertMod(this.alertTemplate, "Failed to load project summary data.");
+          console.error(response.serviceResponse);
+          document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Error:No timesheets filled till date</p>';
+        }
+      },
+      error: (err) => {
+        this.openAlertMod(this.alertTemplate, "An error occurred while fetching summary data.");
+        console.error(err);
+        document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">A server error occurred. Please try again later.</p>';
+      }
+    });
+  }
+
+  processProjectSummaryData(summaryData: any[]) {
+      const categories = [];
+      const seriesData = [];
+
+      // Sort data by totalTimesheetsFilled in descending order and take top 20 for better visualization
+      const sortedData = summaryData
+          .sort((a, b) => b.totalTimesheetsFilled - a.totalTimesheetsFilled)
+          .slice(0, 20);
+
+      sortedData.forEach(item => {
+          categories.push(item.projectName);
+          seriesData.push(item.totalTimesheetsFilled);
+      });
+
+      const chartData = [{
+          name: 'Timesheets Filled',
+          data: seriesData,
+          color: '#0275d8' // A bootstrap primary-like color
+      }];
+
+      this.renderColumnChart(
+          'Top 20 Projects by Timesheets Filled',
+          'projectTimesheetSummaryChart',
+          chartData,
+          categories
+      );
+  }
+
+  renderColumnChart(chartName: any, chartId: any, chartData: any, categories: any) {
+    Highcharts.chart(chartId, {
+        chart: {
+            type: 'column',
+        },
+        title: {
+            text: chartName,
+            style: {
+                fontWeight: 'bold',
+                color: '#000000'
+            }
+        },
+        xAxis: {
+            categories: categories,
+            title: {
+                text: 'Projects'
+            },
+            labels: {
+                rotation: -45, // Rotate labels to prevent overlap
+                style: {
+                    fontSize: '11px',
+                    fontFamily: 'Verdana, sans-serif'
+                }
+            }
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'Total Timesheets Filled',
+                align: 'high'
+            },
+            labels: {
+                overflow: 'justify'
+            }
+        },
+        tooltip: {
+            valueSuffix: ' timesheets'
+        },
+        plotOptions: {
+            column: {
+                dataLabels: {
+                    enabled: true,
+                    format: '{y}',
+                    style: {
+                      fontSize: '10px',
+                    }
+                }
+            }
+        },
+        credits: {
+            enabled: false,
+        },
+        legend: {
+            enabled: false // Not needed for a single series chart
+        },
+        series: chartData
+    });
+  }
+
+
+
+
+
+
+
+
 
   openEditModal(template, project) {
     // console.log("Project ",project)

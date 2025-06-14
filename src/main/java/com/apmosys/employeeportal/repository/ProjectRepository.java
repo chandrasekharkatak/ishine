@@ -503,4 +503,19 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "    )")
 	Set<Integer> findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
 	
+	
+	
+	
+	@Query(value = "SELECT DISTINCT p.project_name, COUNT(DISTINCT et.timesheet_id) AS total_timesheets_filled " +
+            "FROM employee e " +
+            "INNER JOIN employee_team_mapping etm USING (emp_id) " +
+            "INNER JOIN teams t USING (team_id) " +
+            "INNER JOIN projects p USING (project_id) " +
+            "INNER JOIN employee_timesheets et ON et.emp_id = e.emp_id " +
+            "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id " +
+            "INNER JOIN activities a ON etam.activity_id = a.activity_id AND t.team_id = a.team_id " +
+            "WHERE e.emp_id = :empId " +
+            "GROUP BY e.emp_id, p.project_name", 
+    nativeQuery = true)
+	public List<Object[]> getProjectTimesheetSummaryByEmpId(@Param("empId") Long empId);
 }

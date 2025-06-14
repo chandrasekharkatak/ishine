@@ -130,7 +130,8 @@
               max-width: fit-content;" (click)="selectStatusTab('CompletedWithTeam')"
                         [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithTeam'}">
                         <div class="mini-card1" style="border-left: 4px solid #7836c4;">
-                            <div class="value fw-bold" style="color: #7836c4;">{{tabCounts.completedWithEmployeeCount}}</div>
+                            <div class="value fw-bold" style="color: #7836c4;">{{tabCounts.completedWithEmployeeCount}}
+                            </div>
                             <div class="label text-muted">Completed In Shankh Have Active Team<i
                                     class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #7836c4;"></i></div>
                         </div>
@@ -187,17 +188,21 @@
                 <div class="row mb-3">
                     <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                         <input id="employeeSearch" type="text" class="form-select custom-select-style"
-                            style="min-width: 50px;" placeholder="Search by Name or Emp ID" aria-label="Search employee"
+                            style="min-width: 200px;" placeholder="Search by Name or Emp ID" aria-label="Search employee"
                             [formControl]="employeeCtrl" [matAutocomplete]="auto">
 
                         <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
                             [displayWith]="displayEmployee">
-                            <mat-option *ngFor="let emp of filteredEmployees" [value]="emp"
-                            [navigateToEmployee360]="emp.empId">
+                            <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
                                 {{ emp.name }}
                             </mat-option>
                         </mat-autocomplete>
                     </div>
+                </div>
+                <div *ngIf="selectedEmpId" class="button-container">
+                    <button class="rounded-button summary-button" (click)="openSummaryModal(projectSummaryModal, selectedEmpId)" >Employee Summary</button>
+                    <button class="rounded-button details-button" [navigateToEmployee360]="this.selectedEmpId">Employee
+                        360</button>
                 </div>
             </div>
 
@@ -208,7 +213,7 @@
                 <h5>Employee Status Report</h5>
             </div>
         </div>
-          
+
         <div class="row">
             <div class="col-md-4 mb-2">
                 <div class="mini-card">
@@ -218,30 +223,34 @@
             </div>
 
             <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(sankhMappedEmployeesList) }" (click)="EmployeeViewDataModel(employee_data,'Sankh')">
-                <div class="value">
-                    <ng-container *ngIf="sankhMappedEmployees !== null && sankhMappedEmployees !== undefined; else loading1">
-                    {{ sankhMappedEmployees }}
-                    </ng-container>
-                    <ng-template #loading1>
-                    <i class="fa fa-spinner fa-spin text-secondary"></i>
-                    </ng-template>
-                </div>
-                <div class="label weight" style="color: #2E7D32;">
-                    Mapped to Shankh Projects <i class="fa fa-link" style="color: #2E7D32;"></i>
-                </div>
-                <div class="text-primary text-end small">View Employees</div>
+                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(sankhMappedEmployeesList) }"
+                    (click)="EmployeeViewDataModel(employee_data,'Sankh')">
+                    <div class="value">
+                        <ng-container
+                            *ngIf="sankhMappedEmployees !== null && sankhMappedEmployees !== undefined; else loading1">
+                            {{ sankhMappedEmployees }}
+                        </ng-container>
+                        <ng-template #loading1>
+                            <i class="fa fa-spinner fa-spin text-secondary"></i>
+                        </ng-template>
+                    </div>
+                    <div class="label weight" style="color: #2E7D32;">
+                        Mapped to Shankh Projects <i class="fa fa-link" style="color: #2E7D32;"></i>
+                    </div>
+                    <div class="text-primary text-end small">View Employees</div>
                 </div>
             </div>
-            
+
             <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(internalMappedEmployeesList) }" (click)="EmployeeViewDataModel(employee_data,'Internal')">
+                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(internalMappedEmployeesList) }"
+                    (click)="EmployeeViewDataModel(employee_data,'Internal')">
                     <div class="value">
-                        <ng-container *ngIf="internalMappedEmployees !== null && internalMappedEmployees !== undefined; else loading2">
-                        {{ internalMappedEmployees }}
+                        <ng-container
+                            *ngIf="internalMappedEmployees !== null && internalMappedEmployees !== undefined; else loading2">
+                            {{ internalMappedEmployees }}
                         </ng-container>
                         <ng-template #loading2>
-                        <i class="fa fa-spinner fa-spin text-secondary"></i>
+                            <i class="fa fa-spinner fa-spin text-secondary"></i>
                         </ng-template>
                     </div>
                     <div class="label" style="color: #F9A825;">
@@ -250,15 +259,17 @@
                     <div class="text-primary text-end small">View Employees</div>
                 </div>
             </div>
-            
+
             <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(mappedToBothEmployeesList) }" (click)="EmployeeViewDataModel(employee_data,'Both')">
+                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(mappedToBothEmployeesList) }"
+                    (click)="EmployeeViewDataModel(employee_data,'Both')">
                     <div class="value">
-                        <ng-container *ngIf="mappedToBothEmployees !== null && mappedToBothEmployees !== undefined; else loading3">
-                        {{ mappedToBothEmployees }}
+                        <ng-container
+                            *ngIf="mappedToBothEmployees !== null && mappedToBothEmployees !== undefined; else loading3">
+                            {{ mappedToBothEmployees }}
                         </ng-container>
                         <ng-template #loading3>
-                        <i class="fa fa-spinner fa-spin text-secondary"></i>
+                            <i class="fa fa-spinner fa-spin text-secondary"></i>
                         </ng-template>
                     </div>
                     <div class="label weight" style="color: #820beb;">
@@ -267,15 +278,17 @@
                     <div class="text-primary text-end small">View Employees</div>
                 </div>
             </div>
-            
+
             <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeesWithoutProjectList) }" (click)="EmployeeViewDataModel(employee_data,'Not Mapped')">
+                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeesWithoutProjectList) }"
+                    (click)="EmployeeViewDataModel(employee_data,'Not Mapped')">
                     <div class="value">
-                        <ng-container *ngIf="employeesWithoutProject !== null && employeesWithoutProject !== undefined; else loading4">
-                        {{ employeesWithoutProject }}
+                        <ng-container
+                            *ngIf="employeesWithoutProject !== null && employeesWithoutProject !== undefined; else loading4">
+                            {{ employeesWithoutProject }}
                         </ng-container>
                         <ng-template #loading4>
-                        <i class="fa fa-spinner fa-spin text-secondary"></i>
+                            <i class="fa fa-spinner fa-spin text-secondary"></i>
                         </ng-template>
                     </div>
                     <div class="label weight text-danger">
@@ -284,15 +297,17 @@
                     <div class="text-primary text-end small">View Employees</div>
                 </div>
             </div>
-            
+
             <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(allMappedEmployeesList) }" (click)="EmployeeViewDataModel(employee_data,'All Mapped')">
+                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(allMappedEmployeesList) }"
+                    (click)="EmployeeViewDataModel(employee_data,'All Mapped')">
                     <div class="value">
-                        <ng-container *ngIf="allMappedEmployees !== null && allMappedEmployees !== undefined; else loading5">
-                        {{ allMappedEmployees }}
+                        <ng-container
+                            *ngIf="allMappedEmployees !== null && allMappedEmployees !== undefined; else loading5">
+                            {{ allMappedEmployees }}
                         </ng-container>
                         <ng-template #loading5>
-                        <i class="fa fa-spinner fa-spin text-secondary"></i>
+                            <i class="fa fa-spinner fa-spin text-secondary"></i>
                         </ng-template>
                     </div>
                     <div class="label weight" style="color: #6F1D1B;">
@@ -301,38 +316,42 @@
                     <div class="text-primary text-end small">View Employees</div>
                 </div>
             </div>
-            
+
             <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(exceptionEmployeesList) }" (click)="EmployeeViewDataModel(employee_data,'Exception')">
-                <div class="value">
-                    <ng-container *ngIf="exceptionEmployees !== null && exceptionEmployees !== undefined; else loading5">
-                    {{ exceptionEmployees }}
-                    </ng-container>
-                    <ng-template #loading5>
-                    <i class="fa fa-spinner fa-spin text-secondary"></i>
-                    </ng-template>
-                </div>
-                <div class="label" style="color: #ee0a0a;">
-                    Employees on Bench but Assigned to Other Projects <i class="fa fa-link" style="color: #ee0a0a;"></i>
-                </div>
-                <div class="text-primary text-end small">View Employees</div>
+                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(exceptionEmployeesList) }"
+                    (click)="EmployeeViewDataModel(employee_data,'Exception')">
+                    <div class="value">
+                        <ng-container
+                            *ngIf="exceptionEmployees !== null && exceptionEmployees !== undefined; else loading5">
+                            {{ exceptionEmployees }}
+                        </ng-container>
+                        <ng-template #loading5>
+                            <i class="fa fa-spinner fa-spin text-secondary"></i>
+                        </ng-template>
+                    </div>
+                    <div class="label" style="color: #ee0a0a;">
+                        Employees on Bench but Assigned to Other Projects <i class="fa fa-link"
+                            style="color: #ee0a0a;"></i>
+                    </div>
+                    <div class="text-primary text-end small">View Employees</div>
                 </div>
             </div>
-            
+
             <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeeBenchRepot) }" (click)="EmployeeViewDataModel(employee_data,'OnBench')">
-                <div class="value">
-                    <ng-container *ngIf="employeeBench !== null && employeeBench !== undefined; else loading5">
-                    {{ employeeBench }}
-                    </ng-container>
-                    <ng-template #loading5>
-                    <i class="fa fa-spinner fa-spin text-secondary"></i>
-                    </ng-template>
-                </div>
-                <div class="label" style="color: #144552;">
-                    Employee On Bench For More Than 30 Days <i class="fa fa-link" style="color: #144552;"></i>
-                </div>
-                <div class="text-primary text-end small">View Employees</div>
+                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeeBenchRepot) }"
+                    (click)="EmployeeViewDataModel(employee_data,'OnBench')">
+                    <div class="value">
+                        <ng-container *ngIf="employeeBench !== null && employeeBench !== undefined; else loading5">
+                            {{ employeeBench }}
+                        </ng-container>
+                        <ng-template #loading5>
+                            <i class="fa fa-spinner fa-spin text-secondary"></i>
+                        </ng-template>
+                    </div>
+                    <div class="label" style="color: #144552;">
+                        Employee On Bench For More Than 30 Days <i class="fa fa-link" style="color: #144552;"></i>
+                    </div>
+                    <div class="text-primary text-end small">View Employees</div>
                 </div>
             </div>
         </div>
@@ -340,9 +359,9 @@
 
     <!-- start :: View Projects -->
     <div class="row" *ngIf="allProjectTable">
-        
+
         <div class="col-md-12">
-            
+
             <div class="row">
                 <div class="col-md-12">
                     <h5>Project Report</h5>
@@ -366,259 +385,274 @@
                         <!-- <div *ngIf="bulkSyncList.length >= 1" class="col-md-3">
             <button class="btn btn-sm btn-primary mt-2" (click)="onBulkSyncProject(alert_message)" type="submit">Sync
                 Project <em class="fa-solid fa-rotate"></em></button>&nbsp;
-        </div> -->      
-                        
+        </div> -->
+                        <h5>Project Report</h5>
                     </div>
                     <div class="col d-flex align-items-center ">
                         <span class="font-weight-bold text-muted small">
-                          Displaying:
-                          {{ (allProject_Po_Internal | colFilter : filters : false).length }} of
-                          {{ allProject_Po_Internal.length }} employees
+                            Displaying:
+                            {{ (allProject_Po_Internal | colFilter : filters : false).length }} of
+                            {{ allProject_Po_Internal.length }} employees
                         </span>
                     </div>
 
                     <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'"
-                    [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
-                    <table class="table" id="project-info" matSort (matSortChange)="sortData($event)">
-                        <thead class="thead-light">
-                            <tr id="projectInfoTHeadTr">
-                                <th scope="col" class="info-label">Actions</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 120px;">Sr
-                                    No.</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 170px;"
-                                    mat-sort-header="draftStatus|string">Approval
-                                    Status</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 300px;"
-                                    mat-sort-header="name|string">Project Name</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                    mat-sort-header="poNo|string">PO Number</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                    mat-sort-header="projectType|string">Project Type</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 300px;"
-                                    mat-sort-header="projectManagerName|string">Project
-                                    Manager</th>
-                                <!-- <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Start Date</th>
+                        [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
+                        <table class="table" id="project-info" matSort (matSortChange)="sortData($event)">
+                            <thead class="thead-light">
+                                <tr id="projectInfoTHeadTr">
+                                    <th scope="col" class="info-label">Actions</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 120px;">
+                                        Sr
+                                        No.</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 170px;"
+                                        mat-sort-header="draftStatus|string">Approval
+                                        Status</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 300px;"
+                                        mat-sort-header="name|string">Project Name</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                        mat-sort-header="poNo|string">PO Number</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                        mat-sort-header="projectType|string">Project Type</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 300px;"
+                                        mat-sort-header="projectManagerName|string">Project
+                                        Manager</th>
+                                    <!-- <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">Start Date</th>
                                     <th scope="col" class="info-label" mat-sort-header="projectManagerName|string">End Date</th> -->
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                    mat-sort-header="clientName|string">Client</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                    mat-sort-header="apmosysRM|string">Apmosys RM</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                    mat-sort-header="clientRM|string">Client RM</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                    mat-sort-header="poStartDate|string">Start Date</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                    mat-sort-header="poEndDate|string">End Date</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                    mat-sort-header="state|string">State</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                    mat-sort-header="createdOn|datetime">Created On</th>
-                                <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                    mat-sort-header="status|string">Project Status</th>
-                            </tr>
-                            <tr app-column-filter-bar *ngIf="allProjectTable && isSearchEnabled"
-                                [columnList]="projectColumns" (onSearch)="onSearch($event);page=1"></tr>
-
-                            <!-- table body for PoPortal -->
-                        </thead>
-                        <tbody>
-                            <ng-container *ngIf="allProject_Po_Internal.length ==0">
-                                <tr>
-                                    <th colspan="9" class="text-center info-label">No details to display...</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                        mat-sort-header="clientName|string">Client</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                        mat-sort-header="apmosysRM|string">Apmosys RM</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                        mat-sort-header="clientRM|string">Client RM</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                        mat-sort-header="poStartDate|string">Start Date</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                        mat-sort-header="poEndDate|string">End Date</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                        mat-sort-header="state|string">State</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                        mat-sort-header="createdOn|datetime">Created On</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                        mat-sort-header="status|string">Project Status</th>
                                 </tr>
-                            </ng-container>
-                            <ng-container
-                                *ngFor="let project of allProject_Po_Internal | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
-                                <tr>
-                                    <!-- <td *ngIf="!isAccounts"><span
+                                <tr app-column-filter-bar *ngIf="allProjectTable && isSearchEnabled"
+                                    [columnList]="projectColumns" (onSearch)="onSearch($event);page=1"></tr>
+
+                                <!-- table body for PoPortal -->
+                            </thead>
+                            <tbody>
+                                <ng-container *ngIf="allProject_Po_Internal.length ==0">
+                                    <tr>
+                                        <th colspan="9" class="text-center info-label">No details to display...</th>
+                                    </tr>
+                                </ng-container>
+                                <ng-container
+                                    *ngFor="let project of allProject_Po_Internal | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                    <tr>
+                                        <!-- <td *ngIf="!isAccounts"><span
                                             *ngIf="project.isDraftProject == 'Approved' && project.projectType != 'Internal'"><input
                                                 class="sync-project-checkbox" id="{{i}}" type="checkbox"
                                                 (change)="onSelectProjectForSync(project,$event)"></span></td> -->
-                                    <td>
-                                        <!-- <button class="btn btn-sm btn-outline-primary mb-1"
+                                        <td>
+                                            <!-- <button class="btn btn-sm btn-outline-primary mb-1"
                                                         *ngIf="!project.isSynced && project.isDraftProject != 'NA'"
                                                         (click)="syncPoProjectDetailsByProjectId(alert_message_sync, project);"
                                                         type="submit">Sync Po</button>&nbsp; -->
-                                        <!-- <button class="btn btn-sm btn-outline-primary mb-1"
+                                            <!-- <button class="btn btn-sm btn-outline-primary mb-1"
                                                         *ngIf="project.isMail && project.isDraftProject != 'NA'"
                                                         (click)="sendEmailNotificationToBDTeam(alert_message, project);"
                                                         type="submit">Mail</button>&nbsp; -->
-                                        <div class="action-menu-wrapper" (clickOutside)="closeMenu(i)">
-                                            <!-- Three Dots -->
-                                            <div class="three-dots" (click)="toggleMenu(i)">
-                                                <i class="fas fa-ellipsis-v"></i>
+                                            <div class="action-menu-wrapper" (clickOutside)="closeMenu(i)">
+                                                <!-- Three Dots -->
+                                                <div class="three-dots" (click)="toggleMenu(i)">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </div>
+
+                                                <!-- Dropdown Menu -->
+                                                <ul *ngIf="openMenuIndex === i" class="custom-dropdown">
+                                                    <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
+                                                        (click)="openProjectPreviewModal(preview_team_new, project);closeMenu(i);isEditProject = false">
+                                                        <i class="fas fa-eye"></i> Preview
+                                                    </li>
+                                                    <li
+                                                        (click)="openEditModal(team_configuration_form,project);closeMenu(i);">
+                                                        <i class="fas fa-pen"></i> Edit
+                                                    </li>
+                                                    <!-- <li (click)="onAction('Audit', project);closeMenu(i)"><i class="fas fa-clock"></i> Audit</li> -->
+                                                    <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
+                                                        (click)="openDatePicker(MarkAsCompleteDefaultProject,OtherProjectDefaultMapping,project,customDatePickerTemplate);closeMenu(i)">
+                                                        <i class="fas fa-check-double"></i> Mark as Complete
+                                                    </li>
+                                                    <li *ngIf=" userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !isHideButton"
+                                                        (click)="onApproveProject(project);closeMenu(i)"><i
+                                                            class="fas fa-square-check"></i> Approve</li>
+                                                    <li *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !isHideButton"
+                                                        (click)="openRejectModal(reject_project,project);closeMenu(i)">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </li>
+                                                </ul>
                                             </div>
-
-                                            <!-- Dropdown Menu -->
-                                            <ul *ngIf="openMenuIndex === i" class="custom-dropdown">
-                                                <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
-                                                    (click)="openProjectPreviewModal(preview_team_new, project);closeMenu(i);isEditProject = false">
-                                                    <i class="fas fa-eye"></i> Preview
-                                                </li>
-                                                <li
-                                                    (click)="openEditModal(team_configuration_form,project);closeMenu(i);">
-                                                    <i class="fas fa-pen"></i> Edit
-                                                </li>
-                                                <!-- <li (click)="onAction('Audit', project);closeMenu(i)"><i class="fas fa-clock"></i> Audit</li> -->
-                                                <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
-                                                    (click)="openDatePicker(MarkAsCompleteDefaultProject,OtherProjectDefaultMapping,project,customDatePickerTemplate);closeMenu(i)">
-                                                    <i class="fas fa-check-double"></i> Mark as Complete
-                                                </li>
-                                                <li *ngIf=" userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !isHideButton"
-                                                    (click)="onApproveProject(project);closeMenu(i)"><i
-                                                        class="fas fa-square-check"></i> Approve</li>
-                                                <li *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !isHideButton"
-                                                    (click)="openRejectModal(reject_project,project);closeMenu(i)"><i
-                                                        class="fas fa-times"></i> Reject</li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                    <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
-                                    <td
-                                        [ngStyle]="{'color': (project.draftStatus == 'Pending For Approval') ? 'orange' : (project.draftStatus == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
-                                        <em>{{ project.draftStatus ? project.draftStatus : 'NA' }}</em>
-                                    </td>
-                                    <td *ngIf='project.draftStatus == "Not Started"'>{{project.name ? project.name : 'NA' }}</td>
-                                    <td *ngIf="project.draftStatus != 'Not Started'"
-                                        title="Click to view Project Details">
-                                        <span style="cursor: pointer; color: blue;" id="clickablefor360"
-                                            (click)="cancelRequest()" [navigateToProjectView]="project.projectViewId">
-                                            {{project.name ? project.name : 'NA' }}
-                                        </span>
-                                    </td>
-                                    <td>{{project.poNo ? project.poNo : 'NA' }}</td>
-
-                                    <td>{{project.projectType ? project.projectType : 'NA' }} </td>
-                                    
-                                    <td>
-                                        <ng-container id="clickablefor360"
-                                            *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName && !isAccounts">
-                                                <span *ngFor="let managerData of project.projectManagers; let last = last" [navigateToEmployee360]="managerData.projectManagerId" style="cursor: pointer;"
-                                            title="Click to view Employee 360">{{managerData.projectManagerName ? managerData.projectManagerName : 'NA' }} {{!last ? ',' : ''}}</span>
-                                        </ng-container>
-                                        <ng-container *ngIf="!userMapping.my_team_resource_management_employee_360 || !project.projectManagerName">
-                                            <span *ngFor="let managerData of project.projectManagers; let last = last" style="cursor: pointer;">
-                                               {{managerData.projectManagerName ? managerData.projectManagerName : 'NA' }}{{!last ? ',' : ''}}
+                                        </td>
+                                        <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
+                                        <td
+                                            [ngStyle]="{'color': (project.draftStatus == 'Pending For Approval') ? 'orange' : (project.draftStatus == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
+                                            <em>{{ project.draftStatus ? project.draftStatus : 'NA' }}</em>
+                                        </td>
+                                        <td *ngIf='project.draftStatus == "Not Started"'>{{project.name ? project.name :
+                                            'NA' }}</td>
+                                        <td *ngIf="project.draftStatus != 'Not Started'"
+                                            title="Click to view Project Details">
+                                            <span style="cursor: pointer; color: blue;" id="clickablefor360"
+                                                (click)="cancelRequest()"
+                                                [navigateToProjectView]="project.projectViewId">
+                                                {{project.name ? project.name : 'NA' }}
                                             </span>
-                                        </ng-container>
-                                    </td>
-                                    <td>{{project.clientName ? project.clientName:'NA'}}</td>
-                                    <td>{{project.apmosysRM ? project.apmosysRM:'NA'}}</td>
-                                    <td>{{project.clientRM ? project.clientRM:'NA'}}</td>
-                                    <td>{{project.poStartDate | date: 'dd/MM/yyyy'}}</td>
-                                    <td>{{project.poEndDate | date: 'dd/MM/yyyy'}}</td>
-                                    <td>{{project.state ? project.state:'NA'}}</td>
-                                    <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td>
-                                    <td>{{project.status ? project.status:'NA'}}</td>
-                                    <!-- <td *ngIf="!isAccounts"> -->
-                                    <!-- <button class="btn btn-sm btn-outline-primary mb-1"
+                                        </td>
+                                        <td>{{project.poNo ? project.poNo : 'NA' }}</td>
+
+                                        <td>{{project.projectType ? project.projectType : 'NA' }} </td>
+
+                                        <td>
+                                            <ng-container id="clickablefor360"
+                                                *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName && !isAccounts">
+                                                <span
+                                                    *ngFor="let managerData of project.projectManagers; let last = last"
+                                                    [navigateToEmployee360]="managerData.projectManagerId"
+                                                    style="cursor: pointer;"
+                                                    title="Click to view Employee 360">{{managerData.projectManagerName
+                                                    ? managerData.projectManagerName : 'NA' }} {{!last ? ',' :
+                                                    ''}}</span>
+                                            </ng-container>
+                                            <ng-container
+                                                *ngIf="!userMapping.my_team_resource_management_employee_360 || !project.projectManagerName">
+                                                <span
+                                                    *ngFor="let managerData of project.projectManagers; let last = last"
+                                                    style="cursor: pointer;">
+                                                    {{managerData.projectManagerName ? managerData.projectManagerName :
+                                                    'NA' }}{{!last ? ',' : ''}}
+                                                </span>
+                                            </ng-container>
+                                        </td>
+                                        <td>{{project.clientName ? project.clientName:'NA'}}</td>
+                                        <td>{{project.apmosysRM ? project.apmosysRM:'NA'}}</td>
+                                        <td>{{project.clientRM ? project.clientRM:'NA'}}</td>
+                                        <td>{{project.poStartDate | date: 'dd/MM/yyyy'}}</td>
+                                        <td>{{project.poEndDate | date: 'dd/MM/yyyy'}}</td>
+                                        <td>{{project.state ? project.state:'NA'}}</td>
+                                        <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td>
+                                        <td>{{project.status ? project.status:'NA'}}</td>
+                                        <!-- <td *ngIf="!isAccounts"> -->
+                                        <!-- <button class="btn btn-sm btn-outline-primary mb-1"
                                             *ngIf="!project.isSynced && project.isDraftProject != 'NA'"
                                             (click)="syncPoProjectDetailsByProjectId(alert_message_sync, project);"
                                             type="submit">Sync Po</button>&nbsp; -->
-                                    <!-- <button class="btn btn-sm btn-outline-primary mb-1"
+                                        <!-- <button class="btn btn-sm btn-outline-primary mb-1"
                                             *ngIf="project.isMail && project.isDraftProject != 'NA'"
                                             (click)="sendEmailNotificationToBDTeam(alert_message, project);"
                                             type="submit">Mail</button>&nbsp; -->
 
-                                    <!-- </td> -->
-                                </tr>
-                                <tr *ngIf="project.isEditProject && isEditProject">
-                                    <td colspan="15">
-                                        <!-- project Edit :: start -->
-                                        <div class="row">
-                                            <!-- Project Info -->
-                                            <div class="card col-md-12 px-0">
-                                                <div class="card-body">
-                                                    <h5 class="card-name">Project Info</h5>
-                                                    <div class="row">
-                                                        <div class="col-md-4 mb-0">
-                                                            <div class="info-wrapper">
-                                                                <div class="form-group">
-                                                                    <label><span class="text-danger">*</span>Project
-                                                                        Name</label>
-                                                                    <input type="text" class="form-control" disabled
-                                                                        maxlength="255" autocomplete="none"
-                                                                        [(ngModel)]="projectObj.name">
+                                        <!-- </td> -->
+                                    </tr>
+                                    <tr *ngIf="project.isEditProject && isEditProject">
+                                        <td colspan="15">
+                                            <!-- project Edit :: start -->
+                                            <div class="row">
+                                                <!-- Project Info -->
+                                                <div class="card col-md-12 px-0">
+                                                    <div class="card-body">
+                                                        <h5 class="card-name">Project Info</h5>
+                                                        <div class="row">
+                                                            <div class="col-md-4 mb-0">
+                                                                <div class="info-wrapper">
+                                                                    <div class="form-group">
+                                                                        <label><span class="text-danger">*</span>Project
+                                                                            Name</label>
+                                                                        <input type="text" class="form-control" disabled
+                                                                            maxlength="255" autocomplete="none"
+                                                                            [(ngModel)]="projectObj.name">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4 mb-0">
+                                                                <div class="info-wrapper">
+                                                                    <div class="form-group">
+                                                                        <label class="info-label"><span
+                                                                                class="text-danger">*</span>Client
+                                                                            Name</label>
+                                                                        <input type="text" class="form-control" disabled
+                                                                            maxlength="255" autocomplete="none"
+                                                                            [(ngModel)]="projectObj.clientName">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4 mb-0">
+                                                                <div class="info-wrapper">
+                                                                    <div class="form-group">
+                                                                        <label class="info-label"><span
+                                                                                class="text-danger">*</span>Department</label>
+                                                                        <mat-select class="form-control" multiple
+                                                                            [(ngModel)]="projectObj.department">
+                                                                            <mat-option selected="selected" value=""
+                                                                                disabled>Select</mat-option>
+                                                                            <mat-option
+                                                                                *ngFor="let dept of filteredDeptList"
+                                                                                disabled
+                                                                                [value]="dept.name">{{dept.name}}</mat-option>
+                                                                        </mat-select>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-4 mb-0">
-                                                            <div class="info-wrapper">
-                                                                <div class="form-group">
-                                                                    <label class="info-label"><span
-                                                                            class="text-danger">*</span>Client
-                                                                        Name</label>
-                                                                    <input type="text" class="form-control" disabled
-                                                                        maxlength="255" autocomplete="none"
-                                                                        [(ngModel)]="projectObj.clientName">
+                                                        <div class="row">
+                                                            <div class="col-md-4 mb-0">
+                                                                <div class="info-wrapper">
+                                                                    <div class="form-group">
+                                                                        <label><span class="text-danger">*</span>Project
+                                                                            Manager</label>
+                                                                        <mat-select ngxMatSelect class="form-control"
+                                                                            #projectManager="ngxMatSelect"
+                                                                            [displayMember]="'name'"
+                                                                            [valueMember]="'employeementId'"
+                                                                            [source]="managerList"
+                                                                            [useInfiniteScroll]="true"
+                                                                            [multiple]="false"
+                                                                            (selectionChange)="setManagerName(projectObj)"
+                                                                            [(ngModel)]="projectObj.projectManager">
+                                                                            <mat-option
+                                                                                [value]="employee.employeementId"
+                                                                                *ngFor="let employee of projectManager.filteredSource">
+                                                                                {{employee.name}}
+                                                                            </mat-option>
+                                                                        </mat-select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4 mb-0">
+                                                                <div class="info-wrapper">
+                                                                    <div class="form-group">
+                                                                        <label><span
+                                                                                class="text-danger">*</span>State</label>
+                                                                        <input type="text" class="form-control" disabled
+                                                                            maxlength="255" autocomplete="none"
+                                                                            [(ngModel)]="projectObj.clientState">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4 mb-0">
+                                                                <div class="info-wrapper">
+                                                                    <div class="form-group">
+                                                                        <label>Project Status</label>
+                                                                        <input type="text" class="form-control" disabled
+                                                                            maxlength="255" autocomplete="none"
+                                                                            [(ngModel)]="projectObj.status">
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-4 mb-0">
-                                                            <div class="info-wrapper">
-                                                                <div class="form-group">
-                                                                    <label class="info-label"><span
-                                                                            class="text-danger">*</span>Department</label>
-                                                                    <mat-select class="form-control" multiple
-                                                                        [(ngModel)]="projectObj.department">
-                                                                        <mat-option selected="selected" value=""
-                                                                            disabled>Select</mat-option>
-                                                                        <mat-option
-                                                                            *ngFor="let dept of filteredDeptList"
-                                                                            disabled
-                                                                            [value]="dept.name">{{dept.name}}</mat-option>
-                                                                    </mat-select>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-md-4 mb-0">
-                                                            <div class="info-wrapper">
-                                                                <div class="form-group">
-                                                                    <label><span class="text-danger">*</span>Project
-                                                                        Manager</label>
-                                                                    <mat-select ngxMatSelect class="form-control"
-                                                                        #projectManager="ngxMatSelect"
-                                                                        [displayMember]="'name'"
-                                                                        [valueMember]="'employeementId'"
-                                                                        [source]="managerList"
-                                                                        [useInfiniteScroll]="true" [multiple]="false"
-                                                                        (selectionChange)="setManagerName(projectObj)"
-                                                                        [(ngModel)]="projectObj.projectManager">
-                                                                        <mat-option [value]="employee.employeementId"
-                                                                            *ngFor="let employee of projectManager.filteredSource">
-                                                                            {{employee.name}}
-                                                                        </mat-option>
-                                                                    </mat-select>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-4 mb-0">
-                                                            <div class="info-wrapper">
-                                                                <div class="form-group">
-                                                                    <label><span
-                                                                            class="text-danger">*</span>State</label>
-                                                                    <input type="text" class="form-control" disabled
-                                                                        maxlength="255" autocomplete="none"
-                                                                        [(ngModel)]="projectObj.clientState">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-4 mb-0">
-                                                            <div class="info-wrapper">
-                                                                <div class="form-group">
-                                                                    <label>Project Status</label>
-                                                                    <input type="text" class="form-control" disabled
-                                                                        maxlength="255" autocomplete="none"
-                                                                        [(ngModel)]="projectObj.status">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <!-- As per RMG request -->
+                                                        <!-- As per RMG request -->
 
-                                                    <!-- <div class="row">
+                                                        <!-- <div class="row">
                                                         <div class="col-md-4 mb-0">
                                                             <div class="info-wrapper">
                                                                 <div class="form-group">
@@ -658,118 +692,127 @@
 
 
 
-                                                    <hr>
+                                                        <hr>
 
-                                                    <!-- Team Info :: start -->
-                                                    <h5 class="card-name">Teams</h5>
-                                                    <div class="row">
-                                                        <div *ngFor="let teamObj of allTeamList;let i = index"
-                                                            class="row">
-                                                            <div class="col-md-4 mb-0">
-                                                                <div class="info-wrapper">
-                                                                    <div class="form-group">
-                                                                        <label class="info-label">
-                                                                            <span class="text-danger">*</span>Team Name
-                                                                        </label>
-                                                                        <input type="text" class="form-control"
-                                                                            maxlength="255" autocomplete="none"
-                                                                            [(ngModel)]="teamObj.teamName"
-                                                                            (blur)="checkTeamName(alert_message, teamObj, i)">
+                                                        <!-- Team Info :: start -->
+                                                        <h5 class="card-name">Teams</h5>
+                                                        <div class="row">
+                                                            <div *ngFor="let teamObj of allTeamList;let i = index"
+                                                                class="row">
+                                                                <div class="col-md-4 mb-0">
+                                                                    <div class="info-wrapper">
+                                                                        <div class="form-group">
+                                                                            <label class="info-label">
+                                                                                <span class="text-danger">*</span>Team
+                                                                                Name
+                                                                            </label>
+                                                                            <input type="text" class="form-control"
+                                                                                maxlength="255" autocomplete="none"
+                                                                                [(ngModel)]="teamObj.teamName"
+                                                                                (blur)="checkTeamName(alert_message, teamObj, i)">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="col-md-4 mb-0">
+                                                                    <div class="info-wrapper">
+                                                                        <div class="form-group">
+                                                                            <label class="info-label">
+                                                                                <span
+                                                                                    class="text-danger">*</span>Department
+                                                                            </label>
+                                                                            <mat-select ngxMatSelect
+                                                                                class="form-control"
+                                                                                #departmentSelect="ngxMatSelect"
+                                                                                [displayMember]="'name'"
+                                                                                [valueMember]="'deptId'"
+                                                                                [source]="allDeptList"
+                                                                                [useInfiniteScroll]="true"
+                                                                                [multiple]="true"
+                                                                                [(ngModel)]="teamObj.departmentList"
+                                                                                (selectionChange)="changeDepartment($event)">
+                                                                                <mat-option [value]="dept.deptId"
+                                                                                    *ngFor="let dept of departmentSelect.filteredSource">
+                                                                                    {{ dept.name }}
+                                                                                </mat-option>
+                                                                            </mat-select>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="col-md-4 mb-0 mt-4 pt-1 d-flex">
+                                                                    <div class="m-0">
+                                                                        <button type="button" title="Add team member"
+                                                                            class="btn btn-outline-primary mx-1"
+                                                                            (click)="openTeamMemberModal(add_team_member, teamObj)">
+                                                                            <i class="fa-solid fa-user-plus"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                    <div class="m-0">
+                                                                        <button type="button"
+                                                                            title="Preview team member"
+                                                                            class="btn btn-outline-primary mx-1"
+                                                                            (click)="previewTeamModal(preview_team, teamObj, projectObj)">
+                                                                            <i class="fa-solid fa-people-group"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                    <div class="m-0">
+                                                                        <button type="button" title="Add team"
+                                                                            class="btn btn-outline-primary mx-1"
+                                                                            (click)="addInputTeamField()">
+                                                                            <i class="fa fa-plus"
+                                                                                aria-hidden="true"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                    <div class="m-0">
+                                                                        <button type="button" title="Delete team"
+                                                                            class="btn btn-outline-danger mx-1"
+                                                                            (click)="openDeleteModalForTeam(delete_team_modal,alert_message, teamObj, projectObj)">
+                                                                            <i class="fa fa-trash"
+                                                                                aria-hidden="true"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                    <div class="m-0" *ngIf="allTeamList.length > 1">
+                                                                        <button type="button" title="Delete team"
+                                                                            class="btn btn-outline-danger mx-1"
+                                                                            (click)="openDeleteModalForTeamBulk(delete_team_modal,alert_message,teamObj, projectObj,MarkAsCompleteDefaultProject,OtherProjectDefaultMapping)">
+                                                                            <i class="fa fa-trash"
+                                                                                aria-hidden="true"></i>
+                                                                        </button>
                                                                     </div>
                                                                 </div>
                                                             </div>
 
-                                                            <div class="col-md-4 mb-0">
-                                                                <div class="info-wrapper">
-                                                                    <div class="form-group">
-                                                                        <label class="info-label">
-                                                                            <span class="text-danger">*</span>Department
-                                                                        </label>
-                                                                        <mat-select ngxMatSelect class="form-control"
-                                                                            #departmentSelect="ngxMatSelect"
-                                                                            [displayMember]="'name'"
-                                                                            [valueMember]="'deptId'"
-                                                                            [source]="allDeptList"
-                                                                            [useInfiniteScroll]="true" [multiple]="true"
-                                                                            [(ngModel)]="teamObj.departmentList"
-                                                                            (selectionChange)="changeDepartment($event)">
-                                                                            <mat-option [value]="dept.deptId"
-                                                                                *ngFor="let dept of departmentSelect.filteredSource">
-                                                                                {{ dept.name }}
-                                                                            </mat-option>
-                                                                        </mat-select>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="col-md-4 mb-0 mt-4 pt-1 d-flex">
-                                                                <div class="m-0">
-                                                                    <button type="button" title="Add team member"
-                                                                        class="btn btn-outline-primary mx-1"
-                                                                        (click)="openTeamMemberModal(add_team_member, teamObj)">
-                                                                        <i class="fa-solid fa-user-plus"></i>
-                                                                    </button>
-                                                                </div>
-                                                                <div class="m-0">
-                                                                    <button type="button" title="Preview team member"
-                                                                        class="btn btn-outline-primary mx-1"
-                                                                        (click)="previewTeamModal(preview_team, teamObj, projectObj)">
-                                                                        <i class="fa-solid fa-people-group"></i>
-                                                                    </button>
-                                                                </div>
-                                                                <div class="m-0">
-                                                                    <button type="button" title="Add team"
-                                                                        class="btn btn-outline-primary mx-1"
-                                                                        (click)="addInputTeamField()">
-                                                                        <i class="fa fa-plus" aria-hidden="true"></i>
-                                                                    </button>
-                                                                </div>
-                                                                <div class="m-0">
-                                                                    <button type="button" title="Delete team"
-                                                                        class="btn btn-outline-danger mx-1"
-                                                                        (click)="openDeleteModalForTeam(delete_team_modal,alert_message, teamObj, projectObj)">
-                                                                        <i class="fa fa-trash" aria-hidden="true"></i>
-                                                                    </button>
-                                                                </div>
-                                                                <div class="m-0" *ngIf="allTeamList.length > 1">
-                                                                    <button type="button" title="Delete team"
-                                                                        class="btn btn-outline-danger mx-1"
-                                                                        (click)="openDeleteModalForTeamBulk(delete_team_modal,alert_message,teamObj, projectObj,MarkAsCompleteDefaultProject,OtherProjectDefaultMapping)">
-                                                                        <i class="fa fa-trash" aria-hidden="true"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
                                                         </div>
-
+                                                        <!-- Team Info :: end-->
                                                     </div>
-                                                    <!-- Team Info :: end-->
-                                                </div>
-                                                <div class="row mt-3">
-                                                    <div class="col-md-12">
-                                                        <button type="submit" class="btn btn-primary btn-sm mx-1 mb-3"
-                                                            (click)="createDraftProjectInfo(alert_message,alert_message_without_reload)">Set
-                                                            Team</button>
-                                                        <!-- <button *ngIf="isUpdation && userMapping.update_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)" >Update Team</button> -->
+                                                    <div class="row mt-3">
+                                                        <div class="col-md-12">
+                                                            <button type="submit"
+                                                                class="btn btn-primary btn-sm mx-1 mb-3"
+                                                                (click)="createDraftProjectInfo(alert_message,alert_message_without_reload)">Set
+                                                                Team</button>
+                                                            <!-- <button *ngIf="isUpdation && userMapping.update_team" type="submit" class="btn btn-primary btn-sm mx-1" (click)="onUpdateTeam(alert_message)" >Update Team</button> -->
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <!-- project Edit :: end -->
-                                    </td>
-                                </tr>
-                            </ng-container>
+                                            <!-- project Edit :: end -->
+                                        </td>
+                                    </tr>
+                                </ng-container>
 
-                        </tbody>
+                            </tbody>
 
-                        <!-- table body for internal projects  -->
+                            <!-- table body for internal projects  -->
 
-                    </table>
-                    <div class="row col-md-12">
-                        <pagination-controls class="my-pagination" [hidden]="allProject_Po_Internal.length == 0"
-                            (pageChange)="handlePageChange($event)"></pagination-controls>
+                        </table>
+                        <div class="row col-md-12">
+                            <pagination-controls class="my-pagination" [hidden]="allProject_Po_Internal.length == 0"
+                                (pageChange)="handlePageChange($event)"></pagination-controls>
 
+                        </div>
                     </div>
-                </div>
                 </div>
             </div>
         </div>
@@ -1752,18 +1795,20 @@
                                 (change)="toggleRequirementSelection(requirement, $event)"
                                 style="width: 16px; height: 16px; margin-right: 5px;" />
 
-                            <div class="accordion-header" 
-                            (click)="requirement.expanded = !requirement.expanded"
-                            style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                            <div class="accordion-header" (click)="requirement.expanded = !requirement.expanded"
+                                style="cursor: pointer; display: flex; align-items: center; width: 100%;">
                                 <h5>{{ requirement.role }}</h5>
                                 <span class="badge">{{ requirement.department }}</span>
                                 <span class="experience">{{ requirement.experience }} years</span>
-                                <div class="member-right" style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+                                <div class="member-right"
+                                    style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
                                     <span class="assignment">
-                                    Assigned {{ getMembersForRequirement(requirement.resourceOverviewId)?.length || 0 }}/{{ requirement.count }}
+                                        Assigned {{ getMembersForRequirement(requirement.resourceOverviewId)?.length ||
+                                        0 }}/{{ requirement.count }}
                                     </span>
                                     <button class="dropdown-button">
-                                    <i class="fa-solid" [ngClass]="requirement.expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                        <i class="fa-solid"
+                                            [ngClass]="requirement.expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                                     </button>
                                 </div>
                             </div>
@@ -1874,7 +1919,7 @@
                             autocomplete="none" [(ngModel)]="lastDate">
                     </div>
                 </div>
-                <button type="button" class="btn btn-success" 
+                <button type="button" class="btn btn-success"
                     (click)="deleteTeamsByIdsBulk(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
                 <!-- <button type="button" class="btn btn-success" *ngIf="!selectedTeamsDetails.length"
                     (click)="deleteTeam(alert_message);cancelRequest()">Yes, proceed</button>&nbsp; -->
@@ -2216,19 +2261,23 @@
                                 </div>
                             </td>
                             <td>
-                                <button class="set-team-btn"  *ngIf="!isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects "
+                                <button class="set-team-btn"
+                                    *ngIf="!isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects "
                                     (click)="setDefaultProjectUpdateForActiveProject(project,selectedOtherProjectId,customDatePickerTemplate)">Update
                                     Default Project</button>
-                                    <button class="set-team-btn" *ngIf="isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
+                                <button class="set-team-btn"
+                                    *ngIf="isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
                                     (click)="setDefaultProjectUpdateForActiveProject(project,selectedOtherProjectId,delete_team_modal)">Update
                                     Default Project</button>
-                                    <button class="set-team-btn" *ngIf="!isBulkDelete && isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
+                                <button class="set-team-btn"
+                                    *ngIf="!isBulkDelete && isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
                                     (click)="setDefaultProjectUpdateForActiveProject(project,selectedOtherProjectId,delete_modal_template_bulk)">Update
                                     Default Project</button>
-                                     <button class="set-team-btn" *ngIf="!isBulkDelete && !isBulkDeleteResource && isBulkDeleteResourceFromTNMProjects"
+                                <button class="set-team-btn"
+                                    *ngIf="!isBulkDelete && !isBulkDeleteResource && isBulkDeleteResourceFromTNMProjects"
                                     (click)="setDefaultProjectUpdateForActiveProject(project,selectedOtherProjectId,delete_modal_template_bulk1)">Update
                                     Default Project</button>
-                                    
+
                             </td>
                         </tr>
                     </tbody>
@@ -2237,7 +2286,7 @@
         </div>
     </ng-template>
 
-<ng-template #MarkAsCompleteDefaultProject>
+    <ng-template #MarkAsCompleteDefaultProject>
         <div class="default-project-wrapper container-fluid p-3">
             <!-- Header and Toggle Switch -->
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -2313,7 +2362,7 @@
                                 {{ team.teamName }}
                             </mat-option>
                         </mat-select>
-         </div>
+                    </div>
 
                     <!-- Role -->
                     <div class="col-md-4 form-field">
@@ -2336,19 +2385,23 @@
                     </div>
                 </div>
 
-                <button class="set-team-btn" *ngIf="!isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
+                <button class="set-team-btn"
+                    *ngIf="!isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
                     (click)="setProjectMappingAndDefaultProjectBulk(setDefaultProjectObj,customDatePickerTemplate)">Update
                     Default Project</button>
-                     <button class="set-team-btn" *ngIf="isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
+                <button class="set-team-btn"
+                    *ngIf="isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
                     (click)="setProjectMappingAndDefaultProjectBulk(setDefaultProjectObj,delete_team_modal)">Update
                     Default Project</button>
-                     <button class="set-team-btn" *ngIf="isBulkDeleteResource && !isBulkDelete && !isBulkDeleteResourceFromTNMProjects"
+                <button class="set-team-btn"
+                    *ngIf="isBulkDeleteResource && !isBulkDelete && !isBulkDeleteResourceFromTNMProjects"
                     (click)="setProjectMappingAndDefaultProjectBulk(setDefaultProjectObj,delete_modal_template_bulk)">Update
                     Default Project</button>
-                    <button class="set-team-btn" *ngIf="!isBulkDeleteResource && !isBulkDelete && isBulkDeleteResourceFromTNMProjects"
+                <button class="set-team-btn"
+                    *ngIf="!isBulkDeleteResource && !isBulkDelete && isBulkDeleteResourceFromTNMProjects"
                     (click)="setProjectMappingAndDefaultProjectBulk(setDefaultProjectObj,delete_modal_template_bulk1)">Update
                     Default Project</button>
-                    
+
                 <!-- <button class="set-team-btn mt-3">Update Default Project</button> -->
 
                 <!-- Employee List -->
@@ -2452,31 +2505,48 @@
                                     </mat-select>
                                 </td>
                                 <td>
-                                    <button class="set-team-btn" *ngIf="!isBulkDelete  && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
+                                    <button class="set-team-btn"
+                                        *ngIf="!isBulkDelete  && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
                                         (click)="setProjectMappingAndDefaultProject(customDatePickerTemplate,emp)">
                                         Set Default Project
-                                    </button> 
-                                    <button class="set-team-btn" *ngIf="isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
+                                    </button>
+                                    <button class="set-team-btn"
+                                        *ngIf="isBulkDelete && !isBulkDeleteResource && !isBulkDeleteResourceFromTNMProjects"
                                         (click)="setProjectMappingAndDefaultProject(delete_team_modal,emp)">
                                         Set Default Project
                                     </button>
-                                     <button class="set-team-btn" *ngIf="isBulkDeleteResource && !isBulkDelete && !isBulkDeleteResourceFromTNMProjects"
+                                    <button class="set-team-btn"
+                                        *ngIf="isBulkDeleteResource && !isBulkDelete && !isBulkDeleteResourceFromTNMProjects"
                                         (click)="setProjectMappingAndDefaultProject(delete_modal_template_bulk,emp)">
                                         Set Default Project
                                     </button>
-                                    <button class="set-team-btn" *ngIf="!isBulkDeleteResource && !isBulkDelete && isBulkDeleteResourceFromTNMProjects"
+                                    <button class="set-team-btn"
+                                        *ngIf="!isBulkDeleteResource && !isBulkDelete && isBulkDeleteResourceFromTNMProjects"
                                         (click)="setProjectMappingAndDefaultProject(delete_modal_template_bulk1,emp)">
                                         Set Default Project
                                     </button>
-                                     
-                                    
-                                 
+
+
+
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+        </div>
+    </ng-template>
+
+
+     <ng-template #projectSummaryModal>
+        <div class="modal-header">
+            <h4 class="modal-title pull-left">Project Timesheet Summary</h4>
+            <button type="button" class="close pull-right" aria-label="Close" (click)="closeSummaryModal()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div id="projectTimesheetSummaryChart" style="width:100%; height: 500px;"></div>
         </div>
     </ng-template>
 

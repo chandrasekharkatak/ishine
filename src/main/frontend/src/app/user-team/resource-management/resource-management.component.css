@@ -1049,4 +1049,30 @@ thead {
     padding: 30px;
     margin: auto;
   }
-  
+
+ .button-container {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.rounded-button {
+  flex: 1;
+  border-radius: 20px;
+  padding: 8px 0;
+  background-color: white;
+  border: 1px solid black;
+  font-weight: 600;
+  text-align: center;
+  font-size: medium;
+  cursor: pointer;
+}
+
+.summary-button {
+  color: rgb(114, 15, 48);
+}
+
+.details-button {
+  color: rgb(48, 119, 141);
+}
