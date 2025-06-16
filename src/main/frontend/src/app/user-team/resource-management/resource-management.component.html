@@ -1446,7 +1446,7 @@
                                 </mat-option>
 
                                 <mat-option (click)="toggleSelectAllTeams()" [disabled]="filteredDepartmentsTeam.length === 0">
-                                    {{ isAllSelected ? 'Deselect All' : 'Select All' }}
+                                    {{ isAllDeptSelected ? 'Deselect All' : 'Select All' }}
                                 </mat-option>
 
                                 <mat-option *ngFor="let dept of filteredDepartmentsTeam" [value]="dept.deptId">

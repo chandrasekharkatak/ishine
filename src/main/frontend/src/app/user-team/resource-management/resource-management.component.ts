@@ -310,7 +310,7 @@ export class ResourceManagementComponent implements OnInit {
   selectedProjectId: any;
   // employeeRole: any;
   selectedColumnToShow: any;
-
+  departmentsList:any[] = [];
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
@@ -427,6 +427,7 @@ export class ResourceManagementComponent implements OnInit {
   filteredTeamLeads: Employee[] = [];
   searchTextDeptInternal:any;
   searchTextDeptTeam:any;
+  isAllDeptSelected: boolean = false;
 
   constructor(
     private scroller: ViewportScroller,
@@ -802,9 +803,10 @@ export class ResourceManagementComponent implements OnInit {
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             this.departments = response.serviceResponse;
+            this.departmentsList = [...this.departments];
             this.filteredDepartments = this.departments;
-            this.filteredDepartmentsTeam = this.departments;
-            console.log(this.filteredDepartments, "this.filteredDepartments");
+            this.filteredDepartmentsTeam = [...this.departmentsList];
+            // console.log(this.filteredDepartments, "this.filteredDepartments");
             resolve(response.serviceResponse);
           } else {
             reject("Failed to fetch departments");
@@ -2876,24 +2878,14 @@ getProjectTimesheetSummaryData() {
     this.newteamMember.name = selectedEmployee.name;
   }
 
-  toggleSelectAllTeams() {
-    if (this.isAllSelected) {
-      this.teamObj.departmentList = [];
-      this.isAllSelected = false;
-    } else {
-      this.teamObj.departmentList = this.filteredDepartmentsTeam.map(dept => dept.deptId);
-      this.isAllSelected = true;
-    }
-  }
-
   filterDepartmentsTeamForm() {
     const lowerText = this.searchTextDeptTeam.trim().toLowerCase();
 
-    const filtered = this.allDeptList.filter(dept =>
+    const filtered = this.departmentsList.filter(dept =>
       dept.name.toLowerCase().includes(lowerText)
     );
 
-    const selected = this.allDeptList.filter(dept =>
+    const selected = this.departmentsList.filter(dept =>
       this.teamObj.departmentList?.includes(dept.deptId)
     );
     const selectedSet = new Set(filtered.map(dept => dept.deptId));
@@ -2908,10 +2900,20 @@ getProjectTimesheetSummaryData() {
     this.filteredDepartmentsTeam = merged;
   }
 
+  toggleSelectAllTeams() {
+    if (this.isAllDeptSelected) {
+      this.teamObj.departmentList = [];
+      this.isAllDeptSelected = false;
+    } else {
+      this.teamObj.departmentList = this.filteredDepartmentsTeam.map(dept => dept.deptId);
+      this.isAllDeptSelected = true;
+    }
+  }
+
   clearSelectionDept(event: Event) {
     event.stopPropagation();
     this.teamObj.departmentList = [];
-    this.isAllSelected = false;
+    this.isAllDeptSelected = false;
   }
 
   onSpocSelected(event: any) {
