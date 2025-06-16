@@ -140,6 +140,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "        WHEN p.is_draft_project = 'false' THEN 'Approved'\n"
 			+ "        WHEN p.is_draft_project = 'Rejected' THEN 'Rejected'\n"
 			+ "        WHEN p.is_draft_project = 'Completed' THEN 'Completed'\n"
+//			+ "        WHEN p.is_draft_project = null THEN 'Not Started'\n"
 			+ "        ELSE 'Un Mentioned Test Data'\n"
 			+ "    END AS draftStatus,\n"
 			+ " CASE \n"

@@ -234,6 +234,7 @@ export class ResourceManagementComponent implements OnInit {
   overheadList: any[] = [];
   previousDefaultProjects: PreviousDefaultProject = new PreviousDefaultProject();
   filtered: any[] = [];
+  filteredInternal: any[] = [];
   searchMappedProjectText: any;
   otherProjectList: any[] = [];
   filteredOtherProjectList: any[] = [];
@@ -424,6 +425,7 @@ export class ResourceManagementComponent implements OnInit {
   deptId: any;
   teamLeadCtrl = new FormControl();
   filteredTeamLeads: Employee[] = [];
+  searchTextDeptInternal:any;
 
   constructor(
     private scroller: ViewportScroller,
@@ -1014,7 +1016,7 @@ export class ResourceManagementComponent implements OnInit {
               presentTeam.teamName = '';
             }
           });
-          this.openAlertMod(template, response.serviceResponse);
+          this.openAlertMod3(template, response.serviceResponse);
         } else {
           this.allTeamListCopy.forEach((teamCopy) => {
             if (teamCopy.teamName == team.teamName && (team.teamName != null && team.teamName != '' && team.teamName != undefined)) {
@@ -1022,7 +1024,7 @@ export class ResourceManagementComponent implements OnInit {
               this.allTeamList.forEach((presentTeam, index) => {
                 if (index !== teamIndex) {
                   presentTeam.teamName = '';
-                  this.openAlertMod(template, "Team Name already exists!!");
+                  this.openAlertMod3(template, "Team Name already exists!!");
                 }
               });
             }
@@ -1037,7 +1039,7 @@ export class ResourceManagementComponent implements OnInit {
           this.allTeamList.forEach((presentTeam, index) => {
             if (index !== teamIndex) {
               presentTeam.teamName = '';
-              this.openAlertMod(template, "Team Name already exists!!");
+              this.openAlertMod3(template, "Team Name already exists!!");
             }
           });
         }
@@ -1048,13 +1050,13 @@ export class ResourceManagementComponent implements OnInit {
   validateProjectObj(projectObj, template: TemplateRef<any>) {
     if (projectObj.projectManagerId == undefined || projectObj.projectManagerId.length == 0 || projectObj.projectManagerId == null) {
       this.alertMessage = `Please select atleast one project manager.`
-      this.openAlertMod(template, this.alertMessage);
+      this.openAlertMod3(template, this.alertMessage);
       return;
     }
 
     if (projectObj.teamList.length == 0) {
       this.alertMessage = "Please add atleast one team."
-      this.openAlertMod(template, this.alertMessage);
+      this.openAlertMod3(template, this.alertMessage);
       return false;
     }
 
@@ -1069,7 +1071,7 @@ export class ResourceManagementComponent implements OnInit {
         }
         if (!this.validationService.validateTeamName(projObj.teamName)) {
           this.alertMessage = "Please enter valid Team Name."
-          this.openAlertMod(template, this.alertMessage);
+          this.openAlertMod3(template, this.alertMessage);
           return false;
         }
 
@@ -1105,7 +1107,7 @@ export class ResourceManagementComponent implements OnInit {
             }
           });
           if (!memberFlag) {
-            this.openAlertMod(template, this.alertMessage);
+            this.openAlertMod3(template, this.alertMessage);
             return false;
           } else {
             return true;
@@ -1113,7 +1115,7 @@ export class ResourceManagementComponent implements OnInit {
         }
       });
       if (!flag) {
-        this.openAlertMod(template, this.alertMessage);
+        this.openAlertMod3(template, this.alertMessage);
         return false;
       } else {
         return true;
@@ -1161,7 +1163,7 @@ export class ResourceManagementComponent implements OnInit {
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);
           } else {
-            this.openAlertMod(template2, response.serviceResponse);
+            this.openAlertMod3(template2, response.serviceResponse);
           }
         });
       } else {
@@ -1180,13 +1182,13 @@ export class ResourceManagementComponent implements OnInit {
               }
             });
           } else {
-            this.openAlertMod(template2, response.serviceResponse);
+            this.openAlertMod3(template2, response.serviceResponse);
           }
         });
       }
     }
     else {
-      this.openAlertMod(template2, "There are currently no teams to be set...!");
+      this.openAlertMod3(template2, "There are currently no teams to be set...!");
     }
   }
 
@@ -1475,20 +1477,20 @@ export class ResourceManagementComponent implements OnInit {
       if (!this.validationService.validateProjectName(projectObj.projectName)) {
         this.alertMessage = "Please enter valid Project Name !!"
         this.projectObj.projectName = '';
-        this.openAlertMod(template, this.alertMessage);
+        this.openAlertMod3(template, this.alertMessage);
         return false;
       }
 
     } else {
       this.alertMessage = "Please enter more than 4 letters in Project Name !!"
       this.projectObj.projectName = '';
-      this.openAlertMod(template, this.alertMessage);
+      this.openAlertMod3(template, this.alertMessage);
       return false;
     }
     this.projectService.checkProjectName(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.projectObj.projectName = '';
-        this.openAlertMod(template, response.serviceResponse);
+        this.openAlertMod3(template, response.serviceResponse);
       }
     })
   }
@@ -1496,7 +1498,7 @@ export class ResourceManagementComponent implements OnInit {
   validateCreateProjectObj(projectObj: Project, template: TemplateRef<any>) {
     if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.projectName)) {
       this.alertMessage = "Please enter Project name !!"
-      this.openAlertMod(template, this.alertMessage);
+      this.openAlertMod3(template, this.alertMessage);
       return false;
     }
     // if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.clientId)) {
@@ -1509,14 +1511,14 @@ export class ResourceManagementComponent implements OnInit {
     //   this.openAlertMod(template, this.alertMessage);
     //   return false;
     // }
-    if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.departmentName)) {
+    if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.departmentList)) {
       this.alertMessage = "Please select department !!"
-      this.openAlertMod(template, this.alertMessage);
+      this.openAlertMod3(template, this.alertMessage);
       return false;
     }
     if (!this.validationService.validateNullUndefinedEmptyString(this.projectObj.state)) {
       this.alertMessage = "Please select state !!"
-      this.openAlertMod(template, this.alertMessage);
+      this.openAlertMod3(template, this.alertMessage);
       return false;
     }
     return true;
@@ -1526,8 +1528,8 @@ export class ResourceManagementComponent implements OnInit {
     let inputValidated: boolean = this.validateCreateProjectObj(this.projectObj, template)
     if (!inputValidated) return;
 
-    this.projectObj.departmentList = this.projectObj.departmentName;
-    this.projectObj.departmentName = null;
+    // this.projectObj.departmentList = this.projectObj.departmentName;
+    // this.projectObj.departmentName = null;
     this.projectObj.projectName = this.projectObj.projectName?.trim();
     this.projectObj.createdBy = this.currentUser.empId;
     //console.log("     :   ",this.projectObj);
@@ -1537,7 +1539,7 @@ export class ResourceManagementComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
         this.showViewProjects();
       } else {
-        this.openAlertMod(template, response.serviceResponse);
+        this.openAlertMod3(template, response.serviceResponse);
       }
     });
   }
@@ -3352,18 +3354,27 @@ getProjectTimesheetSummaryData() {
   }
 
   filterDepartmentsInternalForm() {
-    const lowerText = this.searchText.toLowerCase();
-    this.filtered = this.allDeptList.filter(dept =>
+    const lowerText = this.searchTextDeptInternal.trim().toLowerCase();
+
+    const filtered = this.allDeptList.filter(dept =>
       dept.name.toLowerCase().includes(lowerText)
     );
-    const selected = this.allDeptList.filter(dept =>
-      this.projectObj.departmentName.includes(dept.deptId)
-    );
 
-    const merged = [...new Map([...selected, ...this.filtered].map(item => [item.deptId, item])).values()];
+    const selected = this.allDeptList.filter(dept =>
+      this.projectObj.departmentList?.includes(dept.deptId)
+    );
+    const selectedSet = new Set(filtered.map(dept => dept.deptId));
+    const merged = [...filtered];
+
+    selected.forEach(dept => {
+      if (!selectedSet.has(dept.deptId)) {
+        merged.push(dept);
+      }
+    });
 
     this.filteredDepartmentsInternal = merged;
   }
+
 
   toggleSelectAllInternal() {
     if (this.isAllSelected) {

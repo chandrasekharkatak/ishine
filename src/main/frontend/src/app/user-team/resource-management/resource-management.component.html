@@ -708,7 +708,7 @@
                                                                             <input type="text" class="form-control"
                                                                                 maxlength="255" autocomplete="none"
                                                                                 [(ngModel)]="teamObj.teamName"
-                                                                                (blur)="checkTeamName(alert_message, teamObj, i)">
+                                                                                (blur)="checkTeamName(alert_message_without_reload, teamObj, i)">
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -831,7 +831,7 @@
             <div class="team-preview-row">
                 <div class="team-preview-field">
                     <label><span class="text-danger">*</span>Project Name</label>
-                    <input type="text" class="form-control" maxlength="255" (blur)="checkProjectName(alert_message)"
+                    <input type="text" class="form-control" maxlength="255" (blur)="checkProjectName(alert_message_without_reload)"
                         autocomplete="none" [(ngModel)]="projectObj.projectName">
                 </div>
                 <div class="team-preview-field">
@@ -847,14 +847,14 @@
             <div class="team-preview-row">
                 <div class="team-preview-field">
                     <label><span class="text-danger">*</span>Department</label>
-                    <mat-select [multiple]="true" [(ngModel)]="projectObj.deptId">
+                    <mat-select class="form-control" multiple [(ngModel)]="projectObj.departmentList">
                         <mat-option class="non-selectable" disabled>
                             <div style="display: flex; align-items: center;">
-                                <input type="text" [(ngModel)]="searchText"
+                                <input type="text" [(ngModel)]="searchTextDeptInternal"
                                     (ngModelChange)="filterDepartmentsInternalForm()" class="form-control"
                                     style="width: 100%; padding: 5px;" />
 
-                                <button *ngIf="projectObj.departmentName?.length > 0"
+                                <button *ngIf="projectObj.departmentList?.length > 0"
                                     (click)="clearSelectionInternal($event)"
                                     style="margin-left: 5px; background: none; border: none; cursor: pointer;"
                                     title="Clear Selection">
@@ -862,7 +862,7 @@
                                 </button>
                             </div>
                         </mat-option>
-                        <mat-option (click)="toggleSelectAllInternal()" [disabled]="allDeptList.length === 0">
+                        <mat-option (click)="toggleSelectAllInternal()" [disabled]="filteredDepartmentsInternal.length === 0">
                             {{ isAllSelected ? 'Deselect All' : 'Select All' }}
                         </mat-option>
                         <mat-option *ngFor="let dept of filteredDepartmentsInternal" [value]="dept.deptId">
@@ -1421,7 +1421,7 @@
                             </div>
                             <label class="mb-0">Team Name</label>
                             <input type="text" class="form-select name-field" [(ngModel)]="teamObj.teamName"
-                                (blur)="checkTeamName(alert_message, teamObj, i)" />
+                                (blur)="checkTeamName(alert_message_without_reload, teamObj, i)" />
                         </div>
 
 

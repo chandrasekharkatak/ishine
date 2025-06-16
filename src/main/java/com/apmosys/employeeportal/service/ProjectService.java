@@ -289,9 +289,7 @@ public class ProjectService {
 			//Find client (Inhouse : Apmosys)
 			String internalClient = "Apmosys";
 			Client firstClientOptional = clientsRepository.findByClientNameList(internalClient);
-			System.out.println("Pri 1 "+ firstClientOptional);
 			if (firstClientOptional != null) {
-				System.out.println("Pri 2 "+ firstClientOptional);
 			    Project projectObj = new Project();
 				projectObj.setProjectName(poProjectSyncDTO.getProjectName());
 				projectObj.setClientId(firstClientOptional.getClientId());
@@ -300,10 +298,19 @@ public class ProjectService {
 				projectObj.setSyncProject("false");
 				projectObj.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
 				projectObj.setInternalProjectType(poProjectSyncDTO.getInternalProjectType());	
-				projectObj.setIsDraftProject("Not Started");
-				projectObj.setDeptId(poProjectSyncDTO.getDeptId());
+//				projectObj.setIsDraftProject("Not Started");
+				
+				List<String> deptIds = new ArrayList<>();
+				for (String department : poProjectSyncDTO.getDepartmentList()) {
+				    Department departmentObj = departmentRepository.findByDeptId(Long.parseLong(department));
+				    deptIds.add(departmentObj.getDeptId().toString()); 
+				}
+
+				String commaSeparatedDeptIds = String.join(", ", deptIds);
+				projectObj.setDeptId(commaSeparatedDeptIds);
+				commaSeparatedDeptIds = "";
+				
 				Project projectDbResponse =  projectRepository.save(projectObj);
-				System.out.println("Pri 3 "+ firstClientOptional);
 				if(projectDbResponse != null) {
 					// Add department mapping
 					for(String department: poProjectSyncDTO.getDepartmentList()) {
@@ -313,7 +320,6 @@ public class ProjectService {
 						projectDeptMap.setDeptId(departmentObj.getDeptId());
 						ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
 					}
-					System.out.println("Pri 4 "+ firstClientOptional);
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Project created successfully.");
                     apiLogInfo.setApiResponse("Project Created Successfully!");

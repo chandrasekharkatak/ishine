@@ -1264,8 +1264,8 @@ public class CronJobService {
 		public void automaticTimesheetFiller() {
 			
 			try {
-				
-//				LocalDate dateToday = LocalDate.parse("2024-12-15");
+				//for hardcoded
+//				LocalDate dateToday = LocalDate.parse("2024-12-14");
 				LocalDate dateToday = LocalDate.now();
 //				System.out.println("filling timesheet method started");
 				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCron();
