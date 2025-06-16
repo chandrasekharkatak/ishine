@@ -6347,6 +6347,7 @@ public class ResourceManagementService {
 					dto.setProjectManagers(pmlData);
 					dto.setProjectOverheads(projOverHeads);
 					dto.setProjectOverheadId(overHeadIds);
+					dto.setClientName(projectRepository.getClientNameByClientId((Integer) row[4]));
 					dtoList.add(dto);
 				}
 			}
@@ -6397,6 +6398,7 @@ public class ResourceManagementService {
 				        (String) row[3],
 				        (Integer) row[4],
 				        poProjectId,
+				        null,
 				        (String) row[7],
 				        row[8] != null ? ((BigInteger) row[8]).longValue() : null,
 				        row[9] != null ? ((BigInteger) row[9]).longValue() : null,
@@ -6459,6 +6461,7 @@ public class ResourceManagementService {
 					dto.setProjectManagers(pmlData);
 					dto.setProjectOverheads(projOverHeads);
 					dto.setProjectOverheadId(overHeadIds);
+					dto.setClientName(projectRepository.getClientNameByClientId((Integer) row[4]));
 					dtoList.add(dto);
 				}
 			}
