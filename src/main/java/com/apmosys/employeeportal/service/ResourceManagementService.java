@@ -433,7 +433,7 @@ public class ResourceManagementService {
 									.append("</tr>");
 
 							if (teamDbResponse != null) {
-								List<Long> defaultProjectEmpIds = null;
+								List<Long> defaultProjectEmpIds = new ArrayList<Long>();
 								List<EmployeeTeamMap> mapList = new ArrayList<EmployeeTeamMap>();
 								String ccMail = adminMail;
 								// Add team member in the team
@@ -483,8 +483,10 @@ public class ResourceManagementService {
 												? Long.parseLong(teamMember.getResourceOverviewId().toString())
 												: null);
 										
-										if(teamMember.getIsDefaultProject() == 1)
-											defaultProjectEmpIds.add(teamMember.getEmpId());
+										if(teamMember.getIsDefaultProject() != null) {
+											if(teamMember.getIsDefaultProject() == 1)
+												defaultProjectEmpIds.add(teamMember.getEmpId());
+										}
 										
 										mapList.add(newEmpTeamMap);
 									} else {
@@ -503,8 +505,10 @@ public class ResourceManagementService {
 												? Long.parseLong(teamMember.getResourceOverviewId().toString())
 												: null);
 										
-										if(teamMember.getIsDefaultProject() == 1)
-											defaultProjectEmpIds.add(teamMember.getEmpId());
+										if(teamMember.getIsDefaultProject() != null) {
+											if(teamMember.getIsDefaultProject() == 1)
+												defaultProjectEmpIds.add(teamMember.getEmpId());
+										}
 										
 										mapList.add(newEmpTeamMap);
 									}
@@ -729,8 +733,10 @@ public class ResourceManagementService {
 													? Long.parseLong(newMember.getResourceOverviewId().toString())
 													: null);
 											
-											if(newMember.getIsDefaultProject() == 1 && newMember.getEmpId()!= null)
-												defaultProjectEmpId.add(newMember.getEmpId());
+											if(newMember.getIsDefaultProject() != null) {
+												if(newMember.getIsDefaultProject() == 1 && newMember.getEmpId()!= null)
+													defaultProjectEmpId.add(newMember.getEmpId());
+											}
 											
 											updateMemberList.add(updateMember);
 										}
@@ -863,8 +869,10 @@ public class ResourceManagementService {
 											? Long.parseLong(teamMember.getResourceOverviewId().toString())
 											: null);
 									
-									if(teamMember.getIsDefaultProject() == 1)
-									defaultProjectEmpIds.add(teamMember.getEmpId());
+									if(teamMember.getIsDefaultProject() != null) {
+										if(teamMember.getIsDefaultProject() == 1)
+											defaultProjectEmpIds.add(teamMember.getEmpId());
+									}
 									
 									mapList.add(newEmpTeamMap);
 								} else {
@@ -883,8 +891,10 @@ public class ResourceManagementService {
 											? Long.parseLong(teamMember.getResourceOverviewId().toString())
 											: null);
 									
-									if(teamMember.getIsDefaultProject() == 1)
-										defaultProjectEmpIds.add(teamMember.getEmpId());
+									if(teamMember.getIsDefaultProject() != null) {
+										if(teamMember.getIsDefaultProject() == 1)
+											defaultProjectEmpIds.add(teamMember.getEmpId());
+									}
 									
 									mapList.add(newEmpTeamMap);
 								}
@@ -1005,8 +1015,10 @@ public class ResourceManagementService {
 								? Long.parseLong(newMember.getResourceOverviewId().toString())
 								: null);
 						
-						if(newMember.getIsDefaultProject() == 1)
-							defaultProjectEmpIds.add(newMember.getEmpId());
+						if(newMember.getIsDefaultProject() != null) {
+							if(newMember.getIsDefaultProject() == 1)
+								defaultProjectEmpIds.add(newMember.getEmpId());
+						}
 						
 						mapList.add(empTeamMap);
 					} else {
@@ -1023,9 +1035,10 @@ public class ResourceManagementService {
 								? Long.parseLong(newMember.getResourceOverviewId().toString())
 								: null);
 						
-						if(newMember.getIsDefaultProject() == 1)
-							defaultProjectEmpIds.add(newMember.getEmpId());
-						
+						if(newMember.getIsDefaultProject() != null) {
+							if(newMember.getIsDefaultProject() == 1)
+								defaultProjectEmpIds.add(newMember.getEmpId());
+						}
 						mapList.add(empTeamMap);
 					}
 
