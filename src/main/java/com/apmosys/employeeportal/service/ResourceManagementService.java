@@ -6498,8 +6498,15 @@ public class ResourceManagementService {
 					if(row[5] != null) {
 						dto.setDepartment(resourceRequirementTempRepo
 								.getAllDepartmentsFromPoProjectId(Long.parseLong(row[5].toString())));
-					}else {
+					}else if((Integer)row[0] != null) {
+						dto.setDepartment(resourceRequirementRepository.getAllDepartmentsFromProjectIdInternal((Integer) row[0]));
+					}
+					else {
 						dto.setDepartment(null);
+					}
+					
+					if((BigInteger) row[5] == null){
+						dto.setStatus((String) row[23]);
 					}
 					dtoList.add(dto);
 				}

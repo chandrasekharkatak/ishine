@@ -297,6 +297,8 @@ public class ProjectService {
 				projectObj.setActive("true");
 				projectObj.setSyncProject("false");
 				projectObj.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
+				projectObj.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+				projectObj.setProjectStatus("Not Started");
 				projectObj.setInternalProjectType(poProjectSyncDTO.getInternalProjectType());	
 //				projectObj.setIsDraftProject("Not Started");
 				
