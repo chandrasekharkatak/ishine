@@ -1685,6 +1685,7 @@ export class ResourceManagementComponent implements OnInit {
       this.newteamMember = new TeamMember();
       this.addMemberCtrl.reset();
       this.selectedRequirement = null;
+      this.teamMemberCtrl.reset();
 
     } else {
       const memberToAdd = {
@@ -1699,8 +1700,8 @@ export class ResourceManagementComponent implements OnInit {
       this.newteamMember = new TeamMember();
       this.addMemberCtrl.reset();
       this.selectedRequirement = null;
+      this.teamMemberCtrl.reset();
     }
-    // this.teamMemberCtrl.reset();
   }
 
 

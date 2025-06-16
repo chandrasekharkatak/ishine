@@ -302,7 +302,7 @@ export class TeamConfigComponent implements OnInit {
 
     this.isTeamForm = false;
     this.isTeamTable = false;
-    this.isActivityTable = true;
+    this.isActivityTable = false;
     this.isUpdation = false;
     this.isActivityTemplate = false;
     this.isActivityCreate = false;
