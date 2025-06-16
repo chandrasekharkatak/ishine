@@ -5617,10 +5617,16 @@ public class ResourceManagementService {
 		logBuilder.append("\n setProjectManager ");
 
 		try {
-
+			Project project = null;
 			if (!resourceManagementDTO.getProjectManagerId().isEmpty()) {
 
-				Project project = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+				if (resourceManagementDTO.getProjectType().equals("Internal")) {
+					project = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+
+				} else {
+					project = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+				}
+//				Project project = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
 
 				List<ProjectManagerMapping> existingMappings = projectManagerMappingRepository
 						.findByProjectId(Long.parseLong(project.getProjectId().toString()));
@@ -5893,9 +5899,17 @@ public class ResourceManagementService {
 
 		try {
 
-			if (!resourceManagementDTO.getProjectOverheadId().isEmpty()) {
+			Project project = null;
+			if (!resourceManagementDTO.getProjectManagerId().isEmpty()) {
 
-				Project project = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+				if (resourceManagementDTO.getProjectType().equals("Internal")) {
+					project = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+
+				} else {
+					project = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+				}
+
+//				Project project = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
 
 				List<ProjectOverheadMapping> existingMappings = projectOverheadMappingRepository
 						.findByProjectId(Long.parseLong(project.getProjectId().toString()));
