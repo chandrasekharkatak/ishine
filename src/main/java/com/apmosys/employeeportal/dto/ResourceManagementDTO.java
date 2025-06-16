@@ -78,5 +78,6 @@ public class ResourceManagementDTO {
 	
 	private String spoc;
     private String teamLeadName;
+    private String state;
 
 }

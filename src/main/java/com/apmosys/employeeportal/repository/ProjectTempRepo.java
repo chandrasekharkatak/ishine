@@ -44,4 +44,7 @@ public interface ProjectTempRepo extends JpaRepository<ProjectTemp, Integer>{
 			+ "    ) "
 			+ "AS total_count", nativeQuery = true)
 	Integer getAllNotStartedProjectCount();
+	
+	@Query(value="select * from project_temp where po_project_Id = :projectId", nativeQuery = true)
+	ProjectTemp findByPoProjectId(Long projectId);
 }

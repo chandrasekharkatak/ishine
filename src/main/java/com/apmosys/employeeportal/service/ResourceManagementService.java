@@ -314,7 +314,7 @@ public class ResourceManagementService {
 				// Add project
 				Project newProject = new Project();
 				newProject.setProjectName(resourceManagementDTO.getName());
-				newProject.setState(resourceManagementDTO.getClientState());
+				newProject.setState(resourceManagementDTO.getState());
 				newProject.setClientId(clientId);
 				newProject.setPoProjectId(resourceManagementDTO.getId());
 				newProject.setActive("true");
@@ -323,8 +323,8 @@ public class ResourceManagementService {
 						: resourceManagementDTO.getProjectType());
 
 				newProject.setPoNo(resourceManagementDTO.getPoNo());
-				newProject.setPoStartDate(resourceManagementDTO.getStartDate());
-				newProject.setPoEndDate(resourceManagementDTO.getEndDate());
+				newProject.setPoStartDate(resourceManagementDTO.getPoStartDate());
+				newProject.setPoEndDate(resourceManagementDTO.getPoEndDate());
 				newProject.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 				newProject.setApmosysRM(resourceManagementDTO.getApmosysRM());
 				newProject.setIsRenewable(resourceManagementDTO.getIsRenewable());
@@ -340,7 +340,17 @@ public class ResourceManagementService {
 				newProject.setCreatedBy(resourceManagementDTO.getCreatedBy());
 
 				Project projectDbResponse = projectRepository.save(newProject);
+				ProjectTemp	projObj1= null;
+				if (resourceManagementDTO.getProjectType().equals("Internal")) {
+					projObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
 
+				} else {
+						projObj1=projectTempRepo.findByPoProjectId(resourceManagementDTO.getId());
+//					projObj = projectTempRepo.(resourceManagementDTO.getId());
+				}
+				projObj1.setIsDraftProject("Pending") ;
+				ProjectTemp temp=projectTempRepo.save(projObj1);
+				
 				if (projectDbResponse != null) {
 					// Add project Department Mapping
 					for (String department : resourceManagementDTO.getDepartment()) {
@@ -440,10 +450,8 @@ public class ResourceManagementService {
 							newTeamObj.setCreatedBy(resourceManagementDTO.getCreatedBy());
 							newTeamObj.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 							newTeamObj.setSpocId(teamObj.getSpocId());
-
 							Team teamDbResponse = teamRepository.save(newTeamObj);
-
-							StringBuilder emailBody = new StringBuilder();
+                           StringBuilder emailBody = new StringBuilder();
 							emailBody.append("<html><body>") // Wrap email content inside HTML tags
 									.append("Dear RMG,<br><br>")
 									.append("The Team has been created with the team name - <b>")
@@ -871,7 +879,9 @@ public class ResourceManagementService {
 						newTeamObj.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 						newTeamObj.setSpocId(teamObj.getSpocId());
 						Team teamDbResponse = teamRepository.save(newTeamObj);
-
+						Project projectdetails= projectRepository.findByProjectId(projectObj.getProjectId());
+                        projectdetails.setIsDraftProject("true");
+                        Project dbResponse=projectRepository.save(projectdetails);
 						if (teamDbResponse != null) {
 							allTeam.add(teamDbResponse.getTeamId());
 
@@ -1210,8 +1220,8 @@ public class ResourceManagementService {
 			project.setIsDraftProject("false");
 			project.setProjectName(dto.getName());
 			project.setPoNo(dto.getPoNo());
-			project.setPoStartDate(dto.getStartDate());
-			project.setPoEndDate(dto.getEndDate());
+			project.setPoStartDate(dto.getPoStartDate());
+			project.setPoEndDate(dto.getPoEndDate());
 			project.setPoProjectType("Internal".equalsIgnoreCase(dto.getProjectType()) ? null : dto.getProjectType());
 
 			project.setApmosysRM(dto.getApmosysRM());

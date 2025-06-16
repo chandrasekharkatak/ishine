@@ -1172,6 +1172,7 @@ export class ResourceManagementComponent implements OnInit {
         this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);
+          
           } else {
             this.openAlertMod3(template2, response.serviceResponse);
           }
