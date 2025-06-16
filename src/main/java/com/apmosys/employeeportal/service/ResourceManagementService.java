@@ -6284,6 +6284,7 @@ public class ResourceManagementService {
 							(Integer) row[4], // clientId
 							row[5] != null ? ((BigInteger) row[5]).longValue() : null, // poProjectId
 //		                (String) row[6],                       // active
+								   null,
 							(String) row[7], // syncProject
 							row[8] != null ? ((BigInteger) row[8]).longValue() : null, // createdBy
 							row[9] != null ? ((BigInteger) row[9]).longValue() : null, // updatedBy
