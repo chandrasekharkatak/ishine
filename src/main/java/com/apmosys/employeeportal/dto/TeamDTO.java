@@ -2,10 +2,6 @@ package com.apmosys.employeeportal.dto;
 
 import java.util.List;
 
-import javax.persistence.Column;
-
-import com.apmosys.employeeportal.model.EmployeeTeamMap;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -61,4 +57,6 @@ public class TeamDTO {
 	private SpocDTO spoc;
 	private Long spocId;
 	private SpocDTO teamLead;
+	private Integer isDefaultProject;
+
 }
