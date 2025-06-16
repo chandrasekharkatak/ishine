@@ -91,6 +91,7 @@ import { ProjectInsightsConfigComponent } from './configuration/project-insights
 import { PerformanceManagementSystemComponent } from './user-performance/performance-management-system/performance-management-system.component';
 import { ProjectInsightsTabComponent } from './project-insights/project-insights-tab.component';
 import { ProjectInsightProjconfigComponent } from './user-team/project-insight-projconfig/project-insight-projconfig.component';
+import { FormBuilderComponent } from './user-team/form-builder/form-builder.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -169,6 +170,7 @@ const routes: Routes = [
       { path: 'my-team', component: MyTeamComponent, },
       { path: 'team-member', component: TeamMemberComponent, },
       { path: 'team-config', component: TeamConfigComponent, },
+      { path: 'form-builder', component: FormBuilderComponent, },
       { path: 'project-insight-config', component: ProjectInsightProjconfigComponent, },
       { path: 'resource-management', component: ResourceManagementComponent, },
       { path: 'resource-management/:id', component: ResourceManagementComponent, },

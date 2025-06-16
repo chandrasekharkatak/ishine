@@ -1,0 +1,143 @@
+<div class="row">
+    <!-- Palette -->
+    <div class="col-md-3">
+        <h5>Field Palette</h5>
+        <div *ngFor="let field of fieldPalette" class="palette-item" (click)="addFieldFromPalette(field)">
+            {{field.label}}
+        </div>
+    </div>
+
+    <!-- Form Layout -->
+    <div class="col-md-9">
+        <h5>Form Layout</h5>
+        <div cdkDropList [cdkDropListData]="fields" (cdkDropListDropped)="drop($event)">
+            <div *ngFor="let field of fields; let i = index" cdkDrag class="form-field-item">
+                <span>{{field.label}} ({{field.type}})</span>
+                <span class="ml-auto">
+                    <button class="btn btn-sm btn-outline-primary mr-1" (click)="editField(field, i)">
+                        <i class="fa fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" (click)="removeField(i)">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+        <button class="btn btn-success mt-3" (click)="saveForm()">Save Form</button>
+        <button class="btn btn-primary mt-3 ml-2" (click)="showPreview()">Preview</button>
+    </div>
+</div>
+
+<!-- Field Config Modal (inline, not a real modal for simplicity) -->
+<div class="field-config-modal" *ngIf="showFieldConfig">
+    <h5>Configure Field</h5>
+    <form (ngSubmit)="saveFieldConfig()">
+        <div class="form-group">
+            <label>Label</label>
+            <input class="form-control" [(ngModel)]="editingField.label" name="label" required />
+        </div>
+        <div class="form-group" *ngIf="editingField.type !== 'section'">
+            <label>Name (key)</label>
+            <input class="form-control" [(ngModel)]="editingField.name" name="name" required />
+        </div>
+        <div class="form-group" *ngIf="editingField.type !== 'section'">
+            <label><input type="checkbox" [(ngModel)]="editingField.required" name="required" /> Required</label>
+        </div>
+        <div class="form-group" *ngIf="['text','textarea','number','email'].includes(editingField.type)">
+            <label>Placeholder</label>
+            <input class="form-control" [(ngModel)]="editingField.placeholder" name="placeholder" />
+        </div>
+        <div class="form-group" *ngIf="editingField.type !== 'section'">
+            <label>Default Value</label>
+            <input class="form-control" [(ngModel)]="editingField.defaultValue" name="defaultValue" />
+        </div>
+
+        <div *ngIf="['select','checkbox','radio'].includes(editingField.type)">
+            <label>Options</label>
+            <div *ngFor="let opt of editingField.options; let i = index" class="input-group mb-1">
+                <input class="form-control" [(ngModel)]="opt.label" placeholder="Label" name="optLabel{{i}}" />
+                <input class="form-control" [(ngModel)]="opt.value" placeholder="Value" name="optValue{{i}}" />
+                <div class="input-group-append">
+                    <button class="btn btn-danger" (click)="removeOption(i)" type="button">x</button>
+                </div>
+            </div>
+            <button class="btn btn-sm btn-outline-primary" (click)="addOption()" type="button">Add Option</button>
+        </div>
+
+        <!-- Dropdown/radio/checkbox options -->
+        <div *ngIf="editingField.type === 'select'">
+            <label>Dropdown Options Source</label>
+            <select class="form-control" [(ngModel)]="editingField.optionSource" name="optionSource">
+                <option value="static">Static</option>
+                <option value="api">API</option>
+            </select>
+            <div *ngIf="editingField.optionSource === 'static'">
+                <div *ngFor="let opt of editingField.options; let i = index" class="input-group mb-1">
+                    <input class="form-control" [(ngModel)]="opt.label" placeholder="Label" name="optLabel{{i}}" />
+                    <input class="form-control" [(ngModel)]="opt.value" placeholder="Value" name="optValue{{i}}" />
+                    <div class="input-group-append">
+                        <button class="btn btn-danger" (click)="removeOption(i)" type="button">x</button>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline-primary" (click)="addOption()" type="button">Add Option</button>
+            </div>
+            <div *ngIf="editingField.optionSource === 'api'">
+                <label>Select API</label>
+                <select class="form-control" (change)="onApiSelect($event)">
+                    <option *ngFor="let api of apiList" [ngValue]="api">{{api.label}}</option>
+                </select>
+                <div class="mt-2">
+                    <label>API URL</label>
+                    <input class="form-control" [(ngModel)]="editingField.apiUrl" name="apiUrl" />
+                    <label>Label Key</label>
+                    <input class="form-control" [(ngModel)]="editingField.apiLabelKey" name="apiLabelKey" />
+                    <label>Value Key</label>
+                    <input class="form-control" [(ngModel)]="editingField.apiValueKey" name="apiValueKey" />
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-primary mt-2" type="submit">Save</button>
+        <button class="btn btn-secondary mt-2 ml-2" type="button" (click)="showFieldConfig=false">Cancel</button>
+    </form>
+</div>
+
+<!-- Dynamic Form Preview -->
+<div class="dynamic-form-preview" *ngIf="preview">
+    <h5>Form Preview</h5>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <ng-container *ngFor="let field of fields">
+            <div class="form-group" *ngIf="field.type !== 'section'">
+                <label>{{field.label}}</label>
+                <input *ngIf="field.type === 'text'" class="form-control" [formControlName]="field.name"
+                    [placeholder]="field.placeholder" />
+                <textarea *ngIf="field.type === 'textarea'" class="form-control" [formControlName]="field.name"
+                    [placeholder]="field.placeholder"></textarea>
+                <select *ngIf="field.type === 'select'" class="form-control" [formControlName]="field.name">
+                    <option *ngFor="let opt of field.options" [value]="opt.value">{{opt.label}}</option>
+                </select>
+                <input *ngIf="field.type === 'date'" class="form-control" [formControlName]="field.name" type="date" />
+                <input *ngIf="field.type === 'number'" class="form-control" [formControlName]="field.name"
+                    type="number" />
+                <input *ngIf="field.type === 'email'" class="form-control" [formControlName]="field.name"
+                    type="email" />
+                <input *ngIf="field.type === 'file'" class="form-control" [formControlName]="field.name" type="file" />
+                <div class="form-group" *ngIf="field.type === 'checkbox'">
+                    <div *ngFor="let opt of field.options">
+                        <input type="checkbox" [formControlName]="field.name" [value]="opt.value"
+                            (change)="onCheckboxChange($event, field.name, opt.value)" />
+                        {{opt.label}}
+                    </div>
+                </div>
+                <div class="form-group" *ngIf="field.type === 'radio'">
+                    <div *ngFor="let opt of field.options">
+                        <input type="radio" [formControlName]="field.name" [value]="opt.value" />
+                        {{opt.label}}
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="field.type === 'section'" class="section-header">{{field.label}}</div>
+        </ng-container>
+        <button class="btn btn-primary" type="submit">Submit</button>
+        <button class="btn btn-secondary ml-2" type="button" (click)="hidePreview()">Close Preview</button>
+    </form>
+</div>

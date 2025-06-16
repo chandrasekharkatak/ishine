@@ -1,0 +1,60 @@
+.palette-item {
+    background: #f7f7fa;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+  .palette-item:hover {
+    background: #eae6fa;
+  }
+  .form-field-item {
+    background: #fff;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 4px rgba(80, 80, 120, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .field-config-modal {
+    position: fixed;
+    top: 10%;
+    left: 50%;
+    width: 400px;
+    transform: translateX(-50%);
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 16px rgba(80, 80, 120, 0.18);
+    padding: 24px;
+    z-index: 1000;
+  }
+  .dynamic-form-preview {
+    position: fixed;
+    top: 10%;
+    left: 50%;
+    width: 500px;
+    transform: translateX(-50%);
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 16px rgba(80, 80, 120, 0.18);
+    padding: 24px;
+    z-index: 1000;
+  }
+  .section-header {
+    font-weight: 600;
+    font-size: 1.1em;
+    margin: 18px 0 8px 0;
+    color: #4b2994;
+  }
+  .form-field-item .ml-auto {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+  }
+  .form-field-item button {
+    margin-left: 2px;
+  }
