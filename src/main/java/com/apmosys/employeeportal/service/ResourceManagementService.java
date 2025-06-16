@@ -381,6 +381,32 @@ public class ResourceManagementService {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse(responseProjectOverhead.getServiceResponse());
 					}
+					
+					if (!resourceManagementDTO.getResourceRequirements().isEmpty()) {
+						resourceManagementDTO.getResourceRequirements().forEach(req -> {
+							
+							Long overviewId = req.getResourceOverviewId() != null
+					                ? Long.parseLong(req.getResourceOverviewId().toString())
+					                : null;
+
+					        if (overviewId != null && resourceRequirementRepository.existsById(overviewId)) {
+					            return; 
+					        }
+
+							ResourceRequirement dto = new ResourceRequirement();
+
+							dto.setCount(req.getCount());
+							dto.setDepartment(req.getDepartment());
+							dto.setExperience(req.getExperience());
+							dto.setRole(req.getRole());
+							dto.setResourceOverviewId(
+									req.getResourceOverviewId() != null ? Long.parseLong(req.getResourceOverviewId().toString())
+											: null);
+							dto.setProjectId(projectDbResponse.getProjectId());
+
+							resourceRequirementRepository.save(dto);
+						});
+					}
 
 					if (resourceManagementDTO.getTeamList() != null && !resourceManagementDTO.getTeamList().isEmpty()) {
 						resourceManagementDTO.getTeamList().forEach(teamObj -> {
@@ -1217,6 +1243,15 @@ public class ResourceManagementService {
 
 			if (!dto.getResourceRequirements().isEmpty()) {
 				dto.getResourceRequirements().forEach(req -> {
+					
+					Long overviewId = req.getResourceOverviewId() != null
+			                ? Long.parseLong(req.getResourceOverviewId().toString())
+			                : null;
+
+			        if (overviewId != null && resourceRequirementRepository.existsById(overviewId)) {
+			            return; 
+			        }
+
 					ResourceRequirement resourceManagementDTO = new ResourceRequirement();
 
 					resourceManagementDTO.setCount(req.getCount());
