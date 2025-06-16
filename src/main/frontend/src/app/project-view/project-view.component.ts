@@ -80,7 +80,7 @@ export class ProjectViewComponent implements OnInit {
     this.modalRef3 = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
-  employeesColumns: any[] = ['blank', 'teamName', 'spoc', 'teamLeadName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
+  employeesColumns: any[] = ['blank', 'spoc', 'teamLeadName', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   constructor(
     private breadcrumbService: BreadcrumbService,
     private modalService: BsModalService,

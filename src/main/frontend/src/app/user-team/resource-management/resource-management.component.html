@@ -401,9 +401,9 @@
                             <thead class="thead-light">
                                 <tr id="projectInfoTHeadTr">
                                     <th scope="col" class="info-label">Actions</th>
-                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 120px;">
+                                    <!-- <th scope="col" class="info-label" style="max-width: fit-content;min-width: 120px;">
                                         Sr
-                                        No.</th>
+                                        No.</th> -->
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 170px;"
                                         mat-sort-header="draftStatus|string">Approval
                                         Status</th>
@@ -493,7 +493,7 @@
                                                 </ul>
                                             </div>
                                         </td>
-                                        <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th>
+                                        <!-- <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th> -->
                                         <td
                                             [ngStyle]="{'color': (project.draftStatus == 'Pending For Approval') ? 'orange' : (project.draftStatus == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
                                             <em>{{ project.draftStatus ? project.draftStatus : 'NA' }}</em>
