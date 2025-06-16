@@ -6473,7 +6473,8 @@ public class ResourceManagementService {
 							(String) row[3], // state
 							(Integer) row[4], // clientId
 							row[5] != null ? ((BigInteger) row[5]).longValue() : null, // poProjectId
-							(String) row[6], // active
+//							(String) row[6], // active
+									null,
 							(String) row[7], // syncProject
 							row[8] != null ? ((BigInteger) row[8]).longValue() : null, // createdBy
 							row[9] != null ? ((BigInteger) row[9]).longValue() : null, // updatedBy
@@ -6501,8 +6502,8 @@ public class ResourceManagementService {
 								.getAllDepartmentsFromPoProjectId(Long.parseLong(row[5].toString())));
 					}else if((Integer)row[0] != null) {
 						dto.setDepartment(resourceRequirementRepository.getAllDepartmentsFromProjectIdInternal((Integer) row[0]));
-					}
-					else {
+						dto.setClientName(projectRepository.getClientNameByClientId((Integer) row[4]));
+					}else {
 						dto.setDepartment(null);
 					}
 					

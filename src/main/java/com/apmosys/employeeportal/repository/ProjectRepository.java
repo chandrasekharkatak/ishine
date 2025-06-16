@@ -525,4 +525,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getBenchEmployeeMoreThan30DaysInDeptId(Long deptId);
+	
+	@Query(nativeQuery = true,value="select client_name from clients where client_id = :clientId")
+	public String getClientNameByClientId(Integer clientId);
 }

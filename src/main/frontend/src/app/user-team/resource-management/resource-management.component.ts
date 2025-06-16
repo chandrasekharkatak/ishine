@@ -175,7 +175,7 @@ export class ResourceManagementComponent implements OnInit {
   allProject_Po_Internal: any[] = [];
   filteredDepartments: any[] = [];
   filteredDepartmentsInternal: any[] = [];
-
+  filteredDepartmentsTeam: any[] = [];
   getBillableType: any;
   newMemberInProject: any;
   currentDepartment: any = []
@@ -426,6 +426,7 @@ export class ResourceManagementComponent implements OnInit {
   teamLeadCtrl = new FormControl();
   filteredTeamLeads: Employee[] = [];
   searchTextDeptInternal:any;
+  searchTextDeptTeam:any;
 
   constructor(
     private scroller: ViewportScroller,
@@ -802,6 +803,7 @@ export class ResourceManagementComponent implements OnInit {
           if (response.serviceStatus === "Success") {
             this.departments = response.serviceResponse;
             this.filteredDepartments = this.departments;
+            this.filteredDepartmentsTeam = this.departments;
             console.log(this.filteredDepartments, "this.filteredDepartments");
             resolve(response.serviceResponse);
           } else {
@@ -1150,6 +1152,12 @@ export class ResourceManagementComponent implements OnInit {
       });
       this.projectObj.teamList = this.allTeamList;
       this.projectObj.createdBy = this.currentUser.empId;
+      if(this.projectObj.poProjectType != null)
+      {
+        this.projectObj.projectType = null;
+      } else {
+        this.projectObj.projectType = "Internal";
+      }
 
       // this.projectObj.projectId=this.projectObj.id;
 
@@ -2873,16 +2881,31 @@ getProjectTimesheetSummaryData() {
       this.teamObj.departmentList = [];
       this.isAllSelected = false;
     } else {
-      this.teamObj.departmentList = this.filteredDepartments.map(dept => dept.deptId);
+      this.teamObj.departmentList = this.filteredDepartmentsTeam.map(dept => dept.deptId);
       this.isAllSelected = true;
     }
   }
 
   filterDepartmentsTeamForm() {
-    const lowerText = this.searchText.toLowerCase();
-    this.filteredDepartments = this.allDeptList.filter(dept =>
+    const lowerText = this.searchTextDeptTeam.trim().toLowerCase();
+
+    const filtered = this.allDeptList.filter(dept =>
       dept.name.toLowerCase().includes(lowerText)
     );
+
+    const selected = this.allDeptList.filter(dept =>
+      this.teamObj.departmentList?.includes(dept.deptId)
+    );
+    const selectedSet = new Set(filtered.map(dept => dept.deptId));
+    const merged = [...filtered];
+
+    selected.forEach(dept => {
+      if (!selectedSet.has(dept.deptId)) {
+        merged.push(dept);
+      }
+    });
+
+    this.filteredDepartmentsTeam = merged;
   }
 
   clearSelectionDept(event: Event) {

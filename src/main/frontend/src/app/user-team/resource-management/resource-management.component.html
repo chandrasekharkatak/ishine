@@ -1428,12 +1428,11 @@
                         <div class="form-field">
                             <label><span class="text-danger">*</span>Department</label>
 
-                            <mat-select class="form-control name-field" [multiple]="true"
-                                [(ngModel)]="teamObj.departmentList">
+                            <mat-select class="form-control name-field" multiple [(ngModel)]="teamObj.departmentList">
 
                                 <mat-option class="non-selectable" disabled>
                                     <div style="display: flex; align-items: center;">
-                                        <input type="text" [(ngModel)]="searchText"
+                                        <input type="text" [(ngModel)]="searchTextDeptTeam"
                                             (ngModelChange)="filterDepartmentsTeamForm()" class="form-control"
                                             style="width: 100%; padding: 5px;" />
 
@@ -1446,11 +1445,11 @@
                                     </div>
                                 </mat-option>
 
-                                <mat-option (click)="toggleSelectAllTeams()" [disabled]="allDeptList.length === 0">
+                                <mat-option (click)="toggleSelectAllTeams()" [disabled]="filteredDepartmentsTeam.length === 0">
                                     {{ isAllSelected ? 'Deselect All' : 'Select All' }}
                                 </mat-option>
 
-                                <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
+                                <mat-option *ngFor="let dept of filteredDepartmentsTeam" [value]="dept.deptId">
                                     {{ dept.name }}
                                 </mat-option>
                             </mat-select>
