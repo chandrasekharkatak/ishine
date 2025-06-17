@@ -263,6 +263,12 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getEmployessWithoutBillable", method = RequestMethod.POST)
+	public ServiceResponse getEmployessWithoutBillable(@RequestBody ProjectFilterDTO projectFilterDTO) {
+		ServiceResponse response = resourceManagementService.getEmployessWithoutBillable(projectFilterDTO);
+		return response;
+	}
+	
 	@PostMapping(value = "/exceptionEmployeeReport")
 	public ServiceResponse exceptionEmployeeReport( @RequestBody ProjectFilterDTO projectFilterDTO) {
 		ServiceResponse response = resourceManagementService.getAllExceptionReport(projectFilterDTO);

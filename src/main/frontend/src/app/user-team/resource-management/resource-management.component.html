@@ -188,8 +188,8 @@
                 <div class="row mb-3">
                     <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                         <input id="employeeSearch" type="text" class="form-select custom-select-style"
-                            style="min-width: 200px;" placeholder="Search by Name or Emp ID" aria-label="Search employee"
-                            [formControl]="employeeCtrl" [matAutocomplete]="auto">
+                            style="min-width: 200px;" placeholder="Search by Name or Emp ID"
+                            aria-label="Search employee" [formControl]="employeeCtrl" [matAutocomplete]="auto">
 
                         <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
                             [displayWith]="displayEmployee">
@@ -200,7 +200,8 @@
                     </div>
                 </div>
                 <div *ngIf="selectedEmpId" class="button-container">
-                    <button class="rounded-button summary-button" (click)="openSummaryModal(projectSummaryModal, selectedEmpId)" >Employee Summary</button>
+                    <button class="rounded-button summary-button"
+                        (click)="openSummaryModal(projectSummaryModal, selectedEmpId)">Employee Summary</button>
                     <button class="rounded-button details-button" [navigateToEmployee360]="this.selectedEmpId">Employee
                         360</button>
                 </div>
@@ -354,6 +355,28 @@
                     <div class="text-primary text-end small">View Employees</div>
                 </div>
             </div>
+
+            <div class="col-md-4 mb-2">
+                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeesWithoutBillability) }"
+                    (click)="EmployeeViewDataModel(employee_data,'Without Billability')">
+                    <div class="value">
+                        <ng-container *ngIf="employeesWithoutBillable !== null && employeesWithoutBillable !== undefined; else loading5">
+                            {{ employeesWithoutBillable }}
+                        </ng-container>
+                        <ng-template #loading5>
+                            <i class="fa fa-spinner fa-spin text-secondary"></i>
+                        </ng-template>
+                    </div>
+                    <div class="label" style="color: #a04e1f;">
+                        Employee Without Any Billability <i class="fa fa-link" style="color: #a04e1f;"></i>
+                    </div>
+                    <div class="text-primary text-end small">View Employees</div>
+                </div>
+            </div>
+
+
+
+
         </div>
     </div>
 
@@ -389,9 +412,9 @@
                     </div>
                     <div class="col d-flex align-items-center ">
                         <span class="font-weight-bold text-muted small">
-                          Displaying:
-                          {{ (allProject_Po_Internal | colFilter : filters : false).length }} of
-                          {{ allProject_Po_Internal.length }} projects
+                            Displaying:
+                            {{ (allProject_Po_Internal | colFilter : filters : false).length }} of
+                            {{ allProject_Po_Internal.length }} projects
                         </span>
                     </div>
 
@@ -831,8 +854,9 @@
             <div class="team-preview-row">
                 <div class="team-preview-field">
                     <label><span class="text-danger">*</span>Project Name</label>
-                    <input type="text" class="form-control" maxlength="255" (blur)="checkProjectName(alert_message_without_reload)"
-                        autocomplete="none" [(ngModel)]="projectObj.projectName">
+                    <input type="text" class="form-control" maxlength="255"
+                        (blur)="checkProjectName(alert_message_without_reload)" autocomplete="none"
+                        [(ngModel)]="projectObj.projectName">
                 </div>
                 <div class="team-preview-field">
                     <label><span class="text-danger">*</span>Internal Project Type</label>
@@ -862,7 +886,8 @@
                                 </button>
                             </div>
                         </mat-option>
-                        <mat-option (click)="toggleSelectAllInternal()" [disabled]="filteredDepartmentsInternal.length === 0">
+                        <mat-option (click)="toggleSelectAllInternal()"
+                            [disabled]="filteredDepartmentsInternal.length === 0">
                             {{ isAllSelected ? 'Deselect All' : 'Select All' }}
                         </mat-option>
                         <mat-option *ngFor="let dept of filteredDepartmentsInternal" [value]="dept.deptId">
@@ -1445,7 +1470,8 @@
                                     </div>
                                 </mat-option>
 
-                                <mat-option (click)="toggleSelectAllTeams()" [disabled]="filteredDepartmentsTeam.length === 0">
+                                <mat-option (click)="toggleSelectAllTeams()"
+                                    [disabled]="filteredDepartmentsTeam.length === 0">
                                     {{ isAllDeptSelected ? 'Deselect All' : 'Select All' }}
                                 </mat-option>
 
@@ -1472,12 +1498,11 @@
                         <div class="form-field">
                             <label>Team Lead</label>
                             <input type="text" class="form-select name-field" placeholder="Search by Emp ID or Name"
-                                aria-label="Search employee" [formControl]="teamLeadCtrl" [matAutocomplete]="teamLeadAuto"
-                                [(ngModel)]="teamObj.teamLead">
+                                aria-label="Search employee" [formControl]="teamLeadCtrl"
+                                [matAutocomplete]="teamLeadAuto" [(ngModel)]="teamObj.teamLead">
                             <mat-autocomplete #teamLeadAuto="matAutocomplete" [displayWith]="displayTeamLead"
                                 (optionSelected)="onTeamLeadSelected($event)">
-                                <mat-option *ngFor="let employee of filteredTeamLeads "
-                                    [value]="employee">
+                                <mat-option *ngFor="let employee of filteredTeamLeads " [value]="employee">
                                     {{ employee.name }}
                                 </mat-option>
                             </mat-autocomplete>
@@ -2537,7 +2562,7 @@
     </ng-template>
 
 
-     <ng-template #projectSummaryModal>
+    <ng-template #projectSummaryModal>
         <div class="modal-header">
             <h4 class="modal-title pull-left">Project Timesheet Summary</h4>
             <button type="button" class="close pull-right" aria-label="Close" (click)="closeSummaryModal()">

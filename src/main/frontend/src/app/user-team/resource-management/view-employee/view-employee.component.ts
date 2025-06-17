@@ -20,6 +20,7 @@ export class ViewEmployeeComponent implements OnInit {
   allProjectTable: boolean = false;
   tableColumns :any[]= ['blank','blank','employeementId','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
   tableColumnsNotMapped : any[] = ['blank','employeementId','name','departmentName','billableType','managerName','jobRoleName'] ;
+  tableColumnsWithoutBillability : any[] = ['blank','employeementId','name','departmentName','managerName','jobRoleName'];
   exceptionTableColumns: any[] = ['blank','employmentId','employeeName','department','billableType','projectName','clientName','apmosysRM','clientRM','poNumber','poProjectType','poStartDate','poEndDate'];
   tableColumnsBench :any[]= ['blank','employeementId','name','department','billableType','billable','onBenchDate','daysOnBench','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
   filters: any = {};
@@ -365,6 +366,23 @@ exportExceptionToExcel1(): void {
 
 exportNotMappedToExcel(): void {
   const excelName = 'Not_Mapped_Employee_Report.xlsx';
+
+  const dataForTable = this.allEmployeeData.map((employee: any, index: number) => {
+    return {
+      "Sr No.": index + 1,
+      "Employment Id": "A-" + employee.employeementId,
+      "Employee Name": employee.name,
+      "Department": employee.departmentName,
+      "Billable Type": employee.billableType,
+      "Manager Name": employee.managerName,
+      "Employee Role": employee.jobRoleName
+    };
+  });
+
+  this.exportExcelService.exportTableDataToExcel(dataForTable, excelName);
+}
+exportWithoutBillabilityToExcel(): void {
+  const excelName = 'Null_Billability_Employee_Report.xlsx';
 
   const dataForTable = this.allEmployeeData.map((employee: any, index: number) => {
     return {

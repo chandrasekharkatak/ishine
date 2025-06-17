@@ -138,4 +138,10 @@ export class ResourceManagementService {
   getProjectTimesheetSummary(request:any){
     return this.http.post(`${this.baseUrl}` + `api/getProjectTimesheetSummary`,request);
   }
+
+
+  getEmployeesWithoutBillability(projectFilterDTO){
+
+ return this.http.post(`${this.baseUrl}`+`api/getEmployessWithoutBillable`,projectFilterDTO);
+  }
 }

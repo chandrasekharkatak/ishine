@@ -82,6 +82,8 @@ export class ResourceManagementComponent implements OnInit {
   exceptionEmployeesList: any[] = [];
   employeesWithoutProject: any;
   employeesWithoutProjectList: any[] = [];
+  employeesWithoutBillability: any[] =[];
+  employeesWithoutBillable:any;
   employeeData: any[] = [];
   catagory: any;
   employees = ['John Doe', 'Jane Smith'];
@@ -527,6 +529,8 @@ export class ResourceManagementComponent implements OnInit {
     await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
 
     await this.RbacInternalProjects(this.projectFilterDTO);
+
+    await this.getEmployeesWithoutBillability(this.projectFilterDTO);
 
     await this.RbacShankhProjects(this.projectFilterDTO);
 
@@ -2084,6 +2088,11 @@ export class ResourceManagementComponent implements OnInit {
       this.employeeData = this.employeesWithoutProjectList;
       this.catagory = catagory;
     }
+    else if (catagory === 'Without Billability') {
+      this.employeeData = this.employeesWithoutBillability;
+      this.catagory = catagory;
+    }
+
     else if (catagory === 'All Mapped') {
       this.employeeData = this.allMappedEmployeesList;
       this.catagory = catagory;
@@ -2323,6 +2332,20 @@ export class ResourceManagementComponent implements OnInit {
       }
     });
   }
+
+  getEmployeesWithoutBillability(projectFilterDTO: ProjectFilterDTO) {
+    this.resourceManagementService.getEmployeesWithoutBillability(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.employeesWithoutBillability = response.serviceResponse;
+        this.employeesWithoutBillable= this.employeesWithoutBillability.length;
+        console.log("this.employeesWithoutProjectList", this.employeesWithoutProjectList)
+      } else {
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    });
+  }
+
+
 
   TotalEmployeeCount() {
     this.resourceManagementService.totalEmployeeCount().pipe(first()).subscribe((response: any) => {

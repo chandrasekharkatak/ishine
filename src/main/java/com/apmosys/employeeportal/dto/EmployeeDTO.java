@@ -285,5 +285,22 @@ public class EmployeeDTO {
     private Integer upperAge;
     private Long selectedResourceOverviewId;
     
+    public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
+            Long mobileNo, Long managerId, String managerName, String jobRoleName,
+            String departmentName, String name, String billableType) {
+this.empId = empId;
+this.employeementId = employeementId;
+this.email = email;
+this.employmentstatus = employmentstatus;
+this.mobileNo = mobileNo;
+this.managerId = managerId;
+this.managerName = managerName;
+this.jobRoleName = jobRoleName;
+this.departmentName = departmentName;
+this.name = name;
+this.billableType = billableType;
+}    
+	public EmployeeDTO() {
+	};
 	
 }

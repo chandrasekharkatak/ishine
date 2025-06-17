@@ -5435,6 +5435,67 @@ public class ResourceManagementService {
 		    return response; 
 		}
 	
+	
+	public ServiceResponse getEmployessWithoutBillable(ProjectFilterDTO projectFilterDTO) {
+		ServiceResponse response = new ServiceResponse();
+		
+		try {
+			Long empIdd = projectFilterDTO.getCurrentUserEmpId();
+		    Employee employee = employeeRepository.findByEmpId(empIdd);
+		    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+		    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
+
+		    String departmentName = department.getName();
+		    String role = jobRole.getEmployeeRole();
+		    String name = jobRole.getName();
+
+		    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+			
+			 List<Object[]> employeesWithoutBillable = new ArrayList<>();
+			
+			 if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+			            || specialDepartments.contains(departmentName)) {
+				 employeesWithoutBillable = employeeRepository.findAllEmployeesWithoutAnyBillable();
+			}else if(departmentRepository.existsByHodId(projectFilterDTO.getCurrentUserEmpId())) {
+				List<Long> deptIds = departmentRepository.findDeptIdsByHodId(projectFilterDTO.getCurrentUserEmpId());
+				employeesWithoutBillable = employeeRepository.findAllEmployeesWithoutAnyBillableInDeptIds(deptIds);
+			}else {
+				Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+				Long deptId = departmentRepository.findDepartmentIdOfSpoc(employeee.getJobRoleId());
+				employeesWithoutBillable = employeeRepository.findAllEmployeesWithoutBillableInDeptId(deptId);
+			}
+			
+			
+			 List<EmployeeDTO> employeeDTOList = new ArrayList<>();
+			 for (Object[] row : employeesWithoutBillable) {
+		            EmployeeDTO employeeDTO = new EmployeeDTO();
+		            employeeDTO.setEmpId(row[0] != null ? Long.parseLong(row[0].toString()) : null);
+		            employeeDTO.setEmployeementId( row[1] != null ? Long.parseLong(row[1].toString()) : null);
+		            employeeDTO.setEmail(row[2] != null ? row[2].toString() : null);
+		            employeeDTO.setEmploymentstatus(row[3] != null ? row[3].toString() : null);
+		            employeeDTO.setMobileNo(row[4] != null ? Long.parseLong(row[4].toString()) : null);
+		            employeeDTO.setManagerId(row[5] != null ? Long.parseLong(row[5].toString()) : null);
+		            employeeDTO.setManagerName(row[6] != null ? row[6].toString() : null);
+		            employeeDTO.setJobRoleName(row[7] != null ? row[7].toString() : null);
+		            employeeDTO.setDepartmentName(row[8] != null ? row[8].toString() : null); 
+		            employeeDTO.setName(row[9] != null ? row[9].toString() : null);
+		            employeeDTO.setBillableType(row[10] != null ? row[10].toString() : null);            
+		            employeeDTOList.add(employeeDTO);
+		        }
+
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse(employeeDTOList);
+		     
+
+		    } catch (Exception e) {
+		    	e.printStackTrace();
+		    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse("Error: " + e.getMessage());
+		    }
+		    return response; 
+		}
+	
 	public ServiceResponse getEmployessWithoutProjectsDepartmentWise(GetEmployeeProjectReportPayloadDTO getEmployeeProjectReportPayloadDTO) {
 		ServiceResponse response = new ServiceResponse();
 		

@@ -1,4 +1,4 @@
-<ng-container *ngIf="catagory != 'Not Mapped' && catagory != 'Exception' && catagory != 'OnBench'">
+<ng-container *ngIf="catagory != 'Not Mapped' && catagory != 'Exception' && catagory != 'OnBench' && catagory != 'Without Billability'">
     <div class="row md-2">
         <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" style="display: flex;
                     justify-content: left;
@@ -228,7 +228,7 @@ matSort (matSortChange)="sortData($event)"
                         <th scope="col" class="info-label" style=" min-width: 300px;">Department</th>
                         <th scope="col" class="info-label" style=" min-width: 300px">Billable Type</th>
                         <th scope="col" class="info-label" style=" min-width: 250px;">Manager Name</th>
-                        <th scope="col" class="info-label" style=" min-width: 200px;">Employee Role</th>
+                        <th scope="col" class="info-label" style=" min-width: 200px;">Job Role</th>
 
                     </tr>
                     <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="tableColumnsNotMapped"
@@ -265,6 +265,9 @@ matSort (matSortChange)="sortData($event)"
         </div>
     </div>
 </ng-container>
+
+
+
 
 <ng-container *ngIf="catagory === 'Exception'">
   
@@ -567,6 +570,84 @@ matSort (matSortChange)="sortData($event)"
         </ng-container>
     </ng-container>
 </tbody>
+            </table>
+            <div class="row col-md-12">
+                <pagination-controls class="my-pagination" [hidden]="allEmployeeData.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+
+            </div>
+        </div>
+    </div>
+</ng-container>
+
+
+<ng-container *ngIf="catagory === 'Without Billability'">
+    <div class="row md-2">
+        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" style="display: flex;
+        justify-content: left;
+        max-width: fit-content;
+        padding: 5px; border: 2px solid #053885;border-radius: 20%;">
+            <i class="fa fa-download" style="color: #053885;display: flex;
+            justify-content: left;
+            max-width: fit-content;" (click)="exportWithoutBillabilityToExcel()"></i>
+        </div>
+        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0" style="display: flex;
+                    justify-content: left;
+                    max-width: fit-content;
+                    padding: 5px; border: 2px solid #053885;border-radius: 20%;">
+            <a (click)="toggleSearch()" style="color: #193d8a;">
+                <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+        </div>
+        <div class="col d-flex align-items-center ">
+          <span class="font-weight-bold text-muted small">
+            Displaying:
+            {{ (filteredEmployeeData | colFilter : filters : false).length }} of
+            {{ allEmployeeData.length }} employees
+          </span>
+      </div>
+    </div>
+    <div class="row">
+        <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
+            [tableTHeadTrId]="'projectInfoTHeadTr'">
+            <table class="table" id="project-info" matSort>
+                <thead class="thead-light">
+                    <tr id="projectInfoTHeadTr">
+                        <th scope="col" class="info-label" style=" min-width: 120px;">Sr No.</th>
+                        <th scope="col" class="info-label" style=" min-width: 200px;">Employment Id</th>
+                        <th scope="col" class="info-label" style=" min-width: 300px;">Employee Name</th>
+                        <th scope="col" class="info-label" style=" min-width: 300px;">Department</th>
+                        <!-- <th scope="col" class="info-label" style=" min-width: 300px">Billable Type</th> -->
+                        <th scope="col" class="info-label" style=" min-width: 250px;">Manager Name</th>
+                        <th scope="col" class="info-label" style=" min-width: 200px;">Job Role</th>
+
+                    </tr>
+                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="tableColumnsWithoutBillability"
+                        (onSearch)="onSearchException($event)">
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngIf="allEmployeeData.length == 0">
+                        <tr>
+                            <th colspan="10" style="max-width: fit-content;" class="text-center info-label">No details
+                                to display...</th>
+                        </tr>
+                    </ng-container>
+                    <ng-container
+                        *ngFor="let employee of filteredEmployeeData | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                        <tr>
+                            <td class="text-center">{{ (page - 1) * 10 + i + 1 }}</td>
+                            <td class="text-center">A-{{employee.employeementId}}</td>
+                            <td class="text-center">{{employee.name}}</td>
+                            <td class="text-center">{{employee.departmentName}}</td>
+                            <!-- <td class="text-center">{{employee.billableType}}</td> -->
+                            <!-- <td class="text-center">{{employee.employeementId}}</td> -->
+                            <td class="text-center">{{employee.managerName}}</td>
+                            <td class="text-center">{{employee.jobRoleName}}</td>
+                        </tr>
+                    </ng-container>
+                </tbody>
             </table>
             <div class="row col-md-12">
                 <pagination-controls class="my-pagination" [hidden]="allEmployeeData.length == 0"
