@@ -597,7 +597,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findByEmpIdIn(@Param("empIds") List<Long> empIds);
     
     
-    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name from employee e \n"
+    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type from employee e \n"
     		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
     		+ "inner join department d on d.dept_id = jr.dept_id\n"
     		+ "LEFT JOIN \n"
@@ -627,7 +627,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive' and d.dept_id IN :departmentIds AND e.emp_id NOT BETWEEN 1 AND 6",nativeQuery = true)
     List<Object[]> findAllEmployeesWithoutAnyProjectDepartmentWise(@Param("departmentIds") List<Long> departmentIds);
     
-    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name from employee e \n"
+    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type from employee e \n"
     		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
     		+ "inner join department d on d.dept_id = jr.dept_id\n"
     		+ "LEFT JOIN \n"
@@ -643,7 +643,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Object[]> findAllEmployeesWithoutProjectInDeptIds(@Param("deptIds") List<Long> deptIds);
     
     
-    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name from employee e \n"
+    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type from employee e \n"
     		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
     		+ "inner join department d on d.dept_id = jr.dept_id\n"
     		+ "LEFT JOIN \n"

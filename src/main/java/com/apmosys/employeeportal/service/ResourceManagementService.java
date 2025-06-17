@@ -5418,8 +5418,8 @@ public class ResourceManagementService {
 		            employeeDTO.setManagerName(row[6] != null ? row[6].toString() : null);
 		            employeeDTO.setJobRoleName(row[7] != null ? row[7].toString() : null);
 		            employeeDTO.setDepartmentName(row[8] != null ? row[8].toString() : null); 
-		            employeeDTO.setName(row[9] != null ? row[9].toString() : null);            
-		            
+		            employeeDTO.setName(row[9] != null ? row[9].toString() : null);
+		            employeeDTO.setBillableType(row[10] != null ? row[10].toString() : null);            
 		            employeeDTOList.add(employeeDTO);
 		        }
 

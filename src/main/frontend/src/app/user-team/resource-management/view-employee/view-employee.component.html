@@ -226,6 +226,7 @@ matSort (matSortChange)="sortData($event)"
                         <th scope="col" class="info-label" style=" min-width: 200px;">Employment Id</th>
                         <th scope="col" class="info-label" style=" min-width: 300px;">Employee Name</th>
                         <th scope="col" class="info-label" style=" min-width: 300px;">Department</th>
+                        <th scope="col" class="info-label" style=" min-width: 300px">Billable Type</th>
                         <th scope="col" class="info-label" style=" min-width: 250px;">Manager Name</th>
                         <th scope="col" class="info-label" style=" min-width: 200px;">Employee Role</th>
 
@@ -244,10 +245,11 @@ matSort (matSortChange)="sortData($event)"
                     <ng-container
                         *ngFor="let employee of filteredEmployeeData | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                         <tr>
-                            <td class="text-center">{{ i + 1 }}</td>
+                            <td class="text-center">{{ (page - 1) * 10 + i + 1 }}</td>
                             <td class="text-center">A-{{employee.employeementId}}</td>
                             <td class="text-center">{{employee.name}}</td>
                             <td class="text-center">{{employee.departmentName}}</td>
+                            <td class="text-center">{{employee.billableType}}</td>
                             <!-- <td class="text-center">{{employee.employeementId}}</td> -->
                             <td class="text-center">{{employee.managerName}}</td>
                             <td class="text-center">{{employee.jobRoleName}}</td>

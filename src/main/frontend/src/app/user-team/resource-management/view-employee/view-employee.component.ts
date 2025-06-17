@@ -19,7 +19,7 @@ export class ViewEmployeeComponent implements OnInit {
   sortDirection = 'asc';
   allProjectTable: boolean = false;
   tableColumns :any[]= ['blank','blank','employeementId','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
-  tableColumnsNotMapped : any[] = ['blank','employeementId','name','departmentName','managerName','jobRoleName'] ;
+  tableColumnsNotMapped : any[] = ['blank','employeementId','name','departmentName','billableType','managerName','jobRoleName'] ;
   exceptionTableColumns: any[] = ['blank','employmentId','employeeName','department','billableType','projectName','clientName','apmosysRM','clientRM','poNumber','poProjectType','poStartDate','poEndDate'];
   tableColumnsBench :any[]= ['blank','employeementId','name','department','billableType','billable','onBenchDate','daysOnBench','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
   filters: any = {};
