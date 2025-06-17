@@ -1154,10 +1154,7 @@ export class ResourceManagementComponent implements OnInit {
       });
       this.projectObj.teamList = this.allTeamList;
       this.projectObj.createdBy = this.currentUser.empId;
-      if(this.projectObj.poProjectType != null)
-      {
-        this.projectObj.projectType = null;
-      } else {
+      if(this.projectObj.poProjectType == null){
         this.projectObj.projectType = "Internal";
       }
 

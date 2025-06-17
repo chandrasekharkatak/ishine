@@ -180,7 +180,7 @@
                         <!-- <td>{{ project.startDate }}</td>
                         <td>{{ project.endDate }}</td> -->
                         <td>
-                            {{ project.startDate | date: 'yyyy-MM-dd HH:mm:ss'}}
+                            {{ project.startDate | date: 'yyyy-MM-dd'}}
                             <a *ngIf="project.startDate" href="javascript:void(0)" (click)="editStartdateModal(edit_startdate_template,project)" title="Edit Start Date">
                               <i class="fa fa-pen ml-2 text-primary"></i>
                             </a>
@@ -192,7 +192,7 @@
                             </a>
                           </td> -->
                           <td>
-                            {{ project.endDate | date: 'yyyy-MM-dd HH:mm:ss'}}
+                            {{ project.endDate | date: 'yyyy-MM-dd'}}
                             <a *ngIf="project.endDate && isFutureDate(project.endDate)" 
                                href="javascript:void(0)" 
                                (click)="editEnddateModal(edit_enddate_template,project)" 
