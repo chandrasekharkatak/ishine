@@ -1182,6 +1182,7 @@ public class CronJobService {
 	@Scheduled(cron = "0 0 1 1,2,3,4,5,6,7 JAN ?")
 	public void addingWeekOff() {
 		
+		
 		try {
 			int monthCount = 1;
 			
@@ -1263,6 +1264,8 @@ public class CronJobService {
 	@Scheduled(cron = "0 0 21 ? * *")
 //	@Scheduled(cron = "0 0 22 16 6 ?")
 		public void automaticTimesheetFiller() {
+		
+		System.out.println("Cron----**********----started");
 			
 			try {
 				//for hardcoded
@@ -1277,6 +1280,8 @@ public class CronJobService {
 			//	Timesheet filler for weekoff day : saturday & sunday
 				
 				if(!publicHoliday.isEmpty()) {
+					
+					System.out.println("holiday_size"+publicHoliday.size());
 					
 					for(Holiday holiday: publicHoliday) {
 						String holidayOccassion = holiday.getOccasion();
@@ -1320,6 +1325,7 @@ public class CronJobService {
 				
 				if(!publicHoliday.isEmpty()) {
 					System.out.println("vghgc"+publicHoliday.isEmpty());
+					System.out.println("holiday_size_holiday"+publicHoliday.size());
 					for(Holiday holidays: publicHoliday) {
 						String holidayState = holidays.getState();
 						
@@ -3872,7 +3878,7 @@ public class CronJobService {
 		@Scheduled(cron="${timesheetDefaulter.time}")
 		public void timesheetDefaulterWeeklyMail() {
 			try {
-				List<Department> allDepartment = departmentRepository.findAll();
+				List<Department> allDepartment = departmentRepository.findAll();			
 				if(!allDepartment.isEmpty()) {
 					allDepartment.forEach((object) -> {
 						StringBuilder defaulterMail = new StringBuilder();

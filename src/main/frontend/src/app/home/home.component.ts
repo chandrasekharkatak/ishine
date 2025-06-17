@@ -148,6 +148,9 @@ popUpMessege:any;
 //  bulkCompOffReject: any = [];
 //  overLapsLeaveForManager: any = [];
 
+ //Timesheet form render
+  isTimesheetFormVisible: boolean = false;
+  lastTimesheetData: any = null;
 
  leaveObj = new Leave();
 
@@ -270,6 +273,8 @@ async ngOnInit(): Promise<void> {
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
 
     }
+
+    
 
     if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
         this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
@@ -1183,6 +1188,7 @@ async ngOnInit(): Promise<void> {
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
    
    }
+    
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
     const currentDate = new Date();
@@ -2386,7 +2392,112 @@ sendEmail(poEndDate:any,projectName:any,poNo:any,poProjectType:any){
      }
   });
 }
+
+closeTimesheetForm() {
+  this.isTimesheetFormVisible = false;
+
+
 }
+
+renderTimesheet(day?: any): void {
+    console.log("Render triggered for:", day?.displayDate);
+  const empId = this.currentUser?.empId;
+  if (empId) {
+    this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
+      next: (res) => {
+        if (res.serviceStatus === 'Success') {
+          this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse));
+        } else {
+          this.lastTimesheetData = null;
+        }
+        this.isTimesheetFormVisible = true;
+      },
+      error: (err) => {
+        console.error("Failed to fetch last timesheet", err);
+        this.lastTimesheetData = null;
+        this.isTimesheetFormVisible = true;
+      }
+    });
+  }
+}
+
+onTimesheetSubmissionComplete(): void {
+  this.isTimesheetFormVisible = false; // 👈 this hides the form
+  // Optional: navigate to the tab if needed
+  this.router.navigate(['/user-timesheet', 'my-timesheet']); // or 'team-timesheet' based on context
+}
+
+
+
+
+onTeamMemberSelected(empId: string): void {
+  if (empId) {
+    this.fetchLastTimesheet(empId);
+  }
+}
+
+// fetchLastTimesheet(empId: number | string): void {
+//   this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
+//     next: (res) => {
+//       if (res.serviceStatus === 'Success') {
+//         this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse)); // Force reference change
+//       }
+//     },
+//     error: (err) => {
+//       console.error("Failed to fetch last timesheet", err);
+//     }
+//   });
+// }
+
+
+fetchLastTimesheet(empId: number | string): void {
+
+  this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
+    next: (res) => {
+      if (res.serviceStatus === 'Success') {
+        this.lastTimesheetData = { ...res.serviceResponse }; // change reference
+      } else {
+        this.lastTimesheetData = null;
+      }
+      // setTimeout(() => {
+      //   this.isTimesheetFormVisible = true; // re-render component
+      // }, 0);
+    },
+    error: (err) => {
+      console.error("Failed to fetch last timesheet", err);
+      this.lastTimesheetData = null;
+      // setTimeout(() => {
+      //   this.isTimesheetFormVisible = true;
+      // }, 0);
+    }
+  });
+}
+
+onCreateTimesheet() {
+  console.log("Timesheet submitted!");
+}
+
+
+shouldRenderTimesheet(): boolean {
+  return this.timesheetDetails.some(
+    ts => ts.status === 'Pending' || ts.status === 'Not Filled'
+  );
+
+}
+
+handleTabClick(): void {
+
+  console.log("shouldRenderTimesheet called")
+  console.log('Timesheet Details:', this.timesheetDetails);
+
+  if (this.shouldRenderTimesheet()) {
+    this.renderTimesheet();
+  }
+}
+
+}
+
+
 function compare(a: number | string, b: number | string, isAsc: boolean) {
  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

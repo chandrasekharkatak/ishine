@@ -10,11 +10,21 @@
         
         (mouseenter)="onHoverStart($event, day.description,day.activity)"
         (mouseleave)="onHoverEnd()"
+        (click)="onDayClick(day)"
+
+        
       >
+
+
+       <div *ngIf="day.status === 'Not Filled'" class="hover-hint">
+        Create Timesheet
+      </div>
+      
         <div *ngIf="i === 0"><b>{{day.dayName}}</b></div>
         {{day.day}} <small *ngIf="i === 0 && day.workingHours >= 0" class="float-right"><b>{{day.workingHours}} Hrs </b></small>
         <div *ngIf="i != 0 && day.workingHours >= 0" class="hours"><small><b>{{day.workingHours}} Hrs </b></small></div>
       </div>
+      
     </div>
 </div>
 
@@ -112,3 +122,9 @@
 </div>
 
   
+<ng-template #alert_message>
+  <div class="modal-body text-center">
+    <p>{{ alertMessage }}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest_approve_pending()">OK</button>
+  </div>
+</ng-template>

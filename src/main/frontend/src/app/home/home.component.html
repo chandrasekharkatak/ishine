@@ -147,10 +147,9 @@
 
 
         <ul class="navbar-nav">
-            <li  *ngIf="currentUser.employeeRole === 'RMG'"
-            class="nav-item" style="margin-left: 10px; ">
+            <li *ngIf="currentUser.employeeRole === 'RMG'" class="nav-item" style="margin-left: 10px; ">
                 <a class="nav-link nav-text notification_icon" (click)="openPoExpiredMod()">
-                    <i class="fas fa-bell" ></i>
+                    <i class="fas fa-bell"></i>
                     EXP PO
                 </a>
             </li>
@@ -177,7 +176,7 @@
                     <div class="dropdown-menu dropdown-menu-right user-menu" aria-labelledby="user-dropdown">
                         <!-- <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a> -->
                         <!-- <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a> -->
-                     
+
                         <a class="dropdown-item" (click)="openChangePassword(change_password)"><i
                                 class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
                         <a class="dropdown-item" (click)="userLogout()"><i
@@ -294,30 +293,32 @@
     </div>
     <!-- BirthdayCard -->
 
-    <div *ngIf="userMapping.view_birthday_list || userMapping.view_work_anniversary_list" class="birthday-list card mb-2">
+    <div *ngIf="userMapping.view_birthday_list || userMapping.view_work_anniversary_list"
+        class="birthday-list card mb-2">
         <ul class="nav nav-tabs" id="birthdayWorkTab" role="tablist">
-            <li class="nav-item " 
-            [class.active]="selectedTab === 'birthday'"
-            [ngStyle]="{'font-weight': selectedTab === 'birthday' ? 'bold' : 'normal'} " (click)="switchTab('birthday')">
-                <a class="nav-link active" id="birthday-tab" data-toggle="tab" role="tab"
-                    href="#birthday-tabpanel" aria-controls="birthday" aria-selected="true">
+            <li class="nav-item " [class.active]="selectedTab === 'birthday'"
+                [ngStyle]="{'font-weight': selectedTab === 'birthday' ? 'bold' : 'normal'} "
+                (click)="switchTab('birthday')">
+                <a class="nav-link active" id="birthday-tab" data-toggle="tab" role="tab" href="#birthday-tabpanel"
+                    aria-controls="birthday" aria-selected="true">
                     Birthday
                 </a>
             </li>
-            <li class="nav-item" 
-            [class.active]="selectedTab === 'workAnniversary'"
-            [ngStyle]="{'font-weight': selectedTab === 'workAnniversary' ? 'bold' : 'normal'}" (click)="switchTab('workAnniversary')">
+            <li class="nav-item" [class.active]="selectedTab === 'workAnniversary'"
+                [ngStyle]="{'font-weight': selectedTab === 'workAnniversary' ? 'bold' : 'normal'}"
+                (click)="switchTab('workAnniversary')">
                 <a class="nav-link" id="workAnniversary-tab" data-toggle="tab" role="tab"
                     href="#workAnniversary-tabpanel" aria-controls="workAnniversary" aria-selected="false">
                     Work Anniversary
                 </a>
             </li>
         </ul>
-    
+
         <!-- Tab Content -->
         <div class="tab-content" id="birthdayWorkTabContent">
             <!-- Birthday Tab -->
-            <div class="tab-pane active show fade" id="birthday-tabpanel" role="tabpanel" aria-labelledby="birthday-tab">
+            <div class="tab-pane active show fade" id="birthday-tabpanel" role="tabpanel"
+                aria-labelledby="birthday-tab">
                 <div class="card-title px-1 pt-2">
                     <p class="section-heading m-0 pl-2">Today's Birthdays</p>
                 </div>
@@ -332,8 +333,8 @@
                         <mat-list class="p-0">
                             <mat-list-item *ngFor="let employee of birthdayList">
                                 <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
-                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360" 
-                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" 
+                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360"
+                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;"
                                     title="Click to view Employee 360">
                                     {{ employee.name }}
                                 </h1>
@@ -344,9 +345,10 @@
                     </marquee>
                 </div>
             </div>
-    
+
             <!-- Work Anniversary Tab -->
-            <div class="tab-pane active show fade" id="workAnniversary-tabpanel" role="tabpanel" aria-labelledby="workAnniversary-tab">
+            <div class="tab-pane active show fade" id="workAnniversary-tabpanel" role="tabpanel"
+                aria-labelledby="workAnniversary-tab">
                 <div class="card-title px-1 pt-2">
                     <p class="section-heading m-0 pl-2">Today's Work Anniversary</p>
                 </div>
@@ -361,8 +363,8 @@
                         <mat-list class="p-0">
                             <mat-list-item *ngFor="let employee of workAnniversaryList">
                                 <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
-                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360" 
-                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" 
+                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360"
+                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;"
                                     title="Click to view Employee 360">
                                     {{ employee.name }}
                                 </h1>
@@ -402,7 +404,7 @@
             </div> -->
         </div>
     </div>
-    
+
 
     <!-- <div *ngIf="userMapping.view_birthday_list" class="birthday-list card mb-2">
         <div class="card-title px-1 pt-2">
@@ -470,6 +472,7 @@
         <div class="tab-content timesheetTabContent" id="timesheetTabContent">
             <div class="tab-pane active show fade timesheet__tab-container" id="weekly-tabpanel" role="tabpanel"
                 aria-labelledby="weekly-tabpanel">
+
                 <div class="row col-md-12 p-0 m-0">
                     <table class="table table-sm timesheet-table">
                         <thead>
@@ -502,11 +505,11 @@
                 </div>
             </div>
             <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
-                aria-labelledby="thisMonth-tabpanel">
-                <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"></app-calendar>
+               aria-labelledby="thisMonth-tabpanel">
+                <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails" (openTimesheet)="renderTimesheet($event)"></app-calendar>
             </div>
             <div class="tab-pane fade timesheet__tab-container pt-2" id="lastMonth-tabpanel" role="tabpanel"
-                aria-labelledby="lastMonth-tabpanel">
+                (click)="renderTimesheet()" aria-labelledby="lastMonth-tabpanel">
                 <app-calendar #lastMonthCal [subtractmonth]="1" [timesheetDetails]="timesheetDetails"></app-calendar>
             </div>
         </div>
@@ -515,48 +518,48 @@
 
     <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
         <div class="card-title px-1 pt-2">
-          <p class="section-heading m-0 pl-2 p-3">ApMoSys Wall Of Fame</p>
-         
-          <div class="tabs">
-            <ul class="nav nav-pills">
-              <li class="nav-item pl-2" *ngFor="let category of rewardCategoryList">
-                <a class="nav-link" [class.active]="selectedCategoryId === category.rewardCategoryId" 
-                   (click)="onCategoryTabClick(category)">
-                  {{ category.categoryName }}
-                </a>
-              </li>
-            </ul>
-          </div>
-          
-          <p *ngIf="rewardsList.length !== 0" class="text-muted p-2">
-            <b>{{ selectedCategoryName }}: <span>{{ selectedMonth | date: 'MMMM yyyy' }}</span></b>
-          </p>
+            <p class="section-heading m-0 pl-2 p-3">ApMoSys Wall Of Fame</p>
+
+            <div class="tabs">
+                <ul class="nav nav-pills">
+                    <li class="nav-item pl-2" *ngFor="let category of rewardCategoryList">
+                        <a class="nav-link" [class.active]="selectedCategoryId === category.rewardCategoryId"
+                            (click)="onCategoryTabClick(category)">
+                            {{ category.categoryName }}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <p *ngIf="rewardsList.length !== 0" class="text-muted p-2">
+                <b>{{ selectedCategoryName }}: <span>{{ selectedMonth | date: 'MMMM yyyy' }}</span></b>
+            </p>
         </div>
-      
+
         <div class="reward-content-container d-flex flex-column" style="max-height: 200px;">
-          <div *ngIf="showEmptyMessage" class="container-fluid text-center p-3">
-            <img class="placeholder-img" style="width: 100px;" src="assets/Images/reward2.png" alt="Rewards Icon">
-            <h1 class="placeholder-text">No Rewards</h1>
-          </div>
-          <marquee *ngIf="rewardsList.length !== 0" direction="up" scrolldelay="250" 
-                   onmouseover="this.stop();" onmouseout="this.start();" class="h-100">
-            <mat-list class="reward-content">
-              <mat-list-item *ngFor="let rewards of currentRewards">
-                <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
-                <h1 *ngIf="userMapping.employee360_view_home" matLine class="small">
-                  <span id="clickablefor360" [navigateToEmployee360]="rewards.emp360" style="cursor: pointer;" 
-                        title="Click to view Employee 360">
-                    {{ rewards.rewardedToByName }}
-                  </span>
-                  || {{ rewards.rewardTypeName }}
-                </h1>
-                <h1 *ngIf="!userMapping.employee360_view_home" matLine class="small">
-                  {{ rewards.rewardedToByName }} || {{ rewards.rewardTypeName }}
-                </h1>
-                <p matLine class="small">{{ rewards.department }}</p>
-              </mat-list-item>
-            </mat-list>
-          </marquee>
+            <div *ngIf="showEmptyMessage" class="container-fluid text-center p-3">
+                <img class="placeholder-img" style="width: 100px;" src="assets/Images/reward2.png" alt="Rewards Icon">
+                <h1 class="placeholder-text">No Rewards</h1>
+            </div>
+            <marquee *ngIf="rewardsList.length !== 0" direction="up" scrolldelay="250" onmouseover="this.stop();"
+                onmouseout="this.start();" class="h-100">
+                <mat-list class="reward-content">
+                    <mat-list-item *ngFor="let rewards of currentRewards">
+                        <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
+                        <h1 *ngIf="userMapping.employee360_view_home" matLine class="small">
+                            <span id="clickablefor360" [navigateToEmployee360]="rewards.emp360" style="cursor: pointer;"
+                                title="Click to view Employee 360">
+                                {{ rewards.rewardedToByName }}
+                            </span>
+                            || {{ rewards.rewardTypeName }}
+                        </h1>
+                        <h1 *ngIf="!userMapping.employee360_view_home" matLine class="small">
+                            {{ rewards.rewardedToByName }} || {{ rewards.rewardTypeName }}
+                        </h1>
+                        <p matLine class="small">{{ rewards.department }}</p>
+                    </mat-list-item>
+                </mat-list>
+            </marquee>
         </div>
     </div>
 
@@ -609,8 +612,8 @@
         </div>
     </div> -->
 
-    
-      
+
+
     <!-- Modals templates -->
     <ng-template #alert_message>
         <div class="modal-body text-center">
@@ -851,7 +854,9 @@
                                     [(ngModel)]="leaveApplication.isSelected"
                                     (change)="onSelect(leaveApplication,$event)"></td>
                             <td>{{items*(page-1)+i+1}}</td>
-                            <td id="clickablefor360"*ngIf="userMapping.home_employee_360" (click)="cancelRequest()" [navigateToEmployee360]="leaveApplication.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.employeeName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"
+                                [navigateToEmployee360]="leaveApplication.emp360" style="cursor: pointer;"
+                                title="Click to view Employee 360">{{leaveApplication.employeeName}}</td>
                             <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.employeeName}}</td>
                             <td>{{leaveApplication.leaveType}}</td>
                             <!-- <td>
@@ -876,7 +881,9 @@
                                     (click)="onUpdateLeave(leave_success_method,leaveApplication)"></em></td>
                             <td>{{leaveApplication.noOfDays}} day(s)</td>
                             <td>{{leaveApplication.status}}</td>
-                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="leaveApplication.createdBy360" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.createdByName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"
+                                [navigateToEmployee360]="leaveApplication.createdBy360" style="cursor: pointer;"
+                                title="Click to view Employee 360">{{leaveApplication.createdByName}}</td>
                             <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.createdByName}}</td>
                             <td>{{leaveApplication.createdOn}}</td>
                             <td>{{leaveApplication.reason}}</td>
@@ -886,17 +893,23 @@
                                     *ngIf="leaveApplication.currentApprovalLevel == leaveApplication.finalApprovalLevel">
                                     Final</h6>
                             </td>
-                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="leaveApplication.emp360AppLev1" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.approverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"
+                                [navigateToEmployee360]="leaveApplication.emp360AppLev1" style="cursor: pointer;"
+                                title="Click to view Employee 360">{{leaveApplication.approverName}}</td>
                             <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.approverName}}</td>
                             <td
                                 [ngStyle]="{'color': (leaveApplication.managerApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.managerApprovalStatus == 'Approved') ? 'green' : (leaveApplication.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
                                 {{leaveApplication.managerApprovalStatus}}</td>
-                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="leaveApplication.emp360AppLev2" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.level2ApproverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"
+                                [navigateToEmployee360]="leaveApplication.emp360AppLev2" style="cursor: pointer;"
+                                title="Click to view Employee 360">{{leaveApplication.level2ApproverName}}</td>
                             <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.level2ApproverName}}</td>
                             <td
                                 [ngStyle]="{'color': (leaveApplication.level2ApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.level2ApprovalStatus == 'Approved') ? 'green' : (leaveApplication.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
                                 {{leaveApplication.level2ApprovalStatus}}</td>
-                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="leaveApplication.emp360AppLev3" style="cursor: pointer;" title="Click to view Employee 360">{{leaveApplication.level3ApproverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"
+                                [navigateToEmployee360]="leaveApplication.emp360AppLev3" style="cursor: pointer;"
+                                title="Click to view Employee 360">{{leaveApplication.level3ApproverName}}</td>
                             <td *ngIf="!userMapping.home_employee_360">{{leaveApplication.level3ApproverName}}</td>
                             <td
                                 [ngStyle]="{'color': (leaveApplication.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveApplication.level3ApprovalStatus == 'Approved') ? 'green' : (leaveApplication.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
@@ -954,8 +967,8 @@
             </div>
             <div class="table-container" bassHorizontalScroll [tableId]="'compOffApplication'"
                 [tableTHeadId]="'compOffApplicationTHead'" [tableTHeadTrId]="'compOffApplicationTHeadTr'">
-                <table class="table compOffApplication-table scrollable-table" matSort (matSortChange)="sortData($event)"
-                    id="compOffApplication">
+                <table class="table compOffApplication-table scrollable-table" matSort
+                    (matSortChange)="sortData($event)" id="compOffApplication">
                     <thead class="thead-light" id="compOffApplicationTHead">
                         <tr id="compOffApplicationTHeadTr">
                             <th><input class="select" type="checkbox" name="checkboxes"
@@ -995,7 +1008,9 @@
                                     [(ngModel)]="compOffApplication.isSelected"
                                     (change)="selectCompOff(compOffApplication,$event)"></td>
                             <td>{{10*(page-1)+i+1}}</td>
-                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()" [navigateToEmployee360]="compOffApplication.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{compOffApplication.createdByName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"
+                                [navigateToEmployee360]="compOffApplication.emp360" style="cursor: pointer;"
+                                title="Click to view Employee 360">{{compOffApplication.createdByName}}</td>
                             <td *ngIf="!userMapping.home_employee_360">{{compOffApplication.createdByName}}</td>
                             <td>{{compOffApplication.compOffReasons}}</td>
                             <td>{{compOffApplication.createdOn}}</td>
@@ -1009,12 +1024,17 @@
                                     *ngIf="compOffApplication.currentApprovalLevel == compOffApplication.finalApprovalLevel && compOffApplication.status == 'Pending'">
                                     Final</h6>
                             </td>
-                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="compOffApplication.emp360Manager" style="cursor: pointer;" title="Click to view Employee 360">{{compOffApplication.approverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"
+                                [navigateToEmployee360]="compOffApplication.emp360Manager" style="cursor: pointer;"
+                                title="Click to view Employee 360">{{compOffApplication.approverName}}</td>
                             <td *ngIf="!userMapping.home_employee_360">{{compOffApplication.approverName}}</td>
                             <td
                                 [ngStyle]="{'color': (compOffApplication.managerApprovalStatus == 'Pending') ? 'orange' : (compOffApplication.managerApprovalStatus == 'Approved') ? 'green' : (compOffApplication.managerApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
                                 {{compOffApplication.managerApprovalStatus}}</td>
-                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="compOffApplication.emp360Level2Approver" style="cursor: pointer;" title="Click to view Employee 360">{{compOffApplication.level2ApproverName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"
+                                [navigateToEmployee360]="compOffApplication.emp360Level2Approver"
+                                style="cursor: pointer;" title="Click to view Employee 360">
+                                {{compOffApplication.level2ApproverName}}</td>
                             <td *ngIf="!userMapping.home_employee_360">{{compOffApplication.level2ApproverName}}</td>
                             <td
                                 [ngStyle]="{'color': (compOffApplication.level2ApprovalStatus == 'Pending') ? 'orange' : (compOffApplication.level2ApprovalStatus == 'Approved') ? 'green' : (compOffApplication.level2ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">
@@ -1123,7 +1143,9 @@
                                     [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
                             <td>{{items*(page-1)+i+1}}</td>
                             <td>{{timesheet.employeementId}}</td>
-                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"[navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"
+                                [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;"
+                                title="Click to view Employee 360">{{timesheet.employeeName}}</td>
                             <td *ngIf="!userMapping.home_employee_360">{{timesheet.employeeName}}</td>
                             <td>{{timesheet.date}}</td>
                             <td>{{timesheet.dayType}}</td>
@@ -1373,7 +1395,9 @@
                     <tr *ngFor="let leaves of overLapsLeaveForManager"
                         [ngStyle]="{'background-color':(this.leaveApplication.empId== leaves.empId) ? 'rgb(193, 207, 246)' : ''}">
                         <td>{{leaves.employeementId}}</td>
-                        <td id="clickablefor360" *ngIf="userMapping.home_employee_360" [navigateToEmployee360]="leaves.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{leaves.employeeName}}</td>
+                        <td id="clickablefor360" *ngIf="userMapping.home_employee_360"
+                            [navigateToEmployee360]="leaves.emp360" style="cursor: pointer;"
+                            title="Click to view Employee 360">{{leaves.employeeName}}</td>
                         <td *ngIf="!userMapping.home_employee_360">{{leaves.employeeName}}</td>
                         <td>{{leaves.fromDate}}</td>
                         <td>{{leaves.toDate}}</td>
@@ -1390,8 +1414,8 @@
         </div>
     </ng-template>
 
-     <!-- poexpire_template Modal fixed after login-->
-     <ng-template #poexpire_template_fixed *ngIf="currentUser.employeeRole === 'RMG' ">
+    <!-- poexpire_template Modal fixed after login-->
+    <ng-template #poexpire_template_fixed *ngIf="currentUser.employeeRole === 'RMG' ">
         <div>
             <div class="modal-header">
                 <b>Expired Projects/POs</b>
@@ -1400,7 +1424,8 @@
                 </button>
             </div>
             <div class="modal-body text-center" style="overflow: scroll;">
-                <app-expied-po-and-project [employee]="expiredList" (emailEvent)="handleEmailRequest($event)"></app-expied-po-and-project>
+                <app-expied-po-and-project [employee]="expiredList"
+                    (emailEvent)="handleEmailRequest($event)"></app-expied-po-and-project>
             </div>
         </div>
     </ng-template>
@@ -1425,7 +1450,8 @@
             </div>
             <div class="text-center">
                 <button type="button" class="btn btn-primary" style="margin: 3px" (click)="cancelRequest()">Ok</button>
-                <button type="button" class="btn btn-primary" style="margin: 3px"(click)="openPoExpiredMod()">Go Back To Expared Tab</button>
+                <button type="button" class="btn btn-primary" style="margin: 3px" (click)="openPoExpiredMod()">Go Back
+                    To Expared Tab</button>
             </div>
         </div>
     </ng-template>
@@ -1435,16 +1461,18 @@
         <div class="modal-body text-center">
             <p>Kindly provide reason(s) for rejecting application.</p>
             <textarea rows="3" cols="50" class="form-control" [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
-            <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)" (click)="onUpdateCompOffStatus(alert_message,leaveObj,3);cancelRequest()">Reject</button>&nbsp;
+            <button type="button" class="btn btn-success"
+                [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)"
+                (click)="onUpdateCompOffStatus(alert_message,leaveObj,3);cancelRequest()">Reject</button>&nbsp;
             <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
         </div>
-      </ng-template>
+    </ng-template>
 
 
 
 
-      <!-- First Div: Both conditions are true -->
-<!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage != null"
+    <!-- First Div: Both conditions are true -->
+    <!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage != null"
 style="display: flex; justify-content: space-between; width: 100%;">
 
 <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
@@ -1469,8 +1497,8 @@ style="display: flex; justify-content: space-between; width: 100%;">
 
 </div> -->
 
-<!-- Second Div: Only lines.billableType === 'Bench' && lines.dayOnbench != null is true -->
-<!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage == null"
+    <!-- Second Div: Only lines.billableType === 'Bench' && lines.dayOnbench != null is true -->
+    <!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null && consentNotificationMessage == null"
 style="display: flex; justify-content: space-between; width: 100%; position: relative;">
 
 <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left"
@@ -1482,8 +1510,8 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
 </div> -->
 
-<!-- Third Div: Only consentNotificationMessage != null is true -->
-<!-- <div *ngIf="consentNotificationMessage != null && (lines.billableType !== 'Bench' || lines.dayOnbench == null)"
+    <!-- Third Div: Only consentNotificationMessage != null is true -->
+    <!-- <div *ngIf="consentNotificationMessage != null && (lines.billableType !== 'Bench' || lines.dayOnbench == null)"
 style="display: flex; justify-content: space-between; width: 100%; position: relative;">
 
 <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" direction="left" onmouseover="this.stop()"
@@ -1500,3 +1528,47 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
 
 </div> -->
+
+    <!-- Timesheet Popup Modal -->
+    <div *ngIf="isTimesheetFormVisible" class="modal fade show d-block" tabindex="-1" role="dialog"
+        style="background-color: rgba(0,0,0,0.5);">
+
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Timesheet</h5>
+                    <button type="button" class="close" aria-label="Close" (click)="closeTimesheetForm()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+
+                <div class="modal-body">
+
+                    <!-- <div class="modal-body">
+                        <app-timesheet-create-self *ngIf="isTimesheetFormVisible" [autofillData]="lastTimesheetData"
+                            (teamMemberSelected)="onTeamMemberSelected($event)"
+                            (createTimesheet)="onCreateTimesheet()"></app-timesheet-create-self>
+                    </div> -->
+
+                    <app-timesheet-create-self *ngIf="isTimesheetFormVisible" [autofillData]="lastTimesheetData"
+                        (teamMemberSelected)="onTeamMemberSelected($event)" (createTimesheet)="onCreateTimesheet()"
+                        (timesheetSubmitted)="onTimesheetSubmissionComplete()">
+                    </app-timesheet-create-self>
+
+
+
+
+
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" (click)="closeTimesheetForm()">Close</button>
+                </div>
+
+            </div>
+        </div>
+    </div>

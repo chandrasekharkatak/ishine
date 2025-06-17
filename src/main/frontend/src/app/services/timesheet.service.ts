@@ -115,4 +115,10 @@ export class TimesheetService {
   getAllOrDeptWiseEmployeeTimesheetReport(FilteredTimesheet: any): Observable<any> {
     return this.http.post(`${this.baseUrl}` + `api/getAllOrDeptWiseEmployeeTimesheetReport`,FilteredTimesheet);
   }
+
+  getLastFilledTimesheetByEmpId(empId: number): Observable<any> {
+  const payload = { empId }; 
+  return this.http.post<any>(`${this.baseUrl}`+`api/getLastFilledTimesheetByEmpId`, payload);
+}
+
 }

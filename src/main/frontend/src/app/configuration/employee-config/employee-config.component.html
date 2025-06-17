@@ -1614,7 +1614,7 @@
                                 <td>{{employee.email}}</td>
                                 <td>{{employee.employmentstatus}}</td>
                                 <!-- <td
-                                    *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable">
+                                    *ngIf="isDraftTable && employee.employmentStatus == 'InActive' && !isActiveTable">
                                     {{employee.employmentReleaseStatus}}</td> -->
                                 <td
                                     *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable">

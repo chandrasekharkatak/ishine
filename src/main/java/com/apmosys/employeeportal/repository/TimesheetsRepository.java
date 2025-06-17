@@ -220,5 +220,46 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 	 List<Object[]> getTimesheetsByDepartmentAndDateRange(@Param("deptId") Long deptId,
 	            @Param("startDate") String startDate,
 	            @Param("endDate") String endDate);
+	 @Query(
+			    value = "SELECT " +
+			            "ets.timesheet_id, " +
+			            "ets.date AS timesheet_date, " +
+			            "ets.day_type, " +
+			            "ets.office_in_time, " +
+			            "ets.office_out_time, " +
+			            "ets.total_working_hours, " +
+			            "ets.description AS timesheet_description, " +
+			            "etam.completion_time, " +
+			            "etam.description AS activity_description, " +
+			            "a.activity_id, " +
+			            "a.activity, " +
+			            "t.team_id, " +
+			            "t.team_name, " +
+			            "t.team_lead_name, " +
+			            "p.project_id, " +
+			            "p.project_name, " +
+			            "p.client_id, " +
+			            "cl.client_location_id, " +
+			            "cl.client_location AS project_location, " +
+			            "p.client_name " +
+			        "FROM employee_timesheets ets " +
+			        "JOIN ( " +
+			        "    SELECT timesheet_id " +
+			        "    FROM employee_timesheets " +
+			        "    WHERE emp_id = :empId " +
+			        "      AND day_type NOT IN ('Public Holiday', 'Week Off', 'Leave') " +
+			        "    ORDER BY date DESC " +
+			        "    LIMIT 1 " +
+			        ") latest_ts ON ets.timesheet_id = latest_ts.timesheet_id " +
+			        "JOIN employee_timesheet_activities_mapping etam ON ets.timesheet_id = etam.timesheet_id " +
+			        "JOIN activities a ON etam.activity_id = a.activity_id " +
+			        "JOIN teams t ON a.team_id = t.team_id " +
+			        "JOIN projects p ON t.project_id = p.project_id " +
+			        "LEFT JOIN client_locations cl ON cl.client_id = p.client_id AND cl.client_location = p.client_location",
+			    nativeQuery = true
+			)
+      List<Object[]> getLastFilledTimesheet(@Param("empId") Long empId);
+
+
 	
 }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, TemplateRef } from '@angular/core';
+import { Component, Input, OnInit, TemplateRef, Output, EventEmitter, ViewChild } from '@angular/core';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Timesheet } from 'src/app/models/timesheet';
@@ -34,6 +34,9 @@ export class CalendarComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
   popupDescription : any;
   popupActivity: any;
+  @Output() openTimesheet = new EventEmitter<CalendarItem>();
+  @ViewChild('alert_message') alertMessageTemplate!: TemplateRef<any>;
+  alertMessage: string = '';
 
   constructor(
     private modalService: BsModalService,
@@ -184,5 +187,28 @@ onHoverEnd(): void {
     this.popupDescription = '';
     this.popupActivity = '';
 }
+
+onDayClick(day: CalendarItem): void {
+  if (day.status === 'Not Filled') {
+    this.openTimesheet.emit(day);
+  } else if (day.status === 'Approved') {
+    this.alertMessage = 'Timesheet is already approved.';
+    this.modalRef = this.modalService.show(this.alertMessageTemplate, {
+      class: 'modal-md',
+      ignoreBackdropClick: true
+    });
+  } else if (day.status === 'Pending') {
+    this.alertMessage = 'Timesheet is already filled. Please update it.';
+    this.modalRef = this.modalService.show(this.alertMessageTemplate, {
+      class: 'modal-md',
+      ignoreBackdropClick: true
+    });
+  }
+}
+
+
+  cancelRequest_approve_pending(): void {
+      this.modalRef.hide();
+  }
 
 }

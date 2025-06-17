@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -162,6 +163,12 @@ public class TimesheetController {
 	    public ServiceResponse getAllOrDeptWiseEmployeeTimesheetReport(@RequestBody FilteredTimesheetDTO filteredTimesheetDTO) {
 	        return timesheetService.getAllOrDeptWiseEmployeeTimesheetReport(filteredTimesheetDTO);
 	    }
+	 
+	 @PostMapping("/getLastFilledTimesheetByEmpId")
+	 public ServiceResponse getLastFilledTimesheetByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
+	     return timesheetService.getLastFilledTimesheetByEmpId(timesheetDTO.getEmpId());
+	 }
+
 	
 //	@Scheduled(cron = "0 53 17 * * ?")  // Runs at 3:55 pm
 //    public void scheduleUpdateCurrentManagerInTimesheets() {

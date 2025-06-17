@@ -139,6 +139,7 @@ import { EmployeeInfoComponent } from './user-update-info/employee-info/employee
 import { EmployeeUpdateListComponent } from './user-update-info/employee-update-list/employee-update-list.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
+import{TimesheetCreateSelfComponent} from './timesheet-create-self/timesheet-create-self.component';
 registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 // 
@@ -277,8 +278,8 @@ import { ReimbursmentConfigComponent } from './configuration/reimbursment-config
      TotalReimbursementrequestComponent,
      SafePipe,
      TravelConfigComponent,
-     ReimbursmentConfigComponent
-   
+     ReimbursmentConfigComponent,
+     TimesheetCreateSelfComponent
   
 
     //TestComponent

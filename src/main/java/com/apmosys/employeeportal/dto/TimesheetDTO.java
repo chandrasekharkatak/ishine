@@ -95,5 +95,10 @@ public class TimesheetDTO {
 	private String isApprenticeship;
 	
 	private List<EmployeeTimesheetDto> timeSheet;
+	
+	private String TeamLeadName;
+	
+	
+	
 	private Long currentUser;
 }

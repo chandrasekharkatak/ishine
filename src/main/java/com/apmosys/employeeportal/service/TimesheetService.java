@@ -45,6 +45,7 @@ import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.utility.ToLong_helper;
 
 @EnableAsync
 @Service
@@ -1864,6 +1865,7 @@ public class TimesheetService {
         ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
         
+        
         apiLogInfo.setSubFeatureName("fetch_timesheets");
         apiLogInfo.setApiUrl("/api/getAllOrDeptWiseEmployeeTimesheetReport");
         apiLogInfo.setLogLevel("INFO");
@@ -1948,7 +1950,72 @@ public class TimesheetService {
         dto.setEmpId(object[34] != null ? Long.parseLong(object[34].toString()) : null);        
         return dto;
     }
+	
+	
+	public ServiceResponse getLastFilledTimesheetByEmpId(Long empId) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getLastFilledTimesheetByEmpId");
+	    apiLogInfo.setLogLevel("INFO");
+	    ToLong_helper toLong_helper = new ToLong_helper();
 
-    
+	    try {
+	    	List<Object[]> resultList = timesheetsRepository.getLastFilledTimesheet(empId);
+
+	    	if (!resultList.isEmpty()) {
+	    	    Object[] object = resultList.get(0);  // get the first row
+
+	    	    if (object.length < 19) {
+	    	        throw new RuntimeException("Expected 19 columns, got: " + object.length);
+	    	    }
+	    	    TimesheetDTO dto = new TimesheetDTO();
+
+	    	    dto.setTimesheetId(toLong_helper.safeParseLong(object[0]));             // Long
+	    	    dto.setDate(toLong_helper.getSafeString(object[1]));                    // String
+	    	    dto.setDayType(toLong_helper.getSafeString(object[2]));                 // String
+	    	    dto.setOfficeInTime(toLong_helper.getSafeString(object[3]));            // String
+	    	    dto.setOfficeOutTime(toLong_helper.getSafeString(object[4]));           // String
+	    	    dto.setTotalWorkingOfficeHours(toLong_helper.getSafeString(object[5])); // String
+	    	    dto.setDescription(toLong_helper.getSafeString(object[6]));             // String
+
+	    	    dto.setTotalTime(toLong_helper.safeParseFloat(object[7]));              // Float
+	    	    dto.setActivity(toLong_helper.getSafeString(object[8]));                // String
+
+	    	    dto.setActivityId(toLong_helper.safeParseLong(object[9]));              // Long
+	    	    dto.setActivity(toLong_helper.getSafeString(object[10]));               // String
+
+	    	    dto.setTeamId(toLong_helper.safeParseLong(object[11]));                 // Long
+	    	    dto.setTeamName(toLong_helper.getSafeString(object[12]));               // String
+	    	    dto.setTeamLeadName(toLong_helper.getSafeString(object[13]));           // String
+
+	    	    dto.setProjectId(toLong_helper.safeParseInt(object[14]));               // Integer
+	    	    dto.setProjectName(toLong_helper.getSafeString(object[15]));            // String
+	    	    dto.setClientId(toLong_helper.safeParseInt(object[16]));                // Integer
+	    	    dto.setClientLocationId(toLong_helper.safeParseInt(object[17]));        // Integer ✅ correctly mapped
+	    	    dto.setClientLocation(toLong_helper.getSafeString(object[18]));         // String
+	    	    dto.setClientName(toLong_helper.getSafeString(object[19]));             // String
+	    	   	  response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	    	    response.setServiceResponse(dto);
+	    	    apiLogInfo.setApiResponse("Last timesheet found");
+	    	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	    	} else {
+	    	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	    	    response.setServiceResponse("No timesheet found for employee.");
+	    	    apiLogInfo.setApiResponse("No timesheet found");
+	    	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	    	}
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+
 
 }
