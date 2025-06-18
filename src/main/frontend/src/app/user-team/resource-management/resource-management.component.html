@@ -1637,8 +1637,8 @@
                     <div>
                         <button type="button" class="btn btn-outline-primary"
                             (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()" [disabled]="projectObj.resourceRequirements?.length > 0
-                          ? (!selectedRequirement || !newteamMember.empId || !newteamMember.employeeRole?.length)
-                          : (!newteamMember.empId || !newteamMember.employeeRole?.length)">
+                          ? (!selectedRequirement || !newteamMember.empId || !newteamMember.employeeRole?.length ||(projectDetails.length !== 0 && newteamMember.billableType === 'TNM') )
+                          : (!newteamMember.empId || !newteamMember.employeeRole?.length || (projectDetails.length !== 0 && newteamMember.billableType === 'TNM') )">
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>
                     </div>
