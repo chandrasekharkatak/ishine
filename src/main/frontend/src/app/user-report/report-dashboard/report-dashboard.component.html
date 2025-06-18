@@ -1132,7 +1132,7 @@
                 class="text-capitalize"
                 id="clickablefor360"
                 *ngIf="userMapping.reports_employee_360"
-                [navigateToEmployee360]="leave"
+                [navigateToEmployee360]="leave.empId"
                 style="cursor: pointer"
                 title="Click to view Employee 360"
                 (click)="cancelRequest()"
@@ -1387,21 +1387,20 @@
               <th class="info-label">{{ 20 * (page - 1) + i + 1 }}</th>
               <td>{{ leave.employeementId }}</td>
               <td>{{ leave.employeeType }}</td>
-              <td
+              <!-- <td
                 class="text-capitalize"
                 id="clickablefor360"
                 *ngIf="userMapping.reports_employee_360"
                 (click)="cancelRequest()"
-                [navigateToEmployee360]="leave"
+                [navigateToEmployee360]="leave.empId"
                 style="cursor: pointer"
                 title="Click to view Employee 360"
-                class="text-capitalize"
+                
               >
                 {{ leave.name }}
-              </td>
+              </td> -->
               <td
-                class="text-capitalize"
-                *ngIf="!userMapping.reports_employee_360"
+                
               >
                 {{ leave.name }}
               </td>
@@ -1684,16 +1683,19 @@
               <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
               <td>{{ emp.employeementId }}</td>
               <td>{{ emp.employeeType }}</td>
-              <td
+              <!-- <td
                 class="text-capitalize"
                 id="clickablefor360"
-                [navigateToEmployee360]="emp"
+                *ngIf="userMapping.reports_employee_360"
+                (click)="cancelRequest()"
+                [navigateToEmployee360]="emp.empId"
                 style="cursor: pointer"
                 title="Click to view Employee 360"
-                class="text-capitalize"
-                class="text-capitalize"
               >
                 {{ emp.name }}
+              </td> -->
+              <td >
+                {{emp.name}}
               </td>
               <td
                 class="text-capitalize"

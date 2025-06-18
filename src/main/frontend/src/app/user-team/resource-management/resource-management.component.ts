@@ -465,7 +465,7 @@ export class ResourceManagementComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
+    console.log("lalalalalalalalal", this.userMapping);
     const deptName = String(this.currentUser.departmentName).trim();
     const empRole = String(this.currentUser.employeeRole).trim();
     if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") &&
@@ -3117,6 +3117,7 @@ clearSelectionDept(event: Event) {
     } else {
       this.projectObj.projectManagerId = this.filteredManagerList.map(emp => emp.empId);
       this.isAllManagersSelected = true;
+      console.log("Selected Managers: ", this.projectObj.projectManagerId);
     }
   }
 
