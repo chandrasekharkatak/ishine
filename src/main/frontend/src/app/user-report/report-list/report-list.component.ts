@@ -254,7 +254,7 @@ export class ReportListComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
+    console.log("userMapping", this.userMapping);
     await this.getAllDepartments();
 
     this.preventBackButton();
@@ -727,6 +727,11 @@ export class ReportListComponent implements OnInit {
       if (response.serviceStatus === "Success") {
         const res = response.serviceResponse;
         this.employeeList = res.getEmployeeProjectReportForEmployeeDTO || [];
+        this.employeeList.forEach(employee => {
+                  employee.emp360EmpId = employee.empId;
+                  employee.emp360ManagerId = employee.managerId;
+               
+                });
         // console.log(this.employeeList,"Employee_List");
         this.projectList = res.getProjectToEmployeeReportForProjectDTO || [];
         // console.log(this.projectList,"projectList");departmentName

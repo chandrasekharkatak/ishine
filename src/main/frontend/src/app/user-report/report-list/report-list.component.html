@@ -625,10 +625,12 @@
                 </td> -->
                 <th class="info-label">{{20*(page-1)+i+1}}</th>
                 <td>A-{{ employee.employeementId }}</td>
-                <td>{{ employee.name }}</td>
+                 <td *ngIf="userMapping.reports_employee_360 && employee.emp360EmpId" id="clickablefor360" [navigateToEmployee360]="employee.emp360EmpId" style="cursor: pointer;" title="Click to view Employee 360">{{employee.name}}</td>
+                 <td *ngIf="!userMapping.reports_employee_360">{{employee.name}}</td>
                 <td>{{ employee.departmentName }}</td>
                 <td>{{ employee.jobRole }}</td>
-                <td>{{ employee.managerName }}</td>
+                 <td *ngIf="userMapping.reports_employee_360 && employee.emp360ManagerId" id="clickablefor360" [navigateToEmployee360]="employee.emp360ManagerId" style="cursor: pointer;" title="Click to view Employee 360">{{employee.managerName}}</td>
+                 <td *ngIf="!userMapping.reports_employee_360">{{employee.managerName}}</td>
                 <td>{{ employee.mobileNo }}</td>
                 <td>
                   <ng-container *ngIf="employee.email">
