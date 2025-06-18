@@ -29,7 +29,7 @@ public class PoProjectSyncDTO {
     private Integer clientLocationId;
     private String employeeName;
     private Integer poClientId;
-    private String poProjectManagerId;
+    private List<String> poProjectManagers;
     private List<PoTeamDTO> teamList;
     private String[] departmentList;
     private String[] clientLocation;
@@ -40,8 +40,7 @@ public class PoProjectSyncDTO {
     private String updatedBy;
     private String updatedOn;
 	private String projectManagerName;
-    private List<ProjectManagerMappingDTO> projectManagersList;
-	private List<ProjectManagersDTO> projectManagers;
 	private String internalProjectType;
 	private String deptId;
+	private String ishineProjectStatus;
 }

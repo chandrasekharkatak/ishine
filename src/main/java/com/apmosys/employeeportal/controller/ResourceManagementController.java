@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -363,6 +364,11 @@ public class ResourceManagementController {
 	public ServiceResponse getProjectTimesheetSummary(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = resourceManagementService.getProjectTimesheetSummary(resourceManagementDTO);
 		return response;
+	}
+	
+	@PostMapping("/getProjectStatusByPoProjectId")
+	public ServiceResponse getProjectStatusByPoProjectId(@RequestBody Set<Long> projectIds) {
+	    return resourceManagementService.getProjectStatusByPoProjectId(projectIds);
 	}
 
 }

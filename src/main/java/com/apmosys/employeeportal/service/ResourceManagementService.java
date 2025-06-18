@@ -2890,48 +2890,38 @@ public class ResourceManagementService {
 					projectDTO.setPoProjectId(projectObj.getPoProjectId());
 					projectDTO.setProjectName(projectObj.getProjectName());
 					
-					List<Object[]> result = projectManagerMappingRepository
-							.findProjectManagersPerProject(Long.parseLong(projectDTO.getProjectId().toString()));
+					if (projectObj.getIsDraftProject() == null) {
+					    projectDTO.setIshineProjectStatus("Not Started");
+					} else {
+					    String status = String.valueOf(projectObj.getIsDraftProject());
 
-					List<Long> projectManagerIds = new ArrayList<>();
-					List<ProjectManagersDTO> projectManagersList = new ArrayList<>();
-					List<String> projectManagerNames = new ArrayList<>();
-					List<String> projectManagerId = new ArrayList<>();
+					    if ("true".equals(status)) {
+					        projectDTO.setIshineProjectStatus("Pending For Approval");
+					    } else if ("false".equals(status)) {
+					        projectDTO.setIshineProjectStatus("Approved");
+					    } else if ("Rejected".equals(status)) {
+					        projectDTO.setIshineProjectStatus("Rejected");
+					    } else if ("Completed".equals(status)) {
+					        projectDTO.setIshineProjectStatus("Completed");
+					    } else {
+					        projectDTO.setIshineProjectStatus("Not Started");
+					    }
+					}
+				
+					List<Object[]> result = projectManagerMappingRepository
+							.findProjectManagersPerProject(Long.parseLong(projectObj.getProjectId().toString()));
+
+					List<String> projectManagerIds = new ArrayList<>();
 
 					for (Object[] obj : result) {
-						if (obj[0] != null) {
-							//correct part that will be used once reverse sync api changes done by po
-							projectManagerIds.add(Long.parseLong(obj[0].toString()));
-							
-							//added temporarily till reverse sync api changes done by po
-							projectManagerId.add((obj[0].toString()));
+						if (obj[2] != null) {
+							projectManagerIds.add(obj[2].toString());
 						}
-
-						if (obj[1] != null) {
-							projectManagerNames.add(obj[1].toString());
-						}
-
-						ProjectManagersDTO dto = new ProjectManagersDTO();
-						dto.setProjectManagerId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
-						dto.setProjectManagerName(obj[1] != null ? obj[1].toString() : null);
-						projectManagersList.add(dto);
 					}
 
-					String commaSeparatedNames = String.join(", ", projectManagerNames);
-					String commaSeparatedNames2 = String.join(", ", projectManagerId);
-
-					//correct part that will be used once reverse sync api changes done by po
-//					projectDTO.setPoProjectManagerId(commaSeparatedNames2);
+					projectDTO.setPoProjectManagers(projectManagerIds);
+					System.out.println(" projectManagerId   ::   " + projectManagerIds);
 					
-					//added temporarily till reverse sync api changes done by po
-					projectDTO.setPoProjectManagerId(commaSeparatedNames2.split(",")[0]);
-					projectDTO.setProjectManagerName(commaSeparatedNames);
-					commaSeparatedNames = "";
-					projectDTO.setProjectManagers(projectManagersList);
-
-//					String projectManagerId = getEmploymentId(projectObj.getProjectManagerId());
-//					System.out.println(" projectManagerId   ::   " + projectManagerId);
-//					projectDTO.setPoProjectManagerId(projectManagerId != null ? projectManagerId : null);
 
 					// Get Team Details
 					List<Team> teamDetails = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(), "Y");
@@ -4610,6 +4600,22 @@ public class ResourceManagementService {
 			projectObj.setProjectStatus(resourceManagementDTO.getStatus());
 			projectObj.setProjectStatus(resourceManagementDTO.getProjectStatus());
 			Project projectDbResponse = projectRepository.save(projectObj);
+			
+			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
+				ServiceResponse	poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+
+				if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Completion status updated to Shankh portal!");
+					apiLogInfo.setApiResponse("Reverse synced successfully!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Unable to intimate completion status to Shankh portal!");
+					apiLogInfo.setApiResponse("Reverse synced failed!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+			}
 			if (projectDbResponse != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Project Status Updated As Completed !!");
@@ -5678,7 +5684,7 @@ public class ResourceManagementService {
 	}
 
 	@Transactional
-	private ServiceResponse setProjectManager(ResourceManagementDTO resourceManagementDTO, Project projectDbResponse) {
+	public ServiceResponse setProjectManager(ResourceManagementDTO resourceManagementDTO, Project projectDbResponse) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("setProjectManager");
@@ -6369,7 +6375,8 @@ public class ResourceManagementService {
 							(String) row[16], // apmosysRM
 							(String) row[17], // clientRM
 							(String) row[18], // deptId
-							(Boolean) row[19], // isRenewable
+							null,
+//							(Boolean) row[19], // isRenewable
 							(String) row[20], // status
 							(String) row[21], // apmosysRmEmail
 							(String) row[22], // projectCompletionDate
@@ -6563,7 +6570,8 @@ public class ResourceManagementService {
 							(String) row[16], // apmosysRM
 							(String) row[17], // clientRM
 							(String) row[18], // deptId
-							(Boolean) row[19], // isRenewable
+							null,
+//							(Boolean) row[19], // isRenewable
 							(String) row[20], // status
 							(String) row[21], // apmosysRmEmail
 							(String) row[22], // projectCompletionDate
@@ -7347,5 +7355,51 @@ public class ResourceManagementService {
 
 	    return response;
 	}
+	
+	public ServiceResponse getProjectStatusByPoProjectId(Set<Long> poProjectId) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getProjectStatusByPoProjectId");
+	    apiLogInfo.setApiUrl("/api/getProjectStatusByPoProjectId");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("\n getProjectStatusByPoProjectId ");
+
+	    try {
+	    	if(!poProjectId.isEmpty()) {
+	    		
+	    		List<Object[]> poProjectStatus = projectRepository.getProjectStatusByPoProjectId(poProjectId);
+	    		 
+	    		Map<Long, String> result = new HashMap<>();
+
+	            for (Object[] row : poProjectStatus) {
+	                Long projectId = row[0] != null ? ((Number) row[0]).longValue() : null;
+	                String status = row[1] != null ? row[1].toString() : "Not Started";
+	                if (projectId != null) {
+	                    result.put(projectId, status);
+	                }
+	            }
+
+	            response.setServiceResponse(result);
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            apiLogInfo.setApiResponse("Project status fetched");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No poProjectIds provided.");
+	            apiLogInfo.setApiResponse("No poProjectIds provided.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+	    }catch (Exception e) {
+	    	e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+		return response;
+    }
 
 }

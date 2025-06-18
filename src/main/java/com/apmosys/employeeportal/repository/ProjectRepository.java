@@ -528,4 +528,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(nativeQuery = true,value="select client_name from clients where client_id = :clientId")
 	public String getClientNameByClientId(Integer clientId);
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getProjectStatusByPoProjectId(Set<Long> poProjectId);
 }

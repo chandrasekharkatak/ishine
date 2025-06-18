@@ -471,7 +471,7 @@ export class ResourceManagementComponent implements OnInit {
     if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") &&
       !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")) {
       await this.getAllDepartmentsFromId();
-      this.projectFilterDTO.isHod = true
+      // this.projectFilterDTO.isHod = true
     }
     else {
       await this.getAllDepartments();
@@ -1158,6 +1158,7 @@ export class ResourceManagementComponent implements OnInit {
       });
       this.projectObj.teamList = this.allTeamList;
       this.projectObj.createdBy = this.currentUser.empId;
+      
       if(this.projectObj.poProjectType == null){
         this.projectObj.projectType = "Internal";
       }

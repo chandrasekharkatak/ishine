@@ -66,6 +66,7 @@ import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.PoTeamTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
+import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SyncableProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Activity;
@@ -544,6 +545,41 @@ public class ProjectService {
 	  - Po Project Sync API : start
 	 */
 	
+	public List<Employee> getEmployeesByEmployeementIds(List<String> employeementIds) {
+	    List<Employee> employeeList = new ArrayList<>();
+
+	    if (employeementIds != null) {
+	        for (String employeementId : employeementIds) {
+	            if (employeementId != null && !employeementId.isEmpty()) {
+	                try {
+	                    Long employmentId;
+
+	                    if (employeementId.contains("-")) {
+	                        String[] parts = employeementId.split("-");
+	                        if (parts.length == 2) {
+	                            employmentId = Long.parseLong(parts[1]);
+	                        } else {
+	                            continue; 
+	                        }
+	                    } else {
+	                        employmentId = Long.parseLong(employeementId);
+	                    }
+
+	                    Employee employeeObj = employeeRepository.findByEmployeementId(employmentId);
+	                    if (employeeObj != null) {
+	                        employeeList.add(employeeObj);
+	                    }
+
+	                } catch (NumberFormatException e) {
+	                    continue;
+	                }
+	            }
+	        }
+	    }
+
+	    return employeeList;
+	}
+	
 	public Employee getEmployeeByEmployeementId(String employeementId) {
 		Long employmentId = null;
 		Employee employeeObj = null;
@@ -586,16 +622,36 @@ public class ProjectService {
 					return response;
 				}
 				
-				if(poProjectSyncDTO.getPoProjectManagerId() == null || poProjectSyncDTO.getPoProjectManagerId() == "") {
+				if(poProjectSyncDTO.getPoProjectManagers() == null || poProjectSyncDTO.getPoProjectManagers().isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Please provide PoProject Manager Id.");
 					return response;
-				}else if(!validationService.validateEmploymentId(Long.parseLong(poProjectSyncDTO.getPoProjectManagerId().split("-")[1]))) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("No user exist as project manager with EmpId : " + poProjectSyncDTO.getPoProjectManagerId());
-					return response;
+				}else if(!poProjectSyncDTO.getPoProjectManagers().isEmpty()) {
+					for (String managerId : poProjectSyncDTO.getPoProjectManagers()) {
+					    try {
+					        // Split by "-" and parse the numeric part
+					        String[] parts = managerId.split("-");
+					        if (parts.length != 2) {
+					            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					            response.setServiceResponse("Invalid manager ID format: " + managerId);
+					            return response;
+					        }
+
+					        Long empId = Long.parseLong(parts[1]);
+
+					        if (!validationService.validateEmploymentId(empId)) {
+					            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					            response.setServiceResponse("No user exists as project manager with EmpId: " + managerId);
+					            return response;
+					        }
+
+					    } catch (NumberFormatException e) {
+					        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					        response.setServiceResponse("Invalid number in manager ID: " + managerId);
+					        return response;
+					    }
+					}
 				}
-				
 				if(poProjectSyncDTO.getPoClientId() == null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Please provide PoClient Id.");
@@ -776,7 +832,7 @@ public class ProjectService {
 				}
 				
 				Project project = projectRepository.findByPoProjectId(poProjectSyncDTO.getPoProjectId());
-				Employee managerObj = getEmployeeByEmployeementId(poProjectSyncDTO.getPoProjectManagerId());
+				List<Employee> managerObjs = getEmployeesByEmployeementIds(poProjectSyncDTO.getPoProjectManagers());
 				Integer clientId = null;
 				
 				Client client = clientsRepository.findByPoClientId(poProjectSyncDTO.getPoClientId());
@@ -836,7 +892,7 @@ public class ProjectService {
 					
 					//update project info
 					project.setProjectName(poProjectSyncDTO.getProjectName());
-					project.setProjectManagerId(managerObj.getEmpId());
+//					project.setProjectManagerId(managerObj.getEmpId());
 					project.setState(poProjectSyncDTO.getState());
 					project.setUpdatedBy(updatedByObj.getEmpId());
 					project.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
@@ -851,7 +907,7 @@ public class ProjectService {
 					
 					if(projectDbResponse != null) {
 						responseBuilder.append("Update Project resposne : success " + "Project Id " + projectDbResponse.getProjectId() + " Project Name" + projectDbResponse.getProjectName());
-						
+												
 						//update department
 						List<Long> departmentId = new ArrayList<Long>();
 						for(String department: poProjectSyncDTO.getDepartmentList()){
@@ -933,7 +989,7 @@ public class ProjectService {
 									List<Long> teamMemberList = new ArrayList<Long>();
 									List<String> newTeamMemberList = new ArrayList<String>(Arrays.asList(object.getTeamMemberList()));
 									//Adding projectManager, HOD, teamLead in teamMemberList
-									newTeamMemberList.add(poProjectSyncDTO.getPoProjectManagerId());
+//									newTeamMemberList.add(poProjectSyncDTO.getPoProjectManagerId());
 									newTeamMemberList.add(object.getPoTeamLeadId());
 									for(String department: object.getDepartmentList()) {
 										Department deptObj = departmentRepository.findByName(department);
@@ -1024,7 +1080,7 @@ public class ProjectService {
 									// Add Project Manager
 									defaultMemberMap = new EmployeeTeamMap();
 									defaultMemberMap.setActive(1l);
-									defaultMemberMap.setEmpId(managerObj.getEmpId());
+//									defaultMemberMap.setEmpId(managerObj.getEmpId());
 									defaultMemberMap.setTeamId(teamDbResponse.getTeamId());
 									defaultMemberMap.setEmployeeRole("Manager");
 									mapList.add(defaultMemberMap);
@@ -1051,8 +1107,10 @@ public class ProjectService {
 										EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
 										
 										// check if HOD, Manager, TeamLead already added
-										if(( (teamLeadObj.getEmpId() == null) || (teamLeadObj.getEmpId() != null && !teamLeadObj.getEmpId().equals(teamMemberObj.getEmpId())) ) && 
-												!managerObj.getEmpId().equals(teamMemberObj.getEmpId())
+										if(( (teamLeadObj.getEmpId() == null) || (teamLeadObj.getEmpId() != null && !teamLeadObj.getEmpId().equals(teamMemberObj.getEmpId())) 
+												
+//												) && !managerObj.getEmpId().equals(teamMemberObj.getEmpId())
+												)
 												&& ( (deptsObj.isEmpty()) || (!deptsObj.isEmpty() && 
 														!deptsObj.stream().anyMatch(o -> teamMemberObj.getEmpId().equals(o.getHodId()))) )) {
 											
@@ -1207,7 +1265,7 @@ public class ProjectService {
 					// create new project
 					Project projectObj = new Project();
 					projectObj.setProjectName(poProjectSyncDTO.getProjectName());
-					projectObj.setProjectManagerId(managerObj.getEmpId());
+//					projectObj.setProjectManagerId(managerObj.getEmpId());
 					projectObj.setPoProjectId(poProjectSyncDTO.getPoProjectId());
 					projectObj.setClientId(clientId);
 					projectObj.setState(poProjectSyncDTO.getState());
@@ -1295,7 +1353,7 @@ public class ProjectService {
 								// Add Project Manager
 								defaultMemberMap = new EmployeeTeamMap();
 								defaultMemberMap.setActive(1l);
-								defaultMemberMap.setEmpId(managerObj.getEmpId());
+//								defaultMemberMap.setEmpId(managerObj.getEmpId());
 								defaultMemberMap.setTeamId(teamDbResponse.getTeamId());
 								defaultMemberMap.setEmployeeRole("Manager");
 								mapList.add(defaultMemberMap);
@@ -1322,9 +1380,9 @@ public class ProjectService {
 									EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
 									
 									// check if HOD, Manager, TeamLead already added
-									if(( (teamLeadObj.getEmpId() == null) || (teamLeadObj.getEmpId() != null && !teamLeadObj.getEmpId().equals(teamMemberObj.getEmpId())) ) && 
-											!managerObj.getEmpId().equals(teamMemberObj.getEmpId())
-											&& ( (deptsObj.isEmpty()) || (!deptsObj.isEmpty() && 
+									if(( (teamLeadObj.getEmpId() == null) || (teamLeadObj.getEmpId() != null && !teamLeadObj.getEmpId().equals(teamMemberObj.getEmpId())) 
+//											) && !managerObj.getEmpId().equals(teamMemberObj.getEmpId())
+											) && ( (deptsObj.isEmpty()) || (!deptsObj.isEmpty() && 
 													!deptsObj.stream().anyMatch(o -> teamMemberObj.getEmpId().equals(o.getHodId()))) )) {
 										
 										requestBuilder.append("Add Team Member : " + "Member EmpId :" + teamMemberObj.getEmpId() + " Team Id : " + teamDbResponse.getTeamId());
@@ -1768,7 +1826,7 @@ public class ProjectService {
                  .append("INNER JOIN job_role j ON e.job_role_id = j.job_role_id ")
                  .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
                  .append("INNER JOIN employee ep ON p.project_manager_id = ep.emp_id ")
-                 .append("WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ")
+                 .append("WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6  ")
                  .append(buildInnerWhereClause(poProjectType, flag))
                  .append(buildOuterWhereClause(billableType, deptIds));;
             
@@ -1811,7 +1869,7 @@ public class ProjectService {
                  .append(buildInnerWhereClause(poProjectType, flag))
                  .append("    GROUP BY etm.emp_id ")
                  .append(") emp_proj_client ON emp_proj_client.emp_id = e.emp_id ")
-                 .append("WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL ")
+                 .append("WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL and e.emp_id not between 1 and 6 ")
                  .append(buildOuterWhereClause(billableType, deptIds));  
 
         } else if ("E".equalsIgnoreCase(dto.getReport())) {
@@ -2468,6 +2526,7 @@ public class ProjectService {
 	             primaryProjectEntity.setPoEndDate(dateFormatter.format(primaryProjectDTO.getEndDate().toLocalDateTime().toLocalDate()));
 	             primaryProjectEntity.setProjectName(primaryProjectDTO.getProjectName());
 	             primaryProjectEntity.setUpdatedOn(LocalDateTime.now());
+	             primaryProjectEntity.setIsDraftProject("true");
 
 	             projectRepository.save(primaryProjectEntity);
 	         }
