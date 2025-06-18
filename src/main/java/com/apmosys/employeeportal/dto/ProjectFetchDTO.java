@@ -93,7 +93,7 @@ public class ProjectFetchDTO {
 			LocalDateTime updatedOn, String isDraftProject, String poEndDate, String poNo, String poProjectType,
 			String poStartDate, String apmosysRM, String clientRM, String deptId, Boolean isRenewable, String status,
 			String apmosysRmEmail, String projectCompletionDate, String projectStatus,
-			String draftStatus) {
+			String draftStatus, String clientName) {
 		this.projectId = projectId;
 		this.createdOn = createdOn;
 		this.name = projectName;
@@ -119,6 +119,7 @@ public class ProjectFetchDTO {
 		this.projectCompletionDate = projectCompletionDate;
 		this.projectStatus = projectStatus;
 		this.draftStatus = draftStatus;
+		this.clientName = clientName;
 	}
 	public ProjectFetchDTO(Integer projectId, Timestamp createdOn, String projectName, String state, Integer clientId,
 			Long poProjectId, String active, String syncProject, Long createdBy, Long updatedBy,

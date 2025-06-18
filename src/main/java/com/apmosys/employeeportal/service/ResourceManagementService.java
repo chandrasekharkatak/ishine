@@ -6348,6 +6348,7 @@ public class ResourceManagementService {
 				    }
 
 				    if (isDuplicate) continue; // skip duplicate entry
+				    
 					ProjectFetchDTO dto = new ProjectFetchDTO((Integer) row[0], // projectId
 							(Timestamp) row[1], // createdOn
 							(String) row[2], // projectName
@@ -6377,6 +6378,7 @@ public class ResourceManagementService {
 							(String) row[25], // clientName
 							(String) row[26], // draftStatus (calculated in SQL)
 							(String) row[27] // projectViewId
+
 					);
 					if (row[0] != null && teamRepository.findByProjectId((Integer) row[0]) != null
 							&& !teamRepository.findByProjectId((Integer) row[0]).isEmpty()) {
@@ -6566,7 +6568,9 @@ public class ResourceManagementService {
 							(String) row[21], // apmosysRmEmail
 							(String) row[22], // projectCompletionDate
 							(String) row[23], // projectStatus
-							(String) row[24] // draftStatus (calculated in SQL)
+							(String) row[25], // draftStatus (calculated in SQL)
+							(String) row[24]
+									
 					);
 					dto.setId(row[5] != null ? ((BigInteger) row[5]).longValue() : null);
 
