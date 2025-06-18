@@ -181,7 +181,7 @@
                                             (selectionChange)="getClientLocationList(activityObj)"
                                             (closed)="validateClientName($event,activityObj.clientId)"
                                             [multiple]="false" [value]="activityObj.clientId">
-                                            <!-- [(ngModel)]="activityObj.clientId" -->
+                                            [(ngModel)]="activityObj.clientId"
                                             <mat-option [value]="client.clientId"
                                                 *ngFor="let client of clientName.filteredSource">
                                                 {{client.clientName}}

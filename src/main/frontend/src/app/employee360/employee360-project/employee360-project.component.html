@@ -179,7 +179,7 @@
                         <td>{{ project.billableType }}</td>
                         <!-- <td>{{ project.startDate }}</td>
                         <td>{{ project.endDate }}</td> -->
-                        <td>
+                        <td style="white-space: nowrap;"> 
                             {{ project.startDate | date: 'yyyy-MM-dd'}}
                             <a *ngIf="project.startDate" href="javascript:void(0)" (click)="editStartdateModal(edit_startdate_template,project)" title="Edit Start Date">
                               <i class="fa fa-pen ml-2 text-primary"></i>
@@ -191,7 +191,7 @@
                               <i class="fa fa-pen ml-2 text-primary"></i>
                             </a>
                           </td> -->
-                          <td>
+                          <td style="white-space: nowrap;"> 
                             {{ project.endDate | date: 'yyyy-MM-dd'}}
                             <a *ngIf="project.endDate && isFutureDate(project.endDate)" 
                                href="javascript:void(0)" 
@@ -200,8 +200,8 @@
                               <i class="fa fa-pen ml-2 text-primary"></i>
                             </a>
                           </td>
-                        <td>{{ project.poStartDate }}</td>
-                        <td>{{ project.poEndDate }}</td>
+                        <td style="white-space: nowrap;">{{ project.poStartDate | date: 'yyyy-MM-dd'}}</td>
+                        <td style="white-space: nowrap;">{{ project.poEndDate | date: 'yyyy-MM-dd'}}</td>
                         <td>{{ project.status }}</td>
                         <td>
                             <!-- <button *ngIf="project.endDate == undefined || project.endDate == null" class="btn btn-sm btn-outline-primary mt-1" title="Edit" (click)="editProjectInfo(project)" type="submit"><em class="fa fa-edit"></em></button>&nbsp; -->

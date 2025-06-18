@@ -49,6 +49,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 
 
 
+
 @Component({
   selector: 'app-timesheet-create-self',
   templateUrl: './timesheet-create-self.component.html',
@@ -206,6 +207,9 @@ export class TimesheetCreateSelfComponent implements OnInit {
     console.log("clientLocationId" + activity.clientLocationId);
     console.log('activity' + JSON.stringify(activity));
     console.log('timesheetObj-appliedFor' +this.timesheetObj.timesheetAppliedFor);
+
+    console.log('teamId' + this.timesheetObj.teamId);
+    console.log('Activity_team_id' + activity.teamId);
   }
   compareClientLocation = (a: any, b: any) => a?.clientLocationId === b?.clientLocationId;
   compareTeam = (a: any, b: any) => a?.teamId === b?.teamId;
@@ -221,15 +225,21 @@ export class TimesheetCreateSelfComponent implements OnInit {
     console.log("Timesheet Type Changed: ", this.timesheetObj.timesheetAppliedFor);
     if (this.timesheetObj.timesheetAppliedFor === 'team') {
       this.getAllTeamMemberList();
+     
     } else {
       this.timesheetObj.empId = this.currentUser.empId;
       this.teamMemberSelected.emit(this.timesheetObj.empId);
     }
   }
 
-  onTeamMemberChange(empId: string): void {
-    this.timesheetObj.empId = String(empId);
+  onTeamMemberChange(empId: number): void {
+    this.timesheetObj.empId = (empId);
     this.teamMemberSelected.emit(this.timesheetObj.empId);
+    console.log("Selected Team Member empId: ", this.timesheetObj.empId);
+    this.getTimesheetMetadata(empId);
+    // const userObj: User = new User();
+    // userObj.empId = empId;
+    // this.getAllAvailableTimesheetByEmpId(userObj);
     const selectedMember = this.teamMemberList.find(m => m.empId == empId);
     this.selectedTeamMemberName = selectedMember ? selectedMember.name : '';
   }
@@ -541,12 +551,17 @@ export class TimesheetCreateSelfComponent implements OnInit {
       newActivityObj.clientId = activityObj.clientId;
       newActivityObj.clientLocationId = activityObj.clientLocationId;
       newActivityObj.projectId = activityObj.projectId;
-      newActivityObj.teamId = activityObj.teamId;
-      //console.log("newActivityObj : ", newActivityObj);
+
+      let teamId= activityObj.teamId;
+      console.log("teamId"+teamId);
+      newActivityObj.teamId = teamId;
+      console.log("newActivityObj : ", newActivityObj);
+      
 
       this.allTimesheetActivities.push(newActivityObj);
       this.getClientLocationList(newActivityObj);
-      this.getProjectList(newActivityObj);
+      let result=this.getProjectList(newActivityObj);
+      console.log("result : ", result);
       // this.getTeamList(newActivityObj)
       this.getAllActivitiesByProjectIdandEmpId(newActivityObj);
     } else {
@@ -1308,57 +1323,102 @@ export class TimesheetCreateSelfComponent implements OnInit {
     }
   }
 
-  getTimesheetMetadata(eventTarget?: any) {
-    //console.log("timesheet Obj For getTimesheetMetadata : ", this.timesheetObj);
-    let userObj: User = new User();
-    if (this.timesheetObj.timesheetAppliedFor == 'self') {
-      userObj.empId = this.currentUser.empId;
-      userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-      this.timesheetObj.empId = this.currentUser.empId;
-      this.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-      //console.log("this.currentUser  : ", this.currentUser);
-      //console.log("userObj  : ", userObj);
+  // getTimesheetMetadata(eventTarget?: any) {
+  //   //console.log("timesheet Obj For getTimesheetMetadata : ", this.timesheetObj);
+  //   let userObj: User = new User();
+  //   if (this.timesheetObj.timesheetAppliedFor == 'self') {
+  //     userObj.empId = this.currentUser.empId;
+  //     userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
+  //     this.timesheetObj.empId = this.currentUser.empId;
+  //     this.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
+  //     //console.log("this.currentUser  : ", this.currentUser);
+  //     //console.log("userObj  : ", userObj);
 
+  //   } else {
+  //     let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
+  //     //console.log("Team Member : ", teamMember);
+  //     userObj.empId = teamMember.empId;
+  //     userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
+  //     this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
+  //     this.timesheetObj.empId = teamMember.empId;
+
+  //     if (teamMember.isTimesheetFilledByMember == "true") {
+  //       this.openAlertMod(this.alertTemplate, "Timesheet cannot be filled for team member more than 2 days.");
+  //       this.timesheetObj.empId = '';
+  //       eventTarget.value = "";
+  //       this.disableCreateUpdateTimesheet = true;
+  //       eventTarget.value = '';
+  //       //console.log(eventTarget.value, " : eventTarget");
+
+
+
+  //     } else {
+  //       this.disableCreateUpdateTimesheet = false;
+  //     }
+  //   }
+
+  //   const timesheetBkp = Object.assign({}, this.timesheetObj);
+
+  //   // reset timesheet
+  //   this.timesheetObj = new Timesheet();
+  //   this.timesheetObj.dayType = '';
+  //   this.allTimesheetActivities = [];
+  //   this.addInputActivityField()
+
+  //   // set leave AppliedFor User data to fetch activities for project & for display
+  //   this.timesheetObj.timesheetAppliedFor = timesheetBkp.timesheetAppliedFor;
+  //   this.timesheetObj.empId = timesheetBkp.empId;
+
+  //   //console.log("preset Timesheet : ", this.timesheetObj);
+
+  //   this.getAllProjectsByEmpId(userObj);
+  //   this.getAllAvailableTimesheetByEmpId(userObj);
+  // }
+
+  getTimesheetMetadata(empId?: number): void {
+  let userObj: User = new User();
+
+  if (this.timesheetObj.timesheetAppliedFor === 'self') {
+    userObj.empId = this.currentUser.empId;
+    userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
+    this.timesheetObj.empId = this.currentUser.empId;
+    this.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
+
+  } else {
+    const teamMember = this.teamMemberList.find(employee => employee.empId ===Number(empId));
+    if (!teamMember) return;
+
+    userObj.empId = teamMember.empId;
+    userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
+    this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
+    this.timesheetObj.empId = teamMember.empId;
+
+    if (teamMember.isTimesheetFilledByMember === "true") {
+      this.openAlertMod(this.alertTemplate, "Timesheet cannot be filled for team member more than 2 days.");
+      this.timesheetObj.empId = '';
+      this.disableCreateUpdateTimesheet = true;
+      return;
     } else {
-      let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
-      //console.log("Team Member : ", teamMember);
-      userObj.empId = teamMember.empId;
-      userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-      this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-      this.timesheetObj.empId = teamMember.empId;
-
-      if (teamMember.isTimesheetFilledByMember == "true") {
-        this.openAlertMod(this.alertTemplate, "Timesheet cannot be filled for team member more than 2 days.");
-        this.timesheetObj.empId = '';
-        eventTarget.value = "";
-        this.disableCreateUpdateTimesheet = true;
-        eventTarget.value = '';
-        //console.log(eventTarget.value, " : eventTarget");
-
-
-
-      } else {
-        this.disableCreateUpdateTimesheet = false;
-      }
+      this.disableCreateUpdateTimesheet = false;
     }
-
-    const timesheetBkp = Object.assign({}, this.timesheetObj);
-
-    // reset timesheet
-    this.timesheetObj = new Timesheet();
-    this.timesheetObj.dayType = '';
-    this.allTimesheetActivities = [];
-    this.addInputActivityField()
-
-    // set leave AppliedFor User data to fetch activities for project & for display
-    this.timesheetObj.timesheetAppliedFor = timesheetBkp.timesheetAppliedFor;
-    this.timesheetObj.empId = timesheetBkp.empId;
-
-    //console.log("preset Timesheet : ", this.timesheetObj);
-
-    this.getAllProjectsByEmpId(userObj);
-    this.getAllAvailableTimesheetByEmpId(userObj);
   }
+
+  const timesheetBkp = { ...this.timesheetObj };
+
+  // Reset the form
+  this.timesheetObj = new Timesheet();
+  this.timesheetObj.dayType = '';
+  this.allTimesheetActivities = [];
+  this.addInputActivityField();
+
+  // Restore appliedFor
+  this.timesheetObj.timesheetAppliedFor = timesheetBkp.timesheetAppliedFor;
+  this.timesheetObj.empId = userObj.empId;
+
+  this.getAllProjectsByEmpId(userObj);
+  this.getAllAvailableTimesheetByEmpId(userObj);
+}
+
 
   getAllTeamMemberList() {
     this.teamMemberList = []
@@ -1436,38 +1496,52 @@ export class TimesheetCreateSelfComponent implements OnInit {
   //   //console.log("projectList with displayTeam:", this.projectList);
   //   this.setAllProjects(activityObj, this.projectList);
   // }
-  getProjectList(activityObj: Activity) {
-    if (!activityObj.clientId) return;
+  // getProjectList(activityObj: Activity) {
+  //   if (!activityObj.clientId) return;
 
-    // Filter allProjectsList for the selected clientId
-    const filteredProjects = this.allProjectsList
-      .filter((project: Timesheet) => project.clientId === activityObj.clientId)
-      .map((project: Timesheet) => {
-        return {
-          teamId: project.teamId,
-          teamName: project.teamName,
-          projectName: project.projectName,
-          displayTeam: `${project.projectName} | ${project.teamName}`
-        };
+  //   // Filter allProjectsList for the selected clientId
+  //   const filteredProjects = this.allProjectsList
+  //     .filter((project: Timesheet) => project.clientId === activityObj.clientId)
+  //     .map((project: Timesheet) => {
+  //       return {
+  //         teamId: project.teamId,
+  //         teamName: project.teamName,
+  //         projectName: project.projectName,
+  //         displayTeam: `${project.projectName} | ${project.teamName}`
+  //       };
+  //     });
+
+  //   // Remove duplicates by teamId
+  //   const uniqueProjectsMap = new Map();
+  //   for (const project of filteredProjects) {
+  //     uniqueProjectsMap.set(project.teamId, project);
+  //   }
+
+  //   const uniqueProjects = Array.from(uniqueProjectsMap.values());
+
+  //   // Set the filtered list on the activity object
+  //   activityObj.projectList = uniqueProjects;
+
+  //   // ✅ Preserve selected teamId if still valid
+  //   const selectedTeamStillExists = uniqueProjects.some(p => p.teamId === activityObj.teamId);
+  //   if (!selectedTeamStillExists) {
+  //     activityObj.teamId = null;
+  //   }
+  // }
+
+   getProjectList(activityObj: Activity) {
+      this.projectList = [];
+  
+      const key = "teamId";
+      this.projectList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
+        if (project.clientId == activityObj.clientId) {
+          project['displayTeam'] = `${project.projectName} | ${project.teamName}`;
+          return { teamId: project.teamId, teamName: project.teamName, projectName: project.projectName, displayTeam : project.displayTeam}
+        }
       });
-
-    // Remove duplicates by teamId
-    const uniqueProjectsMap = new Map();
-    for (const project of filteredProjects) {
-      uniqueProjectsMap.set(project.teamId, project);
+      //console.log("projectList with displayTeam:", this.projectList);
+      this.setAllProjects(activityObj, this.projectList);
     }
-
-    const uniqueProjects = Array.from(uniqueProjectsMap.values());
-
-    // Set the filtered list on the activity object
-    activityObj.projectList = uniqueProjects;
-
-    // ✅ Preserve selected teamId if still valid
-    const selectedTeamStillExists = uniqueProjects.some(p => p.teamId === activityObj.teamId);
-    if (!selectedTeamStillExists) {
-      activityObj.teamId = null;
-    }
-  }
 
   // getTeamList(activityObj: Activity){
   //   this.teamList = []
@@ -1495,7 +1569,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
     const selectedActivityObj: Activity = this.allTimesheetActivities.find(activity => activity === activityObj);
     selectedActivityObj.projectList = projectList;
     if ((!this.isTimesheetUpdate && activityObj.teamId == "") || !this.projectList.find(project => project.teamId == selectedActivityObj.teamId)) {
-      selectedActivityObj.teamId = '';
+      // selectedActivityObj.teamId = '';
     }
   }
 
@@ -1524,29 +1598,33 @@ export class TimesheetCreateSelfComponent implements OnInit {
     }
   }
 
-  getAllActivitiesByProjectIdandEmpId(activityObj: any) {
+  
+
+  getAllActivitiesByProjectIdandEmpId(activityObj: any,) {
     let allActivityList = [];
 
     //console.log("Current Timesheet : ", this.timesheetObj);
-
+    console.log("Activity Object : ", activityObj);
     let timesheetObj = new Timesheet();
     timesheetObj.empId = this.timesheetObj.empId;
     timesheetObj.teamId = activityObj.teamId;
     //console.log(this.allProjectsList, " : all project list");
-    //console.log(timesheetObj.teamId, " : timesheetObj.teamId");
+    console.log(timesheetObj.teamId, " : timesheetObj.teamId");
 
 
-    let projectTimesheet = this.allProjectsList.find(project => project.teamId == timesheetObj.teamId);
-    //console.log(" projectTimesheet  :  ", projectTimesheet)
+    // let projectTimesheet = this.allProjectsList.find(project => project.teamId == timesheetObj.teamId);
+    // //console.log(" projectTimesheet  :  ", projectTimesheet)
 
 
-    timesheetObj.projectId = projectTimesheet.projectId;
+    // timesheetObj.projectId = projectTimesheet.projectId;
     timesheetObj.clientId = this.timesheetObj.clientId;
     timesheetObj.clientLocationId = this.timesheetObj.clientLocationId;
-    //console.log(" timesheetObj  :  ", timesheetObj)
+    console.log(" timesheetObj for Activity  :  ", timesheetObj)
 
     this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
+      console.log("getAllActivitiesByProjectIdandEmpId response : ", response);
+      console.log("status"+ response.serviceStatus);
+      if (response.serviceStatus==="Success") {
         allActivityList = response.serviceResponse;
         // console.log('getAllActivitiesByProjectIdandEmpId',allActivityList)
         allActivityList = allActivityList.sort((a, b) => a.activity.localeCompare(b.activity));
@@ -1799,6 +1877,18 @@ export class TimesheetCreateSelfComponent implements OnInit {
       }
     });
   }
+
+  onTeamChanged(newTeamId: number, activityObj: Activity) {
+
+    console.log("New Team ID selected: ", newTeamId);
+  activityObj.teamId = newTeamId;
+
+  // Update the activity list based on the selected team
+  this.getClientLocationList(activityObj);
+  this.getProjectList(activityObj);
+  this.getAllActivitiesByProjectIdandEmpId(activityObj);
+}
+
 
   viewAllMyActivitiesByTimesheetId(timesheet: any) {
     this.timesheetObj.allTimesheetActivities = [];
