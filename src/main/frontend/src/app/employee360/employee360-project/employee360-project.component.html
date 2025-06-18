@@ -212,9 +212,9 @@
                                 (click)="viewProjectInfo(project)" type="submit"><em
                                     class="fa fa-eye"></em></button>&nbsp;
                             <!-- <button *ngIf="project.endDate == undefined || project.endDate == null" class="btn btn-sm btn-outline-danger mt-1" title="Delete" (click)="deleteResourceModal(delete_modal_template,project)" type="submit"><em class="fa fa-trash"></em></button>&nbsp; -->
-                            <!-- <button *ngIf="project.active != 0" class="btn btn-sm btn-outline-danger mt-1"
+                            <button *ngIf="project.active != 0" class="btn btn-sm btn-outline-danger mt-1"
                                 title="Delete" (click)="deleteResourceModal(MarkAsCompleteDefaultProject,OtherProjectDefaultMapping,delete_modal_template ,project,project.teamId)"
-                                type="submit"><em class="fa fa-trash"></em></button>&nbsp; -->
+                                type="submit"><em class="fa fa-trash"></em></button>&nbsp;
                         </td>
                     </tr>
                 </tbody>
