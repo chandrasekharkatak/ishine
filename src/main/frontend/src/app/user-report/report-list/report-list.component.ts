@@ -213,7 +213,7 @@ export class ReportListComponent implements OnInit {
   toastr: any;
   isAccounts: boolean = false;
   isDeptFilter: boolean = false;
-  dept:any;
+  dept: any;
   returnUrl: string | null = null;
   employeeCtrl = new FormControl();
   selectedEmpId: any = 0;
@@ -284,15 +284,15 @@ export class ReportListComponent implements OnInit {
     this.getEmployeeByNameAndEmpld();
 
     this.employeeCtrl.valueChanges
-        .pipe(
-          startWith(''),
-          map(value => typeof value === 'string' ? value : value?.name || ''),
-          map(name => this.filterEmployees2(name))
-        )
-        .subscribe(filtered => {
-          this.filteredEmployees2 = filtered;
-        });
-    
+      .pipe(
+        startWith(''),
+        map(value => typeof value === 'string' ? value : value?.name || ''),
+        map(name => this.filterEmployees2(name))
+      )
+      .subscribe(filtered => {
+        this.filteredEmployees2 = filtered;
+      });
+
     console.log("lalalalala ngoninit", this.employeeReportObj.deptId);
   }
 
@@ -381,7 +381,7 @@ export class ReportListComponent implements OnInit {
 
   projectLessEmployeesDepartwise: any[] = [];
   projectLessEmployeesDepartwiseCount: any;
-  billableCountsNotMApped:{type :any; count:any }[] = [];
+  billableCountsNotMApped: { type: any; count: any }[] = [];
   projectLessEmployeesDepartmentWise() {
     this.employeeService.projectLessEmployeesDepartmentWise(this.employeeReportObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -460,7 +460,7 @@ export class ReportListComponent implements OnInit {
   closeModal() {
     this.modalRef.hide();
   }
- 
+
 
   toggleInfoPopup(target: string): void {
     this.activeInfoPopup = this.activeInfoPopup === target ? null : target;
@@ -728,12 +728,20 @@ export class ReportListComponent implements OnInit {
         const res = response.serviceResponse;
         this.employeeList = res.getEmployeeProjectReportForEmployeeDTO || [];
         this.employeeList.forEach(employee => {
-                  employee.emp360EmpId = employee.empId;
-                  employee.emp360ManagerId = employee.managerId;
-               
-                });
+          employee.emp360EmpId = employee.empId;
+          employee.emp360ManagerId = employee.managerId;
+
+        });
         // console.log(this.employeeList,"Employee_List");
         this.projectList = res.getProjectToEmployeeReportForProjectDTO || [];
+        this.projectList.forEach(project => {
+          project.teamDetails.forEach(team => {
+            team.mappedEmployeeDetails.forEach(employee => {
+              employee.emp360EmpId = employee.empId;
+              employee.emp360ManagerId = project.projectManagerId;
+            });
+          });
+        });
         // console.log(this.projectList,"projectList");departmentName
         this.projectSummary = res.projectSummary || {};
         console.log("employeeList", this.employeeList);
@@ -1512,19 +1520,19 @@ export class ReportListComponent implements OnInit {
 
     //console.log(this.storedDataList, " : storeddatalist");
     const today = new Date();
-  const oneMonthBefore = new Date();
-  oneMonthBefore.setMonth(today.getMonth() - 1);
+    const oneMonthBefore = new Date();
+    oneMonthBefore.setMonth(today.getMonth() - 1);
 
-  // ✅ Format date as yyyy-MM-dd
-  const formatDate = (date: Date): string => {
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  };
+    // ✅ Format date as yyyy-MM-dd
+    const formatDate = (date: Date): string => {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    };
 
-  const currentDate = formatDate(today);
-  const oneMonthBeforeDate = formatDate(oneMonthBefore);
+    const currentDate = formatDate(today);
+    const oneMonthBeforeDate = formatDate(oneMonthBefore);
 
 
     this.storedDataList.forEach((object) => {
@@ -1539,7 +1547,7 @@ export class ReportListComponent implements OnInit {
         { column: "From Date", operator: ">=", value: oneMonthBeforeDate, conjunction: "AND" },
         { column: "To Date", operator: "<=", value: currentDate, conjunction: "" }
 
-        
+
       ];
       // this.getAllLeaveApplicationsList();
 
@@ -1569,19 +1577,19 @@ export class ReportListComponent implements OnInit {
     this.isSearchEnabled = false;
 
     const today = new Date();
-  const oneMonthBefore = new Date();
-  oneMonthBefore.setMonth(today.getMonth() - 1);
+    const oneMonthBefore = new Date();
+    oneMonthBefore.setMonth(today.getMonth() - 1);
 
-  // ✅ Format date as yyyy-MM-dd
-  const formatDate = (date: Date): string => {
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  };
+    // ✅ Format date as yyyy-MM-dd
+    const formatDate = (date: Date): string => {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    };
 
-  const currentDate = formatDate(today);
-  const oneMonthBeforeDate = formatDate(oneMonthBefore);
+    const currentDate = formatDate(today);
+    const oneMonthBeforeDate = formatDate(oneMonthBefore);
 
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Timesheet Report') {
@@ -2861,24 +2869,24 @@ export class ReportListComponent implements OnInit {
   }
 
 
-goBack() {
-  if (this.returnUrl) {
-    this.router.navigateByUrl(this.returnUrl);
-  } else {
-    this.location.back(); // fallback
+  goBack() {
+    if (this.returnUrl) {
+      this.router.navigateByUrl(this.returnUrl);
+    } else {
+      this.location.back(); // fallback
+    }
   }
-}
 
-onEmployeeSelected(event: any) {
-  const selectedEmp = event.option.value;
-  if (selectedEmp) {
-    this.selectedEmpId = selectedEmp.empId;
-    this.employeeCtrl.setValue(selectedEmp.name);
-    console.log('Selected Employee ID:', this.selectedEmpId);
+  onEmployeeSelected(event: any) {
+    const selectedEmp = event.option.value;
+    if (selectedEmp) {
+      this.selectedEmpId = selectedEmp.empId;
+      this.employeeCtrl.setValue(selectedEmp.name);
+      console.log('Selected Employee ID:', this.selectedEmpId);
+    }
   }
-}
 
-displayEmployee(emp: any): string {
+  displayEmployee(emp: any): string {
     console.log("emp", emp);  // This is helpful for debugging
     if (typeof emp === 'string') {
       return emp;  // User is typing or you manually set value to string
@@ -2886,22 +2894,22 @@ displayEmployee(emp: any): string {
     return emp && emp.name ? emp.name : '';
   }
 
-isEmployeeInList(list: any[]): boolean {
-  return list?.some(emp => emp.empId === this.selectedEmpId);
-}
+  isEmployeeInList(list: any[]): boolean {
+    return list?.some(emp => emp.empId === this.selectedEmpId);
+  }
 
-getEmployeeByNameAndEmpld() {
-  this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus === 'Success') {
-      this.employeeList = response.serviceResponse;
-      this.filteredEmployees2 = this.employeeList;
-    } else {
-      // this.openAlertMod(this.alertTemplate, response.serviceResponse);
-    }
-  });
-}
+  getEmployeeByNameAndEmpld() {
+    this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.employeeList = response.serviceResponse;
+        this.filteredEmployees2 = this.employeeList;
+      } else {
+        // this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    });
+  }
 
-filterEmployees2(searchText: string) {
+  filterEmployees2(searchText: string) {
     const lowerText = (searchText || '').toLowerCase();
     return this.employeeList.filter(emp =>
       emp.name.toLowerCase().includes(lowerText) ||
@@ -2912,7 +2920,7 @@ filterEmployees2(searchText: string) {
   openSummaryModal(template: TemplateRef<any>, selectedEmpId: any) {
     this.summaryModalRef = this.modalService.show(template, { class: 'modal-lg' });
     this.selectedEmpId = selectedEmpId;
-    
+
     this.getProjectTimesheetSummaryData();
   }
 
@@ -2921,136 +2929,136 @@ filterEmployees2(searchText: string) {
   }
 
   getProjectTimesheetSummaryData() {
-      // 1. Check if the current user and their empId are available.
-      if (!this.selectedEmpId) {
-        this.openAlertMod(this.alertTemplate, "Cannot fetch summary. User information is missing.");
-        console.error("Current user or empId is not available.");
-        // Close the modal or show an error state in the chart container if the modal is already open
-        if (this.summaryModalRef) {
-          // You could display an error message inside the modal body here
-          document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Could not load data: User not identified.</p>';
-        }
-        return;
+    // 1. Check if the current user and their empId are available.
+    if (!this.selectedEmpId) {
+      this.openAlertMod(this.alertTemplate, "Cannot fetch summary. User information is missing.");
+      console.error("Current user or empId is not available.");
+      // Close the modal or show an error state in the chart container if the modal is already open
+      if (this.summaryModalRef) {
+        // You could display an error message inside the modal body here
+        document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Could not load data: User not identified.</p>';
       }
-  
-      // 2. Create the DTO object to send to the backend.
-      const resourceManagementDTO = {
-        empId: this.selectedEmpId
-      };
-  
-      // 3. Pass the DTO to the service call.
-      console.log("================================",resourceManagementDTO);
-      this.resourceManagementService.getProjectTimesheetSummary(resourceManagementDTO).pipe(first()).subscribe({
-        next: (response: any) => {
-          if (response.serviceStatus === "Success") {
-            this.projectSummaryData = response.serviceResponse;
-            
-            if (this.projectSummaryData && this.projectSummaryData.length > 0) {
-              this.processProjectSummaryData(this.projectSummaryData);
-            } else {
-              // Handle the case where the API succeeds but returns no data
-              document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center">No timesheet summary data found for your projects.</p>';
-            }
+      return;
+    }
+
+    // 2. Create the DTO object to send to the backend.
+    const resourceManagementDTO = {
+      empId: this.selectedEmpId
+    };
+
+    // 3. Pass the DTO to the service call.
+    console.log("================================", resourceManagementDTO);
+    this.resourceManagementService.getProjectTimesheetSummary(resourceManagementDTO).pipe(first()).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.projectSummaryData = response.serviceResponse;
+
+          if (this.projectSummaryData && this.projectSummaryData.length > 0) {
+            this.processProjectSummaryData(this.projectSummaryData);
           } else {
-            // this.openAlertMod(this.alertTemplate, "Failed to load project summary data.");
-            console.error(response.serviceResponse);
-            document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Error:No timesheets filled till date</p>';
+            // Handle the case where the API succeeds but returns no data
+            document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center">No timesheet summary data found for your projects.</p>';
           }
-        },
-        error: (err) => {
-          this.openAlertMod(this.alertTemplate, "An error occurred while fetching summary data.");
-          console.error(err);
-          document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">A server error occurred. Please try again later.</p>';
+        } else {
+          // this.openAlertMod(this.alertTemplate, "Failed to load project summary data.");
+          console.error(response.serviceResponse);
+          document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Error:No timesheets filled till date</p>';
         }
-      });
-    }
-  
-    processProjectSummaryData(summaryData: any[]) {
-        const categories = [];
-        const seriesData = [];
-  
-        // Sort data by totalTimesheetsFilled in descending order and take top 20 for better visualization
-        const sortedData = summaryData
-            .sort((a, b) => b.totalTimesheetsFilled - a.totalTimesheetsFilled)
-            .slice(0, 20);
-  
-        sortedData.forEach(item => {
-            categories.push(item.projectName);
-            seriesData.push(item.totalTimesheetsFilled);
-        });
-  
-        const chartData = [{
-            name: 'Timesheets Filled',
-            data: seriesData,
-            color: '#0275d8' // A bootstrap primary-like color
-        }];
-  
-        this.renderColumnChart(
-            'Top 20 Projects by Timesheets Filled',
-            'projectTimesheetSummaryChart',
-            chartData,
-            categories
-        );
-    }
-  
-    renderColumnChart(chartName: any, chartId: any, chartData: any, categories: any) {
-      Highcharts.chart(chartId, {
-          chart: {
-              type: 'column',
-          },
-          title: {
-              text: chartName,
-              style: {
-                  fontWeight: 'bold',
-                  color: '#000000'
-              }
-          },
-          xAxis: {
-              categories: categories,
-              title: {
-                  text: 'Projects'
-              },
-              labels: {
-                  rotation: -45, // Rotate labels to prevent overlap
-                  style: {
-                      fontSize: '11px',
-                      fontFamily: 'Verdana, sans-serif'
-                  }
-              }
-          },
-          yAxis: {
-              min: 0,
-              title: {
-                  text: 'Total Timesheets Filled',
-                  align: 'high'
-              },
-              labels: {
-                  overflow: 'justify'
-              }
-          },
-          tooltip: {
-              valueSuffix: ' timesheets'
-          },
-          plotOptions: {
-              column: {
-                  dataLabels: {
-                      enabled: true,
-                      format: '{y}',
-                      style: {
-                        fontSize: '10px',
-                      }
-                  }
-              }
-          },
-          credits: {
-              enabled: false,
-          },
-          legend: {
-              enabled: false // Not needed for a single series chart
-          },
-          series: chartData
-      });
-    }
+      },
+      error: (err) => {
+        this.openAlertMod(this.alertTemplate, "An error occurred while fetching summary data.");
+        console.error(err);
+        document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">A server error occurred. Please try again later.</p>';
+      }
+    });
+  }
+
+  processProjectSummaryData(summaryData: any[]) {
+    const categories = [];
+    const seriesData = [];
+
+    // Sort data by totalTimesheetsFilled in descending order and take top 20 for better visualization
+    const sortedData = summaryData
+      .sort((a, b) => b.totalTimesheetsFilled - a.totalTimesheetsFilled)
+      .slice(0, 20);
+
+    sortedData.forEach(item => {
+      categories.push(item.projectName);
+      seriesData.push(item.totalTimesheetsFilled);
+    });
+
+    const chartData = [{
+      name: 'Timesheets Filled',
+      data: seriesData,
+      color: '#0275d8' // A bootstrap primary-like color
+    }];
+
+    this.renderColumnChart(
+      'Top 20 Projects by Timesheets Filled',
+      'projectTimesheetSummaryChart',
+      chartData,
+      categories
+    );
+  }
+
+  renderColumnChart(chartName: any, chartId: any, chartData: any, categories: any) {
+    Highcharts.chart(chartId, {
+      chart: {
+        type: 'column',
+      },
+      title: {
+        text: chartName,
+        style: {
+          fontWeight: 'bold',
+          color: '#000000'
+        }
+      },
+      xAxis: {
+        categories: categories,
+        title: {
+          text: 'Projects'
+        },
+        labels: {
+          rotation: -45, // Rotate labels to prevent overlap
+          style: {
+            fontSize: '11px',
+            fontFamily: 'Verdana, sans-serif'
+          }
+        }
+      },
+      yAxis: {
+        min: 0,
+        title: {
+          text: 'Total Timesheets Filled',
+          align: 'high'
+        },
+        labels: {
+          overflow: 'justify'
+        }
+      },
+      tooltip: {
+        valueSuffix: ' timesheets'
+      },
+      plotOptions: {
+        column: {
+          dataLabels: {
+            enabled: true,
+            format: '{y}',
+            style: {
+              fontSize: '10px',
+            }
+          }
+        }
+      },
+      credits: {
+        enabled: false,
+      },
+      legend: {
+        enabled: false // Not needed for a single series chart
+      },
+      series: chartData
+    });
+  }
 
 }
 

@@ -8,13 +8,13 @@
       *ngIf="userMapping.timesheet_report && !isAccounts" [ngClass]="{'active' : isTimesheetReportTable}"
       (click)="showTimesheetReportTable()">View Timesheet
       Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}" *ngIf="userMapping.acl && !isAccounts"
-      (click)="showAccessControlListTable()">ACL(Access Control List)</button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}"
+      *ngIf="userMapping.acl && !isAccounts" (click)="showAccessControlListTable()">ACL(Access Control List)</button>
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isAccounts"
       [ngClass]="{'active' : isLeaveTimesheetReportTable}" (click)="showLeaveTimesheetReportTable()">Leave Timesheet
       Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQueryForm}" *ngIf="userMapping.custom_query_data && !isAccounts"
-      (click)="showCustomQueryForm()">Custom Query Data</button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQueryForm}"
+      *ngIf="userMapping.custom_query_data && !isAccounts" (click)="showCustomQueryForm()">Custom Query Data</button>
   </div>
 </div>
 
@@ -372,32 +372,33 @@
     </div>
 
     <div class="d-flex justify-content-between align-items-start mb-3" style="width: 100%;">
-  
-  <!-- Left Section (Employee 360 Search) -->
-    <div>
+
+      <!-- Left Section (Employee 360 Search) -->
+      <div>
         <div class="row">
-            <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                <label class="info-label" style="justify-self: left;">Global Employee Search:</label>
-            </div>
+          <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
+            <label class="info-label" style="justify-self: left;">Global Employee Search:</label>
+          </div>
         </div>
         <div class="row mb-3">
-            <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                <input id="employeeSearch" type="text" class="form-select custom-select-style"
-                    style="min-width: 200px;" placeholder="Search by Name or Emp ID" aria-label="Search employee"
-                    [formControl]="employeeCtrl" [matAutocomplete]="auto">
+          <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
+            <input id="employeeSearch" type="text" class="form-select custom-select-style" style="min-width: 200px;"
+              placeholder="Search by Name or Emp ID" aria-label="Search employee" [formControl]="employeeCtrl"
+              [matAutocomplete]="auto">
 
-                <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
-                    [displayWith]="displayEmployee">
-                    <mat-option *ngFor="let emp of filteredEmployees2" [value]="emp">
-                        {{ emp.name }}
-                    </mat-option>
-                </mat-autocomplete>
-            </div>
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
+              [displayWith]="displayEmployee">
+              <mat-option *ngFor="let emp of filteredEmployees2" [value]="emp">
+                {{ emp.name }}
+              </mat-option>
+            </mat-autocomplete>
+          </div>
         </div>
         <div *ngIf="selectedEmpId" class="button-container">
-            <button class="rounded-button summary-button p-2" (click)="openSummaryModal(projectSummaryModal, selectedEmpId)" >Employee Summary</button>
-            <button class="rounded-button details-button p-2" [navigateToEmployee360]="this.selectedEmpId">Employee
-                360</button>
+          <button class="rounded-button summary-button p-2"
+            (click)="openSummaryModal(projectSummaryModal, selectedEmpId)">Employee Summary</button>
+          <button class="rounded-button details-button p-2" [navigateToEmployee360]="this.selectedEmpId">Employee
+            360</button>
         </div>
       </div>
 
@@ -408,7 +409,7 @@
 
           <mat-select class="form-control" multiple [(ngModel)]="employeeReportObj.deptId"
             (selectionChange)="onDepartmentSelectionChange()">
-            
+
             <!-- Search Input -->
             <mat-option class="non-selectable" disabled>
               <div style="display: flex; align-items: center;">
@@ -485,9 +486,10 @@
             <h3>Total Employees</h3>
             <div class="count">{{totalInshineEmployeeCount}}</div>
           </div>
-         
 
-          <div class="summary-box" (click)="openModalProjectLess(employee_data, 'Not Mapped')" [ngClass]="{ 'glow-card': isEmployeeInList(projectLessEmployeesDepartwise) }">
+
+          <div class="summary-box" (click)="openModalProjectLess(employee_data, 'Not Mapped')"
+            [ngClass]="{ 'glow-card': isEmployeeInList(projectLessEmployeesDepartwise) }">
             <button class="info-btn" (click)="toggleInfoPopup('unmapped'); $event.stopPropagation()"
               title="Show Billable Type Count">
               <i class="fa-solid fa-circle-info"></i>
@@ -504,17 +506,18 @@
             </div>
           </div>
 
-          <div class="summary-box" (click)="openModalEmployeesWithProjects(employee_data, 'All Mapped')" [ngClass]="{ 'glow-card': isEmployeeInList(employeesWithProjectDeptWise) }">
+          <div class="summary-box" (click)="openModalEmployeesWithProjects(employee_data, 'All Mapped')"
+            [ngClass]="{ 'glow-card': isEmployeeInList(employeesWithProjectDeptWise) }">
             <button class="info-btn mapped" (click)="toggleInfoPopup('mapped'); $event.stopPropagation()"
               title="Show Billable Type Count">
               <i class="fa-solid fa-circle-info"></i>
             </button>
-          
+
             <h3>Mapped Employees</h3>
             <div class="count">{{ employeesWithProjectDeptWiseCount }}</div>
-          
+
             <!-- 👇 Tooltip for mapped -->
-            <div *ngIf="activeInfoPopup === 'mapped'"  class="tooltip-label-wrapper-mapped">
+            <div *ngIf="activeInfoPopup === 'mapped'" class="tooltip-label-wrapper-mapped">
               <div *ngFor="let item of mappedBillableCounts; let i = index" class="tooltip-label-mapped">
                 {{ item.type }}: {{ item.count }}
               </div>
@@ -524,7 +527,7 @@
             <h3>Employees by Department</h3>
             <div class="count">{{totalDepartmentWiseEmployeeCount}}</div>
           </div>
-          
+
         </div>
 
       </div>
@@ -625,12 +628,16 @@
                 </td> -->
                 <th class="info-label">{{20*(page-1)+i+1}}</th>
                 <td>A-{{ employee.employeementId }}</td>
-                 <td *ngIf="userMapping.reports_employee_360 && employee.emp360EmpId" id="clickablefor360" [navigateToEmployee360]="employee.emp360EmpId" style="cursor: pointer;" title="Click to view Employee 360">{{employee.name}}</td>
-                 <td *ngIf="!userMapping.reports_employee_360">{{employee.name}}</td>
+                <td *ngIf="userMapping.reports_employee_360 && employee.emp360EmpId" id="clickablefor360"
+                  [navigateToEmployee360]="employee.emp360EmpId" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{employee.name}}</td>
+                <td *ngIf="!userMapping.reports_employee_360">{{employee.name}}</td>
                 <td>{{ employee.departmentName }}</td>
                 <td>{{ employee.jobRole }}</td>
-                 <td *ngIf="userMapping.reports_employee_360 && employee.emp360ManagerId" id="clickablefor360" [navigateToEmployee360]="employee.emp360ManagerId" style="cursor: pointer;" title="Click to view Employee 360">{{employee.managerName}}</td>
-                 <td *ngIf="!userMapping.reports_employee_360">{{employee.managerName}}</td>
+                <td *ngIf="userMapping.reports_employee_360 && employee.emp360ManagerId" id="clickablefor360"
+                  [navigateToEmployee360]="employee.emp360ManagerId" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{employee.managerName}}</td>
+                <td *ngIf="!userMapping.reports_employee_360">{{employee.managerName}}</td>
                 <td>{{ employee.mobileNo }}</td>
                 <td>
                   <ng-container *ngIf="employee.email">
@@ -878,7 +885,14 @@
                         {{ project.projectName }}
                       </td>
                       <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.projectManager }}
+                        <ng-container
+                          *ngIf="userMapping.reports_employee_360 && emp.emp360ManagerId; else plainManager">
+                          <span id="clickablefor360" [navigateToEmployee360]="emp.emp360ManagerId"
+                            style="cursor: pointer;" title="Click to view Manager 360">
+                            {{ project.projectManager }}
+                          </span>
+                        </ng-container>
+                        <ng-template #plainManager>{{ project.projectManager }}</ng-template>
                       </td>
                       <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
                         {{ project.apmosysRM || '—' }}
@@ -905,7 +919,12 @@
                       </td>
 
 
-                      <td>{{ emp.employeeName }}</td>
+                      <td *ngIf="userMapping.reports_employee_360 && emp.emp360EmpId" id="clickablefor360"
+                        [navigateToEmployee360]="emp.emp360EmpId" style="cursor: pointer;"
+                        title="Click to view Employee 360">
+                        {{ emp.employeeName }}
+                      </td>
+                      <td *ngIf="!userMapping.reports_employee_360">{{ emp.employeeName }}</td>
                       <td>{{ emp.jobRole }}</td>
                       <td>{{ emp.deptName }}</td>
                       <td>{{ emp.mobileNo }}</td>
@@ -1779,21 +1798,20 @@
 </ng-template>
 
 <ng-template #projectSummaryModal>
-    <div class="modal-header">
-        <h4 class="modal-title pull-left">Project Timesheet Summary</h4>
-        <button type="button" class="close pull-right" aria-label="Close" (click)="closeSummaryModal()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="modal-body">
-        <div id="projectTimesheetSummaryChart" style="width:100%; height: 500px;"></div>
-    </div>
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">Project Timesheet Summary</h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="closeSummaryModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div id="projectTimesheetSummaryChart" style="width:100%; height: 500px;"></div>
+  </div>
 </ng-template>
 
 <ng-template #alert_message>
-    <div class="modal-body text-center">
-        <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary"
-            (click)="cancelRequest()">OK</button>&nbsp;
-    </div>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+  </div>
 </ng-template>
