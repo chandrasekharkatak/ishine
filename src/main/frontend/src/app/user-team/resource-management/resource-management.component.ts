@@ -465,7 +465,7 @@ export class ResourceManagementComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
+    console.log("lalalalalalalalal", this.userMapping);
     const deptName = String(this.currentUser.departmentName).trim();
     const empRole = String(this.currentUser.employeeRole).trim();
     if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") &&
@@ -739,7 +739,7 @@ export class ResourceManagementComponent implements OnInit {
 
   clearSelection(event: Event) {
     console.log(this.isAllSelected, "this.isAllSelected");
-    event.stopPropagation(); // prevent dropdown from closing
+    event.stopPropagation(); 
     if (this.isAllSelected == true) {
       console.log(this.isAllSelected, "this.isAllSelected");
       this.toggleSelectAllDept();
@@ -762,7 +762,6 @@ export class ResourceManagementComponent implements OnInit {
     );
   }
 
-
   onDepartmentSelectionChange() {
     console.log(this.isAllSelected, "this.isAllSelected");
     if (!this.isAllSelected && this.deptIdList.length > 0 && this.deptIdList[0] != null) {
@@ -775,6 +774,29 @@ export class ResourceManagementComponent implements OnInit {
       // this.getEmployeeReportData();
     }
   }
+
+  onDepartmentSelectionChange1() {
+    console.log(this.isAllSelected, "this.isAllSelected");
+    if (!this.isAllSelected && this.projectObj.departmentList.length > 0 && this.projectObj.departmentList[0] != null) {
+        this.projectFilterDTO.approvalStatus = "All";
+        this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+        this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
+        console.log(this.projectFilterDTO, "this.projectFilterDTO");
+        this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    }
+}
+
+ onDepartmentSelectionChange2() {
+    console.log(this.isAllSelected, "this.isAllSelected");
+    if (!this.isAllSelected && this.teamObj.departmentList.length > 0 && this.teamObj.departmentList[0] != null) {
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = this.teamObj.departmentList;
+      console.log(this.projectFilterDTO, "this.projectFilterDTO");
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+
+    }
+}
 
   toggleSelectAllDept() {
     // this.employeeReportObj.deptId = [];
@@ -801,6 +823,57 @@ export class ResourceManagementComponent implements OnInit {
     }
 
   }
+  
+
+  toggleSelectAllDept1() {
+    console.log(this.isAllSelected, "this.isAllSelected");
+    if (this.isAllSelected) {
+        // Deselect all if already selected
+        this.projectObj.departmentList = [];
+        this.isAllSelected = false;
+        this.projectFilterDTO.approvalStatus = "All";
+        this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+        this.projectFilterDTO.departmentsids = [];
+        console.log(this.projectFilterDTO, "this.projectFilterDTO");
+        this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    } else {
+        // Select all departments
+        this.projectObj.departmentList = this.filteredDepartments.map(dept => dept.deptId);
+        this.isAllSelected = true;
+        this.projectFilterDTO.approvalStatus = "All";
+        this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+        this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
+        console.log(this.projectFilterDTO, "this.projectFilterDTO");
+        this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    }
+}
+toggleSelectAllDept2() {
+    // this.employeeReportObj.deptId = [];
+    console.log(this.isAllSelected, "this.isAllSelected")
+    if (this.isAllSelected) {
+      // Deselect all if already selected
+      this.teamObj.departmentList = [];
+      this.isAllSelected = false;
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = [];
+      console.log(this.projectFilterDTO, "this.projectFilterDTO");
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+
+    } else {
+      // Select all departments
+      this.teamObj.departmentList = this.filteredDepartmentsTeam.map(dept => dept.deptId);
+      this.isAllSelected = true;
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = this.teamObj.departmentList;
+      console.log(this.projectFilterDTO, "this.projectFilterDTO");
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    }
+
+  }
+
+  
   getAllDepartments(): Promise<any> {
     return new Promise((resolve, reject) => {
       this.departmentService.getAllDepartments().pipe(first()).subscribe({
@@ -1934,13 +2007,41 @@ export class ResourceManagementComponent implements OnInit {
   //     )
   //     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
   //   }
-  exportToExcel(id: any): void {
-    const tableId = id; // Replace with your actual table ID
-    this.excelName = "TeamMemberSheet.xlsx";
+
+
+//  exportToExcel(id: any): void {
+//     this.excelName = "Project Report.xlsx";
+//     this.tableName = 'Team Members';
+
+//     this.exportExcelService.exportTableDataToExcel(this.allProject_Po_Internal, this.excelName);
+// }
+
+exportToExcel(id: any): void {
+    this.excelName = "Project Report.xlsx";
     this.tableName = 'Team Members';
 
-    this.exportExcelService.exportTableFormat(tableId, this.excelName, this.tableName);
-  }
+    // Transform data to match the table columns
+    const exportData = this.allProject_Po_Internal.map(x => ({
+        'Actions': '', // Add appropriate action text or leave empty
+        'Approval Status': x.status ,
+        'Project Name': x.name || '',
+        'PO Number': x.poNo || '',
+        'Project Type': x.projectType || '',
+        'Project Manager': x.projectManagers && x.projectManagers.length > 0 
+            ? x.projectManagers[0].projectManagerName 
+            : '',
+        'Client': x.clientName || '',
+        'Apmosys RM': x.apmosysRM || '',
+        'Client RM': x.clientRM || '',
+        'Start Date': x.poStartDate || '',
+        'End Date': x.poEndDate || '',
+        'State': x.state || '',
+        'Created On': x.createdOn || '',
+        'Project Status': x.projectStatus || ''
+    }));
+
+    this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
+}
 
 
   // check resource template
@@ -2900,43 +3001,82 @@ getProjectTimesheetSummaryData() {
     this.newteamMember.name = selectedEmployee.name;
   }
 
+  // filterDepartmentsTeamForm() {
+  //   const lowerText = this.searchTextDeptTeam.trim().toLowerCase();
+
+  //   const filtered = this.departmentsList.filter(dept =>
+  //     dept.name.toLowerCase().includes(lowerText)
+  //   );
+
+  //   const selected = this.departmentsList.filter(dept =>
+  //     this.teamObj.departmentList?.includes(dept.deptId)
+  //   );
+  //   const selectedSet = new Set(filtered.map(dept => dept.deptId));
+  //   const merged = [...filtered];
+
+  //   selected.forEach(dept => {
+  //     if (!selectedSet.has(dept.deptId)) {
+  //       merged.push(dept);
+  //     }
+  //   });
+
+  //   this.filteredDepartmentsTeam = merged;
+  // }
   filterDepartmentsTeamForm() {
     const lowerText = this.searchTextDeptTeam.trim().toLowerCase();
 
     const filtered = this.departmentsList.filter(dept =>
-      dept.name.toLowerCase().includes(lowerText)
+        dept.name.toLowerCase().includes(lowerText)
     );
 
     const selected = this.departmentsList.filter(dept =>
-      this.teamObj.departmentList?.includes(dept.deptId)
+        this.teamObj.departmentList?.includes(dept.deptId)
     );
+    
     const selectedSet = new Set(filtered.map(dept => dept.deptId));
     const merged = [...filtered];
 
     selected.forEach(dept => {
-      if (!selectedSet.has(dept.deptId)) {
-        merged.push(dept);
-      }
+        if (!selectedSet.has(dept.deptId)) {
+            merged.push(dept);
+        }
     });
 
     this.filteredDepartmentsTeam = merged;
-  }
+    
+    // Update select all state after filtering
+    // if (!this.teamObj.departmentList || this.teamObj.departmentList.length === 0) {
+    //     this.isAllDeptSelected = false;
+    // } else if (this.filteredDepartmentsTeam.length > 0) {
+    //     const allFilteredSelected = this.filteredDepartmentsTeam.every(dept => 
+    //         this.teamObj.departmentList.includes(dept.deptId)
+    //     );
+    //     this.isAllDeptSelected = allFilteredSelected;
+    // } else {
+    //     this.isAllDeptSelected = false;
+    // }
+}
 
-  toggleSelectAllTeams() {
-    if (this.isAllDeptSelected) {
-      this.teamObj.departmentList = [];
-      this.isAllDeptSelected = false;
-    } else {
-      this.teamObj.departmentList = this.filteredDepartmentsTeam.map(dept => dept.deptId);
-      this.isAllDeptSelected = true;
-    }
+ toggleSelectAllTeams() {
+  if (this.isAllDeptSelected) {
+    this.teamObj.departmentList = [];
+    this.isAllDeptSelected = false;
+    // console.log("test" , team);
+  } else {
+    this.teamObj.departmentList = this.filteredDepartmentsTeam.map(dept => dept.deptId);
+    
+    this.isAllDeptSelected = true;
+    // console.log("test2" , team);
   }
+}
 
-  clearSelectionDept(event: Event) {
+
+
+clearSelectionDept(event: Event) {
     event.stopPropagation();
     this.teamObj.departmentList = [];
     this.isAllDeptSelected = false;
-  }
+}
 
   onSpocSelected(event: any) {
     const selectedSpoc = event.option.value;
@@ -2977,6 +3117,7 @@ getProjectTimesheetSummaryData() {
     } else {
       this.projectObj.projectManagerId = this.filteredManagerList.map(emp => emp.empId);
       this.isAllManagersSelected = true;
+      console.log("Selected Managers: ", this.projectObj.projectManagerId);
     }
   }
 
@@ -3426,19 +3567,26 @@ getProjectTimesheetSummaryData() {
 
   toggleSelectAllInternal() {
     if (this.isAllSelected) {
-      this.projectObj.departmentName = [];
+      this.projectObj.departmentList = [];
       this.isAllSelected = false;
+      console.log("test",this.projectObj.departmentList);
+      
     } else {
-      this.projectObj.departmentName = this.filteredDepartmentsInternal.map(dept => dept.deptId);
+      this.projectObj.departmentList = this.filteredDepartmentsInternal.map(dept => dept.deptId);
       this.isAllSelected = true;
+      console.log("test2",this.projectObj.departmentList);
     }
   }
+
+  
+ 
 
   clearSelectionInternal(event: Event) {
     event.stopPropagation();
     this.projectObj.departmentName = [];
     this.isAllSelected = false;
   }
+
 
 
   selectedTeamData: any[] = [];

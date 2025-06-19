@@ -181,7 +181,7 @@ export class ReportListComponent implements OnInit {
   departments: any[] = [];
   allEmployee: any[] = [];
   filteredEmployees: any[] = [];
-  filteredEmployees2: Employee[] = [];
+  filteredEmployees2: any[] = [];
   allProjectPOInternal: any[] = [];
   tnmPoExpiredCount = 0;
   tnmPOValidCount = 0;
@@ -2877,14 +2877,14 @@ export class ReportListComponent implements OnInit {
     }
   }
 
-  onEmployeeSelected(event: any) {
-    const selectedEmp = event.option.value;
-    if (selectedEmp) {
-      this.selectedEmpId = selectedEmp.empId;
-      this.employeeCtrl.setValue(selectedEmp.name);
-      console.log('Selected Employee ID:', this.selectedEmpId);
-    }
+onEmployeeSelected(event: any) {
+  const selectedEmp = event.option.value;
+  if (selectedEmp) {
+    this.selectedEmpId = selectedEmp.empId;
+    // this.employeeCtrl.setValue(selectedEmp.name);
+    console.log('Selected Employee ID:', this.selectedEmpId);
   }
+}
 
   displayEmployee(emp: any): string {
     console.log("emp", emp);  // This is helpful for debugging
@@ -2898,23 +2898,30 @@ export class ReportListComponent implements OnInit {
     return list?.some(emp => emp.empId === this.selectedEmpId);
   }
 
-  getEmployeeByNameAndEmpld() {
-    this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === 'Success') {
-        this.employeeList = response.serviceResponse;
-        this.filteredEmployees2 = this.employeeList;
-      } else {
-        // this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
+getEmployeeByNameAndEmpld() {
+  this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === 'Success') {
+      this.employeeList = response.serviceResponse;
+      this.filteredEmployees2 = this.employeeList;
+      this.employeeCtrl.setValue('');
+    } else {
+      // this.openAlertMod(this.alertTemplate, response.serviceResponse);
+    }
+  });
+}
 
-  filterEmployees2(searchText: string) {
-    const lowerText = (searchText || '').toLowerCase();
-    return this.employeeList.filter(emp =>
-      emp.name.toLowerCase().includes(lowerText) ||
-      emp.employmentId.toLowerCase().includes(lowerText)
-    );
+filterEmployees2(searchText: string) {
+      const filterValue = searchText.toLowerCase();
+
+    return this.employeeList.filter(emp => {
+      if (!emp) {
+        return false;
+      }
+      
+      const nameMatch = emp.name && emp.name.toLowerCase().includes(filterValue);
+      const idMatch = emp.empId && emp.empId.toString().toLowerCase().includes(filterValue);
+      return nameMatch || idMatch;
+    });
   }
 
   openSummaryModal(template: TemplateRef<any>, selectedEmpId: any) {

@@ -1,5 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { Feature } from 'src/app/models/feature';
+import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 
@@ -30,12 +33,20 @@ export class ViewEmployeeComponent implements OnInit {
   filtersBench: any = {};
   filteredEmployeeData: any[] = [];
   expandedEmployees: Set<number> = new Set();
+  feature = "Resource Management";
+  userMapping: any = {};
+  currentUser: User;
 
   constructor(private exportExcelService :ExportExcelService,
-    private breadcrumbService: BreadcrumbService
-  ) { }
+    private breadcrumbService: BreadcrumbService,
+    private authenticationService: AuthenticationService,
+  ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+      featureMap.subFeatures?.forEach(sub => {
+        this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
     // this.exportToExcel();
     console.log(this.catagory,"catagory")
     console.log(this.allEmployeeData,"allEmployeeData")
