@@ -102,7 +102,14 @@ matSort (matSortChange)="sortData($event)"
                     
                     <td class="text-center">{{ getGlobalProjectIndex(eIndex) + 1 }}</td>
                     <td class="text-center">A-{{employee.employeementId}}</td>
-                    <td class="text-center">{{employee.name}}</td>
+                    <td class="text-center text-capitalize"
+                    id="clickablefor360"
+                    *ngIf="userMapping.rmg_employee_360"
+                    [navigateToEmployee360]="employee.empId"
+                    style="cursor: pointer"
+                    title="Click to view Employee 360"
+                    >{{employee.name}}</td>
+                    <td *ngIf="!userMapping.rmg_employee_360">{{employee.name}}</td>
                     <td class="text-center">{{employee.department}}</td>
                     <td class="text-center">{{employee.billableType}}</td>
                     <td class="text-center">{{employee.billable}}</td>
@@ -247,7 +254,14 @@ matSort (matSortChange)="sortData($event)"
                         <tr>
                             <td class="text-center">{{ (page - 1) * 10 + i + 1 }}</td>
                             <td class="text-center">A-{{employee.employeementId}}</td>
-                            <td class="text-center">{{employee.name}}</td>
+                            <td class="text-center text-capitalize"
+                            id="clickablefor360"
+                            *ngIf="userMapping.rmg_employee_360"
+                            [navigateToEmployee360]="employee.empId"
+                            style="cursor: pointer"
+                            title="Click to view Employee 360"
+                            >{{employee.name}}</td>
+                            <td *ngIf="!userMapping.rmg_employee_360">{{employee.name}}</td>
                             <td class="text-center">{{employee.departmentName}}</td>
                             <td class="text-center">{{employee.billableType}}</td>
                             <!-- <td class="text-center">{{employee.employeementId}}</td> -->
@@ -348,7 +362,14 @@ matSort (matSortChange)="sortData($event)"
                     </td>
                     <td class="text-center">{{ i + 1 }}</td>
                     <td class="text-center">A-{{employee.employmentId}}</td>
-                    <td class="text-center">{{employee.employeeName}}</td>
+                    <!-- <td class="text-center text-capitalize"
+                    id="clickablefor360"
+                    *ngIf="userMapping.rmg_employee_360"
+                    [navigateToEmployee360]="employee.empId"
+                    style="cursor: pointer"
+                    title="Click to view Employee 360"
+                    >{{employee.employeeName}}</td> -->
+                    <td class="text-center" >{{employee.employeeName}}</td>
                     <td class="text-center">{{employee.department}}</td>
                     <td class="text-center">{{employee.billableType}}</td>
 
@@ -493,7 +514,14 @@ matSort (matSortChange)="sortData($event)"
 
             <td class="text-center">{{ getGlobalProjectIndex(eIndex) + 1 }}</td>
             <td class="text-center">{{ employee.employeementId }}</td>
-            <td class="text-center">{{ employee.name }}</td>
+            <td class="text-center text-capitalize"
+            id="clickablefor360"
+            *ngIf="userMapping.rmg_employee_360"
+            [navigateToEmployee360]="employee.empId"
+            style="cursor: pointer"
+            title="Click to view Employee 360"
+            >{{ employee.name }}</td>
+            <td *ngIf="!userMapping.rmg_employee_360">{{employee.name}}</td>
             <td class="text-center">{{ employee.department }}</td>
             <td class="text-center">{{ employee.billableType }}</td>
             <td class="text-center">{{ employee.billable }}</td>
@@ -639,7 +667,14 @@ matSort (matSortChange)="sortData($event)"
                         <tr>
                             <td class="text-center">{{ (page - 1) * 10 + i + 1 }}</td>
                             <td class="text-center">A-{{employee.employeementId}}</td>
-                            <td class="text-center">{{employee.name}}</td>
+                            <td class="text-center text-capitalize"
+                            id="clickablefor360"
+                            *ngIf="userMapping.rmg_employee_360"
+                            [navigateToEmployee360]="employee.empId"
+                            style="cursor: pointer"
+                            title="Click to view Employee 360"
+                            >{{employee.name}}</td>
+                            <td *ngIf="!userMapping.rmg_employee_360">{{employee.name}}</td>
                             <td class="text-center">{{employee.departmentName}}</td>
                             <!-- <td class="text-center">{{employee.billableType}}</td> -->
                             <!-- <td class="text-center">{{employee.employeementId}}</td> -->
