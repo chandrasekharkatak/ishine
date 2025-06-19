@@ -69,6 +69,7 @@ import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.ProjectManagersDTO;
 import com.apmosys.employeeportal.dto.ProjectOverheadsDTO;
 import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
+import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProject;
 import com.apmosys.employeeportal.dto.RMGProjectMappedEmployees;
 import com.apmosys.employeeportal.dto.RMGTeam;
@@ -5548,17 +5549,17 @@ public class ResourceManagementService {
 		Set<Integer> filteredProjectIds = new HashSet<>();
 
 		try {
-			List<Object[]> allProjectList = projectRepository
+			List<ProjectFetchDTO> allProjectList = projectRepository
 					.findAllProjectByIsDraftAndIsActiveOfProjectIds(projectIds);
 
 			if (!allProjectList.isEmpty()) {
 				List<ResourceManagementDTO> dtoList = new ArrayList<>();
 
-				for (Object[] object : allProjectList) {
-					Integer projectId = object[0] != null ? Integer.parseInt(object[0].toString()) : null;
-					String isDraftProject = object[2] != null ? object[2].toString() : null;
-					Long isActive = object[3] != null ? Long.parseLong(object[3].toString()) : null;
-					String projectStatus = object[4] != null ? object[4].toString() : null;
+				for (ProjectFetchDTO object : allProjectList) {
+					Integer projectId = object.getProjectId() != null ? object.getProjectId() : null;
+					String isDraftProject = object.getIsDraftProject() != null ? object.getIsDraftProject() : null;
+					Long isActive = object.getIsActive()!= null ? object.getIsActive().longValue() : null;
+					String projectStatus = object.getProjectStatus() != null ? object.getProjectStatus() : null;
 					
 					boolean matchesApproval = false;
 
@@ -6183,7 +6184,7 @@ public class ResourceManagementService {
 
 			String role = jobRole.getEmployeeRole();
 			String name = jobRole.getName();
-	        List<Object[]> result = new ArrayList<>();
+	        List<RMGFlatEmployeeProjectTeamDTO> result = new ArrayList<>();
 	        
 	        if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
 					|| name.equalsIgnoreCase("Super Admin")) {
@@ -6199,31 +6200,31 @@ public class ResourceManagementService {
 				result=	projectRepository.getExceptionEmployeeReport();
 			}
 	        Map<String, ExceptionReportDTO> dtoMap = new LinkedHashMap<>();
-	        for (Object[] obj : result) {
-	            String employmentId = obj[0] != null ? obj[0].toString() : null;
+	        for (RMGFlatEmployeeProjectTeamDTO obj : result) {
+	            String employmentId = obj.getEmployeementId() != null ? obj.getEmployeementId().toString() : null;
 
 	            // Create or fetch existing DTO
 	            ExceptionReportDTO dto = dtoMap.computeIfAbsent(employmentId, id -> {
 	                ExceptionReportDTO newDto = new ExceptionReportDTO();
 	                newDto.setEmploymentId(id);
-	                newDto.setEmployeeName((String) obj[1]);
-	                newDto.setDepartment((String) obj[2]);
-	                newDto.setBillableType((String) obj[3]);
+	                newDto.setEmployeeName(obj.getName());
+	                newDto.setDepartment(obj.getDepartment());
+	                newDto.setBillableType(obj.getBillableType());
 	                newDto.setRmgProjects(new ArrayList<>());
 	                return newDto;
 	            });
 
 	            // Now construct the RMGProject
 	            RMGProject project = new RMGProject();
-	            project.setProjectId(obj[4] != null ? Integer.parseInt(obj[4].toString()) : null);
-	            project.setProjectName((String) obj[5]);
-	            project.setClientName((String) obj[6]);
-	            project.setApmosysRM((String) obj[7]);
-	            project.setClientRM((String) obj[8]);
-	            project.setPoNo((String) obj[9]);
-	            project.setPoProjectType((String) obj[10]);
-	            project.setPoStartDate((String) obj[11]);
-	            project.setPoEndDate((String) obj[12]);
+	            project.setProjectId(obj.getProjectId()!= null ? Integer.parseInt(obj.getProjectId().toString()) : null);
+	            project.setProjectName(obj.getProjectName());
+	            project.setClientName(obj.getClientName());
+	            project.setApmosysRM(obj.getApmosysRM());
+	            project.setClientRM(obj.getClientRM());
+	            project.setPoNo(obj.getPoNo());
+	            project.setPoProjectType(obj.getPoProjectType());
+	            project.setPoStartDate(obj.getPoStartDate());
+	            project.setPoEndDate(obj.getPoEndDate());
 
 	            dto.getRmgProjects().add(project);
 	        }

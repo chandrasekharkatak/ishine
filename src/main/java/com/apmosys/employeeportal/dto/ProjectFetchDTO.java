@@ -47,6 +47,7 @@ public class ProjectFetchDTO {
 	private String isTeamCreated;
 	private String projectViewId;
 	private String projectType;
+	private Integer isActive;
 	private List<ProjectManagersDTO> projectManagers;
 	private List<Long> projectManagerId;
 	private List<ProjectOverheadsDTO> projectOverheads;
@@ -195,5 +196,12 @@ public class ProjectFetchDTO {
 		this.draftStatus = draftStatus;
 		this.projectViewId = projectViewId;
 		// this.projectType = projectType;
+	}
+	public ProjectFetchDTO(Integer projectId,String projectName,String isDraftProject,Integer isActive,String projectStatus){
+		this.projectId = projectId;
+		this.name = projectName;
+		this.isDraftProject = isDraftProject;
+		this.isActive = isActive;
+		this.projectStatus = projectStatus;
 	}
 }

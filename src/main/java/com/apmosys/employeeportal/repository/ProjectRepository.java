@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
+import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.model.Project;
 
 @Repository
@@ -48,10 +49,14 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> findAllProjectByIsDraftAndIsActive();
 	
-	@Query(nativeQuery = true,value ="select p.project_id, p.project_name, p.is_draft_project,(case when exists (select 1 from employee_team_mapping etm where etm.team_id in \n"
-			+ "(select team_id from teams where project_id=p.project_id) and etm.active=2) then 2 else 1 end), p.project_status from projects p  \n"
-			+ "where p.is_draft_project IN ('false','true','Rejected') and p.project_id IN :projectIds")
-	public List<Object[]> findAllProjectByIsDraftAndIsActiveOfProjectIds(@Param("projectIds") Set<Integer> projectIds);
+	@Query(value ="select new com.apmosys.employeeportal.dto.ProjectFetchDTO(p.projectId, p.projectName, p.isDraftProject \n"+
+			",case when exists (select 1 from EmployeeTeamMap etm where etm.teamId in \n"+
+			"				   (select teamId from Team where projectId=p.projectId) and etm.active=2) then 2 \n"+
+			"else 1 end \n"+
+			",p.projectStatus )  \n"+
+			"from Project p  \n"+
+			"where p.isDraftProject IN ('false','true','Rejected') and p.projectId IN :projectIds")
+	public List<ProjectFetchDTO> findAllProjectByIsDraftAndIsActiveOfProjectIds(@Param("projectIds") Set<Integer> projectIds);
 	
 
 	public List<Project> findProjectByDepartmentName(String name);
@@ -108,7 +113,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true' and po_project_id IS NULL")
 	 Set<Integer> findAllActiveInternalProjectIds();
 	 
-	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true' and po_project_id IS NOT NULL")
+	 @Query(value ="select p.projectId from Project p where p.active = 'true' and p.poProjectId IS NOT NULL")
 	 Set<Integer> findAllActiveShankhProjectIds();
 	 
 	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true'")
@@ -120,15 +125,50 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInformation(Long empId);
 
-	@Query(nativeQuery = true)
-	public List<Object[]> getExceptionEmployeeReport();
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
+			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
+			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.poStartDate ,p.poEndDate )  \n" + 
+			"from Project p  \n" + 
+			"inner join Team t on p.projectId = t.projectId  \n" + 
+			"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" + 
+			"inner join Employee e on e.empId = etm.empId  \n" + 
+			"inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n" + 
+			"inner join Department d on d.deptId = jr.deptId  \n" + 
+			"where p.active = 'true' AND t.isActive != 'N' AND etm.active != 0  \n" + 
+			"AND e.employmentstatus != 'InActive'  \n" + 
+			"AND e.billableType = 'Bench' AND (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') \n"+
+			"AND e.empId NOT BETWEEN 1 AND 6")
+	public List<RMGFlatEmployeeProjectTeamDTO>  getExceptionEmployeeReport();
 	
-	@Query(nativeQuery = true)
-	public List<Object[]> getExceptionEmployeeReportInDepartments(List<Long> deptIds);
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
+			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
+			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.poStartDate ,p.poEndDate )  \n" + 
+			"from Project p  \n" +
+			"inner join Team t on p.projectId = t.projectId  \n" + 
+			"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" + 
+			"inner join Employee e on e.empId = etm.empId  \n" + 
+			"inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n" + 
+			"inner join Department d on d.deptId = jr.deptId  \n" + 
+			"where p.active = 'true' and t.isActive != 'N' and etm.active != 0  \n" + 
+			"and e.employmentstatus != 'InActive'  \n" + 
+			"and e.billableType = 'Bench' and (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') and d.deptId IN :deptIds AND e.empId NOT BETWEEN 1 AND 6")
+	public List<RMGFlatEmployeeProjectTeamDTO> getExceptionEmployeeReportInDepartments(List<Long> deptIds);
 	
 	
-	@Query(nativeQuery = true)
-	List <Object[]> getExceptionEmployeeReportInDepartment(Long deptId);
+	@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
+			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
+			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.poStartDate ,p.poEndDate )  \n" + 
+			"from Project p  \n" +
+			"inner join Team t on p.projectId = t.projectId  \n" + 
+			"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" + 
+			"inner join Employee e on e.empId = etm.empId  \n" + 
+			"inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n" + 
+			"inner join Department d on d.deptId = jr.deptId  \n" + 
+			"where p.active = 'true' and t.isActive != 'N' and etm.active != 0  \n" + 
+			"and e.employmentstatus != 'InActive'  \n" + 
+			"and e.billableType = 'Bench' and (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') \n"
+			+ "and d.deptId =:deptIds AND e.empId NOT BETWEEN 1 AND 6")
+	List <RMGFlatEmployeeProjectTeamDTO>  getExceptionEmployeeReportInDepartment(Long deptId);
 	
 	@Query(value = "SELECT \n"
 			+ "    distinct p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
