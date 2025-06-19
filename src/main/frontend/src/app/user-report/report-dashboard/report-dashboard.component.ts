@@ -2587,63 +2587,129 @@ openBillableEmployeeTableModal(billable: any) {
   });
 }
 
-  openTotalCountModal(title: any) {
-  this.sortColumn = [];
-  this.sortColumnType = [];
-  this.sortDirection = '';
-  this.data = ''
-  this.modalSummaryList = [];
-  this.resetSearch();
+//   openTotalCountModal(title: any) {
+//   this.sortColumn = [];
+//   this.sortColumnType = [];
+//   this.sortDirection = '';
+//   this.data = ''
+//   this.modalSummaryList = [];
+//   this.resetSearch();
 
-  let dateToday = moment().format(this.dateFormat);
-  this.page = 1;
-  this.modalTitle = title;
+//   let dateToday = moment().format(this.dateFormat);
+//   this.page = 1;
+//   this.modalTitle = title;
 
-  let requestBody: any = {
-    apprentice: false,
-    consultant: false,
-    regular: false,
-    probation: false,
-    allEmp: false
-  };
+//   let requestBody: any = {
+//     apprentice: false,
+//     consultant: false,
+//     regular: false,
+//     probation: false,
+//     allEmp: false,
+//     query:this.queryList || [],
+//   };
 
-  switch(title) {
-    case 'All Active Employee':
-      requestBody.allEmp = true;
-      break;
-    case 'Employee In Probation(After 6 months)':
-      requestBody.probation = true;
-      break;
-    case 'Apprentice Count':
-      requestBody.apprentice = true;
-      break;
-    case 'Consultant Count':
-      requestBody.consultant = true;
-      break;
-    case 'Regular Count':
-      requestBody.regular = true;
-      break;
-    default:
-      requestBody.allEmp = true;
+//   switch(title) {
+//     case 'All Active Employee':
+//       requestBody.allEmp = true;
+//       break;
+//     case 'Employee In Probation(After 6 months)':
+//       requestBody.probation = true;
+//       break;
+//     case 'Apprentice Count':
+//       requestBody.apprentice = true;
+//       break;
+//     case 'Consultant Count':
+//       requestBody.consultant = true;
+//       break;
+//     case 'Regular Count':
+//       requestBody.regular = true;
+//       break;
+//     default:
+//       requestBody.allEmp = true;
+//   }
+
+//   this.reportService.getEmployeeDetailsByEmploymentType(requestBody).subscribe({
+//     next: (response: any) => {
+//       if (response.serviceStatus === 'Success') {
+//         this.modalSummaryList = response.serviceResponse;
+        
+//       } else {
+//         this.modalSummaryList = [];
+//       }
+      
+//       this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+//     },
+//     error: (error: any) => {
+//       console.error('Error fetching employee details:', error);
+//       this.modalSummaryList = [];
+//     }
+//   });
+// }
+openTotalCountModal(title: any) {
+    // 1. Reset Modal State
+    this.modalSummaryList = [];
+    this.page = 1;
+    this.resetSearch();
+    this.modalTitle = title;
+
+    // 2. Prepare Specific Drill-down Parameters (the boolean flags)
+    let requestBody:any= {
+      apprentice: false,
+      consultant: false,
+      regular: false,
+      probation: false,
+      allEmp: false
+    };
+
+    switch(title) {
+      case 'All Active Employee':
+        requestBody.allEmp = true;
+        break;
+      case 'Employee In Probation(After 6 months)':
+        requestBody.probation = true;
+        break;
+      case 'Apprentice Count':
+        requestBody.apprentice = true;
+        break;
+      case 'Consultant Count':
+        requestBody.consultant = true;
+        break;
+      case 'Regular Count':
+        requestBody.regular = true;
+        break;
+      default:
+        requestBody.allEmp = true;
+    }
+
+    // 3. Combine with Active Dashboard Filters
+    const payload: any= {
+        ...requestBody,
+        queryList: this.queryList || [] // **The crucial part**
+    };
+
+    console.log("Sending payload for Employment Type drill-down:", payload);
+
+    // 4. Call the Service
+    this.reportService.getEmployeeDetailsByEmploymentType(payload).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.modalSummaryList = response.serviceResponse;
+          this.modalTitle = `${title} (${this.modalSummaryList.length} records)`;
+        } else {
+          this.modalSummaryList = [];
+          this.modalTitle = `${title} (0 records)`;
+        }
+        this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+      },
+      error: (error: any) => {
+        console.error('Error fetching employee details by type:', error);
+        this.modalSummaryList = [];
+        this.modalTitle = `Error loading: ${title}`;
+        this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+      }
+    });
   }
 
-  this.reportService.getEmployeeDetailsByEmploymentType(requestBody).subscribe({
-    next: (response: any) => {
-      if (response.serviceStatus === 'Success') {
-        this.modalSummaryList = response.serviceResponse;
-        
-      } else {
-        this.modalSummaryList = [];
-      }
-      
-      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
-    },
-    error: (error: any) => {
-      console.error('Error fetching employee details:', error);
-      this.modalSummaryList = [];
-    }
-  });
-}
 
   openEmployeeStatusTableModal(status: any) {
    
@@ -3035,7 +3101,8 @@ capitalizeFirstLetter(text: string) {
   const request = {
     monthName: category,
     employeeType: name.toLowerCase(),
-    year: moment().year()
+    year: moment().year(),
+    queryList: this.queryList || []
   };
 
   this.reportService.getJoinVsResignEmployeeDetails(request).subscribe(

@@ -4379,6 +4379,156 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			}
 		}
 	}
+	
+	
+	
+//	--------------------Leave Trend Analysis Table--------------------------------//
+	public List<Object[]> getCustomJoinVsResignEmployeeDetails(ReportsQueryDTO request) {
+		Session session = entityManager.unwrap(Session.class);
+		try {
+			// 1. Build the dynamic WHERE clause from the general custom filters.
+			String customFilterConditions = createQueryForEmployeeDashboard(request.getQueryList()).toString();
+
+			// 2. Build the base native SQL query
+			String q = "SELECT DISTINCT "
+					+ "    CONCAT('A-', e.employeement_id) AS EMP_ID, "
+					+ "    CASE "
+					+ "       WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
+					+ "       WHEN e.is_consultant = 'true' THEN 'Consultant' "
+					+ "       ELSE 'Regular' "
+					+ "    END AS EMPLOYMENT_TYPE, "
+					+ "    e.name AS NAME, "
+					+ "    e.experience AS EXPERIENCE, "
+					+ "    d.name AS DEPARTMENT_NAME, "
+					+ "    e.email AS EMAIL_ID, "
+					+ "    m.name AS MANAGER_NAME, "
+					+ "    e.billable AS BILLABLE, "
+					+ "    e.billable_type AS BILLABLE_TYPE, "
+					+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, "
+					+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, "
+					+ "    e.date_of_joining AS DATE_OF_JOINING, "
+					+ "    e.mobile_no AS MOBILE_NO, "
+					+ "    e.employmentstatus AS STATUS, "
+					+ "    e.total_experience AS TOTAL_EXPERIENCE, "
+					+ "    e.gender AS GENDER, "
+					+ "    e.work_location AS WORK_LOCATION, "
+					+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) AS AGE, "
+					+ "    e.is_user_info_updated AS KYC "
+					+ "FROM employee e "
+					+ "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id "
+					+ "LEFT JOIN department d ON jr.dept_id = d.dept_id "
+					+ "LEFT JOIN employee m ON m.emp_id = e.manager_id "
+					+ "LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0' "
+					+ "LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y' "
+					+ "LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true' "
+					+ "LEFT JOIN clients c ON p.client_id = c.client_id "
+					+ "WHERE e.emp_id NOT BETWEEN 1 AND 6 "
+					+ "AND ( "
+					+ "   (:type = 'apprenticeship' AND e.is_apprenticeship = 'true' AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) "
+					+ "   OR (:type = 'consultant' AND e.is_consultant = 'true' AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) "
+					+ "   OR (:type = 'regular' AND (e.is_consultant = 'false' AND e.is_apprenticeship = 'false') AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) "
+					+ "   OR (:type = 'resign' AND e.date_of_resign IS NOT NULL AND MONTHNAME(e.date_of_resign) = :month_name AND YEAR(e.date_of_resign) = :YEAR_VALUE) "
+					+ ") "
+					// 3. Inject the dynamic general filter conditions
+					+ customFilterConditions
+					+ "GROUP BY e.emp_id";
+
+			System.out.println("Executing Join/Resign Drill-down Query: " + q);
+			Query query = session.createSQLQuery(q);
+
+			// 4. Set the named parameters
+			query.setParameter("type", request.getEmployeeType());
+			query.setParameter("month_name", request.getMonthName());
+			query.setParameter("YEAR_VALUE", request.getYear());
+
+			return query.getResultList();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ArrayList<>();
+		} finally {
+			if (session != null && session.isOpen()) {
+				session.close();
+			}
+		}
+	}
+	
+	
+	
+	//------------------------All employee box---------------------------------//
+	public List<Object[]> getCustomEmployeesByEmploymentTypeList(ReportsQueryDTO request) {
+		Session session = entityManager.unwrap(Session.class);
+		try {
+			// 1. Build the dynamic part of the WHERE clause from the filter list
+			String customFilterConditions = createQueryForEmployeeDashboard(request.getQueryList()).toString();
+
+			// 2. Build the full native SQL query by combining the static parts with the dynamic part
+			String q = "SELECT distinct " +
+					"CONCAT('A-', e.employeement_id) as EMP_ID, " +
+					"CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
+					"     WHEN e.is_consultant = 'true' THEN 'Consultant' " +
+					"     ELSE 'Regular' " +
+					"END AS EMPLOYMENT_TYPE, " +
+					"e.name AS NAME, " +
+					"e.experience AS EXPERIENCE, " +
+					"d.name AS DEPARTMENT_NAME, " +
+					"e.email AS EMAIL_ID, " +
+					"m.name AS MANAGER_NAME, " +
+					"e.billable AS BILLABLE, " +
+					"e.billable_type AS BILLABLE_TYPE, " +
+					"GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, " +
+					"GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, " +
+					"e.date_of_joining AS DATE_OF_JOINING, " +
+					"e.mobile_no AS MOBILE_NO, " +
+					"e.employmentstatus AS STATUS, " +
+					"e.total_experience AS TOTAL_EXPERIENCE, " +
+					"e.gender AS GENDER, " +
+					"e.work_location AS WORK_LOCATION, " +
+					"TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, " +
+					"e.is_user_info_updated AS KYC " +
+					"FROM employee e " +
+					"LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id " +
+					"LEFT JOIN department d on jr.dept_id = d.dept_id " +
+					"LEFT JOIN employee m on m.emp_id = e.manager_id " + // Alias 'm' for manager
+					"LEFT JOIN employee_team_mapping etm on e.emp_id = etm.emp_id AND etm.active != '0' " +
+					"LEFT JOIN teams t on etm.team_id = t.team_id AND t.is_active = 'Y' " +
+					"LEFT JOIN projects p on t.project_id = p.project_id AND p.active = 'true' " +
+					"LEFT JOIN clients c on p.client_id = c.client_id " +
+					"WHERE e.employmentstatus != 'InActive' AND e.emp_id NOT BETWEEN 1 AND 6 " +
+					// Static part of the WHERE clause for employment type
+					"AND ((:apprentice = true AND e.is_apprenticeship = 'true') " +
+					"     OR (:consultant = true AND e.is_consultant = 'true') " +
+					"     OR (:regular = true AND (e.is_consultant = 'false' AND e.is_apprenticeship = 'false')) " +
+					"     OR (:probation = true AND e.employmentstatus = 'Probation' AND TIMESTAMPDIFF(DAY, e.date_of_joining, current_date()) > 180) " +
+					"     OR (:allEmp = true)) " +
+					// ** INJECT THE DYNAMIC FILTERS HERE **
+					customFilterConditions +
+					"GROUP BY e.emp_id";
+
+			System.out.println("Executing dynamic findEmployeesByEmploymentType Query: " + q);
+			Query query = session.createSQLQuery(q);
+			
+			// 3. Set the named parameters for the static part of the query
+			query.setParameter("apprentice", request.isApprentice());
+			query.setParameter("consultant", request.isConsultant());
+			query.setParameter("regular", request.isRegular());
+			query.setParameter("probation", request.isProbation());
+			query.setParameter("allEmp", request.isAllEmp());
+
+			// 4. Execute and return the results
+			return query.getResultList();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			// Return an empty list in case of an error to prevent crashes
+			return new ArrayList<>();
+		} finally {
+			if (session != null && session.isOpen()) {
+				session.close();
+			}
+		}
+	}
+	
 
 
 }

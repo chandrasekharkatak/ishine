@@ -1087,13 +1087,7 @@ try {
 		    StringBuilder logBuilder = new StringBuilder();
 		    
 		    try {
-		        List<Object[]> employeeDetails = reportDashboardRepository.findEmployeesByEmploymentType(
-		                request.isApprentice(),
-		                request.isConsultant(),
-		                request.isRegular(),
-		                request.isProbation(),
-		                request.isAllEmp()
-		        );
+		    	List<Object[]> employeeDetails = customFilterService.getCustomEmployeesByEmploymentTypeList(request);
 		        
 		        if (employeeDetails != null && !employeeDetails.isEmpty()) {
 		            List<ReportListDTO> dtoList = new ArrayList<>();
@@ -1364,11 +1358,7 @@ try {
 	        try {
 	            logBuilder.append("Fetching getJoiningVsResignationCountList data");
 
-	            List<Object[]> data = reportDashboardRepository.getJoinVsResignEmployeeDetails(
-	                request.getEmployeeType(),
-	                request.getMonthName(),
-	                request.getYear()
-	            );
+	            List<Object[]> data = customFilterService.getCustomJoinVsResignEmployeeDetails(request);
 	            List<ReportListDTO> dtoList = new ArrayList<>();
 	            
 	            data.forEach((object)-> {
