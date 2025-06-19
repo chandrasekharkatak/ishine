@@ -91,6 +91,9 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	
 	 @Query(nativeQuery = true,value = "select DISTINCT t.project_id from teams t inner join projects p on p.project_id = t.project_id where t.spoc_id = :spocId and t.is_active = 'Y' and p.active = 'true'")
 	 Set<Integer>findActiveShankhInternalProjectIdsBySpocId(@Param("spocId") Long spocId);
+	 
+	 @Query(nativeQuery = true,value = "select DISTINCT t.project_id from teams t inner join projects p on p.project_id = t.project_id where t.spoc_id = :spocId and t.is_active = 'Y' and p.active = 'true'")
+	 List<Integer>findActiveShankhInternalProjectIdsBySpocIdList(@Param("spocId") Long spocId);
 	
 	@Query(nativeQuery = true,value = "select t.* from teams t inner join projects p on p.project_id = t.project_id where  t.is_active = 'Y' and p.active = 'true' and p.po_project_id IS NULL")
 	List<Team> findAllActiveTeamsOfInternalProjects();

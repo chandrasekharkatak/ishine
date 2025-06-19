@@ -226,7 +226,7 @@ public class DepartmentService {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
 		try {
-			List<Object[]> allDepartmentList = departmentRepository.getAllDepartments();
+			List<DepartmentDTO> allDepartmentList = departmentRepository.getAllDepartments();
 			if (allDepartmentList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Department List is Empty.");
@@ -234,24 +234,24 @@ public class DepartmentService {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 				List<DepartmentDTO> dtoList = new ArrayList<DepartmentDTO>();
-				for (Object[] object : allDepartmentList) {
-					DepartmentDTO departmentDTO = new DepartmentDTO();
-					departmentDTO.setDeptId(Long.parseLong(object[0].toString()));
-					departmentDTO.setCreatedBy(Integer.parseInt(object[1].toString()));
-					departmentDTO.setCreatedOn(object[2].toString());
-					departmentDTO.setName(object[3].toString());
-					departmentDTO.setCreatedByName(object[4].toString());
-					departmentDTO.setHodName(object[5].toString());
-					departmentDTO.setHodId(Long.parseLong(object[6].toString()));
-					departmentDTO.setUpdatedOn(object[7] != null ? object[7].toString(): null);
-					departmentDTO.setUpdatedByName(object[8] != null ? object[8].toString() : null);
-					departmentDTO.setDeptAbbreviation(object[9] != null ? object[9].toString() : null);
-					departmentDTO.setUpdatedBy(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
-					dtoList.add(departmentDTO);      
-				}
+//				for (DepartmentDTO object : allDepartmentList) {
+//					DepartmentDTO departmentDTO = new DepartmentDTO();
+//					departmentDTO.setDeptId(Long.parseLong(object[0].toString()));
+//					departmentDTO.setCreatedBy(Integer.parseInt(object[1].toString()));
+//					departmentDTO.setCreatedOn(object[2].toString());
+//					departmentDTO.setName(object[3].toString());
+//					departmentDTO.setCreatedByName(object[4].toString());
+//					departmentDTO.setHodName(object[5].toString());
+//					departmentDTO.setHodId(Long.parseLong(object[6].toString()));
+//					departmentDTO.setUpdatedOn(object[7] != null ? object[7].toString(): null);
+//					departmentDTO.setUpdatedByName(object[8] != null ? object[8].toString() : null);
+//					departmentDTO.setDeptAbbreviation(object[9] != null ? object[9].toString() : null);
+//					departmentDTO.setUpdatedBy(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
+//					dtoList.add(departmentDTO);      
+//				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("dtoList Size : "+dtoList.size());
+				response.setServiceResponse(allDepartmentList);
+				apiLogInfo.setApiResponse("dtoList Size : "+allDepartmentList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			}

@@ -37,14 +37,6 @@ public interface ProjectTempRepo extends JpaRepository<ProjectTemp, Integer>{
 			+ " and is_draft_project is null and p.project_status = 'Not Started'",nativeQuery=true)
 	List<Object[]> getAllNotStartedProjectList();
 	
-	@Query(value="SELECT \n"
-			+ "    (\n"
-			+ "        (SELECT COUNT(*) FROM project_temp WHERE is_draft_project = 'Not Started')\n"
-			+ "      + \n"
-			+ "        (SELECT COUNT(*) FROM projects WHERE internal_project_type IS NOT NULL AND is_draft_project is null)\n"
-			+ "    ) "
-			+ "AS total_count", nativeQuery = true)
-	Integer getAllNotStartedProjectCount();
 	
 	@Query(value="select * from project_temp where po_project_Id = :projectId", nativeQuery = true)
 	ProjectTemp findByPoProjectId(Long projectId);

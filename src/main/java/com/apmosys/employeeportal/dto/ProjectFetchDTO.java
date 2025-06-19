@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
@@ -158,4 +159,41 @@ public class ProjectFetchDTO {
 //		this.projectType = projectType;
 	}
 
+	public ProjectFetchDTO(Integer projectId, Date createdOn, String projectName, String state, Integer clientId,
+			Long poProjectId, String active, String syncProject, Long createdBy, Long updatedBy,
+			LocalDateTime updatedOn, String isDraftProject, String poEndDate, String poNo, String poProjectType,
+			String poStartDate, String apmosysRM, String clientRM, String deptId, Boolean isRenewable, String status,
+			String apmosysRmEmail, String projectCompletionDate, String projectStatus, String internalProjectType,
+			String clientName,
+			String draftStatus, String projectViewId) {
+		this.projectId = projectId;
+		this.createdOn = (Timestamp) createdOn;
+		this.name = projectName;
+		this.state = state;
+		this.clientId = clientId;
+		this.poProjectId = poProjectId;
+		this.active = active;
+		this.syncProject = syncProject;
+		this.createdBy = createdBy;
+		this.updatedBy = updatedBy;
+		this.updatedOn = updatedOn;
+		this.isDraftProject = isDraftProject;
+		this.poEndDate = poEndDate;
+		this.poNo = poNo;
+		this.poProjectType = poProjectType;
+		this.poStartDate = poStartDate;
+		this.apmosysRM = apmosysRM;
+		this.clientRM = clientRM;
+		this.deptId = deptId;
+		this.isRenewable = isRenewable;
+		this.status = status;
+		this.apmosysRmEmail = apmosysRmEmail;
+		this.projectCompletionDate = projectCompletionDate;
+		this.projectStatus = projectStatus;
+		this.projectType = internalProjectType;
+		this.clientName = clientName;
+		this.draftStatus = draftStatus;
+		this.projectViewId = projectViewId;
+		// this.projectType = projectType;
+	}
 }

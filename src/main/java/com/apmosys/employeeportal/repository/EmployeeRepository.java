@@ -582,7 +582,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query(value="SELECT e.email FROM employee e WHERE e.emp_id = :hodId",nativeQuery=true)
     String findHodEmailById(@Param("hodId") Long hodId);
     
-    @Query(value ="select count(*) from employee where employmentstatus != 'InActive' and emp_id NOT BETWEEN 1 and 6",nativeQuery = true)
+    @Query(value ="select count(*) from Employee e where e.employmentstatus != 'InActive' and e.empId NOT BETWEEN 1 and 6")
     Long getTotalEmployeeCount();
     
     @Query(value = "select count(*) from employee e \n"

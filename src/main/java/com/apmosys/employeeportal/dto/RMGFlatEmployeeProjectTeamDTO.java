@@ -68,5 +68,21 @@ public class RMGFlatEmployeeProjectTeamDTO {
 		this.employeeRole = employeeRole;
 		this.etmActive = etmActive;
 	}
-    
+	public RMGFlatEmployeeProjectTeamDTO(Long employeementId, String name, String departmentName, String billableType,
+			Integer projectId, String projectName, String clientName, String apmosysRM, String clientRM, String poNo,
+			String poProjectType, String poStartDate, String poEndDate) {
+		this.employeementId = employeementId;
+		this.name = name;
+		this.department = departmentName;
+		this.billableType = billableType;
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.poStartDate = poStartDate;
+		this.poEndDate = poEndDate;
+		this.apmosysRM = apmosysRM;
+		this.clientRM = clientRM;
+		this.poProjectType = poProjectType;
+		this.poNo = poNo;
+		this.clientName = clientName;
+	}
 }

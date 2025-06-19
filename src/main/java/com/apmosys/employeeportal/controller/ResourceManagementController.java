@@ -197,7 +197,7 @@ public class ResourceManagementController {
 	
 	 @PostMapping("/combinedPOINTERNALList")
 	    public ServiceResponse combinedPOINTERNALList(@RequestBody ProjectFilterDTO projectFilterDTO) {
-	        return resourceManagementService.combinedDataListWithCount(projectFilterDTO);
+	        return resourceManagementService.combinedDataCount(projectFilterDTO);
 	    }
 	 
 	@RequestMapping(value = "/deleteTeamsByIdsBulk", method = RequestMethod.POST)
