@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.repository;
 
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -25,7 +27,8 @@ public interface ProjectManagerMappingRepository extends JpaRepository<ProjectMa
 	public List<Object[]>findProjectManagersByPoProjectId(Long id);
 	
 	@Modifying
-	@Query(nativeQuery = true)
+	@Transactional
+	@Query(value="UPDATE ProjectManagerMapping p SET p.active = 0 WHERE p.projectId =:projectId")
 	public void deactivateByProjectId(@Param("projectId") Long projectId);
 	
 	@Query(nativeQuery = true, value="SELECT pmm.project_manager_id, e.name FROM project_manager_mapping pmm\n"

@@ -4702,66 +4702,66 @@ public class ResourceManagementService {
 			internalProjectIds = filterProjectidsApprovalStatusDepartmentFilter(internalProjectIds,
 					projectFilterDTO.getApprovalStatus(), projectFilterDTO.getDepartmentsids());
 
-			List<Object[]> rawData = employeeTeamMapRepository
+			List<RMGFlatEmployeeProjectTeamDTO> rawData = employeeTeamMapRepository
 					.findEmployeeProjectTeamDetailsByProjectIds(internalProjectIds);
 
 			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
-			for (Object[] row : rawData) {
-				Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
-				Long employeementId = row[1] != null ? Long.parseLong(row[1].toString()) : null;
-				String billable = row[2] != null ? row[2].toString() : null;
-				String billableType = row[3] != null ? row[3].toString() : null;
-				String empName = row[4] != null ? row[4].toString() : null;
-				String deptName = row[5] != null ? row[5].toString() : null;
-				Integer projectId = row[6] != null ? Integer.parseInt(row[6].toString()) : null;
-				String projectName = row[7] != null ? row[7].toString() : null;
-				Long poProjectId = row[8] != null ? Long.parseLong(row[8].toString()) : null;
-				String poStartDate = row[9] != null ? row[9].toString() : null;
-				String poEndDate = row[10] != null ? row[10].toString() : null;
-				String apmosysRM = row[11] != null ? row[11].toString() : null;
-				String clientRM = row[12] != null ? row[12].toString() : null;
-				String poProjectType = row[13] != null ? row[13].toString() : null;
-				String poNo = row[14] != null ? row[14].toString() : null;
-				String clientName = row[15] != null ? row[15].toString() : null;
-				Long teamId = row[16] != null ? Long.parseLong(row[16].toString()) : null;
-				String teamName = row[17] != null ? row[17].toString() : null;
-				String teamIsActive = row[18] != null ? row[18].toString() : null;
-				String employeeRole = row[19] != null ? row[19].toString() : null;
-				Integer active = row[20] != null ? Integer.parseInt(row[20].toString()) : null;
-				Long projectManagerId = row[21] != null ? Long.parseLong(row[21].toString()) : null;
-				String projectManagerName = row[22] != null ? row[22].toString() : null;
+			for (RMGFlatEmployeeProjectTeamDTO row : rawData) {
+//				Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
+//				Long employeementId = row[1] != null ? Long.parseLong(row[1].toString()) : null;
+//				String billable = row[2] != null ? row[2].toString() : null;
+//				String billableType = row[3] != null ? row[3].toString() : null;
+//				String empName = row[4] != null ? row[4].toString() : null;
+//				String deptName = row[5] != null ? row[5].toString() : null;
+//				Integer projectId = row[6] != null ? Integer.parseInt(row[6].toString()) : null;
+//				String projectName = row[7] != null ? row[7].toString() : null;
+//				Long poProjectId = row[8] != null ? Long.parseLong(row[8].toString()) : null;
+//				String poStartDate = row[9] != null ? row[9].toString() : null;
+//				String poEndDate = row[10] != null ? row[10].toString() : null;
+//				String apmosysRM = row[11] != null ? row[11].toString() : null;
+//				String clientRM = row[12] != null ? row[12].toString() : null;
+//				String poProjectType = row[13] != null ? row[13].toString() : null;
+//				String poNo = row[14] != null ? row[14].toString() : null;
+//				String clientName = row[15] != null ? row[15].toString() : null;
+//				Long teamId = row[16] != null ? Long.parseLong(row[16].toString()) : null;
+//				String teamName = row[17] != null ? row[17].toString() : null;
+//				String teamIsActive = row[18] != null ? row[18].toString() : null;
+//				String employeeRole = row[19] != null ? row[19].toString() : null;
+//				Integer active = row[20] != null ? Integer.parseInt(row[20].toString()) : null;
+//				Long projectManagerId = row[21] != null ? Long.parseLong(row[21].toString()) : null;
+//				String projectManagerName = row[22] != null ? row[22].toString() : null;
 
 
-				RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(empId, k -> {
+				RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(row.getEmpId()  , k -> {
 					RMGProjectMappedEmployees newDto = new RMGProjectMappedEmployees();
-					newDto.setEmpId(empId);
-					newDto.setEmployeementId(employeementId);
-					newDto.setName(empName);
+					newDto.setEmpId(row.getEmpId());
+					newDto.setEmployeementId(row.getEmployeementId());
+					newDto.setName(row.getName());
 					
-					newDto.setDepartment(deptName)	;
-					newDto.setBillable(billable);
-					newDto.setBillableType(billableType);
+					newDto.setDepartment(row.getDepartment())	;
+					newDto.setBillable(row.getBillable());
+					newDto.setBillableType(row.getBillableType());
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
 				});
 
 				// Find existing project in employee's projects list or create new
 				RMGProject existingProject = dto.getRmgprojects().stream()
-						.filter(p -> p.getProjectId().equals(projectId)).findFirst().orElse(null);
+						.filter(p -> p.getProjectId().equals(row.getProjectId() )).findFirst().orElse(null);
 
 				if (existingProject == null) {
 					RMGProject rmgProject = new RMGProject();
-					rmgProject.setProjectId(projectId);
-					rmgProject.setProjectName(projectName);
-					rmgProject.setPoProjectId(poProjectId);
-					rmgProject.setPoStartDate(poStartDate);
-					rmgProject.setPoEndDate(poEndDate);
-					rmgProject.setApmosysRM(apmosysRM);
-					rmgProject.setClientRM(clientRM);
-					rmgProject.setPoProjectType(poProjectType);
-					rmgProject.setPoNo(poNo);
-					rmgProject.setClientName(clientName);
+					rmgProject.setProjectId(row.getProjectId());
+					rmgProject.setProjectName(row.getProjectName());
+					rmgProject.setPoProjectId(row.getPoProjectId());
+					rmgProject.setPoStartDate(row.getPoStartDate() );
+					rmgProject.setPoEndDate(row.getPoEndDate() );
+					rmgProject.setApmosysRM(row.getApmosysRM());
+					rmgProject.setClientRM(row.getClientRM());
+					rmgProject.setPoProjectType(row.getPoProjectType() );
+					rmgProject.setPoNo(row.getPoNo() );
+					rmgProject.setClientName(row.getClientName() );
 					rmgProject.setRmgTeam(new ArrayList<>());
 					rmgProject.setProjectManagers(new ArrayList<>());
 					
@@ -4771,21 +4771,21 @@ public class ResourceManagementService {
 
 				// Add team details to the project
 				RMGTeam rmgTeam = new RMGTeam();
-				rmgTeam.setTeamId(teamId);
-				rmgTeam.setTeamName(teamName);
-				rmgTeam.setIsActive(teamIsActive);
-				rmgTeam.setEmployeeRole(employeeRole);
-				rmgTeam.setStatus(active == 1 ? "Approved" : "Pending for Approval");
+				rmgTeam.setTeamId(row.getTeamId());
+				rmgTeam.setTeamName(row.getTeamName() );
+				rmgTeam.setIsActive(row.getTeamIsActive() );
+				rmgTeam.setEmployeeRole(row.getEmployeeRole());
+				rmgTeam.setStatus(row.getEtmActive()  == 1 ? "Approved" : "Pending for Approval");
 
 				existingProject.getRmgTeam().add(rmgTeam);
-				if (projectManagerId != null && projectManagerName != null) {
+				if (row.getPmEmpId() != null && row.getPmName() != null) {
 	                boolean alreadyExists = existingProject.getProjectManagers().stream()
-	                        .anyMatch(pm -> pm.getProjectManagerId().equals(projectManagerId));
+	                        .anyMatch(pm -> pm.getProjectManagerId().equals(row.getPmEmpId()));
 
 	                if (!alreadyExists) {
 	                    ProjectManagersDTO managerDTO = new ProjectManagersDTO();
-	                    managerDTO.setProjectManagerId(projectManagerId);
-	                    managerDTO.setProjectManagerName(projectManagerName);
+	                    managerDTO.setProjectManagerId(row.getPmEmpId());
+	                    managerDTO.setProjectManagerName(row.getPmName());
 	                    existingProject.getProjectManagers().add(managerDTO);
 	                }
 	            }
@@ -4860,66 +4860,66 @@ public class ResourceManagementService {
 		    shankhProjectIds = filterProjectidsApprovalStatusDepartmentFilter(shankhProjectIds,
 					projectFilterDTO.getApprovalStatus(), projectFilterDTO.getDepartmentsids());
 
-			List<Object[]> rawData = employeeTeamMapRepository
+			List<RMGFlatEmployeeProjectTeamDTO> rawData = employeeTeamMapRepository
 					.findEmployeeProjectTeamDetailsByProjectIds(shankhProjectIds);
 
 			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
-			for (Object[] row : rawData) {
-				Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
-				Long employeementId = row[1] != null ? Long.parseLong(row[1].toString()) : null;
-				String billable = row[2] != null ? row[2].toString() : null;
-				String billableType = row[3] != null ? row[3].toString() : null;
-				String empName = row[4] != null ? row[4].toString() : null;
-				String deptName = row[5] != null ? row[5].toString() : null;
-				Integer projectId = row[6] != null ? Integer.parseInt(row[6].toString()) : null;
-				String projectName = row[7] != null ? row[7].toString() : null;
-				Long poProjectId = row[8] != null ? Long.parseLong(row[8].toString()) : null;
-				String poStartDate = row[9] != null ? row[9].toString() : null;
-				String poEndDate = row[10] != null ? row[10].toString() : null;
-				String apmosysRM = row[11] != null ? row[11].toString() : null;
-				String clientRM = row[12] != null ? row[12].toString() : null;
-				String poProjectType = row[13] != null ? row[13].toString() : null;
-				String poNo = row[14] != null ? row[14].toString() : null;
-				String clientName = row[15] != null ? row[15].toString() : null;
-				Long teamId = row[16] != null ? Long.parseLong(row[16].toString()) : null;
-				String teamName = row[17] != null ? row[17].toString() : null;
-				String teamIsActive = row[18] != null ? row[18].toString() : null;
-				String employeeRole = row[19] != null ? row[19].toString() : null;
-				Integer active = row[20] != null ? Integer.parseInt(row[20].toString()) : null;
-				Long projectManagerId = row[21] != null ? Long.parseLong(row[21].toString()) : null;
-				String projectManagerName = row[22] != null ? row[22].toString() : null;
+			for (RMGFlatEmployeeProjectTeamDTO row : rawData) {
+//				Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
+//				Long employeementId = row[1] != null ? Long.parseLong(row[1].toString()) : null;
+//				String billable = row[2] != null ? row[2].toString() : null;
+//				String billableType = row[3] != null ? row[3].toString() : null;
+//				String empName = row[4] != null ? row[4].toString() : null;
+//				String deptName = row[5] != null ? row[5].toString() : null;
+//				Integer projectId = row[6] != null ? Integer.parseInt(row[6].toString()) : null;
+//				String projectName = row[7] != null ? row[7].toString() : null;
+//				Long poProjectId = row[8] != null ? Long.parseLong(row[8].toString()) : null;
+//				String poStartDate = row[9] != null ? row[9].toString() : null;
+//				String poEndDate = row[10] != null ? row[10].toString() : null;
+//				String apmosysRM = row[11] != null ? row[11].toString() : null;
+//				String clientRM = row[12] != null ? row[12].toString() : null;
+//				String poProjectType = row[13] != null ? row[13].toString() : null;
+//				String poNo = row[14] != null ? row[14].toString() : null;
+//				String clientName = row[15] != null ? row[15].toString() : null;
+//				Long teamId = row[16] != null ? Long.parseLong(row[16].toString()) : null;
+//				String teamName = row[17] != null ? row[17].toString() : null;
+//				String teamIsActive = row[18] != null ? row[18].toString() : null;
+//				String employeeRole = row[19] != null ? row[19].toString() : null;
+//				Integer active = row[20] != null ? Integer.parseInt(row[20].toString()) : null;
+//				Long projectManagerId = row[21] != null ? Long.parseLong(row[21].toString()) : null;
+//				String projectManagerName = row[22] != null ? row[22].toString() : null;
 
 
-				RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(empId, k -> {
+				RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(row.getEmpId(), k -> {
 					RMGProjectMappedEmployees newDto = new RMGProjectMappedEmployees();
-					newDto.setEmpId(empId);
-					newDto.setEmployeementId(employeementId);
-					newDto.setName(empName);
+					newDto.setEmpId(row.getEmpId());
+					newDto.setEmployeementId(row.getEmployeementId());
+					newDto.setName(row.getName());
 					
-					newDto.setDepartment(deptName)	;
-					newDto.setBillable(billable);
-					newDto.setBillableType(billableType);
+					newDto.setDepartment(row.getDepartment())	;
+					newDto.setBillable(row.getBillable());
+					newDto.setBillableType(row.getBillableType());
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
 				});
 
 				// Find existing project in employee's projects list or create new
 				RMGProject existingProject = dto.getRmgprojects().stream()
-						.filter(p -> p.getProjectId().equals(projectId)).findFirst().orElse(null);
+						.filter(p -> p.getProjectId().equals(row.getProjectId())).findFirst().orElse(null);
 
 				if (existingProject == null) {
 					RMGProject rmgProject = new RMGProject();
-					rmgProject.setProjectId(projectId);
-					rmgProject.setProjectName(projectName);
-					rmgProject.setPoProjectId(poProjectId);
-					rmgProject.setPoStartDate(poStartDate);
-					rmgProject.setPoEndDate(poEndDate);
-					rmgProject.setApmosysRM(apmosysRM);
-					rmgProject.setClientRM(clientRM);
-					rmgProject.setPoProjectType(poProjectType);
-					rmgProject.setPoNo(poNo);
-					rmgProject.setClientName(clientName);
+					rmgProject.setProjectId(row.getProjectId());
+					rmgProject.setProjectName(row.getProjectName());
+					rmgProject.setPoProjectId(row.getPoProjectId());
+					rmgProject.setPoStartDate(row.getPoStartDate() );
+					rmgProject.setPoEndDate(row.getPoEndDate() );
+					rmgProject.setApmosysRM(row.getApmosysRM());
+					rmgProject.setClientRM(row.getClientRM());
+					rmgProject.setPoProjectType(row.getPoProjectType() );
+					rmgProject.setPoNo(row.getPoNo() );
+					rmgProject.setClientName(row.getClientName() );
 					rmgProject.setRmgTeam(new ArrayList<>());
 					rmgProject.setProjectManagers(new ArrayList<>());
 					
@@ -4929,21 +4929,21 @@ public class ResourceManagementService {
 
 				// Add team details to the project
 				RMGTeam rmgTeam = new RMGTeam();
-				rmgTeam.setTeamId(teamId);
-				rmgTeam.setTeamName(teamName);
-				rmgTeam.setIsActive(teamIsActive);
-				rmgTeam.setEmployeeRole(employeeRole);
-				rmgTeam.setStatus(active == 1 ? "Approved" : "Pending for Approval");
+				rmgTeam.setTeamId(row.getTeamId());
+				rmgTeam.setTeamName(row.getTeamName() );
+				rmgTeam.setIsActive(row.getTeamIsActive() );
+				rmgTeam.setEmployeeRole(row.getEmployeeRole());
+				rmgTeam.setStatus(row.getEtmActive()  == 1 ? "Approved" : "Pending for Approval");
 
 				existingProject.getRmgTeam().add(rmgTeam);
-				if (projectManagerId != null && projectManagerName != null) {
+				if (row.getPmEmpId() != null && row.getPmName() != null) {
 	                boolean alreadyExists = existingProject.getProjectManagers().stream()
-	                        .anyMatch(pm -> pm.getProjectManagerId().equals(projectManagerId));
+	                        .anyMatch(pm -> pm.getProjectManagerId().equals(row.getPmEmpId()));
 
 	                if (!alreadyExists) {
 	                    ProjectManagersDTO managerDTO = new ProjectManagersDTO();
-	                    managerDTO.setProjectManagerId(projectManagerId);
-	                    managerDTO.setProjectManagerName(projectManagerName);
+	                    managerDTO.setProjectManagerId(row.getPmEmpId());
+	                    managerDTO.setProjectManagerName(row.getPmName());
 	                    existingProject.getProjectManagers().add(managerDTO);
 	                }
 	            }
@@ -5017,66 +5017,66 @@ public class ResourceManagementService {
 		    allshankhInternalProjectIds = filterProjectidsApprovalStatusDepartmentFilter(allshankhInternalProjectIds,
 					projectFilterDTO.getApprovalStatus(), projectFilterDTO.getDepartmentsids());
 
-			List<Object[]> rawData = employeeTeamMapRepository
+			List<RMGFlatEmployeeProjectTeamDTO> rawData = employeeTeamMapRepository
 					.findEmployeeProjectTeamDetailsByProjectIds(allshankhInternalProjectIds);
 
 			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
-			for (Object[] row : rawData) {
-				Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
-				Long employeementId = row[1] != null ? Long.parseLong(row[1].toString()) : null;
-				String billable = row[2] != null ? row[2].toString() : null;
-				String billableType = row[3] != null ? row[3].toString() : null;
-				String empName = row[4] != null ? row[4].toString() : null;
-				String deptName = row[5] != null ? row[5].toString() : null;
-				Integer projectId = row[6] != null ? Integer.parseInt(row[6].toString()) : null;
-				String projectName = row[7] != null ? row[7].toString() : null;
-				Long poProjectId = row[8] != null ? Long.parseLong(row[8].toString()) : null;
-				String poStartDate = row[9] != null ? row[9].toString() : null;
-				String poEndDate = row[10] != null ? row[10].toString() : null;
-				String apmosysRM = row[11] != null ? row[11].toString() : null;
-				String clientRM = row[12] != null ? row[12].toString() : null;
-				String poProjectType = row[13] != null ? row[13].toString() : null;
-				String poNo = row[14] != null ? row[14].toString() : null;
-				String clientName = row[15] != null ? row[15].toString() : null;
-				Long teamId = row[16] != null ? Long.parseLong(row[16].toString()) : null;
-				String teamName = row[17] != null ? row[17].toString() : null;
-				String teamIsActive = row[18] != null ? row[18].toString() : null;
-				String employeeRole = row[19] != null ? row[19].toString() : null;
-				Integer active = row[20] != null ? Integer.parseInt(row[20].toString()) : null;
-				Long projectManagerId = row[21] != null ? Long.parseLong(row[21].toString()) : null;
-				String projectManagerName = row[22] != null ? row[22].toString() : null;
+			for (RMGFlatEmployeeProjectTeamDTO row : rawData) {
+//				Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
+//				Long employeementId = row[1] != null ? Long.parseLong(row[1].toString()) : null;
+//				String billable = row[2] != null ? row[2].toString() : null;
+//				String billableType = row[3] != null ? row[3].toString() : null;
+//				String empName = row[4] != null ? row[4].toString() : null;
+//				String deptName = row[5] != null ? row[5].toString() : null;
+//				Integer projectId = row[6] != null ? Integer.parseInt(row[6].toString()) : null;
+//				String projectName = row[7] != null ? row[7].toString() : null;
+//				Long poProjectId = row[8] != null ? Long.parseLong(row[8].toString()) : null;
+//				String poStartDate = row[9] != null ? row[9].toString() : null;
+//				String poEndDate = row[10] != null ? row[10].toString() : null;
+//				String apmosysRM = row[11] != null ? row[11].toString() : null;
+//				String clientRM = row[12] != null ? row[12].toString() : null;
+//				String poProjectType = row[13] != null ? row[13].toString() : null;
+//				String poNo = row[14] != null ? row[14].toString() : null;
+//				String clientName = row[15] != null ? row[15].toString() : null;
+//				Long teamId = row[16] != null ? Long.parseLong(row[16].toString()) : null;
+//				String teamName = row[17] != null ? row[17].toString() : null;
+//				String teamIsActive = row[18] != null ? row[18].toString() : null;
+//				String employeeRole = row[19] != null ? row[19].toString() : null;
+//				Integer active = row[20] != null ? Integer.parseInt(row[20].toString()) : null;
+//				Long projectManagerId = row[21] != null ? Long.parseLong(row[21].toString()) : null;
+//				String projectManagerName = row[22] != null ? row[22].toString() : null;
 
 
-				RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(empId, k -> {
+				RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(row.getEmpId(), k -> {
 					RMGProjectMappedEmployees newDto = new RMGProjectMappedEmployees();
-					newDto.setEmpId(empId);
-					newDto.setEmployeementId(employeementId);
-					newDto.setName(empName);
+					newDto.setEmpId(row.getEmpId());
+					newDto.setEmployeementId(row.getEmployeementId() );
+					newDto.setName(row.getName() );
 					
-					newDto.setDepartment(deptName)	;
-					newDto.setBillable(billable);
-					newDto.setBillableType(billableType);
+					newDto.setDepartment(row.getDepartment() )	;
+					newDto.setBillable(row.getBillable() );
+					newDto.setBillableType(row.getBillableType() );
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
 				});
 
 				// Find existing project in employee's projects list or create new
 				RMGProject existingProject = dto.getRmgprojects().stream()
-						.filter(p -> p.getProjectId().equals(projectId)).findFirst().orElse(null);
+						.filter(p -> p.getProjectId().equals(row.getProjectId())).findFirst().orElse(null);
 
 				if (existingProject == null) {
 					RMGProject rmgProject = new RMGProject();
-					rmgProject.setProjectId(projectId);
-					rmgProject.setProjectName(projectName);
-					rmgProject.setPoProjectId(poProjectId);
-					rmgProject.setPoStartDate(poStartDate);
-					rmgProject.setPoEndDate(poEndDate);
-					rmgProject.setApmosysRM(apmosysRM);
-					rmgProject.setClientRM(clientRM);
-					rmgProject.setPoProjectType(poProjectType);
-					rmgProject.setPoNo(poNo);
-					rmgProject.setClientName(clientName);
+					rmgProject.setProjectId(row.getProjectId());
+					rmgProject.setProjectName(row.getProjectName() );
+					rmgProject.setPoProjectId(row.getPoProjectId() );
+					rmgProject.setPoStartDate(row.getPoStartDate() );
+					rmgProject.setPoEndDate(row.getPoEndDate() );
+					rmgProject.setApmosysRM(row.getApmosysRM());
+					rmgProject.setClientRM(row.getClientRM() );
+					rmgProject.setPoProjectType(row.getPoProjectType() );
+					rmgProject.setPoNo(row.getPoNo() );
+					rmgProject.setClientName(row.getClientName() );
 					rmgProject.setRmgTeam(new ArrayList<>());
 					rmgProject.setProjectManagers(new ArrayList<>());
 					
@@ -5086,21 +5086,21 @@ public class ResourceManagementService {
 
 				// Add team details to the project
 				RMGTeam rmgTeam = new RMGTeam();
-				rmgTeam.setTeamId(teamId);
-				rmgTeam.setTeamName(teamName);
-				rmgTeam.setIsActive(teamIsActive);
-				rmgTeam.setEmployeeRole(employeeRole);
-				rmgTeam.setStatus(active == 1 ? "Approved" : "Pending for Approval");
+				rmgTeam.setTeamId(row.getTeamId() );
+				rmgTeam.setTeamName(row.getTeamName() );
+				rmgTeam.setIsActive(row.getTeamIsActive() );
+				rmgTeam.setEmployeeRole(row.getEmployeeRole() );
+				rmgTeam.setStatus(row.getEtmActive()  == 1 ? "Approved" : "Pending for Approval");
 
 				existingProject.getRmgTeam().add(rmgTeam);
-				if (projectManagerId != null && projectManagerName != null) {
+				if (row.getPmEmpId() != null && row.getPmName() != null) {
 	                boolean alreadyExists = existingProject.getProjectManagers().stream()
-	                        .anyMatch(pm -> pm.getProjectManagerId().equals(projectManagerId));
+	                        .anyMatch(pm -> pm.getProjectManagerId().equals(row.getPmEmpId() ));
 
 	                if (!alreadyExists) {
 	                    ProjectManagersDTO managerDTO = new ProjectManagersDTO();
-	                    managerDTO.setProjectManagerId(projectManagerId);
-	                    managerDTO.setProjectManagerName(projectManagerName);
+	                    managerDTO.setProjectManagerId(row.getPmEmpId() );
+	                    managerDTO.setProjectManagerName(row.getPmName());
 	                    existingProject.getProjectManagers().add(managerDTO);
 	                }
 	            }

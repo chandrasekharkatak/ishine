@@ -102,7 +102,7 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	List<Team> findAllActiveTeamsOfShankhProjects();
 	
 	
-	  @Query(nativeQuery = true,value ="select t.* from teams t where t.is_active = 'Y' and t.project_id = :projectId")
+	  @Query(value ="select t from Team t where t.isActive = 'Y' and t.projectId = :projectId")
 	  List<Team> findActiveTeamsByProjectId(@Param("projectId") Integer projectId);
 	
 		@Query(nativeQuery = true,value = "select t.* from teams t inner join projects p on p.project_id = t.project_id where  t.is_active = 'Y' and p.active = 'true'")

@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.apmosys.employeeportal.model.Notification;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -12,6 +13,7 @@ import lombok.ToString;
 @ToString
 @Setter
 @Getter
+@AllArgsConstructor
 public class RMGFlatEmployeeProjectTeamDTO {
 	private Long empId;
     private Long employeementId;
@@ -38,6 +40,9 @@ public class RMGFlatEmployeeProjectTeamDTO {
     private String teamIsActive;
     private String employeeRole;
     private Integer etmActive;
+    private Long pmEmpId;
+    private String pmName;
+    
 	public RMGFlatEmployeeProjectTeamDTO(Long empId, Long employeementId, String name, String employmentstatus,
 			String billable, String billableType, String department, Integer projectId, String clientName,
 			String projectName, Long poProjectId, String poStartDate, String poEndDate, String apmosysRM,
@@ -85,4 +90,55 @@ public class RMGFlatEmployeeProjectTeamDTO {
 		this.poNo = poNo;
 		this.clientName = clientName;
 	}
+	
+	public RMGFlatEmployeeProjectTeamDTO(
+		    Long empId,
+		    Long employeementId,
+		    String billable,
+		    String billableType,
+		    String name,
+		    String departmentName,
+		    Integer projectId,
+		    String projectName,
+		    Long poProjectId,
+		    String poStartDate,
+		    String poEndDate,
+		    String apmosysRM,
+		    String clientRM,
+		    String poProjectType,
+		    String poNo,
+		    String clientName,
+		    Long teamId,
+		    String teamName,
+		    String teamIsActive,
+		    String employeeRole,
+		    Long etmActive,
+		    Long pmEmpId,
+		    String pmName
+		) {
+		    this.empId = empId;
+		    this.employeementId = employeementId;
+		    this.billable = billable;
+		    this.billableType = billableType;
+		    this.name = name;
+		    this.department = departmentName;
+		    this.projectId = projectId;
+		    this.projectName = projectName;
+		    this.poProjectId = poProjectId;
+		    this.poStartDate = poStartDate;
+		    this.poEndDate = poEndDate;
+		    this.apmosysRM = apmosysRM;
+		    this.clientRM = clientRM;
+		    this.poProjectType = poProjectType;
+		    this.poNo = poNo;
+		    this.clientName = clientName;
+		    this.teamId = teamId;
+		    this.teamName = teamName;
+		    this.teamIsActive = teamIsActive;
+		    this.employeeRole = employeeRole;
+		    this.etmActive = Integer.parseInt(etmActive.toString());
+		    this.pmEmpId = pmEmpId;
+		    this.pmName = pmName;
+		}
+
 }

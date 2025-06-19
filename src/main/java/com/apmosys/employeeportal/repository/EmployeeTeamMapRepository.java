@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 
 @Repository
@@ -126,56 +127,26 @@ List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId IN :teamIds AND etm.active !=0")
 	List<EmployeeTeamMap> findActiveByTeamIds(@Param("teamIds") List<Long> teamIds);
 	
-	@Query(value = "SELECT \n"
-			+ "    e.emp_id, \n"
-			+ "    e.employeement_id, \n"
-			+ "    e.billable, \n"
-			+ "    e.billable_type, \n"
-			+ "    e.name, \n"
-			+ "    d.name AS departmentname,\n"
-			+ "    p.project_id, \n"
-			+ "    p.project_name, \n"
-			+ "    p.po_project_id, \n"
-			+ "    p.po_start_date, \n"
-			+ "    p.po_end_date,\n"
-			+ "    p.apmosysrm, \n"
-			+ "    p.clientrm, \n"
-			+ "    p.po_project_type, \n"
-			+ "    p.po_no, \n"
-			+ "    c.client_name,\n"
-			+ "    t.team_id, \n"
-			+ "    t.team_name, \n"
-			+ "    t.is_active, \n"
-			+ "    etm.employee_role, \n"
-			+ "    etm.active,  \n"
-			+ "    pm.emp_id AS project_manager_id, \n"
-			+ "    pm.name AS project_manager_name\n"
-			+ "FROM \n"
-			+ "    employee_team_mapping etm\n"
-			+ "RIGHT JOIN \n"
-			+ "    employee e ON e.emp_id = etm.emp_id\n"
-			+ "RIGHT JOIN \n"
-			+ "    teams t ON t.team_id = etm.team_id\n"
-			+ "INNER JOIN \n"
-			+ "    projects p ON p.project_id = t.project_id\n"
-			+ "INNER JOIN \n"
-			+ "    clients c ON c.client_id = p.client_id\n"
-			+ "INNER JOIN \n"
-			+ "    job_role jr ON jr.job_role_id = e.job_role_id\n"
-			+ "INNER JOIN \n"
-			+ "    department d ON d.dept_id = jr.dept_id\n"
-			+ "LEFT JOIN \n"
-			+ "    project_manager_mapping pmm ON pmm.project_id = p.project_id\n"
-			+ "LEFT JOIN \n"
-			+ "    employee pm ON pm.emp_id = pmm.project_manager_id\n"
-			+ "WHERE \n"
-			+ "    p.project_id IN :projectIds\n"
-			+ "    AND etm.active != 0 \n"
-			+ "    AND t.is_active = 'Y' \n"
-			+ "    AND e.employmentstatus != 'InActive' \n"
-			+ "    AND pmm.active = 1 AND e.emp_id NOT BETWEEN 1 AND 6 ",
-    nativeQuery = true)
-List<Object[]> findEmployeeProjectTeamDetailsByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+	@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO(\n"
+	        + "e.empId,e.employeementId,e.billable,e.billableType,e.name,d.name \n" 
+	        + ",p.projectId,p.projectName,p.poProjectId,p.poStartDate,p.poEndDate,p.apmosysRM,p.clientRM,p.poProjectType,p.poNo \n"
+	        + ",c.clientName,t.teamId,t.teamName,t.isActive \n"
+	        + ",etm.employeeRole,etm.active,pm.empId,pm.name ) \n"
+			+ "FROM EmployeeTeamMap etm\n"
+			+ "RIGHT JOIN Employee e ON e.empId = etm.empId \n"
+			+ "RIGHT JOIN Team t ON t.teamId = etm.teamId \n"
+			+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+			+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
+			+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
+			+ "INNER JOIN Department d ON d.deptId = jr.deptId \n"
+			+ "LEFT JOIN  ProjectManagerMapping pmm ON pmm.projectId = p.projectId \n"
+			+ "LEFT JOIN  Employee pm ON pm.empId = pmm.projectManagerId\n"
+			+ "WHERE p.projectId IN :projectIds \n"
+			+ "AND etm.active != 0 \n"
+			+ "AND t.isActive = 'Y' \n"
+			+ "AND e.employmentstatus != 'InActive' \n"
+			+ "AND pmm.active = 1 AND e.empId NOT BETWEEN 1 AND 6 ")
+	List<RMGFlatEmployeeProjectTeamDTO>  findEmployeeProjectTeamDetailsByProjectIds(@Param("projectIds") Set<Integer> projectIds);
 
 
 @Query(value = "SELECT \n"
