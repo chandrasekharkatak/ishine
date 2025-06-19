@@ -821,7 +821,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         	    			+ "    e.email EMAIL_ID, \n"
         	    			+ "    m.name MANAGER_NAME, \n"
         	    			+ "    e.billable BILLABLE, \n"
-        	    			+ "    e.billable_type BILLABLE_TYPE, \n"
+        	    	  		+ "    e.billable_type BILLABLE_TYPE, \n"
         	    			+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
         	    			+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
         	    			+ "    e.date_of_joining DATE_OF_JOINING,\n"
