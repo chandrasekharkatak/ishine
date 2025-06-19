@@ -233,6 +233,7 @@ export class ReportDashboardComponent implements OnInit {
   currentUser: User;
   show: number = -1;
   yearList: number[] = [];
+  queryObj = new Query();
 
   //property for cylinder charts
   public activity;
@@ -294,14 +295,14 @@ export class ReportDashboardComponent implements OnInit {
     for (let i = 0; i < 10; i++) {
       this.yearList.push(moment().year() - i);
     }
-    this.getLeaveTrendDetails();
+    
 
    
   }
 
 
   // Method to custom join and resign count
-    processJoinResignCount(response: any){
+  processJoinResignCount(response: any){
     // This null check makes it safe
     const monthlyData = response?.serviceResponse || [];
 
@@ -405,7 +406,8 @@ onFilterChange(filter: CustomFilter): void {
 
     this.findAllDepartment();
     this.getEmployeeWorkLocation();
-    this.loadDashboardData(this.queryList); 
+    // this.loadDashboardData(this.queryList);
+    this.getLeaveTrendDetails();
 
     let selectedYear = this.selectedYear || moment().year(); 
     const selectedDeptIds: number[] = [];
@@ -463,26 +465,23 @@ onFilterChange(filter: CustomFilter): void {
   }
 
 
-      loadDashboardData(queryObjList: any): void {
+    loadDashboardData(queryObjList: any): void {
     this.isLoading = true;
 
-    let queryObj = new Query();
-    queryObj.queryList = queryObjList;
+    
+    this.queryObj.queryList = queryObjList;
     let selectedYear = this.selectedYear || moment().year(); 
 
     forkJoin({
-      graphSummary: this.reportService.customgetGraphEmployeeSummary(queryObj).pipe(catchError(() => of(null))),
-      leaveTrend: this.reportService.customgetLeaveTrendDetails(queryObj).pipe(catchError(() => of(null))),
-      // Add the Join vs. Resign call here
-      joinResign: this.reportService.customgetJoinVsResignCount(queryObj, selectedYear).pipe(catchError(() => of(null))),
+      graphSummary: this.reportService.customgetGraphEmployeeSummary(this.queryObj).pipe(catchError(() => of(null))),
+      leaveTrend: this.reportService.customgetLeaveTrendDetails(this.queryObj).pipe(catchError(() => of(null))),
+      joinResign: this.reportService.customgetJoinVsResignCount(this.queryObj, selectedYear).pipe(catchError(() => of(null))),
 
-       workLocation: this.reportService.customgetWorkLocationDetails(queryObj).pipe(catchError(() => of(null))) 
+      workLocation: this.reportService.customgetWorkLocationDetails(this.queryObj).pipe(catchError(() => of(null))) 
     }).subscribe({
       next: (results) => {
-        // --- Process Graph Summary (Pie Charts) ---
         this.renderAllPieCharts(results.graphSummary);
 
-        // --- Process Leave Trend ---
         if (results.leaveTrend && results.leaveTrend.serviceStatus === 'Success') {
           this.leaveTrendAnalysisList = results.leaveTrend.serviceResponse;
           this.extractLeaveTrendAnalysisData();
@@ -552,7 +551,7 @@ onFilterChange(filter: CustomFilter): void {
       this.renderPlaceholderChart('Employee Status Summary', 'employeeStatus');
       this.renderPlaceholderChart('Gender Summary', 'genderSummary');
       this.renderPlaceholderChart('Age Summary', 'employeeAgeSummary');
-      this.plotEmployeeExperienceCylinderGraph('Employee Experience', 'employeeExperienceSummary', [], [], [], [], this.openEmployeeExperienceModalTable.bind(this));
+      this.plotEmployeeExperienceColumnGraph('Employee Experience', 'employeeExperienceSummary', [], [], [], [], this.openEmployeeExperienceModalTable.bind(this));
       this.renderPlaceholderChart('Fresher - Lateral Summary', 'fresherLateralChart');
       this.renderPlaceholderChart('Billable Employee Summary', 'billableChart');
       this.renderPlaceholderChart('Employee Billable/Non-Billable Summary', 'billableChartByDepartment');
@@ -657,7 +656,7 @@ onFilterChange(filter: CustomFilter): void {
     const employeeSeries = experienceData.map(exp => exp.employeeCount);
     const apprenticeSeries = experienceData.map(exp => exp.apprenticeCount);
     const consultantSeries = experienceData.map(exp => exp.consultantCount);
-    this.plotEmployeeExperienceCylinderGraph('Employee Experience', 'employeeExperienceSummary', totalExperienceCategories, employeeSeries, apprenticeSeries, consultantSeries, this.openEmployeeExperienceModalTable.bind(this));
+    this.plotEmployeeExperienceColumnGraph('Employee Experience', 'employeeExperienceSummary', totalExperienceCategories, employeeSeries, apprenticeSeries, consultantSeries, this.openEmployeeExperienceModalTable.bind(this));
 
     // Fresher/Lateral Chart
     const fresherLateralData = [
@@ -1658,18 +1657,16 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
     });
   }
   
-  plotEmployeeExperienceCylinderGraph(chartName, chartId, categories, employeeSeries, apprenticeSeries, consultantSeries, openMod) {
+  plotEmployeeExperienceColumnGraph(chartName, chartId, categories, employeeSeries, apprenticeSeries, consultantSeries, openMod) {
     (Highcharts as any).chart(chartId, {
       chart: {
-        type: 'cylinder',
-        
+        type: 'column',
       },
       title: {
         text: chartName,
         style: {
           fontWeight: 'bold',
-          color: '#34495e',
-          fontSize: '18px',
+          color: '#000000',
         },
       },
       xAxis: {
@@ -1691,20 +1688,32 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
             color: '#34495e',
           },
         },
+        stackLabels: {
+          enabled: false, 
+        }
       },
       tooltip: {
         shared: true,
-        valueSuffix: ' employees',
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+        backgroundColor: 'rgba(255, 255, 255, 0.75)',
         style: {
-          color: '#ffffff',
+          color: '#0d0d0d',
           fontSize: '14px',
         },
+        formatter: function () {
+          const total = this.points.reduce((sum, point) => sum + point.y, 0);
+          let tooltipHtml = `<b>${this.x}</b><br/>`;
+          this.points.forEach(point => {
+            if (point.y > 0) { 
+              tooltipHtml += `${point.series.name}: ${point.y}<br/>`;
+            }
+          });
+          tooltipHtml += `<b>Total: ${total}</b>`;
+          return tooltipHtml;
+        }
       },
       plotOptions: {
-        cylinder: {
+        column: {
           stacking: 'normal',
-          depth: 30,
           dataLabels: {
             enabled: true,
             color: '#ffffff',
@@ -1713,10 +1722,12 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
               textOutline: 'none',
             },
             formatter: function () {
-              return this.y;
+              if (this.y > 0) {
+                return this.y;
+              }
+              return null;
             },
           },
-          colorByPoint: true,
         },
         series: {
           cursor: 'pointer',
@@ -1752,48 +1763,21 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
         symbolWidth: 12,
         symbolRadius: 3,
       },
+      colors: ['#176fc2', '#faa614', '#89fc72'], 
       series: [
         {
           name: 'Employees',
           data: employeeSeries,
-          color: 'url(#gradEmployee)',
         },
         {
           name: 'Apprentices',
           data: apprenticeSeries,
-          color: 'url(#gradApprentice)',
         },
         {
           name: 'Consultant',
           data: consultantSeries,
-          color: 'url(#gradConsultant)',
         },
       ],
-      defs: {
-        gradients: [
-          {
-            id: 'gradEmployee',
-            stops: [
-              [0, '#3498db'],
-              [1, '#2980b9'],
-            ],
-          },
-          {
-            id: 'gradApprentice',
-            stops: [
-              [0, '#e74c3c'],
-              [1, '#c0392b'],
-            ],
-          },
-          {
-            id: 'gradConsultant',
-            stops: [
-              [0, '#2d9687'],
-              [1, '#16a085'],
-            ],
-          },
-        ],
-      },
     });
   }
 
@@ -2182,6 +2166,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
       this.storedDataList.splice(clearedFilter);
 
       if (emittedArray[1] == 'Filter Employee Report') {
+        this.employeeDashboard();
       }
       if (emittedArray[1] == 'Filter Leave Summary') {
         this.get8DaysLeaveReport();
@@ -3101,7 +3086,7 @@ capitalizeFirstLetter(text: string) {
   const request = {
     monthName: category,
     employeeType: name.toLowerCase(),
-    year: moment().year(),
+    year: this.selectedYear || moment().year(),
     queryList: this.queryList || []
   };
 
@@ -3112,7 +3097,7 @@ capitalizeFirstLetter(text: string) {
       if (response.serviceStatus === 'Success' && response.serviceResponse) {
         let modalTableList = response.serviceResponse;
         this.page = 1;
-        this.modalTitle = `Employee(s) ${name} in ${category}`;
+        this.modalTitle = `Employee(s) ${name} in ${category} ${this.selectedYear}`;
 
         if (name === 'Resigned') {
           modalTableList = modalTableList.filter(emp => emp.employmentstatus === 'InActive');
@@ -3325,7 +3310,17 @@ private getDepartmentIdsByName(deptName: string): number[] {
 
 
   loadJoinResignData(): void {
-    let selectedYear = this.selectedYear || moment().year(); 
+    let selectedYear = this.selectedYear || moment().year();
+    
+    if (this.queryObj) {
+          this.reportService.customgetJoinVsResignCount(this.queryObj, selectedYear).pipe(first()).subscribe((response: any) => {
+          this.processJoinResignCount(response);
+      },
+      (error) => {
+        console.error('API call failed:', error);
+      }
+    );
+    }else {
     this.reportService.getJoinVsResignCount(selectedYear).pipe(first()).subscribe((response: any) => {
           this.processJoinResignCount(response);
       },
@@ -3333,6 +3328,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
         console.error('API call failed:', error);
       }
     );
+    }
   }
   
   // processJoinResignCount(response: any){

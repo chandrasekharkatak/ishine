@@ -120,7 +120,6 @@ customgetJoinVsResignCount(payload: Query, year: number): Observable<any> {
       queryList: payload.queryList || [],
       year: year
     };
-    // Ensure the endpoint matches your backend controller
     return this.http.post<any>(`${this.baseUrl}api/customgetJoiningVsResignationCount`, requestBody);
   }
   
