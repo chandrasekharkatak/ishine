@@ -145,7 +145,7 @@
                 <div class="row" *ngIf="isAdminOrHod">
                     <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                         <label class="info-label" style="justify-self: left;"><span
-                                class="text-danger">*</span>Department in home page</label>
+                                class="text-danger">*</span>Department</label>
                     </div>
                 </div>
                 <div class="row mb-3" *ngIf="isAdminOrHod">
@@ -871,11 +871,11 @@
 
             <div class="team-preview-row">
                 <div class="team-preview-field">
-                    <label><span class="text-danger">*</span>Department on create project </label>
+                    <label><span class="text-danger">*</span>Department</label>
                     <mat-select class="form-control" multiple [(ngModel)]="projectObj.departmentList">
                         <mat-option class="non-selectable" disabled>
                                 <div style="display: flex; align-items: center;">
-                                    <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDept"
+                                   <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDept"
                                         (ngModelChange)="filterDepartments()" class="form-control"
                                         style="width: 100%; padding: 5px;" />
 
@@ -890,7 +890,7 @@
                             [disabled]="filteredDepartmentsInternal.length === 0">
                             {{ isAllSelected ? 'Deselect All' : 'Select All' }}
                         </mat-option>
-                        <mat-option *ngFor="let dept of filteredDepartmentsInternal" [value]="dept.deptId">
+                        <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
                             {{ dept.name }}
                         </mat-option>
                     </mat-select>
@@ -1450,7 +1450,7 @@
                                 (blur)="checkTeamName(alert_message_without_reload, teamObj, i)" />
                         </div>
 <div class="form-field">
-    <label><span class="text-danger">*</span>Department for teams</label>
+    <label><span class="text-danger">*</span>Department</label>
 
     <mat-select class="form-control name-field" multiple [(ngModel)]="teamObj.departmentList">
 
