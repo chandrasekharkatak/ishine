@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -294,4 +296,39 @@ List<Object[]> findEmployeeProjectTeamDetailsMatchedBothProjects(@Param("project
 
 	 @Query(nativeQuery = true)
 	 List<Map<String, Object>> getActiveProjectIdAndProjectNameByEmpId(Long empId, Integer currentProjectId);
+	 
+	 
+	 
+	 
+	 @Query(nativeQuery = true,value ="select distinct p.project_id,p.project_name,p.apmosysrm, p.clientrm,p.po_start_date,\n"
+	 		+ "p.po_end_date,p.po_no,p.po_project_type,c.client_name client_name,pm.emp_id project_manager_id,pm.name project_manager,t.team_id,t.team_name,e.emp_id,e.name,jr.name job_role,d.name department,\n"
+	 		+ "e.mobile_no,e.email,e.billable,e.billable_type,etm.start_date effective_start_date,e.employeement_id\n"
+	 		+ "from projects p \n"
+	 		+ "inner join teams t on t.project_id = p.project_id\n"
+	 		+ "inner join employee_team_mapping etm on t.team_id = etm.team_id\n"
+	 		+ "left join project_manager_mapping pmm on p.project_id = pmm.project_id\n"
+	 		+ "inner join employee pm on pmm.project_manager_id = pm.emp_id\n"
+	 		+ "inner join employee e on e.emp_id = etm.emp_id\n"
+	 		+ "inner join clients c on c.client_id = p.client_id\n"
+	 		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
+	 		+ "inner join department d on jr.dept_id = d.dept_id\n"
+	 		+ "where p.project_id not in (\n"
+	 		+ "select p.project_id from employee_timesheets et \n"
+	 		+ "inner join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
+	 		+ "inner join activities a on a.activity_id = etam.activity_id\n"
+	 		+ "inner join teams t on t.team_id = a.team_id \n"
+	 		+ "inner join projects p on p.project_id = t.project_id\n"
+	 		+ "WHERE (\n"
+	 		+ "        ( et.date >= :fromDate)\n"
+	 		+ "        AND\n"
+	 		+ "        ( et.date <= :toDate)\n"
+	 		+ "    )\n"
+	 		+ ")\n"
+	 		+ "and p.active = 'true' and p.project_id IN :projectIds\n"
+	 		+ "and t.is_active = 'Y'\n"
+	 		+ "and etm.active != 0\n"
+	 		+ "and e.employmentstatus != 'InActive'")
+	 List<Object[]> findNonComplianceProjects(@Param("projectIds") Set<Integer> projectIds,@Param("fromDate")LocalDate fromDate,@Param("toDate")LocalDate toDate);
+	 
+	 
 }

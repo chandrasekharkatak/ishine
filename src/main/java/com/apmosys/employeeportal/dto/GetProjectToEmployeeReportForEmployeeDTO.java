@@ -12,6 +12,8 @@ import lombok.ToString;
 public class GetProjectToEmployeeReportForEmployeeDTO {
 	
 	private Long empId;
+	
+	private Long employeementId;
     private String employeeName;
     private String effectiveStartDate;
     private String billable;
