@@ -475,28 +475,29 @@ public class ResourceManagementService {
 								// Add team member in the team
 								for (TeamMemberDTO teamMember : teamObj.getTeamMemberList()) {
 									EmployeeTeamMap newEmpTeamMap = new EmployeeTeamMap();
-									// it is returning multiple resuts................///////////////////
+							
 
 									List<EmployeeDetailsForTeamMemberDTO> dtoList = new ArrayList<EmployeeDetailsForTeamMemberDTO>();
-									List<Object[]> employeeDetails = employeeRepository
+									List<EmployeeDetailsForTeamMemberDTO> employeeDetails = employeeRepository
 											.getEmployeeDetailsForTeam(teamMember.getEmpId());
 
-									if (employeeDetails != null) {
-										employeeDetails.forEach((object) -> {
+									if (employeeDetails != null && !employeeDetails.isEmpty()) {
+
+									employeeDetails.forEach((EmployeeDetailsForTeamMemberDTO) -> {
 											EmployeeDetailsForTeamMemberDTO dto = new EmployeeDetailsForTeamMemberDTO();
 
 											dto.setEmpId(
-													object[0] != null ? Long.parseLong(object[0].toString()) : null);
+													EmployeeDetailsForTeamMemberDTO.getEmpId() != null ? Long.parseLong(EmployeeDetailsForTeamMemberDTO.getEmpId().toString()) : null);
 											dto.setEmployeementId(
-													object[1] != null ? Long.parseLong(object[1].toString()) : null);
-											dto.setName(object[2] != null ? object[2].toString() : null);
+													EmployeeDetailsForTeamMemberDTO.getEmployeementId() != null ? Long.parseLong(EmployeeDetailsForTeamMemberDTO.getEmployeementId().toString()) : null);
+											dto.setName(EmployeeDetailsForTeamMemberDTO.getName()!= null ? EmployeeDetailsForTeamMemberDTO.getName().toString() : null);
 											dto.setJobRoleId(
-													object[3] != null ? Long.parseLong(object[3].toString()) : null);
-											dto.setJobRoleName(object[4] != null ? object[4].toString() : null);
+													EmployeeDetailsForTeamMemberDTO.getJobRoleId() != null ? Long.parseLong(EmployeeDetailsForTeamMemberDTO.getJobRoleId().toString()) : null);
+											dto.setJobRoleName(EmployeeDetailsForTeamMemberDTO.getJobRoleName() != null ? EmployeeDetailsForTeamMemberDTO.getJobRoleName().toString() : null);
 											dto.setDeptId(
-													object[5] != null ? Long.parseLong(object[5].toString()) : null);
-											dto.setDeptName(object[6] != null ? object[6].toString() : null);
-											dto.setIsConsultant(object[7] != null ? object[7].toString() : null);
+													EmployeeDetailsForTeamMemberDTO.getDeptId()!= null ? Long.parseLong(EmployeeDetailsForTeamMemberDTO.getDeptId().toString()) : null);
+											dto.setDeptName(EmployeeDetailsForTeamMemberDTO.getDeptName()!= null ? EmployeeDetailsForTeamMemberDTO.getDeptName().toString() : null);
+											dto.setIsConsultant(EmployeeDetailsForTeamMemberDTO.getIsConsultant() != null ? EmployeeDetailsForTeamMemberDTO.getIsConsultant().toString() : null);
 
 											dtoList.add(dto);
 										});

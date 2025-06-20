@@ -52,7 +52,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 
 	List<EmployeeTeamMap> findFirstByEmpIdAndTeamId(Long empId, Long teamId);
 
-	@Query(nativeQuery = true)
+	@Query(value="select etm from EmployeeTeamMap etm where etm.empId=:empId and etm.teamId=:teamId and etm.active IN (1,2)")
 	List<EmployeeTeamMap> findFirstByEmpIdAndTeamIdAndActive(Long empId, Long teamId);
 
 	List<EmployeeTeamMap> findByTeamId(Long teamId);
@@ -260,8 +260,11 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 		+ "    AND pmm.active = 1 AND e.emp_id NOT BETWEEN 1 AND 6",nativeQuery = true)
 List<Object[]> findEmployeeProjectTeamDetailsMatchedBothProjects(@Param("projectIds") Set<Integer> projectIds);
 
- @Query(nativeQuery = true,value ="select etm.emp_id from employee_team_mapping etm inner join teams t on t.team_id = etm.team_id inner join  projects p on p.project_id = t.project_id where etm.is_shadow = 1 and etm.active !=0 and t.is_active = 'Y' and p.project_id = :projectId and etm.emp_id IN :empIds")
- List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> empIds, @Param("projectId") Integer projectId);
+// @Query(nativeQuery = true,value ="select etm.emp_id from employee_team_mapping etm inner join teams t on t.team_id = etm.team_id inner join  projects p on p.project_id = t.project_id where etm.is_shadow = 1 and etm.active !=0 and t.is_active = 'Y' and p.project_id = :projectId and etm.emp_id IN :empIds")
+// List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> empIds, @Param("projectId") Integer projectId);
+
+@Query(value ="select etm.empId from EmployeeTeamMap etm inner join Team t on t.teamId = etm.teamId inner join Project p on p.projectId = t.projectId where etm.isShadow = 1 and etm.active !=0 and t.isActive = 'Y' and p.projectId =:projectId and etm.empId IN :empIds")
+List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> empIds, @Param("projectId") Integer projectId);
 
 	 @Query(nativeQuery = true)
 	 List<Map<String, Object>> getActiveProjectIdAndProjectNameByEmpId(Long empId, Integer currentProjectId);

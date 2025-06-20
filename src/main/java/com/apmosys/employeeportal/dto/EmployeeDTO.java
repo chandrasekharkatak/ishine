@@ -284,7 +284,7 @@ public class EmployeeDTO {
     private Integer lowerAge;
     private Integer upperAge;
     private Long selectedResourceOverviewId;
-    
+    private String deptName;
     public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
             Long mobileNo, Long managerId, String managerName, String jobRoleName,
             String departmentName, String name, String billableType) {
@@ -302,5 +302,22 @@ this.billableType = billableType;
 }    
 	public EmployeeDTO() {
 	};
+	
+	
+	public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
+            Long mobileNo, Long managerId, String managerName, String jobRoleName,
+            String deptName, String name) {
+this.empId = empId;
+this.employeementId = employeementId;
+this.email = email;
+this.employmentstatus = employmentstatus;
+this.mobileNo = mobileNo;
+this.managerId = managerId;
+this.managerName = managerName;
+this.jobRoleName = jobRoleName;
+this.deptName = deptName;
+this.name = name;
+}
+
 	
 }
