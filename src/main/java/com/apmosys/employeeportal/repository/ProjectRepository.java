@@ -281,11 +281,11 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 //			+ "AND t.isActive != 'N' \n"
 //			+ "AND etm.active != 0 \n" 
 //			+ "AND e.employmentstatus != 'InActive' \n"
-			+ "AND (:isDeptFilter = false OR d.deptId IN :deptIds) \n"
+//			+ "AND (:isDeptFilter = false OR d.deptId IN :deptIds) \n"
 //			+ "AND (:deptIds IS NULL OR d.deptId IN :deptIds)\n"
 			+ "AND (:approvalStatus IS NULL OR p.isDraftProject =:approvalStatus)\n"
 			+ "AND (:projectFilter = false OR p.projectId IN :projectIds)")
-	Integer getAllActiveProjecCountstList(@Param("deptIds") List<Long> deptIds,@Param("approvalStatus")String approvalStatus, @Param("projectIds")Set<Integer> projectIds, @Param("isDeptFilter") Boolean isDeptFilter,@Param("projectFilter") Boolean projectFilter);
+	Integer getAllActiveProjecCountstList(@Param("approvalStatus")String approvalStatus, @Param("projectIds")Set<Integer> projectIds,@Param("projectFilter") Boolean projectFilter);
 
 	@Query(value="select Distinct count(*) from projects where active= 'true' and is_draft_project is null ", nativeQuery = true)
 	Integer getAllNotStartedProjectCount();
@@ -302,10 +302,10 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "AND etm.active != 0 \n"
 			+ "AND e.employmentstatus != 'InActive' \n"
 //			+ "AND d.dept_id IN (:deptIds) \n"
-			+ "AND (:isDeptFilter = false OR d.deptId IN :deptIds) \n"
+//			+ "AND (:isDeptFilter = false OR d.deptId IN :deptIds) \n"
 			+ "AND (:projectStatus IS NULL OR p.projectStatus = :projectStatus )\n"
 			+ "AND (:projectFilter = false OR p.projectId in (:projectIds))")
-	Integer getAllCompleteProjectInIshineCountstList(@Param("deptIds") List<Long> deptIds,@Param("projectStatus")String projectStatus,@Param("projectIds")Set<Integer> projectIds,@Param("isDeptFilter") Boolean isDeptFilter,@Param("projectFilter") Boolean projectFilter);
+	Integer getAllCompleteProjectInIshineCountstList(@Param("projectStatus")String projectStatus,@Param("projectIds")Set<Integer> projectIds,@Param("projectFilter") Boolean projectFilter);
 
 	@Query(value ="SELECT COUNT(DISTINCT p.projectId)\n"
 			+ "FROM Project p \n"
@@ -319,10 +319,10 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "AND etm.active != 0 \n"
 			+ "AND e.employmentstatus != 'InActive' \n"
 //			+ "AND d.dept_id IN (:deptIds) \n"
-			+ "AND (:isDeptFilter = false OR d.deptId IN :deptIds) \n"
+//			+ "AND (:isDeptFilter = false OR d.deptId IN :deptIds) \n"
 			+ "AND (:projectFilter=false OR p.projectId in (:projectIds)) \n"
 			+ "AND p.status = 'Completed' ")
-	Integer getAllCompleteProjectInShankhCountstList(@Param("deptIds") List<Long> deptIds, @Param("projectIds")Set<Integer> projectIds,@Param("isDeptFilter") Boolean isDeptFilter,@Param("projectFilter") Boolean projectFilter);
+	Integer getAllCompleteProjectInShankhCountstList( @Param("projectIds")Set<Integer> projectIds,@Param("projectFilter") Boolean projectFilter);
 	
 	@Query(value="SELECT COUNT(DISTINCT p.projectId)\n"
 			+ "FROM Project p \n"
@@ -336,10 +336,10 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "AND etm.active != 0 \n"
 			+ "AND e.employmentstatus != 'InActive' \n"
 //			+ "AND d.dept_id IN (:deptIds) \n"
-			+ "AND (:isDeptFilter = false OR d.deptId IN :deptIds) \n"
+//			+ "AND (:isDeptFilter = false OR d.deptId IN :deptIds) \n"
 			+ "	AND  p.status = 'Completed' \n"
 			+ "AND (:projectFilter=false OR p.projectId in (:projectIds))")
-	Integer completedInSankhButTeamMapped(@Param("deptIds") List<Long> deptIds,@Param("projectIds")Set<Integer> projectIds,@Param("isDeptFilter") Boolean isDeptFilter,@Param("projectFilter") Boolean projectFilter);
+	Integer completedInSankhButTeamMapped(@Param("projectIds")Set<Integer> projectIds,@Param("projectFilter") Boolean projectFilter);
 	 
 	
 //	@Query(value="SELECT \n"
