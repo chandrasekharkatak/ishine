@@ -164,11 +164,11 @@ public class ProjectService {
         apiLogInfo.setApiUrl("/api/getAllClients");
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("ClientInfoList : "  + clientsRepository.getClientInfo().size());
 
 		try {
 			
-			List<Object[]> clientInfo = clientsRepository.getClientInfo();
+			List<ClientsDTO> clientInfo = clientsRepository.getClientInfo();
+			logBuilder.append("ClientInfoList : "  + clientInfo.size());
 			
 			if(clientInfo != null) {
 				List<ClientsDTO> dtoList = new ArrayList<ClientsDTO>();
@@ -176,10 +176,10 @@ public class ProjectService {
 				clientInfo.forEach((object) -> {
 					ClientsDTO clientDto = new ClientsDTO();
 					
-					clientDto.setClientId(object[0] != null ? Integer.valueOf(object[0].toString()) : null);
-					clientDto.setClientName(object[1] != null ? object[1].toString() : null);
-					clientDto.setClientLocation(object[2] != null ? object[2].toString() : null);
-					clientDto.setClientLocationId(object[3] != null ? Integer.valueOf(object[3].toString()) : null);
+					clientDto.setClientId(object.getClientId() != null ? Integer.valueOf(object.getClientId().toString()) : null);
+					clientDto.setClientName(object.getClientName() != null ? object.getClientName().toString() : null);
+					clientDto.setClientLocation(object.getClientLocation() != null ? object.getClientLocation().toString() : null);
+					clientDto.setClientLocationId(object.getClientLocationId() != null ? Integer.valueOf(object.getClientLocationId().toString()) : null);
 					
 					dtoList.add(clientDto);
 				});
