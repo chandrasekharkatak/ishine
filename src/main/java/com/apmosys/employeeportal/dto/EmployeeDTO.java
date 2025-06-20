@@ -17,6 +17,51 @@ import lombok.ToString;
 @Setter
 @Getter
 public class EmployeeDTO {
+	
+	
+	public EmployeeDTO(Long empId, String name, String jobRoleName,
+            Long departmentId, Long employeementId, String billableType, String employmentId) {
+this.empId = empId;
+this.name = name;
+this.jobRoleName = jobRoleName;
+this.departmentId = departmentId;
+this.employeementId = employeementId;
+this.billableType = billableType;
+this.employmentId = employmentId; // The CS-xxx or A-xxx value
+}
+	public EmployeeDTO(
+		    Long empId,
+		    String name,
+		    String jobRoleName,
+		    Long departmentId,
+		    String departmentName,
+		    Long jobRoleId,
+		    String billableType,
+		    String employmentId
+		) {
+		    this.empId = empId;
+		    this.name = name;
+		    this.jobRoleName = jobRoleName;
+		    this.departmentId = departmentId;
+		    this.departmentName = departmentName;
+		    this.jobRoleId = jobRoleId;
+		    this.billableType = billableType;
+		    this.employmentId = employmentId;
+		}
+	 public EmployeeDTO(long empId, long employeementId, String email, String employmentstatus,
+             long mobileNo, long managerId, String managerName,
+             String jobRoleName, String deptName, String name) {
+this.empId = empId;
+this.employeementId = employeementId;
+this.email = email;
+this.employmentstatus = employmentstatus;
+this.mobileNo = mobileNo;
+this.managerId = managerId;
+this.managerName = managerName;
+this.jobRoleName = jobRoleName;
+this.deptName = deptName;
+this.name = name;
+}
 
 	private Long empId;
 	

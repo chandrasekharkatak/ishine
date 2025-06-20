@@ -15,6 +15,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -64,7 +65,6 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
-import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Asset;
@@ -549,8 +549,8 @@ public class EmployeeService {
 				Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
 				String departmentname = dept.getName();
 				
-//				Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
-//				resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
+				Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
+				resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
 				
 				
 				
@@ -563,7 +563,7 @@ public class EmployeeService {
 				employeeTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
 				employeeTeamMap.setEmployeeRole(employeeRole.toString());
 				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
-				employeeTeamMap.setResourceOverviewId(employeedto.getSelectedResourceOverviewId());
+				employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
 			   employeeTeamMapRepository.save(employeeTeamMap);
 			   
 			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
@@ -4036,178 +4036,159 @@ public class EmployeeService {
 	}
 	
 	public ServiceResponse getAllEmployeesByRole(EmployeeDTO employeedto) {
-		ServiceResponse response = new ServiceResponse();
-		
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setApiUrl("/api/getAllEmployeesByRole");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("role : " + employeedto.getRole());
-		try {
+	    ServiceResponse response = new ServiceResponse();
 
-			List<JobRole> jobRoleObj;
-			List<String> jobRoles = new ArrayList<String>(Arrays.asList("Employee", "HR"));
-			if (employeedto.getRole().equals("Manager")) {
-				jobRoleObj = jobRoleRepository.findByEmployeeRoleNotIn(jobRoles);
-			} 
-			else if(employeedto.getRole().equals("HOD")){
-				// HoD should include directors (SuperAdmins)
-				jobRoles = new ArrayList<String>(Arrays.asList("Employee", "HR", "Manager"));
-				jobRoleObj = jobRoleRepository.findByEmployeeRoleNotIn(jobRoles);
-			}
-			else {
-				jobRoleObj = jobRoleRepository.findByEmployeeRole(employeedto.getRole());
-				System.err.println(" in else  part  ::   "+employeedto.getRole());
-			}
-			List<EmployeeDTO> employeeList = new ArrayList<EmployeeDTO>();
-			
-			if (!jobRoleObj.isEmpty()) {
-				
-				List<Long> jobRoleIds = 
-						jobRoleObj.stream().map(JobRole::getJobRoleId).collect(Collectors.toList());
-				System.out.println(" jobRoleIds    ::   "+jobRoleIds);
-				
-					List<Object[]> empList = employeeRepository.getEmployeesByRoleIds(jobRoleIds);
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getAllEmployeesByRole");
+	    apiLogInfo.setLogLevel("INFO");
 
-					Optional.ofNullable(empList).ifPresentOrElse((list) -> {
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("role : ").append(employeedto.getRole());
 
-						list.forEach((object) -> {
-							EmployeeDTO dto = new EmployeeDTO();
-							dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-							dto.setName(object[1] != null ? object[1].toString() : null);
-							dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
-							dto.setDepartmentId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
-							dto.setEmployeementId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
-							dto.setBillableType(object[5] != null ? object[5].toString() : null);
-							dto.setEmploymentId(object[6] != null ? object[6].toString() : null);
-							employeeList.add(dto);
-						});
-						
-						// sorted alphabetically
-						
-						final List<EmployeeDTO> employeeDTOList = 
-						employeeList
-						  .stream()
-						  .sorted((object1, object2) -> object1.getName().compareTo(object2.getName())).collect(Collectors.toList());
-						  
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse(employeeDTOList);
-						
-						apiLogInfo.setApiResponse(employeeDTOList.size() + " employee's found.");			
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	    try {
+	        List<JobRole> jobRoleObj;
+	        List<String> jobRoles = new ArrayList<>(Arrays.asList("Employee", "HR"));
 
-					}, () -> {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("No Employee Found");
-						
-						
-						apiLogInfo.setApiResponse("No Employee Found");			
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					});
-			}
+	        if ("Manager".equals(employeedto.getRole())) {
+	            jobRoleObj = jobRoleRepository.findByEmployeeRoleNotIn(jobRoles);
+	        } else if ("HOD".equals(employeedto.getRole())) {
+	            jobRoles = new ArrayList<>(Arrays.asList("Employee", "HR", "Manager"));
+	            jobRoleObj = jobRoleRepository.findByEmployeeRoleNotIn(jobRoles);
+	        } else {
+	            jobRoleObj = jobRoleRepository.findByEmployeeRole(employeedto.getRole());
+	            System.err.println("In else part :: " + employeedto.getRole());
+	        }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	        if (!jobRoleObj.isEmpty()) {
+	            List<Long> jobRoleIds = jobRoleObj.stream()
+	                    .map(JobRole::getJobRoleId)
+	                    .collect(Collectors.toList());
 
+	            System.out.println("jobRoleIds :: " + jobRoleIds);
+
+	            List<EmployeeDTO> empList = employeeRepository.getEmployeesByRoleIds(jobRoleIds);
+
+	            Optional.ofNullable(empList).ifPresentOrElse((list) -> {
+	                List<EmployeeDTO> sortedList = list.stream()
+	                        .sorted(Comparator.comparing(EmployeeDTO::getName, Comparator.nullsLast(String::compareTo)))
+	                        .collect(Collectors.toList());
+
+	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                response.setServiceResponse(sortedList);
+
+	                apiLogInfo.setApiResponse(sortedList.size() + " employee(s) found.");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            }, () -> {
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("No Employee Found");
+
+	                apiLogInfo.setApiResponse("No Employee Found");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            });
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No Job Roles Found");
+
+	            apiLogInfo.setApiResponse("No Job Roles Found");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+
+	    return response;
 	}
 
 	public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
-		ServiceResponse response = new ServiceResponse();
+	    ServiceResponse response = new ServiceResponse();
 
-		
-		LogDTO apiLogInfo = new LogDTO();
-		//apiLogInfo.setSubFeatureName("delete_holiday");
-		apiLogInfo.setApiUrl("/api/getAllEmployeesByDepartmentIds");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("departmentList : " + employeedto.getDepartmentList());
-		try {
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getAllEmployeesByDepartmentIds");
+	    apiLogInfo.setLogLevel("INFO");
 
-			Optional.ofNullable(employeedto.getDepartmentList()).ifPresentOrElse((departmentList) -> {
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("departmentList : ").append(employeedto.getDepartmentList());
 
-				if (departmentList.isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Department list is empty.");
-					
-					apiLogInfo.setApiResponse("Department list is empty.");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				} else {
-					List<Long> deptIds = departmentList.stream().map((department) -> {
-						return department.getDeptId();
-					}).collect(Collectors.toList());
+	    try {
+	        Optional.ofNullable(employeedto.getDepartmentList()).ifPresentOrElse(departmentList -> {
 
-					List<Object[]> objectArrayList = employeeRepository.getAllEmployeesByDepartmentIds(deptIds);
+	            if (departmentList.isEmpty()) {
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Department list is empty.");
 
-					Optional.ofNullable(objectArrayList).ifPresent((list) -> {
+	                apiLogInfo.setApiResponse("Department list is empty.");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            } else {
+	                List<Long> deptIds = departmentList.stream()
+	                    .map(department -> department.getDeptId())
+	                    .collect(Collectors.toList());
 
-						if (list.isEmpty()) {
-							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse("Employee list is empty.");
-							
-							apiLogInfo.setApiResponse("Employee list is empty");			
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-						} else {
+	                List<EmployeeDTO> employeeList = employeeRepository.getAllEmployeesByDepartmentIds(deptIds);
 
-							List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+	                Optional.ofNullable(employeeList).ifPresent(list -> {
+	                    if (list.isEmpty()) {
+	                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                        response.setServiceResponse("Employee list is empty.");
 
-							list.forEach((object) -> {
+	                        apiLogInfo.setApiResponse("Employee list is empty");
+	                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                    } else {
+	                        List<EmployeeDTO> dtoList = new ArrayList<>();
 
-								EmployeeDTO dto = new EmployeeDTO();
+	                        list.forEach(emp -> {
+	                            EmployeeDTO dto = new EmployeeDTO();
+	                            dto.setEmpId(emp.getEmpId());
+	                            dto.setName(emp.getName());
+	                            dto.setJobRoleName(emp.getJobRoleName());
+	                            dto.setDepartmentId(emp.getDepartmentId());
+	                            dto.setDepartmentName(emp.getDepartmentName());
+	                            dto.setEmploymentId(emp.getEmploymentId());
+	                            dtoList.add(dto);
+	                        });
 
-								dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-								dto.setName(object[1] != null ? object[1].toString() : null);
-								dto.setJobRoleName(object[2] != null ? object[2].toString() : null);
-								dto.setDepartmentId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
-								dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
-								dto.setEmploymentId(object[7] != null ? object[7].toString() : null);
-								dtoList.add(dto);
+	                        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                        response.setServiceResponse(dtoList);
 
-							});
+	                        apiLogInfo.setApiResponse("dtoList : " + dtoList);
+	                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	                    }
+	                });
+	            }
 
-							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							response.setServiceResponse(dtoList);
-							
-							apiLogInfo.setApiResponse("dtoList : " +dtoList);			
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-						}
-					});
+	        }, () -> {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Department list is null");
 
-				}
+	            apiLogInfo.setApiResponse("Department list is null");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        });
 
-			}, () -> {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Department list is null");
-				
-				apiLogInfo.setApiResponse("Department list is null");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			});
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+
+	    return response;
 	}
-	
+
 //	public ServiceResponse getAllEmployeesByDepartmentId(EmployeeDTO employeedto) {
 //		ServiceResponse response = new ServiceResponse();
 //		
@@ -6999,53 +6980,28 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		    		 Long teamId = row[2]!=null ? Long.parseLong(row[2].toString()):null;
 		    		 String teamName = row[3]!=null ? row[3].toString():null;
 		    		 String deptIds = row[4]!=null ? row[4].toString():null;
-		    		 Long resourceOverviewId = row[5] != null ? Long.parseLong(row[5].toString()) : null;
-		    		 String department = row[6] != null ? row[6].toString() : null;
-		    		 Integer count = row[7] != null ? Integer.parseInt(row[7].toString()) : null;
-		    		 String experience = row[8] != null ? row[8].toString() : null;
-		    		 String role = row[9] != null ? row[9].toString() : null;
 		    		 
-		    		 if (deptIds != null && !deptIds.isEmpty() && departmentId != null) {
-		    		        List<String> deptIdList = Arrays.asList(deptIds.split(","));
-		    		        if (!deptIdList.contains(departmentId.toString())) continue;
-		    		    }
-
-		    		    ProjectDTO project = projectMap.computeIfAbsent(projectId, id -> {
-		    		        ProjectDTO dto = new ProjectDTO();
-		    		        dto.setProjectId(projectId);
-		    		        dto.setProjectName(projectName);
-		    		        dto.setTeamList(new ArrayList<>());
-		    		        dto.setResourceRequirement(new ArrayList<>());
-		    		        return dto;
-		    		    });
-
-		    		    // Add team
-		    		    if (teamId != null) {
-		    		        boolean teamExists = project.getTeamList().stream()
-		    		            .anyMatch(team -> team.getTeamId().equals(teamId));
-		    		        if (!teamExists) {
-		    		            TeamDTO teamDTO = new TeamDTO();
-		    		            teamDTO.setTeamId(teamId);
-		    		            teamDTO.setTeamName(teamName);
-		    		            if (deptIds != null && !deptIds.trim().isEmpty()) {
-		    		                String[] deptArray = deptIds.split("\\s*,\\s*"); // trims spaces too
-		    		                teamDTO.setDepartmentList(deptArray);
-		    		            }
-		    		            project.getTeamList().add(teamDTO);
-		    		        }
-		    		    }
-
-		    		    // Add resource requirement
-		    		    if (resourceOverviewId != null) {
-		    		        ResourceRequirementDTO resourceDTO = new ResourceRequirementDTO();
-		    		        resourceDTO.setResourceOverviewId(resourceOverviewId);
-		    		        resourceDTO.setDepartment(department);
-		    		        resourceDTO.setCount(count);
-		    		        resourceDTO.setExperience(experience);
-		    		        resourceDTO.setRole(role);
-		    		        project.getResourceRequirement().add(resourceDTO);
-		    		    }
-		    		}
+		    		 if (deptIds == null || !Arrays.asList(deptIds.split(",")).contains(departmentId.toString())) {
+		                 continue;
+		             }
+		    		 
+		    		 TeamDTO teamDTO = new TeamDTO();
+		             teamDTO.setTeamId(teamId);
+		             teamDTO.setTeamName(teamName);
+		             teamDTO.setDepartmentList(deptIds.split(","));
+		             
+		             if (projectMap.containsKey(projectId)) {
+		                 projectMap.get(projectId).getTeamList().add(teamDTO);
+		             } else {
+		               
+		                 ProjectDTO projectDTO = new ProjectDTO();
+		                 projectDTO.setProjectId(projectId);
+		                 projectDTO.setProjectName(projectName);
+		                 projectDTO.setTeamList(new ArrayList<>());
+		                 projectDTO.getTeamList().add(teamDTO);
+		                 projectMap.put(projectId, projectDTO);
+		             }
+		         }
 
 		         List<ProjectDTO> filteredProjects = new ArrayList<>(projectMap.values());
 		         response.setServiceResponse(filteredProjects);

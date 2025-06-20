@@ -9,9 +9,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO;
+import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
+import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.model.Project;
 
@@ -121,9 +123,23 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true'")
 	 Set<Integer> findAllActiveShankhInternalProjectIds();
 	 
-	@Query(nativeQuery = true)
-	public int getAssignedEmployeesCountInProject(Long id);
-	
+//	@Query(nativeQuery = true)
+//	public int getAssignedEmployeesCountInProject(Long id);
+    
+	 
+	    
+	   
+	 
+	 
+	 @Query(value = "select count(distinct etm.empId) " +
+             "from Project p " +
+             "left join Team t on t.projectId = p.projectId and p.active != 'false' " +
+             "left join EmployeeTeamMap etm on etm.teamId = t.teamId and etm.active != 0 and t.isActive != 'N' " +
+             "where p.poProjectId = :id")
+		public int getAssignedEmployeesCountInProject(Long id);
+	 
+	 
+	 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInformation(Long empId);
 
@@ -562,12 +578,35 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getPreviousDefaultProjectDetails(Long empId);
+//	
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getProjectDetailsForBulkDefaultUpdateBench();
 	
-	@Query(nativeQuery = true)
-	public List<Object[]> getProjectDetailsForBulkDefaultUpdateBench();
 	
-	@Query(nativeQuery = true)
-	public List<Object[]> getProjectDetailsForBulkDefaultUpdateOther();
+	@Query(value = "Select distinct new com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO( p.projectId, p.projectName, t.teamId, t.teamName, r.resourceOverviewId,  \n" + 
+			"r.count, r.department, r.experience) from Project p  \n" + 
+			"left join Team t on t.projectId = p.projectId  \n" + 
+			"left join EmployeeTeamMap etm on etm.teamId = t.teamId  \n" + 
+			"left join ResourceRequirement r on r.projectId = p.projectId  \n" + 
+			"where p.active = 'true' and t.isActive = 'Y' and etm.active != 0 and p.internalProjectType = 'Bench' ")
+	public List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> getProjectDetailsForBulkDefaultUpdateBench();
+	
+	
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getProjectDetailsForBulkDefaultUpdateOther();
+
+	
+	
+	
+	@Query(value = "Select distinct new com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO( p.projectId, p.projectName, t.teamId, t.teamName, r.resourceOverviewId, \n"  +
+	 		"r.count, r.department,  r.experience) from Project p  \n" + 
+	 		"left join Team t on t.projectId = p.projectId  \n" + 
+	 		"left join EmployeeTeamMap etm on etm.teamId = t.teamId  \n" + 
+	 		"left join ResourceRequirement r on r.projectId = p.projectId  \n" + 
+	 		"where p.active = 'true' and t.isActive = 'Y' and etm.active != 0  \n" + 
+	 		"and (p.internalProjectType is null or p.internalProjectType != 'Bench') ")
+	public List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> getProjectDetailsForBulkDefaultUpdateOther();
+
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInformationBulk(List<Long> empIds);

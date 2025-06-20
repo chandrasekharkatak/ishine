@@ -93,8 +93,21 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeesByRole(Long jobRoleId);
 
-	@Query(nativeQuery = true)
-	public List<Object[]> getAllEmployeesByDepartmentIds(List<Long> deptIds);
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getAllEmployeesByDepartmentIds(List<Long> deptIds);
+	
+	
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.empId,e.name,jr.name,d.deptId,d.name,jr.jobRoleId,e.billableType, \n" +
+			"CASE \n" +
+			"    WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId) \n" +
+			"    ELSE CONCAT('A-', e.employeementId) \n" +
+			"END)  \n" +
+			"FROM Employee e \n" +
+			"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n" +
+			"INNER JOIN Department d ON d.deptId = jr.deptId \n" +
+			"WHERE d.deptId IN :deptIds AND e.employmentstatus not like 'InActive' and e.empId not in (1,2,3,4,5,6)")
+		public List<EmployeeDTO> getAllEmployeesByDepartmentIds(List<Long> deptIds);
+
 	
 //	@Query(nativeQuery = true)
 //	public List<Object[]> getAllEmployeesByDepartmentId(Long departmentId);
@@ -240,8 +253,19 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	public List<Employee> findByDesignationId(Long designationId);
 
-	@Query(nativeQuery = true)
-	public List<Object[]> getEmployeesByRoleIds(List<Long> jobRoleIds);
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getEmployeesByRoleIds(List<Long> jobRoleIds);
+	
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.empId,e.name,jr.name, d.deptId, e.employeementId,e.billableType, \n " +
+			"CASE \n " +
+			"  WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId) \n " +
+			"  ELSE CONCAT('A-', e.employeementId) \n " +
+			"END) \n " +
+			"FROM Employee e \n " +
+			"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n " +
+			"INNER JOIN Department d ON d.deptId = jr.deptId \n " +
+			"where e.employmentstatus not like 'InActive' AND jr.jobRoleId IN :jobRoleIds and e.empId not in (1,2,3,4,5,6)")
+		public List<EmployeeDTO> getEmployeesByRoleIds(List<Long> jobRoleIds);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getManagerByDepartment(Long deptId);
@@ -549,6 +573,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "WHERE e.emp_id = :employeeId")
     List<Object[]> getRewardsAndAppreciationCount(@Param("employeeId") Long employeeId);
 	
+//    @Query(nativeQuery = true)
+//    public String findHodMail(Long empId);
+    
+    
     @Query(value="select distinct h.email \n" +
 			"from Employee e \n" +
 			"inner join JobRole j on j.jobRoleId = e.jobRoleId \n" +
@@ -556,7 +584,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			"inner join Employee h on h.empId = d.hodId \n" +
 			"where e.empId =:empId ")
     public String findHodMail(Long empId);
-    
+  
     @Query(nativeQuery = true)
     public Optional<List<Object[]>> getAllEmployeesWorkAnniversaryToday();
     
@@ -713,12 +741,18 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Object[]> getAllProjectsThatAreNotBench();
     
     
+//    @Modifying
+//    @Transactional
+//    @Query(nativeQuery = true,value ="update employee set billable = :billable,billable_type = :billableType where emp_id = :empId") 
+//    void updateBillableFields(@Param("empId") Long empId, @Param("billable") String billable, @Param("billableType") String billableType);
+       
+    
     @Modifying
     @Transactional
     @Query(value ="update Employee set billable =:billable,billableType =:billableType where empId =:empId") 
     void updateBillableFields(@Param("empId") Long empId, @Param("billable") String billable, @Param("billableType") String billableType);
-  
 
+    
     @Query(nativeQuery = true, value="SELECT \n"
     		+ "    e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode,\n"
     		+ "    e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
