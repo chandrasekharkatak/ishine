@@ -2129,23 +2129,21 @@ public class ResourceManagementService {
 						teamdto.setSpocId(object.getSpocId());
 						teamdto.setTeamLeadId(object.getTeamLeadId() != null ? object.getTeamLeadId() : null);
 
-						List<Object[]> spocDetailsList = teamRepository.getSpocDetils(object.getSpocId());
-						if (!spocDetailsList.isEmpty()) {
-							Object[] spoc = spocDetailsList.get(0);
+						GetEmployeeByNameAndEmpldDTO spocDetailsList = teamRepository.getSpocDetils(object.getSpocId());
+						if (spocDetailsList != null) {
 							SpocDTO spocDTO = new SpocDTO();
-							spocDTO.setEmpId(Long.parseLong(spoc[0].toString()));
-							spocDTO.setName(spoc[1].toString());
-							spocDTO.setEmploymentId(spoc[2].toString());
+							spocDTO.setEmpId(spocDetailsList.getEmpId());
+							spocDTO.setName(spocDetailsList.getName());
+							spocDTO.setEmploymentId(spocDetailsList.getEmploymentId());
 							teamdto.setSpoc(spocDTO);
 						}
 						
-						List<Object[]> teamLeadDetailsList = teamRepository.getSpocDetils(object.getTeamLeadId());
-						if (!teamLeadDetailsList.isEmpty()) {
-							Object[] teamLead = teamLeadDetailsList.get(0);
+						GetEmployeeByNameAndEmpldDTO teamLeadDetailsList = teamRepository.getSpocDetils(object.getTeamLeadId());
+						if (teamLeadDetailsList != null) {
 							SpocDTO teamLeadDTO = new SpocDTO();
-							teamLeadDTO.setEmpId(Long.parseLong(teamLead[0].toString()));
-							teamLeadDTO.setName(teamLead[1].toString());
-							teamLeadDTO.setEmploymentId(teamLead[2].toString());
+							teamLeadDTO.setEmpId(teamLeadDetailsList.getEmpId());
+							teamLeadDTO.setName(teamLeadDetailsList.getName());
+							teamLeadDTO.setEmploymentId(teamLeadDetailsList.getEmploymentId());
 							teamdto.setTeamLead(teamLeadDTO);
 						}
 
@@ -3979,18 +3977,17 @@ public class ResourceManagementService {
 
 		try {
 
-			List<Object[]> employees = employeeRepository.getEmployeeByNameAndEmpld();
-			List<GetEmployeeByNameAndEmpldDTO> employeeDTOList = new ArrayList<>();
+			List<GetEmployeeByNameAndEmpldDTO> employees = employeeRepository.getEmployeeByNameAndEmpld();
 
-			employees.forEach(object -> {
-				GetEmployeeByNameAndEmpldDTO dto = new GetEmployeeByNameAndEmpldDTO();
+			Map<Long, GetEmployeeByNameAndEmpldDTO> uniqueMap = employees.stream()
+			    .collect(Collectors.toMap(
+			        GetEmployeeByNameAndEmpldDTO::getEmpId, 
+			        dto -> dto, 
+			        (existing, replacement) -> existing  
+			    ));
 
-				dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-				dto.setName(object[1] != null ? object[1].toString() : null);
-				dto.setEmploymentId(object[2] != null ? object[2].toString() : null);
-
-				employeeDTOList.add(dto);
-			});
+			List<GetEmployeeByNameAndEmpldDTO> employeeDTOList = new ArrayList<>(uniqueMap.values());
+			employeeDTOList.sort(Comparator.comparing(GetEmployeeByNameAndEmpldDTO::getName));
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(employeeDTOList);

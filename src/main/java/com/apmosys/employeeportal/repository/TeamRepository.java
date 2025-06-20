@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.model.Team;
 
 @Repository
@@ -115,8 +116,13 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 		List<Team> findAllActiveTeamsOfShankhInternalProjects();
 		
 	
-	@Query(nativeQuery = true)
-	public List<Object[]> getSpocDetils(Long empId);
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n " + 
+			"CASE  \n " + 
+			"  WHEN isConsultant = 'true' THEN CONCAT('CS-', e.employeementId)  \n " + 
+			"  ELSE CONCAT('A-', e.employeementId)  \n " + 
+			"END)  \n " + 
+			"FROM Employee e where e.employmentstatus != 'InActive' and e.empId = :empId and e.empId not between 1 and 6")
+    public GetEmployeeByNameAndEmpldDTO getSpocDetils(Long empId);
 	
 	@Query("SELECT t FROM Team t WHERE t.projectId IN :projectIds")
 	List<Team> findByProjectIdIn(@Param("projectIds") List<Integer> projectIds);

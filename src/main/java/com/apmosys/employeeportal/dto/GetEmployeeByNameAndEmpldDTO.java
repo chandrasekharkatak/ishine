@@ -13,4 +13,9 @@ public class GetEmployeeByNameAndEmpldDTO {
 	private String name;
 	private String employmentId;
 	
+	public GetEmployeeByNameAndEmpldDTO(Long empId, String name, String employmentId) {
+        this.empId = empId;
+        this.name = name;
+        this.employmentId = employmentId;
+    }
 }

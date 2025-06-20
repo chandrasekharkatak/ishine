@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
+import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.model.Department;
@@ -576,8 +577,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query(value ="select DISTINCT emp_id from employee where employmentstatus !='Inactive'",nativeQuery=true)
     List<Long>findAllActiveEmployees();
     
-    @Query(nativeQuery = true)
-    public List<Object[]> getEmployeeByNameAndEmpld();
+    @Query(value="SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n " + 
+			"CASE  \n " + 
+			"  WHEN isConsultant = 'true' THEN CONCAT('CS-', e.employeementId)  \n " + 
+			"  ELSE CONCAT('A-', e.employeementId)  \n " + 
+			"END)  \n " + 
+			"FROM Employee e where e.employmentstatus != 'InActive' and e.empId not between 1 and 6")
+    public List<GetEmployeeByNameAndEmpldDTO> getEmployeeByNameAndEmpld();
 	
     @Query(value="select billable_type from employee where emp_id = :empId",nativeQuery=true)
     String findBillableTypeByEmpId(@Param("empId") Long empId);
