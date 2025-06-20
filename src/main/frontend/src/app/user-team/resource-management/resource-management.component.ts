@@ -526,7 +526,7 @@ export class ResourceManagementComponent implements OnInit {
     this.projectFilterDTO.approvalStatus = "All";
     this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
     // this. projectFilterDTO.departmentsids = this.filteredDepartments.map(dept => dept.deptId);
-    await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+    // await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
 
     await this.RbacInternalProjects(this.projectFilterDTO);
 

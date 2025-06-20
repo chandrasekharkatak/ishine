@@ -24,7 +24,7 @@ public interface ClientsRepository extends JpaRepository<Client, Integer> {
 
 	Optional<Client> findFirstByClientNameLike(String internalClient);
 
-	@Query(nativeQuery = true)
+	@Query(value="SELECT c FROM Client c where c.clientName LIKE :internalClient")
 	Client findByClientNameList(String internalClient);
 	
 }
