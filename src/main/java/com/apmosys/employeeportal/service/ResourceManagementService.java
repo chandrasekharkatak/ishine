@@ -46,7 +46,6 @@ import org.springframework.web.client.RestTemplate;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
-import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
@@ -334,11 +333,11 @@ public class ResourceManagementService {
 				newProject.setClientRM(resourceManagementDTO.getClientRM());
 				newProject.setApmosysRmEmail(resourceManagementDTO.getApmosysRmEmail());
 
-				if (resourceManagementDTO.getIsHOD().equals("true")) {
-					newProject.setIsDraftProject("false");
-				} else {
+//				if (resourceManagementDTO.getIsHOD().equals("true")) {
+//					newProject.setIsDraftProject("false");
+//				} else {
 					newProject.setIsDraftProject("true");
-				}
+//				}
 
 				newProject.setCreatedBy(resourceManagementDTO.getCreatedBy());
 
@@ -483,25 +482,25 @@ public class ResourceManagementService {
 											.getEmployeeDetailsForTeam(teamMember.getEmpId());
 
 									if (employeeDetails != null && !employeeDetails.isEmpty()) {
-
-									employeeDetails.forEach((EmployeeDetailsForTeamMemberDTO) -> {
-											EmployeeDetailsForTeamMemberDTO dto = new EmployeeDetailsForTeamMemberDTO();
-
-											dto.setEmpId(
-													EmployeeDetailsForTeamMemberDTO.getEmpId() != null ? Long.parseLong(EmployeeDetailsForTeamMemberDTO.getEmpId().toString()) : null);
-											dto.setEmployeementId(
-													EmployeeDetailsForTeamMemberDTO.getEmployeementId() != null ? Long.parseLong(EmployeeDetailsForTeamMemberDTO.getEmployeementId().toString()) : null);
-											dto.setName(EmployeeDetailsForTeamMemberDTO.getName()!= null ? EmployeeDetailsForTeamMemberDTO.getName().toString() : null);
-											dto.setJobRoleId(
-													EmployeeDetailsForTeamMemberDTO.getJobRoleId() != null ? Long.parseLong(EmployeeDetailsForTeamMemberDTO.getJobRoleId().toString()) : null);
-											dto.setJobRoleName(EmployeeDetailsForTeamMemberDTO.getJobRoleName() != null ? EmployeeDetailsForTeamMemberDTO.getJobRoleName().toString() : null);
-											dto.setDeptId(
-													EmployeeDetailsForTeamMemberDTO.getDeptId()!= null ? Long.parseLong(EmployeeDetailsForTeamMemberDTO.getDeptId().toString()) : null);
-											dto.setDeptName(EmployeeDetailsForTeamMemberDTO.getDeptName()!= null ? EmployeeDetailsForTeamMemberDTO.getDeptName().toString() : null);
-											dto.setIsConsultant(EmployeeDetailsForTeamMemberDTO.getIsConsultant() != null ? EmployeeDetailsForTeamMemberDTO.getIsConsultant().toString() : null);
-
-											dtoList.add(dto);
-										});
+										dtoList.addAll(employeeDetails);
+										//										employeeDetails.forEach((object) -> {
+//											EmployeeDetailsForTeamMemberDTO dto = new EmployeeDetailsForTeamMemberDTO();
+//
+//											dto.setEmpId(
+//													object[0] != null ? Long.parseLong(object[0].toString()) : null);
+//											dto.setEmployeementId(
+//													object[1] != null ? Long.parseLong(object[1].toString()) : null);
+//											dto.setName(object[2] != null ? object[2].toString() : null);
+//											dto.setJobRoleId(
+//													object[3] != null ? Long.parseLong(object[3].toString()) : null);
+//											dto.setJobRoleName(object[4] != null ? object[4].toString() : null);
+//											dto.setDeptId(
+//													object[5] != null ? Long.parseLong(object[5].toString()) : null);
+//											dto.setDeptName(object[6] != null ? object[6].toString() : null);
+//											dto.setIsConsultant(object[7] != null ? object[7].toString() : null);
+//
+//											dtoList.add(dto);
+//										});
 									}
 									// it is returning multiple resuts................///////////////////
 									String hodMail = employeeRepository.findHodMail(teamMember.getEmpId());
@@ -1221,7 +1220,7 @@ public class ResourceManagementService {
 
 			// Update project properties
 //		    if(projManagerId != null) {
-			project.setIsDraftProject("false");
+//			project.setIsDraftProject("false");
 			project.setProjectName(dto.getName());
 			project.setPoNo(dto.getPoNo());
 			project.setPoStartDate(dto.getPoStartDate());

@@ -1,7 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -60,8 +59,12 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 
 	EmployeeTeamMap findByEmpIdAndTeamIdAndActive(Long empId, Long teamId, long l);
 
-	@Query(nativeQuery = true)
-	EmployeeTeamMap findByEmpIdAndTeamIdAndActiveStatus(Long empId, Long teamId);
+//	@Query(nativeQuery = true)
+//	EmployeeTeamMap findByEmpIdAndTeamIdAndActiveStatus(Long empId, Long teamId);
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.empId = :empId AND etm.teamId = :teamId AND etm.active <> 0")
+	EmployeeTeamMap findByEmpIdAndTeamIdAndActiveStatus(@Param("empId") Long empId, 
+	                                                          @Param("teamId") Long teamId);
+
 	
 	@Query(nativeQuery = true)
 	EmployeeTeamMap findByEmpIdAndTeamId(Long empId, Long teamId);
@@ -69,8 +72,11 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 //	@Query(nativeQuery = true)
 //	List<EmployeeTeamMap> findByTeamIdAndActive(Long teamId);
 	
+	// @Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId = :teamId AND etm.active IN (1, 2)")
+	// List<EmployeeTeamMap> findByTeamIdAndActive(Long teamId);
 	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId = :teamId AND etm.active IN (1, 2)")
-	List<EmployeeTeamMap> findByTeamIdAndActive(Long teamId);
+	List<EmployeeTeamMap> findByTeamIdAndActive(@Param("teamId") Long teamId);
+
 
 	@Query(nativeQuery = true)
 	List<Object[]> getAllProjectByEmpId(Long empId);
@@ -288,4 +294,6 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		       "AND etm.empId = :empId " +
 		       "AND p.projectId != :currentProjectId")
 	 List<GetActiveProjectDetailsIfMultipleDTO> getActiveProjectIdAndProjectNameByEmpId(Long empId, Integer currentProjectId);
+	//  @Query(nativeQuery = true)
+	//  List<Map<String, Object>> getActiveProjectIdAndProjectNameByEmpId(Long empId, Integer currentProjectId);
 }
