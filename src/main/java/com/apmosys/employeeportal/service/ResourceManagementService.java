@@ -334,12 +334,12 @@ public class ResourceManagementService {
 				newProject.setIsRenewable(resourceManagementDTO.getIsRenewable());
 				newProject.setClientRM(resourceManagementDTO.getClientRM());
 				newProject.setApmosysRmEmail(resourceManagementDTO.getApmosysRmEmail());
-
-				if (resourceManagementDTO.getIsHOD().equals("true")) {
-					newProject.setIsDraftProject("false");
-				} else {
-					newProject.setIsDraftProject("true");
-				}
+				newProject.setIsDraftProject("true");
+//				if (resourceManagementDTO.getIsHOD().equals("true")) {
+//					newProject.setIsDraftProject("false");
+//				} else {
+//					newProject.setIsDraftProject("true");
+//				}
 
 				newProject.setCreatedBy(resourceManagementDTO.getCreatedBy());
 
@@ -1221,7 +1221,7 @@ public class ResourceManagementService {
 
 			// Update project properties
 //		    if(projManagerId != null) {
-			project.setIsDraftProject("false");
+//			project.setIsDraftProject("false");
 			project.setProjectName(dto.getName());
 			project.setPoNo(dto.getPoNo());
 			project.setPoStartDate(dto.getPoStartDate());
