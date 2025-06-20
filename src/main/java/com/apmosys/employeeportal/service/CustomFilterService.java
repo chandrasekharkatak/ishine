@@ -3738,6 +3738,11 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		}
 
 		for (CustomFilterDTO dto : queryList) {
+			
+			if ("Employee Id".equals(dto.getColumn()) && dto.getValue() != null && dto.getValue().startsWith("A-")) {
+	            dto.setValue(dto.getValue().substring(2)); // Remove "A-" prefix
+	        }
+			
 			if (dto.getOperator() != null && dto.getOperator().equalsIgnoreCase("like")) {
 				dto.setValue("%" + dto.getValue() + "%");
 			}
@@ -3753,8 +3758,16 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				case "Client Name":       columnAlias = "c.client_name"; break;
 				case "Gender":            columnAlias = "e.gender"; break;
 				case "Work Location":     columnAlias = "e.work_location"; break;
-				// Add other filterable columns as needed, matching the query aliases (e, d, m, p, c)
-				default: continue; // Skip unknown columns
+				case "Job Role":  		  columnAlias = "jr.name" ; break;//employeeType, city,marital status,bankName
+				case "Date of Joining":	  columnAlias = "e.date_of_joining";break;
+				case "Probation Period":   columnAlias = "e.probation_period";break;
+				case "State": 			columnAlias = "e.state";break;
+				case "Experience": 			columnAlias = "e.experience";break;
+				case "Marital Status": 			columnAlias = "e.marital_status";break;
+				case "Notice Period": 			columnAlias = "e.notice_period";break;
+				
+				
+				default: continue; 
 			}
 
 			query.append(" AND ").append(columnAlias).append(" ").append(dto.getOperator()).append(" '")

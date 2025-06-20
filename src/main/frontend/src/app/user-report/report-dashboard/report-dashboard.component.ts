@@ -664,7 +664,7 @@ onFilterChange(filter: CustomFilter): void {
       { name: "Lateral", y: this.experienceCount }
     ];
     if (fresherLateralData.some(d => d.y > 0)) {
-        this.renderPieSummaryChart('Fresher - Lateral Summary', 'fresherLateralChart', fresherLateralData.filter(d => d.y > 0), 'Employee Summary', this.openFresherLateralModalTable.bind(this));
+        this.renderPieSummaryChart('Fresher - Lateral Summary', 'fresherLateralChart', fresherLateralData, 'Employee Summary', this.openFresherLateralModalTable.bind(this));
     } else {
         this.renderPlaceholderChart('Fresher - Lateral Summary', 'fresherLateralChart');
     }
@@ -676,7 +676,7 @@ onFilterChange(filter: CustomFilter): void {
       { name: "Other", y: this.otherBillableCount }
     ];
     if (billableTypeData.some(d => d.y > 0)) {
-        this.renderPieSummaryChart('Billable Employee Summary', 'billableChart', billableTypeData.filter(d => d.y > 0), 'Billable Data', this.openBillableEmployeeTableModal.bind(this));
+        this.renderPieSummaryChart('Billable Employee Summary', 'billableChart', billableTypeData, 'Billable Data', this.openBillableEmployeeTableModal.bind(this));
     } else {
         this.renderPlaceholderChart('Billable Employee Summary', 'billableChart');
     }
@@ -1090,7 +1090,7 @@ onFilterChange(filter: CustomFilter): void {
 // }
   openWorkLocationSummaryTableModal(category: any): void {
     // 1. Reset Modal State
-    this.modalTitle = "Work Location: " + location;
+    this.modalTitle = "Work Location: " + category;
     this.modalSummaryList = [];
     this.page = 1;
 
@@ -1121,7 +1121,7 @@ onFilterChange(filter: CustomFilter): void {
             }
           });
           
-          this.modalTitle = `Filtered Employees at ${location} (${this.modalSummaryList.length})`;
+          // this.modalTitle = `Filtered Employees at ${location} (${this.modalSummaryList.length})`;
           this.modalRef = this.modalService.show(this.workLocationSummaryTemplate, { class: 'modal-xl' });
           
         } else {
