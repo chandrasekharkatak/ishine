@@ -2342,25 +2342,25 @@ public class ResourceManagementService {
 					commaSeparatedNames = "";
 					projectDto.setProjectManagers(projectManagersList);
 					
-					List<Object[]> result2 = projectOverheadMappingRepository
+					List<ProjectOverheadsDTO> result2 = projectOverheadMappingRepository
 							.findProjectOverheadsPerProject(Long.parseLong(projectId.toString()));
 
 					List<Long> projectOverheadIds = new ArrayList<>();
 					List<ProjectOverheadsDTO> projectOverheadsList = new ArrayList<>();
 					List<String> projectOverheadNames = new ArrayList<>();
 
-					for (Object[] obj : result2) {
-						if (obj[0] != null) {
-							projectOverheadIds.add(Long.parseLong(obj[0].toString()));
+					for (ProjectOverheadsDTO obj : result2) {
+						if (obj.getProjectOverheadId() != null) {
+							projectOverheadIds.add(Long.parseLong(obj.getProjectOverheadId().toString()));
 						}
 
-						if (obj[1] != null) {
-							projectOverheadNames.add(obj[1].toString());
+						if (obj.getProjectOverheadName() != null) {
+							projectOverheadNames.add(obj.getProjectOverheadName().toString());
 						}
 
 						ProjectOverheadsDTO dto = new ProjectOverheadsDTO();
-						dto.setProjectOverheadId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
-						dto.setProjectOverheadName(obj[1] != null ? obj[1].toString() : null);
+						dto.setProjectOverheadId(obj.getProjectOverheadId() != null ? Long.parseLong(obj.getProjectOverheadId().toString()) : null);
+						dto.setProjectOverheadName(obj.getProjectOverheadName() != null ? obj.getProjectOverheadName().toString() : null);
 						projectOverheadsList.add(dto);
 					}
 
@@ -3586,25 +3586,25 @@ public class ResourceManagementService {
 					dto.setProjectManagers(projectManagersList);
 
 					
-					List<Object[]> result2 = projectOverheadMappingRepository
+					List<ProjectOverheadsDTO> result2 = projectOverheadMappingRepository
 							.findProjectOverheadsPerProject(Long.parseLong(projObj.getProjectId().toString()));
 
 					List<Long> projectOverheadIds = new ArrayList<>();
 					List<ProjectOverheadsDTO> projectOverheadsList = new ArrayList<>();
 					List<String> projectOverheadNames = new ArrayList<>();
 
-					for (Object[] obj : result2) {
-						if (obj[0] != null) {
-							projectOverheadIds.add(Long.parseLong(obj[0].toString()));
+					for (ProjectOverheadsDTO obj : result2) {
+						if (obj.getProjectOverheadId() == null) {
+							projectOverheadIds.add(Long.parseLong(obj.getProjectOverheadId().toString()));
 						}
 
-						if (obj[1] != null) {
-							projectOverheadNames.add(obj[1].toString());
+						if (obj.getProjectOverheadName()!= null) {
+							projectOverheadNames.add(obj.getProjectOverheadName().toString());
 						}
 
 						ProjectOverheadsDTO overheadDto = new ProjectOverheadsDTO();
-						overheadDto.setProjectOverheadId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
-						overheadDto.setProjectOverheadName(obj[1] != null ? obj[1].toString() : null);
+						overheadDto.setProjectOverheadId(obj.getProjectOverheadId()!= null ? Long.parseLong(obj.getProjectOverheadId().toString()) : null);
+						overheadDto.setProjectOverheadName(obj.getProjectOverheadName() != null ? obj.getProjectOverheadName().toString() : null);
 						projectOverheadsList.add(overheadDto);
 					}
 
@@ -3697,25 +3697,25 @@ public class ResourceManagementService {
 					dto.setProjectManagers(projectManagersList);
 
 					
-					List<Object[]> result2 = projectOverheadMappingRepository
+					List<ProjectOverheadsDTO> result2 = projectOverheadMappingRepository
 							.findProjectOverheadsPerProject(Long.parseLong(projObj.getProjectId().toString()));
 
 					List<Long> projectOverheadIds = new ArrayList<>();
 					List<ProjectOverheadsDTO> projectOverheadsList = new ArrayList<>();
 					List<String> projectOverheadNames = new ArrayList<>();
 
-					for (Object[] obj : result2) {
-						if (obj[0] != null) {
-							projectOverheadIds.add(Long.parseLong(obj[0].toString()));
+					for (ProjectOverheadsDTO obj : result2) {
+						if (obj.getProjectOverheadId() == null) {
+							projectOverheadIds.add(Long.parseLong(obj.getProjectOverheadId().toString()));
 						}
 
-						if (obj[1] != null) {
-							projectOverheadNames.add(obj[1].toString());
+						if (obj.getProjectOverheadName() != null) {
+							projectOverheadNames.add(obj.getProjectOverheadName().toString());
 						}
 
 						ProjectOverheadsDTO overheadDto = new ProjectOverheadsDTO();
-						overheadDto.setProjectOverheadId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
-						overheadDto.setProjectOverheadName(obj[1] != null ? obj[1].toString() : null);
+						overheadDto.setProjectOverheadId(obj.getProjectOverheadId() != null ? Long.parseLong(obj.getProjectOverheadId().toString()) : null);
+						overheadDto.setProjectOverheadName(obj.getProjectOverheadName() != null ? obj.getProjectOverheadName().toString() : null);
 						projectOverheadsList.add(overheadDto);
 					}
 

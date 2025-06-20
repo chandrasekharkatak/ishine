@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.apmosys.employeeportal.dto.ProjectOverheadsDTO;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
 import com.apmosys.employeeportal.model.ProjectOverheadMapping;
 
@@ -16,8 +17,9 @@ public interface ProjectOverheadMappingRepository extends JpaRepository<ProjectO
 	
 	public ProjectOverheadMapping findByProjectIdAndProjectOverheadId(Long projectId,Long projectOverheadId);
 	
-	@Query(nativeQuery = true)
-	public List<Object[]>findProjectOverheadsPerProject(@Param("projectId") Long projectId);
+	@Query(value=" select new com.apmosys.employeeportal.dto.ProjectOverheadsDTO(pom.projectOverheadId,e.name) from ProjectOverheadMapping pom \n"+
+			"INNER JOIN Employee e ON e.empId = pom.projectOverheadId where pom.projectId =:projectId and pom.active = 1 \n")
+	public List<ProjectOverheadsDTO>findProjectOverheadsPerProject(@Param("projectId") Long projectId);
 	
 	@Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END " +
             "FROM project_overhead_mapping pom " +
