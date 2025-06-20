@@ -192,6 +192,8 @@ public class Employee {
 	@Column(name = "employee_confirmation_date")
     private LocalDate employeeConfirmationDate;
 	
+	
+	@Column(name = "is_consultant")
 	private String isConsultant;
 
 	private String onbenchDate;
