@@ -7143,17 +7143,17 @@ public class ResourceManagementService {
 	              .append(resourceManagementDTO.getEmpId());
 
 	    try {
-	        List<Object[]> summaryData = projectRepository
+	        List<SummaryChartDTO> summaryData = projectRepository
 	            .getProjectTimesheetSummaryByEmpId(resourceManagementDTO.getEmpId());
 
 	        List<SummaryChartDTO> result = new ArrayList<>();
 
 	        if (!summaryData.isEmpty()) {
-	            for (Object[] row : summaryData) {
+	            for (SummaryChartDTO row : summaryData) {
 	            	SummaryChartDTO dto = new SummaryChartDTO();
 
-	                dto.setProjectName(row[0] != null ? row[0].toString() : null);
-	                dto.setTotalTimesheetsFilled(row[1] != null ? Long.parseLong(row[1].toString()) : 0);
+	                dto.setProjectName(row.getProjectName() != null ? row.getProjectName().toString() : null);
+	                dto.setTotalTimesheetsFilled(row.getTotalTimesheetsFilled() != null ? Long.parseLong(row.getTotalTimesheetsFilled().toString()) : 0);
 
 	                result.add(dto);
 	            }

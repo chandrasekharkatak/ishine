@@ -66,7 +66,10 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	@Query(nativeQuery = true)
 	EmployeeTeamMap findByEmpIdAndTeamId(Long empId, Long teamId);
 	
-	@Query(nativeQuery = true)
+//	@Query(nativeQuery = true)
+//	List<EmployeeTeamMap> findByTeamIdAndActive(Long teamId);
+	
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId = :teamId AND etm.active IN (1, 2)")
 	List<EmployeeTeamMap> findByTeamIdAndActive(Long teamId);
 
 	@Query(nativeQuery = true)
@@ -85,11 +88,19 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 //	@Query(nativeQuery = true)
 //	List<Object[]> findEmployeeByProjectId(Integer projectId );
 	
-	 @Query(nativeQuery = true)
-List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
+//	 @Query(nativeQuery = true)
+//List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
+	 
+	 @Query("SELECT etm FROM EmployeeTeamMap etm \n"
+	 		+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
+	 		+ "WHERE t.projectId = :projectId AND etm.active = :active")
+	 List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 
-	 @Query("SELECT etm from EmployeeTeamMap etm  WHERE etm.teamId=:teamId AND etm.active = 1")
-	List<EmployeeTeamMap> findTeammembersByTeamIdAndStatus(Long teamId);
+//	 @Query(nativeQuery = true)
+//	List<EmployeeTeamMap> findTeammembersByTeamIdAndStatus(Long teamId);
+	 
+	 @Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId = :teamId AND etm.active = 1")
+	 List<EmployeeTeamMap> findTeammembersByTeamIdAndStatus(Long teamId);
 
 //	 @Query(nativeQuery = true , value = "SELECT * FROM employee_team_mapping etm WHERE etm.team_id = :teamId")
 //	List<EmployeeTeamMap> findTeammembersByTeamId(Long teamId);

@@ -9,8 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
+import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.model.Project;
 
 @Repository
@@ -140,6 +142,21 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			"AND e.empId NOT BETWEEN 1 AND 6")
 	public List<RMGFlatEmployeeProjectTeamDTO>  getExceptionEmployeeReport();
 	
+//	@Query(value="SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
+//			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
+//			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.poStartDate ,p.poEndDate )  \n" + 
+//			"from Project p  \n" + 
+//			"inner join Team t on p.projectId = t.projectId  \n" + 
+//			"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" + 
+//			"inner join Employee e on e.empId = etm.empId  \n" + 
+//			"inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n" + 
+//			"inner join Department d on d.deptId = jr.deptId  \n" + 
+//			"where p.active = 'true' AND t.isActive != 'N' AND etm.active != 0  \n" + 
+//			"AND e.employmentstatus != 'InActive'  \n" + 
+//			"AND e.billableType = 'Bench' AND (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') \n"+
+//			"AND e.empId NOT BETWEEN 1 AND 6")
+//	public List<RMGFlatEmployeeProjectTeamDTO> getExceptionEmployeeReport();
+	
 	@Query(value="SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
 			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
 			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.poStartDate ,p.poEndDate )  \n" + 
@@ -153,6 +170,20 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			"and e.employmentstatus != 'InActive'  \n" + 
 			"and e.billableType = 'Bench' and (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') and d.deptId IN :deptIds AND e.empId NOT BETWEEN 1 AND 6")
 	public List<RMGFlatEmployeeProjectTeamDTO> getExceptionEmployeeReportInDepartments(List<Long> deptIds);
+	
+//	@Query(value="SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
+//			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
+//			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.poStartDate ,p.poEndDate )  \n" + 
+//			"from Project p  \n" +
+//			"inner join Team t on p.projectId = t.projectId  \n" + 
+//			"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" + 
+//			"inner join Employee e on e.empId = etm.empId  \n" + 
+//			"inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n" + 
+//			"inner join Department d on d.deptId = jr.deptId  \n" + 
+//			"where p.active = 'true' and t.isActive != 'N' and etm.active != 0  \n" + 
+//			"and e.employmentstatus != 'InActive'  \n" + 
+//			"and e.billableType = 'Bench' and (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') and d.deptId IN :deptIds AND e.empId NOT BETWEEN 1 AND 6")
+//	public List<RMGFlatEmployeeProjectTeamDTO> getExceptionEmployeeReportInDepartments(List<Long> deptIds);
 	
 	
 	@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
@@ -170,40 +201,77 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "and d.deptId =:deptIds AND e.empId NOT BETWEEN 1 AND 6")
 	List <RMGFlatEmployeeProjectTeamDTO>  getExceptionEmployeeReportInDepartment(Long deptId);
 	
-	@Query(value = "SELECT \n"
-			+ "    distinct p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
-			+ "    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
-			+ "    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name, \n"
-			+ "    CASE\n"
-			+ "        WHEN p.is_draft_project = 'true' THEN 'Pending For Approval'\n"
-			+ "        WHEN p.is_draft_project = 'false' THEN 'Approved'\n"
-			+ "        WHEN p.is_draft_project = 'Rejected' THEN 'Rejected'\n"
-			+ "        WHEN p.is_draft_project = 'Completed' THEN 'Completed'\n"
-//			+ "        WHEN p.is_draft_project = null THEN 'Not Started'\n"
-			+ "        ELSE 'Un Mentioned Test Data'\n"
-			+ "    END AS draftStatus,\n"
-			+ " CASE \n"
-		    + "  WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id)\n"
-		    + "  ELSE CAST(p.project_id AS CHAR) \n"
-		    + "  END AS projectViewId \n"
-			+ "FROM projects p\n"
-			+ "LEFT JOIN project_temp pt ON p.po_project_id = pt.po_project_id\n"
-			+ "LEFT JOIN clients c on p.client_id = c.client_id \n"
-			+ "INNER JOIN teams t on p.project_id = t.project_id\n"
-			+ "INNER JOIN employee_team_mapping etm on etm.team_id = t.team_id\n"
-			+ "INNER JOIN employee e on e.emp_id = etm.emp_id \n"
-			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id\n"
-			+ "INNER JOIN department d on d.dept_id = jr.dept_id\n"
+//	@Query(value = "SELECT \n"
+//			+ "    distinct p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
+//			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
+//			+ "    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+//			+ "    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name, \n"
+//			+ "    CASE\n"
+//			+ "        WHEN p.is_draft_project = 'true' THEN 'Pending For Approval'\n"
+//			+ "        WHEN p.is_draft_project = 'false' THEN 'Approved'\n"
+//			+ "        WHEN p.is_draft_project = 'Rejected' THEN 'Rejected'\n"
+//			+ "        WHEN p.is_draft_project = 'Completed' THEN 'Completed'\n"
+////			+ "        WHEN p.is_draft_project = null THEN 'Not Started'\n"
+//			+ "        ELSE 'Un Mentioned Test Data'\n"
+//			+ "    END AS draftStatus,\n"
+//			+ " CASE \n"
+//		    + "  WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id)\n"
+//		    + "  ELSE CAST(p.project_id AS CHAR) \n"
+//		    + "  END AS projectViewId \n"
+//			+ "FROM projects p\n"
+//			+ "LEFT JOIN project_temp pt ON p.po_project_id = pt.po_project_id\n"
+//			+ "LEFT JOIN clients c on p.client_id = c.client_id \n"
+//			+ "INNER JOIN teams t on p.project_id = t.project_id\n"
+//			+ "INNER JOIN employee_team_mapping etm on etm.team_id = t.team_id\n"
+//			+ "INNER JOIN employee e on e.emp_id = etm.emp_id \n"
+//			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id\n"
+//			+ "INNER JOIN department d on d.dept_id = jr.dept_id\n"
+//			+ "WHERE p.active = 'true'  \n"
+//			+ "AND  e.employmentstatus != 'InActive' \n"
+//			+ "AND d.dept_id IN (:deptIds) \n"
+////			+ "AND (:deptIds IS NULL OR d.dept_id IN (:deptIds)) \n"
+//			+ "AND (:approvalStatus IS NULL OR p.is_draft_project = :approvalStatus ) \n"
+//			+ "AND (:projectStatus IS NULL OR p.project_status = :projectStatus )"
+//			+ "AND (:status IS NULL OR p.status = :status )",
+//	       nativeQuery = true)
+//	List<Object[]> getAllActiveProjectList(
+//			@Param("deptIds") List<Long> deptIds,
+//			@Param("projectStatus")String projectStatus, 
+//			@Param("status")String status, 
+//			@Param("approvalStatus")String approvalStatus);
+	
+	@Query(value = "SELECT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
+			+ "p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
+			+ "p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
+			+ "p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
+			+ "p.apmosysRmEmail, p.projectCompletionDate, p.projectStatus, p.internalProjectType,c.clientName, \n"
+			+ "CASE \n"
+			+ "	 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
+			+ "	 WHEN p.isDraftProject = 'false' THEN 'Approved' \n"
+			+ "	 WHEN p.isDraftProject = 'Rejected' THEN 'Rejected' \n"
+			+ "	 WHEN p.isDraftProject = 'Completed' THEN 'Completed' \n"
+			+ "	 ELSE 'Un Mentioned Test Data' \n"
+			+ "END, \n"
+			+ "CASE \n"
+			+ "  WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', p.poProjectId) \n"
+			+ "  ELSE CONCAT('', p.projectId) \n"
+			+ "END ) \n"
+			+ "FROM Project p \n"
+			+ "LEFT JOIN Client c ON c.clientId = p.clientId \n"
+			+ "INNER JOIN Team t ON t.projectId = p.projectId \n"
+			+ "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
+			+ "INNER JOIN Employee e ON e.empId = etm.empId \n"
+			+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
+			+ "INNER JOIN Department d ON d.deptId = jr.deptId \n"
 			+ "WHERE p.active = 'true'  \n"
-			+ "AND  e.employmentstatus != 'InActive' \n"
-			+ "AND d.dept_id IN (:deptIds) \n"
-//			+ "AND (:deptIds IS NULL OR d.dept_id IN (:deptIds)) \n"
-			+ "AND (:approvalStatus IS NULL OR p.is_draft_project = :approvalStatus ) \n"
-			+ "AND (:projectStatus IS NULL OR p.project_status = :projectStatus )"
-			+ "AND (:status IS NULL OR p.status = :status )",
-	       nativeQuery = true)
-	List<Object[]> getAllActiveProjectList(@Param("deptIds") List<Long> deptIds,@Param("projectStatus")String projectStatus, @Param("status")String status, @Param("approvalStatus")String approvalStatus);
+			+ "AND e.employmentstatus != 'InActive' \n"
+			+ "AND d.deptId IN (:deptIds) \n"
+			+ "AND (:approvalStatus IS NULL OR p.isDraftProject =:approvalStatus ) \n"
+			+ "AND (:projectStatus IS NULL OR p.projectStatus =:projectStatus )"
+			+ "AND (:status IS NULL OR p.status =:status )")
+			List<ProjectFetchDTO> getAllActiveProjectList(@Param("deptIds") List<Long> deptIds,@Param("projectStatus")String projectStatus, @Param("status")String status, @Param("approvalStatus")String approvalStatus);
+	
+	
 	
 	
 //	@Query(value = "SELECT \n"
@@ -615,18 +683,29 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	
 	
-	@Query(value = "SELECT DISTINCT p.project_name, COUNT(DISTINCT et.timesheet_id) AS total_timesheets_filled " +
-            "FROM employee e " +
-            "INNER JOIN employee_team_mapping etm USING (emp_id) " +
-            "INNER JOIN teams t USING (team_id) " +
-            "INNER JOIN projects p USING (project_id) " +
-            "INNER JOIN employee_timesheets et ON et.emp_id = e.emp_id " +
-            "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id " +
-            "INNER JOIN activities a ON etam.activity_id = a.activity_id AND t.team_id = a.team_id " +
-            "WHERE e.emp_id = :empId " +
-            "GROUP BY e.emp_id, p.project_name", 
-    nativeQuery = true)
-	public List<Object[]> getProjectTimesheetSummaryByEmpId(@Param("empId") Long empId);
+	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.SummaryChartDTO(p.projectName, COUNT(DISTINCT et.timesheetId) as totalTimesheetsFilled ) " +
+		       "FROM Employee e " +
+		       "INNER JOIN EmployeeTeamMap etm ON etm.empId = e.empId " +
+		       "INNER JOIN Team t ON t.teamId = etm.teamId " +
+		       "INNER JOIN Project p ON p.projectId = t.projectId " +
+		       "INNER JOIN Timesheet et ON et.empId = e.empId " +
+		       "INNER JOIN TimesheetActivityMap etam ON etam.timesheetId = et.timesheetId " +
+		       "INNER JOIN Activity a ON etam.activityId = a.activityId AND t.teamId = a.teamId " +
+		       "WHERE e.empId = :empId " +
+		       "GROUP BY e.empId, p.projectName")
+		public List<SummaryChartDTO> getProjectTimesheetSummaryByEmpId(@Param("empId") Long empId);
+	
+//	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.EmployeeDTO(p.projectName, COUNT(DISTINCT et.timesheetId)) " +
+//		       "FROM Employee e " +
+//		       "INNER JOIN e.EmployeeTeamMap etm " +
+//		       "INNER JOIN etm.Team t " +
+//		       "INNER JOIN t.Project p " +
+//		       "INNER JOIN e.Timesheet et " +
+//		       "INNER JOIN et.TimesheetActivityMap etam " +
+//		       "INNER JOIN etam.Activity a " +
+//		       "WHERE e.empId = :empId AND t.teamId = a.teamId " +
+//		       "GROUP BY e.empId, p.projectName")
+//		public List<EmployeeDTO> getProjectTimesheetSummaryByEmpId(@Param("empId") Long empId);
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getBenchEmployeeMoreThan30DaysInDeptIds(List<Long> deptIds);
