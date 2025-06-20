@@ -285,39 +285,44 @@ public class EmployeeDTO {
     private Integer upperAge;
     private Long selectedResourceOverviewId;
     private String deptName;
+//    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
     public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
             Long mobileNo, Long managerId, String managerName, String jobRoleName,
             String departmentName, String name, String billableType) {
-this.empId = empId;
-this.employeementId = employeementId;
-this.email = email;
-this.employmentstatus = employmentstatus;
-this.mobileNo = mobileNo;
-this.managerId = managerId;
-this.managerName = managerName;
-this.jobRoleName = jobRoleName;
-this.departmentName = departmentName;
-this.name = name;
-this.billableType = billableType;
-}    
+        this.empId = empId != null ? empId : 0L; 
+        this.employeementId = employeementId != null ? employeementId : 0L;
+        this.email = email != null ? email : "";
+        this.employmentstatus = employmentstatus != null ? employmentstatus : "";
+        this.mobileNo = mobileNo != null ? mobileNo : 0L;
+        this.managerId = managerId != null ? managerId : 0L;
+        this.managerName = managerName != null ? managerName : "";
+        this.jobRoleName = jobRoleName != null ? jobRoleName : "";
+        this.departmentName = departmentName != null ? departmentName : "";
+        this.name = name != null ? name : "";
+        this.billableType = billableType != null ? billableType : "";
+    }
+    
+//    findAllEmployeesWithoutAnyProject
+    public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
+            Long mobileNo, Long managerId, String managerName, String jobRoleName,
+            String departmentName, String name) {
+        this.empId = empId != null ? empId : 0L; 
+        this.employeementId = employeementId != null ? employeementId : 0L;
+        this.email = email != null ? email : "";
+        this.employmentstatus = employmentstatus != null ? employmentstatus : "";
+        this.mobileNo = mobileNo != null ? mobileNo : 0L;
+        this.managerId = managerId != null ? managerId : 0L;
+        this.managerName = managerName != null ? managerName : "";
+        this.jobRoleName = jobRoleName != null ? jobRoleName : "";
+        this.departmentName = departmentName != null ? departmentName : "";
+        this.name = name != null ? name : "";
+    }
+    
+    
 	public EmployeeDTO() {
 	};
 	
 	
-	public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
-            Long mobileNo, Long managerId, String managerName, String jobRoleName,
-            String deptName, String name) {
-this.empId = empId;
-this.employeementId = employeementId;
-this.email = email;
-this.employmentstatus = employmentstatus;
-this.mobileNo = mobileNo;
-this.managerId = managerId;
-this.managerName = managerName;
-this.jobRoleName = jobRoleName;
-this.deptName = deptName;
-this.name = name;
-}
 
 	
 }

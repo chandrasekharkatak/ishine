@@ -87,7 +87,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	 @Query(nativeQuery = true)
 List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 
-	 @Query(nativeQuery = true)
+	 @Query("SELECT etm from EmployeeTeamMap etm  WHERE etm.teamId=:teamId AND etm.active = 1")
 	List<EmployeeTeamMap> findTeammembersByTeamIdAndStatus(Long teamId);
 
 //	 @Query(nativeQuery = true , value = "SELECT * FROM employee_team_mapping etm WHERE etm.team_id = :teamId")

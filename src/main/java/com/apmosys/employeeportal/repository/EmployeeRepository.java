@@ -607,7 +607,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findByEmpIdIn(@Param("empIds") List<Long> empIds);
     
     
-    @Query(value ="select com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name,d.name ,e.name) from Employee e  \n"
+    @Query(value ="select new com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name,d.name ,e.name) from Employee e  \n"
     		+ "inner join JobRole jr on jr.jobRoleId = e.jobRoleId \n"
     		+ "inner join Department d on d.deptId = jr.deptId \n"
     		+ "LEFT JOIN Employee em ON em.empId = e.managerId \n"
@@ -616,30 +616,38 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "                  JOIN Project p ON p.projectId = t.projectId \n"
     		+ "                  WHERE etm.empId = e.empId AND etm.active != 0 AND t.isActive = 'Y' AND p.active = 'true') \n"
     		+ " and e.employmentstatus != 'InActive' and e.empId NOT BETWEEN 1 AND 6")
-    		List<EmployeeDTO> findAllEmployeesWithoutAnyProject();
+    List<EmployeeDTO> findAllEmployeesWithoutAnyProject();
     
     
-    @Query(nativeQuery = true,value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type from employee e\n"
-    		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
-    		+ "inner join department d on jr.dept_id = d.dept_id\n"
-    		+ "left join employee em on em.emp_id = e.manager_id\n"
-    		+ "where e.billable_type IS NULL and e.emp_id NOT BETWEEN 1 AND 6 and e.employmentstatus!= 'InActive'")
-    List<Object[]> findAllEmployeesWithoutAnyBillable();
+    @Query("SELECT NEW com.apmosys.employeeportal.dto.EmployeeDTO(e.empId, e.employeementId, e.email, e.employmentstatus, e.mobileNo, e.managerId, em.name, jr.name, d.name, e.name, e.billableType) " +
+    	       "FROM Employee e, JobRole jr, Department d " +
+    	       "LEFT JOIN Employee em ON e.managerId = em.empId " +
+    	       "WHERE e.jobRoleId = jr.jobRoleId AND jr.deptId = d.deptId " + 
+    	       "AND e.billableType IS NULL " +
+    	       "AND e.empId NOT BETWEEN 1 AND 6 " +
+    	       "AND e.employmentstatus <> 'InActive'")
+    	List<EmployeeDTO> findAllEmployeesWithoutAnyBillable();
     
     
-    @Query(nativeQuery = true,value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type from employee e\n"
-    		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
-    		+ "inner join department d on jr.dept_id = d.dept_id\n"
-    		+ "left join employee em on em.emp_id = e.manager_id\n"
-    		+ "where e.billable_type IS NULL and e.emp_id NOT BETWEEN 1 AND 6 and e.employmentstatus!= 'InActive' and d.dept_id IN :deptIds")
-    List<Object[]> findAllEmployeesWithoutAnyBillableInDeptIds(@Param("deptIds") List<Long> deptIds);
-    
-    @Query(nativeQuery = true,value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type from employee e\n"
-    		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
-    		+ "inner join department d on jr.dept_id = d.dept_id\n"
-    		+ "left join employee em on em.emp_id = e.manager_id\n"
-    		+ "where e.billable_type IS NULL and e.emp_id NOT BETWEEN 1 AND 6 and e.employmentstatus!= 'InActive' and d.dept_id = :deptId")
-    List<Object[]> findAllEmployeesWithoutBillableInDeptId(@Param("deptId") Long deptId);
+    @Query("SELECT NEW com.apmosys.employeeportal.dto.EmployeeDTO( e.empId, e.employeementId, e.email, e.employmentstatus, e.mobileNo, e.managerId, em.name, jr.name, d.name, e.name, e.billableType) " +
+            "FROM Employee e, JobRole jr, Department d " +
+            "LEFT JOIN Employee em ON e.managerId = em.empId " + 
+            "WHERE e.jobRoleId = jr.jobRoleId AND jr.deptId = d.deptId " + 
+            "AND e.billableType IS NULL " +
+            "AND e.empId NOT BETWEEN 1 AND 6 " +
+            "AND e.employmentstatus <> 'InActive' " +
+            "AND d.deptId IN :deptIds")
+     List<EmployeeDTO> findAllEmployeesWithoutAnyBillableInDeptIds(@Param("deptIds") List<Long> deptIds);
+
+     @Query("SELECT NEW com.apmosys.employeeportal.dto.EmployeeDTO(e.empId, e.employeementId, e.email, e.employmentstatus, e.mobileNo, e.managerId, em.name, jr.name, d.name, e.name, e.billableType) " +
+            "FROM Employee e, JobRole jr, Department d " +
+            "LEFT JOIN Employee em ON e.managerId = em.empId " + 
+            "WHERE e.jobRoleId = jr.jobRoleId AND jr.deptId = d.deptId " + 
+            "AND e.billableType IS NULL " +
+            "AND e.empId NOT BETWEEN 1 AND 6 " +
+            "AND e.employmentstatus <> 'InActive' " +
+            "AND d.deptId = :deptId")
+     List<EmployeeDTO> findAllEmployeesWithoutBillableInDeptId(@Param("deptId") Long deptId);
     
     @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type from employee e \n"
     		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
@@ -656,7 +664,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive' and d.dept_id IN :departmentIds AND e.emp_id NOT BETWEEN 1 AND 6",nativeQuery = true)
     List<Object[]> findAllEmployeesWithoutAnyProjectDepartmentWise(@Param("departmentIds") List<Long> departmentIds);
     
-    @Query(value ="select com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name ,d.name,e.name) from Employee e  \n"
+    @Query(value ="select new com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name ,d.name,e.name) from Employee e  \n"
     		+ "inner join JobRole jr on jr.jobRoleId = e.jobRoleId \n"
     		+ "inner join Department d on d.deptId = jr.deptId \n"
     		+ "LEFT JOIN Employee em ON em.empId = e.managerId \n"
@@ -665,10 +673,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "                  JOIN Project p ON p.projectId = t.projectId \n"
     		+ "                  WHERE etm.empId = e.empId AND etm.active != 0 AND t.isActive = 'Y' AND p.active = 'true') \n"
     		+ "and e.employmentstatus != 'InActive' and d.deptId IN :deptIds") 
-    		List<EmployeeDTO> findAllEmployeesWithoutProjectInDeptIds(@Param("deptIds") List<Long> deptIds);
+    List<EmployeeDTO> findAllEmployeesWithoutProjectInDeptIds(@Param("deptIds") List<Long> deptIds);
     
     
-    @Query(value ="select com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name ,d.name,e.name) from Employee e  \n"
+    @Query(value ="select new com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name ,d.name,e.name) from Employee e  \n"
     		+ "inner join JobRole jr on jr.jobRoleId = e.jobRoleId \n"
     		+ "inner join Department d on d.deptId = jr.deptId \n"
     		+ "LEFT JOIN Employee em ON em.empId = e.managerId \n"
@@ -677,7 +685,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "                  JOIN Project p ON p.projectId = t.projectId \n"
     		+ "                  WHERE etm.empId = e.empId AND etm.active != 0 AND t.isActive = 'Y' AND p.active = 'true') \n"
     		+ "and e.employmentstatus != 'InActive' and d.deptId = :deptId ")
-    		List<EmployeeDTO> findAllEmployeesWithoutProjectInDeptId(@Param("deptId") Long deptId);
+    List<EmployeeDTO> findAllEmployeesWithoutProjectInDeptId(@Param("deptId") Long deptId);
     
     
     

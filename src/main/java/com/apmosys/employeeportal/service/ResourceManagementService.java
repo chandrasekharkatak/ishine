@@ -5399,7 +5399,7 @@ public class ResourceManagementService {
 
 		    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
 			
-			 List<Object[]> employeesWithoutProjects = new ArrayList<>();
+			 List<EmployeeDTO> employeesWithoutProjects = new ArrayList<>();
 			
 			 if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
 			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
@@ -5415,25 +5415,25 @@ public class ResourceManagementService {
 			}
 			
 			
-			 List<EmployeeDTO> employeeDTOList = new ArrayList<>();
-			 for (Object[] row : employeesWithoutProjects) {
-		            EmployeeDTO employeeDTO = new EmployeeDTO();
-		            employeeDTO.setEmpId(row[0] != null ? Long.parseLong(row[0].toString()) : null);
-		            employeeDTO.setEmployeementId( row[1] != null ? Long.parseLong(row[1].toString()) : null);
-		            employeeDTO.setEmail(row[2] != null ? row[2].toString() : null);
-		            employeeDTO.setEmploymentstatus(row[3] != null ? row[3].toString() : null);
-		            employeeDTO.setMobileNo(row[4] != null ? Long.parseLong(row[4].toString()) : null);
-		            employeeDTO.setManagerId(row[5] != null ? Long.parseLong(row[5].toString()) : null);
-		            employeeDTO.setManagerName(row[6] != null ? row[6].toString() : null);
-		            employeeDTO.setJobRoleName(row[7] != null ? row[7].toString() : null);
-		            employeeDTO.setDepartmentName(row[8] != null ? row[8].toString() : null); 
-		            employeeDTO.setName(row[9] != null ? row[9].toString() : null);
-		            employeeDTO.setBillableType(row[10] != null ? row[10].toString() : null);            
-		            employeeDTOList.add(employeeDTO);
-		        }
+//			 List<EmployeeDTO> employeeDTOList = new ArrayList<>();
+//			 for (Object[] row : employeesWithoutProjects) {
+//		            EmployeeDTO employeeDTO = new EmployeeDTO();
+//		            employeeDTO.setEmpId(row[0] != null ? Long.parseLong(row[0].toString()) : null);
+//		            employeeDTO.setEmployeementId( row[1] != null ? Long.parseLong(row[1].toString()) : null);
+//		            employeeDTO.setEmail(row[2] != null ? row[2].toString() : null);
+//		            employeeDTO.setEmploymentstatus(row[3] != null ? row[3].toString() : null);
+//		            employeeDTO.setMobileNo(row[4] != null ? Long.parseLong(row[4].toString()) : null);
+//		            employeeDTO.setManagerId(row[5] != null ? Long.parseLong(row[5].toString()) : null);
+//		            employeeDTO.setManagerName(row[6] != null ? row[6].toString() : null);
+//		            employeeDTO.setJobRoleName(row[7] != null ? row[7].toString() : null);
+//		            employeeDTO.setDepartmentName(row[8] != null ? row[8].toString() : null); 
+//		            employeeDTO.setName(row[9] != null ? row[9].toString() : null);
+//		            employeeDTO.setBillableType(row[10] != null ? row[10].toString() : null);            
+//		            employeeDTOList.add(employeeDTO);
+//		        }
 
 		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		        response.setServiceResponse(employeeDTOList);
+		        response.setServiceResponse(employeesWithoutProjects);
 		     
 
 		    } catch (Exception e) {
@@ -5460,7 +5460,7 @@ public class ResourceManagementService {
 
 		    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
 			
-			 List<Object[]> employeesWithoutBillable = new ArrayList<>();
+			 List<EmployeeDTO> employeesWithoutBillable = new ArrayList<>();
 			
 			 if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
 			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
@@ -5476,25 +5476,25 @@ public class ResourceManagementService {
 			}
 			
 			
-			 List<EmployeeDTO> employeeDTOList = new ArrayList<>();
-			 for (Object[] row : employeesWithoutBillable) {
-		            EmployeeDTO employeeDTO = new EmployeeDTO();
-		            employeeDTO.setEmpId(row[0] != null ? Long.parseLong(row[0].toString()) : null);
-		            employeeDTO.setEmployeementId( row[1] != null ? Long.parseLong(row[1].toString()) : null);
-		            employeeDTO.setEmail(row[2] != null ? row[2].toString() : null);
-		            employeeDTO.setEmploymentstatus(row[3] != null ? row[3].toString() : null);
-		            employeeDTO.setMobileNo(row[4] != null ? Long.parseLong(row[4].toString()) : null);
-		            employeeDTO.setManagerId(row[5] != null ? Long.parseLong(row[5].toString()) : null);
-		            employeeDTO.setManagerName(row[6] != null ? row[6].toString() : null);
-		            employeeDTO.setJobRoleName(row[7] != null ? row[7].toString() : null);
-		            employeeDTO.setDepartmentName(row[8] != null ? row[8].toString() : null); 
-		            employeeDTO.setName(row[9] != null ? row[9].toString() : null);
-		            employeeDTO.setBillableType(row[10] != null ? row[10].toString() : null);            
-		            employeeDTOList.add(employeeDTO);
-		        }
+//			 List<EmployeeDTO> employeeDTOList = new ArrayList<>();
+//			 for (Object[] row : employeesWithoutBillable) {
+//		            EmployeeDTO employeeDTO = new EmployeeDTO();
+//		            employeeDTO.setEmpId(row[0] != null ? Long.parseLong(row[0].toString()) : null);
+//		            employeeDTO.setEmployeementId( row[1] != null ? Long.parseLong(row[1].toString()) : null);
+//		            employeeDTO.setEmail(row[2] != null ? row[2].toString() : null);
+//		            employeeDTO.setEmploymentstatus(row[3] != null ? row[3].toString() : null);
+//		            employeeDTO.setMobileNo(row[4] != null ? Long.parseLong(row[4].toString()) : null);
+//		            employeeDTO.setManagerId(row[5] != null ? Long.parseLong(row[5].toString()) : null);
+//		            employeeDTO.setManagerName(row[6] != null ? row[6].toString() : null);
+//		            employeeDTO.setJobRoleName(row[7] != null ? row[7].toString() : null);
+//		            employeeDTO.setDepartmentName(row[8] != null ? row[8].toString() : null); 
+//		            employeeDTO.setName(row[9] != null ? row[9].toString() : null);
+//		            employeeDTO.setBillableType(row[10] != null ? row[10].toString() : null);            
+//		            employeeDTOList.add(employeeDTO);
+//		        }
 
 		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		        response.setServiceResponse(employeeDTOList);
+		        response.setServiceResponse(employeesWithoutBillable);
 		     
 
 		    } catch (Exception e) {
