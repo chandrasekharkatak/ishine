@@ -52,6 +52,7 @@ import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExceptionReportDTO;
+import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeInformationForDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
@@ -6567,21 +6568,27 @@ public class ResourceManagementService {
 		
 	    Map<String, Object> result = new HashMap<>();
 
-	    List<Map<String, Object>> activeProjects = employeeTeamMapRepository.getActiveProjectIdAndProjectNameByEmpId(empId,currentProjectId); 
+	    List<GetActiveProjectDetailsIfMultipleDTO> dtoList = employeeTeamMapRepository.getActiveProjectIdAndProjectNameByEmpId(empId,currentProjectId); 
 	    
-	    List<Map<String, Object>> distinctProjects = activeProjects.stream()
-	            .collect(Collectors.collectingAndThen(
-	                Collectors.toMap(
-	                    map -> map.get("projectId"),
-	                    map -> map, 
-	                    (existing, replacement) -> existing 
-	                ),
-	                m -> new ArrayList<>(m.values())
+	    Map<Integer, GetActiveProjectDetailsIfMultipleDTO> uniqueProjectsMap = dtoList.stream()
+	            .collect(Collectors.toMap(
+	                GetActiveProjectDetailsIfMultipleDTO::getProjectId, 
+	                dto -> dto,                                         
+	                (existing, replacement) -> existing                 
 	            ));
+	    
+	    List<Map<String, Object>> activeProjects = uniqueProjectsMap.values().stream()
+	    	    .map(dto -> {
+	    	        Map<String, Object> map = new HashMap<>();
+	    	        map.put("projectId", dto.getProjectId());
+	    	        map.put("projectName", dto.getProjectName());
+	    	        return map;
+	    	    })
+	    	    .collect(Collectors.toList());
 	    
 	    if (!activeProjects.isEmpty()) {
 	        result.put("isMultipleActiveProjects", true);
-	        result.put("projects", distinctProjects);
+	        result.put("projects", activeProjects);
 	    } else {
 	        result.put("isMultipleActiveProjects", false);
 	        result.put("projects", Collections.emptyList());

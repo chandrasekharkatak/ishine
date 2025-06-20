@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 
@@ -266,6 +267,14 @@ List<Object[]> findEmployeeProjectTeamDetailsMatchedBothProjects(@Param("project
 @Query(value ="select etm.empId from EmployeeTeamMap etm inner join Team t on t.teamId = etm.teamId inner join Project p on p.projectId = t.projectId where etm.isShadow = 1 and etm.active !=0 and t.isActive = 'Y' and p.projectId =:projectId and etm.empId IN :empIds")
 List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> empIds, @Param("projectId") Integer projectId);
 
-	 @Query(nativeQuery = true)
-	 List<Map<String, Object>> getActiveProjectIdAndProjectNameByEmpId(Long empId, Integer currentProjectId);
+	 @Query("SELECT new com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO(p.projectId, p.projectName) " +
+		       "FROM Project p " +
+		       "inner join Team t on t.projectId = p.projectId " +
+		       "inner join EmployeeTeamMap etm on t.teamId = etm.teamId " +
+		       "WHERE etm.active != 0 " +
+		       "AND t.isActive != 'N' " +
+		       "AND p.active != 'false' " +
+		       "AND etm.empId = :empId " +
+		       "AND p.projectId != :currentProjectId")
+	 List<GetActiveProjectDetailsIfMultipleDTO> getActiveProjectIdAndProjectNameByEmpId(Long empId, Integer currentProjectId);
 }
