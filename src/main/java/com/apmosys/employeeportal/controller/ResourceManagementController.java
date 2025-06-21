@@ -195,8 +195,12 @@ public class ResourceManagementController {
 	    return resourceManagementService.getEmployeeByNameAndEmpld();
 	}
 	
-	 @PostMapping("/combinedPOINTERNALList")
-	    public ServiceResponse combinedPOINTERNALList(@RequestBody ProjectFilterDTO projectFilterDTO) {
+	 @PostMapping("/combinedPOINTERNALCountList")
+	    public ServiceResponse combinedDataCount(@RequestBody ProjectFilterDTO projectFilterDTO) {
+	        return resourceManagementService.combinedDataCount(projectFilterDTO);
+	    }
+	 @PostMapping("/combinedPOINTERNALDataList")
+	    public ServiceResponse combinedDataList(@RequestBody ProjectFilterDTO projectFilterDTO) {
 	        return resourceManagementService.combinedDataCount(projectFilterDTO);
 	    }
 	 
