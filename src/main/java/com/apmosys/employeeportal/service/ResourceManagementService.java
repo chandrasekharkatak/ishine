@@ -7822,7 +7822,7 @@ public class ResourceManagementService {
 		    	List<GetDeptIdByRoleDTO> departments = departmentRepository.findAllExceptId1();
 		        for (GetDeptIdByRoleDTO dept : departments) {
 		            accessibleDeptIds.add(dept.getDeptId());
-		            fullDeptMap.put(dept.getDeptId(), dept.getDepartmentName());
+		            fullDeptMap.put(dept.getDeptId(), dept.getName());
 		        }
 		    	projectFilterDTO.setIsAdmin(true);
 		    	
@@ -7835,7 +7835,7 @@ public class ResourceManagementService {
 					     logBuilder.append("\n Department list fetched for HOD.");
 					     for (GetDeptIdByRoleDTO dto : hodDeptList) {
 					         accessibleDeptIds.add(dto.getDeptId());
-					         fullDeptMap.put(dto.getDeptId(), dto.getDepartmentName());
+					         fullDeptMap.put(dto.getDeptId(), dto.getName());
 					     }
 					     projectFilterDTO.setIsHod(true);
 					 }
@@ -7849,7 +7849,7 @@ public class ResourceManagementService {
 				     logBuilder.append("\n Department list fetched for Project Manager.");
 				     for (GetDeptIdByRoleDTO dto : pmDeptIds) {
 				            accessibleDeptIds.add(dto.getDeptId());
-				            fullDeptMap.put(dto.getDeptId(), dto.getDepartmentName());
+				            fullDeptMap.put(dto.getDeptId(), dto.getName());
 			         }
 				     isOther = projectFilterDTO.getIsHod() == null ? true : false;
 				 }
@@ -7859,7 +7859,7 @@ public class ResourceManagementService {
 				     logBuilder.append("\n Department list fetched for Project Overhead.");
 				     for (GetDeptIdByRoleDTO dto : overheadDeptIds) {
 				            accessibleDeptIds.add(dto.getDeptId());
-				            fullDeptMap.put(dto.getDeptId(), dto.getDepartmentName());
+				            fullDeptMap.put(dto.getDeptId(), dto.getName());
 			         }
 				     isOther = projectFilterDTO.getIsHod() == null ? true : false;
 				 }
@@ -7878,7 +7878,7 @@ public class ResourceManagementService {
 				 		List<GetDeptIdByRoleDTO> teamLeadDepts = departmentRepository.findDepartmentsByIds(teamLeadIds);
 				 		for (GetDeptIdByRoleDTO dto : teamLeadDepts) {
 			                accessibleDeptIds.add(dto.getDeptId());
-			                fullDeptMap.put(dto.getDeptId(), dto.getDepartmentName());
+			                fullDeptMap.put(dto.getDeptId(), dto.getName());
 			            }
 				 		isOther = projectFilterDTO.getIsHod() == null;
 				 	}
@@ -7898,7 +7898,7 @@ public class ResourceManagementService {
 				 		List<GetDeptIdByRoleDTO> spocDepts = departmentRepository.findDepartmentsByIds(spocIds);
 				 		for (GetDeptIdByRoleDTO dto : spocDepts) {
 			                accessibleDeptIds.add(dto.getDeptId());
-			                fullDeptMap.put(dto.getDeptId(), dto.getDepartmentName());
+			                fullDeptMap.put(dto.getDeptId(), dto.getName());
 			            }
 				 		isOther = projectFilterDTO.getIsHod() == null;
 				 	}

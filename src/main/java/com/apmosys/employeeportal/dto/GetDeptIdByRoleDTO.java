@@ -16,12 +16,12 @@ import lombok.ToString;
 @NoArgsConstructor
 public class GetDeptIdByRoleDTO {
 	
-	private String departmentName;
+	private String name;
 	private Long deptId;
 	
-	public GetDeptIdByRoleDTO(Long deptId, String departmentName) {
+	public GetDeptIdByRoleDTO(Long deptId, String name) {
         this.deptId = deptId;
-        this.departmentName = departmentName;
+        this.name = name;
     }
 
 }

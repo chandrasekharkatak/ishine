@@ -883,7 +883,7 @@ toggleSelectAllDept2() {
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             this.deptList = response.serviceResponse;
-            this.departments = this.deptList.departmentsids;
+            this.departments = this.deptList.departments;
             this.deptIdList = this.departments;
             this.departmentsList = [...this.departments];
             this.filteredDepartments = this.departments;
