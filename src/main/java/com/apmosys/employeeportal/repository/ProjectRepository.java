@@ -9,8 +9,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO;
+import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
+import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
+import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.model.Project;
 
 @Repository
@@ -110,18 +114,32 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getEmployeesByPoProjectId(String poProjectId);
 	
 	
-	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true' and po_project_id IS NULL")
+	 @Query(value ="select projectId from Project where active = 'true' and poProjectId IS NULL")
 	 Set<Integer> findAllActiveInternalProjectIds();
 	 
 	 @Query(value ="select p.projectId from Project p where p.active = 'true' and p.poProjectId IS NOT NULL")
 	 Set<Integer> findAllActiveShankhProjectIds();
 	 
-	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true'")
+	 @Query(value ="select p.projectId from Project p where p.active = 'true'")
 	 Set<Integer> findAllActiveShankhInternalProjectIds();
 	 
-	@Query(nativeQuery = true)
-	public int getAssignedEmployeesCountInProject(Long id);
-	
+//	@Query(nativeQuery = true)
+//	public int getAssignedEmployeesCountInProject(Long id);
+    
+	 
+	    
+	   
+	 
+	 
+	 @Query(value = "select count(distinct etm.empId) " +
+             "from Project p " +
+             "left join Team t on t.projectId = p.projectId and p.active != 'false' " +
+             "left join EmployeeTeamMap etm on etm.teamId = t.teamId and etm.active != 0 and t.isActive != 'N' " +
+             "where p.poProjectId = :id")
+		public int getAssignedEmployeesCountInProject(Long id);
+	 
+	 
+	 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInformation(Long empId);
 
@@ -140,6 +158,21 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			"AND e.empId NOT BETWEEN 1 AND 6")
 	public List<RMGFlatEmployeeProjectTeamDTO>  getExceptionEmployeeReport();
 	
+//	@Query(value="SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
+//			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
+//			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.poStartDate ,p.poEndDate )  \n" + 
+//			"from Project p  \n" + 
+//			"inner join Team t on p.projectId = t.projectId  \n" + 
+//			"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" + 
+//			"inner join Employee e on e.empId = etm.empId  \n" + 
+//			"inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n" + 
+//			"inner join Department d on d.deptId = jr.deptId  \n" + 
+//			"where p.active = 'true' AND t.isActive != 'N' AND etm.active != 0  \n" + 
+//			"AND e.employmentstatus != 'InActive'  \n" + 
+//			"AND e.billableType = 'Bench' AND (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') \n"+
+//			"AND e.empId NOT BETWEEN 1 AND 6")
+//	public List<RMGFlatEmployeeProjectTeamDTO> getExceptionEmployeeReport();
+	
 	@Query(value="SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
 			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
 			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.poStartDate ,p.poEndDate )  \n" + 
@@ -153,6 +186,20 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			"and e.employmentstatus != 'InActive'  \n" + 
 			"and e.billableType = 'Bench' and (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') and d.deptId IN :deptIds AND e.empId NOT BETWEEN 1 AND 6")
 	public List<RMGFlatEmployeeProjectTeamDTO> getExceptionEmployeeReportInDepartments(List<Long> deptIds);
+	
+//	@Query(value="SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
+//			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
+//			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.poStartDate ,p.poEndDate )  \n" + 
+//			"from Project p  \n" +
+//			"inner join Team t on p.projectId = t.projectId  \n" + 
+//			"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" + 
+//			"inner join Employee e on e.empId = etm.empId  \n" + 
+//			"inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n" + 
+//			"inner join Department d on d.deptId = jr.deptId  \n" + 
+//			"where p.active = 'true' and t.isActive != 'N' and etm.active != 0  \n" + 
+//			"and e.employmentstatus != 'InActive'  \n" + 
+//			"and e.billableType = 'Bench' and (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') and d.deptId IN :deptIds AND e.empId NOT BETWEEN 1 AND 6")
+//	public List<RMGFlatEmployeeProjectTeamDTO> getExceptionEmployeeReportInDepartments(List<Long> deptIds);
 	
 	
 	@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
@@ -500,12 +547,35 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getPreviousDefaultProjectDetails(Long empId);
+//	
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getProjectDetailsForBulkDefaultUpdateBench();
 	
-	@Query(nativeQuery = true)
-	public List<Object[]> getProjectDetailsForBulkDefaultUpdateBench();
 	
-	@Query(nativeQuery = true)
-	public List<Object[]> getProjectDetailsForBulkDefaultUpdateOther();
+	@Query(value = "Select distinct new com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO( p.projectId, p.projectName, t.teamId, t.teamName, r.resourceOverviewId,  \n" + 
+			"r.count, r.department, r.experience) from Project p  \n" + 
+			"left join Team t on t.projectId = p.projectId  \n" + 
+			"left join EmployeeTeamMap etm on etm.teamId = t.teamId  \n" + 
+			"left join ResourceRequirement r on r.projectId = p.projectId  \n" + 
+			"where p.active = 'true' and t.isActive = 'Y' and etm.active != 0 and p.internalProjectType = 'Bench' ")
+	public List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> getProjectDetailsForBulkDefaultUpdateBench();
+	
+	
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getProjectDetailsForBulkDefaultUpdateOther();
+
+	
+	
+	
+	@Query(value = "Select distinct new com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO( p.projectId, p.projectName, t.teamId, t.teamName, r.resourceOverviewId, \n"  +
+	 		"r.count, r.department,  r.experience) from Project p  \n" + 
+	 		"left join Team t on t.projectId = p.projectId  \n" + 
+	 		"left join EmployeeTeamMap etm on etm.teamId = t.teamId  \n" + 
+	 		"left join ResourceRequirement r on r.projectId = p.projectId  \n" + 
+	 		"where p.active = 'true' and t.isActive = 'Y' and etm.active != 0  \n" + 
+	 		"and (p.internalProjectType is null or p.internalProjectType != 'Bench') ")
+	public List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> getProjectDetailsForBulkDefaultUpdateOther();
+
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInformationBulk(List<Long> empIds);
@@ -527,35 +597,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
   Set<Integer> findActiveInternalProjectIdsByProjectOverhead(@Param("empId") Long empId);
 	
 	
-	@Query(nativeQuery = true,value ="(\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
-			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL AND pm.project_manager_id = :empId\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN project_overhead_mapping po ON p.project_id = po.project_id\n"
-			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL AND po.project_overhead_id = :empId\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN teams t ON p.project_id = t.project_id\n"
-			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL\n"
-			+ "          AND t.is_active = 'Y' AND t.spoc_id = :empId\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN teams t ON p.project_id = t.project_id\n"
-			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL\n"
-			+ "          AND t.is_active = 'Y' AND t.team_lead_id = :empId\n"
-			+ "    )")
-	Set<Integer> findInternalProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
+	
 	
 	
 	@Query(nativeQuery = true,value ="(\n"
@@ -588,51 +630,34 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "    )")
 	Set<Integer> findShankhProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
 	
-	@Query(nativeQuery = true,value="(\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
-			+ "        WHERE p.active = 'true'  AND pm.project_manager_id = 14\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN project_overhead_mapping po ON p.project_id = po.project_id\n"
-			+ "        WHERE p.active = 'true' AND po.project_overhead_id = 14\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN teams t ON p.project_id = t.project_id\n"
-			+ "        WHERE p.active = 'true' \n"
-			+ "          AND t.is_active = 'Y' AND t.spoc_id = 14\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN teams t ON p.project_id = t.project_id\n"
-			+ "        WHERE p.active = 'true'\n"
-			+ "          AND t.is_active = 'Y' AND t.team_lead_id = 14\n"
-			+ "    )")
-	Set<Integer> findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
+
 	
 	
 	
 	
-	@Query(value = "SELECT DISTINCT p.project_name, COUNT(DISTINCT et.timesheet_id) AS total_timesheets_filled " +
-            "FROM employee e " +
-            "INNER JOIN employee_team_mapping etm USING (emp_id) " +
-            "INNER JOIN teams t USING (team_id) " +
-            "INNER JOIN projects p USING (project_id) " +
-            "INNER JOIN employee_timesheets et ON et.emp_id = e.emp_id " +
-            "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id " +
-            "INNER JOIN activities a ON etam.activity_id = a.activity_id AND t.team_id = a.team_id " +
-            "WHERE e.emp_id = :empId " +
-            "GROUP BY e.emp_id, p.project_name", 
-    nativeQuery = true)
-	public List<Object[]> getProjectTimesheetSummaryByEmpId(@Param("empId") Long empId);
+	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.SummaryChartDTO(p.projectName, COUNT(DISTINCT et.timesheetId) as totalTimesheetsFilled ) " +
+		       "FROM Employee e " +
+		       "INNER JOIN EmployeeTeamMap etm ON etm.empId = e.empId " +
+		       "INNER JOIN Team t ON t.teamId = etm.teamId " +
+		       "INNER JOIN Project p ON p.projectId = t.projectId " +
+		       "INNER JOIN Timesheet et ON et.empId = e.empId " +
+		       "INNER JOIN TimesheetActivityMap etam ON etam.timesheetId = et.timesheetId " +
+		       "INNER JOIN Activity a ON etam.activityId = a.activityId AND t.teamId = a.teamId " +
+		       "WHERE e.empId = :empId " +
+		       "GROUP BY e.empId, p.projectName")
+		public List<SummaryChartDTO> getProjectTimesheetSummaryByEmpId(@Param("empId") Long empId);
+	
+//	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.EmployeeDTO(p.projectName, COUNT(DISTINCT et.timesheetId)) " +
+//		       "FROM Employee e " +
+//		       "INNER JOIN e.EmployeeTeamMap etm " +
+//		       "INNER JOIN etm.Team t " +
+//		       "INNER JOIN t.Project p " +
+//		       "INNER JOIN e.Timesheet et " +
+//		       "INNER JOIN et.TimesheetActivityMap etam " +
+//		       "INNER JOIN etam.Activity a " +
+//		       "WHERE e.empId = :empId AND t.teamId = a.teamId " +
+//		       "GROUP BY e.empId, p.projectName")
+//		public List<EmployeeDTO> getProjectTimesheetSummaryByEmpId(@Param("empId") Long empId);
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getBenchEmployeeMoreThan30DaysInDeptIds(List<Long> deptIds);

@@ -12,6 +12,9 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 public class ResourceRequirementDTO {
+	
+	
+	
 
 	private String role;
     private Integer count;
@@ -23,6 +26,8 @@ public class ResourceRequirementDTO {
 	private String projectName;
 	private Long teamId;
 	private String teamName;
+	
+	
 	
 	public ResourceRequirementDTO(String role,Integer count,String experience,String department,Long resourceOverviewId,Integer projectId){
 		this.role = role;

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.model.ProjectTemp;
 
 public interface ProjectTempRepo extends JpaRepository<ProjectTemp, Integer>{
@@ -35,7 +36,7 @@ public interface ProjectTempRepo extends JpaRepository<ProjectTemp, Integer>{
 			+ "	ELSE 'Un Mentioned Test Data'\n"
 			+ " END AS draftStatus from projects p where p.internal_project_type is not null"
 			+ " and is_draft_project is null and p.project_status = 'Not Started'",nativeQuery=true)
-	List<Object[]> getAllNotStartedProjectList();
+	List<ProjectFetchDTO> getAllNotStartedProjectList();
 	
 	
 	@Query(value="select * from project_temp where po_project_Id = :projectId", nativeQuery = true)

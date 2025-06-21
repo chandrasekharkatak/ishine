@@ -13,7 +13,10 @@ public interface ResourceRequirementRepository extends JpaRepository<ResourceReq
 	@Query(nativeQuery = true,value ="select  MAX(resource_overview_id) from resource_requirement where project_id = :projectId and department LIKE CONCAT('%', :departmentName, '%')")
 	Long findByProjectIdAndDepartmentName(@Param("departmentName")String departmentName,@Param("projectId")Integer projectId);
 	
-	@Query(nativeQuery = true, value="select distinct department from resource_requirement where project_id=:projectId ")
+//	@Query(nativeQuery = true, value="select distinct department from resource_requirement where project_id=:projectId ")
+//	List<String> getAllDepartmentsFromProjectId(@Param("projectId") Integer projectId);
+	
+	@Query(value="select distinct rr.department from ResourceRequirement rr where rr.projectId=:projectId ")
 	List<String> getAllDepartmentsFromProjectId(@Param("projectId") Integer projectId);
 	
 	@Query(nativeQuery = true, value="select role, count,experience, department, resource_overview_id ,project_id from resource_requirement where project_id=:projectId")

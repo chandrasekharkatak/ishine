@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.apmosys.employeeportal.dto.ProjectManagersDTO;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
 
@@ -31,9 +32,13 @@ public interface ProjectManagerMappingRepository extends JpaRepository<ProjectMa
 	@Query(value="UPDATE ProjectManagerMapping p SET p.active = 0 WHERE p.projectId =:projectId")
 	public void deactivateByProjectId(@Param("projectId") Long projectId);
 	
-	@Query(nativeQuery = true, value="SELECT pmm.project_manager_id, e.name FROM project_manager_mapping pmm\n"
-			+ "INNER JOIN employee e on pmm.project_manager_id = e.emp_id where pmm.project_id = :projectId and pmm.active=1")
-	List<Object[]> getAllProjectManagerListWithName(@Param("projectId") Long projectId);
+//	@Query(nativeQuery = true, value="SELECT pmm.project_manager_id, e.name FROM project_manager_mapping pmm\n"
+//			+ "INNER JOIN employee e on pmm.project_manager_id = e.emp_id where pmm.project_id = :projectId and pmm.active=1")
+//	List<Object[]> getAllProjectManagerListWithName(@Param("projectId") Long projectId);
+	
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.ProjectManagersDTO(pmm.projectManagerId, e.name)FROM ProjectManagerMapping pmm \n"
+			+ "INNER JOIN Employee e on pmm.projectManagerId = e.empId where pmm.projectId =:projectId and pmm.active=1")
+	List<ProjectManagersDTO> getAllProjectManagerListWithName(@Param("projectId") Long projectId);
 	
 	@Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END " +
             "FROM project_manager_mapping pm " +

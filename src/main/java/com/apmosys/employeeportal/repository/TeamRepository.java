@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.model.Team;
 
 @Repository
@@ -43,8 +44,16 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllTeams();
 
-	@Query(nativeQuery = true)
+//	@Query(nativeQuery = true)
+//	public List<Team> findTeamByProjectId(Integer projectId);
+	
+	// @Query("SELECT t FROM Team t WHERE t.projectId = :projectId")
+//	@Query(nativeQuery = true)
+//	public List<Team> findTeamByProjectId(Integer projectId);
+	
+	@Query(value="select t from Team t where t.projectId=:projectId")
 	public List<Team> findTeamByProjectId(Integer projectId);
+	
 
 	public Team findTeamByTeamId(Long teamId);
 	
@@ -95,22 +104,27 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	 @Query(nativeQuery = true,value = "select DISTINCT t.project_id from teams t inner join projects p on p.project_id = t.project_id where t.spoc_id = :spocId and t.is_active = 'Y' and p.active = 'true'")
 	 List<Integer>findActiveShankhInternalProjectIdsBySpocIdList(@Param("spocId") Long spocId);
 	
-	@Query(nativeQuery = true,value = "select t.* from teams t inner join projects p on p.project_id = t.project_id where  t.is_active = 'Y' and p.active = 'true' and p.po_project_id IS NULL")
+	@Query(value = "select t from Team t inner join Project p on p.projectId = t.projectId where  t.isActive = 'Y' and p.active = 'true' and p.poProjectId IS NULL")
 	List<Team> findAllActiveTeamsOfInternalProjects();
 	
-	@Query(nativeQuery = true,value = "select t.* from teams t inner join projects p on p.project_id = t.project_id where  t.is_active = 'Y' and p.active = 'true' and p.po_project_id IS NOT NULL")
+	@Query(value = "select t from Team t inner join Project p on p.projectId = t.projectId where  t.isActive = 'Y' and p.active = 'true' and p.poProjectId IS NOT NULL")
 	List<Team> findAllActiveTeamsOfShankhProjects();
 	
 	
 	  @Query(value ="select t from Team t where t.isActive = 'Y' and t.projectId = :projectId")
 	  List<Team> findActiveTeamsByProjectId(@Param("projectId") Integer projectId);
 	
-		@Query(nativeQuery = true,value = "select t.* from teams t inner join projects p on p.project_id = t.project_id where  t.is_active = 'Y' and p.active = 'true'")
+	  @Query(value = "select t from Team t inner join Project p on p.projectId = t.projectId where  t.isActive = 'Y' and p.active = 'true'")
 		List<Team> findAllActiveTeamsOfShankhInternalProjects();
 		
 	
-	@Query(nativeQuery = true)
-	public List<Object[]> getSpocDetils(Long empId);
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n " + 
+			"CASE  \n " + 
+			"  WHEN isConsultant = 'true' THEN CONCAT('CS-', e.employeementId)  \n " + 
+			"  ELSE CONCAT('A-', e.employeementId)  \n " + 
+			"END)  \n " + 
+			"FROM Employee e where e.employmentstatus != 'InActive' and e.empId = :empId and e.empId not between 1 and 6")
+    public GetEmployeeByNameAndEmpldDTO getSpocDetils(Long empId);
 	
 	@Query("SELECT t FROM Team t WHERE t.projectId IN :projectIds")
 	List<Team> findByProjectIdIn(@Param("projectIds") List<Integer> projectIds);

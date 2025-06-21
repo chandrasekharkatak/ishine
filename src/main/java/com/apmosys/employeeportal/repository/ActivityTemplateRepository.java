@@ -21,7 +21,7 @@ public interface ActivityTemplateRepository extends JpaRepository<ActivityTempla
 
 	List<ActivityTemplate> getByDeptId(Long deptId);
 	
-	@Query(nativeQuery=true)
+	@Query(value="SELECT at FROM ActivityTemplate at WHERE at.deptId=:deptId AND at.employeeRole =:employeeRole")
 	List<ActivityTemplate> getByDeptIdAndEmployeeRoleType(Long deptId, String employeeRole);
 
 

@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -10,11 +11,40 @@ import lombok.ToString;
 @ToString
 @Setter
 @Getter
+@Data
 public class GetProjectDetailsForBulkDefaultUpdateProjectDTO {
 	
-	private Integer projectId;
-    private String projectName;
-    private List<GetProjectDetailsForBulkDefaultUpdateTeamDTO> teamList = new ArrayList<>();
-    private List<ResourceRequirementDTO> resourceRequirement = new ArrayList<>();
+	
+	public GetProjectDetailsForBulkDefaultUpdateProjectDTO(
+	    Integer projectId,
+	    String projectName,
+	    Long teamId,
+	    String teamName,
+	    Long resourceOverviewId,
+	    Integer count,
+	    String department,
+	    String experience
+	) {
+	    this.projectId = projectId != null ? projectId.intValue() : null; // since field is Integer
+	    this.projectName = projectName;
+	    this.teamId = teamId;
+	    this.teamName = teamName;
+	    this.resourceOverviewId = resourceOverviewId;
+	    this.count = count;
+	    this.department = department;
+	    this.experience = experience;
+	}
+
+	  Integer projectId;
+     String projectName;
+    List<GetProjectDetailsForBulkDefaultUpdateTeamDTO> teamList = new ArrayList<>();
+     List<ResourceRequirementDTO> resourceRequirement = new ArrayList<>();
+    Long teamId;
+    String teamName;
+    Long resourceOverviewId;
+    Integer count;
+    String department;
+    String experience;
     
+    public GetProjectDetailsForBulkDefaultUpdateProjectDTO() {}
 }
