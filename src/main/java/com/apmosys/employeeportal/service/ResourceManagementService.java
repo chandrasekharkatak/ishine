@@ -2533,10 +2533,10 @@ public class ResourceManagementService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append(
 				"ProjectId : " + resourceManagementDTO.getId() + ", EmpId : " + resourceManagementDTO.getEmpId());
-
+		
 		try {
 			Project projectObj = null;
-			if (resourceManagementDTO.getProjectType().equals("Internal"))
+			if (resourceManagementDTO.getProjectType().equals("Internal") || resourceManagementDTO.getProjectType().equals("Bench") || resourceManagementDTO.getProjectType().equals("InternalRNDProducts") )
 				projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
 			else
 				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
@@ -2568,7 +2568,7 @@ public class ResourceManagementService {
 
 						// Send Project/Team detail JSON to PoPortal
 						ServiceResponse poPortalResponse = null;
-						if (!resourceManagementDTO.getProjectType().equals("Internal")) {
+						if (!resourceManagementDTO.getProjectType().equals("Internal") && !resourceManagementDTO.getProjectType().equals("Bench") && !resourceManagementDTO.getProjectType().equals("InternalRNDProducts")) {
 							poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
 
 							if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
@@ -2597,7 +2597,7 @@ public class ResourceManagementService {
 								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 							}
 						} else {
-							// else added by anurag
+							
 							List<EmployeeTeamMap> teamMembersToActivate = employeeTeamMapRepository
 									.findByProjectIdAndActive(projectObj.getProjectId(), 2L);
 
@@ -2605,7 +2605,7 @@ public class ResourceManagementService {
 								teamMembersToActivate.forEach(teamMember -> teamMember.setActive(1L));
 								employeeTeamMapRepository.saveAll(teamMembersToActivate);
 							}
-
+						
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse(
 									"Project Approved but Internal project does not sync with PO portal.");

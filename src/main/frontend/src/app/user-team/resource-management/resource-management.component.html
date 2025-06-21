@@ -543,10 +543,10 @@
                                                         (click)="openDatePicker(MarkAsCompleteDefaultProject,OtherProjectDefaultMapping,project,customDatePickerTemplate);closeMenu(i)">
                                                         <i class="fas fa-check-double"></i> Mark as Complete
                                                     </li>
-                                                    <li *ngIf=" userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !isHideButton"
+                                                    <li *ngIf=" userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' "
                                                         (click)="onApproveProject(project);closeMenu(i)"><i
                                                             class="fas fa-square-check"></i> Approve</li>
-                                                    <li *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' && !isHideButton"
+                                                    <li *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval' "
                                                         (click)="openRejectModal(reject_project,project);closeMenu(i)">
                                                         <i class="fas fa-times"></i> Reject
                                                     </li>
@@ -1382,7 +1382,7 @@
                         </mat-select>
                     </div>
                     <div class="form-field">
-                        <label>Project Manager</label>
+                        <label><span class="text-danger">*</span>Project Manager</label>
                         <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectManagerId">
 
                             <mat-option class="non-selectable" disabled>
@@ -1482,7 +1482,7 @@
                                     style="width: 16px; height: 16px; margin-top:40px; " />
 
                             </div>
-                            <label class="mb-0">Team Name</label>
+                            <label class="mb-0"><span class="text-danger">*</span>Team Name</label>
                             <input type="text" class="form-select name-field" [(ngModel)]="teamObj.teamName"
                                 (blur)="checkTeamName(alert_message_without_reload, teamObj, i)" />
                         </div>
