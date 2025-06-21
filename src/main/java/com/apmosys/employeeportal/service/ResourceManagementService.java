@@ -46,6 +46,7 @@ import org.springframework.web.client.RestTemplate;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
+import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
@@ -7631,5 +7632,123 @@ public class ResourceManagementService {
 	    }
 		return response;
     }
+	
+	public ServiceResponse getDeptIdByRole(Long currentUserEmpId) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getDeptIdByRole");
+	    apiLogInfo.setApiUrl("/api/getDeptIdByRole");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+
+	    try {
+	    	ProjectFilterDTO projectFilterDTO = new ProjectFilterDTO();
+	    	projectFilterDTO.setCurrentUserEmpId(currentUserEmpId);
+	    	Employee employee1 = employeeRepository.findByEmpId(currentUserEmpId);
+		    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee1.getJobRoleId());
+		    Department department1 = departmentRepository.findByDeptId(jobRole.getDeptId());
+
+		    String departmentName = department1.getName();
+		    String role = jobRole.getEmployeeRole();
+		    String name = jobRole.getName();
+
+		    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+			
+		    Set<Long> accessibleDeptIds = new HashSet<>();
+			
+		    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+			            || specialDepartments.contains(departmentName)) {
+				 List<Department> departments = departmentRepository.findAllExceptId1();
+				    for (Department dept : departments) {
+				        accessibleDeptIds.add(dept.getDeptId());
+				    }
+				    projectFilterDTO.setIsAdmin(true);
+			 } else {
+				 
+				 if(departmentRepository.existsByHodId(currentUserEmpId)) {
+
+					 accessibleDeptIds.addAll(departmentRepository.findDeptIdsByHodId(currentUserEmpId));
+					 projectFilterDTO.setIsHod(true);
+					 
+				 }
+				
+				 boolean isOther = false;
+
+				 List<Long> pmDeptIds = departmentRepository.findDeptIdsForProjectManager(currentUserEmpId);
+				 if (pmDeptIds != null && !pmDeptIds.isEmpty()) {
+					 logBuilder.append("\n Department list fetched for Project Manager.");
+				     accessibleDeptIds.addAll(pmDeptIds);
+				     isOther = true;
+				 }
+
+				 List<Long> overheadDeptIds = departmentRepository.findDeptIdsForProjectOverhead(currentUserEmpId);
+				 if (overheadDeptIds != null && !overheadDeptIds.isEmpty()) {
+					 logBuilder.append("\n Department list fetched for Project Overhead.");
+				     accessibleDeptIds.addAll(overheadDeptIds);
+				     isOther = true;
+				 }
+
+				 String teamLeadDeptCsv = departmentRepository.findDeptIdsForTeamLead(currentUserEmpId);
+				 if (teamLeadDeptCsv != null && !teamLeadDeptCsv.isEmpty()) {
+					 logBuilder.append("\n Department list fetched for Team Lead.");
+				     String[] teamLeadDepts = teamLeadDeptCsv.split(",");
+				     for (String deptStr : teamLeadDepts) {
+				         try {
+				             Long deptId = Long.parseLong(deptStr.trim());
+				             if (!accessibleDeptIds.contains(deptId)) {
+				                 accessibleDeptIds.add(deptId);
+				                 isOther = true;
+				             }
+				         } catch (NumberFormatException ignored) {}
+				     }
+				 }
+
+				 String spocDeptCsv = departmentRepository.findDeptIdsForSpoc(currentUserEmpId);
+				 if (spocDeptCsv != null && !spocDeptCsv.isEmpty()) {
+					 logBuilder.append("\n Department list fetched for Spoc.");
+				     String[] spocDepts = spocDeptCsv.split(",");
+				     for (String deptStr : spocDepts) {
+				         try {
+				             Long deptId = Long.parseLong(deptStr.trim());
+				             if (!accessibleDeptIds.contains(deptId)) {
+				                 accessibleDeptIds.add(deptId);
+				                 isOther = true;
+				             }
+				             
+				         } catch (NumberFormatException ignored) {}
+				     }
+				 }
+
+				 if (isOther) {
+				     projectFilterDTO.setIsOther(true);
+				 }
+			 }
+
+	        if (!accessibleDeptIds.isEmpty()) {
+	        	
+	            projectFilterDTO.setDepartmentsids(new ArrayList<>(accessibleDeptIds));
+	            response.setServiceResponse(projectFilterDTO);
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            logBuilder.append("\n Department list fetched successfully.");
+	            
+	        } else {
+	        	
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("You currently do not have access to any departments or projects based on your role (Admin, HOD, Project Manager, Project Overhead, Team Lead, or SPOC).");
+	            logBuilder.append("\n No department found ! ");
+	            
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Something went wrong!");
+	        logBuilder.append("\n Exception occurred: ").append(e.getMessage());
+	    }
+
+	    return response;
+	}
 
 }
