@@ -267,6 +267,8 @@ export class ReportDashboardComponent implements OnInit {
   modalLeaveData: any[];
   modalSummary: { date: string; leaveType: string; totalDays: number; employeeCount: number; };
   summaryData: any;
+  previousLeaveTypes: any[];
+  previousFormattedDateRange: any[];
 
   constructor(
     private reportService: ReportService,
@@ -346,10 +348,12 @@ export class ReportDashboardComponent implements OnInit {
     this.reportService.customgetLeaveTrendDetails(queryObj).pipe(first()).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === "Success") {
-          this.leaveTrendAnalysisList = response.serviceResponse;
+          this.leaveTrendAnalysisList = response.serviceResponse || [];
           this.extractLeaveTrendAnalysisData(); 
           console.log('Successfully fetched filtered data:', this.leaveTrendAnalysisList);
         } else {
+          this.leaveTrendAnalysisList = [];
+          this.extractLeaveTrendAnalysisData();
           console.error('API Error:', response.serviceResponse);
         }
       },
@@ -526,18 +530,11 @@ onFilterChange(filter: CustomFilter): void {
       }
     });
   }
-  // --- Start of Corrected renderAllPieCharts Function ---
-  /**
-   * Safely renders all pie charts and the experience chart from a summary data object.
-   * This function is robust and handles null data or empty serviceResponse arrays.
-   * If data is invalid, it resets all counts and renders placeholder charts.
-   */
+
   renderAllPieCharts(summaryData: any) {
-    // Comprehensive check for valid data.
     if (!summaryData || summaryData.serviceStatus !== 'Success' || !summaryData.serviceResponse || summaryData.serviceResponse.length === 0) {
       console.warn("No valid summary data found. Rendering placeholder charts.");
       
-      // Reset all count properties to 0
       this.maleCount = 0; this.femaleCount = 0; this.otherCount = 0;
       this.countBetween18and25 = 0; this.countBetween25and35 = 0; this.countBetween35and45 = 0; this.countAbove45 = 0;
       this.probationCount = 0; this.confirmedCount = 0; this.resignedCount = 0; this.inActiveCount = 0;
@@ -549,7 +546,6 @@ onFilterChange(filter: CustomFilter): void {
       this.experienceCountBetween0and1Consultant = 0; this.experienceCountBetween1and2Consultant = 0; this.experienceCountBetween2and5Consultant = 0; this.experienceCountBetween5and10Consultant = 0; this.experienceCountAbove10Consultant = 0;
       this.countOfAllEmployees = 0; this.employeeInProbationAfter6MonthsCount = 0; this.apprenticeCountForDisplay = 0; this.consultantCountForDisplay = 0; this.regularCountForDisplay = 0;
       
-      // Render all charts with placeholders
       this.renderPlaceholderChart('Employee Status Summary', 'employeeStatus');
       this.renderPlaceholderChart('Gender Summary', 'genderSummary');
       this.renderPlaceholderChart('Age Summary', 'employeeAgeSummary');
@@ -584,7 +580,7 @@ onFilterChange(filter: CustomFilter): void {
     this.shadowBillableCount = data.shadow || 0;
     this.billableCount = data.billableYes || 0;
     this.nonBillableCount = data.billableNo || 0;
-    this.otherBillableCount = data.billableOther || 0; // Assuming a name for this from your logic
+    this.otherBillableCount = data.billableOther || 0; 
     this.experienceCountBetween0and1 = data.employeeYears0to1 || 0;
     this.experienceCountBetween1and2 = data.employeeYears1to2 || 0;
     this.experienceCountBetween2and5 = data.employeeYears2to5 || 0;
@@ -2169,6 +2165,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
 
       if (emittedArray[1] == 'Filter Employee Report') {
         this.employeeDashboard();
+        this.queryList = [];
       }
       if (emittedArray[1] == 'Filter Leave Summary') {
         this.get8DaysLeaveReport();
@@ -2999,7 +2996,7 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
     employeeType: employeeType,
     lowerValue: lowerValue,
     upperValue: upperValue,
-      queryList: this.queryList || []
+    queryList: this.queryList || []
 
   }
 
@@ -3610,51 +3607,57 @@ renderEmployeeBillableSummaryChartWrapper(billableChartData: any[]) {
 }
 
 extractLeaveTrendAnalysisData() {
-  this.leaveSumarryList = [];
-
-  if (!this.leaveTrendAnalysisList || this.leaveTrendAnalysisList.length === 0) {
-    console.log("No leave trend data available");
-    return;
-  }
-
-  const leaveTypes = [...new Set(this.leaveTrendAnalysisList.map(item => item.typeOfLeave))];
-  const uniqueDates = [...new Set(this.leaveTrendAnalysisList.map(item => item.leaveDate))];
-  
-  const sortedDates = uniqueDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-
-  const formattedDateRange = sortedDates.map(date => {
-    return moment(date).format('MMM DD'); 
-  });
-
   let chartData = [];
+  let formattedDateRange = [];
 
-  leaveTypes.forEach(leaveType => {
-    const leaveTypeData = {
-      type: 'line',
-      name: leaveType,
-      data: []
-    };
+  if (this.leaveTrendAnalysisList && this.leaveTrendAnalysisList.length > 0) {
 
-    sortedDates.forEach(date => {
-      const dayData = this.leaveTrendAnalysisList.find(item => 
-        item.typeOfLeave === leaveType && item.leaveDate === date
-      );
-      
-      leaveTypeData.data.push(dayData ? dayData.totalLeaveDays : 0);
+    const leaveTypes = [...new Set(this.leaveTrendAnalysisList.map(item => item.typeOfLeave))];
+    const uniqueDates = [...new Set(this.leaveTrendAnalysisList.map(item => item.leaveDate))];
+    const sortedDates = uniqueDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+    formattedDateRange = sortedDates.map(date => moment(date).format('MMM DD'));
+
+    this.previousLeaveTypes = leaveTypes;
+    this.previousFormattedDateRange = formattedDateRange;
+
+    chartData = leaveTypes.map(leaveType => {
+      return {
+        type: 'line',
+        name: leaveType,
+        data: sortedDates.map(date => {
+          const dayData = this.leaveTrendAnalysisList.find(item =>
+            item.typeOfLeave === leaveType && item.leaveDate === date
+          );
+          return dayData ? dayData.totalLeaveDays : 0;
+        })
+      };
     });
 
-    chartData.push(leaveTypeData);
-  });
+  } else {
 
-  console.log("Final ChartData:", chartData);
-  console.log("Date Range:", formattedDateRange);
+    console.log("No data found. Re-rendering with previous structure and zero values.");
+
+    formattedDateRange = this.previousFormattedDateRange;
+
+    chartData = this.previousLeaveTypes.map(leaveType => {
+      return {
+        type: 'line',
+        name: leaveType,
+        data: new Array(this.previousFormattedDateRange.length).fill(0)
+      };
+    });
+  }
+
+  console.log("Rendering chart with Date Range:", formattedDateRange);
+  console.log("Rendering chart with Data:", chartData);
 
   this.renderLineGraphChart(
-    'Leave Trend Analysis Graph', 
-    'leaveTrendAnalysis', 
-    chartData, 
-    'No. of Leaves', 
-    formattedDateRange, 
+    'Leave Trend Analysis Graph',
+    'leaveTrendAnalysis',
+    chartData,
+    'No. of Leaves',
+    formattedDateRange,
     this.openLeaveAnalysisTableModel.bind(this)
   );
 }

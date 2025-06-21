@@ -4010,11 +4010,11 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Apprentice_Years_2_5,\n"
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Apprentice_Years_5_10,\n"
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Apprentice_Years_Above_10,\n"
-					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND (is_consultant = 'false' AND is_apprenticeship = 'false') AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Employees_Years_0_1,\n"
-					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND (is_consultant = 'false' AND is_apprenticeship = 'false') AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Employees_Years_1_2,\n"
-					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND (is_consultant = 'false' AND is_apprenticeship = 'false') AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Employees_Years_2_5,\n"
-					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND (is_consultant = 'false' AND is_apprenticeship = 'false') AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Employees_Years_5_10,\n"
-					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND (is_consultant = 'false' AND is_apprenticeship = 'false') AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Employees_Years_Above_10,\n"
+					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Employees_Years_0_1,\n" // -- CORRECTED LOGIC
+			        + "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Employees_Years_1_2,\n" // -- CORRECTED LOGIC
+			        + "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Employees_Years_2_5,\n" // -- CORRECTED LOGIC
+			        + "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Employees_Years_5_10,\n" // -- CORRECTED LOGIC
+			        + "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Employees_Years_Above_10,\n" // -- CORRECTED LOGIC
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Consultant_Years_0_1,\n"
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Consultant_Years_1_2,\n"
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Consultant_Years_2_5,\n"
@@ -4188,61 +4188,67 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	public List<Object[]> getCustomEmployeesByExperience(ReportsQueryDTO request) {
 		Session session = entityManager.unwrap(Session.class);
 		try {
-			// 1. Build the dynamic WHERE clause from the general custom filters.
-			String customFilterConditions = createQueryForEmployeeDashboard(request.getQueryList()).toString();
+		    // 1. Build the dynamic WHERE clause from the general custom filters.
+		    String customFilterConditions = createQueryForEmployeeDashboard(request.getQueryList()).toString();
 
-			// 2. Build the base native SQL query
-			String q = "SELECT distinct "
-					+ "	CONCAT('A-', e.employeement_id) as EMP_ID, "
-					+ " CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
-					+ "		WHEN e.is_consultant = 'true' THEN 'Consultant' "
-					+ "     ELSE 'Regular' "
-					+ "	END AS EMPLOYMENT_TYPE, "
-					+ " e.name AS NAME, "
-					+ " e.experience AS EXPERIENCE, "
-					+ " d.name AS DEPARTMENT_NAME, "
-					+ " e.email AS EMAIL_ID, "
-					+ " m.name AS MANAGER_NAME, "
-					+ " e.billable AS BILLABLE, "
-					+ " e.billable_type AS BILLABLE_TYPE, "
-					+ " GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, "
-					+ " GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, "
-					+ " e.date_of_joining AS DATE_OF_JOINING, "
-					+ " e.mobile_no AS MOBILE_NO, "
-					+ "	e.employmentstatus AS STATUS, "
-					+ "	e.total_experience AS TOTAL_EXPERIENCE, "
-					+ " e.gender AS GENDER, "
-					+ " e.work_location AS WORK_LOCATION, "
-					+ " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, "
-					+ " e.is_user_info_updated AS KYC "
-					+ "FROM employee e "
-					+ "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id "
-					+ "LEFT JOIN department d on jr.dept_id = d.dept_id "
-					+ "LEFT JOIN employee m on m.emp_id = e.manager_id "
-					+ "LEFT JOIN employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0' "
-					+ "LEFT JOIN teams t on etm.team_id = t.team_id and t.is_active = 'Y' "
-					+ "LEFT JOIN projects p on t.project_id = p.project_id and p.active = 'true' "
-					+ "LEFT JOIN clients c on p.client_id = c.client_id "
-					+ "WHERE 1=1 AND e.employmentstatus != 'InActive' "
-					+ "	AND e.emp_id NOT BETWEEN 1 AND 6 "
-					+ "	AND ((:employee_type = 'apprentice' AND e.is_apprenticeship = 'true') "
-					+ "		OR (:employee_type = 'consultant' AND e.is_consultant = 'true') "
-					+ "		OR (:employee_type = 'regular' AND (e.is_consultant = 'false' AND e.is_apprenticeship = 'false')) "
-					+ "	) "
-					+ "	AND (TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 > :lower_value AND TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 <= :upper_value) "
-					// 3. Inject the dynamic filter conditions
-					+ customFilterConditions
-					+ "GROUP BY e.emp_id";
+		    // 2. Build the base native SQL query
+		    String q = "SELECT distinct "
+		            + "	CONCAT('A-', e.employeement_id) as EMP_ID, "
+		            // This simplified CASE statement is good, you can keep it.
+		            + " CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
+		            + "		WHEN e.is_consultant = 'true' THEN 'Consultant' "
+		            + "     ELSE 'Regular' "
+		            + "	END AS EMPLOYMENT_TYPE, "
+		            + " e.name AS NAME, "
+		            + " e.experience AS EXPERIENCE, "
+		            + " d.name AS DEPARTMENT_NAME, "
+		            + " e.email AS EMAIL_ID, "
+		            + " m.name AS MANAGER_NAME, "
+		            + " e.billable AS BILLABLE, "
+		            + " e.billable_type AS BILLABLE_TYPE, "
+		            + " GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, "
+		            + " GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, "
+		            + " e.date_of_joining AS DATE_OF_JOINING, "
+		            + " e.mobile_no AS MOBILE_NO, "
+		            + "	e.employmentstatus AS STATUS, "
+		            + "	e.total_experience AS TOTAL_EXPERIENCE, "
+		            + " e.gender AS GENDER, "
+		            + " e.work_location AS WORK_LOCATION, "
+		            + " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, "
+		            + " e.is_user_info_updated AS KYC "
+		            + "FROM employee e "
+		            + "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id "
+		            + "LEFT JOIN department d on jr.dept_id = d.dept_id "
+		            + "LEFT JOIN employee m on m.emp_id = e.manager_id "
+		            + "LEFT JOIN employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0' "
+		            + "LEFT JOIN teams t on etm.team_id = t.team_id and t.is_active = 'Y' "
+		            + "LEFT JOIN projects p on t.project_id = p.project_id and p.active = 'true' "
+		            + "LEFT JOIN clients c on p.client_id = c.client_id "
+		            + "WHERE 1=1 AND e.employmentstatus != 'InActive' "
+		            + "	AND e.emp_id NOT BETWEEN 1 AND 6 "
+		            // ***** THIS IS THE CORRECTED LOGIC *****
+		            + "	AND ("
+		            + "			(:employee_type = 'apprentice' AND e.is_apprenticeship = 'true') "
+		            + "				OR "
+		            + "			(:employee_type = 'consultant' AND e.is_consultant = 'true') "
+		            + "				OR "
+		            + "			(:employee_type = 'regular' AND ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = ''))) "
+		            + "		) "
+		            // *****************************************
+		            + "	AND (TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 > :lower_value AND TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 <= :upper_value) "
+		            // 3. Inject the dynamic filter conditions
+		            + customFilterConditions
+		            + "GROUP BY e.emp_id";
 
-			System.out.println("Executing Experience Drill-down Query: " + q);
-			Query query = session.createSQLQuery(q);
-			
-			// 4. Set the named parameters
-			query.setParameter("employee_type", request.getEmployeeType());
-			query.setParameter("lower_value", request.getLowerValue());
-			query.setParameter("upper_value", request.getUpperValue());
+		    System.out.println("Executing Experience Drill-down Query: " + q);
+		    Query query = session.createSQLQuery(q);
+		    
+		    // 4. Set the named parameters
+		    query.setParameter("employee_type", request.getEmployeeType());
+		    query.setParameter("lower_value", request.getLowerValue());
+		    query.setParameter("upper_value", request.getUpperValue());
 
-			return query.getResultList();
+		    return query.getResultList();
 
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -1147,7 +1147,9 @@ try {
 
 		    try {
 		    	List<Object[]> employeeDetails = customFilterService.getCustomEmployeesByExperience(request);
-
+		    	
+//		    	List<Object[]> employeeDetails = reportDashboardRepository.findEmployeesExperience(request.getEmployeeType(), request.getLowerValue(), request.getUpperValue());
+		    	
 		        if (employeeDetails != null && !employeeDetails.isEmpty()) {
 		            List<ReportListDTO> dtoList = new ArrayList<>();
 
