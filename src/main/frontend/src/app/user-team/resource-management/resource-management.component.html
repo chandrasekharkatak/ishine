@@ -178,13 +178,13 @@
             </div>
             <!-- Employee Card Section -->
             <div class="col-md-4">
-                <div class="row" *ngIf="isAdminOrHod">
+                <div class="row">
                     <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                         <label class="info-label" style="justify-self: left;"><span
                                 class="text-danger">*</span>Department</label>
                     </div>
                 </div>
-                <div class="row mb-3" *ngIf="isAdminOrHod">
+                <div class="row mb-3">
                     <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                         <mat-select class="form-control" multiple [(ngModel)]="deptIdList"
                             (selectionChange)="onDepartmentSelectionChange()">

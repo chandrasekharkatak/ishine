@@ -213,6 +213,7 @@ export class ResourceManagementComponent implements OnInit {
   selectedDate: String | null = null;
   completedProjectDetails: Project = new Project();
   projectFilterDTO: ProjectFilterDTO = new ProjectFilterDTO();
+  deptList: ProjectFilterDTO = new ProjectFilterDTO();
   departments: any[] = [];
   totalCount: any;
   projectRequirementsList: ProjectRequirements = new ProjectRequirements();
@@ -470,8 +471,8 @@ export class ResourceManagementComponent implements OnInit {
     const empRole = String(this.currentUser.employeeRole).trim();
     if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") &&
       !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")) {
-      await this.getAllDepartmentsFromId();
-      this.projectFilterDTO.isHod = true
+      await this.getAllDepartments();
+      // this.projectFilterDTO.isHod = true
     }
     else {
       await this.getAllDepartments();
@@ -547,7 +548,7 @@ export class ResourceManagementComponent implements OnInit {
     // const empRole = String(this.currentUser.employeeRole).trim();
     if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
     !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
-      await this.getAllDepartmentsFromId();
+      await this.getAllDepartments();
     }
     else{
       await this.getAllDepartments();
@@ -878,10 +879,12 @@ toggleSelectAllDept2() {
   
   getAllDepartments(): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.departmentService.getAllDepartments().pipe(first()).subscribe({
+      this.departmentService.getDeptIdByRole(this.currentUser.empId).pipe(first()).subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
-            this.departments = response.serviceResponse;
+            this.deptList = response.serviceResponse;
+            this.departments = this.deptList.departmentsids;
+            this.deptIdList = this.departments;
             this.departmentsList = [...this.departments];
             this.filteredDepartments = this.departments;
             this.filteredDepartmentsTeam = [...this.departmentsList];
