@@ -471,7 +471,7 @@ export class ResourceManagementComponent implements OnInit {
     if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") &&
       !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")) {
       await this.getAllDepartmentsFromId();
-      // this.projectFilterDTO.isHod = true
+      this.projectFilterDTO.isHod = true
     }
     else {
       await this.getAllDepartments();
@@ -545,13 +545,13 @@ export class ResourceManagementComponent implements OnInit {
     await this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
     // const deptName = String(this.currentUser.departmentName).trim();
     // const empRole = String(this.currentUser.employeeRole).trim();
-    // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
-    // !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
-    //   await this.getAllDepartmentsFromId();
-    // }
-    // else{
-    //   await this.getAllDepartments();
-    // }
+    if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
+    !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
+      await this.getAllDepartmentsFromId();
+    }
+    else{
+      await this.getAllDepartments();
+    }
   }
 
 
