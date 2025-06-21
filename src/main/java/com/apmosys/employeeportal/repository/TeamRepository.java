@@ -104,17 +104,17 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	 @Query(nativeQuery = true,value = "select DISTINCT t.project_id from teams t inner join projects p on p.project_id = t.project_id where t.spoc_id = :spocId and t.is_active = 'Y' and p.active = 'true'")
 	 List<Integer>findActiveShankhInternalProjectIdsBySpocIdList(@Param("spocId") Long spocId);
 	
-	@Query(nativeQuery = true,value = "select t.* from teams t inner join projects p on p.project_id = t.project_id where  t.is_active = 'Y' and p.active = 'true' and p.po_project_id IS NULL")
+	@Query(value = "select t from Team t inner join Project p on p.projectId = t.projectId where  t.isActive = 'Y' and p.active = 'true' and p.poProjectId IS NULL")
 	List<Team> findAllActiveTeamsOfInternalProjects();
 	
-	@Query(nativeQuery = true,value = "select t.* from teams t inner join projects p on p.project_id = t.project_id where  t.is_active = 'Y' and p.active = 'true' and p.po_project_id IS NOT NULL")
+	@Query(value = "select t from Team t inner join Project p on p.projectId = t.projectId where  t.isActive = 'Y' and p.active = 'true' and p.poProjectId IS NOT NULL")
 	List<Team> findAllActiveTeamsOfShankhProjects();
 	
 	
 	  @Query(value ="select t from Team t where t.isActive = 'Y' and t.projectId = :projectId")
 	  List<Team> findActiveTeamsByProjectId(@Param("projectId") Integer projectId);
 	
-		@Query(nativeQuery = true,value = "select t.* from teams t inner join projects p on p.project_id = t.project_id where  t.is_active = 'Y' and p.active = 'true'")
+	  @Query(value = "select t from Team t inner join Project p on p.projectId = t.projectId where  t.isActive = 'Y' and p.active = 'true'")
 		List<Team> findAllActiveTeamsOfShankhInternalProjects();
 		
 	

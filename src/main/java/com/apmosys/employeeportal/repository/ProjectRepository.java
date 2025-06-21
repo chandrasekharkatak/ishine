@@ -114,13 +114,13 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getEmployeesByPoProjectId(String poProjectId);
 	
 	
-	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true' and po_project_id IS NULL")
+	 @Query(value ="select projectId from Project where active = 'true' and poProjectId IS NULL")
 	 Set<Integer> findAllActiveInternalProjectIds();
 	 
 	 @Query(value ="select p.projectId from Project p where p.active = 'true' and p.poProjectId IS NOT NULL")
 	 Set<Integer> findAllActiveShankhProjectIds();
 	 
-	 @Query(nativeQuery = true,value ="select project_id from projects where active = 'true'")
+	 @Query(value ="select p.projectId from Project p where p.active = 'true'")
 	 Set<Integer> findAllActiveShankhInternalProjectIds();
 	 
 //	@Query(nativeQuery = true)
@@ -628,35 +628,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
   Set<Integer> findActiveInternalProjectIdsByProjectOverhead(@Param("empId") Long empId);
 	
 	
-	@Query(nativeQuery = true,value ="(\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
-			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL AND pm.project_manager_id = :empId\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN project_overhead_mapping po ON p.project_id = po.project_id\n"
-			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL AND po.project_overhead_id = :empId\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN teams t ON p.project_id = t.project_id\n"
-			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL\n"
-			+ "          AND t.is_active = 'Y' AND t.spoc_id = :empId\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN teams t ON p.project_id = t.project_id\n"
-			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL\n"
-			+ "          AND t.is_active = 'Y' AND t.team_lead_id = :empId\n"
-			+ "    )")
-	Set<Integer> findInternalProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
+	
 	
 	
 	@Query(nativeQuery = true,value ="(\n"
@@ -689,35 +661,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "    )")
 	Set<Integer> findShankhProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
 	
-	@Query(nativeQuery = true,value="(\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
-			+ "        WHERE p.active = 'true'  AND pm.project_manager_id = 14\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN project_overhead_mapping po ON p.project_id = po.project_id\n"
-			+ "        WHERE p.active = 'true' AND po.project_overhead_id = 14\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN teams t ON p.project_id = t.project_id\n"
-			+ "        WHERE p.active = 'true' \n"
-			+ "          AND t.is_active = 'Y' AND t.spoc_id = 14\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN teams t ON p.project_id = t.project_id\n"
-			+ "        WHERE p.active = 'true'\n"
-			+ "          AND t.is_active = 'Y' AND t.team_lead_id = 14\n"
-			+ "    )")
-	Set<Integer> findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
+
 	
 	
 	
