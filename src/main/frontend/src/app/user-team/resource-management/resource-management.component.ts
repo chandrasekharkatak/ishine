@@ -185,8 +185,8 @@ export class ResourceManagementComponent implements OnInit {
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   filters: any = {};
   isSearchEnabled: boolean = false;
-  projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
-
+  // projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
+  projectColumns: any[] = ["blank", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status", "draftStatus"];
 
   projectDetails: any = [];
   copyDepartment: any = [];
@@ -471,7 +471,7 @@ export class ResourceManagementComponent implements OnInit {
     if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") &&
       !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")) {
       await this.getAllDepartmentsFromId();
-      // this.projectFilterDTO.isHod = true
+      this.projectFilterDTO.isHod = true
     }
     else {
       await this.getAllDepartments();
@@ -532,6 +532,8 @@ export class ResourceManagementComponent implements OnInit {
 
     await this.getEmployeesWithoutBillability(this.projectFilterDTO);
 
+    this.fetchTimesheetMissingCount();
+
     await this.RbacShankhProjects(this.projectFilterDTO);
 
     await this.RbacAllShankhInternalProjects(this.projectFilterDTO);
@@ -543,13 +545,13 @@ export class ResourceManagementComponent implements OnInit {
     await this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
     // const deptName = String(this.currentUser.departmentName).trim();
     // const empRole = String(this.currentUser.employeeRole).trim();
-    // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
-    // !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
-    //   await this.getAllDepartmentsFromId();
-    // }
-    // else{
-    //   await this.getAllDepartments();
-    // }
+    if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
+    !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
+      await this.getAllDepartmentsFromId();
+    }
+    else{
+      await this.getAllDepartments();
+    }
   }
 
 
@@ -2206,6 +2208,9 @@ exportToExcel(id: any): void {
     else if (catagory === 'OnBench') {
       this.employeeData = this.employeeBenchRepot;
       this.catagory = catagory;
+    } else if (catagory === 'Unfilled Timesheet Projects') {
+      this.employeeData = this.unfilledTimesheetProjectList;
+      this.catagory = catagory;
     }
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
@@ -2219,6 +2224,89 @@ exportToExcel(id: any): void {
     this.projectObj2 = teamId;
 
   }
+
+
+ ranges = [
+  { label: '3M', value: 3, unit: 'M' },
+  { label: '6M', value: 6, unit: 'M' },
+  { label: '1Y', value: 1, unit: 'Y' }
+];
+
+selectedRange = this.ranges[0];
+
+selectRange(range: any) {
+  this.selectedRange = range;
+  this.fetchTimesheetMissingCount();
+}
+
+
+unfilledTimesheetProjectList:any[] =[];
+unfilledTimesheetProjectListCount:any;
+fetchTimesheetMissingCount() {
+  const today = new Date();
+  const fromDate = new Date(today);
+
+  if (this.selectedRange.unit === 'M') {
+    fromDate.setMonth(fromDate.getMonth() - this.selectedRange.value);
+  } else if (this.selectedRange.unit === 'Y') {
+    fromDate.setFullYear(fromDate.getFullYear() - this.selectedRange.value);
+  }
+
+  const payload = {
+    empId: this.currentUser.empId,
+    fromDate: fromDate.toISOString().split('T')[0],
+    toDate: today.toISOString().split('T')[0]
+  };
+
+  console.log('non compliance:', payload);
+   this.resourceManagementService.getProjectsunfilledTimesheet(payload).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        console.log(response.serviceResponse);
+        this.unfilledTimesheetProjectList = response.serviceResponse;
+        this.unfilledTimesheetProjectListCount = this.unfilledTimesheetProjectList.length;
+        console.log("this.internalMappedEmployees", this.internalMappedEmployees)
+      } else {
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    });
+
+}
+
+openTimesheetPopup() {
+  // Load and show modal with data for selectedRange
+  // this.modalService.openTimesheetModal(this.selectedRange);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   pageNo = 1;
   handlePageChanges(event) {

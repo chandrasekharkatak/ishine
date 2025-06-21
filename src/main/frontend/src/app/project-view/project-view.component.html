@@ -97,7 +97,6 @@
                                             [checked]="areAllTeamsSelected()"
                                             (change)="toggleAllTeams($event)">Team Name
                                         </th>
-                                        <th></th>
                                         <th scope="col" class="info-label" mat-sort-header="employeeName|string">
 
                                             Team Member
@@ -115,65 +114,60 @@
                                     [class.blue-bg]="isSearchEnabled" (onSearch)="onSearch($event);page=1"></tr> -->
                                 </thead>
                                 <tbody>
-                                    <tr
-                                        *ngIf="teamMemberList?.length === 0 || (teamMemberList| colFilter:filters:false).length == 0">
-                                        <td colspan="7" class="text-center info-label">No details to display...</td>
+                                    <tr *ngIf="teamMemberList?.length === 0 || (teamMemberList | colFilter:filters:false).length == 0">
+                                        <td colspan="9" class="text-center info-label">No details to display...</td>
                                     </tr>
 
-                                    <ng-container
-                                        *ngFor="let team of teamMemberList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 10, currentPage: page },  let i = index">
+                                    <ng-container *ngFor="let team of teamMemberList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                                         <ng-container *ngIf="team.teamMemberDetails && team.teamMemberDetails.length > 0">
-                                            <ng-container
-                                                *ngFor="let member of team.teamMemberDetails | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 10, currentPage: page }, let j = index">
-                                                <tr>
-                                                    <td *ngIf="j === 0" [attr.rowspan]="team.teamMemberDetails?.length">{{ i + 1
-                                                        }}</td>
-                                                  <td *ngIf="j === 0" [attr.rowspan]="team.employees?.length">
-                                                    {{ team.spoc ? team.spoc : 'NA' }}
-                                                  </td>
-                                                  <td *ngIf="j === 0" [attr.rowspan]="team.employees?.length">
-                                                    {{ team.teamLeadName ? team.teamLeadName : 'NA' }}
-                                                  </td>
-                                                   <td *ngIf="j === 0" [attr.rowspan]="team.teamMemberDetails?.length">
-                                                    <input type="checkbox"
-                                                           [checked]="isTeamFullySelected(team)"
-                                                           (change)="toggleTeamSelection(team, $event)">
-                                                    {{ team.teamName }}
-                                                  </td>
-                                                    <td>
-                                                        <input type="checkbox" [(ngModel)]="member.selected"
-                                                            (change)="onSelectionChange(team,member)"
-                                                        id="clickablefor360" [navigateToEmployee360]="member.emp360"
-                                                        style="cursor: pointer;" title="Click to view Employee 360">
-                                                        {{ member.employeeName }}
-                                                    </td>
-                                                    <td>{{ member.billableType || 'N/A' }}</td>
-                                                    <td>{{ member.startDate | date:'dd-MM-yyyy' }}</td>
-                                                    <td>{{ member.employeeRole }}</td>
-                                                    <td>
-                                                        <button *ngIf="team.active !== 0"
-                                                            class="btn btn-sm btn-outline-primary mt-1" title="Edit"
-                                                            (click)="editProjectInfo(team)" type="submit">
-                                                            <em class="fa fa-edit"></em>
-                                                        </button>&nbsp;
-                                                        <button class="btn btn-sm btn-outline-primary mt-1" title="View"
-                                                            (click)="viewProjectInfo(team)" type="submit">
-                                                            <em class="fa fa-eye"></em>
-                                                        </button>&nbsp;
-                                                        <!-- <button *ngIf="team.active !== 0"
-                                                            class="btn btn-sm btn-outline-danger mt-1" title="Delete"
-                                                            (click)="deleteResourceModal(delete_modal_template, team, member)"
-                                                            type="submit">
-                                                            <em class="fa fa-trash"></em>
-                                                        </button>&nbsp; -->
-                                                    </td>
-                                                </tr>
-                                            </ng-container>
-                                        </ng-container>
+                                        <ng-container *ngFor="let member of team.teamMemberDetails; let j = index">
+                                            <tr>
+                                            <!-- These cells span only once per team -->
+                                            <td *ngIf="j === 0" [attr.rowspan]="team.teamMemberDetails.length">{{ i + 1 }}</td>
+                                            <td *ngIf="j === 0" [attr.rowspan]="team.teamMemberDetails.length">
+                                                {{ team.spoc ? team.spoc : 'NA' }}
+                                            </td>
+                                            <td *ngIf="j === 0" [attr.rowspan]="team.teamMemberDetails.length">
+                                                {{ team.teamLeadName ? team.teamLeadName : 'NA' }}
+                                            </td>
+                                            <td *ngIf="j === 0" [attr.rowspan]="team.teamMemberDetails.length">
+                                                <input type="checkbox"
+                                                    [checked]="isTeamFullySelected(team)"
+                                                    (change)="toggleTeamSelection(team, $event)">
+                                                {{ team.teamName }}
+                                            </td>
 
+                                            <!-- These cells are specific to each member -->
+                                            <td>
+                                                <input type="checkbox" [(ngModel)]="member.selected"
+                                                    (change)="onSelectionChange(team, member)"
+                                                    id="clickablefor360" [navigateToEmployee360]="member.emp360"
+                                                    style="cursor: pointer;" title="Click to view Employee 360">
+                                                {{ member.employeeName }}
+                                            </td>
+                                            <td>{{ member.billableType || 'N/A' }}</td>
+                                            <td>{{ member.startDate | date:'dd-MM-yyyy' }}</td>
+                                            <td>{{ member.employeeRole }}</td>
+                                            <td>
+                                                <button *ngIf="team.active !== 0"
+                                                        class="btn btn-sm btn-outline-primary mt-1" title="Edit"
+                                                        (click)="editProjectInfo(team)" type="submit">
+                                                <em class="fa fa-edit"></em>
+                                                </button>&nbsp;
+                                                <button class="btn btn-sm btn-outline-primary mt-1" title="View"
+                                                        (click)="viewProjectInfo(team)" type="submit">
+                                                <em class="fa fa-eye"></em>
+                                                </button>
+                                            </td>
+                                            </tr>
+                                        </ng-container>
+                                        </ng-container>
                                     </ng-container>
-                                    <pagination-controls class="my-pagination" [hidden]="teamMemberList.length == 0"
-                                        (pageChange)="handlePageChange($event)"></pagination-controls>
+
+                                    <pagination-controls class="my-pagination"
+                                                        [hidden]="teamMemberList.length == 0"
+                                                        (pageChange)="handlePageChange($event)">
+                                    </pagination-controls>
                                 </tbody>
                             </table>
                         </div>

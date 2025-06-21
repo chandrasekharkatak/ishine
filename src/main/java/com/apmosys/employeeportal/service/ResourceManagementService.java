@@ -59,7 +59,11 @@ import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.GetPreviousDefaultProjectDetailsDTO;
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateTeamDTO;
+import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForEmployeeDTO;
+import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
+import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForTeamDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.NonComplianceProjects;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
@@ -2531,10 +2535,10 @@ public class ResourceManagementService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append(
 				"ProjectId : " + resourceManagementDTO.getId() + ", EmpId : " + resourceManagementDTO.getEmpId());
-
+		
 		try {
 			Project projectObj = null;
-			if (resourceManagementDTO.getProjectType().equals("Internal"))
+			if (resourceManagementDTO.getProjectType().equals("Internal") || resourceManagementDTO.getProjectType().equals("Bench") || resourceManagementDTO.getProjectType().equals("InternalRNDProducts") )
 				projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
 			else
 				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
@@ -2566,7 +2570,7 @@ public class ResourceManagementService {
 
 						// Send Project/Team detail JSON to PoPortal
 						ServiceResponse poPortalResponse = null;
-						if (!resourceManagementDTO.getProjectType().equals("Internal")) {
+						if (!resourceManagementDTO.getProjectType().equals("Internal") && !resourceManagementDTO.getProjectType().equals("Bench") && !resourceManagementDTO.getProjectType().equals("InternalRNDProducts")) {
 							poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
 
 							if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
@@ -2595,7 +2599,7 @@ public class ResourceManagementService {
 								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 							}
 						} else {
-							// else added by anurag
+							
 							List<EmployeeTeamMap> teamMembersToActivate = employeeTeamMapRepository
 									.findByProjectIdAndActive(projectObj.getProjectId(), 2L);
 
@@ -2603,7 +2607,7 @@ public class ResourceManagementService {
 								teamMembersToActivate.forEach(teamMember -> teamMember.setActive(1L));
 								employeeTeamMapRepository.saveAll(teamMembersToActivate);
 							}
-
+						
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse(
 									"Project Approved but Internal project does not sync with PO portal.");
@@ -4811,6 +4815,9 @@ public class ResourceManagementService {
 	}
 	
 	
+	
+	
+	
 	public ServiceResponse nEWgetAllShankhProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
 		ServiceResponse response = new ServiceResponse();
 		if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
@@ -4976,6 +4983,155 @@ public class ResourceManagementService {
 		}
 		return response;
 	}
+	
+	public ServiceResponse getAllUnfilledTimesheetsProjects(NonComplianceProjects nonComplianceProjects) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+			Long empIdd = nonComplianceProjects.getEmpId();
+			Employee employee = employeeRepository.findByEmpId(empIdd);
+		    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+		    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
+
+		    String departmentName = department.getName();
+		    String role = jobRole.getEmployeeRole();
+		    String name = jobRole.getName();
+
+		    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+		    Set<Integer> allshankhInternalProjectIds = new HashSet<>();
+
+		    
+		    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+		            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+		            || specialDepartments.contains(departmentName)) {
+		    	allshankhInternalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
+		    } else {
+		       
+		    	allshankhInternalProjectIds = projectRepository.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
+
+		       
+		        if (departmentRepository.existsByHodId(empIdd)) {
+		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empIdd);
+		            List<Team> activeTeams = teamRepository.findAllActiveTeamsOfShankhInternalProjects();
+
+		            Set<Integer> hodProjects = activeTeams.stream().filter(team -> {
+		                String teamDeptIdsStr = team.getDeptIds();
+		                if (teamDeptIdsStr == null || teamDeptIdsStr.isBlank()) return false;
+
+		                List<Long> teamDeptIds = Arrays.stream(teamDeptIdsStr.split(","))
+		                    .map(String::trim)
+		                    .filter(s -> !s.isEmpty())
+		                    .map(Long::parseLong)
+		                    .collect(Collectors.toList());
+
+		                return teamDeptIds.stream().anyMatch(deptIds::contains);
+		            }).map(Team::getProjectId).collect(Collectors.toSet());
+
+		            allshankhInternalProjectIds.addAll(hodProjects);
+		        }
+		    }
+		    
+		    List<Object[]> rawData = employeeTeamMapRepository
+					.findNonComplianceProjects(allshankhInternalProjectIds,nonComplianceProjects.getFromDate(),nonComplianceProjects.getToDate());
+		    
+		    System.err.println("lalalacount"+rawData.size())    ;
+		    Map<Long, GetProjectToEmployeeReportForProjectDTO> projectMap = new HashMap<>();
+
+		    for (Object[] row : rawData) {
+
+		        Long projectId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
+		        String projectName = row[1] != null ? row[1].toString() : null;
+		        String apmosysRm = row[2] != null ? row[2].toString() : null;
+		        String clientRm = row[3] != null ? row[3].toString() : null;
+		        String poStartDate = row[4] != null ? row[4].toString() : null;
+		        String poEndDate = row[5] != null ? row[5].toString() : null;
+		        String poNo = row[6] != null ? row[6].toString() : null;
+		        String poProjectType = row[7] != null ? row[7].toString() : null;
+		        String clientName = row[8] != null ? row[8].toString() : null;
+
+		        Long projectManagerId = row[9] != null ? Long.parseLong(row[9].toString()) : null;
+		        String projectManagerName = row[10] != null ? row[10].toString() : null;
+
+		        Long teamId = row[11] != null ? Long.parseLong(row[11].toString()) : null;
+		        String teamName = row[12] != null ? row[12].toString() : null;
+
+		        Long empId = row[13] != null ? Long.parseLong(row[13].toString()) : null;
+		        String employeeName = row[14] != null ? row[14].toString() : null;
+		        String jobRoleName = row[15] != null ? row[15].toString() : null;
+		        String deptName = row[16] != null ? row[16].toString() : null;
+		        String mobileNoStr = row[17] != null ? row[17].toString() : null;
+		        Long mobileNo = mobileNoStr != null ? Long.parseLong(mobileNoStr) : null;
+		        String email = row[18] != null ? row[18].toString() : null;
+		        String billable = row[19] != null ? row[19].toString() : null;
+		        String billableType = row[20] != null ? row[20].toString() : null;
+		        String effectiveStartDate = row[21] != null ? row[21].toString() : null;
+		        Long employmentId =  row[22] != null ? Long.parseLong(row[22].toString()) : null;
+
+		        GetProjectToEmployeeReportForProjectDTO projectDTO = projectMap.computeIfAbsent(projectId, id -> {
+		            GetProjectToEmployeeReportForProjectDTO dto = new GetProjectToEmployeeReportForProjectDTO();
+		            dto.setProjectId(id);
+		            dto.setProjectName(projectName);
+		            dto.setApmosysRM(apmosysRm);
+		            dto.setClientRM(clientRm);
+		            dto.setPoStartDate(poStartDate);
+		            dto.setPoEndDate(poEndDate);
+		            dto.setPoNo(poNo);
+		            dto.setPoProjectType(poProjectType);
+		            dto.setProjectManagers(new ArrayList<>());
+		            dto.setTeamDetails(new ArrayList<>());
+		            return dto;
+		        });
+
+		        boolean pmExists = projectDTO.getProjectManagers().stream()
+		            .anyMatch(pm -> pm.getProjectManagerId().equals(projectManagerId));
+		        if (!pmExists && projectManagerId != null) {
+		            ProjectManagersDTO pmDTO = new ProjectManagersDTO();
+		            pmDTO.setProjectManagerId(projectManagerId);
+		            pmDTO.setProjectManagerName(projectManagerName);
+		            projectDTO.getProjectManagers().add(pmDTO);
+		        }
+
+		        GetProjectToEmployeeReportForTeamDTO teamDTO = projectDTO.getTeamDetails().stream()
+		            .filter(t -> t.getTeamId().equals(teamId))
+		            .findFirst()
+		            .orElseGet(() -> {
+		                GetProjectToEmployeeReportForTeamDTO dto = new GetProjectToEmployeeReportForTeamDTO();
+		                dto.setTeamId(teamId);
+		                dto.setTeamName(teamName);
+		                dto.setMappedEmployeeDetails(new ArrayList<>());
+		                projectDTO.getTeamDetails().add(dto);
+		                return dto;
+		            });
+
+		        GetProjectToEmployeeReportForEmployeeDTO empDTO = new GetProjectToEmployeeReportForEmployeeDTO();
+		        empDTO.setEmpId(empId);
+		        empDTO.setEmployeementId(employmentId);        
+		        
+		        
+		        empDTO.setEmployeeName(employeeName);
+		        empDTO.setJobRole(jobRoleName);
+		        empDTO.setDeptName(deptName);
+		        empDTO.setMobileNo(mobileNo);
+		        empDTO.setEmail(email);
+		        empDTO.setBillable(billable);
+		        empDTO.setBillableType(billableType);
+		        empDTO.setEffectiveStartDate(effectiveStartDate);
+		        empDTO.setLastFilledTimesheet(null);
+
+		        teamDTO.getMappedEmployeeDetails().add(empDTO);
+		    }
+
+		    List<GetProjectToEmployeeReportForProjectDTO> finalResult = new ArrayList<>(projectMap.values());
+		    response.setServiceResponse(finalResult);
+		    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		}catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Error: " + e.getMessage());
+		}
+		return response;
+	}
+		    
 	
 	public ServiceResponse nEWgetAllShankhInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
 		ServiceResponse response = new ServiceResponse();

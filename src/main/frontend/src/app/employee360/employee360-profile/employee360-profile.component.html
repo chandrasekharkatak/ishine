@@ -1,26 +1,26 @@
 <div class="container-fluid">
     <div class="row justify-content-between mb-3" style="    margin-top: 2%;">
-        <a class="nav-link user-info__tab-item__link active" id="details-tab" data-toggle="tab"
-                    
-
-        href="#details" role="tab" aria-controls="home" style="font-size: 27px;
+        <a class="nav-link user-info__tab-item__link active" id="details-tab" data-toggle="tab" href="#details"
+            role="tab" aria-controls="home" style="font-size: 27px;
     color: #231e8d;" aria-selected="true">Employee Details
-   
-</a>
 
-        <button *ngIf="!isUpdation && userMapping.update_profile " type="submit" class="btn btn-primary btn-sm ml-auto" (click)="showUpdateForm(currentEmployeeInfo)">Update Profile</button>
+        </a>
+
+        <button *ngIf="!isUpdation && userMapping.update_profile " type="submit" class="btn btn-primary btn-sm ml-auto"
+            (click)="showUpdateForm(currentEmployeeInfo)">Update Profile</button>
         <!-- <button *ngIf="!isUpdation && userMapping.update_profile" type="submit" class="btn btn-primary btn-sm ml-auto" (click)="showUpdateProfile()">Update Profile</button> -->
-        <button *ngIf="isUpdation && userMapping.view_profile" type="submit" class="btn btn-primary btn-sm ml-auto" (click)="showViewProfile()">View Profile</button>
+        <button *ngIf="isUpdation && userMapping.view_profile" type="submit" class="btn btn-primary btn-sm ml-auto"
+            (click)="showViewProfile()">View Profile</button>
     </div>
     <div class="row">
-       
-        <div *ngIf="!isUpdation && userMapping.view_profile" class="card">
-         
 
-            <ul >
+        <div *ngIf="!isUpdation && userMapping.view_profile" class="card">
+
+
+            <ul>
                 <!-- <li class="nav-item user-info__tab-item">
                     -->
-                  
+
                 <!-- </li> -->
                 <!-- <li class="nav-item user-info__tab-item">
                     <a class="nav-link user-info__tab-item__link" id="timeline-tab" data-toggle="tab" href="#timeline"
@@ -38,9 +38,9 @@
                     <a class="nav-link user-info__tab-item__link" id="activities-tab" data-toggle="tab"
                         href="#activities" role="tab" aria-controls="profile" aria-selected="false">Activities</a>
                 </li> -->
-               
+
             </ul>
-            
+
 
 
 
@@ -50,7 +50,7 @@
                     aria-labelledby="details-tab">
                     <app-accordion>
                         <app-accordion-item class="acc-content" title="Basic Information">
-                            
+
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">
@@ -68,7 +68,8 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date of birth</p>
-                                            <p class="info-text">{{currentEmployeeInfo.dateOfBirth | date:'dd-MM-yyyy'}}</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfBirth | date:'dd-MM-yyyy'}}
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -82,7 +83,8 @@
                                             <p class="info-label">Employee Id</p>
                                             <!-- <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p> -->
                                             <!-- <p class="info-text info-highlight">{{ currentEmployeeInfo.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{currentEmployeeInfo.employeementId}}</p>                                               -->
-                                            <p class="info-text info-highlight">{{utilityService.getFormattedEmployeeId(currentEmployeeInfo)}}</p>
+                                            <p class="info-text info-highlight">
+                                                {{utilityService.getFormattedEmployeeId(currentEmployeeInfo)}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -166,7 +168,8 @@
                             </div>
                         </app-accordion-item>
 
-                        <app-accordion-item *ngIf="currentEmployeeInfo.maritalStatus == 'married'" class="acc-content" title="Family Information">
+                        <app-accordion-item *ngIf="currentEmployeeInfo.maritalStatus == 'married'" class="acc-content"
+                            title="Family Information">
 
                             <div class="container-fluid">
                                 <div class="row">
@@ -190,7 +193,7 @@
                                             <p class="info-text">{{currentEmployeeInfo.child2}}</p>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.child3 != null">
                                         <div class="info-wrapper">
                                             <p class="info-label">Child3</p>
@@ -201,7 +204,7 @@
                                 </div>
                             </div>
                         </app-accordion-item>
-                       
+
                         <app-accordion-item class="acc-content" title="Contact Information">
                             <div class="container-fluid">
                                 <div class="row">
@@ -214,7 +217,8 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Landline No.</p>
-                                            <p class="info-text" *ngIf="currentEmployeeInfo.landline != null">022-{{currentEmployeeInfo.landline}}</p>
+                                            <p class="info-text" *ngIf="currentEmployeeInfo.landline != null">
+                                                022-{{currentEmployeeInfo.landline}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -262,7 +266,8 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label ">Emergency Contact Person</p>
-                                            <p class="info-text info-highlight">{{currentEmployeeInfo.emergencyContactPerson}}</p>
+                                            <p class="info-text info-highlight">
+                                                {{currentEmployeeInfo.emergencyContactPerson}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -287,7 +292,8 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Graduation</p>
-                                            <p class="info-text info-highlight">{{currentEmployeeInfo.graduationType}}</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.graduationType}}
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -299,7 +305,8 @@
                                     <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.pursuing == 'No'">
                                         <div class="info-wrapper">
                                             <p class="info-label">Year of Passing</p>
-                                            <p class="info-text info-highlight">{{currentEmployeeInfo.yearOfPassing}}</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.yearOfPassing}}
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -310,8 +317,11 @@
                                     </div>
                                 </div>
                                 <hr>
-                                <h4 class="info-label" *ngIf="currentEmployeeInfo.certifications && currentEmployeeInfo.certifications.length != null" >Certifications</h4>
-                                <div *ngFor="let certification of currentEmployeeInfo.certifications;let i = index" class="row">
+                                <h4 class="info-label"
+                                    *ngIf="currentEmployeeInfo.certifications && currentEmployeeInfo.certifications.length != null">
+                                    Certifications</h4>
+                                <div *ngFor="let certification of currentEmployeeInfo.certifications;let i = index"
+                                    class="row">
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Certification Name - {{i+1}}</p>
@@ -333,13 +343,15 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date of completion</p>
-                                            <p class="info-text info-highlight">{{certification.dateOfCompletion | date:'dd-MM-yyyy'}}</p>
+                                            <p class="info-text info-highlight">{{certification.dateOfCompletion |
+                                                date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Certification Number</p>
-                                            <p class="info-text info-highlight">{{certification.certificationNumber}}</p>
+                                            <p class="info-text info-highlight">{{certification.certificationNumber}}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -352,7 +364,8 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date Of Joining</p>
-                                            <p class="info-text">{{currentEmployeeInfo.dateOfJoining | date:'dd-MM-yyyy'}}</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfJoining |
+                                                date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -362,22 +375,27 @@
                                             </p>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.employmentstatus != 'Probation'">
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="currentEmployeeInfo.employmentstatus != 'Probation'">
                                         <div class="info-wrapper">
                                             <p class="info-label">Notice Period</p>
                                             <p class="info-text">{{currentEmployeeInfo.noticePeriod}} Days</p>
                                         </div>
                                     </div>
-                                    <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'" class="col-md-4 mb-0">
+                                    <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'"
+                                        class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date Of Resign</p>
-                                            <p class="info-text">{{currentEmployeeInfo.dateOfResign | date:'dd-MM-yyyy'}}</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfResign |
+                                                date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
-                                    <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'" class="col-md-4 mb-0">
+                                    <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'"
+                                        class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date Of Relieving</p>
-                                            <p class="info-text">{{currentEmployeeInfo.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfRelieving |
+                                                date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -389,11 +407,13 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Reporting Manager</p>
-                                            <p class="info-text info-highlight">{{currentEmployeeInfo.reportingManagerName}}
+                                            <p class="info-text info-highlight">
+                                                {{currentEmployeeInfo.reportingManagerName}}
                                             </p>
                                         </div>
                                     </div>
-                                    <div *ngIf="currentEmployeeInfo.reportingManagerName != null && currentEmployeeInfo.reportingManagerName != ''" class="col-md-4 mb-0">
+                                    <div *ngIf="currentEmployeeInfo.reportingManagerName != null && currentEmployeeInfo.reportingManagerName != ''"
+                                        class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label">Approvals To</label>
@@ -428,7 +448,8 @@
                                     <div *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Total Experience</p>
-                                            <p class="info-text info-highlight">{{currentEmployeeInfo.totalExperience}}</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.totalExperience}}
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -455,9 +476,12 @@
                         </app-accordion-item>
 
                         <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
-                        <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced' && currentEmployeeInfo.previousEmploymentList && currentEmployeeInfo.previousEmploymentList !==0" class="acc-content" title="Previous Employment Information">
+                        <app-accordion-item
+                            *ngIf="currentEmployeeInfo.experience == 'Experienced' && currentEmployeeInfo.previousEmploymentList && currentEmployeeInfo.previousEmploymentList !==0"
+                            class="acc-content" title="Previous Employment Information">
                             <div class="container-fluid">
-                                <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
+                                <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index"
+                                    class="row">
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Employer Name</p>
@@ -467,20 +491,23 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date Of Joining</p>
-                                            <p class="info-text info-highlight">{{previousEmployer.dateOfJoining | date:'dd-MM-yyyy'}}
+                                            <p class="info-text info-highlight">{{previousEmployer.dateOfJoining |
+                                                date:'dd-MM-yyyy'}}
                                             </p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date of Relieving</p>
-                                            <p class="info-text info-highlight">{{previousEmployer.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
+                                            <p class="info-text info-highlight">{{previousEmployer.dateOfRelieving |
+                                                date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Years of Experience</p>
-                                            <p class="info-text info-highlight">{{previousEmployer.yearsOfExperience}}</p>
+                                            <p class="info-text info-highlight">{{previousEmployer.yearsOfExperience}}
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -565,15 +592,18 @@
                                 </div>
                             </div>
                         </app-accordion-item>
-                        <app-accordion-item class="acc-content" *ngIf="currentEmployeeInfo.documentList && currentEmployeeInfo.documentList.length !==0" title="Employee Documents">
-                                <div class="container-fluid">
-                                    <div class="row flex-column px-4" *ngFor="let document of currentEmployeeInfo.documentList;let i = index">
-                                        <div class="info-wrapper">
-                                            <p class="info-label">{{document.documentType}}</p>
-                                        </div>
-                                        <img class="d-block" id="docPreview{{i+1}}" alt="Document Preview"/>
+                        <app-accordion-item class="acc-content"
+                            *ngIf="currentEmployeeInfo.documentList && currentEmployeeInfo.documentList.length !==0"
+                            title="Employee Documents">
+                            <div class="container-fluid">
+                                <div class="row flex-column px-4"
+                                    *ngFor="let document of currentEmployeeInfo.documentList;let i = index">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">{{document.documentType}}</p>
                                     </div>
+                                    <img class="d-block" id="docPreview{{i+1}}" alt="Document Preview" />
                                 </div>
+                            </div>
                         </app-accordion-item>
 
                         <app-accordion-item class="acc-content" title="My Asset(s)">
@@ -581,7 +611,9 @@
                                 <div class="row flex-column px-4" *ngFor="let asset of allAssetList; let i = index">
                                     <div class="info-wrapper">
                                         <p class="info-label">{{ asset.assestName }}</p>
-                                        <p *ngIf="asset.isAssigned == 'true'" class="info-text">Assigned - <span *ngIf="asset.assetDetail">{{ asset.assetDetail }}</span><span *ngIf="!asset.assetDetail">Details not available</span></p>
+                                        <p *ngIf="asset.isAssigned == 'true'" class="info-text">Assigned - <span
+                                                *ngIf="asset.assetDetail">{{ asset.assetDetail }}</span><span
+                                                *ngIf="!asset.assetDetail">Details not available</span></p>
                                         <p *ngIf="asset.isAssigned == 'false'" class="info-text">Not Assigned</p>
                                     </div>
                                 </div>
@@ -592,15 +624,15 @@
                                 </div>
                             </ng-template>
                         </app-accordion-item>
-                        
-                        
+
+
 
                     </app-accordion>
 
                 </div>
             </div>
         </div>
-    </div>    
+    </div>
     <!-- <button *ngIf="!isUpdation && userMapping.update_profile" type="submit" class="btn btn-primary btn-sm ml-auto" (click)="showUpdateForm(currentEmployeeInfo)">Update Profile</button> -->
 </div>
 
@@ -655,7 +687,7 @@
                             <div class="container-fluid">
                                 <div class="row">
                                     <!-- <div class="col-md-4 mb-0"> -->
-                                        <!-- <div class="form-group">
+                                    <!-- <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Is Employee a Consultant</label>
                                             <select class="form-control" [(ngModel)]="employeeObj.isConsultant" 
                                                     [disabled]="isUpdation && (employeeObj.isConsultant == null || isUpdation)">
@@ -674,8 +706,7 @@
                                                     <span class="text-danger">*</span>Employee Type</label>
 
                                                 <!-- Select for creation mode -->
-                                                <select class="form-control"
-                                                    [(ngModel)]="employeeObj.employeeType"
+                                                <select class="form-control" [(ngModel)]="employeeObj.employeeType"
                                                     (ngModelChange)="onEmployeeTypeChange($event)">
                                                     <option value="" disabled>Select</option>
                                                     <option value="Regular">Regular</option>
@@ -691,8 +722,10 @@
                                                 <label class="info-label"><span class="text-danger">*</span>Emp
                                                     Id</label>
 
-                                                <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)" [disabled]="isUpdation">
+                                                <input type="text" (keypress)="fieldRestictCharacter($event)"
+                                                    class="form-control" maxlength="8" autocomplete="none"
+                                                    [(ngModel)]="employeeObj.employeementId"
+                                                    (blur)="checkEmployeementId(alert_message)" [disabled]="isUpdation">
                                                 <!-- <input *ngIf="!isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
                                                 [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> -->
                                                 <!-- <input *ngIf="!isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
@@ -819,7 +852,8 @@
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label">Referred Name</label>
-                                                <input type="text" class="form-control" autocomplete="none" (keypress)="RestrictFullName($event)"
+                                                <input type="text" class="form-control" autocomplete="none"
+                                                    (keypress)="RestrictFullName($event)"
                                                     [(ngModel)]="employeeObj.referedName">
                                             </div>
                                         </div>
@@ -955,7 +989,7 @@
                                         </div>
                                     </div>
 
-                                    
+
 
 
 
@@ -1230,7 +1264,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-3 mb-0">
+                                    <!-- <div class="col-md-3 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span
@@ -1243,11 +1277,11 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
 
                                     <!-- as per discussion with pratima ma'am on 17/05/2024 07:10 PM -->
 
-                                    <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'No'">
+                                    <!-- <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'No'">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Billable
@@ -1263,9 +1297,9 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
 
-                                    <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'Yes'">
+                                    <!-- <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'Yes'">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Billable
@@ -1277,7 +1311,54 @@
                                                 </select>
                                             </div>
                                         </div>
+                                    </div> -->
+
+                                    <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.defaultProjectName ">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Default
+                                                    Project Name</label>
+
+                                                <input type="text" class="form-control"
+                                                    [(ngModel)]="employeeObj.defaultProjectName"
+                                                    [disabled]="isUpdation">
+                                            </div>
+                                        </div>
                                     </div>
+                                    <div class="col-md-4 mb-0" *ngIf="isUpdation">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span
+                                                        class="text-danger">*</span>Billable<span
+                                                        class="custom-tooltip-wrapper">
+                                                        <i class="fa fa-info-circle info-icon"></i>
+                                                        <span class="custom-tooltip-text">Billability is as per Billable
+                                                            Type</span>
+                                                    </span></label>
+
+                                                <input type="text" class="form-control"
+                                                    [(ngModel)]="employeeObj.billable" [disabled]="isUpdation">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0" *ngIf="isUpdation">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Billable
+                                                    Type <span class="custom-tooltip-wrapper">
+                                                        <i class="fa fa-info-circle info-icon"></i>
+                                                        <span class="custom-tooltip-text">
+                                                            The employee's billable type cannot be updated here.<br>
+                                                            &nbsp;Please update it in the Employee Report or RMG page.
+                                                        </span>
+                                                    </span></label>
+
+                                                <input type="text" class="form-control"
+                                                    [(ngModel)]="employeeObj.billableType" [disabled]="isUpdation">
+                                            </div>
+                                        </div>
+                                    </div>
+
 
                                     <div class="col-md-4 mb-0" *ngIf="isUpdation">
                                         <div class="info-wrapper">
@@ -1323,14 +1404,14 @@
                             </div>
                         </app-accordion-item>
 
- 
+
                     </app-accordion>
                 </div>
             </div>
             <div class="row mt-3">
                 <div class="col-md-12 d-flex justify-content-end">
-                  
-                    <button *ngIf="isUpdation && userMapping.update_profile" type="submit" 
+
+                    <button *ngIf="isUpdation && userMapping.update_profile" type="submit"
                         class="btn btn-primary btn-sm mx-1" (click)="onUpdateEmployee(alert_message)">Update
                         Employee</button>
                 </div>
@@ -1383,19 +1464,14 @@
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let manager of managerAndAbove " value="{{manager.managerId}}">{{manager.managerName}}</option>
                             </select> -->
-                            <mat-select ngxMatSelect class="form-control"
-                                  #managerSelect="ngxMatSelect"
-                                  [displayMember]="'managerName'"
-                                  [valueMember]="'managerId'"
-                                  [source]="managerAndAbove"
-                                  [useInfiniteScroll]="true"
-                                  [multiple]="false"
-                                  [(ngModel)]="reportee.managerId"
-                                  (selectionChange)="managerUpdate(reportee,update_manager_temp)"
-                                  >
-                                  <mat-option [value]="manager.managerId" *ngFor="let manager of managerSelect.filteredSource" >
+                            <mat-select ngxMatSelect class="form-control" #managerSelect="ngxMatSelect"
+                                [displayMember]="'managerName'" [valueMember]="'managerId'" [source]="managerAndAbove"
+                                [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="reportee.managerId"
+                                (selectionChange)="managerUpdate(reportee,update_manager_temp)">
+                                <mat-option [value]="manager.managerId"
+                                    *ngFor="let manager of managerSelect.filteredSource">
                                     {{manager.managerName}}
-                                  </mat-option>
+                                </mat-option>
                             </mat-select>
                         </td>
                     </tr>
@@ -1427,19 +1503,14 @@
                                 <option *ngFor="let manager of managerAndAbove " value="{{manager.managerId}}">
                                     {{manager.managerName}}</option>
                             </select> -->
-                            <mat-select ngxMatSelect class="form-control"
-                                  #managerSelect="ngxMatSelect"
-                                  [displayMember]="'managerName'"
-                                  [valueMember]="'managerId'"
-                                  [source]="managerAndAbove"
-                                  [useInfiniteScroll]="true"
-                                  [multiple]="false"
-                                  [(ngModel)]="reportee.reportingManagerId"
-                                  (selectionChange)="reportingManagerUpdate(reportee,update_reporting_manager_temp)"
-                                  >
-                                  <mat-option [value]="manager.managerId" *ngFor="let manager of managerSelect.filteredSource" >
+                            <mat-select ngxMatSelect class="form-control" #managerSelect="ngxMatSelect"
+                                [displayMember]="'managerName'" [valueMember]="'managerId'" [source]="managerAndAbove"
+                                [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="reportee.reportingManagerId"
+                                (selectionChange)="reportingManagerUpdate(reportee,update_reporting_manager_temp)">
+                                <mat-option [value]="manager.managerId"
+                                    *ngFor="let manager of managerSelect.filteredSource">
                                     {{manager.managerName}}
-                                  </mat-option>
+                                </mat-option>
                             </mat-select>
                         </td>
                     </tr>
@@ -1454,7 +1525,8 @@
 <ng-template #update_reporting_manager_temp>
     <div class="modal-body text-center">
         <p>Are you sure you want to Update the reporting manager ?</p>
-        <button type="button" class="btn btn-success" (click)="updateEmployeesReportingManager(alert_message);">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="updateEmployeesReportingManager(alert_message);">Yes,
+            proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
@@ -1463,7 +1535,8 @@
 <ng-template #update_manager_temp>
     <div class="modal-body text-center">
         <p>Are you sure you want to Update the manager ?</p>
-        <button type="button" class="btn btn-success" (click)="updateEmployeesManager(alert_message);">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="updateEmployeesManager(alert_message);">Yes,
+            proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>

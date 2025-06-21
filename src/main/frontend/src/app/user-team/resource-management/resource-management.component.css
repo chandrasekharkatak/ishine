@@ -1076,3 +1076,26 @@ thead {
 .details-button {
   color: rgb(48, 119, 141);
 }
+.range-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.pill-button {
+  background-color: #f2f2f2;
+  border: none;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+  color: #333;
+}
+
+.pill-button.active {
+  background-color: #e91e63;
+  color: #fff;
+  font-weight: bold;
+}
+
+

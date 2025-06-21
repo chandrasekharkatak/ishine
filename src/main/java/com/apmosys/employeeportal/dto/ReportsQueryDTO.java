@@ -45,4 +45,7 @@ public class ReportsQueryDTO {
     private String monthName;
     private LocalDate fetchDate;
     private String typeOfLeave;
+    
+    private List<CustomFilterDTO> queryList; 
+    private Long empId;
 }

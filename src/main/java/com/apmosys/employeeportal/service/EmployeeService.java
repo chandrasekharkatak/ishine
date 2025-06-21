@@ -2217,18 +2217,7 @@ public class EmployeeService {
 				Employee employee = employeeObject.get();
 //				System.out.println("Employee 1 : " + employee);
 				
-				if (employee.getBillableType() != null && !employee.getBillableType().equals(employeedto.getBillableType())
-					    || (employee.getBillableType() == null && employeedto.getBillableType() != null)) {
-					    
-					    FieldAlteration fieldAlteration = new FieldAlteration();
-					    fieldAlteration.setEmpId(employeedto.getEmpId());
-					    fieldAlteration.setField("Billable Type");			    
-					    fieldAlteration.setValue(employeedto.getBillableType());
-					    fieldAlteration.setUpdatedOn(LocalDateTime.now());	
-					    fieldAlteration.setAlteredBy(employeedto.getUpdatedBy());			
-
-					    fieldAlterationRepository.save(fieldAlteration);
-					}
+				
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setEmployeementId(employeedto.getEmployeementId());
 				employee.setName(employeedto.getName());

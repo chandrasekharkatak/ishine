@@ -1976,7 +1976,7 @@ public class TimesheetService {
 	    	    dto.setOfficeInTime(toLong_helper.getSafeString(object[3]));            // String
 	    	    dto.setOfficeOutTime(toLong_helper.getSafeString(object[4]));           // String
 	    	    dto.setTotalWorkingOfficeHours(toLong_helper.getSafeString(object[5])); // String
-	    	    dto.setDescription(toLong_helper.getSafeString(object[6]));             // String
+	    	    dto.setDescription(toLong_helper.getSafeString(object[8]));             // String
 
 	    	    dto.setTotalTime(toLong_helper.safeParseFloat(object[7]));              // Float
 	    	    dto.setActivity(toLong_helper.getSafeString(object[8]));                // String

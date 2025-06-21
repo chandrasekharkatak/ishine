@@ -19,7 +19,7 @@ import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
-
+import com.apmosys.employeeportal.dto.NonComplianceProjects;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
@@ -234,6 +234,12 @@ public class ResourceManagementController {
 	@RequestMapping(value = "/rbacInternalProjects", method = RequestMethod.POST)
 	public ServiceResponse getAllInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
 		ServiceResponse response = resourceManagementService.nEWgetAllInternalProjectsNewRMG(projectFilterDTO);
+		return response;
+	}
+	
+	@RequestMapping(value ="/rbacUnfilledTimesheetsProjects", method = RequestMethod.POST)
+	public ServiceResponse getAllUnfilledTimesheetsProjects(@RequestBody NonComplianceProjects nonComplianceProjects  ) {
+		ServiceResponse response = resourceManagementService.getAllUnfilledTimesheetsProjects(nonComplianceProjects);
 		return response;
 	}
 	

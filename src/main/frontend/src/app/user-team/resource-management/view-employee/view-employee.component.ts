@@ -33,6 +33,7 @@ export class ViewEmployeeComponent implements OnInit {
   filtersBench: any = {};
   filteredEmployeeData: any[] = [];
   expandedEmployees: Set<number> = new Set();
+  expandedProjects = new Set<number>();
   feature = "Resource Management";
   userMapping: any = {};
   currentUser: User;
@@ -78,6 +79,47 @@ export class ViewEmployeeComponent implements OnInit {
     }, 0);
     return totalSubRows > 1;
   }
+
+toggleProjectExpansion(projectIndex: number): void {
+  const globalIndex = this.getGlobalProjectIndex(projectIndex);
+  if (this.expandedProjects.has(globalIndex)) {
+    this.expandedProjects.delete(globalIndex);
+  } else {
+    this.expandedProjects.add(globalIndex);
+  }
+}
+
+isProjectExpanded(projectIndex: number): boolean {
+  const globalIndex = this.getGlobalProjectIndex(projectIndex);
+  return this.expandedProjects.has(globalIndex);
+}
+
+// getGlobalProjectIndex(localIndex: number): number {
+//   return (this.page - 1) * 5 + localIndex;
+// }
+
+hasMultipleSubRows1(project: any): boolean {
+  if (!project.teamDetails) return false;
+  
+  const totalEmployees = project.teamDetails.reduce((acc: number, team: any) => {
+    return acc + (team.mappedEmployeeDetails?.length || 0);
+  }, 0);
+  
+  return totalEmployees > 1;
+}
+
+getHierarchicalSrNo1(pIndex: number, tIndex: number, eIndex: number): string {
+  const project = this.allEmployeeData[(this.page - 1) * 5 + pIndex];
+  const totalTeams = project.teamDetails?.length || 0;
+  const totalEmployees = project.teamDetails?.[tIndex]?.mappedEmployeeDetails?.length || 0;
+  const globalIndex = this.getGlobalProjectIndex(pIndex) + 1;
+
+  if (totalTeams > 1 || totalEmployees > 1) {
+    return `${globalIndex}.${tIndex + 1}.${eIndex + 1}`;
+  } else {
+    return `${globalIndex}`;
+  }
+}
 
   sortData(sort: Sort) {
     //console.log(sort);

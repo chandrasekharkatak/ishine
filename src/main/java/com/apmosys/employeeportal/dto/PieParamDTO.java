@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,4 +16,5 @@ public class PieParamDTO {
 		private String employmentstatus;
 		private String gender;
 		private String experience;
+		private List<CustomFilterDTO> queryList;
 }

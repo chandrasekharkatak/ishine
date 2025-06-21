@@ -487,23 +487,9 @@
             <div class="count">{{totalInshineEmployeeCount}}</div>
           </div>
 
-
-          <div class="summary-box" (click)="openModalProjectLess(employee_data, 'Not Mapped')"
-            [ngClass]="{ 'glow-card': isEmployeeInList(projectLessEmployeesDepartwise) }">
-            <button class="info-btn" (click)="toggleInfoPopup('unmapped'); $event.stopPropagation()"
-              title="Show Billable Type Count">
-              <i class="fa-solid fa-circle-info"></i>
-
-            </button>
-
-            <h3>Unmapped Employees</h3>
-
-            <div class="count-text">{{ projectLessEmployeesDepartwiseCount }}</div>
-            <div *ngIf="activeInfoPopup === 'unmapped'" class="tooltip-label-wrapper">
-              <div *ngFor="let item of billableCountsNotMApped; let i = index" class="tooltip-label">
-                {{ item.type }}: {{ item.count }}
-              </div>
-            </div>
+          <div class="summary-box">
+            <h3>Employees by Department</h3>
+            <div class="count">{{totalDepartmentWiseEmployeeCount}}</div>
           </div>
 
           <div class="summary-box" (click)="openModalEmployeesWithProjects(employee_data, 'All Mapped')"
@@ -523,10 +509,23 @@
               </div>
             </div>
           </div>
-          <div class="summary-box">
-            <h3>Employees by Department</h3>
-            <div class="count">{{totalDepartmentWiseEmployeeCount}}</div>
+          <div class="summary-box" (click)="openModalProjectLess(employee_data, 'Not Mapped')"
+          [ngClass]="{ 'glow-card': isEmployeeInList(projectLessEmployeesDepartwise) }">
+          <button class="info-btn" (click)="toggleInfoPopup('unmapped'); $event.stopPropagation()"
+            title="Show Billable Type Count">
+            <i class="fa-solid fa-circle-info"></i>
+
+          </button>
+
+          <h3>Unmapped Employees</h3>
+
+          <div class="count-text">{{ projectLessEmployeesDepartwiseCount }}</div>
+          <div *ngIf="activeInfoPopup === 'unmapped'" class="tooltip-label-wrapper">
+            <div *ngFor="let item of billableCountsNotMApped; let i = index" class="tooltip-label">
+              {{ item.type }}: {{ item.count }}
+            </div>
           </div>
+        </div>
 
         </div>
 
