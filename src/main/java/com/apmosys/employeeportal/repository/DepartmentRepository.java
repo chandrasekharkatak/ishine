@@ -89,5 +89,39 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	 		+ "WHERE e.emp_id = :empId"
 		        , nativeQuery = true)
 		    String findAccessibleDeptIdsForEmp(@Param("empId") Long empId);
-	
+	 
+	 @Query("SELECT d FROM Department d WHERE d.deptId != 1")
+	 List<Department> findAllExceptId1();
+	 
+	 @Query("SELECT d.deptId " +
+		       "FROM Department d " +
+		       "INNER JOIN JobRole j ON j.deptId = d.deptId " +
+		       "INNER JOIN Employee e ON e.jobRoleId = j.jobRoleId " +
+		       "INNER JOIN EmployeeTeamMap etm ON etm.empId = e.empId " +
+		       "INNER JOIN Team t ON t.teamId = etm.teamId " +
+		       "INNER JOIN Project p ON p.projectId = t.projectId " +
+		       "INNER JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId " +
+		       "WHERE pmm.projectManagerId = :empId AND pmm.active = 1 " +
+		       "AND e.employmentstatus <> 'InActive' " +
+		       "AND etm.active <> 0 AND p.active = 'true' AND t.isActive = 'Y'")
+		List<Long> findDeptIdsForProjectManager(@Param("empId") Long empId);
+
+		@Query("SELECT d.deptId " +
+		       "FROM Department d " +
+		       "INNER JOIN JobRole j ON j.deptId = d.deptId " +
+		       "INNER JOIN Employee e ON e.jobRoleId = j.jobRoleId " +
+		       "INNER JOIN EmployeeTeamMap etm ON etm.empId = e.empId " +
+		       "INNER JOIN Team t ON t.teamId = etm.teamId " +
+		       "INNER JOIN Project p ON p.projectId = t.projectId " +
+		       "INNER JOIN ProjectOverheadMapping pom ON pom.projectId = p.projectId " +
+		       "WHERE pom.projectOverheadId = :empId AND pom.active = 1 " +
+		       "AND e.employmentstatus <> 'InActive' " +
+		       "AND etm.active <> 0 AND p.active = 'true' AND t.isActive = 'Y'")
+		List<Long> findDeptIdsForProjectOverhead(@Param("empId") Long empId);
+
+		@Query("SELECT t.deptIds FROM Team t WHERE t.teamLeadId = :empId")
+		String findDeptIdsForTeamLead(@Param("empId") Long empId);
+
+		@Query("SELECT t.deptIds FROM Team t WHERE t.spocId = :empId")
+		String findDeptIdsForSpoc(@Param("empId") Long empId);
 }

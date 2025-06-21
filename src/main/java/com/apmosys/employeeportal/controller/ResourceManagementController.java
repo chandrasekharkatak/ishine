@@ -370,5 +370,10 @@ public class ResourceManagementController {
 	public ServiceResponse getProjectStatusByPoProjectId(@RequestBody Set<Long> projectIds) {
 	    return resourceManagementService.getProjectStatusByPoProjectId(projectIds);
 	}
+	
+	@PostMapping("/getDeptIdByRole")
+	public ServiceResponse getDeptIdByRole(@RequestBody Long currentUserEmpId) {
+	    return resourceManagementService.getDeptIdByRole(currentUserEmpId);
+	}
 
 }
