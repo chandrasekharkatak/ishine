@@ -45,5 +45,12 @@ public interface ReportDashboardService {
 	ServiceResponse getLeaveTrendAnalysis(ReportsQueryDTO request);
 	ServiceResponse getWorkLocationDetails();
 	ServiceResponse getWorkLocationSummaryDetails(ReportsQueryDTO reportQueryDTO);
+	ServiceResponse customgetLeaveTrendDetails(ReportsQueryDTO request);
+	
+	ServiceResponse customGetAllGraphEmployeeSummary(ReportsQueryDTO request);
+	
+	ServiceResponse customGetJoiningVsResignationCount(ReportsQueryDTO request);
+	
+	ServiceResponse customGetWorkLocationDetails(ReportsQueryDTO request);
 		}
 	

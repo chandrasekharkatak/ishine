@@ -97,6 +97,8 @@ public class ReportCountDTO {
     private Long totalLeaveDays;
     private String clientLocation;
     private Long EmployeeCOUNT;
+    
+    private List<CustomFilterDTO> queryList;
 	
 	
 	
