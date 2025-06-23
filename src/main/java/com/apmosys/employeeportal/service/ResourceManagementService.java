@@ -6468,7 +6468,7 @@ public class ResourceManagementService {
 				projectFilterDTO.setApprovalStatus(null);
 			if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
 
-				if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() == null ) {
+				if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null ) {
 					List<Long> selectedDeptList= projectFilterDTO.getDepartmentsids();
 					Set<Integer> matchingProjectIds = teamRepository.findAll().stream()
 						    .filter(team -> {
@@ -6623,7 +6623,7 @@ public class ResourceManagementService {
 
 				
 				if (projectIdSet != null && !projectIdSet.isEmpty()){
-					if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() == null ) {
+					if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null ) {
 					List<Long> selectedDeptList= projectFilterDTO.getDepartmentsids();
 					Set<Integer> matchingProjectIds = teamRepository.findAll().stream()
 						    .filter(team -> {
@@ -6737,7 +6737,7 @@ public class ResourceManagementService {
 			}
 			
 			if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
-				if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() == null ) {
+				if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null ) {
 					List<Long> selectedDeptList= projectFilterDTO.getDepartmentsids();
 					Set<Integer> matchingProjectIds = teamRepository.findAll().stream()
 						    .filter(team -> {
@@ -6813,7 +6813,7 @@ public class ResourceManagementService {
 						projectIdSet.addAll(matchingProjectIds);
 				}
 				
-				if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() == null ) {
+				if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null ) {
 					List<Long> selectedDeptList= projectFilterDTO.getDepartmentsids();
 					Set<Integer> matchingProjIds = teamRepository.findAll().stream()
 						    .filter(team -> {
