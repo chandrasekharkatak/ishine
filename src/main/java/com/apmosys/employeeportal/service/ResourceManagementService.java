@@ -6364,6 +6364,7 @@ public class ResourceManagementService {
 	                newDto.setEmployeeName((String) obj[1]);
 	                newDto.setDepartment((String) obj[2]);
 	                newDto.setBillableType((String) obj[3]);
+	                newDto.setEmpId(obj[13] !=null ? Long.parseLong(obj[13].toString()) : null );
 	                newDto.setRmgProjects(new ArrayList<>());
 	                return newDto;
 	            });
@@ -6379,7 +6380,7 @@ public class ResourceManagementService {
 	            project.setPoProjectType((String) obj[10]);
 	            project.setPoStartDate((String) obj[11]);
 	            project.setPoEndDate((String) obj[12]);
-
+	            
 	            dto.getRmgProjects().add(project);
 	        }
 

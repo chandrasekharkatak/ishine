@@ -27,6 +27,8 @@ public class ReportListDTO {
 	    private Integer age;
 	    private String profileKycStatus;
 	    private String clientLocation;
+	    private Long empId;
+	    private Long managerId;
 
 	    // Constructors
 	    public ReportListDTO () {}

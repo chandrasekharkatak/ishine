@@ -761,7 +761,8 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	            dto.setWorkLocation(obj[16] != null ? obj[16].toString() : null);
 	            dto.setAge(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
 	            dto.setProfileKycStatus(obj[18] != null ? obj[18].toString() : null);
-
+	            dto.setManagerId(obj[19] != null ? Long.parseLong(obj[19].toString())  : null);
+	            dto.setEmpId(obj[20] != null ? Long.parseLong(obj[20].toString()) : null);
 	            dtoList.add(dto);
 	        });
 
@@ -1142,7 +1143,8 @@ try {
 	                    dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
 	                    dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
 	                    dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
-	                    
+	                    dto.setManagerId(object[19] != null ? Long.parseLong(object[19].toString())  : null);
+			            dto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
 	                    dtoList.add(dto);
 	                });
 
@@ -1204,7 +1206,8 @@ try {
 		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
 		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
 		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
-		                
+		                dto.setManagerId(object[19] != null ? Long.parseLong(object[19].toString())  : null);
+			            dto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
 		                dtoList.add(dto);
 		            });
 		            
@@ -1264,7 +1267,8 @@ try {
 		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
 		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
 		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
-
+		                dto.setManagerId(object[19] != null ? Long.parseLong(object[19].toString())  : null);
+			            dto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
 		                dtoList.add(dto);
 		            });
 
@@ -1335,7 +1339,8 @@ try {
 		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
 		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
 		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
-
+		                dto.setManagerId(object[19] != null ? Long.parseLong(object[19].toString())  : null);
+			            dto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
 		                dtoList.add(dto);
 		            });
 
@@ -1406,7 +1411,8 @@ try {
 		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
 		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
 		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
-
+		                dto.setManagerId(object[19] != null ? Long.parseLong(object[19].toString())  : null);
+			            dto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
 		                dtoList.add(dto);
 		            });
 
@@ -1473,7 +1479,8 @@ try {
 	                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
 	                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
 	                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
-	            	
+	                dto.setManagerId(object[19] != null ? Long.parseLong(object[19].toString())  : null);
+		            dto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
 	                dtoList.add(dto);
 	            });
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1588,10 +1595,11 @@ try {
 		            dto.setFromDateDayType(object[6] != null ? object[6].toString() : null);
 		            dto.setToDateDayType(object[7] != null ? object[7].toString() : null);
 		            dto.setEmployeeType(object[8] != null ? object[8].toString() : null);
-		            dto.setManagerId(object[9] != null ? (object[9].toString()) : null);
+		            dto.setManagerName(object[9] != null ? (object[9].toString()) : null);
 		            dto.setTypeOfLeave(object[10] != null ? object[10].toString() : null);
 		            dto.setLeaveDate(object[11] != null ? LocalDate.parse(object[11].toString()) : null);
-		            
+		            dto.setManagerId(object[12] != null ? Long.parseLong(object[12].toString())  : null);
+		            dto.setEmpId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
 		            dtoList.add(dto);
 		        });
 		        
@@ -1678,24 +1686,25 @@ try {
 		            dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
 		            dto.setName(object[2] != null ? object[2].toString() : null);
 //		            dto.setExperience(object[3] != null ? object[3].toString() : null);
-		            dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
-		            dto.setEmail(object[5] != null ? object[5].toString() : null);
-		            dto.setManagerName(object[6] != null ? object[6].toString() : null);
-		            dto.setBillable(object[7] != null ? object[7].toString() : null);
-		            dto.setBillableType(object[8] != null ? object[8].toString() : null);
-		            dto.setProjectName(object[9] != null ? object[9].toString() : null);
-		            dto.setClientName(object[10] != null ? object[10].toString() : null);
+		            dto.setDepartmentName(object[3] != null ? object[3].toString() : null);
+		            dto.setEmail(object[4] != null ? object[4].toString() : null);
+		            dto.setManagerName(object[5] != null ? object[5].toString() : null);
+		            dto.setBillable(object[6] != null ? object[6].toString() : null);
+		            dto.setBillableType(object[7] != null ? object[7].toString() : null);
+		            dto.setProjectName(object[8] != null ? object[8].toString() : null);
+		            dto.setClientName(object[9] != null ? object[9].toString() : null);
 //		            dto.setDateOfJoining(object[11] != null ? object[11].toString() : null);
 //		            dto.setMobileNo(object[12] != null ? object[12].toString() : null);
 //		            dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);
-		            dto.setTotalExperience(object[14] != null ? object[14].toString() : null);
+		            dto.setTotalExperience(object[10] != null ? object[10].toString() : null);
 //		            dto.setGender(object[15] != null ? object[15].toString() : null);
-		            dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
+		            dto.setWorkLocation(object[11] != null ? object[11].toString() : null);
 		            // For client_location, we can set it in workLocation or add it as a custom field
-		             dto.setClientLocation(object[17] != null ? object[17].toString() : null); 
+		            dto.setClientLocation(object[12] != null ? object[12].toString() : null); 
 //		            dto.setAge(object[18] != null ? Integer.parseInt(object[18].toString()) : null);
 //		            dto.setProfileKycStatus(object[19] != null ? object[19].toString() : null);
-
+		            dto.setManagerId(object[13] != null ? Long.parseLong(object[13].toString())  : null);
+			        dto.setEmpId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
 		            dtoList.add(dto);
 		        });
 

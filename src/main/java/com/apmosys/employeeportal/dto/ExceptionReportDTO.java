@@ -14,6 +14,7 @@ public class ExceptionReportDTO {
     private String department;
     private String billableType;
     private List<RMGProject> rmgProjects;
+    private Long empId;
     
 }
 

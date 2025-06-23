@@ -20,8 +20,9 @@ public class LeaveTrendAnalysisDTO {
 	    private String fromDateDayType;
 	    private String toDateDayType;
 	    private String employeeType;
-	    private String managerId;
+	    private Long managerId;
 	    private String typeOfLeave;
 	    private LocalDate leaveDate;
-	    
+	    private Long empId;
+	    private String managerName;
 }

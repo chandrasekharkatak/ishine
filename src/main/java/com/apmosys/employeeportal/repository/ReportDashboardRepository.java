@@ -428,7 +428,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 
 
 		        		 @Query(nativeQuery = true ,value = "SELECT distinct " +
-        			        "CONCAT('A-', e.employeement_id) as EMP_ID, " +
+        			        "CONCAT('A-', e.employeement_id) as EMPLOYEEMENT_ID, " +
         			        "CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
         			        "     WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular' " +
         			        "     WHEN e.is_consultant = 'true' THEN 'Consultant' " +
@@ -449,7 +449,9 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         			        "e.gender GENDER, " +
         			        "e.work_location WORK_LOCATION, " +
         			        "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age, " +
-        			        "e.is_user_info_updated KYC " +
+        			        "e.is_user_info_updated KYC, " +
+        			        "m.emp_id MANAGER_ID, " +
+        			        "e.emp_id EMP_ID " +
         			        "FROM employee e " +
         			        "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
         			        "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
@@ -578,7 +580,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         				);
         			
         			@Query(nativeQuery = true, value = "SELECT distinct \n"
-        					+ "	CONCAT('A-', e.employeement_id) as EMP_ID,\n"
+        					+ "	CONCAT('A-', e.employeement_id) as EMPLOYEEMENT_ID,\n"
         					+ "    CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
         					+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
         					+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
@@ -599,7 +601,9 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         					+ "    e.gender GENDER,\n"
         					+ "    e.work_location WORK_LOCATION,\n"
         					+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
-        					+ "    e.is_user_info_updated KYC\n"
+        					+ "    e.is_user_info_updated KYC,\n"
+        					+ "    m.emp_id MANAGER_ID,\n"
+        					+ "    e.emp_id EMP_ID\n"
         					+ "FROM employee e \n"
         					+ "left join job_role jr on e.job_role_id = jr.job_role_id\n"
         					+ "left join department d on jr.dept_id = d.dept_id\n"
@@ -628,7 +632,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         			
         			
         			@Query(nativeQuery = true, value ="SELECT distinct \n"
-        					+ "	CONCAT('A-', e.employeement_id) as EMP_ID,\n"
+        					+ "	CONCAT('A-', e.employeement_id) as EMPLOYEEMENT_ID,\n"
         					+ "    CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
         					+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
         					+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
@@ -649,7 +653,9 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         					+ "    e.gender GENDER,\n"
         					+ "    e.work_location WORK_LOCATION,\n"
         					+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
-        					+ "    e.is_user_info_updated KYC\n"
+        					+ "    e.is_user_info_updated KYC,\n"
+        					+ "    m.emp_id MANAGER_ID,\n"
+        					+ "    e.emp_id EMP_ID\n"
         					+ "FROM employee e \n"
         					+ "left join job_role jr on e.job_role_id = jr.job_role_id\n"
         					+ "left join department d on jr.dept_id = d.dept_id\n"
