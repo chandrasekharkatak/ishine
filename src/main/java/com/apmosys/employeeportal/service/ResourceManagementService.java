@@ -2210,7 +2210,7 @@ public class ResourceManagementService {
 									// Team Member
 									teamMemberDTO.setEmpId(teamMemberObj.getEmpId());
 									teamMemberDTO.setName(employeeName);
-									teamMemberDTO.setStartDate(teamMemberObj.getStartDate().toString());
+									teamMemberDTO.setStartDate(teamMemberObj.getStartDate() != null ? teamMemberObj.getStartDate().toString() : null);
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
