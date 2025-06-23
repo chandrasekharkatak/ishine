@@ -6763,7 +6763,7 @@ public class ResourceManagementService {
 						finalDataList = projectRepository.completedInSankhButTeamMappedList(null,false);
 					}
 				}
-				responseData.setCombinedNewProjects(finalDataList);
+				
 			}
 
 			else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
@@ -6835,8 +6835,6 @@ public class ResourceManagementService {
 					}else {
 						finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
 					}
-
-				responseData.setCombinedNewProjects(finalDataList);
 			}
 
 			else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
@@ -6888,13 +6886,66 @@ public class ResourceManagementService {
 							finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
 						}
 
-					responseData.setCombinedNewProjects(finalDataList);
-				} else {
-					responseData = null;
-				}
+					
+				} 
 			}
+			else {
+				finalDataList = null;
+			}
+			if(!finalDataList.isEmpty() && finalDataList != null) {List<Long> projectIds = finalDataList.stream()
+				    .peek(data -> data.setActive(null))
+				    .map(ProjectFetchDTO::getProjectId)
+				    .filter(Objects::nonNull)
+				    .map(Integer::longValue)
+				    .collect(Collectors.toList());
 
-			if (responseData != null) {
+				// Fetch PM and Overhead data
+				List<ProjectManagersDTO> pmData = projectManagerMappingRepository
+				    .getAllProjectManagerListWithNameThroughPids(projectIds);
+				List<ProjectOverheadsDTO> overHeadData = projectOverheadMappingRepository
+				    .findProjectOverheadsPerProjectThroughPidList(projectIds);
+
+				// Loop over final data list and populate PM and OH info
+				finalDataList.forEach(data -> {
+				    Long currentProjectId = data.getProjectId() != null 
+				        ? data.getProjectId().longValue() 
+				        : null;
+
+				    if (currentProjectId != null) {
+				        // Filter PM data
+				        List<ProjectManagersDTO> selectedPmData = pmData.stream()
+				            .filter(pm -> Objects.equals(pm.getProjectId(), currentProjectId))
+				            .collect(Collectors.toList());
+
+				        data.setProjectManagers(selectedPmData);
+				        if (!selectedPmData.isEmpty()) {
+				            List<Long> pmIdList = selectedPmData.stream()
+				                .map(ProjectManagersDTO::getProjectManagerId)
+				                .filter(Objects::nonNull)
+				                .collect(Collectors.toList());
+				            data.setProjectManagerId(pmIdList);
+				        }
+
+				        // Filter Overhead data
+				        List<ProjectOverheadsDTO> selectedOverHeadData = overHeadData.stream()
+				            .filter(oh -> Objects.equals(oh.getProjectId(), currentProjectId))
+				            .collect(Collectors.toList());
+
+				        data.setProjectOverheads(selectedOverHeadData);
+				        if (!selectedOverHeadData.isEmpty()) {
+				            List<Long> ohIdList = selectedOverHeadData.stream()
+				                .map(ProjectOverheadsDTO::getProjectOverheadId)
+				                .filter(Objects::nonNull)
+				                .collect(Collectors.toList());
+				            data.setProjectOverheadId(ohIdList);
+				        }
+				    }
+				});
+
+				responseData.setCombinedNewProjects(finalDataList);
+}
+			
+			if (responseData.getCombinedNewProjects() != null) {
 				response.setServiceResponse(responseData);
 				response.setServiceStatus(response.STATUS_SUCCESS);
 			} else {
@@ -6920,39 +6971,15 @@ public class ResourceManagementService {
 		logBuilder.append("\n getAllResourceRequirementForProject ");
 		try {
 		if(projectFetchDTO.getProjectId() == null) {
-			List<Object[]> tempRequirements = resourceRequirementTempRepo.findByPoProjectId(projectFetchDTO.getPoProjectId());
-	        List<ResourceRequirementDTO> resourceRequirementsTemp = new ArrayList<>();
-	        
-	        for(Object[] requirement : tempRequirements) {
-	        	ResourceRequirementDTO resourceReq = new ResourceRequirementDTO(
-	        			(String) requirement[0],
-	        			(Integer) requirement[1],
-	        			(String) requirement[2],
-	        			(String) requirement[3],
-	        		((BigInteger) requirement[4]).longValue(),
-	        		((BigInteger) requirement[5]).longValue()
-	        	);
-	        	resourceRequirementsTemp.add(resourceReq);
-	        }
+			List<ResourceRequirementDTO> resourceRequirementsTemp= resourceRequirementTempRepo.findByPoProjectId(projectFetchDTO.getPoProjectId());
 	        response.setServiceStatus(response.STATUS_SUCCESS);
 	        response.setServiceResponse(resourceRequirementsTemp);
 		}
 		else {
-			 List<Object[]> resourceData = resourceRequirementRepository.findByProjectId(projectFetchDTO.getProjectId());
-			 List<ResourceRequirementDTO> resourceRequirements = new ArrayList<>();
-		        for(Object[] requirement : resourceData) {
-		        	ResourceRequirementDTO resourceReq = new ResourceRequirementDTO(
-		        			(String) requirement[0],
-		        			(Integer) requirement[1],
-		        			(String) requirement[2],
-		        			(String) requirement[3],
-		        		((BigInteger) requirement[4]).longValue(),
-		        			(Integer) requirement[5]
-		        			);
-		        	resourceRequirements.add(resourceReq);
-		        	}
+			List<ResourceRequirementDTO> resourceData = resourceRequirementRepository.findByProjectId(projectFetchDTO.getProjectId());
+			 
 		        response.setServiceStatus(response.STATUS_SUCCESS);
-		        response.setServiceResponse(resourceRequirements);
+		        response.setServiceResponse(resourceData);
 		}
 		return response;
 		

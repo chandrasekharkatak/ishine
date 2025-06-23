@@ -40,6 +40,10 @@ public interface ProjectManagerMappingRepository extends JpaRepository<ProjectMa
 			+ "INNER JOIN Employee e on pmm.projectManagerId = e.empId where pmm.projectId =:projectId and pmm.active=1")
 	List<ProjectManagersDTO> getAllProjectManagerListWithName(@Param("projectId") Long projectId);
 	
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.ProjectManagersDTO(pmm.projectId,pmm.projectManagerId, e.name)FROM ProjectManagerMapping pmm \n"
+			+ "INNER JOIN Employee e on pmm.projectManagerId = e.empId where pmm.projectId  IN :projectId and pmm.active=1")
+	List<ProjectManagersDTO> getAllProjectManagerListWithNameThroughPids(@Param("projectId") List<Long> projectId);
+	
 	@Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END " +
             "FROM project_manager_mapping pm " +
             "JOIN projects p ON p.project_id = pm.project_id " +

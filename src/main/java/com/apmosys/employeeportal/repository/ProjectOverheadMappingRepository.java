@@ -21,6 +21,10 @@ public interface ProjectOverheadMappingRepository extends JpaRepository<ProjectO
 			"INNER JOIN Employee e ON e.empId = pom.projectOverheadId where pom.projectId =:projectId and pom.active = 1 \n")
 	public List<ProjectOverheadsDTO>findProjectOverheadsPerProject(@Param("projectId") Long projectId);
 	
+	@Query(value=" select new com.apmosys.employeeportal.dto.ProjectOverheadsDTO(pom.projectId,pom.projectOverheadId,e.name) from ProjectOverheadMapping pom \n"+
+			"INNER JOIN Employee e ON e.empId = pom.projectOverheadId where pom.projectId IN :projectId and pom.active = 1 \n")
+	public List<ProjectOverheadsDTO>findProjectOverheadsPerProjectThroughPidList(@Param("projectId") List<Long> projectId);
+	
 	@Query(value = "SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END " +
             "FROM project_overhead_mapping pom " +
             "JOIN projects p ON p.project_id = pom.project_id " +

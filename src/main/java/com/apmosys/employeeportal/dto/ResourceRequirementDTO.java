@@ -27,8 +27,6 @@ public class ResourceRequirementDTO {
 	private Long teamId;
 	private String teamName;
 	
-	
-	
 	public ResourceRequirementDTO(String role,Integer count,String experience,String department,Long resourceOverviewId,Integer projectId){
 		this.role = role;
 		this.count = count;
