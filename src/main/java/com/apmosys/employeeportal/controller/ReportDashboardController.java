@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,8 +16,10 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.PieChartListDTO;
 import com.apmosys.employeeportal.dto.PieParamDTO;
+import com.apmosys.employeeportal.dto.ReportCountDTO;
 import com.apmosys.employeeportal.dto.ReportsQueryDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.service.CustomFilterService;
 import com.apmosys.employeeportal.serviceInterface.ReportDashboardService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -26,6 +29,9 @@ public class ReportDashboardController {
 
 	@Autowired
 	ReportDashboardService reportDashboardService;
+	
+	@Autowired
+	private CustomFilterService customFilterService;
 
 	@RequestMapping(value = "/getLast8DaysLeaveReport", method = RequestMethod.POST)
 	public ServiceResponse getLast8DaysLeaveReport(@RequestBody LeaveDTO leaveDto) {
@@ -146,11 +152,10 @@ public class ReportDashboardController {
 			return response;
 		}
 		
-		@RequestMapping(value = "/getLeaveTrendDetails",method = RequestMethod.GET)
-		public  ServiceResponse getLeaveTrendDetails() {
-			ServiceResponse	response=reportDashboardService.getLeaveTrendDetails();
-			return response;
-		}
+		   @PostMapping("/customgetLeaveTrendDetails") // Changed from GET to POST
+		    public ServiceResponse getLeaveTrendDetails(@RequestBody ReportsQueryDTO request) {
+		        return reportDashboardService.customgetLeaveTrendDetails(request);
+		    }
 		@RequestMapping(value = "/getLeaveTrendAnalysis" ,method = RequestMethod.POST)
 		public ServiceResponse getLeaveTrendAnalysis(@RequestBody ReportsQueryDTO request) {
 			
@@ -170,5 +175,27 @@ public class ReportDashboardController {
 			ServiceResponse response = reportDashboardService.getWorkLocationSummaryDetails(request);
 			return response;
 		}
+		@RequestMapping(value = "/getLeaveTrendDetails",method = RequestMethod.GET)
+		public  ServiceResponse getLeaveTrendDetails() {
+			ServiceResponse	response=reportDashboardService.getLeaveTrendDetails();
+			return response;
+		}
+		
+		@PostMapping("/graph-employee-summary")
+	    public ServiceResponse getAllGraphEmployeeSummary(@RequestBody ReportsQueryDTO request) {
+	        ServiceResponse response = reportDashboardService.customGetAllGraphEmployeeSummary(request);
+	        return response;
+	    }
+		
+	    @PostMapping("/customgetJoiningVsResignationCount")
+	    public ServiceResponse customGetJoiningVsResignationCount(@RequestBody ReportsQueryDTO request) {
+	        return reportDashboardService.customGetJoiningVsResignationCount(request);
+	    }
+	    
+	    @PostMapping("/work-location-details")
+	    public ServiceResponse getWorkLocationDetails(@RequestBody ReportsQueryDTO request) {
+	        ServiceResponse response = reportDashboardService.customGetWorkLocationDetails(request);
+	        return response;
+	    }
 
 }

@@ -6,4 +6,5 @@ export class ProjectFilterDTO{
     isHod:boolean = false;
     isOther:boolean = false;
     departmentsids: any[] = [];
+    departments:any[] = [];
 }

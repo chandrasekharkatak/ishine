@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.DepartmentDTO;
+import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
 import com.apmosys.employeeportal.model.Department;
 
 @Repository
@@ -90,10 +91,10 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 		        , nativeQuery = true)
 		    String findAccessibleDeptIdsForEmp(@Param("empId") Long empId);
 	 
-	 @Query("SELECT d FROM Department d WHERE d.deptId != 1")
-	 List<Department> findAllExceptId1();
+	 @Query("SELECT new com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO(d.deptId,d.name) FROM Department d WHERE d.deptId != 1")
+	 List<GetDeptIdByRoleDTO> findAllExceptId1();
 	 
-	 @Query("SELECT d.deptId " +
+	 @Query("SELECT new com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO(d.deptId,d.name) " +
 		       "FROM Department d " +
 		       "INNER JOIN JobRole j ON j.deptId = d.deptId " +
 		       "INNER JOIN Employee e ON e.jobRoleId = j.jobRoleId " +
@@ -104,9 +105,9 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 		       "WHERE pmm.projectManagerId = :empId AND pmm.active = 1 " +
 		       "AND e.employmentstatus <> 'InActive' " +
 		       "AND etm.active <> 0 AND p.active = 'true' AND t.isActive = 'Y'")
-		List<Long> findDeptIdsForProjectManager(@Param("empId") Long empId);
+		List<GetDeptIdByRoleDTO> findDeptIdsForProjectManager(@Param("empId") Long empId);
 
-		@Query("SELECT d.deptId " +
+		@Query("SELECT new com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO(d.deptId,d.name) " +
 		       "FROM Department d " +
 		       "INNER JOIN JobRole j ON j.deptId = d.deptId " +
 		       "INNER JOIN Employee e ON e.jobRoleId = j.jobRoleId " +
@@ -117,11 +118,18 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 		       "WHERE pom.projectOverheadId = :empId AND pom.active = 1 " +
 		       "AND e.employmentstatus <> 'InActive' " +
 		       "AND etm.active <> 0 AND p.active = 'true' AND t.isActive = 'Y'")
-		List<Long> findDeptIdsForProjectOverhead(@Param("empId") Long empId);
+		List<GetDeptIdByRoleDTO> findDeptIdsForProjectOverhead(@Param("empId") Long empId);
 
 		@Query("SELECT t.deptIds FROM Team t WHERE t.teamLeadId = :empId")
 		String findDeptIdsForTeamLead(@Param("empId") Long empId);
 
 		@Query("SELECT t.deptIds FROM Team t WHERE t.spocId = :empId")
 		String findDeptIdsForSpoc(@Param("empId") Long empId);
+		
+		@Query("SELECT new com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO(d.deptId, d.name) FROM Department d WHERE d.deptId IN :deptIds")
+		List<GetDeptIdByRoleDTO> findDepartmentsByIds(@Param("deptIds") List<Long> deptIds);
+
+		@Query(value = "select new com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO(d.deptId, d.name) from Department d where d.hodId=:hodId")
+		List<GetDeptIdByRoleDTO> findDeptIdsByHodId2(@Param("hodId") Long hodId);
+		
 }

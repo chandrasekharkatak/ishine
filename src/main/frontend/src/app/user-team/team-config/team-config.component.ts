@@ -18,14 +18,13 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { TeamService } from 'src/app/services/team.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
-import { ValidationService } from 'src/app/services/validation.service';
-import { Employee360Service } from 'src/app/services/employee360.service';
 import { UtilityService } from 'src/app/services/utility.service';
-import { SortPipe } from 'src/app/sort.pipe';
+import { ValidationService } from 'src/app/services/validation.service';
 
 
 @Component({
@@ -351,6 +350,7 @@ export class TeamConfigComponent implements OnInit {
 
     this.getAllProjectsByEmpId();
     this.getAllProjectListByProjectManagerId();
+     this.getAllDepartmentList();
   }
 
   showUpdateActivityForm(activityObj: Activity) {
@@ -401,7 +401,7 @@ export class TeamConfigComponent implements OnInit {
 
     this.teamObj = new Team();
     this.reset();
-
+ this.getAllDepartmentList();
     //Template Activity
     if (this.teamObj.templateActivityList == undefined || this.teamObj.templateActivityList == 0) {
       this.addInputTemplateActivityField();
@@ -431,7 +431,7 @@ export class TeamConfigComponent implements OnInit {
     this.allTemplateActivityList = [];
     this.filters = {};
     this.isSearchEnabled = false;
-
+    this.getAllDepartmentList();
   }
 
   showUpdateActivityTemplateForm(activityTemplate: Team){

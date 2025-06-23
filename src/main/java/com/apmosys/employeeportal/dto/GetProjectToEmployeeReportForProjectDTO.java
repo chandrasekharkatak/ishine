@@ -16,6 +16,7 @@ public class GetProjectToEmployeeReportForProjectDTO {
     private String projectName;
     private Long projectManagerId;
     private String projectManager;
+    private List<ProjectManagersDTO> projectManagers;
     private String poNo;
     private String poProjectType;
     private String clientRM;
