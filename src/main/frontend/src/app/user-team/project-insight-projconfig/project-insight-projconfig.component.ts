@@ -1286,9 +1286,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   onSubmit() {
     if (this.dynamicForm.valid) {
       console.log('Form submitted:', this.dynamicForm.value);
-      // Add your form submission logic here
-      // For example:
-      // this.projectService.saveProject(this.dynamicForm.value).subscribe(...)
+      // Add form submission logic here
     } else {
       console.log('Form is invalid');
       // Mark all fields as touched to show validation errors
