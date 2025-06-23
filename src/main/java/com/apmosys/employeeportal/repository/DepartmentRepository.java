@@ -132,4 +132,29 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 		@Query(value = "select new com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO(d.deptId, d.name) from Department d where d.hodId=:hodId")
 		List<GetDeptIdByRoleDTO> findDeptIdsByHodId2(@Param("hodId") Long hodId);
 		
+		@Query(value = "select new com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO(d.deptId, d.name) from Department d\n"
+				+ "inner join JobRole j on d.deptId = j.deptId \n"
+				+ "inner join Employee e on j.jobRoleId = e.jobRoleId \n"
+				+ "where e.empId = :empId")
+		List<GetDeptIdByRoleDTO> findDeptsByEmpId(Long empId);
+		
+		@Query(value = " SELECT COUNT(e) > 0 FROM Employee e\n"
+				+ "    WHERE EXISTS (\n"
+				+ "        SELECT 1 FROM ProjectManagerMapping pmm \n"
+				+ "        WHERE pmm.projectManagerId = :empId AND pmm.active = 1\n"
+				+ "    )\n"
+				+ "    OR EXISTS (\n"
+				+ "        SELECT 1 FROM ProjectOverheadMapping pom \n"
+				+ "        WHERE pom.projectOverheadId = :empId AND pom.active = 1\n"
+				+ "    )\n"
+				+ "    OR EXISTS (\n"
+				+ "        SELECT 1 FROM Team t \n"
+				+ "        WHERE t.teamLeadId = :empId AND t.isActive = 'Y'\n"
+				+ "    )\n"
+				+ "    OR EXISTS (\n"
+				+ "        SELECT 1 FROM Team t2 \n"
+				+ "        WHERE t2.spocId = :empId AND t2.isActive = 'Y'\n"
+				+ "    )")
+		boolean isUserMappedInAnyRole( Long empId);
+
 }

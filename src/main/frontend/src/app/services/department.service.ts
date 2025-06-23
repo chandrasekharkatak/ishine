@@ -42,7 +42,11 @@ export class DepartmentService {
     return this.http.post(`${this.baseUrl}` + `api/checkDepartmentName`, deptObj);
   }
 
-  getDeptIdByRole(empId) {
-    return this.http.post(`${this.baseUrl}` + `api/getDeptIdByRole`, empId);
+  getDeptsByRole(empId) {
+    return this.http.post(`${this.baseUrl}` + `api/getDeptsByRole`, empId);
+  }
+
+  getDeptsByUser(empId) {
+    return this.http.post(`${this.baseUrl}` + `api/getDeptsByUser`, empId);
   }
 }

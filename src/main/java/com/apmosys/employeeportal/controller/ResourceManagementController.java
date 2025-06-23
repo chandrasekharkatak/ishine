@@ -381,9 +381,14 @@ public class ResourceManagementController {
 	    return resourceManagementService.getProjectStatusByPoProjectId(projectIds);
 	}
 	
-	@PostMapping("/getDeptIdByRole")
-	public ServiceResponse getDeptIdByRole(@RequestBody Long currentUserEmpId) {
-	    return resourceManagementService.getDeptIdByRole(currentUserEmpId);
+	@PostMapping("/getDeptsByRole")
+	public ServiceResponse getDeptsByRole(@RequestBody Long currentUserEmpId) {
+	    return resourceManagementService.getDeptsByRole(currentUserEmpId);
+	}
+	
+	@PostMapping("/getDeptsByUser")
+	public ServiceResponse getDeptsByUser(@RequestBody Long currentUserEmpId) {
+	    return resourceManagementService.getDeptsByUser(currentUserEmpId);
 	}
 
 }
