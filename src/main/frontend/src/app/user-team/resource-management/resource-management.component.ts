@@ -214,6 +214,7 @@ export class ResourceManagementComponent implements OnInit {
   completedProjectDetails: Project = new Project();
   projectFilterDTO: ProjectFilterDTO = new ProjectFilterDTO();
   deptList: ProjectFilterDTO = new ProjectFilterDTO();
+  deptListUser: ProjectFilterDTO = new ProjectFilterDTO();
   departments: any[] = [];
   totalCount: any;
   projectRequirementsList: ProjectRequirements = new ProjectRequirements();
@@ -431,6 +432,12 @@ export class ResourceManagementComponent implements OnInit {
   searchTextDeptInternal:any;
   searchTextDeptTeam:any;
   isAllDeptSelected: boolean = false;
+  departmentListByUser: any[] = [];
+  deptIdListByUser: any[] = [];
+  isAllSelectedByUser: boolean = false;
+  searchTextDeptByUser: any;
+  filteredDepartmentsByUser:any[] = [];
+  myDept: boolean = true;
 
   constructor(
     private scroller: ViewportScroller,
@@ -472,10 +479,12 @@ export class ResourceManagementComponent implements OnInit {
     if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") &&
       !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")) {
       await this.getAllDepartments();
+      await this.getDeptsByUser();
       // this.projectFilterDTO.isHod = true
     }
     else {
       await this.getAllDepartments();
+      await this.getDeptsByUser();
       if(this.filteredDepartments != null)
       this.projectFilterDTO.isAdmin = true;
       else{
@@ -879,7 +888,7 @@ toggleSelectAllDept2() {
   
   getAllDepartments(): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.departmentService.getDeptIdByRole(this.currentUser.empId).pipe(first()).subscribe({
+      this.departmentService.getDeptsByRole(this.currentUser.empId).pipe(first()).subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             this.deptList = response.serviceResponse;
@@ -4114,6 +4123,92 @@ clearSelectionDept(event: Event) {
       emp.name.toLowerCase().includes(lowerText) ||
       emp.employmentId.toLowerCase().includes(lowerText)
     );
+  }
+
+  getDeptsByUser(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.departmentService.getDeptsByUser(this.currentUser.empId).pipe(first()).subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            this.deptListUser = response.serviceResponse;
+            this.departmentListByUser = this.deptListUser.departments;
+            this.deptIdListByUser = this.departmentListByUser;
+            this.filteredDepartmentsByUser = this.departmentListByUser;
+            // console.log(this.filteredDepartments, "this.filteredDepartments");
+            resolve(response.serviceResponse);
+          } else {
+            reject("Failed to fetch departments");
+          }
+        },
+        error: (error) => {
+          reject(error);
+        }
+      });
+    });
+  }
+
+  onDepartmentSelectionChangeByUser() {
+    console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser");
+    if (!this.isAllSelectedByUser && this.deptIdListByUser.length > 0 && this.deptIdListByUser[0] != null) {
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = this.deptIdListByUser;
+      console.log(this.projectFilterDTO, "this.projectFilterDTO");
+      // this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+
+      // this.getEmployeeReportData();
+    }
+  }
+
+  filterDepartmentsByUser() {
+    const lowerText = this.searchTextDeptByUser.toLowerCase();
+    this.filteredDepartmentsByUser = this.departmentListByUser.filter(dept =>
+      dept.name.toLowerCase().includes(lowerText)
+    );
+  }
+
+  clearSelectionByUser(event: Event) {
+    console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser");
+    event.stopPropagation(); 
+    if (this.isAllSelectedByUser == true) {
+      console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser");
+      this.toggleSelectAllDept();
+    }
+    else {
+      this.deptIdListByUser = [];
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = [];
+      console.log(this.projectFilterDTO, "this.projectFilterDTO");
+      // this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    }
+
+  }
+
+  toggleSelectAllDeptByUser() {
+    // this.employeeReportObj.deptId = [];
+    console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser")
+    if (this.isAllSelectedByUser) {
+      // Deselect all if already selected
+      this.deptIdListByUser = [];
+      this.isAllSelectedByUser = false;
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = [];
+      console.log(this.projectFilterDTO, "this.projectFilterDTO");
+      // this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+
+    } else {
+      // Select all departments
+      this.deptIdListByUser = this.filteredDepartmentsByUser.map(dept => dept.deptId);
+      this.isAllSelectedByUser = true;
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = this.deptIdList;
+      console.log(this.projectFilterDTO, "this.projectFilterDTO");
+      // this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    }
+
   }
 
 }

@@ -7817,11 +7817,11 @@ public class ResourceManagementService {
 		return response;
     }
 	
-	public ServiceResponse getDeptIdByRole(Long currentUserEmpId) {
+	public ServiceResponse getDeptsByRole(Long currentUserEmpId) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("getDeptIdByRole");
-	    apiLogInfo.setApiUrl("/api/getDeptIdByRole");
+	    apiLogInfo.setSubFeatureName("getDeptsByRole");
+	    apiLogInfo.setApiUrl("/api/getDeptsByRole");
 	    apiLogInfo.setLogLevel("INFO");
 
 	    StringBuilder logBuilder = new StringBuilder();
@@ -7933,6 +7933,81 @@ public class ResourceManagementService {
 
 				 if (isOther && projectFilterDTO.getIsHod() == null) {
 				     projectFilterDTO.setIsOther(true);
+				 }
+			 }
+
+	        if (accessibleDeptIds.isEmpty() || fullDeptMap.isEmpty()) {
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("You currently do not have access to any departments or projects based on your role (Admin, HOD, Project Manager, Project Overhead, Team Lead, or SPOC).");
+	            logBuilder.append("\n No department found ! ");
+	        	
+	        } else {
+	        	
+	        	List<GetDeptIdByRoleDTO> finalDeptList = fullDeptMap.entrySet().stream()
+	        	        .map(entry -> new GetDeptIdByRoleDTO(entry.getKey(), entry.getValue()))
+	        	        .collect(Collectors.toList());
+	        	
+	        	projectFilterDTO.setDepartments(finalDeptList);
+	            projectFilterDTO.setDepartmentsids(new ArrayList<>(accessibleDeptIds));
+	            response.setServiceResponse(projectFilterDTO);
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            logBuilder.append("\n Department list fetched successfully.");
+	            
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Something went wrong!");
+	        logBuilder.append("\n Exception occurred: ").append(e.getMessage());
+	    }
+
+	    return response;
+	}
+	
+	public ServiceResponse getDeptsByUser(Long currentUserEmpId) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getDeptsByUser");
+	    apiLogInfo.setApiUrl("/api/getDeptsByUser");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+
+	    try {
+	    	ProjectFilterDTO projectFilterDTO = new ProjectFilterDTO();
+	    	projectFilterDTO.setCurrentUserEmpId(currentUserEmpId);
+			
+		    Set<Long> accessibleDeptIds = new HashSet<>();
+		    Map<Long, String> fullDeptMap = new HashMap<>();
+			
+		    if(departmentRepository.existsByHodId(currentUserEmpId)) {
+
+				 List<GetDeptIdByRoleDTO> hodDeptList = departmentRepository.findDeptIdsByHodId2(currentUserEmpId);
+				 if (hodDeptList != null && !hodDeptList.isEmpty()) {
+				     logBuilder.append("\n Department list fetched for HOD.");
+				     for (GetDeptIdByRoleDTO dto : hodDeptList) {
+				         accessibleDeptIds.add(dto.getDeptId());
+				         fullDeptMap.put(dto.getDeptId(), dto.getName());
+				     }
+				     projectFilterDTO.setIsHod(true);
+				 }
+				 
+			 } else {
+				 
+				 if(departmentRepository.isUserMappedInAnyRole(currentUserEmpId)) {
+					 
+					 List<GetDeptIdByRoleDTO> deptIds = departmentRepository.findDeptsByEmpId(currentUserEmpId);
+					 if (deptIds != null && !deptIds.isEmpty()) {
+					     logBuilder.append("\n Department list fetched for Other (Not HOD and NOt SuperAdmin).");
+					     for (GetDeptIdByRoleDTO dto : deptIds) {
+					            accessibleDeptIds.add(dto.getDeptId());
+					            fullDeptMap.put(dto.getDeptId(), dto.getName());
+				         }
+					     projectFilterDTO.setIsOther(true);
+					 }
+					 
 				 }
 			 }
 
