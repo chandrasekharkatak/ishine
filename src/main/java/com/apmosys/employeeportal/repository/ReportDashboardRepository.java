@@ -331,32 +331,30 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
       
        
        
-//       @Query(value = "SELECT DISTINCT d.name AS department_name, " +
-//               "e.billable_type AS billable_type, " +
-//               "COUNT(DISTINCT e.emp_id) AS emp_count " +
+//     @Query(value = "SELECT DISTINCT d.name AS department_name, " +
+//              "e.billable_type AS billable_type, " +
+//              "COUNT(DISTINCT e.emp_id) AS emp_count " +
 //               "FROM employee e " +
-//               "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
-//               "INNER JOIN department d ON jr.dept_id = d.dept_id " +
-//               "WHERE e.employmentstatus != 'InActive' " +
-//               "GROUP BY d.name, e.billable_type " +
-//               "ORDER BY d.name, e.billable_type", 
-//       nativeQuery = true)
-//       public List<Object[]> getDepartmentWiseBillableNonBillableSummary();
+//              "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+//              "INNER JOIN department d ON jr.dept_id = d.dept_id " +
+//              "WHERE e.employmentstatus != 'InActive' " +
+//              "GROUP BY d.name, e.billable_type " +
+//              "ORDER BY d.name, e.billable_type", 
+//        nativeQuery = true)
+//       public List<Object[]> getDepartmentWiseBillableNonBillableSummary();       
+     
        
-       
-       
-       
-       @Query("SELECT new com.apmosys.employeeportal.dto.DepartmentBillableDTO(" +
-    	       "d.name, e.billableType, COUNT(DISTINCT e.empId)) " +
-    	       "FROM Employee e "  +
-    	       "JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +  
-    	       "JOIN Department d ON d.deptId = jr.deptId " +     
+       //added by Dibya
+
+       @Query("SELECT d.name, e.billableType, COUNT(DISTINCT e.empId) " +
+    	       "FROM Employee e " +
+    	       "JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+    	       "JOIN Department d ON d.deptId = jr.deptId " +
     	       "WHERE e.employmentstatus <> 'InActive' " +
     	       "GROUP BY d.name, e.billableType " +
     	       "ORDER BY d.name, e.billableType")
-    	List<DepartmentBillableDTO> getDepartmentWiseBillableNonBillableSummary();
+    	List<Object[]> getDepartmentWiseBillableNonBillableSummary();
 
-       
        
        @Query(value = "SELECT DISTINCT " +
     	        "d.name AS department_name, " +

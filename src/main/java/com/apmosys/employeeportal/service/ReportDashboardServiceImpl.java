@@ -931,98 +931,15 @@ try {
 	}
 	
 
-//	@Override
-//	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(ReportsQueryDTO request) {
-//	    ServiceResponse response = new ServiceResponse();
-//	    ToLong_helper toLong_helper = new ToLong_helper();
-//	    List<DepartmentBillableDTO> data;
-//	    
-//	    try {
-//	      
-//
-//	        boolean isFilterEmpty =
-//	            (request.getDeptId() == null || request.getDeptId().isEmpty()) &&
-//	            (request.getEmployeementId() == null || request.getEmployeementId().isEmpty()) &&
-//	            (request.getName() == null || request.getName().isEmpty()) &&
-//	            (request.getJobRoleId() == null || request.getJobRoleId().isEmpty()) &&
-//	            (request.getManagerId() == null || request.getManagerId().isEmpty()) &&
-//	            (request.getTeamId() == null || request.getTeamId().isEmpty()) &&
-//	            (request.getProjectId() == null || request.getProjectId().isEmpty()) &&
-//	            (request.getClientId() == null || request.getClientId().isEmpty()) &&
-//	            (request.getEmploymentstatus() == null || request.getEmploymentstatus().isEmpty()) &&
-//	            (request.getDateOfJoining() == null || request.getDateOfJoining().isEmpty()) &&
-//	            (request.getCity() == null || request.getCity().isEmpty()) &&
-//	            (request.getBloodGroup() == null || request.getBloodGroup().isEmpty()) &&
-//	            (request.getGender() == null || request.getGender().isEmpty()) &&
-//	            (request.getProbationPeriod() == null || request.getProbationPeriod().isEmpty()) &&
-//	            (request.getNoticePeriod() == null || request.getNoticePeriod().isEmpty()) &&
-//	            (request.getMaritalStatus() == null || request.getMaritalStatus().isEmpty()) &&
-//	            (request.getBankName() == null || request.getBankName().isEmpty()) &&
-//	            (request.getState() == null || request.getState().isEmpty()) &&
-//	            (request.getCreatedOn() == null || request.getCreatedOn().isEmpty()) &&
-//	            (request.getCreatedBy() == null || request.getCreatedBy().isEmpty()) &&
-//	            (request.getExperience() == null || request.getExperience().isEmpty()) &&
-//	            (request.getWorkLocation() == null || request.getWorkLocation().isEmpty()) &&
-//	            (request.getYear() == null) &&
-//	            (request.getBillableType() == null || request.getBillableType().isEmpty());
-//
-//	        if (isFilterEmpty) {
-//	            data = reportDashboardRepository.getDepartmentWiseBillableNonBillableSummary();
-//	        } else {
-//	        	List<Object[]> rawData = reportDashboardRepository.getSelectedDepartmentBillableSummary(
-//	                    request.getEmployeementId(),       // List<Long>
-//	                     request.getName(),                 // String
-//	                    request.getDeptId(),              // List<Long>
-//	                    request.getJobRoleId(),            // List<Long>
-//	                    request.getManagerId(),            // List<Long>
-//	                    request.getTeamId(),               // List<Long>
-//	                    request.getProjectId(),            // List<Long>
-//	                    request.getClientId(),             // List<Long>
-//	                    request.getEmploymentstatus(),     // String
-//	                    request.getDateOfJoining(),        // String
-//	                    request.getCity(),                 // String
-//	                    request.getBloodGroup(),           // String
-//	                    request.getGender(),               // String
-//	                    request.getProbationPeriod(),     // List<Integer>
-//	                    request.getNoticePeriod(),         // List<Long>
-//	                    request.getMaritalStatus(),        // String
-//	                    request.getBankName(),             // String
-//	                    request.getState(),                // String
-//	                    request.getCreatedOn(),            // String
-//	                    request.getCreatedBy(),            // List<Long>
-//	                    request.getExperience(),           // String
-//	                    request.getWorkLocation(),         // String
-//	                    request.getYear(),                 // Long
-//	                    request.getBillableType()          // String
-//	            );
-//	        }
-//
-//
-//	        if (data != null && !data.isEmpty()) {
-//	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//	            response.setServiceResponse(data);
-//	        } else {
-//	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//	            response.setServiceResponse(Collections.emptyList());
-//	        }
-//	    } catch (Exception e) {
-//	        e.printStackTrace();
-//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-//	        response.setServiceResponse("Something Went Wrong.");
-//	        response.setServiceError(e.getMessage());
-//	    }
-//	    return response;
-//	}
-//
-//	
-	
-	
-	
+	@Override
 	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(ReportsQueryDTO request) {
 	    ServiceResponse response = new ServiceResponse();
-	    List<DepartmentBillableDTO> data = new ArrayList<>();
-
+	    ToLong_helper toLong_helper = new ToLong_helper();
+	    List<Object[]> data;
+	    
 	    try {
+	      
+
 	        boolean isFilterEmpty =
 	            (request.getDeptId() == null || request.getDeptId().isEmpty()) &&
 	            (request.getEmployeementId() == null || request.getEmployeementId().isEmpty()) &&
@@ -1052,56 +969,139 @@ try {
 	        if (isFilterEmpty) {
 	            data = reportDashboardRepository.getDepartmentWiseBillableNonBillableSummary();
 	        } else {
-	            List<Object[]> rawData = reportDashboardRepository.getSelectedDepartmentBillableSummary(
-	                request.getEmployeementId(),
-	                request.getName(),
-	                request.getDeptId(),
-	                request.getJobRoleId(),
-	                request.getManagerId(),
-	                request.getTeamId(),
-	                request.getProjectId(),
-	                request.getClientId(),
-	                request.getEmploymentstatus(),
-	                request.getDateOfJoining(),
-	                request.getCity(),
-	                request.getBloodGroup(),
-	                request.getGender(),
-	                request.getProbationPeriod(),
-	                request.getNoticePeriod(),
-	                request.getMaritalStatus(),
-	                request.getBankName(),
-	                request.getState(),
-	                request.getCreatedOn(),
-	                request.getCreatedBy(),
-	                request.getExperience(),
-	                request.getWorkLocation(),
-	                request.getYear(),
-	                request.getBillableType()
+	        	data = reportDashboardRepository.getSelectedDepartmentBillableSummary(
+	                    request.getEmployeementId(),       // List<Long>
+	                     request.getName(),                 // String
+	                    request.getDeptId(),              // List<Long>
+	                    request.getJobRoleId(),            // List<Long>
+	                    request.getManagerId(),            // List<Long>
+	                    request.getTeamId(),               // List<Long>
+	                    request.getProjectId(),            // List<Long>
+	                    request.getClientId(),             // List<Long>
+	                    request.getEmploymentstatus(),     // String
+	                    request.getDateOfJoining(),        // String
+	                    request.getCity(),                 // String
+	                    request.getBloodGroup(),           // String
+	                    request.getGender(),               // String
+	                    request.getProbationPeriod(),     // List<Integer>
+	                    request.getNoticePeriod(),         // List<Long>
+	                    request.getMaritalStatus(),        // String
+	                    request.getBankName(),             // String
+	                    request.getState(),                // String
+	                    request.getCreatedOn(),            // String
+	                    request.getCreatedBy(),            // List<Long>
+	                    request.getExperience(),           // String
+	                    request.getWorkLocation(),         // String
+	                    request.getYear(),                 // Long
+	                    request.getBillableType()          // String
 	            );
-
-	            // Convert rawData to DepartmentBillableDTO list
-	            for (Object[] row : rawData) {
-	                DepartmentBillableDTO dto = new DepartmentBillableDTO();
-	                dto.setDepartmentName((String) row[0]);
-	                dto.setBillableType((String) row[1]);
-	                
-	                dto.setEmployeeCount(row[2] != null ? ((Number) row[2]).longValue() : 0L);
-
-	                data.add(dto);
-	            }
 	        }
 
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse(data.isEmpty() ? Collections.emptyList() : data);
+
+	        if (data != null && !data.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(data);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(Collections.emptyList());
+	        }
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	        response.setServiceResponse("Something Went Wrong.");
 	        response.setServiceError(e.getMessage());
 	    }
-
 	    return response;
 	}
+
+
+	
+	
+	
+//	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(ReportsQueryDTO request) {
+//	    ServiceResponse response = new ServiceResponse();
+//	    List<DepartmentBillableDTO> data = new ArrayList<>();
+//
+//	    try {
+//	        boolean isFilterEmpty =
+//	            (request.getDeptId() == null || request.getDeptId().isEmpty()) &&
+//	            (request.getEmployeementId() == null || request.getEmployeementId().isEmpty()) &&
+//	            (request.getName() == null || request.getName().isEmpty()) &&
+//	            (request.getJobRoleId() == null || request.getJobRoleId().isEmpty()) &&
+//	            (request.getManagerId() == null || request.getManagerId().isEmpty()) &&
+//	            (request.getTeamId() == null || request.getTeamId().isEmpty()) &&
+//	            (request.getProjectId() == null || request.getProjectId().isEmpty()) &&
+//	            (request.getClientId() == null || request.getClientId().isEmpty()) &&
+//	            (request.getEmploymentstatus() == null || request.getEmploymentstatus().isEmpty()) &&
+//	            (request.getDateOfJoining() == null || request.getDateOfJoining().isEmpty()) &&
+//	            (request.getCity() == null || request.getCity().isEmpty()) &&
+//	            (request.getBloodGroup() == null || request.getBloodGroup().isEmpty()) &&
+//	            (request.getGender() == null || request.getGender().isEmpty()) &&
+//	            (request.getProbationPeriod() == null || request.getProbationPeriod().isEmpty()) &&
+//	            (request.getNoticePeriod() == null || request.getNoticePeriod().isEmpty()) &&
+//	            (request.getMaritalStatus() == null || request.getMaritalStatus().isEmpty()) &&
+//	            (request.getBankName() == null || request.getBankName().isEmpty()) &&
+//	            (request.getState() == null || request.getState().isEmpty()) &&
+//	            (request.getCreatedOn() == null || request.getCreatedOn().isEmpty()) &&
+//	            (request.getCreatedBy() == null || request.getCreatedBy().isEmpty()) &&
+//	            (request.getExperience() == null || request.getExperience().isEmpty()) &&
+//	            (request.getWorkLocation() == null || request.getWorkLocation().isEmpty()) &&
+//	            (request.getYear() == null) &&
+//	            (request.getBillableType() == null || request.getBillableType().isEmpty());
+//
+//	        if (isFilterEmpty) {
+//	            data = reportDashboardRepository.getDepartmentWiseBillableNonBillableSummary();
+//	        } else {
+//	            List<Object[]> rawData = reportDashboardRepository.getSelectedDepartmentBillableSummary(
+//	                request.getEmployeementId(),
+//	                request.getName(),
+//	                request.getDeptId(),
+//	                request.getJobRoleId(),
+//	                request.getManagerId(),
+//	                request.getTeamId(),
+//	                request.getProjectId(),
+//	                request.getClientId(),
+//	                request.getEmploymentstatus(),
+//	                request.getDateOfJoining(),
+//	                request.getCity(),
+//	                request.getBloodGroup(),
+//	                request.getGender(),
+//	                request.getProbationPeriod(),
+//	                request.getNoticePeriod(),
+//	                request.getMaritalStatus(),
+//	                request.getBankName(),
+//	                request.getState(),
+//	                request.getCreatedOn(),
+//	                request.getCreatedBy(),
+//	                request.getExperience(),
+//	                request.getWorkLocation(),
+//	                request.getYear(),
+//	                request.getBillableType()
+//	            );
+//
+//	            // Convert rawData to DepartmentBillableDTO list
+//	            for (Object[] row : rawData) {
+//	                DepartmentBillableDTO dto = new DepartmentBillableDTO();
+//	                dto.setDepartmentName((String) row[0]);
+//	                dto.setBillableType((String) row[1]);
+//	                
+//	                dto.setEmployeeCount(row[2] != null ? ((Number) row[2]).longValue() : 0L);
+//
+//	                data.add(dto);
+//	            }
+//	        }
+//
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceResponse(data.isEmpty() ? Collections.emptyList() : data);
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something Went Wrong.");
+//	        response.setServiceError(e.getMessage());
+//	    }
+//
+//	    return response;
+//	}
 
 	
 	  public ServiceResponse getEmployeeDetailsByDepartmentAndBillableType(ReportsQueryDTO request) {
@@ -1238,9 +1238,7 @@ try {
 
 		    try {
 		    	List<Object[]> employeeDetails = customFilterService.getCustomEmployeesByExperience(request);
-		    	
-//		    	List<Object[]> employeeDetails = reportDashboardRepository.findEmployeesExperience(request.getEmployeeType(), request.getLowerValue(), request.getUpperValue());
-		    	
+
 		        if (employeeDetails != null && !employeeDetails.isEmpty()) {
 		            List<ReportListDTO> dtoList = new ArrayList<>();
 
@@ -1492,7 +1490,7 @@ try {
 	            logBuilder.append(" - Error occurred: ").append(e.getMessage());
 	        }
 
-	        // Print or store the log info
+	      
 	        System.out.println(logBuilder.toString());
 
 	        return response;
@@ -1936,11 +1934,10 @@ try {
 			try {
 				logBuilder.append("Fetching filtered work location data");
 
-				// Call the new dynamic method in CustomFilterService
+				
 				List<Object[]> data = customFilterService.getCustomWorkLocationDetails(request);
 				
-				// The caching logic is removed because the results are now dynamic
-				// if(!worklocationMap.isEmpty()) { ... } // REMOVE THIS
+				
 
 				List<WorkLocationCountDTO> dtoList = new ArrayList<>();
 				data.forEach((object) -> {
