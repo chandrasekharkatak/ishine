@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 //@JsonIdentityInfo(
 //		  generator =  ObjectIdGenerators.PropertyGenerator.class,
 //		  property = "dept_id")
-public class Department {
+public class Department{
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

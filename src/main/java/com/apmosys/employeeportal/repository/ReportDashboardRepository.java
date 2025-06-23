@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.apmosys.employeeportal.dto.DepartmentBillableDTO;
 import com.apmosys.employeeportal.dto.ReportCountDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -330,18 +331,31 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
       
        
        
-       @Query(value = "SELECT DISTINCT d.name AS department_name, " +
-               "e.billable_type AS billable_type, " +
-               "COUNT(DISTINCT e.emp_id) AS emp_count " +
-               "FROM employee e " +
-               "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
-               "INNER JOIN department d ON jr.dept_id = d.dept_id " +
-               "WHERE e.employmentstatus != 'InActive' " +
-               "GROUP BY d.name, e.billable_type " +
-               "ORDER BY d.name, e.billable_type", 
-       nativeQuery = true)
-       public List<Object[]> getDepartmentWiseBillableNonBillableSummary();
+//       @Query(value = "SELECT DISTINCT d.name AS department_name, " +
+//               "e.billable_type AS billable_type, " +
+//               "COUNT(DISTINCT e.emp_id) AS emp_count " +
+//               "FROM employee e " +
+//               "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+//               "INNER JOIN department d ON jr.dept_id = d.dept_id " +
+//               "WHERE e.employmentstatus != 'InActive' " +
+//               "GROUP BY d.name, e.billable_type " +
+//               "ORDER BY d.name, e.billable_type", 
+//       nativeQuery = true)
+//       public List<Object[]> getDepartmentWiseBillableNonBillableSummary();
        
+       
+       
+       
+       @Query("SELECT new com.apmosys.employeeportal.dto.DepartmentBillableDTO(" +
+    	       "d.name, e.billableType, COUNT(DISTINCT e.empId)) " +
+    	       "FROM Employee e "  +
+    	       "JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +  
+    	       "JOIN Department d ON d.deptId = jr.deptId " +     
+    	       "WHERE e.employmentstatus <> 'InActive' " +
+    	       "GROUP BY d.name, e.billableType " +
+    	       "ORDER BY d.name, e.billableType")
+    	List<DepartmentBillableDTO> getDepartmentWiseBillableNonBillableSummary();
+
        
        
        @Query(value = "SELECT DISTINCT " +
@@ -793,21 +807,40 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         	    	List<Object[]> leaveTrendAnalysis(@Param("fetch_date") LocalDate fetch_date,
             	    	    @Param("type_of_leave") String type_of_leave
             	    	    );
+//        	    	
+//        	    	@Query(nativeQuery = true , value = "select distinct cl.client_location, count(distinct e.emp_id) from employee e\n"
+//        	    			+ "INNER JOIN employee_team_mapping etm on etm.emp_id = e.emp_id\n"
+//        	    			+ "INNER JOIN employee_timesheets et ON et.emp_id = etm.emp_id\n"
+//        	    			+ "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id \n"
+//        	    			+ "INNER JOIN activities a ON a.activity_id = etam.activity_id\n"
+//        	    			+ "INNER JOIN teams t on etm.team_id = t.team_id and etm.team_id = a.team_id\n"
+//        	    			+ "INNER JOIN projects p on p.project_id = t.project_id \n"
+//        	    			+ "INNER JOIN client_locations cl on cl.client_location_id = etam.client_location_id\n"
+//        	    			+ "where e.employmentstatus != 'InActive' and etm.active != 0\n"
+//        	    			+ "and t.is_active = 'Y' and p.active = 'true'\n"
+//        	    			+ "and e.emp_id not between 1 and 6\n"
+//        	    			+ "group by cl.client_location\n"
+//        	    			+ ";")
+//        	    	List<Object[]> getWorkLocation();
         	    	
-        	    	@Query(nativeQuery = true , value = "select distinct cl.client_location, count(distinct e.emp_id) from employee e\n"
-        	    			+ "INNER JOIN employee_team_mapping etm on etm.emp_id = e.emp_id\n"
-        	    			+ "INNER JOIN employee_timesheets et ON et.emp_id = etm.emp_id\n"
-        	    			+ "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id \n"
-        	    			+ "INNER JOIN activities a ON a.activity_id = etam.activity_id\n"
-        	    			+ "INNER JOIN teams t on etm.team_id = t.team_id and etm.team_id = a.team_id\n"
-        	    			+ "INNER JOIN projects p on p.project_id = t.project_id \n"
-        	    			+ "INNER JOIN client_locations cl on cl.client_location_id = etam.client_location_id\n"
-        	    			+ "where e.employmentstatus != 'InActive' and etm.active != 0\n"
-        	    			+ "and t.is_active = 'Y' and p.active = 'true'\n"
-        	    			+ "and e.emp_id not between 1 and 6\n"
-        	    			+ "group by cl.client_location\n"
-        	    			+ ";")
-        	    	List<Object[]> getWorkLocation();
+        	    	
+        	    	//Added by Dibya
+        	    	
+        	    	@Query("SELECT DISTINCT cl.clientLocation, COUNT(DISTINCT e.empId) " +
+        	    		       "FROM Employee e " +
+        	    		       "JOIN EmployeeTeamMap etm ON etm.empId = e.empId " +
+        	    		       "JOIN Timesheet et ON et.empId = etm.empId " +
+        	    		       "JOIN TimesheetActivityMap etam ON etam.timesheetId = et.timesheetId " +
+        	    		       "JOIN Activity a ON a.activityId = etam.activityId " +
+        	    		       "JOIN Team t ON etm.teamId = t.teamId AND a.teamId = t.teamId " +
+        	    		       "JOIN ClientLocation cl ON cl.clientLocationId = etam.clientLocationId " +
+        	    		       "WHERE e.employmentstatus <> 'InActive' " +
+        	    		       "AND etm.active <> 0 " +
+        	    		       "AND t.isActive = 'Y' " +
+        	    		       "AND e.empId NOT BETWEEN 1 AND 6 " +
+        	    		       "GROUP BY cl.clientLocation")
+        	    		List<Object[]> getWorkLocation();
+
         	    	
         	    	@Query(nativeQuery = true, value = "SELECT \n"
         	    			+ "	CONCAT('A-', REPLACE(e.employeement_id, '-', '')) as EMP_ID,\n"
