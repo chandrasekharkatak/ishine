@@ -13,10 +13,12 @@ import { AppComponent } from '../app.component';
 import { BodyComponent } from '../body/body.component';
 import { CalendarComponent } from '../helpers/calendar/calendar.component';
 import { Employee } from '../models/employee';
+import { ExpiredEmailData } from '../models/expiredEmailmodel';
 import { Feature } from '../models/feature';
 import { Leave } from '../models/leave';
 import { Log } from '../models/log';
 import { NotificationMessage } from '../models/notification';
+import { PoObject } from '../models/poObbjectData';
 import { RewardCategory } from '../models/rewardCategory';
 import { Timesheet } from '../models/timesheet';
 import { User } from '../models/user';
@@ -31,8 +33,6 @@ import { RewardsServiceService } from '../services/rewards-service.service';
 import { TimesheetService } from '../services/timesheet.service';
 import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
-import { ExpiredEmailData } from '../models/expiredEmailmodel';
-import { PoObject } from '../models/poObbjectData';
 
 interface objlms{
   email:any
@@ -192,7 +192,7 @@ popUpMessege:any;
   profileCompletedPercentage: any = 0;
   filters: any = {};
   isSearchEnabled: boolean = false;
-  leaveApplicationColumns: any[] = ['blank', 'blank', 'employeeName', 'leaveType','clientName','teamName', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdByName', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus'];
+  leaveApplicationColumns: any[] = ['blank', 'blank', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdByName', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus'];
   compOfApplicationColumns: any[] = ['blank', 'createdByName', 'compOffReasons', 'fromDate', 'toDate', 'noOfDays', 'description', 'status'];
   timesheetApplicationsColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
   isShowReleaseNote: boolean = false;
