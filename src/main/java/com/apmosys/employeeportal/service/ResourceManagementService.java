@@ -6495,6 +6495,7 @@ public class ResourceManagementService {
 							.getAllActiveProjecCountstList( "Rejected", projectIdSet, true));
 					map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(
 							 "Complete", projectIdSet,  true));
+					map.put("totalCount", projectIdSet.size());
 				}else {
 					map.put("pendingForApprovalCount",
 						projectRepository.getAllActiveProjecCountstList( "true", null, false));
@@ -6510,6 +6511,14 @@ public class ResourceManagementService {
 				map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(
 						 "Complete", null, false));
 				}
+				
+				int totalCount = 0;
+				for (Integer value : map.values()) {
+				    if (value != null) {
+				        totalCount += value;
+				    }
+				}
+				map.put("totalCount", totalCount);
 				responseData.setCounts(map);
 			}
 
@@ -6591,7 +6600,8 @@ public class ResourceManagementService {
 						.getAllActiveProjecCountstList( "Rejected", projectIdSet, true));
 				map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(
 						 "Complete", projectIdSet,  true));
-
+				map.put("totalCount", projectIdSet.size());
+				
 				responseData.setCounts(map);
 			}
 
@@ -6652,6 +6662,8 @@ public class ResourceManagementService {
 							.getAllActiveProjecCountstList( "Rejected", projectIdSet, true));
 					map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(
 							 "Complete", projectIdSet,  true));
+					map.put("totalCount", projectIdSet.size());
+					
 					responseData.setCounts(map);
 				} else {
 					responseData = null;

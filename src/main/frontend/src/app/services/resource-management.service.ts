@@ -145,10 +145,16 @@ export class ResourceManagementService {
  return this.http.post(`${this.baseUrl}`+`api/getEmployessWithoutBillable`,projectFilterDTO);
   }
 
-
-
   getProjectsunfilledTimesheet(payload:any){
  return this.http.post(`${this.baseUrl}`+`api/rbacUnfilledTimesheetsProjects`,payload);
+  }
+
+  combinedPOINTERNALCountList(projectFilterDTO:ProjectFilterDTO) {
+    return this.http.post(`${this.baseUrl}` + `api/combinedPOINTERNALCountList`, projectFilterDTO);
+  }
+
+  combinedPOINTERNALDataList(projectFilterDTO:ProjectFilterDTO) {
+    return this.http.post(`${this.baseUrl}` + `api/combinedPOINTERNALDataList`, projectFilterDTO);
   }
 
 }

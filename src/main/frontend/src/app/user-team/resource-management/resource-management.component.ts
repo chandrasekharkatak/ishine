@@ -437,7 +437,8 @@ export class ResourceManagementComponent implements OnInit {
   isAllSelectedByUser: boolean = false;
   searchTextDeptByUser: any;
   filteredDepartmentsByUser:any[] = [];
-  myDept: boolean = true;
+  myDept: boolean = false;
+  countList:any;
 
   constructor(
     private scroller: ViewportScroller,
@@ -467,13 +468,13 @@ export class ResourceManagementComponent implements OnInit {
 
 
   async ngOnInit(): Promise<void> {
-
+    this.myDept=true;
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    console.log("lalalalalalalalal", this.userMapping);
+    // console.log("lalalalalalalalal", this.userMapping);
     const deptName = String(this.currentUser.departmentName).trim();
     const empRole = String(this.currentUser.employeeRole).trim();
     if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") &&
@@ -555,13 +556,13 @@ export class ResourceManagementComponent implements OnInit {
     await this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
     // const deptName = String(this.currentUser.departmentName).trim();
     // const empRole = String(this.currentUser.employeeRole).trim();
-    if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
-    !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
-      await this.getAllDepartments();
-    }
-    else{
-      await this.getAllDepartments();
-    }
+    // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
+    // !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin")&& !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")){
+    //   await this.onDepartmentToggle();
+    // }
+    // else{
+    //   await this.onDepartmentToggle();
+    // }
   }
 
 
@@ -761,8 +762,9 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.approvalStatus = "All";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
+      this.projectFilterDTO.departments = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
     }
 
   }
@@ -780,10 +782,11 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.approvalStatus = "All";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = this.deptIdList;
+      this.projectFilterDTO.departments = [];
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+      
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
-
-      // this.getEmployeeReportData();
     }
   }
 
@@ -794,7 +797,7 @@ export class ResourceManagementComponent implements OnInit {
         this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
         this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
         console.log(this.projectFilterDTO, "this.projectFilterDTO");
-        this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+        this.fetchCountAndList();
     }
 }
 
@@ -805,8 +808,7 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = this.teamObj.departmentList;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
-
+      this.fetchCountAndList();
     }
 }
 
@@ -820,9 +822,10 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.approvalStatus = "All";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
+      this.projectFilterDTO.departments = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
-
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
     } else {
       // Select all departments
       this.deptIdList = this.filteredDepartments.map(dept => dept.deptId);
@@ -830,8 +833,10 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.approvalStatus = "All";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = this.deptIdList;
+      this.projectFilterDTO.departments = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
     }
 
   }
@@ -847,7 +852,7 @@ export class ResourceManagementComponent implements OnInit {
         this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
         this.projectFilterDTO.departmentsids = [];
         console.log(this.projectFilterDTO, "this.projectFilterDTO");
-        this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
     } else {
         // Select all departments
         this.projectObj.departmentList = this.filteredDepartments.map(dept => dept.deptId);
@@ -856,7 +861,7 @@ export class ResourceManagementComponent implements OnInit {
         this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
         this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
         console.log(this.projectFilterDTO, "this.projectFilterDTO");
-        this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
     }
 }
 toggleSelectAllDept2() {
@@ -870,8 +875,7 @@ toggleSelectAllDept2() {
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
-
+      this.fetchCountAndList();
     } else {
       // Select all departments
       this.teamObj.departmentList = this.filteredDepartmentsTeam.map(dept => dept.deptId);
@@ -880,7 +884,7 @@ toggleSelectAllDept2() {
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = this.teamObj.departmentList;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.fetchCountAndList();
     }
 
   }
@@ -898,6 +902,10 @@ toggleSelectAllDept2() {
             this.filteredDepartments = this.departments;
             this.filteredDepartmentsTeam = [...this.departmentsList];
             // console.log(this.filteredDepartments, "this.filteredDepartments");
+            this.projectFilterDTO = this.deptList;
+            this.projectFilterDTO.departments = []; 
+            this.projectFilterDTO.departmentsids = []; 
+            this.onDepartmentToggle(this.projectFilterDTO);
             resolve(response.serviceResponse);
           } else {
             reject("Failed to fetch departments");
@@ -2441,7 +2449,7 @@ openTimesheetPopup() {
   // alert_message template is to be passed
   CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilterDTO) {
     this.allProject_Po_Internal = [];
-    this.resourceManagementService.combinedPOINTERNALList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+    this.resourceManagementService.combinedPOINTERNALDataList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         console.log(response.serviceResponse);
         this.allProject_Po_Internal = response.serviceResponse.combinedNewProjects;
@@ -4134,7 +4142,11 @@ clearSelectionDept(event: Event) {
             this.departmentListByUser = this.deptListUser.departments;
             this.deptIdListByUser = this.departmentListByUser;
             this.filteredDepartmentsByUser = this.departmentListByUser;
-            // console.log(this.filteredDepartments, "this.filteredDepartments");
+            this.projectFilterDTO = this.deptList;
+            this.projectFilterDTO.departments = []; 
+            this.projectFilterDTO.departmentsids = []; 
+            this.onDepartmentToggle(this.projectFilterDTO);
+            // this.combinedPOINTERNALCountList(this.projectFilterDTO);
             resolve(response.serviceResponse);
           } else {
             reject("Failed to fetch departments");
@@ -4152,10 +4164,11 @@ clearSelectionDept(event: Event) {
     if (!this.isAllSelectedByUser && this.deptIdListByUser.length > 0 && this.deptIdListByUser[0] != null) {
       this.projectFilterDTO.approvalStatus = "All";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departments = [];
       this.projectFilterDTO.departmentsids = this.deptIdListByUser;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      // this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
-
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
       // this.getEmployeeReportData();
     }
   }
@@ -4179,8 +4192,10 @@ clearSelectionDept(event: Event) {
       this.projectFilterDTO.approvalStatus = "All";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
+      this.projectFilterDTO.departments = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      // this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
     }
 
   }
@@ -4195,8 +4210,10 @@ clearSelectionDept(event: Event) {
       this.projectFilterDTO.approvalStatus = "All";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
+      this.projectFilterDTO.departments = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      // this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
 
     } else {
       // Select all departments
@@ -4204,11 +4221,74 @@ clearSelectionDept(event: Event) {
       this.isAllSelectedByUser = true;
       this.projectFilterDTO.approvalStatus = "All";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = this.deptIdList;
+      this.projectFilterDTO.departmentsids = this.deptIdListByUser;
+      this.projectFilterDTO.departments = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      // this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
     }
 
+  }
+
+  combinedPOINTERNALCountList(projectFilterDTO): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.resourceManagementService.combinedPOINTERNALCountList(projectFilterDTO).pipe(first()).subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            this.countList = response.serviceResponse;
+            this.tabCounts = this.countList.counts;
+            resolve(response.serviceResponse);
+          } else {
+            reject("Failed to fetch counts");
+          }
+        },
+        error: (error) => {
+          reject(error);
+        }
+      });
+    });
+  }
+
+  onDepartmentToggle(projectFilterDTO){
+    this.projectFilterDTO.approvalStatus = 'All';
+     if(!this.myDept){
+        this.projectFilterDTO.departments = this.deptIdList;
+        const deptIds: number[] = this.deptIdList.map(dept => dept.deptId);
+        this.projectFilterDTO.departmentsids = deptIds;
+        this.combinedPOINTERNALCountList(projectFilterDTO);
+        this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+      }
+      else{
+        this.projectFilterDTO.departments = this.deptIdListByUser;
+        const deptIds: number[] = this.deptIdListByUser.map(dept => dept.deptId);
+        this.projectFilterDTO.departmentsids = deptIds;
+        this.combinedPOINTERNALCountList(projectFilterDTO);
+        this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+      }
+  }
+
+  fetchCountAndList(){
+    this.myDept = !this.myDept;
+    if(this.myDept){
+      this.projectFilterDTO.departments = this.deptIdList;
+      const deptIds: number[] = this.deptIdList.map(dept => dept.deptId);
+      this.projectFilterDTO.departmentsids = deptIds;
+      this.projectFilterDTO.approvalStatus = 'All';
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+    }
+    else{
+      this.projectFilterDTO.departments = this.deptIdListByUser;
+      const deptIds: number[] = this.deptIdListByUser.map(dept => dept.deptId);
+      this.projectFilterDTO.departmentsids = deptIds;
+      this.projectFilterDTO.approvalStatus = 'All';
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+    }
+  }
+
+  toggleDept(): void {
+  this.myDept = !this.myDept;
   }
 
 }

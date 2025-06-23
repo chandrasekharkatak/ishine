@@ -38,7 +38,7 @@
             </div>
         </div>
         <div class="row">
-            <!-- <div class="col-md-8">
+            <div class="col-md-8">
                 <div class="row mb-3" style="display: flex;
         justify-content: left;
         max-width: fit-content;">
@@ -93,7 +93,7 @@
           max-width: fit-content;" (click)="selectStatusTab('All')"
                         [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
                         <div class="mini-card1" style="border-left: 4px solid #03A9F4;">
-                            <div class="value fw-bold" style="color: #03A9F4;">{{totalCount}}</div>
+                            <div class="value fw-bold" style="color: #03A9F4;">{{tabCounts.totalCount}}</div>
                             <div class="label text-muted">Total <i class="fa-solid fa-plus-circle fa-beat-fade"
                                     style="color: #03A9F4;"></i>
                             </div>
@@ -174,14 +174,14 @@
 
                 </div>
 
-            </div> -->
+            </div>
             <!-- Employee Card Section -->
             <div class="col-md-4">
                 <div *ngIf="!myDept">
                     <div class="row">
                         <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                             <label class="info-label" style="justify-self: left;" title="As Per Resource - Project Mapping">
-                                <span class="text-danger"><i class="fa-solid fa-toggle-off" (click)="myDept = !myDept" style="cursor: pointer; color: #193D8A;"></i></span>
+                                <span class="text-danger"><i class="fa-solid fa-toggle-off" (click)="toggleDept();clearSelection($event)" style="cursor: pointer; color: #193D8A;"></i></span>
                                 <span class="text-danger">*</span>
                                 Departments
                             </label>
@@ -224,7 +224,7 @@
                     <div class="row">
                         <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                             <label class="info-label" style="justify-self: left;">
-                                <span class="text-danger"><i class="fa-solid fa-toggle-on" (click)="myDept = !myDept" style="cursor: pointer; color: #193D8A;" title="Toggle off to view all departments associated with resources mapped to projects under your bucket."></i></span>
+                                <span class="text-danger"><i class="fa-solid fa-toggle-on" (click)="toggleDept();clearSelectionByUser($event)" style="cursor: pointer; color: #193D8A;" title="Toggle off to view all departments associated with resources mapped to projects under your bucket."></i></span>
                                 <span class="text-danger">*</span>
                                 My Departments
                                 </label>
