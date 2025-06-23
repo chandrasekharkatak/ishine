@@ -63,305 +63,370 @@
         <pagination-controls class="pagination" [hidden]="allProjectInsightProjectList.length == 0"
             (pageChange)="handlePageChange($event)"></pagination-controls>
       </div>
+    </div>
 
-      <div class="main-content" *ngIf="isCreateForm && !isTable">
-        <div class="filters">
-          <div class="filters-header d-flex align-items-center gap-2">
-            <label class="mb-0">Project</label>
-          
-            <div class="custom-control custom-switch">
-              <input
-                type="checkbox"
-                class="custom-control-input"
-                id="domain-history-switch"
-                [(ngModel)]="isDomainStructure"
-                (change)="toggleDomainProjectView($event)"
-                style="cursor: pointer;"
-              />
-              <label class="custom-control-label mx-2" for="domain-history-switch"></label>
-            </div>
-          
-            <label class="mb-0">Domain</label>
-          </div>                 
+    <div class="px-0" *ngIf="isCreateForm && !isTable">
+      <button class="btn btn-sm btn-outline-primary mb-1" (click)="showTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+    </div>
+    <div class="main-content" *ngIf="isCreateForm && !isTable">
+      <div class="filters">
+        <div class="filters-header d-flex align-items-center gap-2">
+          <label class="mb-0">Project</label>
         
-          <div class="filter-list">
-            <!-- DOMAIN STRUCTURE TREE -->
-            <ul class="filter-tree" *ngIf="isDomainStructure">
-              <ng-container *ngFor="let domain of allDomainDataList">
-                <li>
-                  <div class="tree-label" (click)="toggle(domain, 'domain', 'domain_id')">
-                    {{ domain.domain }}
-                    <button class="add-btn" (click)="addItem('domain', domain, $event)">
-                      <i class="fa fa-plus"></i>
-                    </button>
-                  </div>
-                  <ul *ngIf="isExpanded(domain, 'domain', 'domain_id')">
-                    <ng-container *ngFor="let sub of domain.subDomainList">
-                      <li>
-                        <div class="tree-label" (click)="toggle(sub, 'subdomain', 'subdomain_id')">
-                          <span class="arrow" *ngIf="sub.serviceList?.length">
-                            {{ isExpanded(sub, 'subdomain', 'subdomain_id') ? '▼' : '▶' }}
-                          </span>
-                          {{ sub.subdomain }}
-                          <button class="add-btn" (click)="addItem('subdomain', sub, $event)">
-                            <i class="fa fa-plus"></i>
-                          </button>
-                        </div>
-                        <ul *ngIf="isExpanded(sub, 'subdomain', 'subdomain_id')">
-                          <ng-container *ngFor="let service of sub.serviceList">
-                            <li>
-                              <div class="tree-label" (click)="toggle(service, 'service', 'service_id')">
-                                <span class="arrow" *ngIf="service.businessFeatureList?.length">
-                                  {{ isExpanded(service, 'service', 'service_id') ? '▼' : '▶' }}
-                                </span>
-                                {{ service.service }}
-                                <button class="add-btn" (click)="addItem('service', service, $event)">
-                                  <i class="fa fa-plus"></i>
-                                </button>
-                              </div>
-                              <ul *ngIf="isExpanded(service, 'service', 'service_id')">
-                                <ng-container *ngFor="let bf of service.businessFeatureList">
-                                  <li>
-                                    <div class="tree-label" (click)="toggle(bf, 'business_feature', 'business_feature_id')">
-                                      <span class="arrow" *ngIf="bf.featureList?.length">
-                                        {{ isExpanded(bf, 'business_feature', 'business_feature_id') ? '▼' : '▶' }}
-                                      </span>
-                                      {{ bf.business_feature }}
-                                      <button class="add-btn" (click)="addItem('business_feature', bf, $event)">
-                                        <i class="fa fa-plus"></i>
-                                      </button>
-                                    </div>
-                                    <ul *ngIf="isExpanded(bf, 'business_feature', 'business_feature_id')">
-                                      <ng-container *ngFor="let feature of bf.featureList">
-                                        <li>
-                                          <div class="tree-label" (click)="toggle(feature, 'feature', 'feature_id')">
-                                            <span class="arrow" *ngIf="feature.featureList?.length">
-                                              {{ isExpanded(feature, 'feature', 'feature_id') ? '▼' : '▶' }}
-                                            </span>
-                                            {{ feature.feature_name }}
-                                            <button class="add-btn" (click)="addItem('feature', feature, $event)">
-                                              <i class="fa fa-plus"></i>
-                                            </button>
-                                          </div>
-                                          <ul *ngIf="isExpanded(feature, 'feature', 'feature_id')">
-                                            <ng-container *ngFor="let subFeature of feature.featureList">
-                                              <li>
-                                                <div class="tree-label">
-                                                  {{ subFeature.feature_name }}
-                                                  <button class="add-btn" (click)="addItem('subfeature', subFeature, $event)">
-                                                    <i class="fa fa-plus"></i>
-                                                  </button>
-                                                </div>
-                                              </li>
-                                            </ng-container>
-                                          </ul>
-                                        </li>
-                                      </ng-container>
-                                    </ul>
-                                  </li>
-                                </ng-container>
-                              </ul>
-                            </li>
-                          </ng-container>
-                        </ul>
-                      </li>
-                    </ng-container>
-                  </ul>
-                </li>
-              </ng-container>
-              <button class="btn btn-outline-primary btn-sm" style="width: 11.5rem" (click)="addItem('domain', null, $event)">
-                <i class="fa fa-plus"></i> Add domain
-              </button>
-            </ul>
+          <div class="custom-control custom-switch">
+            <input
+              type="checkbox"
+              class="custom-control-input"
+              id="domain-history-switch"
+              [(ngModel)]="isDomainStructure"
+              (change)="toggleDomainProjectView($event)"
+              style="cursor: pointer;"
+            />
+            <label class="custom-control-label mx-2" for="domain-history-switch"></label>
+          </div>
         
-            <!-- PROJECT INSIGHT TREE (NO ADD BUTTONS) -->
-            <ul class="filter-tree" *ngIf="!isDomainStructure">
-              <ng-container *ngIf="projectInsightProject">
-                <li>
-                  <div class="tree-label project-title">
-                    {{ projectInsightProject.project }}
-                  </div>
-                  <ul>
-                    <ng-container *ngFor="let group of projectInsightProject.groupList">
-                      <ng-template [ngTemplateOutlet]="recursiveGroup" [ngTemplateOutletContext]="{ group: group }"></ng-template>
-                    </ng-container>
-                  </ul>
-                </li>
-              </ng-container>
-            </ul>
-        
-            <!-- Recursive group template for projectInsightProject -->
-            <ng-template #recursiveGroup let-group="group">
+          <label class="mb-0">Domain</label>
+        </div>                 
+      
+        <div class="filter-list">
+          <!-- DOMAIN STRUCTURE TREE -->
+          <ul class="filter-tree" *ngIf="isDomainStructure">
+            <ng-container *ngFor="let domain of allDomainDataList">
               <li>
-                <div class="tree-label" (click)="toggle(group, 'group', 'groupid');">
-                  <span class="arrow" *ngIf="group.groupList?.length">
-                    {{ isExpanded(group, 'group', 'groupid') ? '▼' : '▶' }}
-                  </span>
-                  {{ group.groupName }}
+                <div class="tree-label" (click)="toggle(domain, 'domain', 'domain_id')">
+                  {{ domain.domain }}
+                  <button class="add-btn" (click)="addItem('domain', domain, $event)">
+                    <i class="fa fa-plus"></i>
+                  </button>
                 </div>
-                <ul *ngIf="isExpanded(group, 'group', 'groupid')">
-                  <ng-container *ngFor="let child of group.groupList">
-                    <ng-template [ngTemplateOutlet]="recursiveGroup" [ngTemplateOutletContext]="{ group: child }"></ng-template>
+                <ul *ngIf="isExpanded(domain, 'domain', 'domain_id')">
+                  <ng-container *ngFor="let sub of domain.subDomainList">
+                    <li>
+                      <div class="tree-label" (click)="toggle(sub, 'subdomain', 'subdomain_id')">
+                        <span class="arrow" *ngIf="sub.serviceList?.length">
+                          {{ isExpanded(sub, 'subdomain', 'subdomain_id') ? '▼' : '▶' }}
+                        </span>
+                        {{ sub.subdomain }}
+                        <button class="add-btn" (click)="addItem('subdomain', sub, $event)">
+                          <i class="fa fa-plus"></i>
+                        </button>
+                      </div>
+                      <ul *ngIf="isExpanded(sub, 'subdomain', 'subdomain_id')">
+                        <ng-container *ngFor="let service of sub.serviceList">
+                          <li>
+                            <div class="tree-label" (click)="toggle(service, 'service', 'service_id')">
+                              <span class="arrow" *ngIf="service.businessFeatureList?.length">
+                                {{ isExpanded(service, 'service', 'service_id') ? '▼' : '▶' }}
+                              </span>
+                              {{ service.service }}
+                              <button class="add-btn" (click)="addItem('service', service, $event)">
+                                <i class="fa fa-plus"></i>
+                              </button>
+                            </div>
+                            <ul *ngIf="isExpanded(service, 'service', 'service_id')">
+                              <ng-container *ngFor="let bf of service.businessFeatureList">
+                                <li>
+                                  <div class="tree-label" (click)="toggle(bf, 'business_feature', 'business_feature_id')">
+                                    <span class="arrow" *ngIf="bf.featureList?.length">
+                                      {{ isExpanded(bf, 'business_feature', 'business_feature_id') ? '▼' : '▶' }}
+                                    </span>
+                                    {{ bf.business_feature }}
+                                    <button class="add-btn" (click)="addItem('business_feature', bf, $event)">
+                                      <i class="fa fa-plus"></i>
+                                    </button>
+                                  </div>
+                                  <ul *ngIf="isExpanded(bf, 'business_feature', 'business_feature_id')">
+                                    <ng-container *ngFor="let feature of bf.featureList">
+                                      <li>
+                                        <div class="tree-label" (click)="toggle(feature, 'feature', 'feature_id')">
+                                          <span class="arrow" *ngIf="feature.featureList?.length">
+                                            {{ isExpanded(feature, 'feature', 'feature_id') ? '▼' : '▶' }}
+                                          </span>
+                                          {{ feature.feature_name }}
+                                          <button class="add-btn" (click)="addItem('feature', feature, $event)">
+                                            <i class="fa fa-plus"></i>
+                                          </button>
+                                        </div>
+                                        <ul *ngIf="isExpanded(feature, 'feature', 'feature_id')">
+                                          <ng-container *ngFor="let subFeature of feature.featureList">
+                                            <li>
+                                              <div class="tree-label">
+                                                {{ subFeature.feature_name }}
+                                                <button class="add-btn" (click)="addItem('subfeature', subFeature, $event)">
+                                                  <i class="fa fa-plus"></i>
+                                                </button>
+                                              </div>
+                                            </li>
+                                          </ng-container>
+                                        </ul>
+                                      </li>
+                                    </ng-container>
+                                  </ul>
+                                </li>
+                              </ng-container>
+                            </ul>
+                          </li>
+                        </ng-container>
+                      </ul>
+                    </li>
                   </ng-container>
                 </ul>
               </li>
-            </ng-template>
+            </ng-container>
+            <button class="btn btn-outline-primary btn-sm" style="width: 11.5rem" (click)="addItem('domain', null, $event)">
+              <i class="fa fa-plus"></i> Add domain
+            </button>
+          </ul>
+      
+          <!-- PROJECT INSIGHT TREE (NO ADD BUTTONS) -->
+          <ul class="filter-tree" *ngIf="!isDomainStructure">
+            <ng-container *ngIf="projectInsightProject">
+              <li>
+                <div class="tree-label project-title">
+                  {{ projectInsightProject.project }}
+                </div>
+                <ul>
+                  <ng-container *ngFor="let group of projectInsightProject.groupList">
+                    <ng-template [ngTemplateOutlet]="recursiveGroup" [ngTemplateOutletContext]="{ group: group }"></ng-template>
+                  </ng-container>
+                </ul>
+              </li>
+            </ng-container>
+          </ul>
+      
+          <!-- Recursive group template for projectInsightProject -->
+          <ng-template #recursiveGroup let-group="group">
+            <li>
+              <div class="tree-label" (click)="toggle(group, 'group', 'groupid');">
+                <span class="arrow" *ngIf="group.groupList?.length">
+                  {{ isExpanded(group, 'group', 'groupid') ? '▼' : '▶' }}
+                </span>
+                {{ group.groupName }}
+              </div>
+              <ul *ngIf="isExpanded(group, 'group', 'groupid')">
+                <ng-container *ngFor="let child of group.groupList">
+                  <ng-template [ngTemplateOutlet]="recursiveGroup" [ngTemplateOutletContext]="{ group: child }"></ng-template>
+                </ng-container>
+              </ul>
+            </li>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- Form start -->
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-12">
+            <h5 class="section-title mt-3 mb-3">Project Details</h5>
           </div>
         </div>
+        <form [formGroup]="dynamicForm" (ngSubmit)="onSubmit()">
+          <!-- Dynamic Form Fields -->
+          <div class="row" *ngFor="let row of getLayoutConfig(); let rowIndex = index">
+            <div class="col-md-{{ getBootstrapCol(field.width) }}" *ngFor="let field of row">
+              <div class="form-group">
+                <label [for]="field.id" class="form-label">
+                  {{ field.label }}
+                  <span class="text-danger" *ngIf="field.required">*</span>
+                </label>
+                
+                <!-- Select Field -->
+                <select 
+                  *ngIf="field.type === 'select'"
+                  [id]="field.id"
+                  [formControlName]="field.name"
+                  class="form-control"
+                  (change)="onSelectChange($event, field)"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+                  <option value="">{{ field.placeholder || 'Select an option' }}</option>
+                  <option 
+                    *ngFor="let option of field.options" 
+                    [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
 
-        <!-- Form start -->
-        <div class="container-fluid">
-          <div class="row">
+                <!-- Text Input Field -->
+                <input 
+                  *ngIf="field.type === 'text'"
+                  [id]="field.id"
+                  [formControlName]="field.name"
+                  type="text"
+                  class="form-control"
+                  [placeholder]="field.placeholder"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+                <!-- Number Input Field -->
+                <input 
+                  *ngIf="field.type === 'number'"
+                  [id]="field.id"
+                  [formControlName]="field.name"
+                  type="number"
+                  class="form-control"
+                  [placeholder]="field.placeholder"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+                <!-- Email Input Field -->
+                <input 
+                  *ngIf="field.type === 'email'"
+                  [id]="field.id"
+                  [formControlName]="field.name"
+                  type="email"
+                  class="form-control"
+                  [placeholder]="field.placeholder"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+                <!-- Textarea Field -->
+                <textarea 
+                  *ngIf="field.type === 'textarea'"
+                  [id]="field.id"
+                  [formControlName]="field.name"
+                  class="form-control"
+                  [placeholder]="field.placeholder"
+                  rows="3"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched"></textarea>
+
+                <!-- Checkbox Field -->
+                <div *ngIf="field.type === 'checkbox'" class="form-check">
+                  <div *ngFor="let option of field.options" class="form-check">
+                    <input 
+                      [id]="field.id + '_' + option.value"
+                      [name]="field.name"
+                      type="checkbox"
+                      class="form-check-input"
+                      [value]="option.value"
+                      [checked]="getFormValue(field.name) === option.value"
+                      (change)="dynamicForm.get(field.name)?.setValue(option.value)"
+                      [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+                    <label [for]="field.id + '_' + option.value" class="form-check-label">
+                      {{ option.label }}
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Radio Field -->
+                <div *ngIf="field.type === 'radio'" class="form-check">
+                  <div *ngFor="let option of field.options" class="form-check">
+                    <input 
+                      [id]="field.id + '_' + option.value"
+                      [name]="field.name"
+                      type="radio"
+                      class="form-check-input"
+                      [value]="option.value"
+                      [checked]="getFormValue(field.name) === option.value"
+                      (change)="dynamicForm.get(field.name)?.setValue(option.value)"
+                      [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+                    <label [for]="field.id + '_' + option.value" class="form-check-label">
+                      {{ option.label }}
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Date Input Field -->
+                <input 
+                  *ngIf="field.type === 'date'"
+                  [id]="field.id"
+                  [formControlName]="field.name"
+                  type="date"
+                  class="form-control"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+                <!-- File Input Field -->
+                <input 
+                  *ngIf="field.type === 'file'"
+                  [id]="field.id"
+                  [formControlName]="field.name"
+                  type="file"
+                  class="form-control"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+                <!-- Password Input Field -->
+                <input 
+                  *ngIf="field.type === 'password'"
+                  [id]="field.id"
+                  [formControlName]="field.name"
+                  type="password"
+                  class="form-control"
+                  [placeholder]="field.placeholder"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+                <!-- URL Input Field -->
+                <input 
+                  *ngIf="field.type === 'url'"
+                  [id]="field.id"
+                  [formControlName]="field.name"
+                  type="url"
+                  class="form-control"
+                  [placeholder]="field.placeholder"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+                <!-- Tel Input Field -->
+                <input 
+                  *ngIf="field.type === 'tel'"
+                  [id]="field.id"
+                  [formControlName]="field.name"
+                  type="tel"
+                  class="form-control"
+                  [placeholder]="field.placeholder"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+                <!-- Time Input Field -->
+                <input 
+                  *ngIf="field.type === 'time'"
+                  [id]="field.id"
+                  [formControlName]="field.name"
+                  type="time"
+                  class="form-control"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+                <!-- Hidden Input Field -->
+                <input 
+                  *ngIf="field.type === 'hidden'"
+                  [id]="field.id"
+                  [formControlName]="field.name"
+                  type="hidden">
+
+                <!-- Help text if available -->
+                <small *ngIf="field.helpText" class="form-text text-muted">
+                  {{ field.helpText }}
+                </small>
+
+                <!-- Error message display -->
+                <div *ngIf="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched" class="invalid-feedback d-block">
+                  <span *ngIf="dynamicForm.get(field.name)?.errors?.['required']">
+                    {{ field.label }} is required.
+                  </span>
+                  <span *ngIf="dynamicForm.get(field.name)?.errors?.['email']">
+                    Please enter a valid email address.
+                  </span>
+                  <span *ngIf="dynamicForm.get(field.name)?.errors?.['minlength']">
+                    {{ field.label }} must be at least {{ dynamicForm.get(field.name)?.errors?.['minlength']?.requiredLength }} characters.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Questions Section -->
+          <div class="row mt-4">
             <div class="col-12">
-              <h5 class="section-title mt-3 mb-3">Details</h5>
+              <h5 class="section-title">Questions</h5>
+              <a href="#" class="add-questions-link">Add Questions <span class="ml-1"><i class="fa fa-plus"></i></span></a>
             </div>
           </div>
-          <form>
-            <div class="row">
-              <!-- Column 1 -->
-              <div class="col-md-4">
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Project Name</label>
-                    <select class="form-control">
-                      <option>IDBI Bank - Testing of Digital Channels Applications</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Client</label>
-                    <select class="form-control">
-                      <option>IDBI Bank</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Delivery Model</label>
-                    <select class="form-control">
-                      <option>Fixed Cost</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Select Domain</label>
-                    <select class="form-control">
-                      <option>Select Domain</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Select Business Features</label>
-                    <select class="form-control">
-                      <option>Select Business Feature</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <!-- Column 2 -->
-              <div class="col-md-4">
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Project Manager(s)</label>
-                    <select class="form-control">
-                      <option>Kinjal Ayare</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Outcome</label>
-                    <select class="form-control">
-                      <option>Won Deal</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Start Date</label>
-                    <input type="date" class="form-control" value="2025-05-31">
-                  </div>
-                </div>
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Select Sub-Domain</label>
-                    <select class="form-control">
-                      <option>Select Sub-Domain</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Select Sub-Business Features</label>
-                    <select class="form-control">
-                      <option>Select Sub-Business Features</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <!-- Column 3 -->
-              <div class="col-md-4">
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Team Lead</label>
-                    <select class="form-control">
-                      <option>Pratiksha</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Technology Stack</label>
-                    <select class="form-control">
-                      <option>JAVA - Selenium</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Business Function</label>
-                    <select class="form-control">
-                      <option>Business Function</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="info-wrapper mb-3">
-                  <div class="form-group">
-                    <label>Select Services</label>
-                    <select class="form-control">
-                      <option>Select Services</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+          <div class="row mt-3 align-items-center">
+            <div class="col-md-12">
+              <button type="submit" class="btn btn-secondary btn-sm mr-2">Save</button>
+              <button type="button" class="btn btn-secondary btn-sm mr-2">Save and Assign</button>
+              <button type="button" class="btn btn-primary btn-sm mr-2">Add Group</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-2">Cancel</button>
+              <button type="button" class="btn btn-outline-primary btn-sm">
+                <i class="fa fa-upload"></i> Upload Questions
+              </button>
             </div>
-        
-            <!-- Questions Section -->
-            <div class="row mt-4">
-              <div class="col-12">
-                <h5 class="section-title">Questions</h5>
-                <a href="#" class="add-questions-link">Add Questions <span class="ml-1"><i class="fa fa-plus"></i></span></a>
-              </div>
-            </div>
-            <div class="row mt-3 align-items-center">
-              <div class="col-md-8">
-                <button type="button" class="btn btn-secondary btn-sm mr-2">Save</button>
-                <button type="button" class="btn btn-secondary btn-sm mr-2">Save and Assign</button>
-                <button type="button" class="btn btn-primary btn-sm mr-2">Add Group</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm">Cancel</button>
-              </div>
-              <div class="col-md-4 text-right">
-                <button type="button" class="btn btn-sm btn-outline-primary upload-btn">
-                  <i class="fa fa-upload"></i> Upload Questions
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-
+          </div>
+        </form>
       </div>
     </div>
+    
   </div>

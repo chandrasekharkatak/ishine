@@ -1,4 +1,3 @@
- 
   .summary-cards {
     display: flex;
     gap: 20px;
@@ -309,4 +308,30 @@
     border-radius: 8px;
     font-weight: 500;
     padding: 8px 18px;
+  }
+
+  /* Loading state for dynamic options */
+  .form-control.loading {
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwIDMuNUwxMi41IDZMMTUgMy41IiBzdHJva2U9IiM2Yzc1N2QiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+');
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+  }
+
+  /* Disabled state for dependent fields without parent value */
+  .form-control:disabled {
+    background-color: #e9ecef;
+    opacity: 0.65;
+  }
+
+  /* Error state for failed API calls */
+  .form-control.api-error {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  }
+
+  /* Success state for loaded options */
+  .form-control.api-success {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
   }
