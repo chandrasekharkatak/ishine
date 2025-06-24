@@ -178,11 +178,11 @@
             </div>
             <!-- Employee Card Section -->
             <div class="col-md-4">
-                <div *ngIf="!myDept">
+                <div *ngIf="!myDept || currentUser.employeeRole == 'SuperAdmin' ">
                     <div class="row">
                         <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                             <label class="info-label" style="justify-self: left;" title="As Per Resource - Project Mapping">
-                                <span class="text-danger"><i class="fa-solid fa-toggle-off" (click)="toggleDept();clearSelection($event)" style="cursor: pointer; color: #193D8A;"></i></span>
+                                <span class="text-danger" *ngIf="currentUser.employeeRole != 'SuperAdmin'"><i class="fa-solid fa-toggle-off" (click)="toggleDept();clearSelection($event)" style="cursor: pointer; color: #193D8A;"></i></span>
                                 <span class="text-danger">*</span>
                                 Departments
                             </label>
@@ -221,7 +221,7 @@
                         </div>
                     </div>
                 </div>
-                <div *ngIf="myDept">
+                <div *ngIf="myDept && currentUser.employeeRole != 'SuperAdmin' ">
                     <div class="row">
                         <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                             <label class="info-label" style="justify-self: left;">
@@ -2102,6 +2102,40 @@
 
                                     <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
                                         <label style="color: #040404;">No existing team members to display...</label>
+                                    </div>
+                                </div>
+                                <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class="team-member-section">
+                                    <label>New Team Members</label>
+                                    <div *ngFor="let teamMember of allTeamMembers" class="team-member-row">
+
+                                        <div class="team-member-fields">
+                                            <div class="team-member-field">
+                                                <input type="text" class="form-control" disabled
+                                                    [(ngModel)]="teamMember.name" />
+                                            </div>
+                                            <div class="team-member-field">
+                                                <mat-select class="form-control" multiple
+                                                    [(ngModel)]="teamMember.employeeRole">
+                                                    <mat-option value="" disabled selected>Select</mat-option>
+                                                    <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role
+                                                        }}</mat-option>
+                                                </mat-select>
+                                            </div>
+                                            <div class="checkbox-group">
+                                                <label><input type="checkbox" [(ngModel)]="teamMember.isShadow"
+                                                        (ngModelChange)="teamMember.isShadow = $event ? 1 : 0" />
+                                                    Shadow</label>
+                                                <label><input type="checkbox" [(ngModel)]="teamMember.isDefaultProject"
+                                                        (ngModelChange)="teamMember.isDefaultProject = $event ? 1 : 0" />
+                                                    Default Project</label>
+                                            </div>
+                                            <div class="action-buttons">
+                                                <button type="button" class="btn btn-outline-primary"
+                                                    (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

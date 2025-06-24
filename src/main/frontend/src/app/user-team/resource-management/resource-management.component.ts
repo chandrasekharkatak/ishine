@@ -487,7 +487,7 @@ export class ResourceManagementComponent implements OnInit {
     }
     else {
       await this.getAllDepartments();
-      await this.getDeptsByUser();
+      // await this.getDeptsByUser();
       if(this.filteredDepartments != null)
       this.projectFilterDTO.isAdmin = true;
       else{
@@ -1258,6 +1258,8 @@ toggleSelectAllDept2() {
       
       if(this.projectObj.poProjectType == null){
         this.projectObj.projectType = "Internal";
+      }else{
+        this.projectObj.projectType = this.projectObj.poProjectType;
       }
 
       // this.projectObj.projectId=this.projectObj.id;
@@ -2462,8 +2464,8 @@ openTimesheetPopup() {
       if (response.serviceStatus === "Success") {
         console.log(response.serviceResponse);
         this.allProject_Po_Internal = response.serviceResponse.combinedNewProjects;
-        this.tabCounts = response.serviceResponse.counts;
-        this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
+        // this.tabCounts = response.serviceResponse.counts;
+        // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
 
       } else {
         this.openAlertMod(template, response.serviceResponse);
