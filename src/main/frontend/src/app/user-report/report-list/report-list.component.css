@@ -634,6 +634,11 @@ td {
   margin-left: auto;
 }
 
+.backButton{
+  background-color: #193d8aff; 
+  margin-left: 1055px;
+}
+
 .details-button {
   color: rgb(48, 119, 141);
 }

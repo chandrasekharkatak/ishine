@@ -137,7 +137,8 @@
                     </div>
 
                     <div class="col-md-3">
-                        <div class="mini-card1 timesheet-card" style="border-left: 4px solid #e91e63; padding: 12px;"  (click)="EmployeeViewDataModel(employee_data,'Unfilled Timesheet Projects')">
+                        <div class="mini-card1 timesheet-card" style="border-left: 4px solid #e91e63; padding: 12px;"
+                            (click)="EmployeeViewDataModel(employee_data,'Unfilled Timesheet Projects')">
 
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="value fw-bold" style="color: #e91e63;">
@@ -966,17 +967,17 @@
                     <label><span class="text-danger">*</span>Department</label>
                     <mat-select class="form-control" multiple [(ngModel)]="projectObj.departmentList">
                         <mat-option class="non-selectable" disabled>
-                                <div style="display: flex; align-items: center;">
-                                   <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDept"
-                                        (ngModelChange)="filterDepartments()" class="form-control"
-                                        style="width: 100%; padding: 5px;" />
+                            <div style="display: flex; align-items: center;">
+                                <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDept"
+                                    (ngModelChange)="filterDepartments()" class="form-control"
+                                    style="width: 100%; padding: 5px;" />
 
-                                    <button *ngIf="projectObj.departmentList?.length > 0" (click)="clearSelection($event)"
-                                        style="margin-left: 5px; background: none; border: none; cursor: pointer;"
-                                        title="Clear Selection">
-                                        Clear
-                                    </button>
-                                </div>
+                                <button *ngIf="projectObj.departmentList?.length > 0" (click)="clearSelection($event)"
+                                    style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                                    title="Clear Selection">
+                                    Clear
+                                </button>
+                            </div>
                         </mat-option>
                         <mat-option (click)="toggleSelectAllInternal()"
                             [disabled]="filteredDepartmentsInternal.length === 0">
@@ -987,7 +988,7 @@
                         </mat-option>
                     </mat-select>
                 </div>
-                 
+
                 <div class="team-preview-field">
                     <label><span class="text-danger">*</span>State</label>
                     <select class="form-control" aria-hidden="true" [(ngModel)]="projectObj.state">
@@ -1436,7 +1437,7 @@
                                 [value]="dept">{{dept}}</mat-option>
                         </mat-select>
                     </div>
-                    <div class="form-field">
+                    <!-- <div class="form-field">
                         <label><span class="text-danger">*</span>Project Manager</label>
                         <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectManagerId">
 
@@ -1464,8 +1465,45 @@
                             </mat-option>
 
                         </mat-select>
-                    </div>
+                    </div> -->
                     <div class="form-field">
+                        <label><span class="text-danger">*</span> Project Manager</label>
+                        <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectManagerId"
+                            panelClass="custom-select-panel">
+                            <!-- Sticky Search Box -->
+                            <mat-option disabled class="search-option">
+                                <div class="search-header" (click)="$event.stopPropagation()">
+                                    <input type="text" [(ngModel)]="searchManagerText"
+                                        (ngModelChange)="filterManagers()" placeholder="Search Project Manager"
+                                        class="form-control" />
+                                    <button *ngIf="projectObj.projectManagerId?.length"
+                                        (click)="clearManagerSelection($event)" class="clear-btn" type="button">
+                                        ✕ Clear
+                                    </button>
+                                </div>
+                            </mat-option>
+
+                            <!-- Select/Deselect -->
+                            <mat-option (click)="toggleSelectAllManagers()"
+                                [disabled]="filteredManagerList.length === 0">
+                                {{ isAllManagersSelected ? 'Deselect All' : 'Select All' }}
+                            </mat-option>
+
+                            <!-- Options List -->
+                            <mat-option *ngFor="let employee of filteredManagerList" [value]="employee.empId">
+                                {{ employee.name }}
+                            </mat-option>
+                        </mat-select>
+                    </div>
+
+
+
+
+
+
+
+
+                    <!-- <div class="form-field">
                         <label>Project Overhead</label>
                         <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectOverheadId">
 
@@ -1493,7 +1531,40 @@
                             </mat-option>
 
                         </mat-select>
+                    </div> -->
+
+
+                    <div class="form-field">
+                        <label>Project Overhead</label>
+                        <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectOverheadId"
+                            panelClass="custom-select-panel">
+                            <!-- Sticky Search Box -->
+                            <mat-option disabled class="search-option">
+                                <div class="search-header" (click)="$event.stopPropagation()">
+                                    <input type="text" [(ngModel)]="searchOverheadText"
+                                        (ngModelChange)="filterOverhead()" placeholder="Search Project Overhead"
+                                        class="form-control" />
+                                    <button *ngIf="projectObj.projectOverheadId?.length"
+                                        (click)="clearOverheadSelection($event)" class="clear-btn" type="button">
+                                        ✕ Clear
+                                    </button>
+                                </div>
+                            </mat-option>
+
+                            <!-- Select/Deselect All -->
+                            <mat-option (click)="toggleSelectAllOverhead()"
+                                [disabled]="filteredOverheadList.length === 0">
+                                {{ isAllOverheadsSelected ? 'Deselect All' : 'Select All' }}
+                            </mat-option>
+
+                            <!-- Options List -->
+                            <mat-option *ngFor="let employee of filteredOverheadList" [value]="employee.empId">
+                                {{ employee.name }}
+                            </mat-option>
+                        </mat-select>
                     </div>
+
+
                     <div class="form-field">
                         <label>Project Status</label>
                         <input type="text" disabled [(ngModel)]="projectObj.status" />
@@ -1545,34 +1616,38 @@
                             <input type="text" class="form-select name-field" [(ngModel)]="teamObj.teamName"
                                 (blur)="checkTeamName(alert_message_without_reload, teamObj, i)" />
                         </div>
-<div class="form-field">
-    <label><span class="text-danger">*</span>Department</label>
-
-    <mat-select class="form-control name-field" multiple [(ngModel)]="teamObj.departmentList">
-
-        <mat-option class="non-selectable" disabled>
-            <div style="display: flex; align-items: center;">
-                <input type="text" [(ngModel)]="searchTextDeptTeam" (ngModelChange)="filterDepartmentsTeamForm()"
-                    class="form-control" style="width: 100%; padding: 5px;" />
-
-                <button *ngIf="teamObj.departmentList?.length > 0" (click)="clearSelectionDept($event)"
-                    style="margin-left: 5px; background: none; border: none; cursor: pointer;" title="Clear Selection">
-                    Clear
-                </button>
-            </div>
-        </mat-option>
-
-        <mat-option (click)="toggleSelectAllTeams()" [disabled]="filteredDepartmentsTeam.length === 0">
-            {{ isAllDeptSelected ? 'Deselect All' : 'Select All' }}
-        </mat-option>
-
-        <mat-option *ngFor="let dept of filteredDepartmentsTeam" [value]="dept.deptId">
-            {{ dept.name }}
-        </mat-option>
-    </mat-select>
-</div>
-
                         <div class="form-field">
+                            <label><span class="text-danger">*</span>Department</label>
+
+                            <mat-select class="form-control name-field" multiple [(ngModel)]="teamObj.departmentList">
+
+                                <mat-option class="non-selectable" disabled>
+                                    <div style="display: flex; align-items: center;">
+                                        <input type="text" [(ngModel)]="searchTextDeptTeam"
+                                            (ngModelChange)="filterDepartmentsTeamForm()" class="form-control"
+                                            style="width: 100%; padding: 5px;" />
+
+                                        <button *ngIf="teamObj.departmentList?.length > 0"
+                                            (click)="clearSelectionDept($event)"
+                                            style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                                            title="Clear Selection">
+                                            Clear
+                                        </button>
+                                    </div>
+                                </mat-option>
+
+                                <mat-option (click)="toggleSelectAllTeams()"
+                                    [disabled]="filteredDepartmentsTeam.length === 0">
+                                    {{ isAllDeptSelected ? 'Deselect All' : 'Select All' }}
+                                </mat-option>
+
+                                <mat-option *ngFor="let dept of filteredDepartmentsTeam" [value]="dept.deptId">
+                                    {{ dept.name }}
+                                </mat-option>
+                            </mat-select>
+                        </div>
+
+                        <!-- <div class="form-field">
                             <label>SPOC</label>
                             <input type="text" class="form-select name-field" placeholder="Search by Emp ID or Name"
                                 aria-label="Search employee" [formControl]="spocCtrl" [matAutocomplete]="spocAuto"
@@ -1584,7 +1659,21 @@
                                     {{ employee.name }}
                                 </mat-option>
                             </mat-autocomplete>
+                        </div> -->
+
+                        <div class="form-field">
+                            <label>SPOC</label>
+                            <input type="text" class="form-control" placeholder="Search by Emp ID or Name"
+                                aria-label="Search employee" [formControl]="spocCtrl" [matAutocomplete]="spocAuto" />
+
+                            <mat-autocomplete #spocAuto="matAutocomplete" (optionSelected)="onSpocSelected($event)" panelClass="custom-autocomplete-panel">
+                                <mat-option *ngFor="let employee of filteredEmployees | filterEmployee: spocCtrl.value"
+                                    [value]="employee.name">
+                                    {{ employee.name }}
+                                </mat-option>
+                            </mat-autocomplete>
                         </div>
+
 
                         <div class="form-field">
                             <label>Team Lead</label>
@@ -1727,7 +1816,8 @@
                     <!-- Add Button -->
                     <div>
                         <button type="button" class="btn btn-outline-primary"
-                            (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()" [disabled]="projectObj.resourceRequirements?.length > 0
+                            (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()"
+                            [disabled]="projectObj.resourceRequirements?.length > 0
                           ? (!selectedRequirement || !newteamMember.empId || !newteamMember.employeeRole?.length ||(projectDetails.length !== 0 && newteamMember.billableType === 'TNM') )
                           : (!newteamMember.empId || !newteamMember.employeeRole?.length || (projectDetails.length !== 0 && newteamMember.billableType === 'TNM') )">
                             <i class="fa fa-plus" aria-hidden="true"></i>
