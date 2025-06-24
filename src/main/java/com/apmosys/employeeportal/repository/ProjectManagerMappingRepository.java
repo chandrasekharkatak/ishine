@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -26,6 +27,8 @@ public interface ProjectManagerMappingRepository extends JpaRepository<ProjectMa
 	
 	@Query(nativeQuery = true)
 	public List<Object[]>findProjectManagersByPoProjectId(Long id);
+	
+	
 	
 	@Modifying
 	@Transactional
@@ -59,6 +62,8 @@ boolean isUserProjectManagerOfAnyActiveInternalAndExternalProject(@Param("empId"
             "JOIN projects p ON p.project_id = pm.project_id " +
             "WHERE p.active = 'true' AND pm.project_manager_id = :empId", nativeQuery = true)
 List<Integer> isUserProjectManagerOfAnyActiveInternalProjectList(@Param("empId") Long empId);
+
+	Optional<List<ProjectManagerMapping>> findByProjectManagerIdAndActive(Long projectManagerId, Integer active);
 	
 	
 

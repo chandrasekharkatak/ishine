@@ -65,6 +65,7 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Asset;
@@ -94,6 +95,8 @@ import com.apmosys.employeeportal.model.PolicyReadResponse;
 import com.apmosys.employeeportal.model.PreviousEmployment;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
+import com.apmosys.employeeportal.model.ProjectManagerMapping;
+import com.apmosys.employeeportal.model.ProjectOverheadMapping;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UploadPolicy;
@@ -126,6 +129,8 @@ import com.apmosys.employeeportal.repository.PIPRepository;
 import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
+import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
+import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
@@ -154,6 +159,13 @@ public class EmployeeService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	ProjectManagerMappingRepository projectManagerMappingRepository;
+	
+	
+	@Autowired
+	ProjectOverheadMappingRepository projectOverheadMappingRepository;
 
 	@Autowired
 	DraftEmployeeRepository draftEmployeeRepository;
@@ -2316,15 +2328,7 @@ public class EmployeeService {
 					employee.setIsRetain(employeedto.getIsRetain());
 			 }
 			 
-			 
-			 
 
-			
-			 
-			 
-			 
-			 
-				
 				if(employeedto.getEmploymentstatus().equals("Resigned") || employeedto.getEmploymentstatus().equals("InActive") || employeedto.getEmploymentstatus().equals("Retain") )  {
 					System.out.println("Right method call for  setDateOfResign   ");
 					employee.setDateOfResign(employeedto.getDateOfResign() != null
@@ -2459,7 +2463,6 @@ public class EmployeeService {
 								
 						 }
 						// create logic for remove resource from team and projects
-						
 						List<EmployeeTeamMap> findAllActiveTeams = employeeTeamMapRepository.findByEmpId(employeedto.getEmpId());
 						if(findAllActiveTeams != null) {
 							
@@ -2469,9 +2472,72 @@ public class EmployeeService {
 								});
 						}
 						
+						// of project manager 
+						Optional<List<ProjectManagerMapping>> activeProjectManagerMappings = projectManagerMappingRepository
+							    .findByProjectManagerIdAndActive(employeedto.getEmpId(), 1);
+
+							activeProjectManagerMappings
+							    .filter(mappings -> !mappings.isEmpty())
+							    .ifPresent(mappings -> {
+							        mappings.forEach(mapping -> {
+							            mapping.setActive(0);
+							            mapping.setUpdatedBy(Long.valueOf(employeedto.getUpdatedBy().toString()));
+							            mapping.setUpdatedOn(LocalDateTime.now());
+							            projectManagerMappingRepository.save(mapping);
+							        });
+							        System.out.println("Deactivated " + mappings.size() + " project manager mappings for employee: " + employeedto.getEmpId());
+							    });
+						
+						// of project overhead
+							Optional<List<ProjectOverheadMapping>> activeProjectOverheadMappings = projectOverheadMappingRepository
+								    .findByProjectOverheadIdAndActive(employeedto.getEmpId(), 1);
+
+								activeProjectOverheadMappings
+								    .filter(mappings -> !mappings.isEmpty())
+								    .ifPresent(mappings -> {
+								        mappings.forEach(mapping -> {
+								            mapping.setActive(0);
+								            mapping.setUpdatedBy(Long.valueOf(employeedto.getUpdatedBy().toString()));
+								            mapping.setUpdatedOn(LocalDateTime.now());
+								            projectOverheadMappingRepository.save(mapping);
+								        });
+								        System.out.println("Deactivated " + mappings.size() + " project overhead mappings for employee: " + employeedto.getEmpId());
+								    });
+								
+								
+								// for teamLead 
+								Optional<List<Team>> activeTeamLead = teamRepository.findByTeamLeadIdAndIsActive(employeedto.getEmpId(), "Y");
+
+								if (activeTeamLead.isPresent()) {
+								    for (Team obj : activeTeamLead.get()) {
+								        Team teamDetails = teamRepository.findByTeamId(obj.getTeamId());
+								        teamDetails.setTeamLeadId(null);
+								        teamDetails.setTeamLeadName(null);
+								        teamDetails.setUpdatedBy(employeedto.getUpdatedBy());
+								        teamDetails.setUpdatedOn(LocalDateTime.now());
+								        
+								        Team dbResponse = teamRepository.save(teamDetails);
+								    }
+								}
+								
+							// for spoc 
+								Optional<List<Team>> activeSpoc = teamRepository.findBySpocIdAndIsActive(employeedto.getEmpId() , "Y");
+								
+								if(activeSpoc.isPresent()) {
+									for( Team obj: activeSpoc.get()) {
+										Team spocDetails = teamRepository.findByTeamId(obj.getTeamId());
+										spocDetails.setSpocId(null);
+										spocDetails.setUpdatedBy(employeedto.getUpdatedBy());
+										spocDetails.setUpdatedOn(LocalDateTime.now());
+										
+										Team dbResponse = teamRepository.save(spocDetails);
+										
+									}
+								}
+								
+						
 
 						// department HOD 
-						
 						Optional<List<Department>> findDept = Optional.ofNullable(departmentRepository.findByHodId(employeedto.getEmpId()));
 						if(findDept.isPresent() && !findDept.isEmpty()) {
 							System.err.println(" department update call ");
