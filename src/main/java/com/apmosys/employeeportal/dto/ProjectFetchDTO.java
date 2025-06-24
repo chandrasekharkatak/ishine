@@ -195,6 +195,7 @@ public class ProjectFetchDTO {
 		this.clientName = clientName;
 		this.draftStatus = draftStatus;
 		this.projectViewId = projectViewId;
+		this.id = poProjectId;
 		// this.projectType = projectType;
 	}
 	public ProjectFetchDTO(Integer projectId,String projectName,String isDraftProject,Integer isActive,String projectStatus){

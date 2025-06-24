@@ -982,7 +982,7 @@ toggleSelectAllDept2() {
         this.allDeptList = response.serviceResponse;
         this.filteredDeptList = this.allDeptList.filter(x => project.department.includes(x.name));
         this.filteredDepartments = [...this.allDeptList];
-        //console.log("allDeptList : ", this.allDeptList)
+        console.log("allDeptList : ", this.allDeptList)
       } else {
         console.error(response.serviceResponse);
       }
@@ -2771,7 +2771,7 @@ getProjectTimesheetSummaryData() {
     this.allTeamList = [];
     this.projectObj = Object.assign({}, project);
     this.GetAllResourceRequirementForProject(this.projectObj);
-    this.getAllDepartmentList(project);
+    // this.getAllDepartmentList(project);
     this.getTeamListByProjectName(project);
     this.getEmployeeByNameAndEmpld();
 
