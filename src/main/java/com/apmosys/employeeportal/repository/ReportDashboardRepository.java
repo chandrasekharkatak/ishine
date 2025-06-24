@@ -169,17 +169,29 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         		 );
 
 
-        		 @Query(value = "SELECT " +
-        		            "d.name AS department_name, " +
-        		            "CASE WHEN e.is_user_info_updated = 'true' THEN 'Completed' ELSE 'Pending' END AS status, " +
-        		            "COUNT(DISTINCT e.emp_id) AS emp_count " +
-        		            "FROM employee e " +
-        		            "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
-        		            "INNER JOIN department d ON d.dept_id = jr.dept_id " +
+        		 @Query("SELECT " +
+        		            "d.name AS departmentName, " +
+        		            "CASE WHEN e.isUserInfoUpdated = 'true' THEN 'Completed' ELSE 'Pending' END AS status, " +
+        		            "COUNT(DISTINCT e.empId) AS empCount " +
+        		            "FROM Employee e " +
+        		            "INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+        		            "INNER JOIN Department d ON d.deptId = jr.deptId " +
         		            "WHERE e.employmentstatus <> 'InActive' " + 
-        		            "GROUP BY d.name, CASE WHEN e.is_user_info_updated = 'true' THEN 'Completed' ELSE 'Pending' END",
-        		    nativeQuery = true)
+        		            "GROUP BY d.name, CASE WHEN e.isUserInfoUpdated = 'true' THEN 'Completed' ELSE 'Pending' END")
         		   public List<Object[]> getDepartmentWiseKycCount();
+        		   
+//          		 @Query(value = "SELECT " +
+//     		            "d.name AS department_name, " +
+//     		            "CASE WHEN e.is_user_info_updated = 'true' THEN 'Completed' ELSE 'Pending' END AS status, " +
+//     		            "COUNT(DISTINCT e.emp_id) AS emp_count " +
+//     		            "FROM employee e " +
+//     		            "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+//     		            "INNER JOIN department d ON d.dept_id = jr.dept_id " +
+//     		            "WHERE e.employmentstatus <> 'InActive' " + 
+//     		            "GROUP BY d.name, CASE WHEN e.is_user_info_updated = 'true' THEN 'Completed' ELSE 'Pending' END",
+//     		    nativeQuery = true)
+//     		   public List<Object[]> getDepartmentWiseKycCount();
+        		   
         		   
         		   @Query(value = 
         				    "WITH ALL_EMPLOYEES AS ( " +
