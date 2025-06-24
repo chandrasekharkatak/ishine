@@ -439,6 +439,7 @@ export class ResourceManagementComponent implements OnInit {
   filteredDepartmentsByUser:any[] = [];
   myDept: boolean = false;
   countList:any;
+  fallBackMsg:any;
 
   constructor(
     private scroller: ViewportScroller,
@@ -1342,9 +1343,13 @@ toggleSelectAllDept2() {
           // this.allTeamListCopy = this.projectObj.teamList;
           this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
         }
+        this.fallBackMsg = '';
 
       } else {
         console.error(response.serviceResponse);
+
+        if(response.serviceStatus == "Fail")
+          this.fallBackMsg = "All teams has been made inactive for this project";
 
         //Project Team List
         if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
