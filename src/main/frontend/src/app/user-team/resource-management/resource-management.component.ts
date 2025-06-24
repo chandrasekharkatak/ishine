@@ -440,6 +440,7 @@ export class ResourceManagementComponent implements OnInit {
   myDept: boolean = false;
   countList:any;
   fallBackMsg:any;
+  isApproved:boolean = false;
 
   constructor(
     private scroller: ViewportScroller,
@@ -1344,12 +1345,15 @@ toggleSelectAllDept2() {
           this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
         }
         this.fallBackMsg = '';
-
+        this.isApproved = false;
       } else {
         console.error(response.serviceResponse);
 
-        if(response.serviceStatus == "Fail")
-          this.fallBackMsg = "All teams has been made inactive for this project";
+        if(response.serviceStatus == "Fail"){
+          this.fallBackMsg = "All teams are inactive for this project";
+          if(project.draftStatus == "Approved")
+            this.isApproved = true;
+        }
 
         //Project Team List
         if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {

@@ -1506,7 +1506,7 @@
 
                 <div class="teams-section">
                     <h3>Teams 
-                        <span *ngIf="fallBackMsg !== '' && draftStatus === 'Approved'" style="color: red; font-size: 14px; margin-left: 10px;">
+                        <span *ngIf="fallBackMsg !== '' && isApproved" style="color: red; font-size: 14px; margin-left: 10px;">
                             {{ fallBackMsg }}
                         </span>
                     </h3>
