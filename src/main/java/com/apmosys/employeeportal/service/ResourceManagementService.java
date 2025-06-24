@@ -2196,7 +2196,7 @@ public class ResourceManagementService {
 											prefixxTeamMember + empObj.getEmployeementId());
 									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
 									teamMemberDTO.setIsShadow(teamMemberObj.getIsShadow() != null ? teamMemberObj.getIsShadow() : null);
-									
+									teamMemberDTO.setEmployeeTeamMapId(teamMemberObj.getEmployeeTeamMapId());
 									Integer flag = this.isDefaultProject(teamMemberObj.getEmpId(),projectId);
 									teamMemberDTO.setIsDefaultProject(flag != null ? flag: null);
 									
@@ -2222,7 +2222,7 @@ public class ResourceManagementService {
 									teamMemberDTO.setEmploymentIdEmployeeType(
 											prefixxTeamMember + empObj.getEmployeementId());
 									teamMemberDTO.setIsShadow(teamMemberObj.getIsShadow() != null ? teamMemberObj.getIsShadow() : null);
-									
+									teamMemberDTO.setEmployeeTeamMapId(teamMemberObj.getEmployeeTeamMapId());
 									Integer flag = this.isDefaultProject(teamMemberObj.getEmpId(),projectId);
 									teamMemberDTO.setIsDefaultProject(flag != null ? flag: null);
 									
@@ -3836,12 +3836,14 @@ public class ResourceManagementService {
 		        member.setBillableType(object[5] != null ? object[5].toString() : null);
 		        member.setStartDate(object[6] != null ? object[6].toString() : null);
 		        member.setActive(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
+		        member.setEmployeeTeamMapId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+
 		        member.setIsDefaultProject(
 		            this.isDefaultProject(
 		                member.getEmpId(), resourceManagementDTO.getProjectId()
 		            )
 		        );
-				
+		        	
 				Map<String, Object> activeProjectInfo = this.getActiveProjectDetailsIfMultiple(member.getEmpId(), resourceManagementDTO.getProjectId());
 				if ((Boolean) activeProjectInfo.get("isMultipleActiveProjects")) {
 				    List<Map<String, Object>> otherProjects = (List<Map<String, Object>>) activeProjectInfo.get("projects");
@@ -4340,11 +4342,13 @@ public class ResourceManagementService {
 			EmployeeTeamMap findResource = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActiveStatus(
 					resourceManagementDTO.getEmpId(), resourceManagementDTO.getTeamId());
 			Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
-			Employee emp = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
 			Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
 
 			if (findResource != null) {
 				try {
+					EmployeeTeamMap emp1= employeeTeamMapRepository.findByEmployeeTeamMapId(resourceManagementDTO.getEmployeeTeamMapId());
+					if(emp1 != null && emp1.getEndDate() == null  && emp1.getActive() != 0) {
+					Employee emp = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
 					findResource.setActive(0L);
 
 					if (resourceManagementDTO.getEndDate() != null) {
@@ -4376,6 +4380,11 @@ public class ResourceManagementService {
 
 					resultMessage.append("Resource with EmpId " + resourceManagementDTO.getEmpId() + " from Team "
 							+ findTeam.getTeamName() + " removed successfully.\n");
+				}else {
+					failureCount++;
+					resultMessage.append("No resource found with EmpId " + resourceManagementDTO.getEmpId() + " in Team "
+							+ findTeam.getTeamName() + ".\n");
+				}
 
 				} catch (Exception e) {
 					failureCount++;
@@ -4424,7 +4433,7 @@ public class ResourceManagementService {
 					getTeam.setUpdatedBy(teamDto.getUpdatedBy());
 					getTeam.setUpdatedOn(LocalDateTime.now());
 					List<EmployeeTeamMap> findAllMappedEmp = employeeTeamMapRepository
-							.findByTeamId(teamDto.getTeamId());
+							.findByTeamIdAndActive(teamDto.getTeamId());
 					System.err
 							.println("findAllMappedEmp for Team: " + teamDto.getTeamName() + " -> " + findAllMappedEmp);
 

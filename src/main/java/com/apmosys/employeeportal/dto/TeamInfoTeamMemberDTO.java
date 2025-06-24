@@ -20,5 +20,6 @@ public class TeamInfoTeamMemberDTO {
     private Integer active;
     private Integer isDefaultProject;
     private List<Map<String, Object>> otherActiveProjects;
+    private Long employeeTeamMapId;
 
 }

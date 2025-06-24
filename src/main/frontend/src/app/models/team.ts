@@ -29,4 +29,5 @@ export class Team{
     spoc:any;
     shadowEmpId:any;
     shadow:any;
+    employeeTeamMapId:any;
 } 

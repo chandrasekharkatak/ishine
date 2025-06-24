@@ -2434,7 +2434,18 @@ openTimesheetPopup() {
 
   deleteTeamsByIdsBulk(template: TemplateRef<any>) {
     console.log("Deleting teams: ", this.selectedTeamsDetails);
+ const detailsList = Array.isArray(this.projectdetails1) ? this.projectdetails1 : [this.projectdetails1];
 
+    // detailsList.forEach(details => {
+    //   this.lastDate = details.poEndDate
+    //     ? moment(details.poEndDate).format('YYYY-MM-DD')
+    //     : moment().format('YYYY-MM-DD');
+    //   console.log("Testing for end date", this.lastDate);
+    // });
+     this.selectedTeamsDetails = this.selectedTeamsDetails.map(entry => ({
+      ...entry,
+      endDate: this.lastDate || null
+    }));
     this.projectService.deleteTeamsByIdsBulk(this.selectedTeamsDetails).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         const deletedIds = this.selectedTeamsDetails.map(team => team.teamId);
@@ -3366,6 +3377,7 @@ clearSelectionDept(event: Event) {
         const deselectedMember = {
           teamId: team.teamId,
           empId: object.empId,
+          employeeTeamMapId:object.employeeTeamMapId
         };
         this.employeeSelectionHistory.push(deselectedMember);
       }
@@ -3783,10 +3795,11 @@ clearSelectionDept(event: Event) {
     const allMembers = this.getAllMembers();
     const selectedMembers = allMembers.filter(m => m.selected);
     this.slectedMemberFromResourceRequirement = selectedMembers;
-    console.log("test", this.slectedMemberFromResourceRequirement);
+    console.log("test", allMembers);
     const selectedEntries = selectedMembers.map(m => ({
       empId: m.empId,
-      teamId: this.teamObj.teamId
+      teamId: this.teamObj.teamId,
+      employeeTeamMapId:m.employeeTeamMapId
     }));
 
 

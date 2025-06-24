@@ -284,7 +284,7 @@ export class ProjectViewComponent implements OnInit {
     const existingTeamIndex = this.selectedMembers.findIndex(item => item.team.teamId === team.teamId);
 
     if (object.selected) {
-
+     console.log("test",object);
       if (existingTeamIndex === -1) {
         this.selectedMembers.push({ team, object: [object] });
       } else {
@@ -304,7 +304,8 @@ export class ProjectViewComponent implements OnInit {
         const deselectedMember = {
           teamId: team.teamId,
           empId: object.empId,
-          endDate: object.lastDate
+          endDate: object.lastDate,
+          employeeTeamMapId:object.employeeTeamMapId
         };
         this.employeeSelectionHistory.push(deselectedMember);
       }

@@ -29,5 +29,6 @@ public class TeamMemberDTO {
     private Long resourceOverviewId;
 	private SpocDTO shadow;
 	private List<Map<String, Object>> otherActiveProjects;
+	private Long employeeTeamMapId;
 	
 }

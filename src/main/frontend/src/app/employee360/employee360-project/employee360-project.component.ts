@@ -176,7 +176,7 @@ export class Employee360ProjectComponent implements OnInit {
       next: (response: any) => {
         if (response.serviceStatus === "Success") {
           this.filterProjectByProjectId = response.serviceResponse;
-          // console.log("getTeamInfo ", this.teamMemberList);
+           console.log("getTeamInfo ", this.filterProjectByProjectId);
 
           const groupedData = {};
 
@@ -200,6 +200,7 @@ export class Employee360ProjectComponent implements OnInit {
               startDate: member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null,
               billableType: member.billableType,
               active: member.active,
+              employeeTeamMapId:member.employeeTeamMapId,
               emp360: {}
             });
 
@@ -325,6 +326,7 @@ export class Employee360ProjectComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.projectObj = projObj;
     this.projectObj.empId = member.empId;
+  
   }
 
 
@@ -336,7 +338,7 @@ export class Employee360ProjectComponent implements OnInit {
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
     projectObj.endDate = this.lastDate;
-
+    projectObj.employeeTeamMapId = this.employeeTeamMapId;
 
     console.log("team details ", projectObj)
     this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
@@ -559,6 +561,7 @@ export class Employee360ProjectComponent implements OnInit {
   modalRef3: BsModalRef = new BsModalRef();
   activeProjects: any;
   EmployessIds: any;
+  employeeTeamMapId:any;
   setDefaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
 
 
@@ -567,7 +570,8 @@ export class Employee360ProjectComponent implements OnInit {
     const empIds: number[] = [projObj.empId];
     this.EmployessIds = empIds;
     this.projectteamInfo.projectId = projObj.projectId;
-
+   
+ console.log("test", projObj.empId);
     this.resourceManagementService.getTeamListByProjectName(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectObj.teamList = response.serviceResponse;
@@ -603,7 +607,10 @@ export class Employee360ProjectComponent implements OnInit {
 
           const empIds: number[] = this.allTeamList.reduce((acc: number[], team: any) => {
             const members = Array.isArray(team.teamMemberList) ? team.teamMemberList : [];
+const targetMember = members.find(member => member.empId === projObj.empId);
 
+this.employeeTeamMapId = targetMember ? targetMember.employeeTeamMapId : null;
+console.log("mapping ID",this.employeeTeamMapId);
             members.forEach(member => {
               if (
                 Array.isArray(member.otherActiveProjects) &&
@@ -660,7 +667,7 @@ export class Employee360ProjectComponent implements OnInit {
     });
    
     this.projectObj = projObj;
-
+ console.log("test",this.projectObj);
 
     this.lastDate = projObj.poEndDate
       ? moment(projObj.poEndDate).format('YYYY-MM-DD')
