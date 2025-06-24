@@ -1963,37 +1963,37 @@ public class TimesheetService {
 	    	List<Object[]> resultList = timesheetsRepository.getLastFilledTimesheet(empId);
 
 	    	if (!resultList.isEmpty()) {
-	    	    Object[] object = resultList.get(0);  // get the first row
+	    	    Object[] object = resultList.get(0); 
 
 	    	    if (object.length < 19) {
 	    	        throw new RuntimeException("Expected 19 columns, got: " + object.length);
 	    	    }
 	    	    TimesheetDTO dto = new TimesheetDTO();
 
-	    	    dto.setTimesheetId(toLong_helper.safeParseLong(object[0]));             // Long
-	    	    dto.setDate(toLong_helper.getSafeString(object[1]));                    // String
-	    	    dto.setDayType(toLong_helper.getSafeString(object[2]));                 // String
-	    	    dto.setOfficeInTime(toLong_helper.getSafeString(object[3]));            // String
-	    	    dto.setOfficeOutTime(toLong_helper.getSafeString(object[4]));           // String
-	    	    dto.setTotalWorkingOfficeHours(toLong_helper.getSafeString(object[5])); // String
-	    	    dto.setDescription(toLong_helper.getSafeString(object[8]));             // String
+	    	    dto.setTimesheetId(toLong_helper.safeParseLong(object[0]));             
+	    	    dto.setDate(toLong_helper.getSafeString(object[1]));                    
+	    	    dto.setDayType(toLong_helper.getSafeString(object[2]));                
+	    	    dto.setOfficeInTime(toLong_helper.getSafeString(object[3]));            
+	    	    dto.setOfficeOutTime(toLong_helper.getSafeString(object[4]));           
+	    	    dto.setTotalWorkingOfficeHours(toLong_helper.getSafeString(object[5])); 
+	    	    dto.setDescription(toLong_helper.getSafeString(object[8]));             
 
-	    	    dto.setTotalTime(toLong_helper.safeParseFloat(object[7]));              // Float
-	    	    dto.setActivity(toLong_helper.getSafeString(object[8]));                // String
+	    	    dto.setTotalTime(toLong_helper.safeParseFloat(object[7]));              
+	    	    dto.setActivity(toLong_helper.getSafeString(object[8]));               
 
-	    	    dto.setActivityId(toLong_helper.safeParseLong(object[9]));              // Long
-	    	    dto.setActivity(toLong_helper.getSafeString(object[10]));               // String
+	    	    dto.setActivityId(toLong_helper.safeParseLong(object[9]));              
+	    	    dto.setActivity(toLong_helper.getSafeString(object[10]));               
 
-	    	    dto.setTeamId(toLong_helper.safeParseLong(object[11]));                 // Long
-	    	    dto.setTeamName(toLong_helper.getSafeString(object[12]));               // String
-	    	    dto.setTeamLeadName(toLong_helper.getSafeString(object[13]));           // String
+	    	    dto.setTeamId(toLong_helper.safeParseLong(object[11]));                 
+	    	    dto.setTeamName(toLong_helper.getSafeString(object[12]));               
+	    	    dto.setTeamLeadName(toLong_helper.getSafeString(object[13]));          
 
-	    	    dto.setProjectId(toLong_helper.safeParseInt(object[14]));               // Integer
-	    	    dto.setProjectName(toLong_helper.getSafeString(object[15]));            // String
-	    	    dto.setClientId(toLong_helper.safeParseInt(object[16]));                // Integer
-	    	    dto.setClientLocationId(toLong_helper.safeParseInt(object[17]));        // Integer ✅ correctly mapped
-	    	    dto.setClientLocation(toLong_helper.getSafeString(object[18]));         // String
-	    	    dto.setClientName(toLong_helper.getSafeString(object[19]));             // String
+	    	    dto.setProjectId(toLong_helper.safeParseInt(object[14]));               
+	    	    dto.setProjectName(toLong_helper.getSafeString(object[15]));            
+	    	    dto.setClientId(toLong_helper.safeParseInt(object[16]));                
+	    	    dto.setClientLocationId(toLong_helper.safeParseInt(object[17]));       
+	    	    dto.setClientLocation(toLong_helper.getSafeString(object[18]));        
+	    	    dto.setClientName(toLong_helper.getSafeString(object[19]));           
 	    	   	  response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	    	    response.setServiceResponse(dto);
 	    	    apiLogInfo.setApiResponse("Last timesheet found");

@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ChartsCountDTO;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
+import com.apmosys.employeeportal.dto.DepartmentBillableDTO;
 import com.apmosys.employeeportal.dto.DepartmentWiseCountDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
@@ -760,7 +761,8 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	            dto.setWorkLocation(obj[16] != null ? obj[16].toString() : null);
 	            dto.setAge(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
 	            dto.setProfileKycStatus(obj[18] != null ? obj[18].toString() : null);
-
+	            dto.setManagerId(obj[19] != null ? Long.parseLong(obj[19].toString())  : null);
+	            dto.setEmpId(obj[20] != null ? Long.parseLong(obj[20].toString()) : null);
 	            dtoList.add(dto);
 	        });
 
@@ -934,8 +936,10 @@ try {
 	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(ReportsQueryDTO request) {
 	    ServiceResponse response = new ServiceResponse();
 	    ToLong_helper toLong_helper = new ToLong_helper();
+	    List<Object[]> data;
+	    
 	    try {
-	        List<Object[]> data;
+	      
 
 	        boolean isFilterEmpty =
 	            (request.getDeptId() == null || request.getDeptId().isEmpty()) &&
@@ -966,10 +970,10 @@ try {
 	        if (isFilterEmpty) {
 	            data = reportDashboardRepository.getDepartmentWiseBillableNonBillableSummary();
 	        } else {
-	            data = reportDashboardRepository.getSelectedDepartmentBillableSummary(
+	        	data = reportDashboardRepository.getSelectedDepartmentBillableSummary(
 	                    request.getEmployeementId(),       // List<Long>
-	                    request.getName(),                 // String
-	                    request.getDeptId(),               // List<Long>
+	                     request.getName(),                 // String
+	                    request.getDeptId(),              // List<Long>
 	                    request.getJobRoleId(),            // List<Long>
 	                    request.getManagerId(),            // List<Long>
 	                    request.getTeamId(),               // List<Long>
@@ -1011,7 +1015,95 @@ try {
 	    return response;
 	}
 
+
 	
+	
+	
+//	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(ReportsQueryDTO request) {
+//	    ServiceResponse response = new ServiceResponse();
+//	    List<DepartmentBillableDTO> data = new ArrayList<>();
+//
+//	    try {
+//	        boolean isFilterEmpty =
+//	            (request.getDeptId() == null || request.getDeptId().isEmpty()) &&
+//	            (request.getEmployeementId() == null || request.getEmployeementId().isEmpty()) &&
+//	            (request.getName() == null || request.getName().isEmpty()) &&
+//	            (request.getJobRoleId() == null || request.getJobRoleId().isEmpty()) &&
+//	            (request.getManagerId() == null || request.getManagerId().isEmpty()) &&
+//	            (request.getTeamId() == null || request.getTeamId().isEmpty()) &&
+//	            (request.getProjectId() == null || request.getProjectId().isEmpty()) &&
+//	            (request.getClientId() == null || request.getClientId().isEmpty()) &&
+//	            (request.getEmploymentstatus() == null || request.getEmploymentstatus().isEmpty()) &&
+//	            (request.getDateOfJoining() == null || request.getDateOfJoining().isEmpty()) &&
+//	            (request.getCity() == null || request.getCity().isEmpty()) &&
+//	            (request.getBloodGroup() == null || request.getBloodGroup().isEmpty()) &&
+//	            (request.getGender() == null || request.getGender().isEmpty()) &&
+//	            (request.getProbationPeriod() == null || request.getProbationPeriod().isEmpty()) &&
+//	            (request.getNoticePeriod() == null || request.getNoticePeriod().isEmpty()) &&
+//	            (request.getMaritalStatus() == null || request.getMaritalStatus().isEmpty()) &&
+//	            (request.getBankName() == null || request.getBankName().isEmpty()) &&
+//	            (request.getState() == null || request.getState().isEmpty()) &&
+//	            (request.getCreatedOn() == null || request.getCreatedOn().isEmpty()) &&
+//	            (request.getCreatedBy() == null || request.getCreatedBy().isEmpty()) &&
+//	            (request.getExperience() == null || request.getExperience().isEmpty()) &&
+//	            (request.getWorkLocation() == null || request.getWorkLocation().isEmpty()) &&
+//	            (request.getYear() == null) &&
+//	            (request.getBillableType() == null || request.getBillableType().isEmpty());
+//
+//	        if (isFilterEmpty) {
+//	            data = reportDashboardRepository.getDepartmentWiseBillableNonBillableSummary();
+//	        } else {
+//	            List<Object[]> rawData = reportDashboardRepository.getSelectedDepartmentBillableSummary(
+//	                request.getEmployeementId(),
+//	                request.getName(),
+//	                request.getDeptId(),
+//	                request.getJobRoleId(),
+//	                request.getManagerId(),
+//	                request.getTeamId(),
+//	                request.getProjectId(),
+//	                request.getClientId(),
+//	                request.getEmploymentstatus(),
+//	                request.getDateOfJoining(),
+//	                request.getCity(),
+//	                request.getBloodGroup(),
+//	                request.getGender(),
+//	                request.getProbationPeriod(),
+//	                request.getNoticePeriod(),
+//	                request.getMaritalStatus(),
+//	                request.getBankName(),
+//	                request.getState(),
+//	                request.getCreatedOn(),
+//	                request.getCreatedBy(),
+//	                request.getExperience(),
+//	                request.getWorkLocation(),
+//	                request.getYear(),
+//	                request.getBillableType()
+//	            );
+//
+//	            // Convert rawData to DepartmentBillableDTO list
+//	            for (Object[] row : rawData) {
+//	                DepartmentBillableDTO dto = new DepartmentBillableDTO();
+//	                dto.setDepartmentName((String) row[0]);
+//	                dto.setBillableType((String) row[1]);
+//	                
+//	                dto.setEmployeeCount(row[2] != null ? ((Number) row[2]).longValue() : 0L);
+//
+//	                data.add(dto);
+//	            }
+//	        }
+//
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceResponse(data.isEmpty() ? Collections.emptyList() : data);
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something Went Wrong.");
+//	        response.setServiceError(e.getMessage());
+//	    }
+//
+//	    return response;
+//	}
+
 	
 	  public ServiceResponse getEmployeeDetailsByDepartmentAndBillableType(ReportsQueryDTO request) {
 	        ServiceResponse response = new ServiceResponse();
@@ -1051,7 +1143,8 @@ try {
 	                    dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
 	                    dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
 	                    dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
-	                    
+	                    dto.setManagerId(object[19] != null ? Long.parseLong(object[19].toString())  : null);
+			            dto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
 	                    dtoList.add(dto);
 	                });
 
@@ -1113,7 +1206,8 @@ try {
 		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
 		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
 		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
-		                
+		                dto.setManagerId(object[19] != null ? Long.parseLong(object[19].toString())  : null);
+			            dto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
 		                dtoList.add(dto);
 		            });
 		            
@@ -1147,9 +1241,7 @@ try {
 
 		    try {
 		    	List<Object[]> employeeDetails = customFilterService.getCustomEmployeesByExperience(request);
-		    	
-//		    	List<Object[]> employeeDetails = reportDashboardRepository.findEmployeesExperience(request.getEmployeeType(), request.getLowerValue(), request.getUpperValue());
-		    	
+
 		        if (employeeDetails != null && !employeeDetails.isEmpty()) {
 		            List<ReportListDTO> dtoList = new ArrayList<>();
 
@@ -1175,7 +1267,8 @@ try {
 		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
 		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
 		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
-
+		                dto.setManagerId(object[19] != null ? Long.parseLong(object[19].toString())  : null);
+			            dto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
 		                dtoList.add(dto);
 		            });
 
@@ -1246,7 +1339,8 @@ try {
 		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
 		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
 		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
-
+		                dto.setManagerId(object[19] != null ? Long.parseLong(object[19].toString())  : null);
+			            dto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
 		                dtoList.add(dto);
 		            });
 
@@ -1317,7 +1411,8 @@ try {
 		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
 		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
 		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
-
+		                dto.setManagerId(object[19] != null ? Long.parseLong(object[19].toString())  : null);
+			            dto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
 		                dtoList.add(dto);
 		            });
 
@@ -1384,7 +1479,8 @@ try {
 	                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
 	                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
 	                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
-	            	
+	                dto.setManagerId(object[19] != null ? Long.parseLong(object[19].toString())  : null);
+		            dto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
 	                dtoList.add(dto);
 	            });
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1401,7 +1497,7 @@ try {
 	            logBuilder.append(" - Error occurred: ").append(e.getMessage());
 	        }
 
-	        // Print or store the log info
+	      
 	        System.out.println(logBuilder.toString());
 
 	        return response;
@@ -1499,10 +1595,11 @@ try {
 		            dto.setFromDateDayType(object[6] != null ? object[6].toString() : null);
 		            dto.setToDateDayType(object[7] != null ? object[7].toString() : null);
 		            dto.setEmployeeType(object[8] != null ? object[8].toString() : null);
-		            dto.setManagerId(object[9] != null ? (object[9].toString()) : null);
+		            dto.setManagerName(object[9] != null ? (object[9].toString()) : null);
 		            dto.setTypeOfLeave(object[10] != null ? object[10].toString() : null);
 		            dto.setLeaveDate(object[11] != null ? LocalDate.parse(object[11].toString()) : null);
-		            
+		            dto.setManagerId(object[12] != null ? Long.parseLong(object[12].toString())  : null);
+		            dto.setEmpId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
 		            dtoList.add(dto);
 		        });
 		        
@@ -1523,7 +1620,10 @@ try {
 		}
 	  
 	  public ServiceResponse getWorkLocationDetails() {
-		    ServiceResponse response = new ServiceResponse();
+		   
+			    
+		  ServiceResponse response = new ServiceResponse();
+		    
 		    LogDTO apiLogInfo = new LogDTO();
 		    apiLogInfo.setApiUrl("/api/getWorkLocationDetails");
 		    apiLogInfo.setLogLevel("INFO");
@@ -1586,24 +1686,25 @@ try {
 		            dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
 		            dto.setName(object[2] != null ? object[2].toString() : null);
 //		            dto.setExperience(object[3] != null ? object[3].toString() : null);
-		            dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
-		            dto.setEmail(object[5] != null ? object[5].toString() : null);
-		            dto.setManagerName(object[6] != null ? object[6].toString() : null);
-		            dto.setBillable(object[7] != null ? object[7].toString() : null);
-		            dto.setBillableType(object[8] != null ? object[8].toString() : null);
-		            dto.setProjectName(object[9] != null ? object[9].toString() : null);
-		            dto.setClientName(object[10] != null ? object[10].toString() : null);
+		            dto.setDepartmentName(object[3] != null ? object[3].toString() : null);
+		            dto.setEmail(object[4] != null ? object[4].toString() : null);
+		            dto.setManagerName(object[5] != null ? object[5].toString() : null);
+		            dto.setBillable(object[6] != null ? object[6].toString() : null);
+		            dto.setBillableType(object[7] != null ? object[7].toString() : null);
+		            dto.setProjectName(object[8] != null ? object[8].toString() : null);
+		            dto.setClientName(object[9] != null ? object[9].toString() : null);
 //		            dto.setDateOfJoining(object[11] != null ? object[11].toString() : null);
 //		            dto.setMobileNo(object[12] != null ? object[12].toString() : null);
 //		            dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);
-		            dto.setTotalExperience(object[14] != null ? object[14].toString() : null);
+		            dto.setTotalExperience(object[10] != null ? object[10].toString() : null);
 //		            dto.setGender(object[15] != null ? object[15].toString() : null);
-		            dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
+		            dto.setWorkLocation(object[11] != null ? object[11].toString() : null);
 		            // For client_location, we can set it in workLocation or add it as a custom field
-		             dto.setClientLocation(object[17] != null ? object[17].toString() : null); 
+		            dto.setClientLocation(object[12] != null ? object[12].toString() : null); 
 //		            dto.setAge(object[18] != null ? Integer.parseInt(object[18].toString()) : null);
 //		            dto.setProfileKycStatus(object[19] != null ? object[19].toString() : null);
-
+		            dto.setManagerId(object[13] != null ? Long.parseLong(object[13].toString())  : null);
+			        dto.setEmpId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
 		            dtoList.add(dto);
 		        });
 
@@ -1842,11 +1943,10 @@ try {
 			try {
 				logBuilder.append("Fetching filtered work location data");
 
-				// Call the new dynamic method in CustomFilterService
+				
 				List<Object[]> data = customFilterService.getCustomWorkLocationDetails(request);
 				
-				// The caching logic is removed because the results are now dynamic
-				// if(!worklocationMap.isEmpty()) { ... } // REMOVE THIS
+				
 
 				List<WorkLocationCountDTO> dtoList = new ArrayList<>();
 				data.forEach((object) -> {

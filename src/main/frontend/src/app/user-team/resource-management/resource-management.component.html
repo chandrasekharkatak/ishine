@@ -621,14 +621,15 @@
 
                                         <td>{{project.projectType ? project.projectType : 'NA' }} </td>
 
-                                        <td>
+                                        <td class="text-capitalize" >
                                             <ng-container id="clickablefor360"
                                                 *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName && !isAccounts">
                                                 <span
                                                     *ngFor="let managerData of project.projectManagers; let last = last"
                                                     [navigateToEmployee360]="managerData.projectManagerId"
                                                     style="cursor: pointer;"
-                                                    title="Click to view Employee 360">{{managerData.projectManagerName
+                                                    title="Click to view Employee 360"
+                                                    class="info-label">{{managerData.projectManagerName
                                                     ? managerData.projectManagerName : 'NA' }} {{!last ? ',' :
                                                     ''}}</span>
                                             </ng-container>
@@ -636,7 +637,8 @@
                                                 *ngIf="!userMapping.my_team_resource_management_employee_360 || !project.projectManagerName">
                                                 <span
                                                     *ngFor="let managerData of project.projectManagers; let last = last"
-                                                    style="cursor: pointer;">
+                                                    style="cursor: pointer;"
+                                                    class="info-label">
                                                     {{managerData.projectManagerName ? managerData.projectManagerName :
                                                     'NA' }}{{!last ? ',' : ''}}
                                                 </span>

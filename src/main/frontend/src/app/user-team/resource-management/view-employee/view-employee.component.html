@@ -124,7 +124,13 @@ matSort (matSortChange)="sortData($event)"
                         <td class="text-center">{{employee.rmgprojects[0].poProjectType}}</td>
                         <td class="text-center">{{employee.rmgprojects[0].poStartDate | date: 'dd-MM-yyyy'}}</td>
                         <td class="text-center">{{employee.rmgprojects[0].poEndDate | date: 'dd-MM-yyyy'}}</td>
-                        <td class="text-center">{{nameListToString(employee.rmgprojects[0].projectManagers)}}</td>
+                        <td class="text-center text-capitalize"
+                            id="clickablefor360"
+                            *ngIf="userMapping.rmg_employee_360"
+                            [navigateToEmployee360]="employee.rmgprojects[0].projectManagers[0].projectManagerId"
+                            style="cursor: pointer"
+                            title="Click to view Employee 360"
+                        >{{nameListToString(employee.rmgprojects[0].projectManagers)}}</td>
                         
                         <ng-container *ngIf="employee.rmgprojects[0].rmgTeam && employee.rmgprojects[0].rmgTeam.length > 0">
                             <td class="text-center">{{employee.rmgprojects[0].rmgTeam[0].teamName}}</td>
@@ -166,7 +172,21 @@ matSort (matSortChange)="sortData($event)"
                                     <td class="text-center">{{empProject.poProjectType}}</td>
                                     <td class="text-center">{{empProject.poStartDate | date: 'dd-MM-yyyy'}}</td>
                                     <td class="text-center">{{empProject.poEndDate | date: 'dd-MM-yyyy'}}</td>
-                                    <td class="text-center">{{nameListToString(empProject.projectManagers)}}</td>
+                                    <td class="text-center text-capitalize" *ngIf="userMapping.rmg_employee_360">
+                                        <ng-container *ngFor="let manager of empProject.projectManagers; let last = last">
+                                            <span 
+                                                [navigateToEmployee360]="manager.projectManagerId"
+                                                id="clickablefor360"
+                                                style="cursor: pointer"
+                                                title="Click to view Employee 360 for {{ manager.projectManagerName }}"
+                                            >
+                                                {{ manager.projectManagerName }}
+                                            </span>
+                                            <span *ngIf="!last">, </span>
+                                        
+                                        </ng-container>
+                                    </td>
+                                    
                                 </ng-container>
                                 <ng-container *ngIf="tIndex !== 0">
                                     <td class="text-center sub-row-empty"></td>
@@ -365,14 +385,14 @@ matSort (matSortChange)="sortData($event)"
                     </td>
                     <td class="text-center">{{ i + 1 }}</td>
                     <td class="text-center">A-{{employee.employmentId}}</td>
-                    <!-- <td class="text-center text-capitalize"
+                    <td class="text-center text-capitalize"
                     id="clickablefor360"
                     *ngIf="userMapping.rmg_employee_360"
                     [navigateToEmployee360]="employee.empId"
                     style="cursor: pointer"
                     title="Click to view Employee 360"
-                    >{{employee.employeeName}}</td> -->
-                    <td class="text-center" >{{employee.employeeName}}</td>
+                    >{{employee.employeeName}}</td>
+                    <td class="text-center" *ngIf="!userMapping.rmg_employee_360" >{{employee.employeeName}}</td>
                     <td class="text-center">{{employee.department}}</td>
                     <td class="text-center">{{employee.billableType}}</td>
 
@@ -516,21 +536,21 @@ matSort (matSortChange)="sortData($event)"
                                 </button>
                             </td>
 
-            <td class="text-center">{{ getGlobalProjectIndex(eIndex) + 1 }}</td>
-            <td class="text-center">{{ employee.employeementId }}</td>
-            <td class="text-center text-capitalize"
-            id="clickablefor360"
-            *ngIf="userMapping.rmg_employee_360"
-            [navigateToEmployee360]="employee.empId"
-            style="cursor: pointer"
-            title="Click to view Employee 360"
-            >{{ employee.name }}</td>
-            <td *ngIf="!userMapping.rmg_employee_360">{{employee.name}}</td>
-            <td class="text-center">{{ employee.department }}</td>
-            <td class="text-center">{{ employee.billableType }}</td>
-            <td class="text-center">{{ employee.billable }}</td>
-            <td class="text-center">{{ employee.onBenchDate | date: 'dd-MM-yyyy' }}</td>
-            <td class="text-center">{{ employee.daysOnBench }}</td>
+                            <td class="text-center">{{ getGlobalProjectIndex(eIndex) + 1 }}</td>
+                            <td class="text-center">{{ employee.employeementId }}</td>
+                            <td class="text-center text-capitalize"
+                            id="clickablefor360"
+                            *ngIf="userMapping.rmg_employee_360"
+                            [navigateToEmployee360]="employee.empId"
+                            style="cursor: pointer"
+                            title="Click to view Employee 360"
+                            >{{ employee.name }}</td>
+                            <td *ngIf="!userMapping.rmg_employee_360">{{employee.name}}</td>
+                            <td class="text-center">{{ employee.department }}</td>
+                            <td class="text-center">{{ employee.billableType }}</td>
+                            <td class="text-center">{{ employee.billable }}</td>
+                            <td class="text-center">{{ employee.onBenchDate | date: 'dd-MM-yyyy' }}</td>
+                            <td class="text-center">{{ employee.daysOnBench }}</td>
 
                             <ng-container *ngIf="employee.rmgprojects?.length > 0">
                                 <ng-container *ngIf="employee.rmgprojects[0] as firstProject">
@@ -578,6 +598,10 @@ matSort (matSortChange)="sortData($event)"
                                         <ng-container *ngIf="tIndex === 0">
                                             <td class="text-center">{{ empProject.projectName }}</td>
                                             <td class="text-center">{{ empProject.clientName }}</td>
+                                            <td class="text-center">{{ nameListToString(empProject.projectManagers) }}</td>
+                                            <td class="text-center">{{ empTeam.teamName }}</td>
+                                            <td class="text-center">{{ empTeam.employeeRole }}</td>
+                                            <td class="text-center">{{ empTeam.status }}</td>
                                             <td class="text-center">{{ empProject.apmosysRM }}</td>
                                             <td class="text-center">{{ empProject.clientRM }}</td>
                                             <td class="text-center">{{ empProject.poNo }}</td>
@@ -585,17 +609,14 @@ matSort (matSortChange)="sortData($event)"
                                             <td class="text-center">{{ empProject.poStartDate | date: 'dd-MM-yyyy' }}
                                             </td>
                                             <td class="text-center">{{ empProject.poEndDate | date: 'dd-MM-yyyy' }}</td>
-                                            <td class="text-center">{{ nameListToString(empProject.projectManagers) }}
-                                            </td>
+                                            
                                         </ng-container>
 
-                                        <ng-container *ngIf="tIndex !== 0">
+                                        <!-- <ng-container *ngIf="tIndex !== 0">
                                             <td class="sub-row-empty" colspan="9"></td>
-                                        </ng-container>
+                                        </ng-container> -->
 
-                                        <td class="text-center">{{ empTeam.teamName }}</td>
-                                        <td class="text-center">{{ empTeam.employeeRole }}</td>
-                                        <td class="text-center">{{ empTeam.status }}</td>
+                                        
                                     </tr>
                                 </ng-container>
                             </ng-container>
@@ -786,9 +807,23 @@ matSort (matSortChange)="sortData($event)"
                     <td class="text-center">{{ project.poEndDate | date: 'dd-MM-yyyy' }}</td>
                     <td class="text-center">{{ project.poNo }}</td>
                     <td class="text-center">{{ project.clientName }}</td>
-                    <td class="text-center">
+                    <!-- <td class="text-center">
                         <ng-container *ngFor="let pm of project.projectManagers; let last = last">
                             {{ pm.projectManagerName }}<span *ngIf="!last">, </span>
+                        </ng-container>
+                    </td> -->
+                    <td class="text-center text-capitalize" *ngIf="userMapping.rmg_employee_360">
+                        <ng-container *ngFor="let manager of project.projectManagers; let last = last">
+                            <span 
+                                [navigateToEmployee360]="manager.projectManagerId"
+                                id="clickablefor360"
+                                style="cursor: pointer"
+                                title="Click to view Employee 360 for {{ manager.projectManagerName }}"
+                            >
+                                {{ manager.projectManagerName }}
+                            </span>
+                            <span *ngIf="!last">, </span>
+                        
                         </ng-container>
                     </td>
                     

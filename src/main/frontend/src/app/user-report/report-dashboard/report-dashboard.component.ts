@@ -221,7 +221,7 @@ export class ReportDashboardComponent implements OnInit {
   employeeSummaryColumns: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'experience', 'departmentName', 'email', 'managerName', 'billable', 'billableType', 'projectName', 'clientName', 'dateOfJoining', 'mobileNo', 'employmentstatus', 'totalExperience', 'gender', 'workLocation', 'age', 'profileKycStatus'];
   workLocationSummaryColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'projectName', 'clientName', 'workLocation', 'clientLocation', 'departmentName','managerName','billable','billableType','totalExperience'];
   LeaveTrendAnalysisGraphColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'status'];
-  leaveSummaryTableColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'status','typeOfLeave'];
+  leaveSummaryTableColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName','managerName', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'status','typeOfLeave'];
   timesheetSummaryTableColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName', 'email', 'managerName', 'mobileNo', 'pendingEodCount', 'legend'];
   eodSegregationTableColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName', 'email', 'managerName', 'mobileNo', 'date', 'dayType', 'totalWorkingHours'];
 
@@ -3122,7 +3122,9 @@ capitalizeFirstLetter(text: string) {
           gender: emp.gender,
           workLocation: emp.workLocation,
           age: emp.age,
-          profileKycStatus: emp.profileKycStatus
+          profileKycStatus: emp.profileKycStatus,
+          empId: emp.empId,
+          managerId: emp.managerId
         }));
 
         console.log('Filtered Employees for', name, this.modalSummaryList);

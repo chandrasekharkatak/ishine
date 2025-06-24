@@ -4106,7 +4106,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	        
 	        // 2. Build the base native SQL query
 	        String q = "SELECT distinct "
-	            + "CONCAT('A-', e.employeement_id) as EMP_ID, "
+	            + "CONCAT('A-', e.employeement_id) as Employeement_Id, "
 	            + "CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
 	            + " WHEN e.is_consultant = 'true' THEN 'Consultant' "
 	            + " ELSE 'Regular' "
@@ -4127,7 +4127,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	            + "e.gender AS GENDER, "
 	            + "e.work_location AS WORK_LOCATION, "
 	            + "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, "
-	            + "e.is_user_info_updated AS KYC "
+	            + "e.is_user_info_updated AS KYC ,"
+	            + "m.emp_id AS MANAGER_ID, "
+	            + "e.emp_id AS Emp_Id "
 	            + "FROM employee e "
 	            + "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id "
 	            + "LEFT JOIN department d on jr.dept_id = d.dept_id "
@@ -4193,7 +4195,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 		    // 2. Build the base native SQL query
 		    String q = "SELECT distinct "
-		            + "	CONCAT('A-', e.employeement_id) as EMP_ID, "
+		            + "	CONCAT('A-', e.employeement_id) as EMPLOYEEMENT_ID, "
 		            // This simplified CASE statement is good, you can keep it.
 		            + " CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
 		            + "		WHEN e.is_consultant = 'true' THEN 'Consultant' "
@@ -4215,7 +4217,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		            + " e.gender AS GENDER, "
 		            + " e.work_location AS WORK_LOCATION, "
 		            + " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, "
-		            + " e.is_user_info_updated AS KYC "
+		            + " e.is_user_info_updated AS KYC, "
+		            + " m.emp_id AS MANAGER_ID, "
+		            + " e.emp_id AS EMP_ID "
 		            + "FROM employee e "
 		            + "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id "
 		            + "LEFT JOIN department d on jr.dept_id = d.dept_id "
@@ -4268,13 +4272,13 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 			// 2. Build the base native SQL query
 			String q = "SELECT "
-					+ "	CONCAT('A-', REPLACE(e.employeement_id, '-', '')) as EMP_ID, "
+					+ "	CONCAT('A-', REPLACE(e.employeement_id, '-', '')) as EMPLOYEEMENT_ID, "
 					+ " CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
 					+ "		WHEN e.is_consultant = 'true' THEN 'Consultant' "
 					+ "     ELSE 'Regular' "
 					+ "	END AS EMPLOYMENT_TYPE, "
 					+ " e.name AS NAME, "
-					+ " e.experience AS EXPERIENCE, "
+//					+ " e.experience AS EXPERIENCE, "
 					+ " d.name AS DEPARTMENT_NAME, "
 					+ " e.email AS EMAIL_ID, "
 					+ " m.name AS MANAGER_NAME, "
@@ -4282,15 +4286,17 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					+ " e.billable_type AS BILLABLE_TYPE, "
 					+ " GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, "
 					+ " GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, "
-					+ " e.date_of_joining AS DATE_OF_JOINING, "
-					+ " e.mobile_no AS MOBILE_NO, "
-					+ "	e.employmentstatus AS STATUS, "
+//					+ " e.date_of_joining AS DATE_OF_JOINING, "
+//					+ " e.mobile_no AS MOBILE_NO, "
+//					+ "	e.employmentstatus AS STATUS, "
 					+ "	e.total_experience AS TOTAL_EXPERIENCE, "
 					+ " e.gender AS GENDER, "
 					+ " e.work_location AS WORK_LOCATION, "
-					+ " cl.client_location, "
-					+ " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, "
-					+ " e.is_user_info_updated AS KYC "
+//					+ " cl.client_location, "
+//					+ " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, "
+//					+ " e.is_user_info_updated AS KYC, "
+					+ " m.emp_id AS MANAGER_ID, "
+					+ " e.emp_id AS EMP_ID "
 					+ "FROM employee e "
 					+ "INNER JOIN employee_team_mapping etm on etm.emp_id = e.emp_id "
 					+ "INNER JOIN employee_timesheets et ON et.emp_id = etm.emp_id "
@@ -4339,12 +4345,12 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 			// 2. Build the base native SQL query
 			String q = "SELECT "
-					+ "    ld.emp_id, ld.department, ld.employee_name, ld.from_date, ld.to_date, ld.status, "
+					+ "    ld.employeement_id, ld.department, ld.employee_name, ld.from_date, ld.to_date, ld.status, "
 					+ "    ld.from_date_day_type, ld.to_date_day_type, ld.employment_type, ld.manager_name, "
-					+ "    ld.type_of_leave, ld.leave_date "
+					+ "    ld.type_of_leave, ld.leave_date, ld.manager_id, ld.emp_id "
 					+ "FROM ( "
 					+ "    SELECT "
-					+ "        CONCAT('A-', e.employeement_id) as emp_id, "
+					+ "        CONCAT('A-', e.employeement_id) as employeement_id, "
 					+ "        d.name AS department, "
 					+ "        e.name AS employee_name, "
 					+ "        el.from_date, el.to_date, ls.status, "
@@ -4366,7 +4372,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					+ "        CASE " // Simplified logic to check if on leave on the specific date
 					+ "            WHEN el.from_date <= DATE(:fetch_date) AND el.to_date >= DATE(:fetch_date) THEN 1 "
 					+ "            ELSE 0 "
-					+ "        END AS is_on_leave "
+					+ "        END AS is_on_leave, "
+					+ "        e2.emp_id AS manager_id, "
+					+ "        e.emp_id AS emp_id "
 					+ "    FROM employee_leave el "
 					+ "    INNER JOIN employee e ON e.emp_id = el.emp_id "
 					+ "    INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id "
@@ -4410,7 +4418,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 			// 2. Build the base native SQL query
 			String q = "SELECT DISTINCT "
-					+ "    CONCAT('A-', e.employeement_id) AS EMP_ID, "
+					+ "    CONCAT('A-', e.employeement_id) AS EMPLOYEEMENT_ID, "
 					+ "    CASE "
 					+ "       WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
 					+ "       WHEN e.is_consultant = 'true' THEN 'Consultant' "
@@ -4432,7 +4440,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					+ "    e.gender AS GENDER, "
 					+ "    e.work_location AS WORK_LOCATION, "
 					+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) AS AGE, "
-					+ "    e.is_user_info_updated AS KYC "
+					+ "    e.is_user_info_updated AS KYC, "
+					+ "    m.emp_id AS MANAGER_ID, "
+					+ "    e.emp_id AS EMP_ID "
 					+ "FROM employee e "
 					+ "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id "
 					+ "LEFT JOIN department d ON jr.dept_id = d.dept_id "
@@ -4483,7 +4493,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 			// 2. Build the full native SQL query by combining the static parts with the dynamic part
 			String q = "SELECT distinct " +
-			        "CONCAT('A-', e.employeement_id) as EMP_ID, " +
+			        "CONCAT('A-', e.employeement_id) as EMPLOYEEMENT_ID, " +
 			        "CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
 			        "     WHEN e.is_consultant = 'true' THEN 'Consultant' " +
 			        "     ELSE 'Regular' " +
@@ -4504,7 +4514,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			        "e.gender AS GENDER, " +
 			        "e.work_location AS WORK_LOCATION, " +
 			        "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, " +
-			        "e.is_user_info_updated AS KYC " +
+			        "e.is_user_info_updated AS KYC, " +
+			        "m.emp_id AS MANAGER_ID, " +
+			        "e.emp_id AS EMP_ID " +
 			        "FROM employee e " +
 			        "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id " +
 			        "LEFT JOIN department d on jr.dept_id = d.dept_id " +
