@@ -12,6 +12,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
   styleUrls: ['./view-employee.component.css']
 })
 export class ViewEmployeeComponent implements OnInit {
+
   @Input()
   allEmployeeData: any[] = [];
   allEmployeeDataException: any[] = [];
@@ -22,10 +23,12 @@ export class ViewEmployeeComponent implements OnInit {
   sortDirection = 'asc';
   allProjectTable: boolean = false;
   tableColumns :any[]= ['blank','blank','employeementId','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
+  tableColumnsInternal :any[]= ['blank','blank','employeementId','name','department','billableType','billable','projectName','clientName','projectManagerName','teamName','employeeRole','status'];
   tableColumnsNotMapped : any[] = ['blank','employeementId','name','departmentName','billableType','managerName','jobRoleName'] ;
   tableColumnsWithoutBillability : any[] = ['blank','employeementId','name','departmentName','managerName','jobRoleName'];
-  exceptionTableColumns: any[] = ['blank','employmentId','employeeName','department','billableType','projectName','clientName','apmosysRM','clientRM','poNumber','poProjectType','poStartDate','poEndDate'];
-  tableColumnsBench :any[]= ['blank','employeementId','name','department','billableType','billable','onBenchDate','daysOnBench','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
+  exceptionTableColumns: any[] = ['blank','blank','employmentId','employeeName','department','billableType','projectName','clientName','apmosysRM','clientRM','poNumber','poProjectType','poStartDate','poEndDate'];
+  tableColumnsBench :any[]= ['blank', 'blank', 'employeementId', 'name', 'department', 'billableType', 'billable', 'onBenchDate', 'daysOnBench', 'projectName', 'clientName', 'projectManagerName', 'teamName', 'employeeRole', 'status', 'apmosysRM', 'clientRM', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate'];
+  projectInfoColumns: string[] = ['blank', 'blank', 'projectName', 'apmosysRM', 'clientRM', 'poStartDate', 'poEndDate', 'poNo', 'clientName', 'projectManagerName', 'teamName', 'employeeName', 'jobRole', 'deptName', 'mobileNo', 'email', 'billable', 'billableType', 'effectiveStartDate'];
   filters: any = {};
   page = 1;
   isSearchEnabled: boolean = false;
@@ -51,7 +54,33 @@ export class ViewEmployeeComponent implements OnInit {
     // this.exportToExcel();
     console.log(this.catagory,"catagory")
     console.log(this.allEmployeeData,"allEmployeeData")
+
+    if(this.catagory !== 'Unfilled Timesheet Projects') {
+      this.allEmployeeData = this.processEmployeeDataForSearch(this.allEmployeeData);
+    }
+    
     this.filteredEmployeeData = [...this.allEmployeeData];
+  }
+
+processEmployeeDataForSearch(employees: any[]): any[] {
+  return employees.map(employee => {
+    if (!employee.hasOwnProperty('projectManagerName')) {
+      if (employee.rmgprojects && employee.rmgprojects.length > 0) {
+        employee.projectManagerName = employee.rmgprojects
+          .flatMap(project => project.projectManagers || [])
+          .map(manager => manager.projectManagerName)
+          .filter(name => name)
+          .join(', ');
+      } else {
+        employee.projectManagerName = '';
+      }
+    }
+    return employee; 
+  });
+}
+
+  console(projectManagerId: any) {
+    console.log(projectManagerId, "projectManagerId");
   }
 
   toggleEmployeeExpansion(employeeIndex: number): void {
@@ -370,6 +399,38 @@ onSearchException(searchParams: any): void {
       return topLevelMatch || nestedMatch;
     });
   });
+}
+
+onSearchProjects(searchParams: any): void {
+  const searchKeys = Object.keys(searchParams).filter(key => searchParams[key]);
+  if (searchKeys.length === 0) {
+    this.filteredEmployeeData = [...this.allEmployeeData];
+    this.page = 1; 
+    return;
+  }
+
+  this.filteredEmployeeData = this.allEmployeeData.filter(project => {
+    return searchKeys.every(key => {
+      const searchValue = searchParams[key].toString().toLowerCase();
+      const topLevelMatch = project[key]?.toString().toLowerCase().includes(searchValue);
+
+      const pmMatch = project.projectManagers?.some(manager =>
+        manager[key]?.toString().toLowerCase().includes(searchValue)
+      );
+      const teamDetailsMatch = project.teamDetails?.some(team => {
+        const teamMatch = team[key]?.toString().toLowerCase().includes(searchValue);
+        const employeeMatch = team.mappedEmployeeDetails?.some(employee =>
+          employee[key]?.toString().toLowerCase().includes(searchValue)
+        );
+        return teamMatch || employeeMatch;
+      });
+
+      return topLevelMatch || pmMatch || teamDetailsMatch;
+    });
+  });
+
+  this.page = 1;
+  console.log(this.filteredEmployeeData, "filteredEmployeeData");
 }
 
 exportExceptionToExcel1(): void {
