@@ -162,6 +162,14 @@ thead {
   border-left: 1px solid #dee2e6;
 }
 
+/* .th-center .mat-sort-header-container {
+  justify-content: center !important;
+} */
+
+:host ::ng-deep th[mat-sort-header] .mat-sort-header-container {
+  justify-content: center;
+}
+
 /* .table thead th {
   border-top: 1px solid #dee2e6;
   background-color: #e9ecef;

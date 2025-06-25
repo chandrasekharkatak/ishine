@@ -1555,7 +1555,10 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
                     <app-timesheet-create-self *ngIf="isTimesheetFormVisible" [autofillData]="lastTimesheetData"
                         (teamMemberSelected)="onTeamMemberSelected($event)" (createTimesheet)="onCreateTimesheet()"
-                        (timesheetSubmitted)="onTimesheetSubmissionComplete()">
+                        (timesheetSubmitted)="onTimesheetSubmissionComplete()"
+                          [showNoTimesheetPopupTrigger]="triggerNoTimesheetPopup"
+                          [showNoTimesheetPopupTriggerForInActiveEmployee]="triggerNoTimesheetPopupForInactiveEmployee"
+                          >
                     </app-timesheet-create-self>
 
 

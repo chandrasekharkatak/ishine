@@ -2166,6 +2166,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
       if (emittedArray[1] == 'Filter Employee Report') {
         this.employeeDashboard();
         this.queryList = [];
+        this.queryObj= new Query();
       }
       if (emittedArray[1] == 'Filter Leave Summary') {
         this.get8DaysLeaveReport();

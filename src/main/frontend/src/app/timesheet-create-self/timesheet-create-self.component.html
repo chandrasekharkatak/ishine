@@ -181,7 +181,7 @@
                                             (selectionChange)="getClientLocationList(activityObj)"
                                             (closed)="validateClientName($event,activityObj.clientId)"
                                             [multiple]="false" [value]="activityObj.clientId">
-                                            [(ngModel)]="activityObj.clientId"
+                                          
                                             <mat-option [value]="client.clientId"
                                                 *ngFor="let client of clientName.filteredSource">
                                                 {{client.clientName}}
@@ -340,4 +340,32 @@
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
+</ng-template>
+
+
+<ng-template #alert_messageNotimesheet>
+  <div class="modal-header">
+    <h5 class="modal-title">No Timesheet Found</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.hide()"></button>
+  </div>
+  <div class="modal-body">
+    <p>No previous timesheet was found for this employee.</p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" (click)="modalRef?.hide()">OK</button>
+  </div>
+</ng-template>
+
+
+<ng-template #alert_messageForInActiveEmployee>
+  <div class="modal-header">
+    <h5 class="modal-title">Employee is InActive</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.hide()"></button>
+  </div>
+  <div class="modal-body">
+    <p>Employee is inactive in previous project</p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" (click)="modalRef?.hide()">OK</button>
+  </div>
 </ng-template>

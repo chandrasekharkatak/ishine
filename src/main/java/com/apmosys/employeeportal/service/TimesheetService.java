@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -1952,6 +1953,72 @@ public class TimesheetService {
     }
 	
 	
+//	public ServiceResponse getLastFilledTimesheetByEmpId(Long empId) {
+//	    ServiceResponse response = new ServiceResponse();
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setApiUrl("/api/getLastFilledTimesheetByEmpId");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    ToLong_helper toLong_helper = new ToLong_helper();
+//
+//	    try {
+//	    	List<Object[]> resultList = timesheetsRepository.getLastFilledTimesheet(empId);
+//
+//	    	if (!resultList.isEmpty()) {
+//	    	    Object[] object = resultList.get(0); 
+//
+//	    	    if (object.length < 19) {
+//	    	        throw new RuntimeException("Expected 19 columns, got: " + object.length);
+//	    	    }
+//	    	    TimesheetDTO dto = new TimesheetDTO();
+//
+//	    	    dto.setTimesheetId(toLong_helper.safeParseLong(object[0]));             
+//	    	    dto.setDate(toLong_helper.getSafeString(object[1]));                    
+//	    	    dto.setDayType(toLong_helper.getSafeString(object[2]));                
+//	    	    dto.setOfficeInTime(toLong_helper.getSafeString(object[3]));            
+//	    	    dto.setOfficeOutTime(toLong_helper.getSafeString(object[4]));           
+//	    	    dto.setTotalWorkingOfficeHours(toLong_helper.getSafeString(object[5])); 
+//	    	    dto.setDescription(toLong_helper.getSafeString(object[8]));             
+//
+//	    	    dto.setTotalTime(toLong_helper.safeParseFloat(object[7]));              
+//	    	    dto.setActivity(toLong_helper.getSafeString(object[8]));               
+//
+//	    	    dto.setActivityId(toLong_helper.safeParseLong(object[9]));              
+//	    	    dto.setActivity(toLong_helper.getSafeString(object[10]));               
+//
+//	    	    dto.setTeamId(toLong_helper.safeParseLong(object[11]));                 
+//	    	    dto.setTeamName(toLong_helper.getSafeString(object[12]));               
+//	    	    dto.setTeamLeadName(toLong_helper.getSafeString(object[13]));          
+//
+//	    	    dto.setProjectId(toLong_helper.safeParseInt(object[14]));               
+//	    	    dto.setProjectName(toLong_helper.getSafeString(object[15]));            
+//	    	    dto.setClientId(toLong_helper.safeParseInt(object[16]));                
+//	    	    dto.setClientLocationId(toLong_helper.safeParseInt(object[17]));       
+//	    	    dto.setClientLocation(toLong_helper.getSafeString(object[18]));        
+//	    	    dto.setClientName(toLong_helper.getSafeString(object[19]));           
+//	    	   	  response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	    	    response.setServiceResponse(dto);
+//	    	    apiLogInfo.setApiResponse("Last timesheet found");
+//	    	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//	    	} else {
+//	    	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	    	    response.setServiceResponse("No timesheet found for employee.");
+//	    	    apiLogInfo.setApiResponse("No timesheet found");
+//	    	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	    	}
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something went wrong.");
+//	        response.setServiceError(e.getMessage());
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setLogLevel("ERROR");
+//	    }
+//
+//	    logService.logMyInfo(httpRequest, apiLogInfo);
+//	    return response;
+//	}
+	
+	
 	public ServiceResponse getLastFilledTimesheetByEmpId(Long empId) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
@@ -1960,55 +2027,92 @@ public class TimesheetService {
 	    ToLong_helper toLong_helper = new ToLong_helper();
 
 	    try {
-	    	List<Object[]> resultList = timesheetsRepository.getLastFilledTimesheet(empId);
+	        List<Object[]> activeCheckList = timesheetsRepository.checkEmployeeActiveOrNot(empId);
 
-	    	if (!resultList.isEmpty()) {
-	    	    Object[] object = resultList.get(0); 
+	        // Case 1: No records found in the timesheet - employee never filled any timesheet
+	        if (activeCheckList.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(Collections.emptyList());
+	            response.setServiceMessage("Employee has never filled any timesheet.");
+	            response.setServiceResponse1("No Timesheet");
 
-	    	    if (object.length < 19) {
-	    	        throw new RuntimeException("Expected 19 columns, got: " + object.length);
-	    	    }
-	    	    TimesheetDTO dto = new TimesheetDTO();
+	            apiLogInfo.setApiResponse("No timesheet record found for employee.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
 
-	    	    dto.setTimesheetId(toLong_helper.safeParseLong(object[0]));             
-	    	    dto.setDate(toLong_helper.getSafeString(object[1]));                    
-	    	    dto.setDayType(toLong_helper.getSafeString(object[2]));                
-	    	    dto.setOfficeInTime(toLong_helper.getSafeString(object[3]));            
-	    	    dto.setOfficeOutTime(toLong_helper.getSafeString(object[4]));           
-	    	    dto.setTotalWorkingOfficeHours(toLong_helper.getSafeString(object[5])); 
-	    	    dto.setDescription(toLong_helper.getSafeString(object[8]));             
+	        // Determine active status from the activeCheckList result
+	        boolean isActive = Integer.parseInt(String.valueOf(activeCheckList.get(0)[1])) == 1;
+	        response.setServiceResponse1(isActive ? "Active" : "Not Active");
 
-	    	    dto.setTotalTime(toLong_helper.safeParseFloat(object[7]));              
-	    	    dto.setActivity(toLong_helper.getSafeString(object[8]));               
+	        if (!isActive) {
+	            // Case 2: Employee was in a project but is not currently active
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(Collections.emptyList());
+	            response.setServiceMessage("Employee is not active on previous project.");
 
-	    	    dto.setActivityId(toLong_helper.safeParseLong(object[9]));              
-	    	    dto.setActivity(toLong_helper.getSafeString(object[10]));               
+	            apiLogInfo.setApiResponse("Employee is Not Active");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
 
-	    	    dto.setTeamId(toLong_helper.safeParseLong(object[11]));                 
-	    	    dto.setTeamName(toLong_helper.getSafeString(object[12]));               
-	    	    dto.setTeamLeadName(toLong_helper.getSafeString(object[13]));          
+	        // Case 3 or 4: Employee is active, check for last filled timesheet
+	        List<Object[]> resultList = timesheetsRepository.getLastFilledTimesheet(empId);
+	        if (!resultList.isEmpty()) {
+	            Object[] object = resultList.get(0);
 
-	    	    dto.setProjectId(toLong_helper.safeParseInt(object[14]));               
-	    	    dto.setProjectName(toLong_helper.getSafeString(object[15]));            
-	    	    dto.setClientId(toLong_helper.safeParseInt(object[16]));                
-	    	    dto.setClientLocationId(toLong_helper.safeParseInt(object[17]));       
-	    	    dto.setClientLocation(toLong_helper.getSafeString(object[18]));        
-	    	    dto.setClientName(toLong_helper.getSafeString(object[19]));           
-	    	   	  response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	    	    response.setServiceResponse(dto);
-	    	    apiLogInfo.setApiResponse("Last timesheet found");
-	    	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	    	} else {
-	    	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	    	    response.setServiceResponse("No timesheet found for employee.");
-	    	    apiLogInfo.setApiResponse("No timesheet found");
-	    	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	    	}
+	            if (object.length < 20) {
+	                throw new RuntimeException("Expected 20 columns, got: " + object.length);
+	            }
+
+	            TimesheetDTO dto = new TimesheetDTO();
+	            dto.setTimesheetId(toLong_helper.safeParseLong(object[0]));
+	            dto.setDate(toLong_helper.getSafeString(object[1]));
+	            dto.setDayType(toLong_helper.getSafeString(object[2]));
+	            dto.setOfficeInTime(toLong_helper.getSafeString(object[3]));
+	            dto.setOfficeOutTime(toLong_helper.getSafeString(object[4]));
+	            dto.setTotalWorkingOfficeHours(toLong_helper.getSafeString(object[5]));
+	            dto.setTotalTime(toLong_helper.safeParseFloat(object[7]));
+	            dto.setDescription(toLong_helper.getSafeString(object[8]));
+
+	            dto.setActivityId(toLong_helper.safeParseLong(object[9]));
+	            dto.setActivity(toLong_helper.getSafeString(object[10]));
+
+	            dto.setTeamId(toLong_helper.safeParseLong(object[11]));
+	            dto.setTeamName(toLong_helper.getSafeString(object[12]));
+	            dto.setTeamLeadName(toLong_helper.getSafeString(object[13]));
+
+	            dto.setProjectId(toLong_helper.safeParseInt(object[14]));
+	            dto.setProjectName(toLong_helper.getSafeString(object[15]));
+
+	            dto.setClientId(toLong_helper.safeParseInt(object[16]));
+	            dto.setClientLocationId(toLong_helper.safeParseInt(object[17]));
+	            dto.setClientLocation(toLong_helper.getSafeString(object[18]));
+	            dto.setClientName(toLong_helper.getSafeString(object[19]));
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(dto);
+	            response.setServiceMessage("Last timesheet found for employee.");
+
+	            apiLogInfo.setApiResponse("Last timesheet found for active employee");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            // Case 4: Active employee but no timesheet found
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(Collections.emptyList());
+	            response.setServiceMessage("No timesheet found for employee.");
+
+	            apiLogInfo.setApiResponse("No timesheet found");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	        response.setServiceResponse("Something went wrong.");
 	        response.setServiceError(e.getMessage());
+
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	        apiLogInfo.setLogLevel("ERROR");
 	    }
@@ -2017,5 +2121,6 @@ public class TimesheetService {
 	    return response;
 	}
 
-
+	
+	
 }
