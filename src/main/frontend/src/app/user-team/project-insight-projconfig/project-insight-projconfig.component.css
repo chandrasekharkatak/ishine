@@ -310,27 +310,123 @@
     padding: 8px 18px;
   }
 
-  /* Loading state for dynamic options */
+  /* Angular Material Select Styles */
+  /* mat-form-field {
+    width: 100%;
+  }
+
+  mat-form-field .mat-form-field-wrapper {
+    padding-bottom: 0;
+  }
+
+  mat-form-field .mat-form-field-outline {
+    background-color: #fff;
+  }
+
+  mat-form-field .mat-form-field-outline-thick {
+    color: #007bff;
+  }
+
+  mat-form-field.mat-form-field-invalid .mat-form-field-outline-thick {
+    color: #dc3545;
+  }
+
+  mat-select {
+    width: 100%;
+  }
+
+  .mat-option {
+    padding: 8px 16px;
+    min-height: 40px;
+    line-height: 24px;
+  }
+
+  .mat-option.mat-selected {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .mat-option:hover:not(.mat-option-disabled) {
+    background-color: #f8f9fa;
+  }
+
+  .mat-option.mat-selected:hover {
+    background-color: #0056b3;
+  } */
+
+  /* Multi-select chip styles */
+  /* .mat-select-panel .mat-option.mat-selected:not(.mat-option-multiple) {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .mat-select-panel .mat-option.mat-selected.mat-option-multiple {
+    background-color: #e3f2fd;
+    color: #1976d2;
+  } */
+
+  /* Dependent field container styles */
+  /* .dependent-field-container {
+    margin-bottom: 15px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+  }
+
+  .dependent-field-container label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+    margin-bottom: 5px;
+    display: block;
+  }
+
+  .dependent-field-container select {
+    width: 100%;
+  } */
+
+  /* Form field spacing */
+  /* .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  } */
+
+  /* Error states */
+  /* .is-invalid {
+    border-color: #dc3545;
+  }
+
+  .invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  } */
+
+  /* Loading states */
   .form-control.loading {
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwIDMuNUwxMi41IDZMMTUgMy41IiBzdHJva2U9IiM2Yzc1N2QiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+');
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="23,6 13.5,15.5 8.5,10.5 1,18"%3e%3c/polyline%3e%3cpolyline points="17,6 23,6 23,12"%3e%3c/polyline%3e%3c/svg%3e');
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     background-size: 16px 12px;
   }
 
-  /* Disabled state for dependent fields without parent value */
   .form-control:disabled {
     background-color: #e9ecef;
     opacity: 0.65;
+    cursor: not-allowed;
   }
 
-  /* Error state for failed API calls */
   .form-control.api-error {
     border-color: #dc3545;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
   }
 
-  /* Success state for loaded options */
   .form-control.api-success {
     border-color: #28a745;
     box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);

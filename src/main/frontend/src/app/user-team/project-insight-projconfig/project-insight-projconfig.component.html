@@ -222,29 +222,61 @@
         </div>
         <form [formGroup]="dynamicForm" (ngSubmit)="onSubmit()">
           <!-- Dynamic Form Fields -->
-          <div class="row" *ngFor="let row of getLayoutConfig(); let rowIndex = index">
+          <div class="row" *ngFor="let row of layoutConfig; let rowIndex = index">
             <div class="col-md-{{ getBootstrapCol(field.width) }}" *ngFor="let field of row">
               <div class="form-group">
-                <label [for]="field.id" class="form-label">
+                <label [for]="field.id" *ngIf="!(field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field))" class="form-label">
                   {{ field.label }}
                   <span class="text-danger" *ngIf="field.required">*</span>
                 </label>
                 
-                <!-- Select Field -->
-                <select 
-                  *ngIf="field.type === 'select'"
-                  [id]="field.id"
-                  [formControlName]="field.name"
-                  class="form-control"
-                  (change)="onSelectChange($event, field)"
-                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
-                  <option value="">{{ field.placeholder || 'Select an option' }}</option>
-                  <option 
-                    *ngFor="let option of field.options" 
-                    [value]="option.value">
-                    {{ option.label }}
-                  </option>
-                </select>
+                <!-- Single-select dropdown (not dependent) -->
+                <div *ngIf="field.type === 'select' && !field.multiple && field.optionSource !== 'dependent'" class="w-100"
+                  [class.mat-form-field-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+                  <mat-select class="form-control" [formControlName]="field.name"
+                    (selectionChange)="onSelectChange($event, field.name)">
+                    <mat-option value="" disabled>Select</mat-option>
+                    <mat-option *ngFor="let opt of field.options" [value]="opt.value">{{opt.label}}</mat-option>
+                  </mat-select>
+                </div>
+
+                <!-- Multi-select dropdown (not dependent) -->
+                <div *ngIf="field.type === 'select' && field.multiple && field.optionSource !== 'dependent'" class="w-100"
+                  [class.mat-form-field-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+                  <mat-select class="form-control" [formControlName]="field.name" multiple
+                    (selectionChange)="onMultiSelectChange($event, field)">
+                    <mat-option *ngFor="let opt of field.options" [value]="opt.value">{{opt.label}}</mat-option>
+                  </mat-select>
+                </div>
+
+                <!-- Dependent Field: Render multiple child dropdowns if parent is multi-select -->
+                <div *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field)">
+                  <div class="d-flex" style="gap: 26px;">
+                    <div *ngFor="let parentValue of getParentSelectedValues(field); let index = index" 
+                         [style.width.%]="field.width || 33" 
+                         style="min-width: 224px;">
+                      <label>{{field.label}} for {{getParentLabel(field, parentValue)}}</label>
+                      <div class="w-100"
+                        [class.mat-form-field-invalid]="dynamicForm.get(getDependentControlName(field, parentValue))?.invalid && dynamicForm.get(getDependentControlName(field, parentValue))?.touched">
+                        <mat-select class="form-control" [formControlName]="getDependentControlName(field, parentValue)" multiple>
+                          <mat-option *ngFor="let opt of getDependentOptions(field, parentValue)"
+                            [value]="opt.value">{{opt.label}}</mat-option>
+                        </mat-select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dependent Field: Single parent value (not multi-select) -->
+                <div *ngIf="field.type === 'select' && field.optionSource === 'dependent' && !isParentMultiSelect(field)" class="w-100"
+                  [class.mat-form-field-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+                  <mat-select class="form-control" [formControlName]="field.name"
+                    (selectionChange)="onDependentSelectChange($event, field, getParentSelectedValue(field))">
+                    <mat-option value="" disabled>Select</mat-option>
+                    <mat-option *ngFor="let opt of getDependentOptions(field, getParentSelectedValue(field))"
+                      [value]="opt.value">{{opt.label}}</mat-option>
+                  </mat-select>
+                </div>
 
                 <!-- Text Input Field -->
                 <input 

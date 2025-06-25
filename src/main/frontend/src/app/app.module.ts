@@ -155,6 +155,7 @@ import { HighlightPipe } from './highlight.pipe';
 import { ProjectInsightsTabComponent } from './project-insights/project-insights-tab.component';
 import { ProjectInsightProjconfigComponent } from './user-team/project-insight-projconfig/project-insight-projconfig.component';
 import { FormBuilderComponent } from './user-team/form-builder/form-builder.component';
+import { FormRendererComponent } from './helpers/form-renderer/form-renderer.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -289,7 +290,8 @@ registerLocaleData(localeGb);
      HighlightPipe,
      ProjectInsightsTabComponent,
      ProjectInsightProjconfigComponent,
-     FormBuilderComponent
+     FormBuilderComponent,
+     FormRendererComponent
 
     //TestComponent
   ],

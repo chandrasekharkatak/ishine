@@ -3,7 +3,7 @@ import { Sort } from '@angular/material/sort';
 import { BehaviorSubject } from 'rxjs';
 import { first } from 'rxjs/operators';
 import { ProjectInsightProjconfigService } from 'src/app/services/project-insight-projconfig.service';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
 @Component({
@@ -185,406 +185,448 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   fields: any[] = [
     {
-      "id": "ojfw41t8j",
+        "id": "j8dvgrc14",
       "type": "select",
       "label": "Project Name",
-      "name": "projectName",
+        "name": "projectname",
       "required": true,
       "placeholder": "",
       "defaultValue": "",
+        "optionSource": "api",
       "options": [
           {
               "label": "Leanne Graham",
-              "value": 1
+                "value": "1"
           },
           {
               "label": "Ervin Howell",
-              "value": 2
+                "value": "2"
           },
           {
               "label": "Clementine Bauch",
-              "value": 3
+                "value": "3"
           },
           {
               "label": "Patricia Lebsack",
-              "value": 4
+                "value": "4"
           },
           {
               "label": "Chelsey Dietrich",
-              "value": 5
+                "value": "5"
           },
           {
               "label": "Mrs. Dennis Schulist",
-              "value": 6
+                "value": "6"
           },
           {
               "label": "Kurtis Weissnat",
-              "value": 7
+                "value": "7"
           },
           {
               "label": "Nicholas Runolfsdottir V",
-              "value": 8
+                "value": "8"
           },
           {
               "label": "Glenna Reichert",
-              "value": 9
+                "value": "9"
           },
           {
               "label": "Clementina DuBuque",
-              "value": 10
+                "value": "10"
           }
       ],
-      "optionSource": "api",
       "width": 33,
       "rowPosition": 0,
+        "multiple": false,
       "apiUrl": "https://jsonplaceholder.typicode.com/users",
-      "apiLabelKey": "name",
-      "apiValueKey": "id"
-  },
-  {
-      "id": "m6trg1tqn",
+        "apiLabelKe": null,
+        "apiValueKey": "id",
+        "parentField": null,
+        "dependentApiUrl": null,
+        "dependentLabelKey": null,
+        "dependentValueKey": null,
+        "dependentParamName": null
+    },
+    {
+        "id": "j7v3aaeqz",
       "type": "select",
       "label": "Project Manager(s)",
-      "name": "projectManager",
+        "name": "projectmanager",
       "required": true,
       "placeholder": "",
       "defaultValue": "",
+        "optionSource": "api",
       "options": [
           {
               "label": "Leanne Graham",
-              "value": 1
+                "value": "1"
           },
           {
               "label": "Ervin Howell",
-              "value": 2
+                "value": "2"
           },
           {
               "label": "Clementine Bauch",
-              "value": 3
+                "value": "3"
           },
           {
               "label": "Patricia Lebsack",
-              "value": 4
+                "value": "4"
           },
           {
               "label": "Chelsey Dietrich",
-              "value": 5
+                "value": "5"
           },
           {
               "label": "Mrs. Dennis Schulist",
-              "value": 6
+                "value": "6"
           },
           {
               "label": "Kurtis Weissnat",
-              "value": 7
+                "value": "7"
           },
           {
               "label": "Nicholas Runolfsdottir V",
-              "value": 8
+                "value": "8"
           },
           {
               "label": "Glenna Reichert",
-              "value": 9
+                "value": "9"
           },
           {
               "label": "Clementina DuBuque",
-              "value": 10
+                "value": "10"
           }
       ],
-      "optionSource": "api",
       "width": 33,
       "rowPosition": 0,
+        "multiple": false,
       "apiUrl": "https://jsonplaceholder.typicode.com/users",
-      "apiLabelKey": "name",
-      "apiValueKey": "id"
-  },
-  {
-      "id": "9w90cn4uo",
+        "apiLabelKe": null,
+        "apiValueKey": "id",
+        "parentField": null,
+        "dependentApiUrl": null,
+        "dependentLabelKey": null,
+        "dependentValueKey": null,
+        "dependentParamName": null
+    },
+    {
+        "id": "jxebjutpx",
       "type": "select",
       "label": "Team Lead",
-      "name": "teamLead",
+        "name": "teamlead",
       "required": true,
       "placeholder": "",
       "defaultValue": "",
+        "optionSource": "api",
       "options": [
           {
               "label": "Leanne Graham",
-              "value": 1
+                "value": "1"
           },
           {
               "label": "Ervin Howell",
-              "value": 2
+                "value": "2"
           },
           {
               "label": "Clementine Bauch",
-              "value": 3
+                "value": "3"
           },
           {
               "label": "Patricia Lebsack",
-              "value": 4
+                "value": "4"
           },
           {
               "label": "Chelsey Dietrich",
-              "value": 5
+                "value": "5"
           },
           {
               "label": "Mrs. Dennis Schulist",
-              "value": 6
+                "value": "6"
           },
           {
               "label": "Kurtis Weissnat",
-              "value": 7
+                "value": "7"
           },
           {
               "label": "Nicholas Runolfsdottir V",
-              "value": 8
+                "value": "8"
           },
           {
               "label": "Glenna Reichert",
-              "value": 9
+                "value": "9"
           },
           {
               "label": "Clementina DuBuque",
-              "value": 10
+                "value": "10"
           }
       ],
-      "optionSource": "api",
       "width": 33,
       "rowPosition": 0,
+        "multiple": false,
       "apiUrl": "https://jsonplaceholder.typicode.com/users",
-      "apiLabelKey": "name",
-      "apiValueKey": "id"
-  },
-  {
-      "id": "1wz04my4d",
+        "apiLabelKe": null,
+        "apiValueKey": "id",
+        "parentField": null,
+        "dependentApiUrl": null,
+        "dependentLabelKey": null,
+        "dependentValueKey": null,
+        "dependentParamName": null
+    },
+    {
+        "id": "3n3f8xhuc",
       "type": "select",
       "label": "Client",
       "name": "client",
       "required": true,
       "placeholder": "",
       "defaultValue": "",
+        "optionSource": "api",
       "options": [
           {
               "label": "Leanne Graham",
-              "value": 1
+                "value": "1"
           },
           {
               "label": "Ervin Howell",
-              "value": 2
+                "value": "2"
           },
           {
               "label": "Clementine Bauch",
-              "value": 3
+                "value": "3"
           },
           {
               "label": "Patricia Lebsack",
-              "value": 4
+                "value": "4"
           },
           {
               "label": "Chelsey Dietrich",
-              "value": 5
+                "value": "5"
           },
           {
               "label": "Mrs. Dennis Schulist",
-              "value": 6
+                "value": "6"
           },
           {
               "label": "Kurtis Weissnat",
-              "value": 7
+                "value": "7"
           },
           {
               "label": "Nicholas Runolfsdottir V",
-              "value": 8
+                "value": "8"
           },
           {
               "label": "Glenna Reichert",
-              "value": 9
+                "value": "9"
           },
           {
               "label": "Clementina DuBuque",
-              "value": 10
+                "value": "10"
           }
       ],
-      "optionSource": "api",
       "width": 33,
       "rowPosition": 1,
+        "multiple": false,
       "apiUrl": "https://jsonplaceholder.typicode.com/users",
-      "apiLabelKey": "name",
-      "apiValueKey": "id"
-  },
-  {
-      "id": "2zrri96cm",
+        "apiLabelKe": null,
+        "apiValueKey": "id",
+        "parentField": null,
+        "dependentApiUrl": null,
+        "dependentLabelKey": null,
+        "dependentValueKey": null,
+        "dependentParamName": null
+    },
+    {
+        "id": "hel2hg2qh",
       "type": "select",
       "label": "Outcome",
       "name": "outcome",
       "required": true,
       "placeholder": "",
       "defaultValue": "",
+        "optionSource": "api",
       "options": [
           {
               "label": "Leanne Graham",
-              "value": 1
+                "value": "1"
           },
           {
               "label": "Ervin Howell",
-              "value": 2
+                "value": "2"
           },
           {
               "label": "Clementine Bauch",
-              "value": 3
+                "value": "3"
           },
           {
               "label": "Patricia Lebsack",
-              "value": 4
+                "value": "4"
           },
           {
               "label": "Chelsey Dietrich",
-              "value": 5
+                "value": "5"
           },
           {
               "label": "Mrs. Dennis Schulist",
-              "value": 6
+                "value": "6"
           },
           {
               "label": "Kurtis Weissnat",
-              "value": 7
+                "value": "7"
           },
           {
               "label": "Nicholas Runolfsdottir V",
-              "value": 8
+                "value": "8"
           },
           {
               "label": "Glenna Reichert",
-              "value": 9
+                "value": "9"
           },
           {
               "label": "Clementina DuBuque",
-              "value": 10
+                "value": "10"
           }
       ],
-      "optionSource": "api",
       "width": 33,
       "rowPosition": 1,
+        "multiple": false,
       "apiUrl": "https://jsonplaceholder.typicode.com/users",
-      "apiLabelKey": "name",
-      "apiValueKey": "id"
-  },
-  {
-      "id": "g62apa02d",
+        "apiLabelKe": null,
+        "apiValueKey": "id",
+        "parentField": null,
+        "dependentApiUrl": null,
+        "dependentLabelKey": null,
+        "dependentValueKey": null,
+        "dependentParamName": null
+    },
+    {
+        "id": "z2c5iky6b",
       "type": "select",
       "label": "Technology Stack",
       "name": "technologystack",
       "required": true,
       "placeholder": "",
       "defaultValue": "",
+        "optionSource": "api",
       "options": [
           {
               "label": "Leanne Graham",
-              "value": 1
+                "value": "1"
           },
           {
               "label": "Ervin Howell",
-              "value": 2
+                "value": "2"
           },
           {
               "label": "Clementine Bauch",
-              "value": 3
+                "value": "3"
           },
           {
               "label": "Patricia Lebsack",
-              "value": 4
+                "value": "4"
           },
           {
               "label": "Chelsey Dietrich",
-              "value": 5
+                "value": "5"
           },
           {
               "label": "Mrs. Dennis Schulist",
-              "value": 6
+                "value": "6"
           },
           {
               "label": "Kurtis Weissnat",
-              "value": 7
+                "value": "7"
           },
           {
               "label": "Nicholas Runolfsdottir V",
-              "value": 8
+                "value": "8"
           },
           {
               "label": "Glenna Reichert",
-              "value": 9
+                "value": "9"
           },
           {
               "label": "Clementina DuBuque",
-              "value": 10
+                "value": "10"
           }
       ],
-      "optionSource": "api",
       "width": 33,
       "rowPosition": 1,
+        "multiple": false,
       "apiUrl": "https://jsonplaceholder.typicode.com/users",
-      "apiLabelKey": "name",
-      "apiValueKey": "id"
-  },
-  {
-      "id": "ucqn86cja",
+        "apiLabelKe": null,
+        "apiValueKey": "id",
+        "parentField": null,
+        "dependentApiUrl": null,
+        "dependentLabelKey": null,
+        "dependentValueKey": null,
+        "dependentParamName": null
+    },
+    {
+        "id": "rirx3fydu",
       "type": "select",
       "label": "Delivery Model",
       "name": "deliveryModel",
       "required": true,
       "placeholder": "",
       "defaultValue": "",
+        "optionSource": "api",
       "options": [
           {
               "label": "Leanne Graham",
-              "value": 1
+                "value": "1"
           },
           {
               "label": "Ervin Howell",
-              "value": 2
+                "value": "2"
           },
           {
               "label": "Clementine Bauch",
-              "value": 3
+                "value": "3"
           },
           {
               "label": "Patricia Lebsack",
-              "value": 4
+                "value": "4"
           },
           {
               "label": "Chelsey Dietrich",
-              "value": 5
+                "value": "5"
           },
           {
               "label": "Mrs. Dennis Schulist",
-              "value": 6
+                "value": "6"
           },
           {
               "label": "Kurtis Weissnat",
-              "value": 7
+                "value": "7"
           },
           {
               "label": "Nicholas Runolfsdottir V",
-              "value": 8
+                "value": "8"
           },
           {
               "label": "Glenna Reichert",
-              "value": 9
+                "value": "9"
           },
           {
               "label": "Clementina DuBuque",
-              "value": 10
+                "value": "10"
           }
       ],
-      "optionSource": "api",
       "width": 33,
       "rowPosition": 2,
+        "multiple": false,
       "apiUrl": "https://jsonplaceholder.typicode.com/users",
-      "apiLabelKey": "name",
-      "apiValueKey": "id"
-  },
-  {
-      "id": "usgort71d",
+        "apiLabelKe": null,
+        "apiValueKey": "id",
+        "parentField": null,
+        "dependentApiUrl": null,
+        "dependentLabelKey": null,
+        "dependentValueKey": null,
+        "dependentParamName": null
+    },
+    {
+        "id": "a7ixsrmd2",
       "type": "date",
       "label": "Start Date",
       "name": "startDate",
@@ -592,355 +634,171 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       "placeholder": "",
       "defaultValue": "",
       "optionSource": "static",
+        "options": null,
       "width": 33,
-      "rowPosition": 2
-  },
-  {
-      "id": "nfzjtbozl",
+        "rowPosition": 2,
+        "multiple": false,
+        "apiUrl": null,
+        "apiLabelKe": null,
+        "apiValueKey": null,
+        "parentField": null,
+        "dependentApiUrl": null,
+        "dependentLabelKey": null,
+        "dependentValueKey": null,
+        "dependentParamName": null
+    },
+    {
+        "id": "or1xsk63c",
       "type": "select",
       "label": "Business Function",
-      "name": "businessFucntion",
+        "name": "businessFunction",
       "required": true,
       "placeholder": "",
       "defaultValue": "",
+        "optionSource": "api",
       "options": [
           {
               "label": "Leanne Graham",
-              "value": 1
+                "value": "1"
           },
           {
               "label": "Ervin Howell",
-              "value": 2
+                "value": "2"
           },
           {
               "label": "Clementine Bauch",
-              "value": 3
+                "value": "3"
           },
           {
               "label": "Patricia Lebsack",
-              "value": 4
+                "value": "4"
           },
           {
               "label": "Chelsey Dietrich",
-              "value": 5
+                "value": "5"
           },
           {
               "label": "Mrs. Dennis Schulist",
-              "value": 6
+                "value": "6"
           },
           {
               "label": "Kurtis Weissnat",
-              "value": 7
+                "value": "7"
           },
           {
               "label": "Nicholas Runolfsdottir V",
-              "value": 8
+                "value": "8"
           },
           {
               "label": "Glenna Reichert",
-              "value": 9
+                "value": "9"
           },
           {
               "label": "Clementina DuBuque",
-              "value": 10
+                "value": "10"
           }
       ],
-      "optionSource": "api",
       "width": 33,
       "rowPosition": 2,
+        "multiple": false,
       "apiUrl": "https://jsonplaceholder.typicode.com/users",
-      "apiLabelKey": "name",
-      "apiValueKey": "id"
-  },
-  {
-      "id": "qzvdyrhdr",
+        "apiLabelKe": null,
+        "apiValueKey": "id",
+        "parentField": null,
+        "dependentApiUrl": null,
+        "dependentLabelKey": null,
+        "dependentValueKey": null,
+        "dependentParamName": null
+    },
+    {
+        "id": "w5qmx8lwg",
       "type": "select",
-      "label": "Select Domain",
-      "name": "selectDomain",
+        "label": "Domain",
+        "name": "domain",
       "required": true,
       "placeholder": "",
       "defaultValue": "",
+        "optionSource": "api",
       "options": [
           {
               "label": "Leanne Graham",
-              "value": 1
+                "value": "1"
           },
           {
               "label": "Ervin Howell",
-              "value": 2
+                "value": "2"
           },
           {
               "label": "Clementine Bauch",
-              "value": 3
+                "value": "3"
           },
           {
               "label": "Patricia Lebsack",
-              "value": 4
+                "value": "4"
           },
           {
               "label": "Chelsey Dietrich",
-              "value": 5
+                "value": "5"
           },
           {
               "label": "Mrs. Dennis Schulist",
-              "value": 6
+                "value": "6"
           },
           {
               "label": "Kurtis Weissnat",
-              "value": 7
+                "value": "7"
           },
           {
               "label": "Nicholas Runolfsdottir V",
-              "value": 8
+                "value": "8"
           },
           {
               "label": "Glenna Reichert",
-              "value": 9
+                "value": "9"
           },
           {
               "label": "Clementina DuBuque",
-              "value": 10
+                "value": "10"
           }
       ],
-      "optionSource": "api",
       "width": 33,
       "rowPosition": 3,
+        "multiple": true,
       "apiUrl": "https://jsonplaceholder.typicode.com/users",
-      "apiLabelKey": "name",
-      "apiValueKey": "id"
-  },
-  {
-      "id": "b51ka883d",
+        "apiLabelKe": null,
+        "apiValueKey": "id",
+        "parentField": null,
+        "dependentApiUrl": null,
+        "dependentLabelKey": null,
+        "dependentValueKey": null,
+        "dependentParamName": null
+    },
+    {
+        "id": "45g3szpkp",
       "type": "select",
-      "label": "Select Sub-Domain",
+        "label": "Sub Domain",
       "name": "subdomain",
       "required": true,
       "placeholder": "",
       "defaultValue": "",
-      "options": [
-          {
-              "label": "Leanne Graham",
-              "value": 1
-          },
-          {
-              "label": "Ervin Howell",
-              "value": 2
-          },
-          {
-              "label": "Clementine Bauch",
-              "value": 3
-          },
-          {
-              "label": "Patricia Lebsack",
-              "value": 4
-          },
-          {
-              "label": "Chelsey Dietrich",
-              "value": 5
-          },
-          {
-              "label": "Mrs. Dennis Schulist",
-              "value": 6
-          },
-          {
-              "label": "Kurtis Weissnat",
-              "value": 7
-          },
-          {
-              "label": "Nicholas Runolfsdottir V",
-              "value": 8
-          },
-          {
-              "label": "Glenna Reichert",
-              "value": 9
-          },
-          {
-              "label": "Clementina DuBuque",
-              "value": 10
-          }
-      ],
-      "optionSource": "api",
+        "optionSource": "dependent",
+        "options": [],
       "width": 33,
       "rowPosition": 3,
-      "apiUrl": "https://jsonplaceholder.typicode.com/users",
-      "apiLabelKey": "name",
-      "apiValueKey": "id"
-  },
-  {
-      "id": "2toiepk7c",
-      "type": "select",
-      "label": "Select Services",
-      "name": "service",
-      "required": false,
-      "placeholder": "",
-      "defaultValue": "",
-      "options": [
-          {
-              "label": "Leanne Graham",
-              "value": 1
-          },
-          {
-              "label": "Ervin Howell",
-              "value": 2
-          },
-          {
-              "label": "Clementine Bauch",
-              "value": 3
-          },
-          {
-              "label": "Patricia Lebsack",
-              "value": 4
-          },
-          {
-              "label": "Chelsey Dietrich",
-              "value": 5
-          },
-          {
-              "label": "Mrs. Dennis Schulist",
-              "value": 6
-          },
-          {
-              "label": "Kurtis Weissnat",
-              "value": 7
-          },
-          {
-              "label": "Nicholas Runolfsdottir V",
-              "value": 8
-          },
-          {
-              "label": "Glenna Reichert",
-              "value": 9
-          },
-          {
-              "label": "Clementina DuBuque",
-              "value": 10
-          }
-      ],
-      "optionSource": "api",
-      "width": 33,
-      "rowPosition": 3,
-      "apiUrl": "https://jsonplaceholder.typicode.com/users",
-      "apiLabelKey": "name",
-      "apiValueKey": "id"
-  },
-  {
-      "id": "nh1279lky",
-      "type": "select",
-      "label": "Select Business Features",
-      "name": "businessFeature",
-      "required": true,
-      "placeholder": "",
-      "defaultValue": "",
-      "options": [
-          {
-              "label": "Leanne Graham",
-              "value": 1
-          },
-          {
-              "label": "Ervin Howell",
-              "value": 2
-          },
-          {
-              "label": "Clementine Bauch",
-              "value": 3
-          },
-          {
-              "label": "Patricia Lebsack",
-              "value": 4
-          },
-          {
-              "label": "Chelsey Dietrich",
-              "value": 5
-          },
-          {
-              "label": "Mrs. Dennis Schulist",
-              "value": 6
-          },
-          {
-              "label": "Kurtis Weissnat",
-              "value": 7
-          },
-          {
-              "label": "Nicholas Runolfsdottir V",
-              "value": 8
-          },
-          {
-              "label": "Glenna Reichert",
-              "value": 9
-          },
-          {
-              "label": "Clementina DuBuque",
-              "value": 10
-          }
-      ],
-      "optionSource": "api",
-      "width": 33,
-      "rowPosition": 4,
-      "apiUrl": "https://jsonplaceholder.typicode.com/users",
-      "apiLabelKey": "name",
-      "apiValueKey": "id"
-  },
-  {
-      "id": "jyynz556k",
-      "type": "select",
-      "label": "Select Sub-Business Features",
-      "name": "subBusinessFeature",
-      "required": false,
-      "placeholder": "",
-      "defaultValue": "",
-      "options": [
-          {
-              "label": "Leanne Graham",
-              "value": 1
-          },
-          {
-              "label": "Ervin Howell",
-              "value": 2
-          },
-          {
-              "label": "Clementine Bauch",
-              "value": 3
-          },
-          {
-              "label": "Patricia Lebsack",
-              "value": 4
-          },
-          {
-              "label": "Chelsey Dietrich",
-              "value": 5
-          },
-          {
-              "label": "Mrs. Dennis Schulist",
-              "value": 6
-          },
-          {
-              "label": "Kurtis Weissnat",
-              "value": 7
-          },
-          {
-              "label": "Nicholas Runolfsdottir V",
-              "value": 8
-          },
-          {
-              "label": "Glenna Reichert",
-              "value": 9
-          },
-          {
-              "label": "Clementina DuBuque",
-              "value": 10
-          }
-      ],
-      "optionSource": "api",
-      "width": 33,
-      "rowPosition": 4,
-      "apiUrl": "https://jsonplaceholder.typicode.com/users",
-      "apiLabelKey": "name",
-      "apiValueKey": "id"
+        "multiple": true,
+        "apiUrl": null,
+        "apiLabelKe": null,
+        "apiValueKey": null,
+        "parentField": "domain",
+        "dependentApiUrl": "https://api.example.com/data?domain={parentValue}",
+        "dependentLabelKey": "name",
+        "dependentValueKey": "id",
+        "dependentParamName": "domain"
     }
   ];
   projectInsightProjectObj: any = {
     "projectName": "2",
-    "projectManager": "4",
+    "projectManager": ["4", "5"],
     "teamLead": "5",
     "client": "6",
     "outcome": "4",
@@ -948,11 +806,11 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     "deliveryModel": "3",
     "startDate": "2025-06-13",
     "businessFucntion": "9",
-    "selectDomain": "5",
-    "subdomain": "6",
-    "service": "5",
-    "businessFeature": "8",
-    "subBusinessFeature": "6",
+    "selectDomain": "1",
+    "subdomain": "",
+    "service": "",
+    "businessFeature": "",
+    "subBusinessFeature": "",
     "xyz": "3"
   };
 
@@ -980,6 +838,17 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   dependentFieldsMap: Map<string, any[]> = new Map();
   fieldDependencies: Map<string, string> = new Map();
 
+  // Add new properties for enhanced form handling
+  dependentFieldOptions: Map<string, Map<string, any[]>> = new Map();
+  multiSelectDependentFields: Map<string, FormArray> = new Map();
+
+  // Add a property to cache the layout config
+  private _layoutConfigCache: any[][] = [];
+  private _fieldsHash: string = '';
+  
+  // Public property for template binding
+  layoutConfig: any[][] = [];
+
   constructor(
     private projectInsightProjconfigService:ProjectInsightProjconfigService,
     private formBuilder: FormBuilder,
@@ -987,11 +856,19 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    // Initialize form first
     this.buildDynamicForm();
+    
+    // Setup form value changes
     this.setupFormValueChanges();
+    
+    // Open table view by default
     this.openTableView();
-    this.initializeDependencies();
-    this.loadInitialOptions();
+    
+    // Load initial options after form is ready
+    setTimeout(async () => {
+      await this.loadInitialOptions();
+    }, 200);
   }
 
   showTable(){
@@ -1013,6 +890,13 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     console.log('Form values synced to projectInsightProjectObj:', this.projectInsightProjectObj);
   }  
 
+  // Method to clear layout cache when fields are updated
+  private clearLayoutCache(): void {
+    this._layoutConfigCache = [];
+    this._fieldsHash = '';
+    this.layoutConfig = [];
+  }  
+
   buildDynamicForm(): void {
     const formControls: any = {};
     
@@ -1026,16 +910,41 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       if (field.required) {
         validators.push(Validators.required);
       }
-      const defaultValue = this.projectInsightProjectObj[field.name] || field.defaultValue || '';
+      
+      let defaultValue = this.projectInsightProjectObj[field.name] || field.defaultValue || '';
+      
+      // Handle multi-select fields
+      if (field.type === 'select' && field.multiple) {
+        defaultValue = Array.isArray(defaultValue) ? defaultValue : [];
       formControls[field.name] = [defaultValue, validators];
+      } else {
+        // For dependent fields, start with empty value
+        if (field.optionSource === 'dependent') {
+          formControls[field.name] = ['', validators];
+        } else {
+          formControls[field.name] = [defaultValue, validators];
+        }
+      }
     });
     
     this.dynamicForm = this.formBuilder.group(formControls);
+    
+    // Clear layout cache when form is rebuilt
+    this.clearLayoutCache();
+    
+    // Initialize dependencies after form is built
+    this.initializeDependencies();
+    
+    // Initialize layout config
+    this.getLayoutConfig();
   }
 
   populateFormWithData(data: any): void {
     if (data && this.dynamicForm) {
+      // Use setTimeout to ensure form is fully initialized
+      setTimeout(() => {
       this.dynamicForm.patchValue(data);
+      }, 0);
     }
   }
 
@@ -1061,6 +970,16 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   openCreateProject(){
     this.isCreateForm = true;
     this.isTable = false;
+    
+    // Ensure form is properly initialized when opening create form
+    if (!this.dynamicForm) {
+      this.buildDynamicForm();
+    }
+    
+    // Load initial options after a short delay to ensure form is ready
+    setTimeout(async () => {
+      await this.loadInitialOptions();
+    }, 100);
   }
 
   getAllDomainData(): void {
@@ -1113,8 +1032,37 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     return 12;                      // col-md-12 (100%)
   }
 
-  onSelectChange(event: any, field: any) {
-    const selectedValue = event.target.value;
+  onSelectChange(event: any, fieldName: string) {
+    const selectedValue = event.value;
+    const field = this.fields.find(f => f.name === fieldName);
+    
+    // Check if this field has dependent fields
+    if (this.dependentFieldsMap.has(fieldName)) {
+      const dependentFields = this.dependentFieldsMap.get(fieldName)!;
+      
+      // Clear and reload options for all dependent fields
+      dependentFields.forEach(dependentFieldName => {
+        this.handleDependentFieldChange(dependentFieldName, selectedValue);
+      });
+    }
+  }
+
+  onMultiSelectChange(event: any, field: any) {
+    const selectedValues = event.value;
+    
+    // Check if this field has dependent fields
+    if (this.dependentFieldsMap.has(field.name)) {
+      const dependentFields = this.dependentFieldsMap.get(field.name)!;
+      
+      // Handle multi-select dependent fields
+      dependentFields.forEach(dependentFieldName => {
+        this.handleMultiSelectDependentFieldChange(dependentFieldName, selectedValues);
+      });
+    }
+  }
+
+  onDependentSelectChange(event: any, field: any, parentValue: string) {
+    const selectedValue = event.value;
     
     // Check if this field has dependent fields
     if (this.dependentFieldsMap.has(field.name)) {
@@ -1127,7 +1075,34 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     }
   }
 
+  // Method to update layout when fields change
+  private updateLayout(): void {
+    this.getLayoutConfig();
+  }
+
   async handleDependentFieldChange(fieldName: string, parentValue: string) {
+    const field = this.fields.find(f => f.name === fieldName);
+    if (!field || field.optionSource !== 'dependent') return;
+
+    // Prevent infinite loops by checking if the value is actually changing
+    const currentValue = this.dynamicForm.get(fieldName)?.value;
+    if (currentValue === parentValue) return;
+
+    // Clear the dependent field's value
+    this.dynamicForm.get(fieldName)?.setValue('');
+    
+    // Clear existing options
+    field.options = [];
+    
+    // Load new options only if parent value is not empty
+    if (parentValue) {
+      await this.loadDependentOptions(field, parentValue);
+      // Update layout after options are loaded
+      this.updateLayout();
+    }
+  }
+
+  async handleMultiSelectDependentFieldChange(fieldName: string, parentValues: string[]) {
     const field = this.fields.find(f => f.name === fieldName);
     if (!field || field.optionSource !== 'dependent') return;
 
@@ -1137,38 +1112,76 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     // Clear existing options
     field.options = [];
     
-    // Load new options
-    await this.loadDependentOptions(field);
+    // Load new options for each parent value only if there are values
+    if (parentValues && parentValues.length > 0) {
+      const allOptions: any[] = [];
+      for (const parentValue of parentValues) {
+        if (parentValue) {
+          const options = await this.loadDependentOptions(field, parentValue);
+          allOptions.push(...options);
+        }
+      }
+      
+      // Remove duplicates
+      field.options = this.removeDuplicateOptions(allOptions);
+      
+      // Update layout after options are loaded
+      this.updateLayout();
+    }
   }
 
-  async loadDependentOptions(field: any): Promise<any[]> {
+  removeDuplicateOptions(options: any[]): any[] {
+    const seen = new Set();
+    return options.filter(option => {
+      const duplicate = seen.has(option.value);
+      seen.add(option.value);
+      return !duplicate;
+    });
+  }
+
+  async loadDependentOptions(field: any, parentValue: string): Promise<any[]> {
     if (!field.parentField || !field.dependentApiUrl) return [];
 
-    const parentValue = this.dynamicForm.get(field.parentField)?.value;
     if (!parentValue) return [];
 
     try {
       const url = field.dependentApiUrl.replace('{parentValue}', parentValue);
       const response = await this.http.get<any[]>(url).toPromise();
       
-      if (response) {
+      if (response && Array.isArray(response)) {
         const options = response.map(item => ({
           label: item[field.dependentLabelKey || 'name'],
           value: item[field.dependentValueKey || 'id']
         }));
         
         // Cache the options
-        field.options = options;
+        if (!this.dependentFieldOptions.has(field.name)) {
+          this.dependentFieldOptions.set(field.name, new Map());
+        }
+        this.dependentFieldOptions.get(field.name)!.set(parentValue, options);
+        
         return options;
       }
     } catch (error) {
       console.error(`Error loading dependent options for ${field.name}:`, error);
+      // Return empty array on error to prevent hanging
+      return [];
     }
     
     return [];
   }
 
   getLayoutConfig(): any[][] {
+    // Create a hash of the fields to check if they've changed
+    const fieldsHash = JSON.stringify(this.fields.map(f => ({ id: f.id, width: f.width, rowPosition: f.rowPosition })));
+    
+    // If fields haven't changed and we have cached layout, return it
+    if (this._fieldsHash === fieldsHash && this._layoutConfigCache.length > 0) {
+      this.layoutConfig = this._layoutConfigCache;
+      return this._layoutConfigCache;
+    }
+
+    // Calculate new layout
     const rows: any[][] = [];
     let currentRow: any[] = [];
     let currentWidth = 0;
@@ -1192,6 +1205,11 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       rows.push(currentRow);
     }
 
+    // Cache the result and update hash
+    this._layoutConfigCache = rows;
+    this._fieldsHash = fieldsHash;
+    this.layoutConfig = rows;
+
     return rows;
   }
 
@@ -1211,12 +1229,19 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     });
   }
 
-  loadInitialOptions() {
+  async loadInitialOptions() {
+    const promises = [];
     for (const field of this.fields) {
       if (field.optionSource === 'api') {
-        this.loadApiOptions(field);
+        promises.push(this.loadApiOptions(field));
       }
     }
+    
+    // Wait for all API options to load
+    await Promise.all(promises);
+    
+    // Update layout after all options are loaded
+    this.updateLayout();
   }
 
   async loadApiOptions(field: any): Promise<any[]> {
@@ -1225,7 +1250,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     try {
       const response = await this.http.get<any[]>(field.apiUrl).toPromise();
       
-      if (response) {
+      if (response && Array.isArray(response)) {
         const options = response.map(item => ({
           label: item[field.apiLabelKey || 'name'],
           value: item[field.apiValueKey || 'id']
@@ -1237,9 +1262,49 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       }
     } catch (error) {
       console.error(`Error loading API options for ${field.name}:`, error);
+      // Return empty array on error to prevent hanging
+      return [];
     }
     
     return [];
+  }
+
+  // New methods for enhanced form handling
+  isParentMultiSelect(field: any): boolean {
+    const parentField = this.fields.find(f => f.name === field.parentField);
+    return parentField && parentField.multiple;
+  }
+
+  getParentSelectedValues(field: any): string[] {
+    const parentFieldName = field.parentField;
+    const parentValue = this.dynamicForm.get(parentFieldName)?.value;
+    return Array.isArray(parentValue) ? parentValue : [];
+  }
+
+  getParentSelectedValue(field: any): string {
+    const parentFieldName = field.parentField;
+    return this.dynamicForm.get(parentFieldName)?.value || '';
+  }
+
+  getParentLabel(field: any, parentValue: string): string {
+    const parentField = this.fields.find(f => f.name === field.parentField);
+    if (!parentField || !parentField.options) return parentValue;
+    
+    const option = parentField.options.find((opt: any) => opt.value === parentValue);
+    return option ? option.label : parentValue;
+  }
+
+  getDependentControlName(field: any, parentValue: string): string {
+    return `${field.name}_${parentValue}`;
+  }
+
+  getDependentOptions(field: any, parentValue: string): any[] {
+    if (!this.dependentFieldOptions.has(field.name)) {
+      return [];
+    }
+    
+    const fieldOptions = this.dependentFieldOptions.get(field.name)!;
+    return fieldOptions.get(parentValue) || [];
   }
 
   //pagination
@@ -1309,5 +1374,16 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         control?.markAsTouched();
       }
     });
+  }
+
+  onCheckboxChange(event: any, fieldName: string, value: string) {
+    const control = this.dynamicForm.get(fieldName);
+    if (control) {
+      if (event.target.checked) {
+        control.setValue(value);
+      } else {
+        control.setValue('');
+      }
+    }
   }
 }
