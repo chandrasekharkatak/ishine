@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.hibernate.query.NativeQuery;
@@ -16,6 +17,7 @@ import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.ProjectManagerMapping;
 
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Integer> {
@@ -670,4 +672,28 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getProjectStatusByPoProjectId(Set<Long> poProjectId);
+
+	@Query(value = "select p.* from project_manager_mapping pm " +
+            "inner join projects p on pm.project_id = p.project_id " +
+            "where pm.project_manager_id = :projectManagerId and pm.active = 1", 
+    nativeQuery = true)
+public Optional<List<Project>> findProjectsOfProjectManager(Long projectManagerId);
+
+	@Query(value = "select p.* from project_overhead_mapping po\n"
+			+ "inner join projects p on po.project_id = p.project_id\n"
+			+ "where po.project_overhead_id= :projectOverheadId and po.active =1 " , nativeQuery = true)
+	public Optional<List<Project>> findProjectOfProjectOverhead(Long projectOverheadId);
+
+	
+	
+	@Query(value = "select p.* from teams t\n"
+			+ "inner join projects p on t.project_id = p.project_id\n"
+			+ "where t.team_lead_id= :teamLeadId and t.is_active = 'Y'" , nativeQuery = true)
+	public Optional<List<Project>> findProjectOfTeamLead(Long teamLeadId);
+
+	
+	@Query(value = "select p.* from teams t\n"
+			+ "inner join projects p on t.project_id = p.project_id\n"
+			+ "where t.spoc_id= :spocId and t.is_active = 'Y'" , nativeQuery = true)
+	public Optional<List<Project>> findProjectOfSpoc(Long spocId);
 }

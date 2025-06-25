@@ -64,6 +64,12 @@ boolean isUserProjectManagerOfAnyActiveInternalAndExternalProject(@Param("empId"
 List<Integer> isUserProjectManagerOfAnyActiveInternalProjectList(@Param("empId") Long empId);
 
 	Optional<List<ProjectManagerMapping>> findByProjectManagerIdAndActive(Long projectManagerId, Integer active);
+
+	
+//	@Query(value = "select p.* from project_manager_mapping pm\n"
+//			+ "inner join projects p on pm.project_id = p.project_id\n"
+//			+ "where pm.project_manager_id= :project_manager_id and pm.active =1")
+//	public Optional<List<ProjectManagerMapping>> findProjectsOfProjectManager(Long empId);
 	
 	
 

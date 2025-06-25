@@ -149,8 +149,8 @@ export class Employee360ProjectComponent implements OnInit {
 
   }
   redirecttoProjectTeam(id: any) {
-    this.isProjectVisible = false;
-    this.isProjectTeamVisible = true;
+    this.isProjectVisible = true;
+    this.isProjectTeamVisible = false;
     this.isProjectTeamMemberVisible = false;
     this.flag = true;
 
