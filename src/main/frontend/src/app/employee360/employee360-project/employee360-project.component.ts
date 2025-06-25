@@ -752,6 +752,10 @@ console.log("mapping ID",this.employeeTeamMapId);
     this.defaultProjectUpdate.empIds = [details.empId];
     this.defaultProjectUpdate.projectId = projectId;
     this.defaultProjectUpdate.createdBy = this.currentUser.empId;
+     if(!this.defaultProjectUpdate.projectId){
+      this.openAlertMod3(this.alertTemplateWithoutReload, "Please update Default Project");
+      return;
+    }
     this.resourceManagementService.setDefaultProjectUpdateBillable(this.defaultProjectUpdate).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
@@ -804,6 +808,16 @@ console.log("mapping ID",this.employeeTeamMapId);
   setProjectMappingAndDefaultProjectBulk(setDefaultProjectObj, template: TemplateRef<any>) {
 
     setDefaultProjectObj.empId = this.EmployessIds;
+
+     if (
+      !setDefaultProjectObj.projectId ||
+      !setDefaultProjectObj.teamId ||
+      !setDefaultProjectObj.employeeRole
+    ) {
+         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+      // alert('Project, Team, and Employee Role must be selected.');
+      return;
+    }
     if (setDefaultProjectObj.teamId !== null) {
       this.resourceManagementService.setProjectMappingAndDefaultProject(setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -847,6 +861,16 @@ console.log("mapping ID",this.employeeTeamMapId);
     this.setDefaultProjectObj.teamId = emp.teamId;
     this.setDefaultProjectObj.employeeRole = emp.employeeRole;
     this.setDefaultProjectObj.resourceOverViewId = emp.resourceOverViewId;
+
+      if (
+      !this.setDefaultProjectObj.projectId ||
+      !this.setDefaultProjectObj.teamId ||
+      !this.setDefaultProjectObj.employeeRole
+    ) {
+         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+      // alert('Project, Team, and Employee Role must be selected.');
+      return;
+    }
     
     if (this.setDefaultProjectObj.teamId !== null) {
       this.resourceManagementService.setProjectMappingAndDefaultProject(this.setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
