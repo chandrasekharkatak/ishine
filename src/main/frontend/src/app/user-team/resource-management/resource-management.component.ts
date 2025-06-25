@@ -68,7 +68,9 @@ export class ResourceManagementComponent implements OnInit {
 
   showReportList = false;
   reportListUrlSafe: SafeResourceUrl;
-
+  isCollapsed: boolean = false;
+  isCollapsedEmployee: boolean = false;
+  hasNewTeamMembers: boolean = false;
   totalEmployees = 0;
   sankhMappedEmployees: any;
   sankhMappedEmployeesList: any[] = [];
@@ -1102,6 +1104,7 @@ toggleSelectAllDept2() {
       }
     });
     this.hideTeamMemberModal();
+    this.hasNewTeamMembers = false;
   }
 
   checkTeamName(template: TemplateRef<any>, team: any, teamIndex: any) {
@@ -1817,6 +1820,7 @@ toggleSelectAllDept2() {
       this.addMemberCtrl.reset();
       this.selectedRequirement = null;
       this.teamMemberCtrl.reset();
+      this.hasNewTeamMembers = true;
     }
   }
 
