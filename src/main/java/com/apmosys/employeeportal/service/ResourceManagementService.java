@@ -3623,6 +3623,7 @@ public class ResourceManagementService {
 
 					dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
 					dto.setClientState(object[5] != null ? object[5].toString() : null);
+					dto.setDraftStatus(object[6] != null ? object[6].toString() : null);
 
 					result.add(dto);
 				});
@@ -3734,6 +3735,7 @@ public class ResourceManagementService {
 
 					dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
 					dto.setClientState(object[5] != null ? object[5].toString() : null);
+					dto.setDraftStatus(object[6] != null ? object[6].toString() : null);
 
 					result.add(dto);
 				});

@@ -80,5 +80,6 @@ public class ResourceManagementDTO {
     private String teamLeadName;
     private String state;
     private Long employeeTeamMapId;
+    private String draftStatus;
 
 }

@@ -71,5 +71,6 @@ export class Project{
 	teamLeadId:any;
 	teamLead:any;
 	employeeTeamMapId:any;
+	draftStatus:any;
 
 }
