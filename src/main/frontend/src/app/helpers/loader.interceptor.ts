@@ -309,7 +309,10 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/saveExpenditureType`,
     `${this.baseUrl}` + `api/onGetExpenditureType`,
     `${this.baseUrl}`+`api/markAsPaid`,
-    `${this.baseUrl}` + `api/updateProjectResourceAsInActive`
+    `${this.baseUrl}` + `api/updateProjectResourceAsInActive`,
+    `${this.baseUrl}` + `api/setDefaultProjectUpdateBillable`,
+    `${this.baseUrl}`+`api/setProjectMappingAndDefaultProject`,
+    `${this.baseUrl}`+`api/getProjectDetailsForBulkDefaultUpdate`
 
   ]
 

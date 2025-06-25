@@ -7646,6 +7646,7 @@ public class ResourceManagementService {
 	        Map<Long, BenchEmployeeDetailsDTO> employeeMap = new HashMap<>();
 
 	        for (Object[] row : resultSet) {
+//	        	 String employmentId = (String) row[0];
 	            Long empId = ((Number) row[0]).longValue();
 	            String empName = (String) row[1];
 	            String employmentId = (String) row[2];
