@@ -25,6 +25,7 @@ public class GetProjectToEmployeeReportForProjectDTO {
     private String poEndDate;
     private Integer employeeCount;
     private Integer projectCount;
+    private String clientName;
     private List<GetProjectToEmployeeReportForTeamDTO> teamDetails;
 
 }

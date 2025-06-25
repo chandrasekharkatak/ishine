@@ -78,6 +78,7 @@ import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProject;
 import com.apmosys.employeeportal.dto.RMGProjectMappedEmployees;
+import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
 import com.apmosys.employeeportal.dto.RMGTeam;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
@@ -5018,6 +5019,16 @@ public class ResourceManagementService {
 		    } else {
 		       
 //		    	allshankhInternalProjectIds = projectRepository.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
+		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findProjectsByProjectManager(empIdd);
+		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findProjectsByOverhead(empIdd);
+		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findProjectsBySpocOrTeamLead(empIdd);
+
+		    	Set<Integer> combinedProjectIds = new HashSet<>();
+		    	combinedProjectIds.addAll(projectIdsByManager);
+		    	combinedProjectIds.addAll(projectIdsByOverhead);
+		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
+
+		    	allshankhInternalProjectIds = combinedProjectIds;
 
 		       
 		        if (departmentRepository.existsByHodId(empIdd)) {
@@ -5041,92 +5052,94 @@ public class ResourceManagementService {
 		        }
 		    }
 		    
-		    List<Object[]> rawData = employeeTeamMapRepository
+		    List<RMGProjectToEmployeeFlatDTO> rawData = employeeTeamMapRepository
 					.findNonComplianceProjects(allshankhInternalProjectIds,nonComplianceProjects.getFromDate(),nonComplianceProjects.getToDate());
 		    
 		    System.err.println("lalalacount"+rawData.size())    ;
 		    Map<Long, GetProjectToEmployeeReportForProjectDTO> projectMap = new HashMap<>();
 
-		    for (Object[] row : rawData) {
+		    for (RMGProjectToEmployeeFlatDTO row : rawData) {
 
-		        Long projectId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
-		        String projectName = row[1] != null ? row[1].toString() : null;
-		        String apmosysRm = row[2] != null ? row[2].toString() : null;
-		        String clientRm = row[3] != null ? row[3].toString() : null;
-		        String poStartDate = row[4] != null ? row[4].toString() : null;
-		        String poEndDate = row[5] != null ? row[5].toString() : null;
-		        String poNo = row[6] != null ? row[6].toString() : null;
-		        String poProjectType = row[7] != null ? row[7].toString() : null;
-		        String clientName = row[8] != null ? row[8].toString() : null;
+//		        Long projectId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
+//		        String projectName = row[1] != null ? row[1].toString() : null;
+//		        String apmosysRm = row[2] != null ? row[2].toString() : null;
+//		        String clientRm = row[3] != null ? row[3].toString() : null;
+//		        String poStartDate = row[4] != null ? row[4].toString() : null;
+//		        String poEndDate = row[5] != null ? row[5].toString() : null;
+//		        String poNo = row[6] != null ? row[6].toString() : null;
+//		        String poProjectType = row[7] != null ? row[7].toString() : null;
+//		        String clientName = row[8] != null ? row[8].toString() : null;
+//
+//		        Long projectManagerId = row[9] != null ? Long.parseLong(row[9].toString()) : null;
+//		        String projectManagerName = row[10] != null ? row[10].toString() : null;
+//
+//		        Long teamId = row[11] != null ? Long.parseLong(row[11].toString()) : null;
+//		        String teamName = row[12] != null ? row[12].toString() : null;
+//
+//		        Long empId = row[13] != null ? Long.parseLong(row[13].toString()) : null;
+//		        String employeeName = row[14] != null ? row[14].toString() : null;
+//		        String jobRoleName = row[15] != null ? row[15].toString() : null;
+//		        String deptName = row[16] != null ? row[16].toString() : null;
+//		        String mobileNoStr = row[17] != null ? row[17].toString() : null;
+//		        Long mobileNo = mobileNoStr != null ? Long.parseLong(mobileNoStr) : null;
+//		        String email = row[18] != null ? row[18].toString() : null;
+//		        String billable = row[19] != null ? row[19].toString() : null;
+//		        String billableType = row[20] != null ? row[20].toString() : null;
+//		        String effectiveStartDate = row[21] != null ? row[21].toString() : null;
+//		        Long employmentId =  row[22] != null ? Long.parseLong(row[22].toString()) : null;
 
-		        Long projectManagerId = row[9] != null ? Long.parseLong(row[9].toString()) : null;
-		        String projectManagerName = row[10] != null ? row[10].toString() : null;
-
-		        Long teamId = row[11] != null ? Long.parseLong(row[11].toString()) : null;
-		        String teamName = row[12] != null ? row[12].toString() : null;
-
-		        Long empId = row[13] != null ? Long.parseLong(row[13].toString()) : null;
-		        String employeeName = row[14] != null ? row[14].toString() : null;
-		        String jobRoleName = row[15] != null ? row[15].toString() : null;
-		        String deptName = row[16] != null ? row[16].toString() : null;
-		        String mobileNoStr = row[17] != null ? row[17].toString() : null;
-		        Long mobileNo = mobileNoStr != null ? Long.parseLong(mobileNoStr) : null;
-		        String email = row[18] != null ? row[18].toString() : null;
-		        String billable = row[19] != null ? row[19].toString() : null;
-		        String billableType = row[20] != null ? row[20].toString() : null;
-		        String effectiveStartDate = row[21] != null ? row[21].toString() : null;
-		        Long employmentId =  row[22] != null ? Long.parseLong(row[22].toString()) : null;
-
-		        GetProjectToEmployeeReportForProjectDTO projectDTO = projectMap.computeIfAbsent(projectId, id -> {
+		        GetProjectToEmployeeReportForProjectDTO projectDTO = projectMap.computeIfAbsent(row.getProjectId().longValue(),id -> {
 		            GetProjectToEmployeeReportForProjectDTO dto = new GetProjectToEmployeeReportForProjectDTO();
-		            dto.setProjectId(id);
-		            dto.setProjectName(projectName);
-		            dto.setApmosysRM(apmosysRm);
-		            dto.setClientRM(clientRm);
-		            dto.setPoStartDate(poStartDate);
-		            dto.setPoEndDate(poEndDate);
-		            dto.setPoNo(poNo);
-		            dto.setPoProjectType(poProjectType);
+		            dto.setProjectId(row.getProjectId().longValue());
+		            dto.setProjectName(row.getProjectName());
+		            dto.setApmosysRM(row.getApmosysRM());
+		            dto.setClientRM(row.getClientRM());
+		            dto.setClientName(row.getClientName());           
+		            
+		            dto.setPoStartDate(row.getPoStartDate());
+		            dto.setPoEndDate(row.getPoEndDate());
+		            dto.setPoNo(row.getPoNo());
+		            dto.setPoProjectType(row.getPoProjectType());
 		            dto.setProjectManagers(new ArrayList<>());
 		            dto.setTeamDetails(new ArrayList<>());
 		            return dto;
 		        });
 
 		        boolean pmExists = projectDTO.getProjectManagers().stream()
-		            .anyMatch(pm -> pm.getProjectManagerId().equals(projectManagerId));
-		        if (!pmExists && projectManagerId != null) {
+		            .anyMatch(pm -> pm.getProjectManagerId().equals(row.getPmEmpId()));
+		        if (!pmExists && row.getPmEmpId()!= null) {
 		            ProjectManagersDTO pmDTO = new ProjectManagersDTO();
-		            pmDTO.setProjectManagerId(projectManagerId);
-		            pmDTO.setProjectManagerName(projectManagerName);
+		            pmDTO.setProjectManagerId(row.getPmEmpId());
+		            pmDTO.setProjectManagerName(row.getPmName());
 		            projectDTO.getProjectManagers().add(pmDTO);
 		        }
 
 		        GetProjectToEmployeeReportForTeamDTO teamDTO = projectDTO.getTeamDetails().stream()
-		            .filter(t -> t.getTeamId().equals(teamId))
+		            .filter(t -> t.getTeamId().equals(row.getTeamId() ))
 		            .findFirst()
 		            .orElseGet(() -> {
 		                GetProjectToEmployeeReportForTeamDTO dto = new GetProjectToEmployeeReportForTeamDTO();
-		                dto.setTeamId(teamId);
-		                dto.setTeamName(teamName);
+		                dto.setTeamId(row.getTeamId());
+		                dto.setTeamName(row.getTeamName());
 		                dto.setMappedEmployeeDetails(new ArrayList<>());
 		                projectDTO.getTeamDetails().add(dto);
 		                return dto;
 		            });
 
 		        GetProjectToEmployeeReportForEmployeeDTO empDTO = new GetProjectToEmployeeReportForEmployeeDTO();
-		        empDTO.setEmpId(empId);
-		        empDTO.setEmployeementId(employmentId);        
+		        empDTO.setEmpId(row.getEmpId());
+		        empDTO.setEmployeementId(row.getEmployeementId());       
 		        
 		        
-		        empDTO.setEmployeeName(employeeName);
-		        empDTO.setJobRole(jobRoleName);
-		        empDTO.setDeptName(deptName);
-		        empDTO.setMobileNo(mobileNo);
-		        empDTO.setEmail(email);
-		        empDTO.setBillable(billable);
-		        empDTO.setBillableType(billableType);
-		        empDTO.setEffectiveStartDate(effectiveStartDate);
-		        empDTO.setLastFilledTimesheet(null);
+		        empDTO.setEmployeeName(row.getName());
+		        empDTO.setJobRole(row.getJobRoleName());
+		        empDTO.setDeptName(row.getDepartment());
+		        empDTO.setMobileNo(row.getMobileNo());
+		        empDTO.setEmail(row.getEmail());
+		        empDTO.setBillable(row.getBillable());
+		        empDTO.setBillableType(row.getBillableType());
+		        empDTO.setEffectiveStartDate(row.getEffectiveStartDate().toString());
+		      
 
 		        teamDTO.getMappedEmployeeDetails().add(empDTO);
 		    }
