@@ -122,5 +122,11 @@ public class ProjectController {
 	public ServiceResponse handleTeamsAsPerLinkedPo(@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
 		return projectService.handleTeamsAsPerLinkedPo(payloadDTO);
 	}
-	
+
+
+	@RequestMapping(value = "/getAllProjectFCLineItemListByProjectId", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> getAllProjectFCLineItemListByProjectId(@RequestBody ProjectDTO projectDto) {
+		return ResponseEntity.ok(projectService.getAllProjectFCLineItemListByProjectId(projectDto));
+	}
+
 }

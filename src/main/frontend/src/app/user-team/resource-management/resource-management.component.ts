@@ -10,11 +10,13 @@ import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
+import { Status } from 'src/app/enum/status';
 import { DefaultProjectUpdate } from 'src/app/models/defaultProjectUpdate';
 import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { EmployeeInformation } from 'src/app/models/employeeInformation';
 import { employeeReport } from 'src/app/models/employeeReport';
+import { FCProjectMilestone } from 'src/app/models/fcProjectMilestone';
 import { Feature } from 'src/app/models/feature';
 import { FilteredTimesheet } from 'src/app/models/filteredTimesheet';
 import { GetProjectDetailsForBulkDefaultUpdate } from 'src/app/models/getProjectDetailsForBulkDefaultUpdate';
@@ -51,8 +53,8 @@ class FilterData {
 export class ResourceManagementComponent implements OnInit {
 
   topStats = [
-    { value: 96, label: "Ishine’s Billable", icon: "fa-users", iconColor: "#5E35B1", borderColor: "#5E35B1" },
-    { value: 104, label: "Shankh’s Billable", icon: "fa-users", iconColor: "#FFB300", borderColor: "#FFB300" },
+    { value: 96, label: "Ishine's Billable", icon: "fa-users", iconColor: "#5E35B1", borderColor: "#5E35B1" },
+    { value: 104, label: "Shankh's Billable", icon: "fa-users", iconColor: "#FFB300", borderColor: "#FFB300" },
     { value: -5, label: "TNM Difference", icon: "", iconColor: "#D32F2F", borderColor: "#D32F2F" },
     { value: -7, label: "Fixed Cost Difference", icon: "", iconColor: "#D32F2F", borderColor: "#D32F2F" }
   ];
@@ -107,6 +109,13 @@ export class ResourceManagementComponent implements OnInit {
   @ViewChild("alert_message_without_reload")
   alertTemplateWithoutReload: TemplateRef<any>;
 
+  @ViewChild("project_line_item_list_modal")
+  projectLineItemListModal: TemplateRef<any>;
+
+  @ViewChild("update_project_milestone_modal")
+  updateProjectMilestoneModal: TemplateRef<any>;
+  
+
   data: string;
   currentUser: User;
   feature = "Resource Management";
@@ -125,6 +134,8 @@ export class ResourceManagementComponent implements OnInit {
   modalRef4: BsModalRef = new BsModalRef();
   modalRef5: BsModalRef = new BsModalRef();
   modalRefTeamMember: BsModalRef = new BsModalRef();
+  projectLineItemListModalRef: BsModalRef = new BsModalRef();
+  updateProjectMilestoneModalRef: BsModalRef = new BsModalRef();
 
   projectObj: Project = new Project();
   projectObj2: Project = new Project();
@@ -439,6 +450,15 @@ export class ResourceManagementComponent implements OnInit {
   filteredDepartmentsByUser:any[] = [];
   myDept: boolean = false;
   countList:any;
+
+  projectMilestoneSortDirection = 'asc';
+  projectMilestoneSortColumn: any;
+  projectMilestoneSortColumnType: any;
+  projectMilestonepage = 1;
+  milestonePanelState=true;
+  fcProjectMilestoneList:FCProjectMilestone[] = [];
+  statusList = [Status.NOT_STARTED,Status.IN_PROGRESS,Status.ON_HOLD,Status.COMPLETED];
+  projectMilestone:any;
 
   constructor(
     private scroller: ViewportScroller,
@@ -4289,6 +4309,105 @@ clearSelectionDept(event: Event) {
 
   toggleDept(): void {
   this.myDept = !this.myDept;
+  }
+
+  openProjectLineItemListModal() {
+    this.projectLineItemListModalRef = this.modalService.show(this.projectLineItemListModal, { class: 'modal-xl' });
+  }
+
+  closeProjectLineItemListModal() {
+    this.projectLineItemListModalRef.hide();
+  }
+
+  showProjectMilestones(projectObj: any) {
+    this.fcProjectMilestoneList = [];
+    let projectObjTemp = new Project();
+    projectObjTemp.projectId = projectObj?.projectId;
+    this.projectService.getAllProjectFCLineItemListByProjectId(projectObjTemp).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.fcProjectMilestoneList = response.serviceResponse;
+        this.openProjectLineItemListModal();
+      } else {
+        this.openAlertMod(this.alertTemplate,response.serviceResponse);
+      }
+    });
+  }
+
+  calculatePoStatus(){
+    let notStarted=0,completed=0,hold=0,inProgress=0;
+    let lineItemList = this.fcProjectMilestoneList.filter(milestone => milestone.lineItemId == this.projectMilestone.lineItemId);
+    for(let m of lineItemList){
+      if(m.status==Status.IN_PROGRESS){
+        inProgress++;
+      }else if(m.status==Status.COMPLETED){
+        completed++;
+      }else if(m.status==Status.ON_HOLD){
+        hold++;
+      }else if(m.status==Status.NOT_STARTED){
+        notStarted++;
+      }
+    }
+    if (inProgress > 0) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
+    else if (hold > 0) { this.projectMilestone.lineItemStatus = Status.ON_HOLD }
+    else if (notStarted > 0 && notStarted < lineItemList?.length) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
+    else if (completed > 0) { this.projectMilestone.lineItemStatus = Status.COMPLETED }
+  }
+
+  sortProjectMilestoneData(sort: Sort) {
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.projectMilestoneSortColumn = sortParams[0];
+      this.projectMilestoneSortColumnType = sortParams[1];
+      this.projectMilestoneSortDirection = sort.direction;
+    }
+  }
+  
+  handleProjectMilestonePageChange(event) {
+    this.projectMilestonepage = event;
+  }
+
+  openUpdateProjectMilestoneModal(milestone:any){
+    this.projectMilestone = milestone;
+    this.updateProjectMilestoneModalRef = this.modalService.show(this.updateProjectMilestoneModal, { class: 'modal-xl' });
+ }
+
+  closeUpdateProjectMilestoneModal() {
+    this.updateProjectMilestoneModalRef.hide();
+  }
+
+  updateMilestoneChanges() {
+    // Validate required fields
+    let isValid = true;
+    let errors: any;
+
+      if (!this.projectMilestone.startDate) {
+        isValid = false;
+        errors = 'Start date is required for milestone';
+      }
+      if (!this.projectMilestone.endDate) {
+        isValid = false;
+        errors = 'End date is required for milestone';
+      }
+      if (this.projectMilestone.startDate && this.projectMilestone.endDate && this.projectMilestone.startDate > this.projectMilestone.endDate) {
+        isValid = false;
+        errors = 'End date must be after start date for milestone';
+      }
+
+    if (!isValid) {
+      this.openAlertMod(this.alertTemplate, errors);
+      return;
+    }
+
+    // TODO: Implement actual save logic
+    // this.projectService.updateProjectMilstone(milestone).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.fcProjectMilestoneList = response.serviceResponse;
+    //     this.openProjectLineItemListModal();
+    //     this.closeUpdateProjectMilestoneModal();
+    //   } else {
+    //     this.openAlertMod(this.alertTemplate,response.serviceResponse);
+    //   }
+    // });
   }
 
 }

@@ -48,7 +48,7 @@
               max-width: fit-content;" (click)="selectStatusTab('Not Started')"
                         [ngClass]="{'selected-card': selectedStatusTab === 'Not Started'}">
                         <div class="mini-card1" style="border-left: 4px solid #9E9E9E;">
-                            <div class="value fw-bold" style="color: #9E9E9E;">{{tabCounts.notStartedCount}}</div>
+                            <div class="value fw-bold" style="color: #9E9E9E;">{{tabCounts?.notStartedCount}}</div>
                             <div class="label text-muted">Not Started <i class="fa-solid fa-minus-circle fa-beat-fade"
                                     style="color: #9E9E9E;"></i></div>
                         </div>
@@ -59,7 +59,7 @@
             max-width: fit-content;" (click)="selectStatusTab('Pending for approval')"
                         [ngClass]="{'selected-card': selectedStatusTab === 'Pending for approval'}">
                         <div class="mini-card1" style="border-left: 4px solid #FFB300;">
-                            <div class="value fw-bold" style="color: #FFB300;">{{tabCounts.pendingForApprovalCount}}
+                            <div class="value fw-bold" style="color: #FFB300;">{{tabCounts?.pendingForApprovalCount}}
                             </div>
                             <div class="label text-muted">Pending For Approval<i class="fa-solid fa-clock fa-beat-fade"
                                     style="color: #FFB300;"></i></div>
@@ -71,7 +71,7 @@
               max-width: fit-content;" (click)="selectStatusTab('Approved')"
                         [ngClass]="{'selected-card': selectedStatusTab === 'Approved'}">
                         <div class="mini-card1" style="border-left: 4px solid #4CAF50;">
-                            <div class="value fw-bold" style="color: #4CAF50;">{{tabCounts.approvedCount}}</div>
+                            <div class="value fw-bold" style="color: #4CAF50;">{{tabCounts?.approvedCount}}</div>
                             <div class="label text-muted">Approved <i class="fa-solid fa-check-circle fa-beat-fade"
                                     style="color: #4CAF50;"></i></div>
                         </div>
@@ -82,7 +82,7 @@
           max-width: fit-content;" (click)="selectStatusTab('Rejected')"
                         [ngClass]="{'selected-card': selectedStatusTab === 'Rejected'}">
                         <div class="mini-card1" style="border-left: 4px solid #F44336;">
-                            <div class="value fw-bold" style="color: #F44336;">{{tabCounts.rejectedCount}}</div>
+                            <div class="value fw-bold" style="color: #F44336;">{{tabCounts?.rejectedCount}}</div>
                             <div class="label text-muted">Rejected <i class="fa-solid fa-circle-xmark fa-beat-fade"
                                     style="color: #F44336;"></i></div>
                         </div>
@@ -93,7 +93,7 @@
           max-width: fit-content;" (click)="selectStatusTab('All')"
                         [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
                         <div class="mini-card1" style="border-left: 4px solid #03A9F4;">
-                            <div class="value fw-bold" style="color: #03A9F4;">{{tabCounts.totalCount}}</div>
+                            <div class="value fw-bold" style="color: #03A9F4;">{{tabCounts?.totalCount}}</div>
                             <div class="label text-muted">Total <i class="fa-solid fa-plus-circle fa-beat-fade"
                                     style="color: #03A9F4;"></i>
                             </div>
@@ -105,7 +105,7 @@
               max-width: fit-content;" (click)="selectStatusTab('completedInIshine')"
                         [ngClass]="{'selected-card': selectedStatusTab === 'completedInIshine'}">
                         <div class="mini-card1" style="border-left: 4px solid #17ceee;">
-                            <div class="value fw-bold" style="color: #17ceee;">{{tabCounts.completedInIshineCount}}
+                            <div class="value fw-bold" style="color: #17ceee;">{{tabCounts?.completedInIshineCount}}
                             </div>
                             <div class="label text-muted">Completed In Ishine<i
                                     class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #17ceee;"></i></div>
@@ -118,7 +118,7 @@
                          max-width: fit-content;" (click)="selectStatusTab('Completed')"
                         [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
                         <div class="mini-card1" style="border-left: 4px solid #00ec33;">
-                            <div class="value fw-bold" style="color: #00ec33;">{{tabCounts.completedCount}}</div>
+                            <div class="value fw-bold" style="color: #00ec33;">{{tabCounts?.completedCount}}</div>
                             <div class="label text-muted">Completed In Shankh<i
                                     class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #00ec33;"></i></div>
                         </div>
@@ -129,7 +129,7 @@
               max-width: fit-content;" (click)="selectStatusTab('CompletedWithTeam')"
                         [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithTeam'}">
                         <div class="mini-card1" style="border-left: 4px solid #7836c4;">
-                            <div class="value fw-bold" style="color: #7836c4;">{{tabCounts.completedWithEmployeeCount}}
+                            <div class="value fw-bold" style="color: #7836c4;">{{tabCounts?.completedWithEmployeeCount}}
                             </div>
                             <div class="label text-muted">Completed In Shankh Have Active Team<i
                                     class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #7836c4;"></i></div>
@@ -250,7 +250,7 @@
                                 </mat-option>
 
                                 <!-- Select All/Deselect All -->
-                                <mat-option (click)="toggleSelectAllDeptByUser()" [disabled]="departmentListByUser.length === 0">
+                                <mat-option (click)="toggleSelectAllDeptByUser()" [disabled]="departmentListByUser?.length === 0">
                                     {{ isAllSelectedByUser ? 'Deselect All' : 'Select All' }}
                                 </mat-option>
 
@@ -764,6 +764,7 @@
                                                                 </div>
                                                             </div>
                                                         </div>
+
                                                         <!-- As per RMG request -->
 
                                                         <!-- <div class="row">
@@ -1503,6 +1504,11 @@
                         <input type="text" disabled [(ngModel)]="projectObj.state" />
                     </div>
                 </div>
+            <div class="row" *ngIf="projectObj?.poProjectType == 'Fixed Cost'">
+                <div class="col-12 d-flex justify-content-end">
+                    <h3 (click)="showProjectMilestones(projectObj)" class="milestone-link">Show All Milestone</h3>
+                </div>
+            </div>
 
                 <div class="teams-section">
                     <h3>Teams</h3>
@@ -2208,7 +2214,7 @@
                     <input type="text" readonly [value]="projectObj?.state" />
                 </div>
             </div>
-
+            
             <!-- Team Info Cards -->
             <div class="team-card" *ngFor="let team of projectObj?.teamList; let i = index">
                 <p class="team-section-title">Team Info</p>
@@ -2673,3 +2679,100 @@
     <!-- <iframe [src]="reportListUrlSafe" width="100%" height="850px" frameborder="0"></iframe> -->
 
 </ng-container>
+
+<ng-template #project_line_item_list_modal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Project Milestone List</h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="closeProjectLineItemListModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="table-container" bassHorizontalScroll [tableId]="'projectMilestone'"
+            [tableTHeadId]="'projectMilestoneTHead'" [tableTHeadTrId]="'projectMilestoneTHeadTr'">
+            <table class="table" id="project-milestone" matSort (matSortChange)="sortProjectMilestoneData($event)">
+                <thead class="thead-light">
+                    <tr id="projectMilestoneTHeadTr">
+                        <th scope="col" class="info-label">Sr.No</th>
+                        <th scope="col" class="info-label" mat-sort-header="lineItemName|string">Line Item</th>
+                        <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>
+                        <th scope="col" class="info-label">Description</th>
+                        <th scope="col" class="info-label" mat-sort-header="startDate|string">Start Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="endDate|string">End Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                        <th scope="col" class="info-label">Remarks</th>
+                        <th scope="col" class="info-label">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngIf="fcProjectMilestoneList.length == 0">
+                        <tr>
+                            <td colspan="7" class="text-center info-label">No details to display...</td>
+                        </tr>
+                    </ng-container>
+                    <ng-container
+                        *ngFor="let milestone of fcProjectMilestoneList | sort : [projectMilestoneSortColumn, projectMilestoneSortColumnType, projectMilestoneSortDirection]| paginate: { itemsPerPage: 10, currentPage: projectMilestonepage }; let j = index">
+                        <tr>
+                            <td>{{j+1}}</td>
+                            <td>{{milestone.lineItemName}}</td>
+                            <td>{{milestone.name}}</td>
+                            <td>{{milestone.description}}</td>
+                            <td>{{milestone.startDate | date:'dd/MM/yyyy'}}</td>
+                            <td>{{milestone.endDate | date:'dd/MM/yyyy'}}</td>
+                            <td>{{milestone.status}}</td>
+                            <td>{{milestone.remarks}}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" (click)="openUpdateProjectMilestoneModal(milestone)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+            <div class="row col-md-12">
+                <pagination-controls class="my-pagination" [hidden]="fcProjectMilestoneList.length == 0"
+                    (pageChange)="handleProjectMilestonePageChange($event)"></pagination-controls>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeProjectLineItemListModal()">Close</button>
+    </div>
+</ng-template>
+
+<ng-template #update_project_milestone_modal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Update Project Milestone</h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="closeUpdateProjectMilestoneModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="form-group">
+            <div class="form-field">
+                <label>List Item Name</label>
+                <input type="text" disabled [(ngModel)]="projectMilestone.name" />
+            </div>
+            <div class="form-field">
+                <label>Name</label>
+                <input type="text" disabled [(ngModel)]="projectMilestone.name" />
+            </div>
+            <div class="form-field">
+                <label>Description</label>
+                <input type="text" disabled [(ngModel)]="projectMilestone.description" />
+            </div>
+            <div class="form-field">
+                <label>Status</label>
+                <mat-select [(ngModel)]="projectMilestone.status" (ngModelChange)="calculatePoStatus()">
+                    <mat-option [value]="projectMilestone.status">{{projectMilestone.status}}</mat-option>
+                    <ng-container *ngFor="let status of statusList; let i=index;">
+                        <mat-option *ngIf="status!=projectMilestone.status" [value]="status">
+                            {{status}}
+                        </mat-option>
+                    </ng-container>
+                </mat-select>
+            </div>
+        </div>
+    </div>
+</ng-template>

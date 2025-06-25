@@ -76,4 +76,8 @@ deleteTeamsByIdsBulk(teamObj: any){
   return this.http.post(`${this.baseUrl}` + `api/deleteTeamsByIdsBulk`, teamObj);
 }
 
+  getAllProjectFCLineItemListByProjectId(projectObjTemp: Project) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`, projectObjTemp);
+  }
+
 }

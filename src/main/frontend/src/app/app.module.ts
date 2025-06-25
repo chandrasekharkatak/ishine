@@ -14,6 +14,8 @@ import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatAccordion } from '@angular/material/expansion';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AngularEditorModule } from '@kolkov/angular-editor';
 import { NgHorizontalScrollModule } from 'angular-horizontal-scroll-table';
@@ -306,6 +308,7 @@ import { ReimbursmentConfigComponent } from './configuration/reimbursment-config
     ClipboardModule,
     NgHorizontalScrollModule,
     MatTableModule,
+    MatExpansionModule,
     DragDropModule,
     NgxMatSelectModule.forRoot({
       maxWidthForMobileView: 600,

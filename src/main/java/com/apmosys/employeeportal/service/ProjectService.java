@@ -49,6 +49,8 @@ import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjectSummaryDTO;
+import com.apmosys.employeeportal.dto.FCLineItemDTO;
+import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeDashboardCountDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportForEmployeeDTO;
@@ -76,6 +78,8 @@ import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.FCLineItem;
+import com.apmosys.employeeportal.model.FCProjectMilestone;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
@@ -89,6 +93,8 @@ import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.FCLineItemRepository;
+import com.apmosys.employeeportal.repository.FCProjectMilestoneRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
@@ -156,7 +162,12 @@ public class ProjectService {
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
 
-	
+	@Autowired
+	private FCLineItemRepository fcLineItemRepository;	
+
+	@Autowired
+	private FCProjectMilestoneRepository fcProjectMilestoneRepository;
+
 	public ServiceResponse getAllClients() {
 		ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
@@ -2554,4 +2565,51 @@ public class ProjectService {
 	     logService.logMyInfo(httpRequest, apiLogInfo);
 	     return response;
 	 }
+
+     public ServiceResponse getAllProjectFCLineItemListByProjectId(ProjectDTO projectDto) {
+        ServiceResponse serviceResponse = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/getAllProjectFCLineItemListByProjectId");
+        apiLogInfo.setLogLevel("INFO");
+		try {
+			if(projectDto == null || projectDto.getProjectId() == null){
+				serviceResponse.setServiceResponse("Project Id cannot be null!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("Project Id cannot be null!");
+				return serviceResponse;
+			} else {
+				Project project = projectRepository.findByProjectId(projectDto.getProjectId());
+				if(project == null){
+					apiLogInfo.setApiResponse("Project not found!");
+					serviceResponse.setServiceResponse("Project not found!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					return serviceResponse;
+				} else {	
+					List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = fcProjectMilestoneRepository.findByProjectId(projectDto.getProjectId().longValue());
+					if(fcProjectMilestoneDTOList == null || fcProjectMilestoneDTOList.isEmpty()){
+						serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						serviceResponse.setServiceResponse("No Milestone(s) found for this project!");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						apiLogInfo.setApiResponse("No Milestone(s) found for this project!");
+						return serviceResponse;
+					} else {
+						serviceResponse.setServiceResponse(fcProjectMilestoneDTOList);
+						serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						apiLogInfo.setApiResponse("FC Project Milestone list fetched successfully!");
+						return serviceResponse;
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Something went wrong.");
+			serviceResponse.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		}
+		return serviceResponse;
+     }
 }

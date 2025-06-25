@@ -1098,4 +1098,9 @@ thead {
   font-weight: bold;
 }
 
+.milestone-link {
+  text-decoration: underline;
+  cursor: pointer;
+   color: #0056b3;
+} 
 
