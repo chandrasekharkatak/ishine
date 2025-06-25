@@ -32,6 +32,7 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { FilterStateService } from 'src/app/services/filter-state.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TeamService } from 'src/app/services/team.service';
@@ -446,11 +447,13 @@ export class ResourceManagementComponent implements OnInit {
   searchTextDeptByUser: any;
   filteredDepartmentsByUser: any[] = [];
   myDept: boolean = false;
-  countList: any;
-  fallBackMsg: any;
-  isApproved: boolean = false;
+  countList:any;
+  fallBackMsg:any;
+  isApproved:boolean = false;
+  advanceFilter: any;
 
   constructor(
+    private filterStateService: FilterStateService,
     private scroller: ViewportScroller,
     private departmentService: DepartmentService,
     public validationService: ValidationService,
@@ -573,6 +576,28 @@ export class ResourceManagementComponent implements OnInit {
     // else{
     //   await this.onDepartmentToggle();
     // }
+
+    if (this.filterStateService.projectReportFilters) {
+      this.filters = this.filterStateService.projectReportFilters;
+      this.isSearchEnabled = true; 
+    }
+    if(this.filterStateService.deptIdList && this.filterStateService.deptIdList.length > 0) {
+      console.log(this.filterStateService.deptIdList, "this.filterStateService.deptIdList");
+      this.deptIdList = this.filterStateService.deptIdList;
+      this.myDept = this.filterStateService.myDept ;
+      this.onDepartmentSelectionChange();
+    }
+    if(this.filterStateService.deptIdListByUser && this.filterStateService.deptIdListByUser.length > 0) {
+      console.log(this.filterStateService.deptIdListByUser, "this.filterStateService.deptIdListByUser");
+      this.myDept = this.filterStateService.myDept ;
+      this.deptIdListByUser = this.filterStateService.deptIdListByUser;
+      this.onDepartmentSelectionChangeByUser();
+    }
+    if(this.filterStateService.selectedStatusTab) {
+      this.selectedStatusTab = this.filterStateService.selectedStatusTab;
+      this.selectStatusTab(this.selectedStatusTab);
+      console.log(this.selectedStatusTab, "this.selectedStatusTab");
+    }
   }
 
 
@@ -773,6 +798,7 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
       this.projectFilterDTO.departments = [];
+      this.filterStateService.deptIdList = this.deptIdList;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
     }
@@ -793,34 +819,37 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = this.deptIdList;
       this.projectFilterDTO.departments = [];
+      this.filterStateService.deptIdList = this.deptIdList;
+      this.filterStateService.myDept = this.myDept;
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
       this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
 
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
+      console.log(this.filterStateService.deptIdList, "this.filterStateService.deptIdListByUser");
     }
   }
 
-  onDepartmentSelectionChange1() {
-    console.log(this.isAllSelected, "this.isAllSelected");
-    if (!this.isAllSelected && this.projectObj.departmentList.length > 0 && this.projectObj.departmentList[0] != null) {
-      this.projectFilterDTO.approvalStatus = "All";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
-      this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.fetchCountAndList();
-    }
-  }
+//   onDepartmentSelectionChange1() {
+//     console.log(this.isAllSelected, "this.isAllSelected");
+//     if (!this.isAllSelected && this.projectObj.departmentList.length > 0 && this.projectObj.departmentList[0] != null) {
+//         this.projectFilterDTO.approvalStatus = "All";
+//         this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+//         this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
+//         console.log(this.projectFilterDTO, "this.projectFilterDTO");
+//         this.fetchCountAndList();
+//     }
+// }
 
-  onDepartmentSelectionChange2() {
-    console.log(this.isAllSelected, "this.isAllSelected");
-    if (!this.isAllSelected && this.teamObj.departmentList.length > 0 && this.teamObj.departmentList[0] != null) {
-      this.projectFilterDTO.approvalStatus = "All";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = this.teamObj.departmentList;
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.fetchCountAndList();
-    }
-  }
+//  onDepartmentSelectionChange2() {
+//     console.log(this.isAllSelected, "this.isAllSelected");
+//     if (!this.isAllSelected && this.teamObj.departmentList.length > 0 && this.teamObj.departmentList[0] != null) {
+//       this.projectFilterDTO.approvalStatus = "All";
+//       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+//       this.projectFilterDTO.departmentsids = this.teamObj.departmentList;
+//       console.log(this.projectFilterDTO, "this.projectFilterDTO");
+//       this.fetchCountAndList();
+//     }
+// }
 
   toggleSelectAllDept() {
     // this.employeeReportObj.deptId = [];
@@ -833,6 +862,7 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
       this.projectFilterDTO.departments = [];
+      this.filterStateService.deptIdList = this.deptIdList;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
@@ -844,6 +874,7 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = this.deptIdList;
       this.projectFilterDTO.departments = [];
+      this.filterStateService.deptIdList = this.deptIdList;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
       this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
@@ -953,6 +984,7 @@ export class ResourceManagementComponent implements OnInit {
     const documentHeight = document.body.scrollHeight;
     this.scroller.scrollToPosition([0, documentHeight]);
     this.selectedStatusTab = status;
+    this.filterStateService.selectedStatusTab = status;
     console.log(this.selectedStatusTab)
     console.log(this.selectedStatusTab, "this.selectedStatusTab");
     this.projectFilterDTO.approvalStatus = this.selectedStatusTab;
@@ -1692,7 +1724,7 @@ export class ResourceManagementComponent implements OnInit {
     console
 
     if (!this.tempTeam.teamId) {
-      this.openAlertMod(alert_message, "Team is removed.");
+      this.openAlertMod(alert_message, "Team is missing. Cannot proceed.");
       this.allTeamList.pop();
       this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
       this.copyDepartment = [];
@@ -1700,7 +1732,10 @@ export class ResourceManagementComponent implements OnInit {
         this.addInputTeamField();
       }
       return;
+    } else {
+      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     }
+
 
   }
 
@@ -2062,7 +2097,7 @@ handleAddButtonClick() {
   }
 
   cancelRequest() {
-    console.log("cancel call ");
+    console.log("cancel call");
 
     this.modalRef.hide();
   }
@@ -2144,15 +2179,18 @@ handleAddButtonClick() {
     }
   }
 
-  onSearch(searchData) {
+  onSearch(searchData: any) {
     this.filters = searchData;
-    //console.log("Updated Filter : ", this.filters);
+    // Save the current filter state to the service
+    this.filterStateService.projectReportFilters = this.filters;
   }
 
-  toggleSearch() {
+  toggleSearch(): void {
     this.isSearchEnabled = !this.isSearchEnabled;
+
     if (!this.isSearchEnabled) {
       this.filters = {};
+      this.filterStateService.clearProjectReportFilters();
     }
   }
 
@@ -4389,6 +4427,8 @@ getProjectType(project: any): string {
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departments = [];
       this.projectFilterDTO.departmentsids = this.deptIdListByUser;
+      this.filterStateService.deptIdListByUser = this.deptIdListByUser;
+      this.filterStateService.myDept = this.myDept;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
       this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
@@ -4416,11 +4456,11 @@ getProjectType(project: any): string {
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
       this.projectFilterDTO.departments = [];
+      this.filterStateService.deptIdListByUser = this.deptIdListByUser;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
       this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
     }
-
   }
 
   toggleSelectAllDeptByUser() {
@@ -4434,6 +4474,7 @@ getProjectType(project: any): string {
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
       this.projectFilterDTO.departments = [];
+      this.filterStateService.deptIdListByUser = this.deptIdListByUser;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
       this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
@@ -4446,6 +4487,7 @@ getProjectType(project: any): string {
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = this.deptIdListByUser;
       this.projectFilterDTO.departments = [];
+      this.filterStateService.deptIdListByUser = this.deptIdListByUser;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
       this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
@@ -4511,7 +4553,8 @@ getProjectType(project: any): string {
   }
 
   toggleDept(): void {
-    this.myDept = !this.myDept;
+  this.myDept = !this.myDept;
+  this.filterStateService.myDept = this.myDept;
   }
 
 }

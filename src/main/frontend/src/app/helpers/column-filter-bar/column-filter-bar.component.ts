@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { FilterStateService } from 'src/app/services/filter-state.service';
 
 @Component({
   selector: '[app-column-filter-bar]',
@@ -21,6 +22,7 @@ export class ColumnFilterBarComponent implements OnInit {
   onSearch:EventEmitter<any> = new EventEmitter();
 
   constructor(
+    private filterStateService: FilterStateService,
     private breadcrumbService: BreadcrumbService,
     private router: Router
   ) {
@@ -34,6 +36,16 @@ export class ColumnFilterBarComponent implements OnInit {
     && this.router.url.includes('resource-management')
     && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
       this.onSearch.emit({'name' : this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.object?.projectName}); 
+    }
+
+    const savedFilters = this.filterStateService.projectReportFilters;
+    if (savedFilters) {
+      this.displayColumns.forEach(col => {
+        if (savedFilters[col.column]) {
+          col.value = savedFilters[col.column];
+        }
+      });
+      this.search(); 
     }
   }
 
