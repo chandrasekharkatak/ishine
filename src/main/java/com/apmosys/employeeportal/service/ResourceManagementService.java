@@ -3258,7 +3258,9 @@ public class ResourceManagementService {
 			dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
 			dto.setPoStartDate(obj[11] != null ? obj[11].toString().toString() : null);
 			dto.setPoEndDate(obj[12] != null ? obj[12].toString().toString() : null);
-			dto.setStatus(obj[13] != null ? obj[13].toString() : null);
+			dto.setStatus(obj[15] != null ? obj[15].toString() : null);
+			dto.setPoProjectType(obj[13] != null ? obj[13].toString() : null);
+			dto.setInternalProjectType(obj[14] != null ? obj[14].toString() : null);
 
 			allData.add(dto);
 		});
@@ -3623,8 +3625,9 @@ public class ResourceManagementService {
 
 					dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
 					dto.setClientState(object[5] != null ? object[5].toString() : null);
-					dto.setDraftStatus(object[6] != null ? object[6].toString() : null);
-
+					dto.setDraftStatus(object[8] != null ? object[8].toString() : null);
+					dto.setPoProjectType(object[6] != null ? object[6].toString() : null);
+					dto.setInternalProjectType(object[7] != null ? object[7].toString() : null);
 					result.add(dto);
 				});
 
@@ -3735,7 +3738,9 @@ public class ResourceManagementService {
 
 					dto.setClientName(object[4] != null ? object[4].toString().toString() : null);
 					dto.setClientState(object[5] != null ? object[5].toString() : null);
-					dto.setDraftStatus(object[6] != null ? object[6].toString() : null);
+					dto.setDraftStatus(object[8] != null ? object[8].toString() : null);
+					dto.setPoProjectType(object[6] != null ? object[6].toString() : null);
+					dto.setInternalProjectType(object[7] != null ? object[7].toString() : null);
 
 					result.add(dto);
 				});
@@ -6019,6 +6024,8 @@ public class ResourceManagementService {
 				dto.setBillableType(result[6] != null ? result[6].toString() : null);
 				dto.setJobRole(result[7] != null ? result[7].toString() : null);
 				dto.setDeptName(result[8] != null ? result[8].toString() : null);
+				dto.setStartDate(result[9] != null ? result[9].toString() : null);
+				
 
 				response.setServiceResponse(dto);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

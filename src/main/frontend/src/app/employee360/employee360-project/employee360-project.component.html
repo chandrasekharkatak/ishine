@@ -154,6 +154,7 @@
                         <th scope="col" class="info-label" mat-sort-header="teamName|string">Team Name</th>
                         <th scope="col" class="info-label" mat-sort-header="clientName|string">Client Name</th>
                         <th scope="col" class="info-label" mat-sort-header="billableType|string">Billable Type</th>
+                        <th scope="col" class="info-label" mat-sort-header="billableType|string">Project Type</th>
                         <th scope="col" class="info-label" mat-sort-header="startDate|datetime">Start Date</th>
                         <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">End Date</th>
                         <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Po Start Date</th>
@@ -182,6 +183,7 @@
 
                         <td>{{ project.clientName }}</td>
                         <td>{{ project.billableType }}</td>
+                        <td>{{ getProjectType(project) }}</td>
                         <!-- <td>{{ project.startDate }}</td>
                         <td>{{ project.endDate }}</td> -->
                         <td style="white-space: nowrap;"> 

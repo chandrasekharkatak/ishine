@@ -282,39 +282,57 @@ export class Employee360ProjectComponent implements OnInit {
     this.getTeamListByProjectName(project);
   }
 
-  async getExistingProjectsByUser() {
-    let projectObj = new Project();
-    projectObj.empId = this.employeeData.empId;
-    projectObj.isAllProj = true;
 
-    // getExistingProjectsAndTeamsByEmployee service impl
-    this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allProjectList = response.serviceResponse;
 
-        console.log("dekhauchi re project details ::::::::", this.allProjectList);
-        console.log("this.projectDetails ", this.allProjectList);
-
-        console.log("Existing project detauls fetched for employee", this.allProjectList);
-        // if (this.allProjectList.length > 0) {
-        //   if (this.allProjectList[0].billableType == "TNM") {
-        //     this.openAlertMod(this.alertTemplate, "This Employee is already mapped to TNM project. Can't add to another project or Team !!");
-        //     this.getBillableType = this.allProjectList.find(employee => this.newteamMember.billableType = employee.billableType);
-        //   } else {
-        //     this.newMemberInProject = "NewMember";
-        //     this.newteamMember.billableType = this.newMemberInProject;
-        //   }
-        // } else {
-        //   this.newMemberInProject = "NewMember";
-        //   this.newteamMember.billableType = this.newMemberInProject;
-        // }
-
-        console.log("this.allProjectList ", this.allProjectList);
-        console.log("this.getBillableType ", this.getBillableType);
-        console.log(" newTeamMember   details   ", this.newteamMember)
-      }
-    });
+getProjectType(project: any): string {
+  if (project.poProjectType !== null && project.poProjectType !== undefined && project.poProjectType !== '') {
+    return project.poProjectType;
+  } else if (project.internalProjectType !== null && project.internalProjectType !== undefined && project.internalProjectType !== '') {
+    return project.internalProjectType;
+  } else {
+    return 'NA';
   }
+}
+
+async getExistingProjectsByUser() {
+  let projectObj = new Project();
+  projectObj.empId = this.employeeData.empId;
+  projectObj.isAllProj = true;
+
+  // getExistingProjectsAndTeamsByEmployee service impl
+  this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.allProjectList = response.serviceResponse;
+
+      // Add combined project type to each project in the list
+      this.allProjectList = this.allProjectList.map((project: any) => {
+        project.combinedProjectType = this.getProjectType(project);
+        return project;
+      });
+
+      console.log("dekhauchi re project details ::::::::", this.allProjectList);
+      console.log("this.projectDetails ", this.allProjectList);
+      console.log("Existing project detauls fetched for employee", this.allProjectList);
+
+      // if (this.allProjectList.length > 0) {
+      //   if (this.allProjectList[0].billableType == "TNM") {
+      //     this.openAlertMod(this.alertTemplate, "This Employee is already mapped to TNM project. Can't add to another project or Team !!");
+      //     this.getBillableType = this.allProjectList.find(employee => this.newteamMember.billableType = employee.billableType);
+      //   } else {
+      //     this.newMemberInProject = "NewMember";
+      //     this.newteamMember.billableType = this.newMemberInProject;
+      //   }
+      // } else {
+      //   this.newMemberInProject = "NewMember";
+      //   this.newteamMember.billableType = this.newMemberInProject;
+      // }
+
+      console.log("this.allProjectList ", this.allProjectList);
+      console.log("this.getBillableType ", this.getBillableType);
+      console.log(" newTeamMember   details   ", this.newteamMember)
+    }
+  });
+}
 
 
   deleteResourceModal1(template: TemplateRef<any>, projObj, member) {

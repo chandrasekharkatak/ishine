@@ -649,7 +649,7 @@
                                         </td>
                                         <td>{{project.poNo ? project.poNo : 'NA' }}</td>
 
-                                        <td>{{project.projectType ? project.projectType : 'NA' }} </td>
+                                        <td>{{ getProjectType(project) }}</td>
 
                                         <td class="text-capitalize">
                                             <ng-container id="clickablefor360"
@@ -781,6 +781,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            
                                                             <div class="col-md-4 mb-0">
                                                                 <div class="info-wrapper">
                                                                     <div class="form-group">
@@ -1325,6 +1326,7 @@
                                     </div>
                                 </div>
                             </div>
+                            
                             <div class="col-md-4 mb-0">
                                 <div class="info-wrapper">
                                     <div class="form-group">
@@ -1454,8 +1456,16 @@
                         <input type="text" disabled [(ngModel)]="projectObj.poNo" />
                     </div>
                     <div class="form-field">
+                        <label>Project Type</label>
+                        <input type="text" disabled [ngModel]="getProjectType(projectObj)" />
+                    </div>
+                    <div class="form-field">
                         <label>Client Name</label>
                         <input type="text" disabled [(ngModel)]="projectObj.clientName" />
+                    </div>
+                    <div class="form-field">
+                        <label>Status</label>
+                        <input type="text" disabled [ngModel]="projectObj.draftStatus || 'NA'" />
                     </div>
                     <div class="form-field">
                         <label>Department</label>
@@ -1788,20 +1798,26 @@
 
                 <div *ngIf="projectObj.resourceRequirements?.length > 0">
                     <div class="requirement-select-container">
-                        <label>Select Requirement</label>
-                        <div class="dropdownRequirment">
-                            <mat-select placeholder="Select Resource Requirement " [(ngModel)]="selectedRequirement">
-                                <mat-option *ngFor="let requirement of projectObj.resourceRequirements"
-                                    [value]="requirement">
-                                    Role - {{ requirement.role }} || Dept - {{ requirement.department }} || Exp - {{
-                                    requirement.experience }}
-                                </mat-option>
-                            </mat-select>
-                        </div>
+                        <label style="font-weight: 500; margin-bottom: 8px; display: block; color: #424242;">
+                            Select Requirement 
+                            <span style="color: #f44336; font-weight: bold; margin-left: 4px;">*</span>
+                        </label>
+                        <mat-select 
+                            placeholder="Select Requirement" 
+                            [(ngModel)]="selectedRequirement"
+                            required
+                            style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 8px; background-color: #fafafa;">
+                             <mat-option value="">
+                                Select
+                            </mat-option>
+                            <mat-option *ngFor="let requirement of projectObj.resourceRequirements"
+                                [value]="requirement">
+                                Role - {{ requirement.role }} || Dept - {{ requirement.department }} || Exp - {{
+                                requirement.experience }}
+                            </mat-option>
+                           
+                        </mat-select>
                     </div>
-
-
-
                 </div>
 
                 <div class="add-team-row mt-2 d-flex flex-wrap align-items-center gap-2">
@@ -1848,12 +1864,18 @@
                     </div>
 
                     <!-- Add Button -->
-                    <div>
+                  <!-- <div>
                         <button type="button" class="btn btn-outline-primary"
-                            (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers(); hasNewTeamMembers = true"
-                            [disabled]="projectObj.resourceRequirements?.length > 0
-                          ? (!selectedRequirement || !newteamMember.empId || !newteamMember.employeeRole?.length || (projectDetails.length !== 0 && newteamMember.billableType === 'TNM'))
-                          : (!newteamMember.empId || !newteamMember.employeeRole?.length || (projectDetails.length !== 0 && newteamMember.billableType === 'TNM'))">
+                            (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()"
+                            [disabled]="isAddButtonDisabled">
+                            <i class="fa fa-plus" aria-hidden="true"></i>
+                        </button>
+                  </div> -->
+                  <div>
+                        <button type="button" class="btn btn-outline-primary"
+                            (click)="handleAddButtonClick()"
+                            [class.disabled]="isAddButtonDisabled"
+                            [style.pointer-events]="'auto'">
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>
                     </div>
@@ -1911,6 +1933,8 @@
                                                         employeeInformation.jobRole }}</div>
                                                     <div class="info-line"><span class="label">Billability Type:</span>
                                                         {{ employeeInformation.billableType }}</div>
+                                                    <div class="info-line"><span class="label"> Start Date:</span>
+                                                        {{ employeeInformation.startDate}}</div>
                                                     <div class="info-line"><span class="label">Department:</span> {{
                                                         employeeInformation.deptName }}</div>
                                                     <div class="info-line"><span class="label">Previous
@@ -2081,6 +2105,9 @@
                                                         class="label">{{ employeeInformation.jobRole }}</span></div>
                                                 <div class="info-line"><span class="label">Billability type</span>:
                                                     <span class="label">{{ employeeInformation.billableType }}</span>
+                                                </div>
+                                                <div class="info-line"><span class="label">Start Date</span>:
+                                                    <span class="label">{{ employeeInformation.startDate }}</span>
                                                 </div>
                                                 <div class="info-line"><span class="label">Department</span>: <span
                                                         class="label">{{ employeeInformation.deptName }}</span></div>

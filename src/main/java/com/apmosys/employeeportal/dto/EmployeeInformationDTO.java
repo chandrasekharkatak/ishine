@@ -18,5 +18,6 @@ public class EmployeeInformationDTO {
 	private String billableType;
 	private String jobRole;
 	private String deptName;
+	private String startDate;
 
 }

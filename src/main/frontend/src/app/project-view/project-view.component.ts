@@ -20,6 +20,7 @@ import { SetDefaultProjectObj } from '../models/setDefaultProjectObj';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { ResourceManagementService } from '../services/resource-management.service';
+import { ProjectFilterDTO } from '../models/projectFilterDTO';
 
 
 class FilterData {
@@ -76,6 +77,7 @@ export class ProjectViewComponent implements OnInit {
   teamListBulk: any;
   @ViewChild("alert_message_without_reload")
   alertTemplateWithoutReload: TemplateRef<any>;
+  allProject_Po_Internal: any[];
   openAlertMod3(template: TemplateRef<any>, message: any) {
     this.modalRef3 = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -115,46 +117,79 @@ export class ProjectViewComponent implements OnInit {
   }
 
   getProjectInfo(): void {
-    this.projectObj.projectViewId = this.selectedProjectId;
-    console.log("projectObj ", this.projectObj);
+  this.projectObj.projectViewId = this.selectedProjectId;
+  console.log("projectObj ", this.projectObj);
 
-    if (this.projectObj.projectViewId.startsWith('po')) {
-      this.projectObj.projectViewId = this.projectObj.projectViewId.substring(2);
-      console.log("projectId ", this.projectObj.projectViewId);
-      this.projectObj.projectViewId = Number(this.projectObj.projectViewId);
-      console.log("projectId ", this.projectObj.projectViewId);
-      this.employee360Service.getPoProjectInfo(this.projectObj).subscribe({
-        next: (response: any) => {
-          if (response.serviceStatus === "Success") {
-            this.projectList = response.serviceResponse;
-            this.projectObj = this.projectList[0];
-            this.getTeamInfo(this.projectObj);
-          } else {
-            console.warn("Failed to fetch project info");
-          }
-        },
-        error: (error) => {
-          console.error("Error fetching project info:", error);
+  if (this.projectObj.projectViewId.startsWith('po')) {
+    this.projectObj.projectViewId = this.projectObj.projectViewId.substring(2);
+    console.log("projectId ", this.projectObj.projectViewId);
+    this.projectObj.projectViewId = Number(this.projectObj.projectViewId);
+    console.log("projectId ", this.projectObj.projectViewId);
+    this.employee360Service.getPoProjectInfo(this.projectObj).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.projectList = response.serviceResponse;
+          this.projectObj = this.projectList[0];
+          // Add combined project type to the project object
+          this.projectObj.combinedProjectType = this.getProjectType(this.projectObj);
+          this.getTeamInfo(this.projectObj);
+        } else {
+          console.warn("Failed to fetch project info");
         }
-      });
+      },
+      error: (error) => {
+        console.error("Error fetching project info:", error);
+      }
+    });
+  } else {
+    this.employee360Service.getProjectInfo(this.projectObj).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.projectList = response.serviceResponse;
+          this.projectObj = this.projectList[0];
+          // Add combined project type to the project object
+          this.projectObj.combinedProjectType = this.getProjectType(this.projectObj);
+          this.getTeamInfo(this.projectObj);
+        } else {
+          console.warn("Failed to fetch project info");
+        }
+      },
+      error: (error) => {
+        console.error("Error fetching project info:", error);
+      }
+    });
+  }
+}
+
+
+  //---------------------Raj----------------------//
+  CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilterDTO) {
+    this.allProject_Po_Internal = [];
+    this.resourceManagementService.combinedPOINTERNALDataList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        console.log(response.serviceResponse);
+        this.allProject_Po_Internal = response.serviceResponse.combinedNewProjects.map((project: any) => {
+          // Add the combined project type to each project object
+          project.combinedProjectType = this.getProjectType(project);
+          return project;
+        });
+        // this.tabCounts = response.serviceResponse.counts;
+        // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+  
+  getProjectType(project: any): string {
+    if (project.poProjectType !== null && project.poProjectType !== undefined && project.poProjectType !== '') {
+      return project.poProjectType;
+    } else if (project.internalProjectType !== null && project.internalProjectType !== undefined && project.internalProjectType !== '') {
+      return project.internalProjectType;
     } else {
-      this.employee360Service.getProjectInfo(this.projectObj).subscribe({
-        next: (response: any) => {
-          if (response.serviceStatus === "Success") {
-            this.projectList = response.serviceResponse;
-            this.projectObj = this.projectList[0];
-            this.getTeamInfo(this.projectObj);
-          } else {
-            console.warn("Failed to fetch project info");
-          }
-        },
-        error: (error) => {
-          console.error("Error fetching project info:", error);
-        }
-      });
+      return 'NA';
     }
   }
-
   getTeamInfo(project): void {
     this.employee360Service.getTeamInfo(project).subscribe({
       next: (response: any) => {

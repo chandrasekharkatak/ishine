@@ -80,6 +80,8 @@ public class ResourceManagementDTO {
     private String teamLeadName;
     private String state;
     private Long employeeTeamMapId;
+    private String internalProjectType;
+    private String poProjectType;
     private String draftStatus;
 
 }
