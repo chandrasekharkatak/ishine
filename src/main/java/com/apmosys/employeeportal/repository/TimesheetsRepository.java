@@ -265,6 +265,47 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 			)
 
 	      List<Object[]> getLastFilledTimesheet(@Param("empId") Long empId);
+	      
+	      
+	      
+	      
+	      
+	      
+	     
+	      
+	      @Query(
+	    		    value = "SELECT DISTINCT et.emp_id, etm.active, etm.team_id, et.date " +
+	    		            "FROM ( " +
+	    		            "    SELECT emp_id, MAX(date) AS max_date " +
+	    		            "    FROM employee_timesheets " +
+	    		            "    WHERE day_type = 'Working' " +
+	    		            "    GROUP BY emp_id " +
+	    		            ") latest " +
+	    		            "INNER JOIN employee_timesheets et " +
+	    		            "    ON et.emp_id = latest.emp_id AND et.date = latest.max_date " +
+	    		            "INNER JOIN employee_timesheet_activities_mapping etam " +
+	    		            "    ON etam.timesheet_id = et.timesheet_id " +
+	    		            "INNER JOIN activities a " +
+	    		            "    ON a.activity_id = etam.activity_id " +
+	    		            "INNER JOIN ( " +
+	    		            "    SELECT emp_id, team_id, active FROM ( " +
+	    		            "        SELECT emp_id, team_id, active, " +
+	    		            "               ROW_NUMBER() OVER (PARTITION BY emp_id, team_id ORDER BY active DESC) AS rn " +
+	    		            "        FROM employee_team_mapping " +
+	    		            "    ) ranked " +
+	    		            "    WHERE rn = 1 " +
+	    		            ") etm " +
+	    		            "    ON etm.team_id = a.team_id AND etm.emp_id = et.emp_id " +
+	    		            "WHERE et.emp_id = :empId",
+	    		    nativeQuery = true
+	    		)
+   
+	    		List<Object[]> checkEmployeeActiveOrNot(@Param("empId") Long empId);
+
+	      
+	      
+	      
+	      
 
 
 	

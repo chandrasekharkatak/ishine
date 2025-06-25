@@ -50,6 +50,9 @@ import { ValidationService } from 'src/app/services/validation.service';
 
 
 
+
+
+
 @Component({
   selector: 'app-timesheet-create-self',
   templateUrl: './timesheet-create-self.component.html',
@@ -60,25 +63,39 @@ export class TimesheetCreateSelfComponent implements OnInit {
   @Input() clientList: any[] = [];
   selectedTeamMemberName: string = '';
 
+  @Input() showNoTimesheetPopupTrigger: boolean = false;
+
+   @Input() showNoTimesheetPopupTriggerForInActiveEmployee: boolean = false;
+
 
   leaveHistoryList: any[] = [];
 
   __tempDescription: string = '';
 
-  maxOutTimeDate: Date; 
+  maxOutTimeDate: Date;
 
   isUpdation: boolean = false;
 
-  isTimesheetForm: boolean = false; 
+  isTimesheetForm: boolean = false;
   serverDate: string = moment().format('YYYY-MM-DD');
   isTimesheetLockCheckEnable: any;
 
   @Output() createTimesheet = new EventEmitter<any>();
   @Output() teamMemberSelected = new EventEmitter<string>();
 
-  modalRef: BsModalRef;
+  modalRef: BsModalRef | null = null;
   alertMessage: string = '';
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
+
+ @ViewChild('alert_messageNotimesheet') alertNoTimesheetTemplate: TemplateRef<any>;
+
+  @ViewChild('alert_messageForInActiveEmployee') alertNoTimesheetTemplateForInActive: TemplateRef<any>;
+
+ 
+
+
+
+
 
   @Input() autofillData: any;
 
@@ -87,15 +104,25 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
 
 
-   ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(changes: SimpleChanges): void {
     if (changes['autofillData'] && changes['autofillData'].currentValue) {
       console.log("auto fill data", changes['autofillData'].currentValue);
       this.patchFormFromLastData();
     }
+    if (changes['showNoTimesheetPopupTrigger'] && changes['showNoTimesheetPopupTrigger'].currentValue) {
+      setTimeout(() => {
+        this.showNoTimesheetPopup(this.alertNoTimesheetTemplate);
+      }, 2000);
+    }
+     if (changes['showNoTimesheetPopupTriggerForInActiveEmployee'] && changes['showNoTimesheetPopupTriggerForInActiveEmployee'].currentValue) {
+      setTimeout(() => {
+        this.showNoTimesheetPopup(this.alertNoTimesheetTemplateForInActive);
+      }, 2000);
+    }
   }
 
 
- 
+
 
 
 
@@ -206,7 +233,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
     console.log("clientLocationId" + activity.clientLocationId);
     console.log('activity' + JSON.stringify(activity));
-    console.log('timesheetObj-appliedFor' +this.timesheetObj.timesheetAppliedFor);
+    console.log('timesheetObj-appliedFor' + this.timesheetObj.timesheetAppliedFor);
 
     console.log('teamId' + this.timesheetObj.teamId);
     console.log('Activity_team_id' + activity.teamId);
@@ -225,7 +252,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
     console.log("Timesheet Type Changed: ", this.timesheetObj.timesheetAppliedFor);
     if (this.timesheetObj.timesheetAppliedFor === 'team') {
       this.getAllTeamMemberList();
-     
+
     } else {
       this.timesheetObj.empId = this.currentUser.empId;
       this.teamMemberSelected.emit(this.timesheetObj.empId);
@@ -341,6 +368,16 @@ export class TimesheetCreateSelfComponent implements OnInit {
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
+
+
+  showNoTimesheetPopup(template: TemplateRef<any>): void {
+    this.modalRef = this.modalService.show(template, {
+      class: 'modal-dialog-centered modal-sm',
+      backdrop: 'static',
+      keyboard: false,
+    });
+  }
+
 
   ngOnInit(): void {
 
@@ -468,6 +505,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
     this.selectedTimesheet = Object.assign({}, timesheetObj);
   }
 
+
   checkTimesheetForInActiveActivities(timesheetObj: Timesheet, template: TemplateRef<any>) {
 
 
@@ -552,15 +590,15 @@ export class TimesheetCreateSelfComponent implements OnInit {
       newActivityObj.clientLocationId = activityObj.clientLocationId;
       newActivityObj.projectId = activityObj.projectId;
 
-      let teamId= activityObj.teamId;
-      console.log("teamId"+teamId);
+      let teamId = activityObj.teamId;
+      console.log("teamId" + teamId);
       newActivityObj.teamId = teamId;
       console.log("newActivityObj : ", newActivityObj);
-      
+
 
       this.allTimesheetActivities.push(newActivityObj);
       this.getClientLocationList(newActivityObj);
-      let result=this.getProjectList(newActivityObj);
+      let result = this.getProjectList(newActivityObj);
       console.log("result : ", result);
       // this.getTeamList(newActivityObj)
       this.getAllActivitiesByProjectIdandEmpId(newActivityObj);
@@ -1220,22 +1258,22 @@ export class TimesheetCreateSelfComponent implements OnInit {
     this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-          setTimeout(() => {
-            this.timesheetSubmitted.emit(); // should trigger immediately
-          }, 2000);
+        setTimeout(() => {
+          this.timesheetSubmitted.emit(); // should trigger immediately
+        }, 2000);
         this.showViewMyTimesheets();
-        
+
 
         this.startDate = this.endDate = this.timesheetObj.date;
 
         if (this.timesheetObj.timesheetAppliedFor == "self") {
           this.getAllMyTimesheetsByEmpId();
-         
-         
+
+
         } else {
           this.getMyTeamTimesheets();
 
-      
+
         }
 
       } else {
@@ -1376,48 +1414,48 @@ export class TimesheetCreateSelfComponent implements OnInit {
   // }
 
   getTimesheetMetadata(empId?: number): void {
-  let userObj: User = new User();
+    let userObj: User = new User();
 
-  if (this.timesheetObj.timesheetAppliedFor === 'self') {
-    userObj.empId = this.currentUser.empId;
-    userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-    this.timesheetObj.empId = this.currentUser.empId;
-    this.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
+    if (this.timesheetObj.timesheetAppliedFor === 'self') {
+      userObj.empId = this.currentUser.empId;
+      userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
+      this.timesheetObj.empId = this.currentUser.empId;
+      this.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
 
-  } else {
-    const teamMember = this.teamMemberList.find(employee => employee.empId ===Number(empId));
-    if (!teamMember) return;
-
-    userObj.empId = teamMember.empId;
-    userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-    this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-    this.timesheetObj.empId = teamMember.empId;
-
-    if (teamMember.isTimesheetFilledByMember === "true") {
-      this.openAlertMod(this.alertTemplate, "Timesheet cannot be filled for team member more than 2 days.");
-      this.timesheetObj.empId = '';
-      this.disableCreateUpdateTimesheet = true;
-      return;
     } else {
-      this.disableCreateUpdateTimesheet = false;
+      const teamMember = this.teamMemberList.find(employee => employee.empId === Number(empId));
+      if (!teamMember) return;
+
+      userObj.empId = teamMember.empId;
+      userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
+      this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
+      this.timesheetObj.empId = teamMember.empId;
+
+      if (teamMember.isTimesheetFilledByMember === "true") {
+        this.openAlertMod(this.alertTemplate, "Timesheet cannot be filled for team member more than 2 days.");
+        this.timesheetObj.empId = '';
+        this.disableCreateUpdateTimesheet = true;
+        return;
+      } else {
+        this.disableCreateUpdateTimesheet = false;
+      }
     }
+
+    const timesheetBkp = { ...this.timesheetObj };
+
+    // Reset the form
+    this.timesheetObj = new Timesheet();
+    this.timesheetObj.dayType = '';
+    this.allTimesheetActivities = [];
+    this.addInputActivityField();
+
+    // Restore appliedFor
+    this.timesheetObj.timesheetAppliedFor = timesheetBkp.timesheetAppliedFor;
+    this.timesheetObj.empId = userObj.empId;
+
+    this.getAllProjectsByEmpId(userObj);
+    this.getAllAvailableTimesheetByEmpId(userObj);
   }
-
-  const timesheetBkp = { ...this.timesheetObj };
-
-  // Reset the form
-  this.timesheetObj = new Timesheet();
-  this.timesheetObj.dayType = '';
-  this.allTimesheetActivities = [];
-  this.addInputActivityField();
-
-  // Restore appliedFor
-  this.timesheetObj.timesheetAppliedFor = timesheetBkp.timesheetAppliedFor;
-  this.timesheetObj.empId = userObj.empId;
-
-  this.getAllProjectsByEmpId(userObj);
-  this.getAllAvailableTimesheetByEmpId(userObj);
-}
 
 
   getAllTeamMemberList() {
@@ -1529,19 +1567,19 @@ export class TimesheetCreateSelfComponent implements OnInit {
   //   }
   // }
 
-   getProjectList(activityObj: Activity) {
-      this.projectList = [];
-  
-      const key = "teamId";
-      this.projectList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
-        if (project.clientId == activityObj.clientId) {
-          project['displayTeam'] = `${project.projectName} | ${project.teamName}`;
-          return { teamId: project.teamId, teamName: project.teamName, projectName: project.projectName, displayTeam : project.displayTeam}
-        }
-      });
-      //console.log("projectList with displayTeam:", this.projectList);
-      this.setAllProjects(activityObj, this.projectList);
-    }
+  getProjectList(activityObj: Activity) {
+    this.projectList = [];
+
+    const key = "teamId";
+    this.projectList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
+      if (project.clientId == activityObj.clientId) {
+        project['displayTeam'] = `${project.projectName} | ${project.teamName}`;
+        return { teamId: project.teamId, teamName: project.teamName, projectName: project.projectName, displayTeam: project.displayTeam }
+      }
+    });
+    //console.log("projectList with displayTeam:", this.projectList);
+    this.setAllProjects(activityObj, this.projectList);
+  }
 
   // getTeamList(activityObj: Activity){
   //   this.teamList = []
@@ -1598,7 +1636,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
     }
   }
 
-  
+
 
   getAllActivitiesByProjectIdandEmpId(activityObj: any,) {
     let allActivityList = [];
@@ -1623,8 +1661,8 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
     this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       console.log("getAllActivitiesByProjectIdandEmpId response : ", response);
-      console.log("status"+ response.serviceStatus);
-      if (response.serviceStatus==="Success") {
+      console.log("status" + response.serviceStatus);
+      if (response.serviceStatus === "Success") {
         allActivityList = response.serviceResponse;
         // console.log('getAllActivitiesByProjectIdandEmpId',allActivityList)
         allActivityList = allActivityList.sort((a, b) => a.activity.localeCompare(b.activity));
@@ -1881,13 +1919,13 @@ export class TimesheetCreateSelfComponent implements OnInit {
   onTeamChanged(newTeamId: number, activityObj: Activity) {
 
     console.log("New Team ID selected: ", newTeamId);
-  activityObj.teamId = newTeamId;
+    activityObj.teamId = newTeamId;
 
-  // Update the activity list based on the selected team
-  this.getClientLocationList(activityObj);
-  this.getProjectList(activityObj);
-  this.getAllActivitiesByProjectIdandEmpId(activityObj);
-}
+    // Update the activity list based on the selected team
+    this.getClientLocationList(activityObj);
+    this.getProjectList(activityObj);
+    this.getAllActivitiesByProjectIdandEmpId(activityObj);
+  }
 
 
   viewAllMyActivitiesByTimesheetId(timesheet: any) {
@@ -2218,540 +2256,540 @@ export class TimesheetCreateSelfComponent implements OnInit {
 }
 
 
- //    ngOnChanges(changes: SimpleChanges): void {
-  //   if (changes['autofillData'] && changes['autofillData'].currentValue) {
-  //     console.log('ngOnChanges - autofillData updated', changes['autofillData'].currentValue);
-  //     this.autofill(changes['autofillData'].currentValue);
-  //   }
-  // }
-
-
-
-
-  // autofill(data: any): void {
-  //   const defaultTimesheet = new Timesheet();
-
-  //   this.timesheetObj = {
-  //     ...defaultTimesheet,
-  //     ...data,
-  //     timesheetAppliedFor: data.timesheetAppliedFor || 'self',
-  //     empId: data.empId ?? null,
-  //     dayType: data.dayType ?? null,
-  //     date: data.date ? new Date(data.date) : null,
-  //     officeInTime: data.officeInTime ? new Date(data.officeInTime) : null,
-  //     officeOutTime: data.officeOutTime ? new Date(data.officeOutTime) : null,
-  //     description: data.description || '',
-  //     isNightShift: data.isNightShift ?? false,
-  //     totalWorkingOfficeHours: data.totalWorkingOfficeHours ?? 0,
-  //     allTimesheetActivities: [] 
-  //   };
-
-  //   console.log('Autofilled timesheetObj:', this.timesheetObj); 
-
-  //   // Bind activities
-  //   if (Array.isArray(data.activities)) {
-  //     this.bindActivities(data.activities);
-
-  //     console.log('Autofilled allTimesheetActivities:', this.allTimesheetActivities);
-  //   }
-  // }
-
-
-  // bindActivities(activities: any[]): void {
-  //   this.allTimesheetActivities = [];
-
-  //   for (let act of activities) {
-  //     const activityObj: any = {
-  //       clientId: act.clientId ?? null,
-  //       clientLocationId: act.clientLocationId ?? null,
-  //       teamId: act.teamId ?? null,
-  //       activityId: act.activityId ?? null,
-  //       description: act.description ?? '',
-  //       completionTime: act.completionTime ?? null,
-  //       clientLocationList: [],
-  //       projectList: [],
-  //       projectActivities: []
-  //     };
-
-  //     this.allTimesheetActivities.push(activityObj);
-
-  //     // Pre-load dropdowns
-  //     this.getClientLocationList(activityObj);
-  //     this.getProjectList(activityObj);
-  //     this.getAllActivitiesByProjectIdandEmpId(activityObj);
-  //   }
-
-  //   // Assign to main object (required if template depends on this field)
-  //   this.timesheetObj.allTimesheetActivities = this.allTimesheetActivities;
-  // }
-
-
-
-
-
-
-
-  //   timesheetObj: any = {
-  //     timesheetAppliedFor: 'self',
-  //     dayType: '',
-  //     officeInTime: '',
-  //     officeOutTime: '',
-  //     totalWorkingOfficeHours: 0,
-  //     isNightShift: false,
-  //     date: '',
-  //     empId: '',
-  //     remarks: '',
-  //     description: ''
-  //   };
-
-  //   allTimesheetActivities = [this.createEmptyActivity()];
-  //   teamMemberList: any[] = [];
-  //   currentUser: User;
-  //   selectedTeamMemberName: string = '';
-
-  //   holidayList: any[] = [];
-  //   holidaystateObj: any = {};
-
-  //   availableTimesheets: any[] = [];
-  //   AllWeekOfList: any[] = [];
-
-  //   disableCreateUpdateTimesheet: boolean = false;
-
-  //   constructor(
-  //     private authenticationService: AuthenticationService,
-  //     private teamViewService: TeamViewService,
-  //     private timesheetService: TimesheetService,
-  //     private modalService: BsModalService,
-  //     private router: Router,
-  //     private holidayService: HolidayService,
-  //     private datePipe: DatePipe,
-  //     private employeeService: EmployeeService,
-  //     private selfTimeSheetServiceService :SelfTimeSheetServiceService,
-  //   ) {
-  //     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
-  //   }
-
-
-
-  // ngOnChanges(changes: SimpleChanges): void {
-  //   if (changes['autofillData'] && this.autofillData) {
-  //     console.log('Detected autofillData update:', this.autofillData);
-  //     this.patchFormFromLastData();
-  //   }
-  // }
-
-   //     openAlertMod(template: TemplateRef<any>, message: any) {
-  //     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-  //     this.alertMessage = message;
-  //   }
-
-  //  patchFormFromLastData(): void {
-  //   const data = this.autofillData;
-
-  //   this.timesheetObj = {
-  //   checkId: data?.checkId ?? null,
-  //   timesheetId: data?.timesheetId ?? null,
-  //   allTimesheetActivities: [],
-  //   updatedTimesheetActivities: data?.updatedTimesheetActivities ?? null,
-
-  //   createdOn: data?.createdOn ?? null,
-  //   createdBy: data?.createdBy ?? null,
-  //   createdByName: data?.createdByName ?? null,
-  //   updatedOn: data?.updatedOn ?? null,
-  //   updatedBy: data?.updatedBy ?? null,
-  //   currentManagerId: data?.currentManagerId ?? null,
-
-  //   projectId: data?.projectId ?? null,
-  //   projectName: data?.projectName ?? '',
-  //   projectManagerId: data?.projectManagerId ?? null,
-  //   managerId: data?.managerId ?? null,
-  //   empId: data?.empId || this.timesheetObj.empId || this.currentUser.empId,
-
-  //   // Add the required 'project' property
-  //   project: data?.project ?? null,
-
-  //   startDate: data?.startDate ?? null,
-  //   endDate: data?.endDate ?? null,
-  //   status: data?.status ?? null,
-
-  //   applicationCount: data?.applicationCount ?? null,
-  //   employeementId: data?.employeementId ?? null,
-  //   weekDayName: data?.weekDayName ?? null,
-  //   totalWorkingHours: data?.totalWorkingHours ?? null,
-  //   totalWorkingHoursPercentage: data?.totalWorkingHoursPercentage ?? null,
-
-  //   isConsultant: data?.isConsultant ?? null,
-  //   totalTime: data?.totalTime ?? 0,
-
-  //   timesheetStatusUpdatedBy: data?.timesheetStatusUpdatedBy ?? null,
-  //   timesheetStatusUpdatedByName: data?.timesheetStatusUpdatedByName ?? null,
-  //   employeeName: data?.employeeName ?? null,
-  //   rejectReason: data?.rejectReason ?? null,
-  //   email: data?.email ?? null,
-
-  //   clientId: data?.clientId ?? null,
-  //   clientName: data?.clientName ?? '',
-  //   clientLocationId: data?.clientLocationId ?? null,
-  //   clientLocation: data?.clientLocation ?? '',
-
-  //   timesheetAppliedFor: this.timesheetObj.timesheetAppliedFor || 'self',
-  //   dayType: data?.dayType || '',
-  //   date: data?.date || '',
-  //   officeInTime: data?.officeInTime ? new Date(data.officeInTime.replace(' ', 'T')) : '',
-  //   officeOutTime: data?.officeOutTime ? new Date(data.officeOutTime.replace(' ', 'T')) : '',
-  //   totalWorkingOfficeHours: data?.totalWorkingOfficeHours || '00:00',
-  //   isNightShift: data?.isNightShift || false,
-
-  //   remarks: data?.remarks || '',
-  //   description: data?.description || '',
-
-  //   teamId: data?.teamId ?? null,
-  //   teamName: data?.teamName ?? '',
-  //   activity: data?.activity ?? '',
-  //   activityId: data?.activityId ?? null,
-
-  //   managerEmail: data?.managerEmail ?? null,
-  //   managerName: data?.managerName ?? null,
-
-  //   leaveType: data?.leaveType ?? null,
-  //   isCron: data?.isCron ?? null,
-  //   year: data?.year ?? null,
-  //   month: data?.month ?? null,
-
-  //   displayTeam: data?.displayTeam ?? '',
-  //   inactiveTimesheetActivities: data?.inactiveTimesheetActivities ?? null,
-  //   name: data?.name ?? '',
-  //   inTime: data?.inTime ?? null,
-  //   outTime: data?.outTime ?? null,
-  //   appliedOn: data?.appliedOn ?? null,
-  //   selected: data?.selected ?? null,
-  //   timeSheet: data?.timeSheet ?? null,
-  //   nightShift: data?.nightShift ?? null,
-
-
-  //   isSelected: false,
-  //   bulkApprovedList: [],
-  //   bulkRejectList: [],
-  //   queryList: []
-  // } ;
-
-  // console.log('Patched timesheetObj:', this.timesheetObj); 
-
-  // console.log('working type:', this.timesheetObj.dayType); 
-  //   this.allTimesheetActivities = [
-  //     {
-  //       clientId: data.clientId || '',
-  //       clientName: data.clientName || '',
-  //       clientLocationId: data.clientLocationId || '',
-  //       clientLocation: data.clientLocation || '',
-  //       teamId: data.teamId || '',
-  //       teamName: data.teamName || '',
-  //       activityId: data.activityId || '',
-  //       activity: data.activity || '',
-  //       description: data.description || '',
-  //       projectId: data.projectId || '',
-  //       projectName: data.projectName || '',
-  //       completionTime: data.totalTime || 0,
-  //       clientLocationList: data.clientLocation ? [{ clientLocationId: data.clientLocationId, clientLocation: data.clientLocation }] : [],
-  //       projectList: data.teamName ? [{ teamId: data.teamId, teamName: data.teamName, projectName: data.projectName }] : [],
-  //       projectActivities: data.activity ? [{ activityId: data.activityId, activity: data.activity }] : []
-  //     }
-  //   ];
-
-  //   this.timesheetObj.allTimesheetActivities = this.allTimesheetActivities;
-
-  //   console.log('Patched allTimesheetActivities:', this.allTimesheetActivities); // Debugging line
-
-  //   this.clientList = data.clientName ? [{ clientId: data.clientId, clientName: data.clientName }] : [];
-
-  //   console.log('Patched allTimesheetActivities:', this.allTimesheetActivities); // Debugging line
-  // }
-
-
-
-
-
-  //   getAllTeamMemberList(): void {
-  //     const employeeObj = new Employee();
-  //     employeeObj.empId = this.currentUser.empId;
-
-  //     this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
-  //       if (response.serviceStatus === 'Success') {
-  //         this.teamMemberList = response.serviceResponse;
-  //         if (this.autofillData?.empId) {
-  //           this.timesheetObj.empId = String(this.autofillData.empId);
-  //           this.onTeamMemberChange(this.timesheetObj.empId);
-  //         }
-  //       } else {
-  //         console.error('Failed to load team members');
-  //       }
-  //     });
-  //   }
-
-  //   createEmptyActivity() {
-  //     return {
-  //       clientId: '',
-  //       clientName: '',
-  //       clientLocationId: '',
-  //       clientLocation: '',
-  //       teamId: '',
-  //       teamName: '',
-  //       activityId: '',
-  //       activity: '',
-  //       description: '',
-  //       projectId: '',
-  //       projectName: '',
-  //       completionTime: 0,
-  //       clientLocationList: [],
-  //       projectList: [],
-  //       projectActivities: [],
-  //     };
-  //   }
-
-  //   addInputActivityField(activity: any): void {
-  //     const newField = { ...JSON.parse(JSON.stringify(activity)), activityId: '', completionTime: 0 };
-  //     this.allTimesheetActivities.push(newField);
-  //   }
-  //   removeInputActivityField(index: number): void {
-  //   if (this.allTimesheetActivities.length > 1) {
-  //     this.allTimesheetActivities.splice(index, 1);
-  //   }
-  // }
-
-
-  //   // onCreateTimesheet(): void {
-  //   //   const dateFormat = 'YYYY-MM-DD';
-  //   //   const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
-
-  //   //   this.timesheetObj.description = this.timesheetObj.description?.trim();
-
-  //   //   if (this.timesheetObj.timesheetAppliedFor === 'self') {
-  //   //     this.timesheetObj.empId = this.currentUser.empId;
-  //   //   } else if (!this.timesheetObj.empId || this.timesheetObj.empId === '') {
-  //   //     alert("Please select a team member.");
-  //   //     return;
-  //   //   }
-
-  //   //   const isWorkingDay = !['Public Holiday', 'Week Off', 'Leave'].includes(this.timesheetObj.dayType);
-  //   //   this.timesheetObj.allTimesheetActivities = isWorkingDay && this.allTimesheetActivities.length > 0 ? this.allTimesheetActivities : null;
-
-  //   //   if (isWorkingDay) {
-  //   //     this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
-  //   //     this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
-  //   //     this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
-  //   //   } else {
-  //   //     this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
-  //   //   }
-
-  //   //   this.timesheetObj.createdBy = this.currentUser.empId;
-  //   //   this.timesheetObj.createdByName = this.currentUser.name;
-  //   //   this.timesheetObj.currentManagerId =
-  //   //     this.currentUser.approvalsTo === 'Reporting Manager'
-  //   //       ? this.currentUser.reportingManagerId
-  //   //       : this.currentUser.managerId;
-
-  //   //   console.log("Final payload to submit:", this.timesheetObj);
-  //   //   this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe({
-  //   //     next: (response: any) => {
-  //   //       if (response.serviceStatus === "Success") {
-  //   //         this.openAlertMod(this.alertTemplate, "Timesheet created successfully!");
-  //   //       } else {
-  //   //         this.openAlertMod(this.alertTemplate, "Failed: " + response.serviceResponse);
-  //   //         console.error("Error creating timesheet:", response.serviceResponse);
-  //   //       }
-  //   //     },
-  //   //     error: (err) => {
-  //   //       console.error("Server error:", err);
-  //   //       alert(" Server error occurred.");
-  //   //     }
-  //   //   });
-  //   // }
-
-
-  //   onCreateTimesheet(template: TemplateRef<any>): void {
-  //   const dateFormat = 'YYYY-MM-DD';
-  //   const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
-
-  //   this.timesheetObj.description = this.timesheetObj.description?.trim();
-
-  //   if (this.timesheetObj.timesheetAppliedFor === 'self') {
-  //     this.timesheetObj.empId = this.currentUser.empId;
-  //   } else if (!this.timesheetObj.empId || this.timesheetObj.empId === '') {
-  //     this.openAlertMod(template, "Please select a team member.");
-  //     return;
-  //   }
-
-  //   // Validation
-  //   let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template);
-  //   if (!inputValidated) return;
-
-  //   const isWorkingDay = !['Public Holiday', 'Week Off', 'Leave'].includes(this.timesheetObj.dayType);
-
-  //   this.timesheetObj.allTimesheetActivities =
-  //     isWorkingDay && this.allTimesheetActivities.length > 0 ? this.allTimesheetActivities : null;
-
-  //   if (isWorkingDay) {
-  //     this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
-  //     this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
-  //     this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
-  //   } else {
-  //     this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
-  //   }
-
-  //   this.timesheetObj.createdBy = this.currentUser.empId;
-  //   this.timesheetObj.createdByName = this.currentUser.name;
-
-  //   if (this.currentUser.approvalsTo === 'Reporting Manager') {
-  //     this.timesheetObj.currentManagerId = this.currentUser.reportingManagerId;
-  //   } else {
-  //     this.timesheetObj.currentManagerId = this.currentUser.managerId;
-  //   }
-
-  //   console.log("Submitting Timesheet:", this.timesheetObj);
-
-  //   this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe({
-  //     next: (response: any) => {
-  //       if (response.serviceStatus === "Success") {
-  //         this.openAlertMod(template, "Timesheet created successfully!");
-
-  //         // Redirect to view after slight delay (to allow modal to be seen)
-  //         setTimeout(() => {
-  //           if (this.timesheetObj.timesheetAppliedFor === "self") {
-  //             this.router.navigate(['/user-timesheet/my-timesheet']);
-  //           } else {
-  //             this.router.navigate(['/user-timesheet/team-timesheet']);
-  //           }
-  //         }, 1000);
-
-  //       } else {
-  //         this.openAlertMod(template, "Failed: " + response.serviceResponse);
-  //       }
-  //     },
-  //     error: (err) => {
-  //       console.error("Server error:", err);
-  //       this.openAlertMod(template, "Server error occurred.");
-  //     }
-  //   });
-  // }
-  // validateTimesheetObj(timesheetObj: any, template: TemplateRef<any>): boolean {
-  //   if (!timesheetObj.dayType) {
-  //     this.openAlertMod(template, 'Please select Day Type.');
-  //     return false;
-  //   }
-
-  //   if (['Working', 'Non-working'].includes(timesheetObj.dayType)) {
-  //     if (!timesheetObj.officeInTime || !timesheetObj.officeOutTime) {
-  //       this.openAlertMod(template, 'Please select both In Time and Out Time.');
-  //       return false;
-  //     }
-
-  //     if (!timesheetObj.totalWorkingOfficeHours || timesheetObj.totalWorkingOfficeHours === '00:00') {
-  //       this.openAlertMod(template, 'Total working hours cannot be zero.');
-  //       return false;
-  //     }
-
-  //     if (!this.allTimesheetActivities || this.allTimesheetActivities.length === 0) {
-  //       this.openAlertMod(template, 'Please add at least one activity.');
-  //       return false;
-  //     }
-
-  //     for (let i = 0; i < this.allTimesheetActivities.length; i++) {
-  //       const act = this.allTimesheetActivities[i];
-  //       if (!act.clientId || !act.clientLocationId || !act.teamId || !act.activityId || !act.completionTime) {
-  //         this.openAlertMod(template, `Please complete all fields in activity #${i + 1}.`);
-  //         return false;
-  //       }
-  //     }
-  //   }
-
-  //   return true;
-  // }
-
-
-
-  // initializeTimesheet() {
-  //   this.timesheetObj = this.selfTimeSheetServiceService.getEmptyTimesheetObject();
-  //   this.allTimesheetActivities = [this.selfTimeSheetServiceService.getEmptyActivity()];
-  //   this.clientList = this.selfTimeSheetServiceService.getClientList();
-  // }
-
-  // onTimesheetTypeChange(): void {
-  //   if (this.timesheetObj.timesheetAppliedFor === 'team') {
-  //     this.teamMemberList = this.timesheetService.getAllTeamMemberList();
-  //   }
-  // }
-
-  // onTeamMemberChange(empId: string): void {
-  //   const selectedMember = this.teamMemberList.find(member => member.empId === empId);
-  //   this.selectedTeamMemberName = selectedMember ? selectedMember.name : '';
-  // }
-
-  //   onClientChange(activityObj: Activity): void {
-  //     this.selfTimeSheetServiceService.getClientLocationList(activityObj);
-  //   }
-
-  //   onClientLocationChange(activityObj: Activity): void {
-  //     this.selfTimeSheetServiceService.getProjectList(activityObj);
-  //   }
-
-  //   onProjectChange(activityObj: Activity): void {
-  //     this.selfTimeSheetServiceService.getAllActivitiesByProjectIdandEmpId(activityObj);
-  //   }
-
-  //   setActivity(activityObj: Activity): void {
-  //     this.selfTimeSheetServiceService.setActivity(activityObj);
-  //   }
-
-  //   validateClientName(event: any, clientId: string): void {
-  //     this.selfTimeSheetServiceService.validateClientName(event, clientId);
-  //   }
-
-  //   validateClientLocation(event: any, locationId: string): void {
-  //     this.selfTimeSheetServiceService.validateClientLocation(event, locationId);
-  //   }
-
-  //   validateActivity(event: any, activityId: string): void {
-  //     this.selfTimeSheetServiceService.validateActivity(event, activityId);
-  //   }
-
-  //   validateTime(event: any, time: number): void {
-  //     this.selfTimeSheetServiceService.validateTime(event, time);
-  //   }
-
-  //   // addInputActivityField(activityObj: Activity): void {
-  //   //   this.selfTimeSheetServiceService.addInputActivityField(activityObj, this.allTimesheetActivities);
-  //   // }
-
-  //   // removeInputActivityField(index: number): void {
-  //   //   this.selfTimeSheetServiceService.removeInputActivityField(index, this.allTimesheetActivities);
-  //   // }
-
-  //   // onCreateTimesheet(alertTemplate: TemplateRef<any>): void {
-  //   //   const response = this.selfTimeSheetServiceService.createTimesheet(this.timesheetObj, this.allTimesheetActivities);
-  //   //   if (response.success) {
-  //   //     this.alertMessage = 'Timesheet created successfully!';
-  //   //   } else {
-  //   //     this.alertMessage = response.message;
-  //   //   }
-  //   //   this.modalRef = this.modalService.show(alertTemplate);
-  //   // }
-
-  //   preventScroll(event: WheelEvent): void {
-  //     event.preventDefault();
-  //   }
-
-  //   preventManualDateInput(event: KeyboardEvent): void {
-  //   this.timesheetService.preventManualDateInput(event);
-  // }
-
-  // omitSpecialChar(event: KeyboardEvent): boolean {
-  //   return this.timesheetService.omitSpecialChar(event);
-  // }
-
-
-  //   // omit_special_char(event: KeyboardEvent): boolean {
-  //   //   return this.selfTimeSheetServiceService.omitSpecialChar(event);
-  //   // }
+//    ngOnChanges(changes: SimpleChanges): void {
+//   if (changes['autofillData'] && changes['autofillData'].currentValue) {
+//     console.log('ngOnChanges - autofillData updated', changes['autofillData'].currentValue);
+//     this.autofill(changes['autofillData'].currentValue);
+//   }
+// }
+
+
+
+
+// autofill(data: any): void {
+//   const defaultTimesheet = new Timesheet();
+
+//   this.timesheetObj = {
+//     ...defaultTimesheet,
+//     ...data,
+//     timesheetAppliedFor: data.timesheetAppliedFor || 'self',
+//     empId: data.empId ?? null,
+//     dayType: data.dayType ?? null,
+//     date: data.date ? new Date(data.date) : null,
+//     officeInTime: data.officeInTime ? new Date(data.officeInTime) : null,
+//     officeOutTime: data.officeOutTime ? new Date(data.officeOutTime) : null,
+//     description: data.description || '',
+//     isNightShift: data.isNightShift ?? false,
+//     totalWorkingOfficeHours: data.totalWorkingOfficeHours ?? 0,
+//     allTimesheetActivities: []
+//   };
+
+//   console.log('Autofilled timesheetObj:', this.timesheetObj);
+
+//   // Bind activities
+//   if (Array.isArray(data.activities)) {
+//     this.bindActivities(data.activities);
+
+//     console.log('Autofilled allTimesheetActivities:', this.allTimesheetActivities);
+//   }
+// }
+
+
+// bindActivities(activities: any[]): void {
+//   this.allTimesheetActivities = [];
+
+//   for (let act of activities) {
+//     const activityObj: any = {
+//       clientId: act.clientId ?? null,
+//       clientLocationId: act.clientLocationId ?? null,
+//       teamId: act.teamId ?? null,
+//       activityId: act.activityId ?? null,
+//       description: act.description ?? '',
+//       completionTime: act.completionTime ?? null,
+//       clientLocationList: [],
+//       projectList: [],
+//       projectActivities: []
+//     };
+
+//     this.allTimesheetActivities.push(activityObj);
+
+//     // Pre-load dropdowns
+//     this.getClientLocationList(activityObj);
+//     this.getProjectList(activityObj);
+//     this.getAllActivitiesByProjectIdandEmpId(activityObj);
+//   }
+
+//   // Assign to main object (required if template depends on this field)
+//   this.timesheetObj.allTimesheetActivities = this.allTimesheetActivities;
+// }
+
+
+
+
+
+
+
+//   timesheetObj: any = {
+//     timesheetAppliedFor: 'self',
+//     dayType: '',
+//     officeInTime: '',
+//     officeOutTime: '',
+//     totalWorkingOfficeHours: 0,
+//     isNightShift: false,
+//     date: '',
+//     empId: '',
+//     remarks: '',
+//     description: ''
+//   };
+
+//   allTimesheetActivities = [this.createEmptyActivity()];
+//   teamMemberList: any[] = [];
+//   currentUser: User;
+//   selectedTeamMemberName: string = '';
+
+//   holidayList: any[] = [];
+//   holidaystateObj: any = {};
+
+//   availableTimesheets: any[] = [];
+//   AllWeekOfList: any[] = [];
+
+//   disableCreateUpdateTimesheet: boolean = false;
+
+//   constructor(
+//     private authenticationService: AuthenticationService,
+//     private teamViewService: TeamViewService,
+//     private timesheetService: TimesheetService,
+//     private modalService: BsModalService,
+//     private router: Router,
+//     private holidayService: HolidayService,
+//     private datePipe: DatePipe,
+//     private employeeService: EmployeeService,
+//     private selfTimeSheetServiceService :SelfTimeSheetServiceService,
+//   ) {
+//     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+//   }
+
+
+
+// ngOnChanges(changes: SimpleChanges): void {
+//   if (changes['autofillData'] && this.autofillData) {
+//     console.log('Detected autofillData update:', this.autofillData);
+//     this.patchFormFromLastData();
+//   }
+// }
+
+//     openAlertMod(template: TemplateRef<any>, message: any) {
+//     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+//     this.alertMessage = message;
+//   }
+
+//  patchFormFromLastData(): void {
+//   const data = this.autofillData;
+
+//   this.timesheetObj = {
+//   checkId: data?.checkId ?? null,
+//   timesheetId: data?.timesheetId ?? null,
+//   allTimesheetActivities: [],
+//   updatedTimesheetActivities: data?.updatedTimesheetActivities ?? null,
+
+//   createdOn: data?.createdOn ?? null,
+//   createdBy: data?.createdBy ?? null,
+//   createdByName: data?.createdByName ?? null,
+//   updatedOn: data?.updatedOn ?? null,
+//   updatedBy: data?.updatedBy ?? null,
+//   currentManagerId: data?.currentManagerId ?? null,
+
+//   projectId: data?.projectId ?? null,
+//   projectName: data?.projectName ?? '',
+//   projectManagerId: data?.projectManagerId ?? null,
+//   managerId: data?.managerId ?? null,
+//   empId: data?.empId || this.timesheetObj.empId || this.currentUser.empId,
+
+//   // Add the required 'project' property
+//   project: data?.project ?? null,
+
+//   startDate: data?.startDate ?? null,
+//   endDate: data?.endDate ?? null,
+//   status: data?.status ?? null,
+
+//   applicationCount: data?.applicationCount ?? null,
+//   employeementId: data?.employeementId ?? null,
+//   weekDayName: data?.weekDayName ?? null,
+//   totalWorkingHours: data?.totalWorkingHours ?? null,
+//   totalWorkingHoursPercentage: data?.totalWorkingHoursPercentage ?? null,
+
+//   isConsultant: data?.isConsultant ?? null,
+//   totalTime: data?.totalTime ?? 0,
+
+//   timesheetStatusUpdatedBy: data?.timesheetStatusUpdatedBy ?? null,
+//   timesheetStatusUpdatedByName: data?.timesheetStatusUpdatedByName ?? null,
+//   employeeName: data?.employeeName ?? null,
+//   rejectReason: data?.rejectReason ?? null,
+//   email: data?.email ?? null,
+
+//   clientId: data?.clientId ?? null,
+//   clientName: data?.clientName ?? '',
+//   clientLocationId: data?.clientLocationId ?? null,
+//   clientLocation: data?.clientLocation ?? '',
+
+//   timesheetAppliedFor: this.timesheetObj.timesheetAppliedFor || 'self',
+//   dayType: data?.dayType || '',
+//   date: data?.date || '',
+//   officeInTime: data?.officeInTime ? new Date(data.officeInTime.replace(' ', 'T')) : '',
+//   officeOutTime: data?.officeOutTime ? new Date(data.officeOutTime.replace(' ', 'T')) : '',
+//   totalWorkingOfficeHours: data?.totalWorkingOfficeHours || '00:00',
+//   isNightShift: data?.isNightShift || false,
+
+//   remarks: data?.remarks || '',
+//   description: data?.description || '',
+
+//   teamId: data?.teamId ?? null,
+//   teamName: data?.teamName ?? '',
+//   activity: data?.activity ?? '',
+//   activityId: data?.activityId ?? null,
+
+//   managerEmail: data?.managerEmail ?? null,
+//   managerName: data?.managerName ?? null,
+
+//   leaveType: data?.leaveType ?? null,
+//   isCron: data?.isCron ?? null,
+//   year: data?.year ?? null,
+//   month: data?.month ?? null,
+
+//   displayTeam: data?.displayTeam ?? '',
+//   inactiveTimesheetActivities: data?.inactiveTimesheetActivities ?? null,
+//   name: data?.name ?? '',
+//   inTime: data?.inTime ?? null,
+//   outTime: data?.outTime ?? null,
+//   appliedOn: data?.appliedOn ?? null,
+//   selected: data?.selected ?? null,
+//   timeSheet: data?.timeSheet ?? null,
+//   nightShift: data?.nightShift ?? null,
+
+
+//   isSelected: false,
+//   bulkApprovedList: [],
+//   bulkRejectList: [],
+//   queryList: []
+// } ;
+
+// console.log('Patched timesheetObj:', this.timesheetObj);
+
+// console.log('working type:', this.timesheetObj.dayType);
+//   this.allTimesheetActivities = [
+//     {
+//       clientId: data.clientId || '',
+//       clientName: data.clientName || '',
+//       clientLocationId: data.clientLocationId || '',
+//       clientLocation: data.clientLocation || '',
+//       teamId: data.teamId || '',
+//       teamName: data.teamName || '',
+//       activityId: data.activityId || '',
+//       activity: data.activity || '',
+//       description: data.description || '',
+//       projectId: data.projectId || '',
+//       projectName: data.projectName || '',
+//       completionTime: data.totalTime || 0,
+//       clientLocationList: data.clientLocation ? [{ clientLocationId: data.clientLocationId, clientLocation: data.clientLocation }] : [],
+//       projectList: data.teamName ? [{ teamId: data.teamId, teamName: data.teamName, projectName: data.projectName }] : [],
+//       projectActivities: data.activity ? [{ activityId: data.activityId, activity: data.activity }] : []
+//     }
+//   ];
+
+//   this.timesheetObj.allTimesheetActivities = this.allTimesheetActivities;
+
+//   console.log('Patched allTimesheetActivities:', this.allTimesheetActivities); // Debugging line
+
+//   this.clientList = data.clientName ? [{ clientId: data.clientId, clientName: data.clientName }] : [];
+
+//   console.log('Patched allTimesheetActivities:', this.allTimesheetActivities); // Debugging line
+// }
+
+
+
+
+
+//   getAllTeamMemberList(): void {
+//     const employeeObj = new Employee();
+//     employeeObj.empId = this.currentUser.empId;
+
+//     this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
+//       if (response.serviceStatus === 'Success') {
+//         this.teamMemberList = response.serviceResponse;
+//         if (this.autofillData?.empId) {
+//           this.timesheetObj.empId = String(this.autofillData.empId);
+//           this.onTeamMemberChange(this.timesheetObj.empId);
+//         }
+//       } else {
+//         console.error('Failed to load team members');
+//       }
+//     });
+//   }
+
+//   createEmptyActivity() {
+//     return {
+//       clientId: '',
+//       clientName: '',
+//       clientLocationId: '',
+//       clientLocation: '',
+//       teamId: '',
+//       teamName: '',
+//       activityId: '',
+//       activity: '',
+//       description: '',
+//       projectId: '',
+//       projectName: '',
+//       completionTime: 0,
+//       clientLocationList: [],
+//       projectList: [],
+//       projectActivities: [],
+//     };
+//   }
+
+//   addInputActivityField(activity: any): void {
+//     const newField = { ...JSON.parse(JSON.stringify(activity)), activityId: '', completionTime: 0 };
+//     this.allTimesheetActivities.push(newField);
+//   }
+//   removeInputActivityField(index: number): void {
+//   if (this.allTimesheetActivities.length > 1) {
+//     this.allTimesheetActivities.splice(index, 1);
+//   }
+// }
+
+
+//   // onCreateTimesheet(): void {
+//   //   const dateFormat = 'YYYY-MM-DD';
+//   //   const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
+
+//   //   this.timesheetObj.description = this.timesheetObj.description?.trim();
+
+//   //   if (this.timesheetObj.timesheetAppliedFor === 'self') {
+//   //     this.timesheetObj.empId = this.currentUser.empId;
+//   //   } else if (!this.timesheetObj.empId || this.timesheetObj.empId === '') {
+//   //     alert("Please select a team member.");
+//   //     return;
+//   //   }
+
+//   //   const isWorkingDay = !['Public Holiday', 'Week Off', 'Leave'].includes(this.timesheetObj.dayType);
+//   //   this.timesheetObj.allTimesheetActivities = isWorkingDay && this.allTimesheetActivities.length > 0 ? this.allTimesheetActivities : null;
+
+//   //   if (isWorkingDay) {
+//   //     this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
+//   //     this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
+//   //     this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
+//   //   } else {
+//   //     this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
+//   //   }
+
+//   //   this.timesheetObj.createdBy = this.currentUser.empId;
+//   //   this.timesheetObj.createdByName = this.currentUser.name;
+//   //   this.timesheetObj.currentManagerId =
+//   //     this.currentUser.approvalsTo === 'Reporting Manager'
+//   //       ? this.currentUser.reportingManagerId
+//   //       : this.currentUser.managerId;
+
+//   //   console.log("Final payload to submit:", this.timesheetObj);
+//   //   this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe({
+//   //     next: (response: any) => {
+//   //       if (response.serviceStatus === "Success") {
+//   //         this.openAlertMod(this.alertTemplate, "Timesheet created successfully!");
+//   //       } else {
+//   //         this.openAlertMod(this.alertTemplate, "Failed: " + response.serviceResponse);
+//   //         console.error("Error creating timesheet:", response.serviceResponse);
+//   //       }
+//   //     },
+//   //     error: (err) => {
+//   //       console.error("Server error:", err);
+//   //       alert(" Server error occurred.");
+//   //     }
+//   //   });
+//   // }
+
+
+//   onCreateTimesheet(template: TemplateRef<any>): void {
+//   const dateFormat = 'YYYY-MM-DD';
+//   const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
+
+//   this.timesheetObj.description = this.timesheetObj.description?.trim();
+
+//   if (this.timesheetObj.timesheetAppliedFor === 'self') {
+//     this.timesheetObj.empId = this.currentUser.empId;
+//   } else if (!this.timesheetObj.empId || this.timesheetObj.empId === '') {
+//     this.openAlertMod(template, "Please select a team member.");
+//     return;
+//   }
+
+//   // Validation
+//   let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template);
+//   if (!inputValidated) return;
+
+//   const isWorkingDay = !['Public Holiday', 'Week Off', 'Leave'].includes(this.timesheetObj.dayType);
+
+//   this.timesheetObj.allTimesheetActivities =
+//     isWorkingDay && this.allTimesheetActivities.length > 0 ? this.allTimesheetActivities : null;
+
+//   if (isWorkingDay) {
+//     this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
+//     this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
+//     this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
+//   } else {
+//     this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
+//   }
+
+//   this.timesheetObj.createdBy = this.currentUser.empId;
+//   this.timesheetObj.createdByName = this.currentUser.name;
+
+//   if (this.currentUser.approvalsTo === 'Reporting Manager') {
+//     this.timesheetObj.currentManagerId = this.currentUser.reportingManagerId;
+//   } else {
+//     this.timesheetObj.currentManagerId = this.currentUser.managerId;
+//   }
+
+//   console.log("Submitting Timesheet:", this.timesheetObj);
+
+//   this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe({
+//     next: (response: any) => {
+//       if (response.serviceStatus === "Success") {
+//         this.openAlertMod(template, "Timesheet created successfully!");
+
+//         // Redirect to view after slight delay (to allow modal to be seen)
+//         setTimeout(() => {
+//           if (this.timesheetObj.timesheetAppliedFor === "self") {
+//             this.router.navigate(['/user-timesheet/my-timesheet']);
+//           } else {
+//             this.router.navigate(['/user-timesheet/team-timesheet']);
+//           }
+//         }, 1000);
+
+//       } else {
+//         this.openAlertMod(template, "Failed: " + response.serviceResponse);
+//       }
+//     },
+//     error: (err) => {
+//       console.error("Server error:", err);
+//       this.openAlertMod(template, "Server error occurred.");
+//     }
+//   });
+// }
+// validateTimesheetObj(timesheetObj: any, template: TemplateRef<any>): boolean {
+//   if (!timesheetObj.dayType) {
+//     this.openAlertMod(template, 'Please select Day Type.');
+//     return false;
+//   }
+
+//   if (['Working', 'Non-working'].includes(timesheetObj.dayType)) {
+//     if (!timesheetObj.officeInTime || !timesheetObj.officeOutTime) {
+//       this.openAlertMod(template, 'Please select both In Time and Out Time.');
+//       return false;
+//     }
+
+//     if (!timesheetObj.totalWorkingOfficeHours || timesheetObj.totalWorkingOfficeHours === '00:00') {
+//       this.openAlertMod(template, 'Total working hours cannot be zero.');
+//       return false;
+//     }
+
+//     if (!this.allTimesheetActivities || this.allTimesheetActivities.length === 0) {
+//       this.openAlertMod(template, 'Please add at least one activity.');
+//       return false;
+//     }
+
+//     for (let i = 0; i < this.allTimesheetActivities.length; i++) {
+//       const act = this.allTimesheetActivities[i];
+//       if (!act.clientId || !act.clientLocationId || !act.teamId || !act.activityId || !act.completionTime) {
+//         this.openAlertMod(template, `Please complete all fields in activity #${i + 1}.`);
+//         return false;
+//       }
+//     }
+//   }
+
+//   return true;
+// }
+
+
+
+// initializeTimesheet() {
+//   this.timesheetObj = this.selfTimeSheetServiceService.getEmptyTimesheetObject();
+//   this.allTimesheetActivities = [this.selfTimeSheetServiceService.getEmptyActivity()];
+//   this.clientList = this.selfTimeSheetServiceService.getClientList();
+// }
+
+// onTimesheetTypeChange(): void {
+//   if (this.timesheetObj.timesheetAppliedFor === 'team') {
+//     this.teamMemberList = this.timesheetService.getAllTeamMemberList();
+//   }
+// }
+
+// onTeamMemberChange(empId: string): void {
+//   const selectedMember = this.teamMemberList.find(member => member.empId === empId);
+//   this.selectedTeamMemberName = selectedMember ? selectedMember.name : '';
+// }
+
+//   onClientChange(activityObj: Activity): void {
+//     this.selfTimeSheetServiceService.getClientLocationList(activityObj);
+//   }
+
+//   onClientLocationChange(activityObj: Activity): void {
+//     this.selfTimeSheetServiceService.getProjectList(activityObj);
+//   }
+
+//   onProjectChange(activityObj: Activity): void {
+//     this.selfTimeSheetServiceService.getAllActivitiesByProjectIdandEmpId(activityObj);
+//   }
+
+//   setActivity(activityObj: Activity): void {
+//     this.selfTimeSheetServiceService.setActivity(activityObj);
+//   }
+
+//   validateClientName(event: any, clientId: string): void {
+//     this.selfTimeSheetServiceService.validateClientName(event, clientId);
+//   }
+
+//   validateClientLocation(event: any, locationId: string): void {
+//     this.selfTimeSheetServiceService.validateClientLocation(event, locationId);
+//   }
+
+//   validateActivity(event: any, activityId: string): void {
+//     this.selfTimeSheetServiceService.validateActivity(event, activityId);
+//   }
+
+//   validateTime(event: any, time: number): void {
+//     this.selfTimeSheetServiceService.validateTime(event, time);
+//   }
+
+//   // addInputActivityField(activityObj: Activity): void {
+//   //   this.selfTimeSheetServiceService.addInputActivityField(activityObj, this.allTimesheetActivities);
+//   // }
+
+//   // removeInputActivityField(index: number): void {
+//   //   this.selfTimeSheetServiceService.removeInputActivityField(index, this.allTimesheetActivities);
+//   // }
+
+//   // onCreateTimesheet(alertTemplate: TemplateRef<any>): void {
+//   //   const response = this.selfTimeSheetServiceService.createTimesheet(this.timesheetObj, this.allTimesheetActivities);
+//   //   if (response.success) {
+//   //     this.alertMessage = 'Timesheet created successfully!';
+//   //   } else {
+//   //     this.alertMessage = response.message;
+//   //   }
+//   //   this.modalRef = this.modalService.show(alertTemplate);
+//   // }
+
+//   preventScroll(event: WheelEvent): void {
+//     event.preventDefault();
+//   }
+
+//   preventManualDateInput(event: KeyboardEvent): void {
+//   this.timesheetService.preventManualDateInput(event);
+// }
+
+// omitSpecialChar(event: KeyboardEvent): boolean {
+//   return this.timesheetService.omitSpecialChar(event);
+// }
+
+
+//   // omit_special_char(event: KeyboardEvent): boolean {
+//   //   return this.selfTimeSheetServiceService.omitSpecialChar(event);
+//   // }
 
 
 
