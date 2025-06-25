@@ -1701,7 +1701,7 @@
                             <button class="icon-button" (click)="addInputTeamField()">
                                 <i class="fa-solid fa-square-plus" aria-hidden="true"></i>
                             </button>
-                            <button class="icon-button m-1"
+                            <button *ngIf="!this.teamObj.teamId" class="icon-button m-1"
                                 (click)="openDeleteModalForTeam(delete_team_modal,alert_message, teamObj, projectObj)">
                                 <i class="fa-solid fa fa-trash" aria-hidden="true"></i>
                             </button>

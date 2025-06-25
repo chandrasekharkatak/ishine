@@ -1683,7 +1683,7 @@ toggleSelectAllDept2() {
     console
 
     if (!this.tempTeam.teamId) {
-      this.openAlertMod(alert_message, "Team is missing. Cannot proceed.");
+      this.openAlertMod(alert_message, "Team is removed.");
       this.allTeamList.pop();
       this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
       this.copyDepartment = [];
@@ -1691,10 +1691,7 @@ toggleSelectAllDept2() {
         this.addInputTeamField();
       }
       return;
-    } else {
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     }
-
 
   }
 
