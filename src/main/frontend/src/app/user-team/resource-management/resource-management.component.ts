@@ -279,6 +279,12 @@ export class ResourceManagementComponent implements OnInit {
   isAccessFeatureMapping: boolean = false;
   isDefaultFeatureMapping: boolean = false;
 
+  //---------RAJ--------------------//
+  isRoleSelectDisabled: boolean = true;
+  isRequirementSelectDisabled: boolean = true;
+  isCheckboxesDisabled: boolean = true;
+  //--------------------------------//
+
   allEmployeeList: any[] = [];
   deptWiseConsolidated: any[] = [];
 
@@ -1132,7 +1138,7 @@ toggleSelectAllDept2() {
 
   validateProjectObj(projectObj, template: TemplateRef<any>) {
     if (projectObj.projectManagerId == undefined || projectObj.projectManagerId.length == 0 || projectObj.projectManagerId == null) {
-      this.alertMessage = `Please select atleast one project manager.`
+      this.alertMessage = `Please select project manager.`
       this.openAlertMod3(template, this.alertMessage);
       return;
     }
@@ -1756,17 +1762,82 @@ toggleSelectAllDept2() {
   //   this.newteamMember = new TeamMember();
   // }
 
+
+  //raj
+//   private _resetAddMemberForm() {
+//   // 1. Reset the main data objects
+//   this.newteamMember = { // Use a plain object or 'new TeamMember()' if you have a class
+//     employeeTeamMappingId: null,
+//     teamId: null,
+//     empId: null,
+//     name: null,
+//     employeeRole: null,
+//     isTeamLead: null,
+//     billableType :  null,
+//     newBillableType :  null,
+//     isShadow: null,
+//     isDefaultProject: null,
+//     resourceOverviewId:  null,
+//     otherActiveProjects: null
+//     // ... any other default properties
+//   };
+//   this.selectedRequirement = null;
+
+//   // 2. Reset the Angular FormControl for the autocomplete
+//   // Using setValue('') is often more reliable than reset() for autocomplete display
+//   this.teamMemberCtrl.setValue('');
+
+//   // 3. Reset the UI state flags to disable the controls again
+//   this.isRoleSelectDisabled = true;
+//   this.isRequirementSelectDisabled = true;
+//   this.isCheckboxesDisabled = true;
+// }
+//   addTeamMember() {
+//   const selectedEmployee = this.employeeListByDept.find(
+//     (employee) => employee.empId == this.newteamMember.empId
+//   );
+
+//     if (!selectedEmployee) {
+//     console.error("Could not find the selected employee in the list.");
+//     return;
+//   }
+   
+//       const memberToAdd = {
+//         ...selectedEmployee,
+//         employeeRole: this.newteamMember.employeeRole,
+//         resourceOverviewId: this.selectedRequirement.resourceOverviewId,
+//         isShadow: this.newteamMember.isShadow,
+//         isDefaultProject: this.newteamMember.isDefaultProject
+//       };
+
+//       this.allTeamMembers.push(memberToAdd);
+
+//       this.newteamMember = new TeamMember();
+//       this.addMemberCtrl.reset();
+//       this.selectedRequirement = null;
+//       this.teamMemberCtrl.reset();
+
+//     if (this.selectedRequirement) {
+//     memberToAdd['resourceOverviewId'] = this.selectedRequirement.resourceOverviewId;
+//     }
+
+//     }
+  
+  // ---- END-------//
   addTeamMember() {
     const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
 
-    if (newTeamMember && this.selectedRequirement) {
+    if (newTeamMember || this.selectedRequirement) {
       const memberToAdd = {
         ...newTeamMember,
         employeeRole: this.newteamMember.employeeRole,
-        resourceOverviewId: this.selectedRequirement.resourceOverviewId,
+        resourceOverviewId: this.selectedRequirement?.resourceOverviewId,
         isShadow: this.newteamMember.isShadow,
         isDefaultProject: this.newteamMember.isDefaultProject
       };
+       if (this.selectedRequirement) {
+      memberToAdd['resourceOverviewId'] = this.selectedRequirement.resourceOverviewId;
+    }
 
       this.allTeamMembers.push(memberToAdd);
 
@@ -1792,7 +1863,6 @@ toggleSelectAllDept2() {
     }
   }
 
-
   removeTeamMember(teamMember, index) {
     const currentTeam = this.currentTeam;
     this.allTeamList?.forEach((team) => {
@@ -1816,16 +1886,108 @@ toggleSelectAllDept2() {
     });
 
   }
+//---------Raj(addButton)-------------//
+
+resetTeamMemberForm() {
+  this.selectedRequirement = null; 
+  this.newteamMember = new TeamMember(); 
+  // this.teamMemberCtrl.setValue('');
+}
+
+get isAddButtonDisabled(): boolean {
+  // Hierarchical validation - each step must be completed in order
+  
+  // Step 1: Check requirement selection first (if requirements exist)
+  if (this.projectObj.resourceRequirements?.length > 0 && 
+      (this.selectedRequirement == null || this.selectedRequirement == undefined)
+  ) {
+    return true;
+  }
+  
+  // Step 2: Check employee selection (only after requirement is selected)
+  if (!this.newteamMember.empId) {
+    return true;
+  }
+  
+  // Step 3: Check role selection (only after employee is selected)
+  if (!this.newteamMember.employeeRole?.length) {
+    return true;
+  }
+  
+  // Step 4: Check checkbox selection (only after role is selected)
+  if (!this.newteamMember.isShadow && !this.newteamMember.isDefaultProject) {
+    return true;
+  }
+  
+  // Step 5: Additional business rule validation
+  if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
+    return true;
+  }
+
+  return this.getValidationErrorMessage() !== "";
+}
+
+// resetTeamMemberForm() {
+//   this.selectedRequirement = null;
+//   this.newteamMember = new TeamMember()
+// }
+// Method to get specific error message based on current validation step
+getValidationErrorMessage(): string {
+  // Step 1: Check requirement selection first (if requirements exist)
+  if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
+    return "Please select Requirement";
+  }
+
+  console.log("this.selectedRequirement", this.selectedRequirement);
+  
+  // Step 2: Check employee selection (only show this error after requirement is selected)
+  if (!this.newteamMember.empId) {
+    return "Please select Employee";
+  }
+  
+  // Step 3: Check role selection (only show this error after employee is selected)
+  if (!this.newteamMember.employeeRole?.length) {
+    return "Please select Role";
+  }
+  
+  // Step 4: Check checkbox selection (only show this error after role is selected)
+  if (!this.newteamMember.isShadow && !this.newteamMember.isDefaultProject) {
+    return "Please choose Default project or shadow";
+  }
+  
+  // Step 5: Additional business rule validation
+  if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
+    return "TNM billable type is not allowed with existing project details";
+  }
+  
+  return "";
+}
+
+handleAddButtonClick() {
+  const errorMessage = this.getValidationErrorMessage();
+  if (errorMessage) {
+  
+    this.openAlertMod(this.alertTemplate, errorMessage);
+  } else {
+    this.addTeamMember();
+    this.updateEmployeeListAccordingToTeamMembers();
+    this.resetTeamMemberForm();
+    
+  }
+}
 
   openTeamMemberModal(template: TemplateRef<any>, currentTeam) {
     this.allTeamMembers = [];
     this.teamObj.teamLeadId = '';
     this.newteamMember.empId = '';
     this.newteamMember.employeeRole = null;
+
+     this.resetTeamMemberForm(); 
     // this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     // this.getAllEmployeesByRole(currentTeam.departmentList);
     console.log("this.copyDepartment ", currentTeam);
     // this.getAllEmployeesByDepartmentIds(this.copyDepartment);
+    // this.resetTeamMemberForm();
     this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     this.getAllEmployeesByRole(this.copyDepartment);
     this.allTeamList?.forEach((team: any) => {

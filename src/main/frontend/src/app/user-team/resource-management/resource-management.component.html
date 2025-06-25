@@ -1620,13 +1620,24 @@
 
                 <div *ngIf="projectObj.resourceRequirements?.length > 0">
                     <div class="requirement-select-container">
-                        <label>Select Requirement</label>
-                        <mat-select placeholder="Select Requirement" [(ngModel)]="selectedRequirement">
+                        <label style="font-weight: 500; margin-bottom: 8px; display: block; color: #424242;">
+                            Select Requirement 
+                            <span style="color: #f44336; font-weight: bold; margin-left: 4px;">*</span>
+                        </label>
+                        <mat-select 
+                            placeholder="Select Requirement" 
+                            [(ngModel)]="selectedRequirement"
+                            required
+                            style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 8px; background-color: #fafafa;">
+                             <mat-option value="">
+                                Select
+                            </mat-option>
                             <mat-option *ngFor="let requirement of projectObj.resourceRequirements"
                                 [value]="requirement">
                                 Role - {{ requirement.role }} || Dept - {{ requirement.department }} || Exp - {{
                                 requirement.experience }}
                             </mat-option>
+                           
                         </mat-select>
                     </div>
                 </div>
@@ -1675,11 +1686,18 @@
                     </div>
 
                     <!-- Add Button -->
-                    <div>
+                  <!-- <div>
                         <button type="button" class="btn btn-outline-primary"
-                            (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()" [disabled]="projectObj.resourceRequirements?.length > 0
-                          ? (!selectedRequirement || !newteamMember.empId || !newteamMember.employeeRole?.length ||(projectDetails.length !== 0 && newteamMember.billableType === 'TNM') )
-                          : (!newteamMember.empId || !newteamMember.employeeRole?.length || (projectDetails.length !== 0 && newteamMember.billableType === 'TNM') )">
+                            (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()"
+                            [disabled]="isAddButtonDisabled">
+                            <i class="fa fa-plus" aria-hidden="true"></i>
+                        </button>
+                  </div> -->
+                  <div>
+                        <button type="button" class="btn btn-outline-primary"
+                            (click)="handleAddButtonClick()"
+                            [class.disabled]="isAddButtonDisabled"
+                            [style.pointer-events]="'auto'">
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>
                     </div>
