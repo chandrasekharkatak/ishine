@@ -318,6 +318,14 @@
                 </div>
             </div>
 
+            <!-- Field Config Modal: Add Multi-select Option for Dropdown -->
+            <div class="form-group" *ngIf="editingField.type === 'select'">
+                <label>
+                    <input type="checkbox" [(ngModel)]="editingField.multiple" name="multipleSelect" />
+                    Allow Multiple Selection
+                </label>
+            </div>
+
             <div class="modal-actions">
                 <button class="btn btn-primary" type="submit">Save</button>
                 <button class="btn btn-secondary" type="button" (click)="showFieldConfig=false">Cancel</button>
@@ -338,7 +346,7 @@
         
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="preview-form">
             <div class="row">
-                <div *ngFor="let row of getLayoutConfig()">
+                <div *ngFor="let row of layoutConfig">
                     <div *ngFor="let field of row" [class]="'col-md-' + (12 / (100 / field.width)) + ' mb-0'">
                         <div class="info-wrapper">
                             <div class="form-group">
@@ -358,13 +366,20 @@
                                     [formControlName]="field.name"
                                     [placeholder]="field.placeholder"></textarea>
                                 
-                                <select *ngIf="field.type === 'select'" 
-                                    class="form-control" 
-                                    [formControlName]="field.name"
-                                    (change)="onSelectChange($event, field.name)">
-                                    <option value="" disabled selected>Select</option>
-                                    <option *ngFor="let opt of field.options" [value]="opt.value">{{opt.label}}</option>
-                                </select>
+                                <!-- Single-select dropdown (not dependent) -->
+                                <mat-form-field *ngIf="field.type === 'select' && !field.multiple && field.optionSource !== 'dependent'" class="w-100">
+                                    <mat-select class="form-control" [formControlName]="field.name" (selectionChange)="onSelectChange($event, field.name)">
+                                        <mat-option value="" disabled>Select</mat-option>
+                                        <mat-option *ngFor="let opt of field.options" [value]="opt.value">{{opt.label}}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+
+                                <!-- Multi-select dropdown (not dependent) -->
+                                <mat-form-field *ngIf="field.type === 'select' && field.multiple && field.optionSource !== 'dependent'" class="w-100">
+                                    <mat-select class="form-control" [formControlName]="field.name" multiple (selectionChange)="onMultiSelectChange($event, field)">
+                                        <mat-option *ngFor="let opt of field.options" [value]="opt.value">{{opt.label}}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
                                 
                                 <input *ngIf="field.type === 'date'" 
                                     class="form-control" 
@@ -408,6 +423,29 @@
                                         <label class="custom-control-label" [for]="'radio-' + opt.value">{{opt.label}}</label>
                                     </div>
                                 </div>
+
+                                <!-- Dependent Field: Render multiple child dropdowns if parent is multi-select -->
+                                <div *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field)">
+                                    <div *ngFor="let parentValue of getParentSelectedValues(field); let index = index">
+                                        <label>{{field.label}} for {{getParentLabel(field, parentValue)}}</label>
+                                        <mat-form-field class="w-100">
+                                            <mat-select class="form-control"
+                                                        [formControlName]="getDependentControlName(field, parentValue)"
+                                                        multiple>
+                                                <mat-option *ngFor="let opt of getDependentOptions(field, parentValue)" [value]="opt.value">{{opt.label}}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+
+                                <!-- Dependent Field: Single parent value (not multi-select) -->
+                                <mat-form-field *ngIf="field.type === 'select' && field.optionSource === 'dependent' && !isParentMultiSelect(field)" class="w-100">
+                                    <mat-select class="form-control" [formControlName]="field.name"
+                                                (selectionChange)="onDependentSelectChange($event, field, getParentSelectedValue(field))">
+                                        <mat-option value="" disabled>Select</mat-option>
+                                        <mat-option *ngFor="let opt of getDependentOptions(field, getParentSelectedValue(field))" [value]="opt.value">{{opt.label}}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
                             </div>
                         </div>
                     </div>

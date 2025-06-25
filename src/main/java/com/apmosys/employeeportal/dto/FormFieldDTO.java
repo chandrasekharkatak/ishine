@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
@@ -12,6 +14,16 @@ public class FormFieldDTO {
     private String placeholder;
     private String defaultValue;
     private String optionSource;
+    private List<OptionDTO> options;
     private int width;
     private int rowPosition;
+    private boolean multiple;
+    private String apiUrl;
+    private String apiLabelKe;
+    private String apiValueKey;
+    private String parentField;
+    private String dependentApiUrl;
+    private String dependentLabelKey;
+    private String dependentValueKey;
+    private String dependentParamName;
 }

@@ -952,8 +952,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     "subdomain": "6",
     "service": "5",
     "businessFeature": "8",
-    "subBusinessFeature": "6"
-};
+    "subBusinessFeature": "6",
+    "xyz": "3"
+  };
 
   //columnList
   projectColumns:any[] = ['blank','','','','',''];

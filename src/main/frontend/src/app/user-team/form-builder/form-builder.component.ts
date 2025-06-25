@@ -1,7 +1,7 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -33,6 +33,7 @@ interface FormField {
   dependentLabelKey?: string;
   dependentValueKey?: string;
   dependentParamName?: string;
+  multiple?: boolean;
 }
 
 @Component({
@@ -90,6 +91,11 @@ export class FormBuilderComponent implements OnInit {
   dependentFieldsMap: Map<string, any[]> = new Map();
   fieldDependencies: Map<string, string> = new Map();
 
+  layoutConfig: FormField[][] = [];
+
+  parentSelectedValuesMap: { [key: string]: any[] } = {};
+  dependentOptionsMap: { [key: string]: any[] } = {};
+
   constructor(private fb: FormBuilder,
     private http: HttpClient,
     private departmentService: DepartmentService,
@@ -100,6 +106,7 @@ export class FormBuilderComponent implements OnInit {
 
   ngOnInit() {
     this.showTable();
+    this.updateLayoutConfig();
   }
 
   showCreateForm(){
@@ -191,7 +198,8 @@ export class FormBuilderComponent implements OnInit {
       options: field.type === 'select' || field.type === 'checkbox' || field.type === 'radio' ? [] : undefined,
       optionSource: 'static',
       width: 100,
-      rowPosition: 0
+      rowPosition: 0,
+      multiple: false
     };
 
     this.editingField = newField;
@@ -398,6 +406,9 @@ export class FormBuilderComponent implements OnInit {
   }
 
   getLayoutConfig() {
+    alert("hi")
+    console.log("hi getLayoutConfig");
+    
     const rows = new Map<number, FormField[]>();
     let currentRow = 0;
     let currentRowWidth = 0;
@@ -436,6 +447,8 @@ export class FormBuilderComponent implements OnInit {
   }
 
   buildForm() {
+    console.log("hiii");
+    alert("build")
     const group: any = {};
     this.fields.forEach(field => {
       if (field.type === 'checkbox') {
@@ -446,13 +459,25 @@ export class FormBuilderComponent implements OnInit {
           : [field.defaultValue || ''];
       }
 
-      // if (field.type === 'select' && field.optionSource === 'api' && field.apiUrl) {
-      //   this.http.get<any[]>(field.apiUrl).subscribe(data => {
-      //     field.options = this.mapApiOptions(data, field.apiLabelKey!, field.apiValueKey!);
-      //   });
-      // }
+      if (field.type === 'select' && field.optionSource === 'api' && field.apiUrl) {
+        this.http.get<any[]>(field.apiUrl).subscribe(data => {
+          field.options = this.mapApiOptions(data, field.apiLabelKey!, field.apiValueKey!);
+        });
+      }
+
+      if (field.type === 'select' && field.multiple) {
+        this.form.addControl(field.name, new FormControl([]));
+      } else {
+        this.form.addControl(field.name, new FormControl(''));
+      }
     });
     this.form = this.fb.group(group);
+    this.layoutConfig = this.getLayoutConfig();
+
+    console.log(this.fields);
+    console.log(this.form);
+    console.log(this.layoutConfig, " --layoutConfig");
+    
   }
 
   mapApiOptions(data: any[], labelKey: string, valueKey: string): FormFieldOption[] {
@@ -619,5 +644,181 @@ export class FormBuilderComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  // Check if parent field is multi-select
+  isParentMultiSelect(field: any): boolean {
+    const parentField = this.fields.find(f => f.name === field.parentField);
+    return parentField && parentField.multiple;
+  }
+
+  // Get parent field selected values
+  getParentSelectedValues(field: any): any[] {
+    const parentFieldName = field.parentField;
+    const parentValue = this.form.get(parentFieldName)?.value;
+    
+    if (Array.isArray(parentValue)) {
+        return parentValue;
+    }
+    return parentValue ? [parentValue] : [];
+  }
+
+  // Get parent field label for a specific value
+  getParentLabel(field: any, parentValue: any): string {
+    const parentField = this.fields.find(f => f.name === field.parentField);
+    if (parentField && parentField.options) {
+        const option = parentField.options.find((opt: any) => opt.value === parentValue);
+        return option ? option.label : parentValue;
+    }
+    return parentValue;
+  }
+
+  // Get dependent control name for multi-select parent
+  getDependentControlName(field: any, parentValue: any): string {
+    return `${field.name}_${parentValue}`;
+  }
+
+  // Get dependent options for a specific parent value
+  getDependentOptions(field: any, parentValue: any): any[] {
+    const key = `${field.name}_${parentValue}`;
+    return this.dependentOptionsMap[key] || [];
+  }
+
+  // Get single parent selected value (for non-multi-select)
+  getParentSelectedValue(field: any): any {
+    const parentFieldName = field.parentField;
+    return this.form.get(parentFieldName)?.value;
+  }
+
+  // Handle dependent field change
+  onDependentSelectChange(event: any, field: any, parentValue: any) {
+    // Handle the change if needed
+    console.log('Dependent field changed:', field.name, event.value, parentValue);
+  }
+
+  updateLayoutConfig() {
+    // Only call this when fields change!
+    const rows = new Map<number, FormField[]>();
+    let currentRow = 0;
+    let currentRowWidth = 0;
+
+    this.fields.forEach(field => {
+        const fieldWidth = Number(field.width);
+        if (currentRowWidth + fieldWidth > 100) {
+            currentRow++;
+            currentRowWidth = fieldWidth;
+        } else {
+            currentRowWidth += fieldWidth;
+        }
+        if (!rows.has(currentRow)) {
+            rows.set(currentRow, []);
+        }
+        rows.get(currentRow)?.push(field);
+    });
+
+    this.layoutConfig = Array.from(rows.values());
+  }
+
+  updateParentSelectedValues(field: any) {
+    const value = this.form.get(field.name)?.value;
+    this.parentSelectedValuesMap[field.name] = (Array.isArray(value) ? value : value ? [value] : []).filter(v => v !== '');
+  }
+
+  updateDependentOptions(field: any, parentValue: any) {
+    // Compute and cache
+    const key = `${field.name}_${parentValue}`;
+    this.dependentOptionsMap[key] = this.getDependentOptions(field, parentValue);
+
+    console.log(this.dependentOptionsMap, " : this.dependentOptionsMap");
+    
+  }
+
+  trackByIndex(index: number, item: any) { return index; }
+  trackByFieldName(index: number, field: any) { return field.name; }
+
+  initializeForm() {
+    const group: any = {};
+    
+    this.fields.forEach(field => {
+        if (field.type === 'select' && field.optionSource === 'dependent' && this.isParentMultiSelect(field)) {
+            // For multi-select parent, create controls for each possible parent value
+            const parentField = this.fields.find(f => f.name === field.parentField);
+            if (parentField && parentField.options) {
+                parentField.options.forEach((opt: any) => {
+                    const controlName = this.getDependentControlName(field, opt.value);
+                    group[controlName] = new FormControl([]);
+                });
+            }
+        } else {
+            // Regular field
+            group[field.name] = new FormControl(field.defaultValue || '');
+        }
+    });
+    
+    this.form = new FormGroup(group);
+  }
+
+  onMultiSelectChange(event: any, field: any) {
+    const selectedValues = event.value;
+    console.log('Multi-select changed:', field.name, selectedValues);
+    this.updateDependentFields(field, selectedValues);
+  }
+
+  updateDependentFields(parentField: any, selectedValues: any[]) {
+    const dependentFields = this.fields.filter(field => 
+        field.optionSource === 'dependent' && field.parentField === parentField.name
+    );
+    
+    dependentFields.forEach(dependentField => {
+        if (this.isParentMultiSelect(dependentField)) {
+            selectedValues.forEach(parentValue => {
+                this.loadDependentOptionsForValue(dependentField, parentValue);
+            });
+        } else {
+            const parentValue = selectedValues.length > 0 ? selectedValues[0] : null;
+            if (parentValue) {
+                this.loadDependentOptionsForValue(dependentField, parentValue);
+            }
+        }
+    });
+  }
+
+  loadDependentOptionsForValue(field: any, parentValue: any) {
+    if (!field.dependentApiUrl) return;
+    const apiUrl = field.dependentApiUrl.replace('{parentValue}', parentValue);
+    this.http.get(apiUrl).subscribe({
+        next: (response: any) => {
+            const options = this.extractOptionsFromResponse(response, field);
+            const key = `${field.name}_${parentValue}`;
+            this.dependentOptionsMap[key] = options;
+        },
+        error: (error) => {
+            console.error('Error loading dependent options:', error);
+            const key = `${field.name}_${parentValue}`;
+            this.dependentOptionsMap[key] = [];
+        }
+    });
+  }
+
+  extractOptionsFromResponse(response: any, field: any): any[] {
+    const options = [];
+    
+    if (Array.isArray(response)) {
+        response.forEach(item => {
+            options.push({
+                label: item[field.dependentLabelKey || 'label'],
+                value: item[field.dependentValueKey || 'value']
+            });
+        });
+    } else if (response.data && Array.isArray(response.data)) {
+        response.data.forEach((item: any) => {
+            options.push({
+                label: item[field.dependentLabelKey || 'label'],
+                value: item[field.dependentValueKey || 'value']
+            });
+        });
+    }
+    
+    return options;
   }
 }
