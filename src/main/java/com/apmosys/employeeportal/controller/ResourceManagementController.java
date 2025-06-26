@@ -329,6 +329,11 @@ public class ResourceManagementController {
 		return resourceManagementService.dumpPODataInIshine();
 	}
 	
+	@GetMapping("/fillDepartmentforNotStartedProjects")
+	public ServiceResponse fillDepartmentforNotStartedProjects() {
+		return resourceManagementService.fillDepartmentforNotStartedProjects();
+	}
+	
 	@GetMapping("/getPreviousDefaultProjectDetails")
 	public ServiceResponse getPreviousDefaultProjectDetails(@RequestParam Long empId) {
 	    return resourceManagementService.getPreviousDefaultProjectDetails(empId);

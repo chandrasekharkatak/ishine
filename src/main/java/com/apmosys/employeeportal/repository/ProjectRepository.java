@@ -14,6 +14,7 @@ import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProje
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
+import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.model.Project;
@@ -338,8 +339,15 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "AND (:projectFilter = false OR p.projectId IN :projectIds)")
 	Integer getAllActiveProjecCountstList(@Param("approvalStatus")String approvalStatus, @Param("projectIds")Set<Integer> projectIds,@Param("projectFilter") Boolean projectFilter);
 
-	@Query(value="select Distinct count(*) from projects where active= 'true' and is_draft_project is null and status != 'Completed'", nativeQuery = true)
+	@Query(value="select Distinct count(*) from Project p \n"
+			+ " inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId \n"
+			+ " where p.active= 'true' and p.isDraftProject is null and (p.status != 'Completed' or p.projectStatus = 'Not Started') and pdm.deptId IN :deptIds")
+	Integer getAllNotStartedProjectCountInDept(List<Long> deptIds);
+	
+	@Query(nativeQuery = true,value ="select distinct count(*) from projects where active= 'true' and is_draft_project is null and status != 'Completed'")
 	Integer getAllNotStartedProjectCount();
+	
+	
 	  
 	@Query(value = "SELECT COUNT(DISTINCT p.projectId)\n"
 			+ "FROM Project p \n"
@@ -696,4 +704,8 @@ public Optional<List<Project>> findProjectsOfProjectManager(Long projectManagerI
 			+ "inner join projects p on t.project_id = p.project_id\n"
 			+ "where t.spoc_id= :spocId and t.is_active = 'Y'" , nativeQuery = true)
 	public Optional<List<Project>> findProjectOfSpoc(Long spocId);
+	
+	@Query(value ="SELECT NEW com.apmosys.employeeportal.dto.ResourceManagementDTO(projectId,poProjectId,projectName )\n"
+			+ "from Project where active= 'true' and isDraftProject is null and status != 'Completed'")
+	public List<ResourceManagementDTO> getAllNotStartedProjects();
 }

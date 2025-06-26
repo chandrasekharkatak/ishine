@@ -65,6 +65,9 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	@Query(value ="select jr.deptId from JobRole jr where jobRoleId =:jobRoleId")
 	Long findDepartmentIdOfSpoc(@Param("jobRoleId") Long jobRoleId);
 	
+	@Query(value ="select jr.deptId from JobRole jr where jobRoleId =:jobRoleId")
+	List<Long> findDepartmentIdOfCurrentUser(@Param("jobRoleId") Long jobRoleId);
+	
 	
 	 @Query(value = "SELECT \n"
 	 		+ "    CASE \n"
@@ -156,5 +159,8 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 				+ "        WHERE t2.spocId = :empId AND t2.isActive = 'Y'\n"
 				+ "    )")
 		boolean isUserMappedInAnyRole( Long empId);
+		
+		@Query(value ="select distinct deptId from Department")
+		List<Long> findAllDepartments();
 
 }

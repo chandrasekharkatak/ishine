@@ -6193,6 +6193,57 @@ public class ResourceManagementService {
 		return serviceResponse;
 	}
 	
+	public ServiceResponse fillDepartmentforNotStartedProjects() {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("fillDepartmentforNotStartedProjects");
+		apiLogInfo.setApiUrl("/api/fillDepartmentforNotStartedProjects");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("\n fillDepartmentforNotStartedProjects ");
+		try {
+			
+			List<ResourceManagementDTO> poPortalProjects = Optional.ofNullable(fetchPoPortalProjects()).orElse(new ArrayList<>());
+			List<ResourceManagementDTO> poNotStartedProjects = projectRepository.getAllNotStartedProjects();
+			
+			for (ResourceManagementDTO notStarted : poNotStartedProjects) {
+				Long poProjectId = notStarted.getPoProjectId();
+				Integer projectId = notStarted.getProjectId();
+
+				
+				for (ResourceManagementDTO poPortal : poPortalProjects) {
+					if (poProjectId != null && poProjectId.equals(poPortal.getId())) {
+						
+						List<String> departments = Arrays.asList(poPortal.getDepartment()); 
+						
+						if (departments != null && !departments.isEmpty()) {
+							for (String deptName : departments) {
+								Department dept = departmentRepository.findByName(deptName.trim());
+								if (dept != null) {
+									ProjectDepartmentMap map = new ProjectDepartmentMap();
+									map.setProjectId(projectId);
+									map.setDeptId(dept.getDeptId());
+									projectDepartmentMapRepository.save(map);
+								}
+							}
+						}
+						break; 
+					}
+				}
+			}
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Department mapping inserted successfully!");
+			
+			
+		}catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("\n Something went wrong!");
+		}   
+		return response;
+	}
+	
 	
 	@Transactional
 	private ServiceResponse setProjectOverheads(ResourceManagementDTO resourceManagementDTO, Project projectDbResponse) {
@@ -6516,7 +6567,7 @@ public class ResourceManagementService {
 					projectIdSet = matchingProjectIds;
 					pendingForApprovalCount = projectRepository.getAllActiveProjecCountstList("true", projectIdSet, true);
 					approvedCount = projectRepository.getAllActiveProjecCountstList("false", projectIdSet, true);
-					notStartedCount = projectRepository.getAllNotStartedProjectCount();
+					notStartedCount = projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
@@ -6531,9 +6582,10 @@ public class ResourceManagementService {
 							 "Complete", projectIdSet,  true));
 					map.put("totalCount", totalCount);
 				}else {
+					List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 					pendingForApprovalCount = projectRepository.getAllActiveProjecCountstList( "true", null, false);
 					approvedCount = projectRepository.getAllActiveProjecCountstList( "false", null, false);
-					notStartedCount =  projectRepository.getAllNotStartedProjectCount();
+					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(deptIdsAccToRole);
 					rejectedCount = projectRepository
 							.getAllActiveProjecCountstList("Rejected", null, false);
 					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
@@ -6547,8 +6599,9 @@ public class ResourceManagementService {
 				map.put("rejectedCount",rejectedCount );
 				map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(
 						 "Complete", null, false));
-				}
 				map.put("totalCount", totalCount);
+				}
+				
 				responseData.setCounts(map);
 			}
 
@@ -6614,24 +6667,45 @@ public class ResourceManagementService {
 						    .collect(Collectors.toSet());
 					
 					projectIdSet.retainAll(matchingProjIds);
+					
+					pendingForApprovalCount = projectRepository.getAllActiveProjecCountstList("true", projectIdSet, true);
+					approvedCount = projectRepository.getAllActiveProjecCountstList("false", projectIdSet, true);
+					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
+					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
+					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
+					
+					map.put("pendingForApprovalCount",pendingForApprovalCount);
+					map.put("approvedCount",approvedCount);
+					map.put("completedCount",
+							projectRepository.getAllCompleteProjectInShankhCountstList( projectIdSet, true));
+					map.put("completedWithEmployeeCount", projectRepository
+							.completedInSankhButTeamMapped(projectIdSet, true));
+					map.put("notStartedCount",notStartedCount );
+					map.put("rejectedCount",rejectedCount );
+					map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(
+							 "Complete", projectIdSet,  true));
+					map.put("totalCount", totalCount);
+				}else {
+					
+					pendingForApprovalCount = projectRepository.getAllActiveProjecCountstList("true", projectIdSet, true);
+					approvedCount = projectRepository.getAllActiveProjecCountstList("false", projectIdSet, true);
+					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(deptIdList);
+					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
+					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
+					
+					map.put("pendingForApprovalCount",pendingForApprovalCount);
+					map.put("approvedCount",approvedCount);
+					map.put("completedCount",
+							projectRepository.getAllCompleteProjectInShankhCountstList( projectIdSet, true));
+					map.put("completedWithEmployeeCount", projectRepository
+							.completedInSankhButTeamMapped(projectIdSet, true));
+					map.put("notStartedCount",notStartedCount );
+					map.put("rejectedCount",rejectedCount );
+					map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(
+							 "Complete", projectIdSet,  true));
+					map.put("totalCount", totalCount);
 				}
-				pendingForApprovalCount = projectRepository.getAllActiveProjecCountstList("true", projectIdSet, true);
-				approvedCount = projectRepository.getAllActiveProjecCountstList("false", projectIdSet, true);
-				notStartedCount =  projectRepository.getAllNotStartedProjectCount();
-				rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
-				totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
 				
-				map.put("pendingForApprovalCount",pendingForApprovalCount);
-				map.put("approvedCount",approvedCount);
-				map.put("completedCount",
-						projectRepository.getAllCompleteProjectInShankhCountstList( projectIdSet, true));
-				map.put("completedWithEmployeeCount", projectRepository
-						.completedInSankhButTeamMapped(projectIdSet, true));
-				map.put("notStartedCount",notStartedCount );
-				map.put("rejectedCount",rejectedCount );
-				map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(
-						 "Complete", projectIdSet,  true));
-				map.put("totalCount", totalCount);
 				
 				responseData.setCounts(map);
 			}
@@ -6679,10 +6753,10 @@ public class ResourceManagementService {
 						    .collect(Collectors.toSet());
 					
 					projectIdSet.retainAll(matchingProjectIds);
-					}
+					
 					pendingForApprovalCount = projectRepository.getAllActiveProjecCountstList("true", projectIdSet, true);
 					approvedCount = projectRepository.getAllActiveProjecCountstList("false", projectIdSet, true);
-					notStartedCount =  projectRepository.getAllNotStartedProjectCount();
+					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
 					
@@ -6694,6 +6768,26 @@ public class ResourceManagementService {
 					map.put("rejectedCount", rejectedCount);
 					map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList("Complete", projectIdSet,  true));
 					map.put("totalCount", totalCount);
+					}else {
+						Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+						List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
+						
+						pendingForApprovalCount = projectRepository.getAllActiveProjecCountstList("true", projectIdSet, true);
+						approvedCount = projectRepository.getAllActiveProjecCountstList("false", projectIdSet, true);
+						notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(deptIdOfOther);
+						rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
+						totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
+						
+						map.put("pendingForApprovalCount",pendingForApprovalCount);
+						map.put("approvedCount",approvedCount);
+						map.put("completedCount",projectRepository.getAllCompleteProjectInShankhCountstList( projectIdSet, true));
+						map.put("completedWithEmployeeCount", projectRepository.completedInSankhButTeamMapped(projectIdSet, true));
+						map.put("notStartedCount", notStartedCount);
+						map.put("rejectedCount", rejectedCount);
+						map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList("Complete", projectIdSet,  true));
+						map.put("totalCount", totalCount);
+					}
+					
 					
 					responseData.setCounts(map);
 				} else {
