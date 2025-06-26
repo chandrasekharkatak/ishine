@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.model;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -36,6 +37,16 @@ public class FCProjectMilestone {
 
 	@Column(columnDefinition = "varchar(500) default ''")
 	private String remarks;
+	
+	private Long updatedBy;
+	
+	private LocalDateTime updatedOn;
+	
+	
 
 	private Long lineItemId;
+	
+	private String documentName;
+	
+	private String documentPath;
 }

@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import lombok.Data;
@@ -32,7 +33,17 @@ public class FCProjectMilestoneDTO {
 	private String lineItemName;
 
 	private String lineItemStatus;
-
+	
+	private Long updatedBy;
+	
+	private LocalDateTime updatedOn;
+	
+	private String documentName;
+	
+	private String documentPath;
+    
+	private String documentBase64;
+	
 	// Constructor for repository query
 	public FCProjectMilestoneDTO(Long id,Long poId,Long projectId, String name, String description, Date startDate, Date endDate, String status, String remarks,Long lineItemId,String lineItemName,String lineItemStatus) {
 		this.id = id;

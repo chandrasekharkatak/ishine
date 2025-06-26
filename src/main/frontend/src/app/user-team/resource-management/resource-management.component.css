@@ -1104,3 +1104,81 @@ thead {
    color: #0056b3;
 } 
 
+.form-field .readonly-field {
+  border: 1px solid #4b4b8f;
+  border-radius: 15px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: #f9f9f9;
+  color: #333;
+  height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.form-field  .rounded-textarea {
+  border: 1px solid #4b4b8f;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: #fff;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+
+.full-width {
+  width: 100%;
+  flex: 0 0 100%;
+}
+.form-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem; 
+}
+
+.form-field {
+  flex: 1 1 48%;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field.full-width {
+  flex: 1 1 100%;
+}
+
+
+
+.form-group {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 1rem;
+}
+
+.form-field {
+  flex: 1 1 48%;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field.full-width {
+  flex: 1 1 100% !important;
+  max-width: 100% !important;
+}
+
+.modal-content {
+  overflow: visible !important;
+  pointer-events: auto !important;
+}
+
+
+.plain-file-input {
+  border: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  padding: 0;
+}
+
+

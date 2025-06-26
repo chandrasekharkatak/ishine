@@ -137,7 +137,8 @@
                     </div>
 
                     <div class="col-md-3">
-                        <div class="mini-card1 timesheet-card" style="border-left: 4px solid #e91e63; padding: 12px;"  (click)="EmployeeViewDataModel(employee_data,'Unfilled Timesheet Projects')">
+                        <div class="mini-card1 timesheet-card" style="border-left: 4px solid #e91e63; padding: 12px;"
+                            (click)="EmployeeViewDataModel(employee_data,'Unfilled Timesheet Projects')">
 
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="value fw-bold" style="color: #e91e63;">
@@ -180,8 +181,11 @@
                 <div *ngIf="!myDept">
                     <div class="row">
                         <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                            <label class="info-label" style="justify-self: left;" title="As Per Resource - Project Mapping">
-                                <span class="text-danger"><i class="fa-solid fa-toggle-off" (click)="toggleDept();clearSelection($event)" style="cursor: pointer; color: #193D8A;"></i></span>
+                            <label class="info-label" style="justify-self: left;"
+                                title="As Per Resource - Project Mapping">
+                                <span class="text-danger"><i class="fa-solid fa-toggle-off"
+                                        (click)="toggleDept();clearSelection($event)"
+                                        style="cursor: pointer; color: #193D8A;"></i></span>
                                 <span class="text-danger">*</span>
                                 Departments
                             </label>
@@ -224,10 +228,13 @@
                     <div class="row">
                         <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                             <label class="info-label" style="justify-self: left;">
-                                <span class="text-danger"><i class="fa-solid fa-toggle-on" (click)="toggleDept();clearSelectionByUser($event)" style="cursor: pointer; color: #193D8A;" title="Toggle off to view all departments associated with resources mapped to projects under your bucket."></i></span>
+                                <span class="text-danger"><i class="fa-solid fa-toggle-on"
+                                        (click)="toggleDept();clearSelectionByUser($event)"
+                                        style="cursor: pointer; color: #193D8A;"
+                                        title="Toggle off to view all departments associated with resources mapped to projects under your bucket."></i></span>
                                 <span class="text-danger">*</span>
                                 My Departments
-                                </label>
+                            </label>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -237,11 +244,13 @@
                                 <!-- Search Input (non-selectable) -->
                                 <mat-option class="non-selectable" disabled>
                                     <div style="display: flex; align-items: center;">
-                                        <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDeptByUser"
+                                        <input type="text" placeholder="Search Department"
+                                            [(ngModel)]="searchTextDeptByUser"
                                             (ngModelChange)="filterDepartmentsByUser()" class="form-control"
                                             style="width: 100%; padding: 5px;" />
 
-                                        <button *ngIf="deptIdListByUser?.length > 0" (click)="clearSelectionByUser($event)"
+                                        <button *ngIf="deptIdListByUser?.length > 0"
+                                            (click)="clearSelectionByUser($event)"
                                             style="margin-left: 5px; background: none; border: none; cursor: pointer;"
                                             title="Clear Selection">
                                             Clear
@@ -250,7 +259,8 @@
                                 </mat-option>
 
                                 <!-- Select All/Deselect All -->
-                                <mat-option (click)="toggleSelectAllDeptByUser()" [disabled]="departmentListByUser?.length === 0">
+                                <mat-option (click)="toggleSelectAllDeptByUser()"
+                                    [disabled]="departmentListByUser?.length === 0">
                                     {{ isAllSelectedByUser ? 'Deselect All' : 'Select All' }}
                                 </mat-option>
 
@@ -621,14 +631,13 @@
 
                                         <td>{{project.projectType ? project.projectType : 'NA' }} </td>
 
-                                        <td class="text-capitalize" >
+                                        <td class="text-capitalize">
                                             <ng-container id="clickablefor360"
                                                 *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName && !isAccounts">
                                                 <span
                                                     *ngFor="let managerData of project.projectManagers; let last = last"
                                                     [navigateToEmployee360]="managerData.projectManagerId"
-                                                    style="cursor: pointer;"
-                                                    title="Click to view Employee 360"
+                                                    style="cursor: pointer;" title="Click to view Employee 360"
                                                     class="info-label">{{managerData.projectManagerName
                                                     ? managerData.projectManagerName : 'NA' }} {{!last ? ',' :
                                                     ''}}</span>
@@ -637,8 +646,7 @@
                                                 *ngIf="!userMapping.my_team_resource_management_employee_360 || !project.projectManagerName">
                                                 <span
                                                     *ngFor="let managerData of project.projectManagers; let last = last"
-                                                    style="cursor: pointer;"
-                                                    class="info-label">
+                                                    style="cursor: pointer;" class="info-label">
                                                     {{managerData.projectManagerName ? managerData.projectManagerName :
                                                     'NA' }}{{!last ? ',' : ''}}
                                                 </span>
@@ -967,17 +975,17 @@
                     <label><span class="text-danger">*</span>Department</label>
                     <mat-select class="form-control" multiple [(ngModel)]="projectObj.departmentList">
                         <mat-option class="non-selectable" disabled>
-                                <div style="display: flex; align-items: center;">
-                                   <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDept"
-                                        (ngModelChange)="filterDepartments()" class="form-control"
-                                        style="width: 100%; padding: 5px;" />
+                            <div style="display: flex; align-items: center;">
+                                <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDept"
+                                    (ngModelChange)="filterDepartments()" class="form-control"
+                                    style="width: 100%; padding: 5px;" />
 
-                                    <button *ngIf="projectObj.departmentList?.length > 0" (click)="clearSelection($event)"
-                                        style="margin-left: 5px; background: none; border: none; cursor: pointer;"
-                                        title="Clear Selection">
-                                        Clear
-                                    </button>
-                                </div>
+                                <button *ngIf="projectObj.departmentList?.length > 0" (click)="clearSelection($event)"
+                                    style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                                    title="Clear Selection">
+                                    Clear
+                                </button>
+                            </div>
                         </mat-option>
                         <mat-option (click)="toggleSelectAllInternal()"
                             [disabled]="filteredDepartmentsInternal.length === 0">
@@ -988,7 +996,7 @@
                         </mat-option>
                     </mat-select>
                 </div>
-                 
+
                 <div class="team-preview-field">
                     <label><span class="text-danger">*</span>State</label>
                     <select class="form-control" aria-hidden="true" [(ngModel)]="projectObj.state">
@@ -1504,11 +1512,11 @@
                         <input type="text" disabled [(ngModel)]="projectObj.state" />
                     </div>
                 </div>
-            <div class="row" *ngIf="projectObj?.poProjectType == 'Fixed Cost'">
-                <div class="col-12 d-flex justify-content-end">
-                    <h3 (click)="showProjectMilestones(projectObj)" class="milestone-link">Show All Milestone</h3>
+                <div class="row" *ngIf="projectObj?.poProjectType == 'Fixed Cost'">
+                    <div class="col-12 d-flex justify-content-end">
+                        <h3 (click)="showProjectMilestones(projectObj)" class="milestone-link">Show All Milestone</h3>
+                    </div>
                 </div>
-            </div>
 
                 <div class="teams-section">
                     <h3>Teams</h3>
@@ -1547,32 +1555,36 @@
                             <input type="text" class="form-select name-field" [(ngModel)]="teamObj.teamName"
                                 (blur)="checkTeamName(alert_message_without_reload, teamObj, i)" />
                         </div>
-<div class="form-field">
-    <label><span class="text-danger">*</span>Department</label>
+                        <div class="form-field">
+                            <label><span class="text-danger">*</span>Department</label>
 
-    <mat-select class="form-control name-field" multiple [(ngModel)]="teamObj.departmentList">
+                            <mat-select class="form-control name-field" multiple [(ngModel)]="teamObj.departmentList">
 
-        <mat-option class="non-selectable" disabled>
-            <div style="display: flex; align-items: center;">
-                <input type="text" [(ngModel)]="searchTextDeptTeam" (ngModelChange)="filterDepartmentsTeamForm()"
-                    class="form-control" style="width: 100%; padding: 5px;" />
+                                <mat-option class="non-selectable" disabled>
+                                    <div style="display: flex; align-items: center;">
+                                        <input type="text" [(ngModel)]="searchTextDeptTeam"
+                                            (ngModelChange)="filterDepartmentsTeamForm()" class="form-control"
+                                            style="width: 100%; padding: 5px;" />
 
-                <button *ngIf="teamObj.departmentList?.length > 0" (click)="clearSelectionDept($event)"
-                    style="margin-left: 5px; background: none; border: none; cursor: pointer;" title="Clear Selection">
-                    Clear
-                </button>
-            </div>
-        </mat-option>
+                                        <button *ngIf="teamObj.departmentList?.length > 0"
+                                            (click)="clearSelectionDept($event)"
+                                            style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                                            title="Clear Selection">
+                                            Clear
+                                        </button>
+                                    </div>
+                                </mat-option>
 
-        <mat-option (click)="toggleSelectAllTeams()" [disabled]="filteredDepartmentsTeam.length === 0">
-            {{ isAllDeptSelected ? 'Deselect All' : 'Select All' }}
-        </mat-option>
+                                <mat-option (click)="toggleSelectAllTeams()"
+                                    [disabled]="filteredDepartmentsTeam.length === 0">
+                                    {{ isAllDeptSelected ? 'Deselect All' : 'Select All' }}
+                                </mat-option>
 
-        <mat-option *ngFor="let dept of filteredDepartmentsTeam" [value]="dept.deptId">
-            {{ dept.name }}
-        </mat-option>
-    </mat-select>
-</div>
+                                <mat-option *ngFor="let dept of filteredDepartmentsTeam" [value]="dept.deptId">
+                                    {{ dept.name }}
+                                </mat-option>
+                            </mat-select>
+                        </div>
 
                         <div class="form-field">
                             <label>SPOC</label>
@@ -1729,7 +1741,8 @@
                     <!-- Add Button -->
                     <div>
                         <button type="button" class="btn btn-outline-primary"
-                            (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()" [disabled]="projectObj.resourceRequirements?.length > 0
+                            (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()"
+                            [disabled]="projectObj.resourceRequirements?.length > 0
                           ? (!selectedRequirement || !newteamMember.empId || !newteamMember.employeeRole?.length ||(projectDetails.length !== 0 && newteamMember.billableType === 'TNM') )
                           : (!newteamMember.empId || !newteamMember.employeeRole?.length || (projectDetails.length !== 0 && newteamMember.billableType === 'TNM') )">
                             <i class="fa fa-plus" aria-hidden="true"></i>
@@ -2214,7 +2227,7 @@
                     <input type="text" readonly [value]="projectObj?.state" />
                 </div>
             </div>
-            
+
             <!-- Team Info Cards -->
             <div class="team-card" *ngFor="let team of projectObj?.teamList; let i = index">
                 <p class="team-section-title">Team Info</p>
@@ -2722,9 +2735,23 @@
                             <td>{{milestone.status}}</td>
                             <td>{{milestone.remarks}}</td>
                             <td>
-                                <button class="btn btn-sm btn-primary" (click)="openUpdateProjectMilestoneModal(milestone)">
+                                <button class="btn btn-sm btn-primary" [disabled]="milestone.status === 'Completed'"
+                                    [title]="milestone.status === 'Completed' ? 'Cannot edit completed milestone during In Progress phase' : ''"
+                                    (click)="openUpdateProjectMilestoneModal(milestone)">
                                     <i class="fas fa-edit"></i>
+                                </button>&nbsp;&nbsp;
+
+
+                                
+                                <button *ngIf="milestone.status === 'Completed'" class="btn btn-sm btn-info" title="View Document"
+                                    (click)="viewMilestoneFile(milestone.id)">
+                                    <i class="fas fa-file-alt"></i> 
                                 </button>
+
+
+
+
+
                             </td>
                         </tr>
                     </ng-container>
@@ -2752,17 +2779,43 @@
         <div class="form-group">
             <div class="form-field">
                 <label>List Item Name</label>
-                <input type="text" disabled [(ngModel)]="projectMilestone.name" />
+                <input type="text" disabled [(ngModel)]="projectMilestone.lineItemName" />
             </div>
             <div class="form-field">
                 <label>Name</label>
                 <input type="text" disabled [(ngModel)]="projectMilestone.name" />
             </div>
+
+
+
+            <div class="form-field">
+                <label><span class="text-danger">*</span>Start Date</label>
+                <input id="startDate" class="form-control static-input" autocomplete="off"
+                    [(ngModel)]="projectMilestone.startDate" [owlDateTimeTrigger]="startDatePicker"
+                    [owlDateTime]="startDatePicker" placeholder="Select Start Date" [disabled]="true">
+                <owl-date-time #startDatePicker></owl-date-time>
+               
+            </div>
+
+
+            <div class="form-field">
+                <label><span class="text-danger">*</span>End Date</label>
+                <input id="endDate" class="form-control static-input" autocomplete="off"
+                    [(ngModel)]="projectMilestone.endDate" [owlDateTimeTrigger]="endDatePicker"
+                    [owlDateTime]="endDatePicker" placeholder="Select End Date" [disabled]="true">
+                <owl-date-time #endDatePicker></owl-date-time>
+               
+            </div>
+
+
             <div class="form-field">
                 <label>Description</label>
                 <input type="text" disabled [(ngModel)]="projectMilestone.description" />
             </div>
+
+
             <div class="form-field">
+
                 <label>Status</label>
                 <mat-select [(ngModel)]="projectMilestone.status" (ngModelChange)="calculatePoStatus()">
                     <mat-option [value]="projectMilestone.status">{{projectMilestone.status}}</mat-option>
@@ -2773,6 +2826,80 @@
                     </ng-container>
                 </mat-select>
             </div>
+
+            <div class="form-field full-width">
+                <label>Remarks</label>
+                <textarea class="form-control" [(ngModel)]="projectMilestone.remarks" rows="3"></textarea>
+            </div>
+
+
+            <div class="form-field full-width">
+                <label>Upload Document</label>
+                <input type="file" class="plain-file-input" (change)="onFileSelected($event)" accept=".pdf,.jpg,.jpeg,.png" />
+            </div>
+
+            
+           
+
+
+
+
+
+
+
+
+
         </div>
     </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeUpdateProjectMilestoneModal()">Close</button>
+        <button type="button" class="btn btn-primary" (click)="updateMilestoneChanges()">Update</button>
+    </div>
+</ng-template>
+
+
+<ng-template #update_project_milestone_success_modal>
+    <div class="modal-header">
+        <h5 class="modal-title">Milestone Updated</h5>
+    </div>
+    <div class="modal-body">
+        <p>Milestone Updated successfully.</p>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" (click)="CancelUpdateMilestonePopup()">OK</button>
+    </div>
+</ng-template>
+
+
+
+<ng-template #milestoneDocumentModal>
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Milestone Document Preview</h5>
+                    <button type="button" class="close" aria-label="Close" (click)="closeModalViewDocument()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div *ngIf="milestoneDocumentUrl">
+                        <iframe [src]="milestoneDocumentUrl" width="100%" height="600px"></iframe>
+                    </div>
+                    <div *ngIf="!milestoneDocumentUrl">
+                        <p>No document available for this milestone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+
+<ng-template #alertTemplate>
+  <div class="modal-body text-center">
+    <p>{{ alertMessage }}</p>
+    <button type="button" class="btn btn-primary" (click)="modalRef.hide()">OK</button>
+  </div>
 </ng-template>

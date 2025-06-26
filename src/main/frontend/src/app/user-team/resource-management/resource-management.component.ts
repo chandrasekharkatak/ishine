@@ -1,6 +1,6 @@
 import { ViewportScroller } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { FormControl, NgForm } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -40,6 +40,10 @@ import { TeamService } from 'src/app/services/team.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { environment } from 'src/environments/environment';
+
+
+
+
 class FilterData {
   title: any;
   columns: any;
@@ -84,8 +88,8 @@ export class ResourceManagementComponent implements OnInit {
   exceptionEmployeesList: any[] = [];
   employeesWithoutProject: any;
   employeesWithoutProjectList: any[] = [];
-  employeesWithoutBillability: any[] =[];
-  employeesWithoutBillable:any;
+  employeesWithoutBillability: any[] = [];
+  employeesWithoutBillable: any;
   employeeData: any[] = [];
   catagory: any;
   employees = ['John Doe', 'Jane Smith'];
@@ -93,12 +97,22 @@ export class ResourceManagementComponent implements OnInit {
   selectedEmployee = '';
   selectedStatus = '';
 
-   summaryModalRef: BsModalRef;
+  summaryModalRef: BsModalRef;
   projectSummaryData: any[] = [];
+
+  selectedFile: File | null = null;
+
+  milestoneDocumentUrl: SafeResourceUrl | null = null;
+
 
   // new cards changes.....................................................................
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+
+
+  @ViewChild('alertTemplate') alertTemplateForMilestone!: TemplateRef<any>;
+
+
 
   @ViewChild("alert_message")
   alertModal: TemplateRef<any>;
@@ -114,7 +128,13 @@ export class ResourceManagementComponent implements OnInit {
 
   @ViewChild("update_project_milestone_modal")
   updateProjectMilestoneModal: TemplateRef<any>;
-  
+
+  @ViewChild("update_project_milestone_success_modal")
+  updateProjectMilestoneSuccessModal: TemplateRef<any>;
+
+  @ViewChild("milestoneDocumentModal")
+  milestoneDocumentModal: TemplateRef<any>;
+
 
   data: string;
   currentUser: User;
@@ -325,7 +345,7 @@ export class ResourceManagementComponent implements OnInit {
   selectedProjectId: any;
   // employeeRole: any;
   selectedColumnToShow: any;
-  departmentsList:any[] = [];
+  departmentsList: any[] = [];
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
@@ -426,7 +446,7 @@ export class ResourceManagementComponent implements OnInit {
   toastr: any;
   //isAccounts: boolean = false;
   isDeptFilter: boolean = false;
-  dept:any;
+  dept: any;
   isAdminOrHod = true;
 
   //added
@@ -440,25 +460,25 @@ export class ResourceManagementComponent implements OnInit {
   deptId: any;
   teamLeadCtrl = new FormControl();
   filteredTeamLeads: Employee[] = [];
-  searchTextDeptInternal:any;
-  searchTextDeptTeam:any;
+  searchTextDeptInternal: any;
+  searchTextDeptTeam: any;
   isAllDeptSelected: boolean = false;
   departmentListByUser: any[] = [];
   deptIdListByUser: any[] = [];
   isAllSelectedByUser: boolean = false;
   searchTextDeptByUser: any;
-  filteredDepartmentsByUser:any[] = [];
+  filteredDepartmentsByUser: any[] = [];
   myDept: boolean = false;
-  countList:any;
+  countList: any;
 
   projectMilestoneSortDirection = 'asc';
   projectMilestoneSortColumn: any;
   projectMilestoneSortColumnType: any;
   projectMilestonepage = 1;
-  milestonePanelState=true;
-  fcProjectMilestoneList:FCProjectMilestone[] = [];
-  statusList = [Status.NOT_STARTED,Status.IN_PROGRESS,Status.ON_HOLD,Status.COMPLETED];
-  projectMilestone:any;
+  milestonePanelState = true;
+  fcProjectMilestoneList: FCProjectMilestone[] = [];
+  statusList = [Status.NOT_STARTED, Status.IN_PROGRESS, Status.ON_HOLD, Status.COMPLETED];
+  projectMilestone: any;
 
   constructor(
     private scroller: ViewportScroller,
@@ -488,7 +508,7 @@ export class ResourceManagementComponent implements OnInit {
 
 
   async ngOnInit(): Promise<void> {
-    this.myDept=true;
+    this.myDept = true;
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -506,11 +526,11 @@ export class ResourceManagementComponent implements OnInit {
     else {
       await this.getAllDepartments();
       await this.getDeptsByUser();
-      if(this.filteredDepartments != null)
-      this.projectFilterDTO.isAdmin = true;
-      else{
-      this.projectFilterDTO.isOther = true
-      this.isAdminOrHod = false;
+      if (this.filteredDepartments != null)
+        this.projectFilterDTO.isAdmin = true;
+      else {
+        this.projectFilterDTO.isOther = true
+        this.isAdminOrHod = false;
       }
     }
     console.log(this.projectFilterDTO);
@@ -522,24 +542,24 @@ export class ResourceManagementComponent implements OnInit {
     this.getEmployeeByNameAndEmpld();
 
     this.employeeCtrl.valueChanges
-    .pipe(
-      startWith(''),
-      map(value => typeof value === 'string' ? value : value?.name || ''),
-      map(name => this.filterEmployees(name))
-    )
-    .subscribe(filtered => {
-      this.filteredEmployees = filtered;
-    });
+      .pipe(
+        startWith(''),
+        map(value => typeof value === 'string' ? value : value?.name || ''),
+        map(name => this.filterEmployees(name))
+      )
+      .subscribe(filtered => {
+        this.filteredEmployees = filtered;
+      });
 
     this.teamLeadCtrl.valueChanges
-    .pipe(
-      startWith(''),
-      map(value => typeof value === 'string' ? value : value?.name || ''),
-      map(name => this.filterTeamLeads(name))
-    )
-    .subscribe(filtered => {
-      this.filteredTeamLeads = filtered;
-    });
+      .pipe(
+        startWith(''),
+        map(value => typeof value === 'string' ? value : value?.name || ''),
+        map(name => this.filterTeamLeads(name))
+      )
+      .subscribe(filtered => {
+        this.filteredTeamLeads = filtered;
+      });
 
     if ((this.currentBreadcrumbList != undefined && this.currentBreadcrumbList != null) && this.currentBreadcrumbList[this.currentBreadcrumbList.length - 1]?.title.includes("Project")) {
       this.toggleSearch();
@@ -772,7 +792,7 @@ export class ResourceManagementComponent implements OnInit {
 
   clearSelection(event: Event) {
     console.log(this.isAllSelected, "this.isAllSelected");
-    event.stopPropagation(); 
+    event.stopPropagation();
     if (this.isAllSelected == true) {
       console.log(this.isAllSelected, "this.isAllSelected");
       this.toggleSelectAllDept();
@@ -804,8 +824,8 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.departmentsids = this.deptIdList;
       this.projectFilterDTO.departments = [];
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
-      
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
     }
   }
@@ -813,15 +833,15 @@ export class ResourceManagementComponent implements OnInit {
   onDepartmentSelectionChange1() {
     console.log(this.isAllSelected, "this.isAllSelected");
     if (!this.isAllSelected && this.projectObj.departmentList.length > 0 && this.projectObj.departmentList[0] != null) {
-        this.projectFilterDTO.approvalStatus = "All";
-        this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
-        this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
-        console.log(this.projectFilterDTO, "this.projectFilterDTO");
-        this.fetchCountAndList();
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+      this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
+      console.log(this.projectFilterDTO, "this.projectFilterDTO");
+      this.fetchCountAndList();
     }
-}
+  }
 
- onDepartmentSelectionChange2() {
+  onDepartmentSelectionChange2() {
     console.log(this.isAllSelected, "this.isAllSelected");
     if (!this.isAllSelected && this.teamObj.departmentList.length > 0 && this.teamObj.departmentList[0] != null) {
       this.projectFilterDTO.approvalStatus = "All";
@@ -830,7 +850,7 @@ export class ResourceManagementComponent implements OnInit {
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.fetchCountAndList();
     }
-}
+  }
 
   toggleSelectAllDept() {
     // this.employeeReportObj.deptId = [];
@@ -844,7 +864,7 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.departmentsids = [];
       this.projectFilterDTO.departments = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
     } else {
       // Select all departments
@@ -856,35 +876,35 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.departments = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
     }
 
   }
-  
+
 
   toggleSelectAllDept1() {
     console.log(this.isAllSelected, "this.isAllSelected");
     if (this.isAllSelected) {
-        // Deselect all if already selected
-        this.projectObj.departmentList = [];
-        this.isAllSelected = false;
-        this.projectFilterDTO.approvalStatus = "All";
-        this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
-        this.projectFilterDTO.departmentsids = [];
-        console.log(this.projectFilterDTO, "this.projectFilterDTO");
+      // Deselect all if already selected
+      this.projectObj.departmentList = [];
+      this.isAllSelected = false;
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+      this.projectFilterDTO.departmentsids = [];
+      console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
     } else {
-        // Select all departments
-        this.projectObj.departmentList = this.filteredDepartments.map(dept => dept.deptId);
-        this.isAllSelected = true;
-        this.projectFilterDTO.approvalStatus = "All";
-        this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
-        this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
-        console.log(this.projectFilterDTO, "this.projectFilterDTO");
+      // Select all departments
+      this.projectObj.departmentList = this.filteredDepartments.map(dept => dept.deptId);
+      this.isAllSelected = true;
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+      this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
+      console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
     }
-}
-toggleSelectAllDept2() {
+  }
+  toggleSelectAllDept2() {
     // this.employeeReportObj.deptId = [];
     console.log(this.isAllSelected, "this.isAllSelected")
     if (this.isAllSelected) {
@@ -909,7 +929,7 @@ toggleSelectAllDept2() {
 
   }
 
-  
+
   getAllDepartments(): Promise<any> {
     return new Promise((resolve, reject) => {
       this.departmentService.getDeptsByRole(this.currentUser.empId).pipe(first()).subscribe({
@@ -923,8 +943,8 @@ toggleSelectAllDept2() {
             this.filteredDepartmentsTeam = [...this.departmentsList];
             // console.log(this.filteredDepartments, "this.filteredDepartments");
             this.projectFilterDTO = this.deptList;
-            this.projectFilterDTO.departments = []; 
-            this.projectFilterDTO.departmentsids = []; 
+            this.projectFilterDTO.departments = [];
+            this.projectFilterDTO.departmentsids = [];
             this.onDepartmentToggle(this.projectFilterDTO);
             resolve(response.serviceResponse);
           } else {
@@ -1273,8 +1293,8 @@ toggleSelectAllDept2() {
       });
       this.projectObj.teamList = this.allTeamList;
       this.projectObj.createdBy = this.currentUser.empId;
-      
-      if(this.projectObj.poProjectType == null){
+
+      if (this.projectObj.poProjectType == null) {
         this.projectObj.projectType = "Internal";
       }
 
@@ -1289,7 +1309,7 @@ toggleSelectAllDept2() {
         this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);
-          
+
           } else {
             this.openAlertMod3(template2, response.serviceResponse);
           }
@@ -2051,39 +2071,39 @@ toggleSelectAllDept2() {
   //   }
 
 
-//  exportToExcel(id: any): void {
-//     this.excelName = "Project Report.xlsx";
-//     this.tableName = 'Team Members';
+  //  exportToExcel(id: any): void {
+  //     this.excelName = "Project Report.xlsx";
+  //     this.tableName = 'Team Members';
 
-//     this.exportExcelService.exportTableDataToExcel(this.allProject_Po_Internal, this.excelName);
-// }
+  //     this.exportExcelService.exportTableDataToExcel(this.allProject_Po_Internal, this.excelName);
+  // }
 
-exportToExcel(id: any): void {
+  exportToExcel(id: any): void {
     this.excelName = "Project Report.xlsx";
     this.tableName = 'Team Members';
 
     // Transform data to match the table columns
     const exportData = this.allProject_Po_Internal.map(x => ({
-        'Actions': '', // Add appropriate action text or leave empty
-        'Approval Status': x.status ,
-        'Project Name': x.name || '',
-        'PO Number': x.poNo || '',
-        'Project Type': x.projectType || '',
-        'Project Manager': x.projectManagers && x.projectManagers.length > 0 
-            ? x.projectManagers[0].projectManagerName 
-            : '',
-        'Client': x.clientName || '',
-        'Apmosys RM': x.apmosysRM || '',
-        'Client RM': x.clientRM || '',
-        'Start Date': x.poStartDate || '',
-        'End Date': x.poEndDate || '',
-        'State': x.state || '',
-        'Created On': x.createdOn || '',
-        'Project Status': x.projectStatus || ''
+      'Actions': '', // Add appropriate action text or leave empty
+      'Approval Status': x.status,
+      'Project Name': x.name || '',
+      'PO Number': x.poNo || '',
+      'Project Type': x.projectType || '',
+      'Project Manager': x.projectManagers && x.projectManagers.length > 0
+        ? x.projectManagers[0].projectManagerName
+        : '',
+      'Client': x.clientName || '',
+      'Apmosys RM': x.apmosysRM || '',
+      'Client RM': x.clientRM || '',
+      'Start Date': x.poStartDate || '',
+      'End Date': x.poEndDate || '',
+      'State': x.state || '',
+      'Created On': x.createdOn || '',
+      'Project Status': x.projectStatus || ''
     }));
 
     this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
-}
+  }
 
 
   // check resource template
@@ -2266,40 +2286,40 @@ exportToExcel(id: any): void {
   }
 
 
- ranges = [
-  { label: '3M', value: 3, unit: 'M' },
-  { label: '6M', value: 6, unit: 'M' },
-  { label: '1Y', value: 1, unit: 'Y' }
-];
+  ranges = [
+    { label: '3M', value: 3, unit: 'M' },
+    { label: '6M', value: 6, unit: 'M' },
+    { label: '1Y', value: 1, unit: 'Y' }
+  ];
 
-selectedRange = this.ranges[0];
+  selectedRange = this.ranges[0];
 
-selectRange(range: any) {
-  this.selectedRange = range;
-  this.fetchTimesheetMissingCount();
-}
-
-
-unfilledTimesheetProjectList:any[] =[];
-unfilledTimesheetProjectListCount:any;
-fetchTimesheetMissingCount() {
-  const today = new Date();
-  const fromDate = new Date(today);
-
-  if (this.selectedRange.unit === 'M') {
-    fromDate.setMonth(fromDate.getMonth() - this.selectedRange.value);
-  } else if (this.selectedRange.unit === 'Y') {
-    fromDate.setFullYear(fromDate.getFullYear() - this.selectedRange.value);
+  selectRange(range: any) {
+    this.selectedRange = range;
+    this.fetchTimesheetMissingCount();
   }
 
-  const payload = {
-    empId: this.currentUser.empId,
-    fromDate: fromDate.toISOString().split('T')[0],
-    toDate: today.toISOString().split('T')[0]
-  };
 
-  console.log('non compliance:', payload);
-   this.resourceManagementService.getProjectsunfilledTimesheet(payload).pipe(first()).subscribe((response: any) => {
+  unfilledTimesheetProjectList: any[] = [];
+  unfilledTimesheetProjectListCount: any;
+  fetchTimesheetMissingCount() {
+    const today = new Date();
+    const fromDate = new Date(today);
+
+    if (this.selectedRange.unit === 'M') {
+      fromDate.setMonth(fromDate.getMonth() - this.selectedRange.value);
+    } else if (this.selectedRange.unit === 'Y') {
+      fromDate.setFullYear(fromDate.getFullYear() - this.selectedRange.value);
+    }
+
+    const payload = {
+      empId: this.currentUser.empId,
+      fromDate: fromDate.toISOString().split('T')[0],
+      toDate: today.toISOString().split('T')[0]
+    };
+
+    console.log('non compliance:', payload);
+    this.resourceManagementService.getProjectsunfilledTimesheet(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         console.log(response.serviceResponse);
         this.unfilledTimesheetProjectList = response.serviceResponse;
@@ -2310,12 +2330,12 @@ fetchTimesheetMissingCount() {
       }
     });
 
-}
+  }
 
-openTimesheetPopup() {
-  // Load and show modal with data for selectedRange
-  // this.modalService.openTimesheetModal(this.selectedRange);
-}
+  openTimesheetPopup() {
+    // Load and show modal with data for selectedRange
+    // this.modalService.openTimesheetModal(this.selectedRange);
+  }
 
 
 
@@ -2567,7 +2587,7 @@ openTimesheetPopup() {
     this.resourceManagementService.getEmployeesWithoutBillability(projectFilterDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.employeesWithoutBillability = response.serviceResponse;
-        this.employeesWithoutBillable= this.employeesWithoutBillability.length;
+        this.employeesWithoutBillable = this.employeesWithoutBillability.length;
         console.log("this.employeesWithoutProjectList", this.employeesWithoutProjectList)
       } else {
         this.openAlertMod(this.alertTemplate, response.serviceResponse);
@@ -2630,10 +2650,10 @@ openTimesheetPopup() {
     return emp && emp.name ? emp.name : '';
   }
 
-   openSummaryModal(template: TemplateRef<any>, selectedEmpId: any) {
+  openSummaryModal(template: TemplateRef<any>, selectedEmpId: any) {
     this.summaryModalRef = this.modalService.show(template, { class: 'modal-lg' });
     this.selectedEmpId = selectedEmpId;
-    
+
     this.getProjectTimesheetSummaryData();
   }
 
@@ -2641,7 +2661,7 @@ openTimesheetPopup() {
     this.summaryModalRef.hide();
   }
 
-getProjectTimesheetSummaryData() {
+  getProjectTimesheetSummaryData() {
     // 1. Check if the current user and their empId are available.
     if (!this.selectedEmpId) {
       this.openAlertMod(this.alertTemplateWithoutReload, "Cannot fetch summary. User information is missing.");
@@ -2660,12 +2680,12 @@ getProjectTimesheetSummaryData() {
     };
 
     // 3. Pass the DTO to the service call.
-    console.log("================================",resourceManagementDTO);
+    console.log("================================", resourceManagementDTO);
     this.resourceManagementService.getProjectTimesheetSummary(resourceManagementDTO).pipe(first()).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === "Success") {
           this.projectSummaryData = response.serviceResponse;
-          
+
           if (this.projectSummaryData && this.projectSummaryData.length > 0) {
             this.processProjectSummaryData(this.projectSummaryData);
           } else {
@@ -2687,89 +2707,89 @@ getProjectTimesheetSummaryData() {
   }
 
   processProjectSummaryData(summaryData: any[]) {
-      const categories = [];
-      const seriesData = [];
+    const categories = [];
+    const seriesData = [];
 
-      // Sort data by totalTimesheetsFilled in descending order and take top 20 for better visualization
-      const sortedData = summaryData
-          .sort((a, b) => b.totalTimesheetsFilled - a.totalTimesheetsFilled)
-          .slice(0, 20);
+    // Sort data by totalTimesheetsFilled in descending order and take top 20 for better visualization
+    const sortedData = summaryData
+      .sort((a, b) => b.totalTimesheetsFilled - a.totalTimesheetsFilled)
+      .slice(0, 20);
 
-      sortedData.forEach(item => {
-          categories.push(item.projectName);
-          seriesData.push(item.totalTimesheetsFilled);
-      });
+    sortedData.forEach(item => {
+      categories.push(item.projectName);
+      seriesData.push(item.totalTimesheetsFilled);
+    });
 
-      const chartData = [{
-          name: 'Timesheets Filled',
-          data: seriesData,
-          color: '#0275d8' // A bootstrap primary-like color
-      }];
+    const chartData = [{
+      name: 'Timesheets Filled',
+      data: seriesData,
+      color: '#0275d8' // A bootstrap primary-like color
+    }];
 
-      this.renderColumnChart(
-          'Top 20 Projects by Timesheets Filled',
-          'projectTimesheetSummaryChart',
-          chartData,
-          categories
-      );
+    this.renderColumnChart(
+      'Top 20 Projects by Timesheets Filled',
+      'projectTimesheetSummaryChart',
+      chartData,
+      categories
+    );
   }
 
   renderColumnChart(chartName: any, chartId: any, chartData: any, categories: any) {
     Highcharts.chart(chartId, {
-        chart: {
-            type: 'column',
-        },
+      chart: {
+        type: 'column',
+      },
+      title: {
+        text: chartName,
+        style: {
+          fontWeight: 'bold',
+          color: '#000000'
+        }
+      },
+      xAxis: {
+        categories: categories,
         title: {
-            text: chartName,
+          text: 'Projects'
+        },
+        labels: {
+          rotation: -45, // Rotate labels to prevent overlap
+          style: {
+            fontSize: '11px',
+            fontFamily: 'Verdana, sans-serif'
+          }
+        }
+      },
+      yAxis: {
+        min: 0,
+        title: {
+          text: 'Total Timesheets Filled',
+          align: 'high'
+        },
+        labels: {
+          overflow: 'justify'
+        }
+      },
+      tooltip: {
+        valueSuffix: ' timesheets'
+      },
+      plotOptions: {
+        column: {
+          dataLabels: {
+            enabled: true,
+            format: '{y}',
             style: {
-                fontWeight: 'bold',
-                color: '#000000'
+              fontSize: '10px',
             }
-        },
-        xAxis: {
-            categories: categories,
-            title: {
-                text: 'Projects'
-            },
-            labels: {
-                rotation: -45, // Rotate labels to prevent overlap
-                style: {
-                    fontSize: '11px',
-                    fontFamily: 'Verdana, sans-serif'
-                }
-            }
-        },
-        yAxis: {
-            min: 0,
-            title: {
-                text: 'Total Timesheets Filled',
-                align: 'high'
-            },
-            labels: {
-                overflow: 'justify'
-            }
-        },
-        tooltip: {
-            valueSuffix: ' timesheets'
-        },
-        plotOptions: {
-            column: {
-                dataLabels: {
-                    enabled: true,
-                    format: '{y}',
-                    style: {
-                      fontSize: '10px',
-                    }
-                }
-            }
-        },
-        credits: {
-            enabled: false,
-        },
-        legend: {
-            enabled: false // Not needed for a single series chart
-        },
-        series: chartData
+          }
+        }
+      },
+      credits: {
+        enabled: false,
+      },
+      legend: {
+        enabled: false // Not needed for a single series chart
+      },
+      series: chartData
     });
   }
 
@@ -3154,24 +3174,24 @@ getProjectTimesheetSummaryData() {
     const lowerText = this.searchTextDeptTeam.trim().toLowerCase();
 
     const filtered = this.departmentsList.filter(dept =>
-        dept.name.toLowerCase().includes(lowerText)
+      dept.name.toLowerCase().includes(lowerText)
     );
 
     const selected = this.departmentsList.filter(dept =>
-        this.teamObj.departmentList?.includes(dept.deptId)
+      this.teamObj.departmentList?.includes(dept.deptId)
     );
-    
+
     const selectedSet = new Set(filtered.map(dept => dept.deptId));
     const merged = [...filtered];
 
     selected.forEach(dept => {
-        if (!selectedSet.has(dept.deptId)) {
-            merged.push(dept);
-        }
+      if (!selectedSet.has(dept.deptId)) {
+        merged.push(dept);
+      }
     });
 
     this.filteredDepartmentsTeam = merged;
-    
+
     // Update select all state after filtering
     // if (!this.teamObj.departmentList || this.teamObj.departmentList.length === 0) {
     //     this.isAllDeptSelected = false;
@@ -3183,28 +3203,28 @@ getProjectTimesheetSummaryData() {
     // } else {
     //     this.isAllDeptSelected = false;
     // }
-}
-
- toggleSelectAllTeams() {
-  if (this.isAllDeptSelected) {
-    this.teamObj.departmentList = [];
-    this.isAllDeptSelected = false;
-    // console.log("test" , team);
-  } else {
-    this.teamObj.departmentList = this.filteredDepartmentsTeam.map(dept => dept.deptId);
-    
-    this.isAllDeptSelected = true;
-    // console.log("test2" , team);
   }
-}
+
+  toggleSelectAllTeams() {
+    if (this.isAllDeptSelected) {
+      this.teamObj.departmentList = [];
+      this.isAllDeptSelected = false;
+      // console.log("test" , team);
+    } else {
+      this.teamObj.departmentList = this.filteredDepartmentsTeam.map(dept => dept.deptId);
+
+      this.isAllDeptSelected = true;
+      // console.log("test2" , team);
+    }
+  }
 
 
 
-clearSelectionDept(event: Event) {
+  clearSelectionDept(event: Event) {
     event.stopPropagation();
     this.teamObj.departmentList = [];
     this.isAllDeptSelected = false;
-}
+  }
 
   onSpocSelected(event: any) {
     const selectedSpoc = event.option.value;
@@ -3697,17 +3717,17 @@ clearSelectionDept(event: Event) {
     if (this.isAllSelected) {
       this.projectObj.departmentList = [];
       this.isAllSelected = false;
-      console.log("test",this.projectObj.departmentList);
-      
+      console.log("test", this.projectObj.departmentList);
+
     } else {
       this.projectObj.departmentList = this.filteredDepartmentsInternal.map(dept => dept.deptId);
       this.isAllSelected = true;
-      console.log("test2",this.projectObj.departmentList);
+      console.log("test2", this.projectObj.departmentList);
     }
   }
 
-  
- 
+
+
 
   clearSelectionInternal(event: Event) {
     event.stopPropagation();
@@ -4086,14 +4106,14 @@ clearSelectionDept(event: Event) {
         this.bulkEmployeeListActiveList = response.serviceResponse;
         console.error("Unable to fetch Employee List!", this.bulkEmployeeListActiveList);
         // this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-      
-       } else {
-          if (this.activeProjects.length !== 0) {
+
+      } else {
+        if (this.activeProjects.length !== 0) {
           this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
           console.error("Unable to fetch Employee List!");
         }
-         
-       }
+
+      }
     });
   }
 
@@ -4142,7 +4162,7 @@ clearSelectionDept(event: Event) {
 
   onTeamLeadSelected(event: any) {
     const selectedTeamLead = event.option.value;
-  this.teamObj.teamLeadId = selectedTeamLead.empId;
+    this.teamObj.teamLeadId = selectedTeamLead.empId;
   }
 
   filterTeamLeads(searchText: string) {
@@ -4163,8 +4183,8 @@ clearSelectionDept(event: Event) {
             this.deptIdListByUser = this.departmentListByUser;
             this.filteredDepartmentsByUser = this.departmentListByUser;
             this.projectFilterDTO = this.deptList;
-            this.projectFilterDTO.departments = []; 
-            this.projectFilterDTO.departmentsids = []; 
+            this.projectFilterDTO.departments = [];
+            this.projectFilterDTO.departmentsids = [];
             this.onDepartmentToggle(this.projectFilterDTO);
             // this.combinedPOINTERNALCountList(this.projectFilterDTO);
             resolve(response.serviceResponse);
@@ -4188,7 +4208,7 @@ clearSelectionDept(event: Event) {
       this.projectFilterDTO.departmentsids = this.deptIdListByUser;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
       // this.getEmployeeReportData();
     }
   }
@@ -4202,7 +4222,7 @@ clearSelectionDept(event: Event) {
 
   clearSelectionByUser(event: Event) {
     console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser");
-    event.stopPropagation(); 
+    event.stopPropagation();
     if (this.isAllSelectedByUser == true) {
       console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser");
       this.toggleSelectAllDept();
@@ -4215,7 +4235,7 @@ clearSelectionDept(event: Event) {
       this.projectFilterDTO.departments = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
     }
 
   }
@@ -4233,7 +4253,7 @@ clearSelectionDept(event: Event) {
       this.projectFilterDTO.departments = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
 
     } else {
       // Select all departments
@@ -4245,7 +4265,7 @@ clearSelectionDept(event: Event) {
       this.projectFilterDTO.departments = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
     }
 
   }
@@ -4269,46 +4289,46 @@ clearSelectionDept(event: Event) {
     });
   }
 
-  onDepartmentToggle(projectFilterDTO){
+  onDepartmentToggle(projectFilterDTO) {
     this.projectFilterDTO.approvalStatus = 'All';
-     if(!this.myDept){
-        this.projectFilterDTO.departments = this.deptIdList;
-        const deptIds: number[] = this.deptIdList.map(dept => dept.deptId);
-        this.projectFilterDTO.departmentsids = deptIds;
-        this.combinedPOINTERNALCountList(projectFilterDTO);
-        this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
-      }
-      else{
-        this.projectFilterDTO.departments = this.deptIdListByUser;
-        const deptIds: number[] = this.deptIdListByUser.map(dept => dept.deptId);
-        this.projectFilterDTO.departmentsids = deptIds;
-        this.combinedPOINTERNALCountList(projectFilterDTO);
-        this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
-      }
+    if (!this.myDept) {
+      this.projectFilterDTO.departments = this.deptIdList;
+      const deptIds: number[] = this.deptIdList.map(dept => dept.deptId);
+      this.projectFilterDTO.departmentsids = deptIds;
+      this.combinedPOINTERNALCountList(projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    }
+    else {
+      this.projectFilterDTO.departments = this.deptIdListByUser;
+      const deptIds: number[] = this.deptIdListByUser.map(dept => dept.deptId);
+      this.projectFilterDTO.departmentsids = deptIds;
+      this.combinedPOINTERNALCountList(projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    }
   }
 
-  fetchCountAndList(){
+  fetchCountAndList() {
     this.myDept = !this.myDept;
-    if(this.myDept){
+    if (this.myDept) {
       this.projectFilterDTO.departments = this.deptIdList;
       const deptIds: number[] = this.deptIdList.map(dept => dept.deptId);
       this.projectFilterDTO.departmentsids = deptIds;
       this.projectFilterDTO.approvalStatus = 'All';
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
     }
-    else{
+    else {
       this.projectFilterDTO.departments = this.deptIdListByUser;
       const deptIds: number[] = this.deptIdListByUser.map(dept => dept.deptId);
       this.projectFilterDTO.departmentsids = deptIds;
       this.projectFilterDTO.approvalStatus = 'All';
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
     }
   }
 
   toggleDept(): void {
-  this.myDept = !this.myDept;
+    this.myDept = !this.myDept;
   }
 
   openProjectLineItemListModal() {
@@ -4328,22 +4348,29 @@ clearSelectionDept(event: Event) {
         this.fcProjectMilestoneList = response.serviceResponse;
         this.openProjectLineItemListModal();
       } else {
-        this.openAlertMod(this.alertTemplate,response.serviceResponse);
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
     });
   }
 
-  calculatePoStatus(){
-    let notStarted=0,completed=0,hold=0,inProgress=0;
+
+
+
+
+
+
+
+  calculatePoStatus() {
+    let notStarted = 0, completed = 0, hold = 0, inProgress = 0;
     let lineItemList = this.fcProjectMilestoneList.filter(milestone => milestone.lineItemId == this.projectMilestone.lineItemId);
-    for(let m of lineItemList){
-      if(m.status==Status.IN_PROGRESS){
+    for (let m of lineItemList) {
+      if (m.status == Status.IN_PROGRESS) {
         inProgress++;
-      }else if(m.status==Status.COMPLETED){
+      } else if (m.status == Status.COMPLETED) {
         completed++;
-      }else if(m.status==Status.ON_HOLD){
+      } else if (m.status == Status.ON_HOLD) {
         hold++;
-      }else if(m.status==Status.NOT_STARTED){
+      } else if (m.status == Status.NOT_STARTED) {
         notStarted++;
       }
     }
@@ -4361,53 +4388,187 @@ clearSelectionDept(event: Event) {
       this.projectMilestoneSortDirection = sort.direction;
     }
   }
-  
+
   handleProjectMilestonePageChange(event) {
     this.projectMilestonepage = event;
   }
 
-  openUpdateProjectMilestoneModal(milestone:any){
+  openUpdateProjectMilestoneModal(milestone: any) {
+    // this.projectMilestone = new ProjectM  ;
     this.projectMilestone = milestone;
     this.updateProjectMilestoneModalRef = this.modalService.show(this.updateProjectMilestoneModal, { class: 'modal-xl' });
- }
+  }
 
   closeUpdateProjectMilestoneModal() {
     this.updateProjectMilestoneModalRef.hide();
   }
+
+  updateMilestone(): void {
+    this.modalRef = this.modalService.show(this.updateProjectMilestoneSuccessModal, {
+      class: 'modal-sm'
+    });
+  }
+
+  viewDocument(): void {
+    this.modalRef = this.modalService.show(this.milestoneDocumentModal, {
+      class: 'modal-xm'
+    });
+  }
+  closeModalViewDocument() {
+    this.modalRef.hide();
+  }
+
+  CancelUpdateMilestonePopup() {
+    this.modalRef.hide();
+  }
+
+
+  onFileSelected(event: any): void {
+    const file: File = event.target.files[0];
+
+    if (file) {
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+
+      if (!allowedTypes.includes(file.type)) {
+        alert('Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.');
+        event.target.value = '';
+        this.selectedFile = null;
+        return;
+      }
+
+
+      this.selectedFile = file;
+
+    }
+  }
+
+  openAlertModForMilestone(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+
+
+
+
+
 
   updateMilestoneChanges() {
     // Validate required fields
     let isValid = true;
     let errors: any;
 
-      if (!this.projectMilestone.startDate) {
-        isValid = false;
-        errors = 'Start date is required for milestone';
-      }
-      if (!this.projectMilestone.endDate) {
-        isValid = false;
-        errors = 'End date is required for milestone';
-      }
-      if (this.projectMilestone.startDate && this.projectMilestone.endDate && this.projectMilestone.startDate > this.projectMilestone.endDate) {
-        isValid = false;
-        errors = 'End date must be after start date for milestone';
-      }
+    if (!this.projectMilestone.startDate) {
+      isValid = false;
+      errors = 'Start date is required for milestone';
+    }
+    if (!this.projectMilestone.endDate) {
+      isValid = false;
+      errors = 'End date is required for milestone';
+    }
+    if (this.projectMilestone.startDate && this.projectMilestone.endDate && this.projectMilestone.startDate > this.projectMilestone.endDate) {
+      isValid = false;
+      errors = 'End date must be after start date for milestone';
+    }
+
+    else if (
+      !this.projectMilestone.remarks ||
+      this.projectMilestone.remarks.trim().length === 0
+    ) {
+      isValid = false;
+      errors = 'Remarks are required for milestone';
+    }
+
+    // Status validation
+    else if (
+      !this.projectMilestone.status ||
+      this.projectMilestone.status.trim().length === 0
+    ) {
+      isValid = false;
+      errors = 'Status is required for milestone';
+    }
+
+    // Document/file validation
+    else if (!this.selectedFile) {
+      isValid = false;
+      errors = 'Please upload a document for the milestone';
+    }
+
 
     if (!isValid) {
-      this.openAlertMod(this.alertTemplate, errors);
+      this.openAlertMod(this.alertTemplateForMilestone, errors);
       return;
     }
 
-    // TODO: Implement actual save logic
-    // this.projectService.updateProjectMilstone(milestone).pipe(first()).subscribe((response: any) => {
-    //   if (response.serviceStatus == "Success") {
-    //     this.fcProjectMilestoneList = response.serviceResponse;
-    //     this.openProjectLineItemListModal();
-    //     this.closeUpdateProjectMilestoneModal();
-    //   } else {
-    //     this.openAlertMod(this.alertTemplate,response.serviceResponse);
-    //   }
-    // });
+    console.log("before updaed by updated on", this.projectMilestone);
+
+    this.projectMilestone.updatedBy = this.currentUser.empId;
+    this.projectMilestone.updatedOn = new Date();
+
+    const formData = new FormData();
+    formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
+
+    if (this.selectedFile) {
+      formData.append('file', this.selectedFile);
+    }
+    console.log("after updaed by updated on", this.projectMilestone);
+
+    this.projectService.updateMilestoneById(formData).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.fcProjectMilestoneList = response.serviceResponse;
+        setTimeout(() => {
+          this.updateMilestone();
+        }, 2000);
+        // this.openProjectLineItemListModal();
+        this.closeUpdateProjectMilestoneModal();
+
+      } else {
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    });
   }
+
+
+
+
+  viewMilestoneFile(milestoneId: number): void {
+    this.projectService.getMilestoneById(milestoneId).subscribe({
+      next: (res) => {
+        if (res.serviceStatus === 'Success') {
+          const milestone = res.serviceResponse;
+          if (milestone.documentBase64) {
+            const mimeType = this.getMimeType(milestone.documentName);
+            const base64Data = `data:${mimeType};base64,${milestone.documentBase64}`;
+            this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(base64Data);
+            setTimeout(() => {
+              this.viewDocument();
+            }, 2000);
+
+          } else {
+            alert('No document available for this milestone.');
+          }
+        } else {
+          console.error(res.serviceResponse);
+        }
+      },
+      error: (err) => {
+        console.error('Failed to retrieve milestone:', err);
+      }
+    });
+  }
+
+
+  getMimeType(fileName: string): string {
+    const ext = fileName?.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'pdf': return 'application/pdf';
+      case 'png': return 'image/png';
+      case 'jpg':
+      case 'jpeg': return 'image/jpeg';
+      default: return 'application/octet-stream';
+    }
+  }
+
+
 
 }

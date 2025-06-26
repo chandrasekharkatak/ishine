@@ -11,4 +11,9 @@ export class FCProjectMilestone {
     lineItemId: any;
     lineItemName: any;
     lineItemStatus: any;
+    updatedBy: any;
+    updatedOn: any;
+    documentName: any;
+    documentPath: any;
+   documentBase64: any;
 }

@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,5 +16,7 @@ public interface FCProjectMilestoneRepository extends JpaRepository<FCProjectMil
             +" INNER JOIN FCLineItem li ON pm.lineItemId = li.id \n"
             +" WHERE pm.projectId =:projectId")
     List<FCProjectMilestoneDTO> findByProjectId(Long projectId);
+    
+    Optional<FCProjectMilestoneDTO>  findByid(Long id);
 
 }

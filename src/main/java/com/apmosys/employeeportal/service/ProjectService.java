@@ -1,7 +1,11 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -9,6 +13,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,11 +44,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -158,6 +166,9 @@ public class ProjectService {
 	
 	@Value("${poPortal.api.allProjects}")
 	private String allPoPortalProjects;
+	
+	@Value("${file.location.documents.fcmilestone}")
+	private String fcMileStone;
 	
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
@@ -2612,4 +2623,227 @@ public class ProjectService {
 		}
 		return serviceResponse;
      }
+     
+   
+
+     @Transactional
+     public ServiceResponse updateMilestoneById(FCProjectMilestoneDTO dto, MultipartFile file) {
+
+         ServiceResponse response = new ServiceResponse();
+         LogDTO apiLogInfo = new LogDTO();
+         apiLogInfo.setApiUrl("/api/updateMilestoneById");
+         apiLogInfo.setLogLevel("INFO");
+         StringBuilder logBuilder = new StringBuilder();
+
+         try {
+           
+             if (dto == null || dto.getId() == null) {
+                 String msg = "Milestone ID cannot be null.";
+                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                 response.setServiceResponse(msg);
+                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                 apiLogInfo.setApiResponse(msg);
+                 return response;
+             }
+
+            
+             Optional<FCProjectMilestone> optionalMilestone = fcProjectMilestoneRepository.findById(dto.getId());
+             if (optionalMilestone.isEmpty()) {
+                 String msg = "Milestone not found.";
+                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                 response.setServiceResponse(msg);
+                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                 apiLogInfo.setApiResponse(msg);
+                 return response;
+             }
+
+             FCProjectMilestone milestone = optionalMilestone.get();
+
+             
+             logBuilder.append("Milestone ID: ").append(dto.getId())
+                       .append(", UpdatedBy: ").append(dto.getUpdatedBy());
+
+           
+             if (file != null && !file.isEmpty()) {
+            	 
+            	 
+            	 String originalFilename = file.getOriginalFilename();
+            	    String contentType = file.getContentType();
+
+            	   
+            	    List<String> allowedContentTypes = Arrays.asList(
+            	        "application/pdf",
+            	        "image/jpeg",
+            	        "image/png"
+            	    );
+
+            	    if (!allowedContentTypes.contains(contentType)) {
+            	        String msg = "Invalid file type. Only PDF, JPG, JPEG, or PNG files are allowed.";
+            	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            	        response.setServiceResponse(msg);
+            	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            	        apiLogInfo.setApiResponse(msg);
+            	        apiLogInfo.setApiRequest(logBuilder.toString());
+            	        return response;
+            	    }
+
+            	 
+                 try {
+                     Path directory = Paths.get(fcMileStone);
+                     if (!Files.exists(directory)) {
+                         Files.createDirectories(directory);
+                     }
+
+                     String newFileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+                     Path filePath = directory.resolve(newFileName);
+
+                     Files.write(filePath, file.getBytes());
+
+                     File savedFile = filePath.toFile();
+                     if (savedFile.exists()) {
+                         milestone.setDocumentName(newFileName);
+                         
+                         milestone.setDocumentPath(filePath.toString());
+                         
+                     } else {
+                         throw new IOException("File write succeeded but file not found on disk.");
+                     }
+                 } catch (IOException ioEx) {
+                     response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                     response.setServiceResponse("Failed to upload milestone document.");
+                     response.setServiceError(ioEx.getMessage());
+                     apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                     apiLogInfo.setApiResponse("IOException: " + ioEx.getMessage());
+                     apiLogInfo.setApiRequest(logBuilder.toString());
+                     return response;
+                 }
+             } else {
+                 String msg = "Uploaded milestone document not found.";
+                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                 response.setServiceResponse(msg);
+                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                 apiLogInfo.setApiResponse(msg);
+                 apiLogInfo.setApiRequest(logBuilder.toString());
+                 return response;
+             }
+
+             
+             if (dto.getStatus() != null) milestone.setStatus(dto.getStatus());
+             if (dto.getUpdatedBy() != null) milestone.setUpdatedBy(dto.getUpdatedBy());
+             if (dto.getUpdatedOn() != null) milestone.setUpdatedOn(dto.getUpdatedOn());
+             
+             if (milestone.getLineItemId() != null) {
+            	    Optional<FCLineItem> optionalLineItem = fcLineItemRepository.findByid(milestone.getLineItemId());
+            	    if (optionalLineItem.isPresent()) {
+            	        FCLineItem lineItem = optionalLineItem.get();
+            	        lineItem.setStatus(dto.getStatus());
+            	        fcLineItemRepository.save(lineItem);
+            	    } else {
+            	        logBuilder.append(", FCLineItem not found for lineItemId: ").append(milestone.getLineItemId());
+            	    }
+            	}
+
+
+             
+             FCProjectMilestone updatedMilestone = fcProjectMilestoneRepository.save(milestone);
+
+           
+             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+             response.setServiceResponse(updatedMilestone);
+             response.setServiceMessage("Milestone updated successfully.");
+             apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+             apiLogInfo.setApiResponse("Milestone updated successfully.");
+
+         } catch (DataAccessException dae) {
+             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+             response.setServiceResponse("Database error occurred.");
+             response.setServiceError(dae.getMessage());
+             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+             apiLogInfo.setApiResponse("DataAccessException: " + dae.getMessage());
+
+         } catch (Exception e) {
+             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+             response.setServiceResponse("Unexpected error occurred.");
+             response.setServiceError(e.getMessage());
+             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+             apiLogInfo.setApiResponse("Exception: " + e.getMessage());
+         }
+
+         apiLogInfo.setApiRequest(logBuilder.toString());
+         return response;
+     }
+     
+     
+     
+     
+     
+     public ServiceResponse getMilestoneById(Long milestoneId) {
+    	    ServiceResponse response = new ServiceResponse();
+
+    	    try {
+    	        Optional<FCProjectMilestone> optionalMilestone = fcProjectMilestoneRepository.findById(milestoneId);
+    	        if (optionalMilestone.isEmpty()) {
+    	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    	            response.setServiceResponse("Milestone not found.");
+    	            return response;
+    	        }
+
+    	        FCProjectMilestone milestone = optionalMilestone.get();
+
+    	        FCLineItem lineItem = milestone.getLineItemId() != null
+    	                ? fcLineItemRepository.findById(milestone.getLineItemId()).orElse(null)
+    	                : null;
+
+    	        FCProjectMilestoneDTO dto = new FCProjectMilestoneDTO();
+    	        dto.setId(milestone.getId());
+    	        dto.setPoId(milestone.getPoId());
+    	        dto.setProjectId(milestone.getProjectId());
+    	        dto.setName(milestone.getName());
+    	        dto.setDescription(milestone.getDescription());
+    	        dto.setStartDate(milestone.getStartDate());
+    	        dto.setEndDate(milestone.getEndDate());
+    	        dto.setStatus(milestone.getStatus());
+    	        dto.setRemarks(milestone.getRemarks());
+    	        dto.setLineItemId(milestone.getLineItemId());
+
+    	        if (lineItem != null) {
+    	            dto.setLineItemName(lineItem.getName());
+    	            dto.setLineItemStatus(lineItem.getStatus());
+    	        }
+
+    	        dto.setDocumentName(milestone.getDocumentName());
+    	        dto.setDocumentPath(milestone.getDocumentPath());
+    	        dto.setUpdatedBy(milestone.getUpdatedBy());
+    	        dto.setUpdatedOn(milestone.getUpdatedOn());
+
+    	    
+    	        if (milestone.getDocumentPath() != null) {
+    	            try {
+    	                Path filePath = Paths.get(milestone.getDocumentPath());
+    	                if (Files.exists(filePath)) {
+    	                    byte[] fileBytes = Files.readAllBytes(filePath);
+    	                    String base64File = Base64.getEncoder().encodeToString(fileBytes);
+    	                    dto.setDocumentBase64(base64File); 
+    	                } else {
+    	                    System.err.println("File not found: " + milestone.getDocumentPath());
+    	                }
+    	            } catch (IOException e) {
+    	                e.printStackTrace(); 
+    	            }
+    	        }
+
+    	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+    	        response.setServiceResponse(dto);
+    	        return response;
+
+    	    } catch (Exception e) {
+    	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    	        response.setServiceResponse("Error retrieving milestone: " + e.getMessage());
+    	        response.setServiceError(e.getMessage());
+    	        return response;
+    	    }
+    	}
+
+
+    
 }
