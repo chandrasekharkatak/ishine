@@ -6890,11 +6890,8 @@ public class ResourceManagementService {
 				approvalCheck = false;
 			}
 			else {
-				if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-					approvalStatus = null;
-					approvalCheck = true;
-				}
-				else if("Pending for approval".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+				
+				 if("Pending for approval".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 					approvalStatus = "true";
 					approvalCheck = true;
 				}else if("Approved".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
@@ -6933,13 +6930,23 @@ public class ResourceManagementService {
 						    .filter(Objects::nonNull)
 						    .collect(Collectors.toSet());
 					projectIdSet = matchingProjectIds;
-					if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+					if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+//						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
+						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
+						
+					}
+					else if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 						finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,projectIdSet,true,approvalCheck);
 						}else {
 							finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
 						}
 				}else {
-					if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+					if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
+						finalDataList = projectRepository.getAllNotStartedProjects(deptIdsAccToRole);
+						
+					}
+					else if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 						finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,null,false,approvalCheck);
 					}else {
 						finalDataList = projectRepository.completedInSankhButTeamMappedList(null,false);
@@ -7010,11 +7017,23 @@ public class ResourceManagementService {
 						    .collect(Collectors.toSet());
 					
 					projectIdSet.retainAll(matchingProjIds);
+					
+					if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+//						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
+						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
+						
+					}
+					}else {
+						if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+//							List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
+							finalDataList = projectRepository.getAllNotStartedProjects(deptIdList);
+							
+						}
 					}
 				
-				if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+				 if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus()) && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 					finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,projectIdSet,true,approvalCheck);
-					}else {
+					}else if(!"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
 					}
 			}
@@ -7047,6 +7066,8 @@ public class ResourceManagementService {
 
 				
 				if (projectIdSet != null && !projectIdSet.isEmpty()){
+					
+					if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null ) {
 					List<Long> selectedDeptList= projectFilterDTO.getDepartmentsids();
 					Set<Integer> matchingProjectIds = teamRepository.findAll().stream()
 						    .filter(team -> {
@@ -7062,9 +7083,24 @@ public class ResourceManagementService {
 					
 					projectIdSet.retainAll(matchingProjectIds);
 					
-					if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
+					if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+//						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
+						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
+						
+					}
+				}else {
+					Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+					List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
+					if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+//						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
+						finalDataList = projectRepository.getAllNotStartedProjects(deptIdOfOther);
+						
+					}
+				}
+					
+					if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus()) && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,projectIdSet,true,approvalCheck);
-						}else {
+						}else if(!"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 							finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
 						}
 
