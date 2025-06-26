@@ -553,20 +553,23 @@ export class ResourceManagementComponent implements OnInit {
     // await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
 
     await this.RbacInternalProjects(this.projectFilterDTO);
-
-    await this.getEmployeesWithoutBillability(this.projectFilterDTO);
-
-    this.fetchTimesheetMissingCount();
-
     await this.RbacShankhProjects(this.projectFilterDTO);
-
+    await this.getEmployeesWithoutBillability(this.projectFilterDTO);
     await this.RbacAllShankhInternalProjects(this.projectFilterDTO);
     await this.ExceptionEmployeeReport(this.projectFilterDTO);
     await this.RbacBothShankhInternal(this.projectFilterDTO);
     await this.ProjectLessEmployees(this.projectFilterDTO);
+      await this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
+    
+
+    this.fetchTimesheetMissingCount();
+
+    
+
+   
     await this.getProjectDetailsForBulkDefaultUpdate();
     await this.TotalEmployeeCount();
-    await this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
+  
     // const deptName = String(this.currentUser.departmentName).trim();
     // const empRole = String(this.currentUser.employeeRole).trim();
     // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
@@ -1018,6 +1021,14 @@ deptList2 : any;
     }
     console.log(this.projectFilterDTO)
     this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    this.RbacInternalProjects(this.projectFilterDTO);
+    this.RbacShankhProjects(this.projectFilterDTO);
+   this.getEmployeesWithoutBillability(this.projectFilterDTO);
+     this.RbacAllShankhInternalProjects(this.projectFilterDTO);
+     this.ExceptionEmployeeReport(this.projectFilterDTO);
+     this.RbacBothShankhInternal(this.projectFilterDTO);
+     this.ProjectLessEmployees(this.projectFilterDTO);
+     this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
   }
 
   alreadyCreatedTeam() {
