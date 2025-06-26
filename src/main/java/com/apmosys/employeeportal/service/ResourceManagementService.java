@@ -2586,11 +2586,36 @@ public class ResourceManagementService {
 										.findByProjectIdAndActive(projectObj.getProjectId(), 2L);
 
 								if (!teamMembersToActivate.isEmpty()) {
-									teamMembersToActivate.forEach(teamMember -> teamMember.setActive(1L));
+									teamMembersToActivate.forEach(teamMember -> teamMember.setActive(1L)
+
+											);
+									
+									List<Project> isDraftProject = employeeTeamMapRepository
+											.findByProjectIdAndActiveForDraftProject(projectObj.getProjectId(), 2L);
+									
+									if(!isDraftProject.isEmpty()) {
+										isDraftProject.forEach(draftProject -> draftProject.setIsDraftProject("true"));
+										
+									}
+									
+									projectRepository.saveAll(isDraftProject);
+
 									employeeTeamMapRepository.saveAll(teamMembersToActivate);
 								}
 
 							} else {
+								
+								List<Project> isDraftProject = employeeTeamMapRepository
+										.findByProjectIdAndActiveForDraftProject(projectObj.getProjectId(), 1L);
+								
+								if(!isDraftProject.isEmpty()) {
+									isDraftProject.forEach(draftProject -> draftProject.setIsDraftProject("true"));
+									
+								}
+								
+								projectRepository.saveAll(isDraftProject);
+								
+								
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 								response.setServiceResponse(
 										"Project & Team created successfully, but unable to sync with PoPortal:1010 "
