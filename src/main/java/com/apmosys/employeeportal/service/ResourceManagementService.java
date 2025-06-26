@@ -2629,7 +2629,7 @@ public class ResourceManagementService {
 										.findByProjectIdAndActiveForDraftProject(projectObj.getProjectId(), 1L);
 								
 								if(!isDraftProject.isEmpty()) {
-									isDraftProject.forEach(draftProject -> draftProject.setIsDraftProject("true"));
+									isDraftProject.forEach(draftProject -> draftProject.setIsDraftProject("false"));
 									
 								}
 								
