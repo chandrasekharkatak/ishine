@@ -458,7 +458,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 //			+ "			AND  p.status = 'Completed' ", nativeQuery=true)
 //	List<Object[]> completedInSankhButTeamMappedList(@Param("deptIds") List<Long> deptIds);
 	
-	@Query(value = "SELECT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
+	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
 			+ "p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
 			+ "p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
 			+ "p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
