@@ -1044,7 +1044,7 @@
         <div class="modal-body text-center">
             <p>{{alertMessage}}</p>
             <button type="button" class="btn btn-primary"
-                (click)="cancelRequest();CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO)">OK</button>&nbsp;
+                (click)="cancelRequest();reloadPage()">OK</button>&nbsp;
         </div>
     </ng-template>
     <ng-template #alert_team_message>
@@ -1685,7 +1685,7 @@
                             </mat-select>
                         </div>
 
-                        <!-- <div class="form-field">
+                        <div class="form-field">
                             <label>SPOC</label>
                             <input type="text" class="form-select name-field" placeholder="Search by Emp ID or Name"
                                 aria-label="Search employee" [formControl]="spocCtrl" [matAutocomplete]="spocAuto"
@@ -1697,11 +1697,11 @@
                                     {{ employee.name }}
                                 </mat-option>
                             </mat-autocomplete>
-                        </div> -->
+                        </div>
 
-                        <div class="form-field">
+                        <!-- <div class="form-field">
                             <label>SPOC</label>
-                            <input type="text" class="form-control" placeholder="Search by Emp ID or Name"
+                            <input type="text" class="form-control" placeholder="Search by Emp ID or Name" [(ngModel)]="teamObj.spoc"
                                 aria-label="Search employee" [formControl]="spocCtrl" [matAutocomplete]="spocAuto" />
 
                             <mat-autocomplete #spocAuto="matAutocomplete" (optionSelected)="onSpocSelected($event)"
@@ -1711,7 +1711,7 @@
                                     {{ employee.name }}
                                 </mat-option>
                             </mat-autocomplete>
-                        </div>
+                        </div> -->
 
 
                         <div class="form-field">
@@ -1803,12 +1803,12 @@
                             <span style="color: #f44336; font-weight: bold; margin-left: 4px;">*</span>
                         </label>
                         <mat-select 
-                            placeholder="Select Requirement" 
+                            placeholder="Select Resource Requirement" 
                             [(ngModel)]="selectedRequirement"
                             required
                             style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 8px; background-color: #fafafa;">
-                             <mat-option value="">
-                                Select
+                             <mat-option disabled value="">
+                                Select Resource Requirement
                             </mat-option>
                             <mat-option *ngFor="let requirement of projectObj.resourceRequirements"
                                 [value]="requirement">
@@ -1873,7 +1873,7 @@
                   </div> -->
                   <div>
                         <button type="button" class="btn btn-outline-primary"
-                            (click)="handleAddButtonClick()"
+                            (click)="handleAddButtonClick();hasNewTeamMembers = true"
                             [class.disabled]="isAddButtonDisabled"
                             [style.pointer-events]="'auto'">
                             <i class="fa fa-plus" aria-hidden="true"></i>

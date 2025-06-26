@@ -45,4 +45,6 @@ List<Integer> isUserProjectOverheadOfAnyActiveInternalAndExternalProjectList(@Pa
 	
 	Optional<List<ProjectOverheadMapping>> findByProjectOverheadIdAndActive(Long projectOverheadMappingId, Integer active);
 	
+	List<ProjectOverheadMapping> findByProjectIdAndActive(Long projectId, Integer active);
+	
 }

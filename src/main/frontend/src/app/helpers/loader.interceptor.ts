@@ -312,8 +312,10 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/updateProjectResourceAsInActive`,
     `${this.baseUrl}` + `api/setDefaultProjectUpdateBillable`,
     `${this.baseUrl}`+`api/setProjectMappingAndDefaultProject`,
-    `${this.baseUrl}`+`api/getProjectDetailsForBulkDefaultUpdate`
-
+    `${this.baseUrl}`+`api/getProjectDetailsForBulkDefaultUpdate`,
+    `${this.baseUrl}` + `api/getPreviousDefaultProjectDetails`,
+    `${this.baseUrl}` + `api/combinedPOINTERNALCountList`,
+    `${this.baseUrl}` + `api/combinedPOINTERNALDataList`
   ]
 
   constructor(private loaderService: LoaderService) { }

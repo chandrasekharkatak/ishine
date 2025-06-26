@@ -71,6 +71,6 @@ List<Integer> isUserProjectManagerOfAnyActiveInternalProjectList(@Param("empId")
 //			+ "where pm.project_manager_id= :project_manager_id and pm.active =1")
 //	public Optional<List<ProjectManagerMapping>> findProjectsOfProjectManager(Long empId);
 	
-	
+	List<ProjectManagerMapping> findByProjectIdAndActive(Long projectId, Integer active);
 
 }

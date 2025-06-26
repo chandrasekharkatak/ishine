@@ -1495,6 +1495,11 @@ deptList2 : any;
     // project.projectId = this.projectObj.projectId;
     console.log("this.projectObj.projectId   ", this.projectObj.projectId);
     console.log("this.projectObj.projectId   ", project.projectId);
+    if(project.poProjectType != null){
+      project.projectType = "Not Internal";
+    } else {
+      project.projectType = "Internal";
+    }
     this.resourceManagementService.approvePendingProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.showViewProjects();
@@ -1511,6 +1516,11 @@ deptList2 : any;
     let projObj = this.selectedProjToReject;
     projObj.rejectReason = project.rejectReason;
     projObj.empId = this.currentUser.empId;
+    if(project.poProjectType != null){
+      project.projectType = "Not Internal";
+    } else {
+      project.projectType = "Internal";
+    }
     this.resourceManagementService.rejectPendingProject(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.showViewProjects();
@@ -1738,10 +1748,9 @@ deptList2 : any;
   openDeleteModalForTeam(template: TemplateRef<any>, alert_message: TemplateRef<any>, teamObj, project) {
     this.tempTeam = teamObj;
     this.projectdetails1 = project;
-    console
 
     if (!this.tempTeam.teamId) {
-      this.openAlertMod(alert_message, "Team is missing. Cannot proceed.");
+      // this.openAlertMod(alert_message, "Team is missing. Cannot proceed.");
       this.allTeamList.pop();
       this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
       this.copyDepartment = [];
@@ -1999,9 +2008,12 @@ get isAddButtonDisabled(): boolean {
   }
   
   // Step 4: Check checkbox selection (only after role is selected)
-  if (!this.newteamMember.isShadow && !this.newteamMember.isDefaultProject) {
-    return true;
-  }
+  // if (!this.newteamMember.isShadow && !this.newteamMember.isDefaultProject) {
+  //   return true;
+  // }
+  // if (this.newteamMember.otherActiveProjects.length == 0 && !this.newteamMember.isDefaultProject) {
+  //   return true;
+  // }
   
   // Step 5: Additional business rule validation
   if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
@@ -2035,9 +2047,13 @@ getValidationErrorMessage(): string {
   }
   
   // Step 4: Check checkbox selection (only show this error after role is selected)
-  if (!this.newteamMember.isShadow && !this.newteamMember.isDefaultProject) {
-    return "Please choose Default project or shadow";
-  }
+  // if (!this.newteamMember.isShadow && !this.newteamMember.isDefaultProject) {
+  //   return "Please choose Default project or shadow";
+  // }
+
+  // if (this.newteamMember.otherActiveProjects.length == 0 && !this.newteamMember.isDefaultProject) {
+  //   return "Please choose Default project or shadow";
+  // }
   
   // Step 5: Additional business rule validation
   if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
@@ -2696,6 +2712,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
         // Add the combined project type to each project object
         project.combinedProjectType = this.getProjectType(project);
         return project;
+         this.createDepartmentArray();
       });
       // this.tabCounts = response.serviceResponse.counts;
       // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
@@ -4573,5 +4590,36 @@ getProjectType(project: any): string {
   this.myDept = !this.myDept;
   this.filterStateService.myDept = this.myDept;
   }
+
+  createDepartmentArray() {
+    this.allProject_Po_Internal.forEach(project => {
+      if (Array.isArray(project.combinedProjectType)) {
+        project.combinedProjectType.forEach((type: any) => {
+          if (type.deptId) {
+            // Split comma-separated string, trim and convert to numbers
+            const deptIds = type.deptId.split(',')
+              .map((id: string) => parseInt(id.trim()))
+              .filter(id => !isNaN(id));
+
+            // Match with this.departments to get names
+            const departmentNames = deptIds.map(id => {
+              const match = this.departments.find(dep => dep.deptId === id);
+              return match ? match.deptName : null;
+            }).filter(name => name !== null);
+
+            // Assign to type.department
+            type.department = departmentNames;
+          } else {
+            type.department = [];
+          }
+        });
+      }
+    });
+  }
+
+  reloadPage(){
+    location.reload();
+  }
+
 
 }
