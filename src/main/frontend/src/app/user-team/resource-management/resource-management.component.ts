@@ -791,12 +791,14 @@ export class ResourceManagementComponent implements OnInit {
     if (this.isAllSelected == true) {
       console.log(this.isAllSelected, "this.isAllSelected");
       this.toggleSelectAllDept();
+      
     }
     else {
       this.deptIdList = [];
       this.projectFilterDTO.approvalStatus = "All";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
+      //  this.projectFilterDTO.departmentsids = null;
       this.projectFilterDTO.departments = [];
       this.filterStateService.deptIdList = this.deptIdList;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
@@ -804,6 +806,7 @@ export class ResourceManagementComponent implements OnInit {
     }
 
   }
+
 
   filterDepartments() {
     const lowerText = this.searchTextDept.toLowerCase();
@@ -813,7 +816,7 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   onDepartmentSelectionChange() {
-    console.log(this.isAllSelected, "this.isAllSelected");
+    console.log(this.isAllSelected, "this.isAllSelected" , this.deptIdList.length , "this.dept length");
     if (!this.isAllSelected && this.deptIdList.length > 0 && this.deptIdList[0] != null) {
       this.projectFilterDTO.approvalStatus = "All";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
@@ -827,6 +830,17 @@ export class ResourceManagementComponent implements OnInit {
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       console.log(this.filterStateService.deptIdList, "this.filterStateService.deptIdListByUser");
     }
+    else {
+      this.projectFilterDTO = this.deptList2;
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = this.deptIdList;
+      this.projectFilterDTO.departments = [];
+      this.filterStateService.deptIdList = this.deptIdList;
+       this.combinedPOINTERNALCountList(this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    }
+    
   }
 
 //   onDepartmentSelectionChange1() {
@@ -930,6 +944,7 @@ export class ResourceManagementComponent implements OnInit {
 
   }
 
+deptList2 : any;
 
   getAllDepartments(): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -937,6 +952,7 @@ export class ResourceManagementComponent implements OnInit {
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             this.deptList = response.serviceResponse;
+            this.deptList2 = response.serviceResponse;
             this.departments = this.deptList.departments;
             this.deptIdList = this.departments;
             this.departmentsList = [...this.departments];
