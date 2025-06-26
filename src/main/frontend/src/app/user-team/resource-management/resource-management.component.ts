@@ -997,6 +997,7 @@ deptList2 : any;
   }
 
   selectStatusTab(status: string) {
+    this.page=1;
     const documentHeight = document.body.scrollHeight;
     this.scroller.scrollToPosition([0, documentHeight]);
     this.selectedStatusTab = status;
