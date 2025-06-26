@@ -1307,7 +1307,7 @@ deptList2 : any;
         if (team.spoc) {
           team.spocId = team.spoc.empId;
         } else {
-          console.warn(`No SPOC data available for team: ${team.teamName}`);
+          console.log(`No SPOC data available for team: ${team.teamName}`);
         }
         if (team.teamMemberList) {
           team.teamMemberList.forEach(member => {
@@ -1316,7 +1316,7 @@ deptList2 : any;
               console.log("shadowEmpId set", member.shadowEmpId)
             } else {
               member.shadowEmpId = null;
-              console.warn(`No valid shadow data for member: ${member.empId || 'Unknown ID'} in team: ${team.teamName}`);
+              console.log(`No valid shadow data for member: ${member.empId || 'Unknown ID'} in team: ${team.teamName}`);
             }
           });
         }
@@ -4638,5 +4638,12 @@ getProjectType(project: any): string {
     location.reload();
   }
 
+  clearField(){
+    this.bulkProjectType='';
+    this.setDefaultProjectObj.projectId='';
+    this.setDefaultProjectObj.teamId='';
+    this.setDefaultProjectObj.employeeRole='';
+    this.setDefaultProjectObj.resourceOverViewId='';
+  }
 
 }

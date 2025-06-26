@@ -7341,45 +7341,6 @@ public class ResourceManagementService {
 	    }
 	}
 	
-//	public ServiceResponse getProjectDetailsForBulkDefaultUpdate() {
-//	    ServiceResponse response = new ServiceResponse();
-//	    LogDTO apiLogInfo = new LogDTO();
-//	    apiLogInfo.setSubFeatureName("getProjectDetailsForBulkDefaultUpdate");
-//	    apiLogInfo.setApiUrl("/api/getProjectDetailsForBulkDefaultUpdate");
-//	    apiLogInfo.setLogLevel("INFO");
-//	    StringBuilder logBuilder = new StringBuilder();
-//	    logBuilder.append("\n getProjectDetailsForBulkDefaultUpdate ");
-//
-//	    try {
-//	        List<Object[]> benchResults = projectRepository.getProjectDetailsForBulkDefaultUpdateBench();
-//	        List<Object[]> otherResults = projectRepository.getProjectDetailsForBulkDefaultUpdateOther();
-//
-//	        List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> benchProjectList = mapResultsToDTOs(benchResults);
-//	        List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> otherProjectList = mapResultsToDTOs(otherResults);
-//
-//	        Map<String, Object> resultMap = new HashMap<>();
-//	        resultMap.put("benchProjectList", benchProjectList);
-//	        resultMap.put("otherProjectList", otherProjectList);
-//
-//	        response.setServiceResponse(resultMap);
-//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//	        logBuilder.append("\n Bench and other project details fetched successfully!");
-//
-//	    } catch (Exception e) {
-//	        e.printStackTrace();
-//	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//	        response.setServiceResponse("Something went wrong!");
-//	        logBuilder.append("\n Exception: ").append(e.getMessage());
-//	    }
-//
-//	    return response;
-//	}
-	
-	
-	
-	
-	
-	
 	public ServiceResponse getProjectDetailsForBulkDefaultUpdate() {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
@@ -7394,6 +7355,9 @@ public class ResourceManagementService {
 	        List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> benchProjectList = projectRepository.getProjectDetailsForBulkDefaultUpdateBench();
 	        List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> otherProjectList = projectRepository.getProjectDetailsForBulkDefaultUpdateOther();
 
+	        benchProjectList = mapResultsToDTOs(benchProjectList);
+	        otherProjectList = mapResultsToDTOs(otherProjectList);
+	        
 	        Map<String, Object> resultMap = new HashMap<>();
 	        resultMap.put("benchProjectList", benchProjectList);
 	        resultMap.put("otherProjectList", otherProjectList);
@@ -7413,63 +7377,11 @@ public class ResourceManagementService {
 
 	    return response;
 	}
-
 	
-	
-	
-	
-
-//	private List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> mapResultsToDTOs(List<Object[]> projectList) {
-//	    Map<Integer, GetProjectDetailsForBulkDefaultUpdateProjectDTO> projectMap = new LinkedHashMap<>();
-//
-//	    for (Object[] row : projectList) {
-//	        Integer projectId = Integer.parseInt(row[0].toString());
-//	        String projectName = row[1] != null ? row[1].toString() : null;
-//	        Long teamId = row[2] != null ? Long.parseLong(row[2].toString()) : null;
-//	        String teamName = row[3] != null ? row[3].toString() : null;
-//	        Long resourceOverviewId = row[4] != null ? Long.parseLong(row[4].toString()) : null;
-//	        Integer count = row[5] != null ? Integer.parseInt(row[5].toString()) : null;
-//	        String department = row[6] != null ? row[6].toString() : null;
-//	        String experience = row[7] != null ? row[7].toString() : null;
-//
-//	        GetProjectDetailsForBulkDefaultUpdateProjectDTO projectDTO = projectMap.computeIfAbsent(projectId, id -> {
-//	            GetProjectDetailsForBulkDefaultUpdateProjectDTO dto = new GetProjectDetailsForBulkDefaultUpdateProjectDTO();
-//	            dto.setProjectId(id);
-//	            dto.setProjectName(projectName);
-//	            return dto;
-//	        });
-//
-//	        if (teamId != null && projectDTO.getTeamList().stream().noneMatch(t -> t.getTeamId().equals(teamId))) {
-//	            GetProjectDetailsForBulkDefaultUpdateTeamDTO teamDTO = new GetProjectDetailsForBulkDefaultUpdateTeamDTO();
-//	            teamDTO.setTeamId(teamId);
-//	            teamDTO.setTeamName(teamName);
-//	            projectDTO.getTeamList().add(teamDTO);
-//	        }
-//
-//	        if (resourceOverviewId != null && projectDTO.getResourceRequirement().stream().noneMatch(r -> r.getResourceOverviewId().equals(resourceOverviewId))) {
-//	            ResourceRequirementDTO rr = new ResourceRequirementDTO();
-//	            rr.setResourceOverviewId(resourceOverviewId);
-//	            rr.setCount(count);
-//	            rr.setDepartment(department);
-//	            rr.setExperience(experience);
-//	            projectDTO.getResourceRequirement().add(rr);
-//	        }
-//	    }
-//
-//	    return new ArrayList<>(projectMap.values());
-//	}
-//	
-	
-	
-	
-	
-	
-	
-	
-	private List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> mapResultsToDTOs(List<ResourceRequirementDTO> resourceDTOList) {
+	private List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> mapResultsToDTOs(List<GetProjectDetailsForBulkDefaultUpdateProjectDTO> resourceDTOList) {
 	    Map<Integer, GetProjectDetailsForBulkDefaultUpdateProjectDTO> projectMap = new LinkedHashMap<>();
 
-	    for (ResourceRequirementDTO resource : resourceDTOList) {
+	    for (GetProjectDetailsForBulkDefaultUpdateProjectDTO resource : resourceDTOList) {
 	        Integer projectId = resource.getProjectId();
 	        String projectName = resource.getProjectName();
 	        Long teamId = resource.getTeamId();
@@ -7482,27 +7394,35 @@ public class ResourceManagementService {
 	            return dto;
 	        });
 
-	        if (teamId != null && projectDTO.getTeamList().stream().noneMatch(t -> t.getTeamId().equals(teamId))) {
+	        if (teamId != null && teamName != null &&
+	            projectDTO.getTeamList().stream().noneMatch(t -> teamId.equals(t.getTeamId()))) {
+	            
 	            GetProjectDetailsForBulkDefaultUpdateTeamDTO teamDTO = new GetProjectDetailsForBulkDefaultUpdateTeamDTO();
 	            teamDTO.setTeamId(teamId);
 	            teamDTO.setTeamName(teamName);
 	            projectDTO.getTeamList().add(teamDTO);
 	        }
 
-	        if (resource.getResourceOverviewId() != null && 
+	        if (resource.getResourceOverviewId() != null &&
 	            projectDTO.getResourceRequirement().stream().noneMatch(r -> r.getResourceOverviewId().equals(resource.getResourceOverviewId()))) {
-	            projectDTO.getResourceRequirement().add(resource);
+	            
+	            ResourceRequirementDTO resourceCopy = new ResourceRequirementDTO();
+	            resourceCopy.setResourceOverviewId(resource.getResourceOverviewId());
+	            resourceCopy.setCount(resource.getCount());
+	            resourceCopy.setDepartment(resource.getDepartment());
+	            resourceCopy.setExperience(resource.getExperience());
+	            resourceCopy.setRole(resource.getRole());
+	            resourceCopy.setTeamId(resource.getTeamId());
+	            resourceCopy.setTeamName(resource.getTeamName());
+	            resourceCopy.setProjectId(resource.getProjectId());
+	            resourceCopy.setProjectName(resource.getProjectName());
+
+	            projectDTO.getResourceRequirement().add(resourceCopy);
 	        }
 	    }
 
 	    return new ArrayList<>(projectMap.values());
 	}
-
-	
-	
-	
-	
-	
 	
 	public ServiceResponse getEmployeeInformationBulk(List<Long> empIds) {
 	    ServiceResponse response = new ServiceResponse();

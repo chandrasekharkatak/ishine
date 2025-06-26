@@ -2601,7 +2601,7 @@
                 <h1 class="table-header-title">Employee(s) With New Default Project Mappings Requirement</h1>
                 <i class="fa-solid" [ngClass]="isBulkUpdateMode ? 'fa-toggle-on' : 'fa-toggle-off'"
                     style="font-size: 24px; cursor: pointer; color: #061E5C;"
-                    (click)="isBulkUpdateMode = !isBulkUpdateMode">
+                    (click)="clearField();isBulkUpdateMode = !isBulkUpdateMode">
                 </i>
             </div>
 
@@ -2682,7 +2682,7 @@
                     </div>
 
                     <!-- Requirement -->
-                    <div class="col-md-4 form-field" *ngIf="resourceRequirementListBulk?.length">
+                    <div class="col-md-4 form-field" *ngIf="resourceRequirementListBulk?.length > 0">
                         <label>Project Requirement</label>
                         <mat-select [(ngModel)]="setDefaultProjectObj.resourceOverViewId">
                             <mat-option *ngFor="let req of resourceRequirementListBulk"
@@ -2803,7 +2803,7 @@
                                             }}</mat-option>
                                     </mat-select>
                                 </td>
-                                <td>
+                                <td >
                                     <mat-select [(ngModel)]="emp.resourceOverViewId">
                                         <mat-option *ngFor="let req of resourceRequirementListBulk"
                                             [value]="req.resourceOverviewId">

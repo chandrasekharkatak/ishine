@@ -587,7 +587,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	
 	@Query(value = "Select distinct new com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO( p.projectId, p.projectName, t.teamId, t.teamName, r.resourceOverviewId,  \n" + 
-			"r.count, r.department, r.experience) from Project p  \n" + 
+			"r.count, r.department, r.experience, r.role) from Project p  \n" + 
 			"left join Team t on t.projectId = p.projectId  \n" + 
 			"left join EmployeeTeamMap etm on etm.teamId = t.teamId  \n" + 
 			"left join ResourceRequirement r on r.projectId = p.projectId  \n" + 
@@ -602,7 +602,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	
 	@Query(value = "Select distinct new com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO( p.projectId, p.projectName, t.teamId, t.teamName, r.resourceOverviewId, \n"  +
-	 		"r.count, r.department,  r.experience) from Project p  \n" + 
+	 		"r.count, r.department,  r.experience, r.role) from Project p  \n" + 
 	 		"left join Team t on t.projectId = p.projectId  \n" + 
 	 		"left join EmployeeTeamMap etm on etm.teamId = t.teamId  \n" + 
 	 		"left join ResourceRequirement r on r.projectId = p.projectId  \n" + 
