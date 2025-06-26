@@ -1496,7 +1496,7 @@ deptList2 : any;
     console.log("this.projectObj.projectId   ", this.projectObj.projectId);
     console.log("this.projectObj.projectId   ", project.projectId);
     if(project.poProjectType != null){
-      project.projectType = "Not Internal";
+      project.projectType = project.poProjectType;
     } else {
       project.projectType = "Internal";
     }
@@ -1517,7 +1517,7 @@ deptList2 : any;
     projObj.rejectReason = project.rejectReason;
     projObj.empId = this.currentUser.empId;
     if(project.poProjectType != null){
-      project.projectType = "Not Internal";
+      project.projectType = project.poProjectType;
     } else {
       project.projectType = "Internal";
     }
@@ -3293,6 +3293,12 @@ getProjectType(project: any): string {
       });
       console.log("insidde", this.completedProjectDetails, this.selectedDate, this.allTeamList);
       try {
+        
+        if(this.completedProjectDetails.poProjectType == null){
+          this.completedProjectDetails.projectType = "Internal";
+        } else {
+          this.completedProjectDetails.projectType = this.completedProjectDetails.poProjectType;
+        }
 
         this.resourceManagementService.completionDateOfProject(this.completedProjectDetails).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {

@@ -609,7 +609,7 @@
 
                                                 <!-- Dropdown Menu -->
                                                 <ul *ngIf="openMenuIndex === i" class="custom-dropdown">
-                                                    <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
+                                                    <li *ngIf="project.draftStatus != 'Not Started' || project.isTeamCreated == 'true'"
                                                         (click)="openProjectPreviewModal(preview_team_new, project);closeMenu(i);isEditProject = false">
                                                         <i class="fas fa-eye"></i> Preview
                                                     </li>
@@ -618,7 +618,7 @@
                                                         <i class="fas fa-pen"></i> Edit
                                                     </li>
                                                     <!-- <li (click)="onAction('Audit', project);closeMenu(i)"><i class="fas fa-clock"></i> Audit</li> -->
-                                                    <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
+                                                    <li *ngIf="project.draftStatus == 'Approved' || project.isTeamCreated == 'true'"
                                                         (click)="openDatePicker(MarkAsCompleteDefaultProject,OtherProjectDefaultMapping,project,customDatePickerTemplate);closeMenu(i)">
                                                         <i class="fas fa-check-double"></i> Mark as Complete
                                                     </li>
@@ -2295,7 +2295,7 @@
                 </div>
                 <div class="team-preview-field">
                     <label>State</label>
-                    <input type="text" readonly [value]="projectObj?.clientState" />
+                    <input type="text" readonly [value]="projectObj?.state" />
                 </div>
             </div>
 
