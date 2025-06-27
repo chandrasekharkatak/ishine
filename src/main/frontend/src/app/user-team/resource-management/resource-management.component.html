@@ -1909,28 +1909,30 @@
                                                     (click)="togglePopover(member.empId)">
                                                     <i class="fa-solid fa-circle-exclamation"></i>
                                                 </button>
-                                                <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3"
-                                                    style="position: initial;">
-                                                    <div class="info-line"><span class="label">Emp Id:</span> {{
-                                                        employeeInformation.employmentId }}</div>
-                                                    <div class="info-line"><span class="label">Role:</span> {{
-                                                        employeeInformation.jobRole }}</div>
-                                                    <div class="info-line"><span class="label">Billability Type:</span>
-                                                        {{ employeeInformation.billableType }}</div>
-                                                    <div class="info-line"><span class="label"> Start Date:</span>
-                                                        {{ employeeInformation.startDate}}</div>
-                                                    <div class="info-line"><span class="label">Department:</span> {{
-                                                        employeeInformation.deptName }}</div>
-                                                    <div class="info-line"><span class="label">Previous
-                                                            Experience:</span> {{ employeeInformation.previousExperience
-                                                        }} years</div>
-                                                    <div class="info-line"><span class="label">Current
-                                                            Experience:</span> {{ employeeInformation.currentExperience
-                                                        }} years</div>
-                                                    <div class="info-line"><span class="label">Total Experience:</span>
-                                                        {{ employeeInformation.totalExperience }} years</div>
-                                                </div>
+                                              
                                             </div>
+
+                                            <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3"
+                                            style="position: initial;">
+                                            <div class="info-line"><span class="label">Emp Id:</span> {{
+                                                employeeInformation.employmentId }}</div>
+                                            <div class="info-line"><span class="label">Role:</span> {{
+                                                employeeInformation.jobRole }}</div>
+                                            <div class="info-line"><span class="label">Billability Type:</span>
+                                                {{ employeeInformation.billableType }}</div>
+                                            <div class="info-line"><span class="label"> Start Date:</span>
+                                                {{ employeeInformation.startDate}}</div>
+                                            <div class="info-line"><span class="label">Department:</span> {{
+                                                employeeInformation.deptName }}</div>
+                                            <div class="info-line"><span class="label">Previous
+                                                    Experience:</span> {{ employeeInformation.previousExperience
+                                                }} years</div>
+                                            <div class="info-line"><span class="label">Current
+                                                    Experience:</span> {{ employeeInformation.currentExperience
+                                                }} years</div>
+                                            <div class="info-line"><span class="label">Total Experience:</span>
+                                                {{ employeeInformation.totalExperience }} years</div>
+                                        </div>
 
                                             <div class="team-member-field">
                                                 <input type="text" placeholder="Name" [value]="member.name"
