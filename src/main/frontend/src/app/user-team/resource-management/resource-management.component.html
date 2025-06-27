@@ -2080,35 +2080,36 @@
                                                 <i class="fa-solid fa-circle-exclamation"></i>
                                             </button>
 
-                                            <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3"
-                                                style="width: 260px; position: revert;">
-                                                <div class="info-line"><span class="label">Emp Id</span>: <span
-                                                        class="label">{{ employeeInformation.employmentId }}</span>
-                                                </div>
-                                                <div class="info-line"><span class="label">Role</span>: <span
-                                                        class="label">{{ employeeInformation.jobRole }}</span></div>
-                                                <div class="info-line"><span class="label">Billability type</span>:
-                                                    <span class="label">{{ employeeInformation.billableType }}</span>
-                                                </div>
-                                                <div class="info-line"><span class="label">Start Date</span>:
-                                                    <span class="label">{{ employeeInformation.startDate }}</span>
-                                                </div>
-                                                <div class="info-line"><span class="label">Department</span>: <span
-                                                        class="label">{{ employeeInformation.deptName }}</span></div>
-                                                <div class="info-line"><span class="label">Previous Experience</span>:
-                                                    <span class="label">{{ employeeInformation.previousExperience }}
-                                                        years</span>
-                                                </div>
-                                                <div class="info-line"><span class="label">Current Experience</span>:
-                                                    <span class="label">{{ employeeInformation.currentExperience }}
-                                                        years</span>
-                                                </div>
-                                                <div class="info-line"><span class="label">Total Experience</span>:
-                                                    <span class="label">{{ employeeInformation.totalExperience }}
-                                                        years</span>
-                                                </div>
-                                            </div>
+                                        </div> 
+                                        
+                                        <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3"
+                                        style="width: 260px; position: revert;">
+                                        <div class="info-line"><span class="label">Emp Id</span>: <span
+                                                class="label">{{ employeeInformation.employmentId }}</span>
                                         </div>
+                                        <div class="info-line"><span class="label">Role</span>: <span
+                                                class="label">{{ employeeInformation.jobRole }}</span></div>
+                                        <div class="info-line"><span class="label">Billability type</span>:
+                                            <span class="label">{{ employeeInformation.billableType }}</span>
+                                        </div>
+                                        <div class="info-line"><span class="label">Start Date</span>:
+                                            <span class="label">{{ employeeInformation.startDate }}</span>
+                                        </div>
+                                        <div class="info-line"><span class="label">Department</span>: <span
+                                                class="label">{{ employeeInformation.deptName }}</span></div>
+                                        <div class="info-line"><span class="label">Previous Experience</span>:
+                                            <span class="label">{{ employeeInformation.previousExperience }}
+                                                years</span>
+                                        </div>
+                                        <div class="info-line"><span class="label">Current Experience</span>:
+                                            <span class="label">{{ employeeInformation.currentExperience }}
+                                                years</span>
+                                        </div>
+                                        <div class="info-line"><span class="label">Total Experience</span>:
+                                            <span class="label">{{ employeeInformation.totalExperience }}
+                                                years</span>
+                                        </div>
+                                    </div>                                        
 
                                         <input type="text" [value]="member.name" class="form-control name-field"
                                             readonly style="width: 200px; margin-right: 10px;" />
