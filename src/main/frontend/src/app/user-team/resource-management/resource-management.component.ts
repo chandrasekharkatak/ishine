@@ -447,9 +447,9 @@ export class ResourceManagementComponent implements OnInit {
   searchTextDeptByUser: any;
   filteredDepartmentsByUser: any[] = [];
   myDept: boolean = false;
-  countList:any;
-  fallBackMsg:any;
-  isApproved:boolean = false;
+  countList: any;
+  fallBackMsg: any;
+  isApproved: boolean = false;
   advanceFilter: any;
 
   constructor(
@@ -559,17 +559,17 @@ export class ResourceManagementComponent implements OnInit {
     await this.ExceptionEmployeeReport(this.projectFilterDTO);
     await this.RbacBothShankhInternal(this.projectFilterDTO);
     await this.ProjectLessEmployees(this.projectFilterDTO);
-      await this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
-    
+    await this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
+
 
     this.fetchTimesheetMissingCount();
 
-    
 
-   
+
+
     await this.getProjectDetailsForBulkDefaultUpdate();
     await this.TotalEmployeeCount();
-  
+
     // const deptName = String(this.currentUser.departmentName).trim();
     // const empRole = String(this.currentUser.employeeRole).trim();
     // if(!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && 
@@ -582,21 +582,21 @@ export class ResourceManagementComponent implements OnInit {
 
     if (this.filterStateService.projectReportFilters) {
       this.filters = this.filterStateService.projectReportFilters;
-      this.isSearchEnabled = true; 
+      this.isSearchEnabled = true;
     }
-    if(this.filterStateService.deptIdList && this.filterStateService.deptIdList.length > 0) {
+    if (this.filterStateService.deptIdList && this.filterStateService.deptIdList.length > 0) {
       console.log(this.filterStateService.deptIdList, "this.filterStateService.deptIdList");
       this.deptIdList = this.filterStateService.deptIdList;
-      this.myDept = this.filterStateService.myDept ;
+      this.myDept = this.filterStateService.myDept;
       this.onDepartmentSelectionChange();
     }
-    if(this.filterStateService.deptIdListByUser && this.filterStateService.deptIdListByUser.length > 0) {
+    if (this.filterStateService.deptIdListByUser && this.filterStateService.deptIdListByUser.length > 0) {
       console.log(this.filterStateService.deptIdListByUser, "this.filterStateService.deptIdListByUser");
-      this.myDept = this.filterStateService.myDept ;
+      this.myDept = this.filterStateService.myDept;
       this.deptIdListByUser = this.filterStateService.deptIdListByUser;
       this.onDepartmentSelectionChangeByUser();
     }
-    if(this.filterStateService.selectedStatusTab) {
+    if (this.filterStateService.selectedStatusTab) {
       this.selectedStatusTab = this.filterStateService.selectedStatusTab;
       this.selectStatusTab(this.selectedStatusTab);
       console.log(this.selectedStatusTab, "this.selectedStatusTab");
@@ -794,7 +794,7 @@ export class ResourceManagementComponent implements OnInit {
     if (this.isAllSelected == true) {
       console.log(this.isAllSelected, "this.isAllSelected");
       this.toggleSelectAllDept();
-      
+
     }
     else {
       this.deptIdList = [];
@@ -819,7 +819,7 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   onDepartmentSelectionChange() {
-    console.log(this.isAllSelected, "this.isAllSelected" , this.deptIdList.length , "this.dept length");
+    console.log(this.isAllSelected, "this.isAllSelected", this.deptIdList.length, "this.dept length");
     if (!this.isAllSelected && this.deptIdList.length > 0 && this.deptIdList[0] != null) {
       this.projectFilterDTO.approvalStatus = "All";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
@@ -840,33 +840,33 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.departmentsids = this.deptIdList;
       this.projectFilterDTO.departments = [];
       this.filterStateService.deptIdList = this.deptIdList;
-       this.combinedPOINTERNALCountList(this.projectFilterDTO);
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
       this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
     }
-    
+
   }
 
-//   onDepartmentSelectionChange1() {
-//     console.log(this.isAllSelected, "this.isAllSelected");
-//     if (!this.isAllSelected && this.projectObj.departmentList.length > 0 && this.projectObj.departmentList[0] != null) {
-//         this.projectFilterDTO.approvalStatus = "All";
-//         this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
-//         this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
-//         console.log(this.projectFilterDTO, "this.projectFilterDTO");
-//         this.fetchCountAndList();
-//     }
-// }
+  //   onDepartmentSelectionChange1() {
+  //     console.log(this.isAllSelected, "this.isAllSelected");
+  //     if (!this.isAllSelected && this.projectObj.departmentList.length > 0 && this.projectObj.departmentList[0] != null) {
+  //         this.projectFilterDTO.approvalStatus = "All";
+  //         this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+  //         this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
+  //         console.log(this.projectFilterDTO, "this.projectFilterDTO");
+  //         this.fetchCountAndList();
+  //     }
+  // }
 
-//  onDepartmentSelectionChange2() {
-//     console.log(this.isAllSelected, "this.isAllSelected");
-//     if (!this.isAllSelected && this.teamObj.departmentList.length > 0 && this.teamObj.departmentList[0] != null) {
-//       this.projectFilterDTO.approvalStatus = "All";
-//       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-//       this.projectFilterDTO.departmentsids = this.teamObj.departmentList;
-//       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-//       this.fetchCountAndList();
-//     }
-// }
+  //  onDepartmentSelectionChange2() {
+  //     console.log(this.isAllSelected, "this.isAllSelected");
+  //     if (!this.isAllSelected && this.teamObj.departmentList.length > 0 && this.teamObj.departmentList[0] != null) {
+  //       this.projectFilterDTO.approvalStatus = "All";
+  //       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+  //       this.projectFilterDTO.departmentsids = this.teamObj.departmentList;
+  //       console.log(this.projectFilterDTO, "this.projectFilterDTO");
+  //       this.fetchCountAndList();
+  //     }
+  // }
 
   toggleSelectAllDept() {
     // this.employeeReportObj.deptId = [];
@@ -947,7 +947,7 @@ export class ResourceManagementComponent implements OnInit {
 
   }
 
-deptList2 : any;
+  deptList2: any;
 
   getAllDepartments(): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -1000,7 +1000,7 @@ deptList2 : any;
   }
 
   selectStatusTab(status: string) {
-    this.page=1;
+    this.page = 1;
     const documentHeight = document.body.scrollHeight;
     this.scroller.scrollToPosition([0, documentHeight]);
     this.selectedStatusTab = status;
@@ -1023,12 +1023,12 @@ deptList2 : any;
     this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
     this.RbacInternalProjects(this.projectFilterDTO);
     this.RbacShankhProjects(this.projectFilterDTO);
-   this.getEmployeesWithoutBillability(this.projectFilterDTO);
-     this.RbacAllShankhInternalProjects(this.projectFilterDTO);
-     this.ExceptionEmployeeReport(this.projectFilterDTO);
-     this.RbacBothShankhInternal(this.projectFilterDTO);
-     this.ProjectLessEmployees(this.projectFilterDTO);
-     this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
+    this.getEmployeesWithoutBillability(this.projectFilterDTO);
+    this.RbacAllShankhInternalProjects(this.projectFilterDTO);
+    this.ExceptionEmployeeReport(this.projectFilterDTO);
+    this.RbacBothShankhInternal(this.projectFilterDTO);
+    this.ProjectLessEmployees(this.projectFilterDTO);
+    this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
   }
 
   alreadyCreatedTeam() {
@@ -1506,7 +1506,7 @@ deptList2 : any;
     // project.projectId = this.projectObj.projectId;
     console.log("this.projectObj.projectId   ", this.projectObj.projectId);
     console.log("this.projectObj.projectId   ", project.projectId);
-    if(project.poProjectType != null){
+    if (project.poProjectType != null) {
       project.projectType = project.poProjectType;
     } else {
       project.projectType = "Internal";
@@ -1527,7 +1527,7 @@ deptList2 : any;
     let projObj = this.selectedProjToReject;
     projObj.rejectReason = project.rejectReason;
     projObj.empId = this.currentUser.empId;
-    if(project.poProjectType != null){
+    if (project.poProjectType != null) {
       project.projectType = project.poProjectType;
     } else {
       project.projectType = "Internal";
@@ -1867,65 +1867,65 @@ deptList2 : any;
 
 
   //raj
-//   private _resetAddMemberForm() {
-//   // 1. Reset the main data objects
-//   this.newteamMember = { // Use a plain object or 'new TeamMember()' if you have a class
-//     employeeTeamMappingId: null,
-//     teamId: null,
-//     empId: null,
-//     name: null,
-//     employeeRole: null,
-//     isTeamLead: null,
-//     billableType :  null,
-//     newBillableType :  null,
-//     isShadow: null,
-//     isDefaultProject: null,
-//     resourceOverviewId:  null,
-//     otherActiveProjects: null
-//     // ... any other default properties
-//   };
-//   this.selectedRequirement = null;
+  //   private _resetAddMemberForm() {
+  //   // 1. Reset the main data objects
+  //   this.newteamMember = { // Use a plain object or 'new TeamMember()' if you have a class
+  //     employeeTeamMappingId: null,
+  //     teamId: null,
+  //     empId: null,
+  //     name: null,
+  //     employeeRole: null,
+  //     isTeamLead: null,
+  //     billableType :  null,
+  //     newBillableType :  null,
+  //     isShadow: null,
+  //     isDefaultProject: null,
+  //     resourceOverviewId:  null,
+  //     otherActiveProjects: null
+  //     // ... any other default properties
+  //   };
+  //   this.selectedRequirement = null;
 
-//   // 2. Reset the Angular FormControl for the autocomplete
-//   // Using setValue('') is often more reliable than reset() for autocomplete display
-//   this.teamMemberCtrl.setValue('');
+  //   // 2. Reset the Angular FormControl for the autocomplete
+  //   // Using setValue('') is often more reliable than reset() for autocomplete display
+  //   this.teamMemberCtrl.setValue('');
 
-//   // 3. Reset the UI state flags to disable the controls again
-//   this.isRoleSelectDisabled = true;
-//   this.isRequirementSelectDisabled = true;
-//   this.isCheckboxesDisabled = true;
-// }
-//   addTeamMember() {
-//   const selectedEmployee = this.employeeListByDept.find(
-//     (employee) => employee.empId == this.newteamMember.empId
-//   );
+  //   // 3. Reset the UI state flags to disable the controls again
+  //   this.isRoleSelectDisabled = true;
+  //   this.isRequirementSelectDisabled = true;
+  //   this.isCheckboxesDisabled = true;
+  // }
+  //   addTeamMember() {
+  //   const selectedEmployee = this.employeeListByDept.find(
+  //     (employee) => employee.empId == this.newteamMember.empId
+  //   );
 
-//     if (!selectedEmployee) {
-//     console.error("Could not find the selected employee in the list.");
-//     return;
-//   }
-   
-//       const memberToAdd = {
-//         ...selectedEmployee,
-//         employeeRole: this.newteamMember.employeeRole,
-//         resourceOverviewId: this.selectedRequirement.resourceOverviewId,
-//         isShadow: this.newteamMember.isShadow,
-//         isDefaultProject: this.newteamMember.isDefaultProject
-//       };
+  //     if (!selectedEmployee) {
+  //     console.error("Could not find the selected employee in the list.");
+  //     return;
+  //   }
 
-//       this.allTeamMembers.push(memberToAdd);
+  //       const memberToAdd = {
+  //         ...selectedEmployee,
+  //         employeeRole: this.newteamMember.employeeRole,
+  //         resourceOverviewId: this.selectedRequirement.resourceOverviewId,
+  //         isShadow: this.newteamMember.isShadow,
+  //         isDefaultProject: this.newteamMember.isDefaultProject
+  //       };
 
-//       this.newteamMember = new TeamMember();
-//       this.addMemberCtrl.reset();
-//       this.selectedRequirement = null;
-//       this.teamMemberCtrl.reset();
+  //       this.allTeamMembers.push(memberToAdd);
 
-//     if (this.selectedRequirement) {
-//     memberToAdd['resourceOverviewId'] = this.selectedRequirement.resourceOverviewId;
-//     }
+  //       this.newteamMember = new TeamMember();
+  //       this.addMemberCtrl.reset();
+  //       this.selectedRequirement = null;
+  //       this.teamMemberCtrl.reset();
 
-//     }
-  
+  //     if (this.selectedRequirement) {
+  //     memberToAdd['resourceOverviewId'] = this.selectedRequirement.resourceOverviewId;
+  //     }
+
+  //     }
+
   // ---- END-------//
   addTeamMember() {
     const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
@@ -1938,9 +1938,9 @@ deptList2 : any;
         isShadow: this.newteamMember.isShadow,
         isDefaultProject: this.newteamMember.isDefaultProject
       };
-       if (this.selectedRequirement) {
-      memberToAdd['resourceOverviewId'] = this.selectedRequirement.resourceOverviewId;
-    }
+      if (this.selectedRequirement) {
+        memberToAdd['resourceOverviewId'] = this.selectedRequirement.resourceOverviewId;
+      }
 
       this.allTeamMembers.push(memberToAdd);
 
@@ -1990,102 +1990,102 @@ deptList2 : any;
     });
 
   }
-//---------Raj(addButton)-------------//
+  //---------Raj(addButton)-------------//
 
-resetTeamMemberForm() {
-  this.selectedRequirement = null; 
-  this.newteamMember = new TeamMember(); 
-  // this.teamMemberCtrl.setValue('');
-}
+  resetTeamMemberForm() {
+    this.selectedRequirement = null;
+    this.newteamMember = new TeamMember();
+    // this.teamMemberCtrl.setValue('');
+  }
 
-get isAddButtonDisabled(): boolean {
-  // Hierarchical validation - each step must be completed in order
-  
-  // Step 1: Check requirement selection first (if requirements exist)
-  if (this.projectObj.resourceRequirements?.length > 0 && 
+  get isAddButtonDisabled(): boolean {
+    // Hierarchical validation - each step must be completed in order
+
+    // Step 1: Check requirement selection first (if requirements exist)
+    if (this.projectObj.resourceRequirements?.length > 0 &&
       (this.selectedRequirement == null || this.selectedRequirement == undefined)
-  ) {
-    return true;
+    ) {
+      return true;
+    }
+
+    // Step 2: Check employee selection (only after requirement is selected)
+    if (!this.newteamMember.empId) {
+      return true;
+    }
+
+    // Step 3: Check role selection (only after employee is selected)
+    if (!this.newteamMember.employeeRole?.length) {
+      return true;
+    }
+
+    // Step 4: Check checkbox selection (only after role is selected)
+    // if (!this.newteamMember.isShadow && !this.newteamMember.isDefaultProject) {
+    //   return true;
+    // }
+    // if (this.newteamMember.otherActiveProjects.length == 0 && !this.newteamMember.isDefaultProject) {
+    //   return true;
+    // }
+
+    // Step 5: Additional business rule validation
+    if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
+      return true;
+    }
+
+    return this.getValidationErrorMessage() !== "";
   }
-  
-  // Step 2: Check employee selection (only after requirement is selected)
-  if (!this.newteamMember.empId) {
-    return true;
-  }
-  
-  // Step 3: Check role selection (only after employee is selected)
-  if (!this.newteamMember.employeeRole?.length) {
-    return true;
-  }
-  
-  // Step 4: Check checkbox selection (only after role is selected)
-  // if (!this.newteamMember.isShadow && !this.newteamMember.isDefaultProject) {
-  //   return true;
+
+  // resetTeamMemberForm() {
+  //   this.selectedRequirement = null;
+  //   this.newteamMember = new TeamMember()
   // }
-  // if (this.newteamMember.otherActiveProjects.length == 0 && !this.newteamMember.isDefaultProject) {
-  //   return true;
-  // }
-  
-  // Step 5: Additional business rule validation
-  if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
-    return true;
+  // Method to get specific error message based on current validation step
+  getValidationErrorMessage(): string {
+    // Step 1: Check requirement selection first (if requirements exist)
+    if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
+      return "Please select Requirement";
+    }
+
+    console.log("this.selectedRequirement", this.selectedRequirement);
+
+    // Step 2: Check employee selection (only show this error after requirement is selected)
+    if (!this.newteamMember.empId) {
+      return "Please select Employee";
+    }
+
+    // Step 3: Check role selection (only show this error after employee is selected)
+    if (!this.newteamMember.employeeRole?.length) {
+      return "Please select Role";
+    }
+
+    // Step 4: Check checkbox selection (only show this error after role is selected)
+    // if (!this.newteamMember.isShadow && !this.newteamMember.isDefaultProject) {
+    //   return "Please choose Default project or shadow";
+    // }
+
+    // if (this.newteamMember.otherActiveProjects.length == 0 && !this.newteamMember.isDefaultProject) {
+    //   return "Please choose Default project or shadow";
+    // }
+
+    // Step 5: Additional business rule validation
+    if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
+      return "TNM billable type is not allowed with existing project details";
+    }
+
+    return "";
   }
 
-  return this.getValidationErrorMessage() !== "";
-}
+  handleAddButtonClick() {
+    const errorMessage = this.getValidationErrorMessage();
+    if (errorMessage) {
 
-// resetTeamMemberForm() {
-//   this.selectedRequirement = null;
-//   this.newteamMember = new TeamMember()
-// }
-// Method to get specific error message based on current validation step
-getValidationErrorMessage(): string {
-  // Step 1: Check requirement selection first (if requirements exist)
-  if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
-    return "Please select Requirement";
-  }
+      this.openAlertMod(this.alertTemplate, errorMessage);
+    } else {
+      this.addTeamMember();
+      this.updateEmployeeListAccordingToTeamMembers();
+      this.resetTeamMemberForm();
 
-  console.log("this.selectedRequirement", this.selectedRequirement);
-  
-  // Step 2: Check employee selection (only show this error after requirement is selected)
-  if (!this.newteamMember.empId) {
-    return "Please select Employee";
+    }
   }
-  
-  // Step 3: Check role selection (only show this error after employee is selected)
-  if (!this.newteamMember.employeeRole?.length) {
-    return "Please select Role";
-  }
-  
-  // Step 4: Check checkbox selection (only show this error after role is selected)
-  // if (!this.newteamMember.isShadow && !this.newteamMember.isDefaultProject) {
-  //   return "Please choose Default project or shadow";
-  // }
-
-  // if (this.newteamMember.otherActiveProjects.length == 0 && !this.newteamMember.isDefaultProject) {
-  //   return "Please choose Default project or shadow";
-  // }
-  
-  // Step 5: Additional business rule validation
-  if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
-    return "TNM billable type is not allowed with existing project details";
-  }
-  
-  return "";
-}
-
-handleAddButtonClick() {
-  const errorMessage = this.getValidationErrorMessage();
-  if (errorMessage) {
-  
-    this.openAlertMod(this.alertTemplate, errorMessage);
-  } else {
-    this.addTeamMember();
-    this.updateEmployeeListAccordingToTeamMembers();
-    this.resetTeamMemberForm();
-    
-  }
-}
 
   openTeamMemberModal(template: TemplateRef<any>, currentTeam) {
     this.allTeamMembers = [];
@@ -2093,7 +2093,7 @@ handleAddButtonClick() {
     this.newteamMember.empId = '';
     this.newteamMember.employeeRole = null;
 
-     this.resetTeamMemberForm(); 
+    this.resetTeamMemberForm();
     // this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     // this.getAllEmployeesByRole(currentTeam.departmentList);
     console.log("this.copyDepartment ", currentTeam);
@@ -2714,34 +2714,34 @@ handleAddButtonClick() {
   }
 
   // alert_message template is to be passed
-CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilterDTO) {
-  this.allProject_Po_Internal = [];
-  this.resourceManagementService.combinedPOINTERNALDataList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus === "Success") {
-      console.log(response.serviceResponse);
-      this.allProject_Po_Internal = response.serviceResponse.combinedNewProjects.map((project: any) => {
-        // Add the combined project type to each project object
-        project.combinedProjectType = this.getProjectType(project);
-        return project;
-         this.createDepartmentArray();
-      });
-      // this.tabCounts = response.serviceResponse.counts;
-      // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
-    } else {
-      this.openAlertMod(template, response.serviceResponse);
-    }
-  });
-}
-
-getProjectType(project: any): string {
-  if (project.poProjectType !== null && project.poProjectType !== undefined && project.poProjectType !== '') {
-    return project.poProjectType;
-  } else if (project.internalProjectType !== null && project.internalProjectType !== undefined && project.internalProjectType !== '') {
-    return project.internalProjectType;
-  } else {
-    return 'NA';
+  CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilterDTO) {
+    this.allProject_Po_Internal = [];
+    this.resourceManagementService.combinedPOINTERNALDataList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        console.log(response.serviceResponse);
+        this.allProject_Po_Internal = response.serviceResponse.combinedNewProjects.map((project: any) => {
+          // Add the combined project type to each project object
+          project.combinedProjectType = this.getProjectType(project);
+          return project;
+          this.createDepartmentArray();
+        });
+        // this.tabCounts = response.serviceResponse.counts;
+        // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
   }
-}
+
+  getProjectType(project: any): string {
+    if (project.poProjectType !== null && project.poProjectType !== undefined && project.poProjectType !== '') {
+      return project.poProjectType;
+    } else if (project.internalProjectType !== null && project.internalProjectType !== undefined && project.internalProjectType !== '') {
+      return project.internalProjectType;
+    } else {
+      return 'NA';
+    }
+  }
 
   RbacInternalProjects(projectFilterDTO: ProjectFilterDTO) {
     this.resourceManagementService.rbacInternalProjects(projectFilterDTO).pipe(first()).subscribe((response: any) => {
@@ -3051,7 +3051,7 @@ getProjectType(project: any): string {
     this.allTeamList = [];
     this.projectObj = Object.assign({}, project);
     this.GetAllResourceRequirementForProject(this.projectObj);
-    // this.getAllDepartmentList(project);
+     this.getAllDepartmentList1(project);
     this.getTeamListByProjectName(project);
     this.getEmployeeByNameAndEmpld();
 
@@ -3304,8 +3304,8 @@ getProjectType(project: any): string {
       });
       console.log("insidde", this.completedProjectDetails, this.selectedDate, this.allTeamList);
       try {
-        
-        if(this.completedProjectDetails.poProjectType == null){
+
+        if (this.completedProjectDetails.poProjectType == null) {
           this.completedProjectDetails.projectType = "Internal";
         } else {
           this.completedProjectDetails.projectType = this.completedProjectDetails.poProjectType;
@@ -4172,12 +4172,12 @@ getProjectType(project: any): string {
     this.defaultProjectUpdate.projectId = projectId;
     this.defaultProjectUpdate.createdBy = this.currentUser.empId;
     const today = new Date();
-     this.selectedDate = today.toISOString().split('T')[0];
-    if(!this.defaultProjectUpdate.projectId){
+    this.selectedDate = today.toISOString().split('T')[0];
+    if (!this.defaultProjectUpdate.projectId) {
       this.openAlertMod3(this.alertTemplateWithoutReload, "Please update Default Project");
       return;
     }
-   
+
     this.resourceManagementService.setDefaultProjectUpdateBillable(this.defaultProjectUpdate).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
@@ -4300,7 +4300,7 @@ getProjectType(project: any): string {
       !this.setDefaultProjectObj.teamId ||
       !this.setDefaultProjectObj.employeeRole
     ) {
-         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+      this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');
       // alert('Project, Team, and Employee Role must be selected.');
       return;
     }
@@ -4340,7 +4340,7 @@ getProjectType(project: any): string {
       !setDefaultProjectObj.teamId ||
       !setDefaultProjectObj.employeeRole
     ) {
-         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+      this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');
       // alert('Project, Team, and Employee Role must be selected.');
       return;
     }
@@ -4604,8 +4604,8 @@ getProjectType(project: any): string {
   }
 
   toggleDept(): void {
-  this.myDept = !this.myDept;
-  this.filterStateService.myDept = this.myDept;
+    this.myDept = !this.myDept;
+    this.filterStateService.myDept = this.myDept;
   }
 
   createDepartmentArray() {
@@ -4634,16 +4634,41 @@ getProjectType(project: any): string {
     });
   }
 
-  reloadPage(){
+  reloadPage() {
     location.reload();
   }
 
-  clearField(){
-    this.bulkProjectType='';
-    this.setDefaultProjectObj.projectId='';
-    this.setDefaultProjectObj.teamId='';
-    this.setDefaultProjectObj.employeeRole='';
-    this.setDefaultProjectObj.resourceOverViewId='';
+  clearField() {
+    this.bulkProjectType = '';
+    this.setDefaultProjectObj.projectId = '';
+    this.setDefaultProjectObj.teamId = '';
+    this.setDefaultProjectObj.employeeRole = '';
+    this.setDefaultProjectObj.resourceOverViewId = '';
   }
 
+  getAllDepartmentList1(project: any) {
+    this.allDeptList = [];
+
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allDeptList = response.serviceResponse;
+
+        const deptIds = project.deptId
+          ?.split(",")
+          .map(id => Number(id.trim()))
+          .filter(id => !isNaN(id));
+
+        const departmentNames = this.allDeptList
+          .filter(x => deptIds.includes(x.deptId))
+          .map(x => x.name);
+
+
+
+        this.projectObj.department = departmentNames;
+
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
 }
