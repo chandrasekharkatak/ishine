@@ -1790,9 +1790,9 @@
                             Select Requirement
                             <span style="color: #f44336; font-weight: bold; margin-left: 4px;">*</span>
                         </label>
-                        <mat-select placeholder="Select Requirement" [(ngModel)]="selectedRequirement" required
+                        <mat-select placeholder="Select Resource Requirement" [(ngModel)]="selectedRequirement" required
                             style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 8px; background-color: #fafafa;">
-                            <mat-option value="">
+                            <mat-option disabled value="">
                                 Select
                             </mat-option>
                             <mat-option *ngFor="let requirement of projectObj.resourceRequirements"
@@ -2820,9 +2820,6 @@
                                         (click)="setProjectMappingAndDefaultProject(delete_modal_template_bulk1,emp)">
                                         Set Default Project
                                     </button>
-
-
-
                                 </td>
                             </tr>
                         </tbody>
