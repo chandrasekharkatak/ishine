@@ -53,8 +53,9 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	@Query(nativeQuery = true , value = "select * from department where name = :deptname")
 	public List<Department> findByDeptName(String deptname);
 	
-	@Query(value = "select d.deptId from Department d where d.hodId=:hodId")
-	 List<Long> findDeptIdsByHodId(@Param("hodId") Long hodId);
+	@Query(value = "SELECT d.dept_id FROM department d WHERE d.hod_id = :hodId", 
+		    nativeQuery = true)
+		List<Long> findDeptIdsByHodId(@Param("hodId") Long hodId);
 	
 	@Query(nativeQuery = true,value ="select dept_id from job_role where job_role_id = :jobRoleId")
 	Long findDepartmentofCurrentuser(@Param("jobRoleId") Long jobRoleId);
@@ -64,6 +65,9 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	
 	@Query(value ="select jr.deptId from JobRole jr where jobRoleId =:jobRoleId")
 	Long findDepartmentIdOfSpoc(@Param("jobRoleId") Long jobRoleId);
+	
+	@Query(value ="select jr.deptId from JobRole jr where jobRoleId =:jobRoleId")
+	List<Long> findDepartmentIdOfCurrentUser(@Param("jobRoleId") Long jobRoleId);
 	
 	
 	 @Query(value = "SELECT \n"
@@ -156,5 +160,8 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 				+ "        WHERE t2.spocId = :empId AND t2.isActive = 'Y'\n"
 				+ "    )")
 		boolean isUserMappedInAnyRole( Long empId);
+		
+		@Query(value ="select distinct deptId from Department")
+		List<Long> findAllDepartments();
 
 }

@@ -70,5 +70,8 @@ export class Project{
 	internalProjectType:any;
 	teamLeadId:any;
 	teamLead:any;
+	employeeTeamMapId:any;
+	draftStatus:any;
+  combinedProjectType: string;
 
 }

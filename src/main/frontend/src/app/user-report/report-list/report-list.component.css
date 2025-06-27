@@ -634,6 +634,14 @@ td {
   margin-left: auto;
 }
 
+.backButton{
+  background-color: #193d8aff; 
+  /* margin-left: 1055px; */
+  position: absolute;
+  right: 0;
+  min-height: 50px;
+}
+
 .details-button {
   color: rgb(48, 119, 141);
 }

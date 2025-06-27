@@ -20,6 +20,7 @@ import { SetDefaultProjectObj } from '../models/setDefaultProjectObj';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { ResourceManagementService } from '../services/resource-management.service';
+import { ProjectFilterDTO } from '../models/projectFilterDTO';
 
 
 class FilterData {
@@ -76,6 +77,7 @@ export class ProjectViewComponent implements OnInit {
   teamListBulk: any;
   @ViewChild("alert_message_without_reload")
   alertTemplateWithoutReload: TemplateRef<any>;
+  allProject_Po_Internal: any[];
   openAlertMod3(template: TemplateRef<any>, message: any) {
     this.modalRef3 = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -115,46 +117,79 @@ export class ProjectViewComponent implements OnInit {
   }
 
   getProjectInfo(): void {
-    this.projectObj.projectViewId = this.selectedProjectId;
-    console.log("projectObj ", this.projectObj);
+  this.projectObj.projectViewId = this.selectedProjectId;
+  console.log("projectObj ", this.projectObj);
 
-    if (this.projectObj.projectViewId.startsWith('po')) {
-      this.projectObj.projectViewId = this.projectObj.projectViewId.substring(2);
-      console.log("projectId ", this.projectObj.projectViewId);
-      this.projectObj.projectViewId = Number(this.projectObj.projectViewId);
-      console.log("projectId ", this.projectObj.projectViewId);
-      this.employee360Service.getPoProjectInfo(this.projectObj).subscribe({
-        next: (response: any) => {
-          if (response.serviceStatus === "Success") {
-            this.projectList = response.serviceResponse;
-            this.projectObj = this.projectList[0];
-            this.getTeamInfo(this.projectObj);
-          } else {
-            console.warn("Failed to fetch project info");
-          }
-        },
-        error: (error) => {
-          console.error("Error fetching project info:", error);
+  if (this.projectObj.projectViewId.startsWith('po')) {
+    this.projectObj.projectViewId = this.projectObj.projectViewId.substring(2);
+    console.log("projectId ", this.projectObj.projectViewId);
+    this.projectObj.projectViewId = Number(this.projectObj.projectViewId);
+    console.log("projectId ", this.projectObj.projectViewId);
+    this.employee360Service.getPoProjectInfo(this.projectObj).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.projectList = response.serviceResponse;
+          this.projectObj = this.projectList[0];
+          // Add combined project type to the project object
+          this.projectObj.combinedProjectType = this.getProjectType(this.projectObj);
+          this.getTeamInfo(this.projectObj);
+        } else {
+          console.warn("Failed to fetch project info");
         }
-      });
+      },
+      error: (error) => {
+        console.error("Error fetching project info:", error);
+      }
+    });
+  } else {
+    this.employee360Service.getProjectInfo(this.projectObj).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.projectList = response.serviceResponse;
+          this.projectObj = this.projectList[0];
+          // Add combined project type to the project object
+          this.projectObj.combinedProjectType = this.getProjectType(this.projectObj);
+          this.getTeamInfo(this.projectObj);
+        } else {
+          console.warn("Failed to fetch project info");
+        }
+      },
+      error: (error) => {
+        console.error("Error fetching project info:", error);
+      }
+    });
+  }
+}
+
+
+  //---------------------Raj----------------------//
+  CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilterDTO) {
+    this.allProject_Po_Internal = [];
+    this.resourceManagementService.combinedPOINTERNALDataList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        console.log(response.serviceResponse);
+        this.allProject_Po_Internal = response.serviceResponse.combinedNewProjects.map((project: any) => {
+          // Add the combined project type to each project object
+          project.combinedProjectType = this.getProjectType(project);
+          return project;
+        });
+        // this.tabCounts = response.serviceResponse.counts;
+        // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+  
+  getProjectType(project: any): string {
+    if (project.poProjectType !== null && project.poProjectType !== undefined && project.poProjectType !== '') {
+      return project.poProjectType;
+    } else if (project.internalProjectType !== null && project.internalProjectType !== undefined && project.internalProjectType !== '') {
+      return project.internalProjectType;
     } else {
-      this.employee360Service.getProjectInfo(this.projectObj).subscribe({
-        next: (response: any) => {
-          if (response.serviceStatus === "Success") {
-            this.projectList = response.serviceResponse;
-            this.projectObj = this.projectList[0];
-            this.getTeamInfo(this.projectObj);
-          } else {
-            console.warn("Failed to fetch project info");
-          }
-        },
-        error: (error) => {
-          console.error("Error fetching project info:", error);
-        }
-      });
+      return 'NA';
     }
   }
-
   getTeamInfo(project): void {
     this.employee360Service.getTeamInfo(project).subscribe({
       next: (response: any) => {
@@ -266,7 +301,7 @@ export class ProjectViewComponent implements OnInit {
   cancelRequest() {
     this.modalRef.hide();
   }
-   cancelRequest5() {
+  cancelRequest5() {
     this.modalRef5.hide();
   }
 
@@ -284,7 +319,7 @@ export class ProjectViewComponent implements OnInit {
     const existingTeamIndex = this.selectedMembers.findIndex(item => item.team.teamId === team.teamId);
 
     if (object.selected) {
-
+      console.log("test", object);
       if (existingTeamIndex === -1) {
         this.selectedMembers.push({ team, object: [object] });
       } else {
@@ -304,7 +339,8 @@ export class ProjectViewComponent implements OnInit {
         const deselectedMember = {
           teamId: team.teamId,
           empId: object.empId,
-          endDate: object.lastDate
+          endDate: object.lastDate,
+          employeeTeamMapId: object.employeeTeamMapId
         };
         this.employeeSelectionHistory.push(deselectedMember);
       }
@@ -461,16 +497,16 @@ export class ProjectViewComponent implements OnInit {
     this.activeProjects = empIdsHavingActiveProjects;
     this.EmployessIds = empIds;
     const selectedEmpIds = this.employeeSelectionHistory.map(item => item.empId);
-      console.log("this member to be deleted",this.employeeSelectionHistory);
+    console.log("this member to be deleted", this.employeeSelectionHistory);
     this.EmployessIds = this.EmployessIds.filter(empId =>
       selectedEmpIds.includes(empId)
     );
-    
+
     this.activeProjects = this.activeProjects.filter(empId =>
       selectedEmpIds.includes(empId)
     );
     console.log("this member to be deleted", this.activeProjects, this.EmployessIds);
-   if (this.EmployessIds.length !== 0 && this.activeProjects.length !== 0) {
+    if (this.EmployessIds.length !== 0 && this.activeProjects.length !== 0) {
       this.getEmployeeInformationBulk(this.EmployessIds);
       this.modalRef4 = this.modalService.show(template1, { class: 'modal-xl' });
       this.setDefaultProjectObj.empIds = this.activeProjects;
@@ -500,6 +536,10 @@ export class ProjectViewComponent implements OnInit {
     this.lastDate = lastDate1;
   }
   deleteResourceFromProjectBulk(template: TemplateRef<any>) {
+    this.employeeSelectionHistory = this.employeeSelectionHistory.map(entry => ({
+      ...entry,
+      endDate: this.lastDate || null
+    }));
     this.projectService.updateProjectResourcesAsInActiveBulk(this.employeeSelectionHistory)
       .pipe(first())
       .subscribe((response: any) => {
@@ -535,7 +575,7 @@ export class ProjectViewComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.bulkEmployeeList = response.serviceResponse;
       } else {
-           if (this.EmployessIds.length !== 0) {
+        if (this.EmployessIds.length !== 0) {
           this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
           console.error("Unable to fetch Employee List!");
         }
@@ -553,6 +593,15 @@ export class ProjectViewComponent implements OnInit {
     this.setDefaultProjectObj.resourceOverViewId = emp.resourceOverViewId;
     const today = new Date();
     this.lastDate = today.toISOString().split('T')[0];
+     if (
+      !this.setDefaultProjectObj.projectId ||
+      !this.setDefaultProjectObj.teamId ||
+      !this.setDefaultProjectObj.employeeRole
+    ) {
+         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+      // alert('Project, Team, and Employee Role must be selected.');
+      return;
+    }
     if (this.setDefaultProjectObj.teamId !== null) {
       this.resourceManagementService.setProjectMappingAndDefaultProject(this.setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -565,7 +614,7 @@ export class ProjectViewComponent implements OnInit {
             this.modalRef4.hide();
             this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
           }
-          if(this.EmployessIds.length === 0 && this.activeProjects.length !== 0  ){
+          if (this.EmployessIds.length === 0 && this.activeProjects.length !== 0) {
             this.modalRef4.hide();
             this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the default project of employees who are currently mapped to other active projects.");
           }
@@ -584,6 +633,16 @@ export class ProjectViewComponent implements OnInit {
     setDefaultProjectObj.empId = this.EmployessIds;
     const today = new Date();
     this.lastDate = today.toISOString().split('T')[0];
+
+     if (
+      !setDefaultProjectObj.projectId ||
+      !setDefaultProjectObj.teamId ||
+      !setDefaultProjectObj.employeeRole
+    ) {
+         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+      // alert('Project, Team, and Employee Role must be selected.');
+      return;
+    }
     if (setDefaultProjectObj.teamId !== null) {
       this.resourceManagementService.setProjectMappingAndDefaultProject(setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -594,8 +653,8 @@ export class ProjectViewComponent implements OnInit {
           if (this.activeProjects.length === 0 && this.EmployessIds.length === 0) {
             this.modalRef4.hide();
             this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
-          } 
-          if(this.EmployessIds.length === 0 && this.activeProjects.length !== 0  ){
+          }
+          if (this.EmployessIds.length === 0 && this.activeProjects.length !== 0) {
             this.modalRef4.hide();
             this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the default project of employees who are currently mapped to other active projects.");
           }
@@ -615,13 +674,13 @@ export class ProjectViewComponent implements OnInit {
         this.bulkEmployeeListActiveList = response.serviceResponse;
         console.error("Unable to fetch Employee List!", this.bulkEmployeeListActiveList);
         // this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-      
-       } else {
-           if (this.activeProjects.length !== 0) {
+
+      } else {
+        if (this.activeProjects.length !== 0) {
           this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
           console.error("Unable to fetch Employee List!");
         }
-       }
+      }
     });
   }
 
@@ -696,6 +755,10 @@ export class ProjectViewComponent implements OnInit {
     this.defaultProjectUpdate.createdBy = this.currentUser.empId;
     const today = new Date();
     this.lastDate = today.toISOString().split('T')[0];
+     if(!this.defaultProjectUpdate.projectId){
+      this.openAlertMod3(this.alertTemplateWithoutReload, "Please update Default Project");
+      return;
+    }
     this.resourceManagementService.setDefaultProjectUpdateBillable(this.defaultProjectUpdate).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
@@ -707,10 +770,10 @@ export class ProjectViewComponent implements OnInit {
           this.modalRef.hide();
           this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
         }
-         if(this.EmployessIds.length !== 0 && this.activeProjects.length === 0  ){
-            this.modalRef.hide();
-            this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the default project of employees who are not mapped to other active projects.");
-          }
+        if (this.EmployessIds.length !== 0 && this.activeProjects.length === 0) {
+          this.modalRef.hide();
+          this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the default project of employees who are not mapped to other active projects.");
+        }
       } else {
         this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
         console.error("Error setting the default project!");

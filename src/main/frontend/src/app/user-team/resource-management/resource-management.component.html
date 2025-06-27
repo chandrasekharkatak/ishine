@@ -33,444 +33,464 @@
     <!-- New content -->
     <div class="container bg-white" *ngIf="allProjectTable">
         <div class="row">
-            <div class="col-md-4 mb-2">
+            <!-- <div class="col-md-4 mb-2">
                 <h5>Project Status Report</h5>
+            </div> -->
+
+            <div class="col-md-4 mb-2 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Project Status Report</h5>
+                <i class="fa" [ngClass]="isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"
+                    style="cursor: pointer; padding-right: 120px;" (click)="isCollapsed = !isCollapsed"
+                    title="{{ isCollapsed ? 'Expand Section' : 'Collapse Project Status Report' }}">
+                </i>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-8">
-                <div class="row mb-3" style="display: flex;
-        justify-content: left;
-        max-width: fit-content;">
 
-                    <div class="col-md-2" style="display: flex;
-              justify-content: left;
-              max-width: fit-content;" (click)="selectStatusTab('Not Started')"
-                        [ngClass]="{'selected-card': selectedStatusTab === 'Not Started'}">
-                        <div class="mini-card1" style="border-left: 4px solid #9E9E9E;">
-                            <div class="value fw-bold" style="color: #9E9E9E;">{{tabCounts?.notStartedCount}}</div>
-                            <div class="label text-muted">Not Started <i class="fa-solid fa-minus-circle fa-beat-fade"
-                                    style="color: #9E9E9E;"></i></div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-2" style="display: flex;
+            <div class="row" *ngIf="!isCollapsed">
+                <div class="col-md-8">
+                    <div class="row mb-3" style="display: flex;
             justify-content: left;
-            max-width: fit-content;" (click)="selectStatusTab('Pending for approval')"
-                        [ngClass]="{'selected-card': selectedStatusTab === 'Pending for approval'}">
-                        <div class="mini-card1" style="border-left: 4px solid #FFB300;">
-                            <div class="value fw-bold" style="color: #FFB300;">{{tabCounts?.pendingForApprovalCount}}
-                            </div>
-                            <div class="label text-muted">Pending For Approval<i class="fa-solid fa-clock fa-beat-fade"
-                                    style="color: #FFB300;"></i></div>
-                        </div>
-                    </div>
+            max-width: fit-content;">
 
-                    <div class="col-md-2" style="display: flex;
-              justify-content: left;
-              max-width: fit-content;" (click)="selectStatusTab('Approved')"
-                        [ngClass]="{'selected-card': selectedStatusTab === 'Approved'}">
-                        <div class="mini-card1" style="border-left: 4px solid #4CAF50;">
-                            <div class="value fw-bold" style="color: #4CAF50;">{{tabCounts?.approvedCount}}</div>
-                            <div class="label text-muted">Approved <i class="fa-solid fa-check-circle fa-beat-fade"
-                                    style="color: #4CAF50;"></i></div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-2" style="display: flex;
-          justify-content: left;
-          max-width: fit-content;" (click)="selectStatusTab('Rejected')"
-                        [ngClass]="{'selected-card': selectedStatusTab === 'Rejected'}">
-                        <div class="mini-card1" style="border-left: 4px solid #F44336;">
-                            <div class="value fw-bold" style="color: #F44336;">{{tabCounts?.rejectedCount}}</div>
-                            <div class="label text-muted">Rejected <i class="fa-solid fa-circle-xmark fa-beat-fade"
-                                    style="color: #F44336;"></i></div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-2" style="display: flex;
-          justify-content: left;
-          max-width: fit-content;" (click)="selectStatusTab('All')"
-                        [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
-                        <div class="mini-card1" style="border-left: 4px solid #03A9F4;">
-                            <div class="value fw-bold" style="color: #03A9F4;">{{tabCounts?.totalCount}}</div>
-                            <div class="label text-muted">Total <i class="fa-solid fa-plus-circle fa-beat-fade"
-                                    style="color: #03A9F4;"></i>
+                        <div class="col-md-2" style="display: flex;
+                  justify-content: left;
+                  max-width: fit-content;" (click)="selectStatusTab('Not Started')"
+                            [ngClass]="{'selected-card': selectedStatusTab === 'Not Started'}">
+                            <div class="mini-card1" style="border-left: 4px solid #9E9E9E;">
+                                <div class="value fw-bold" style="color: #9E9E9E;">{{tabCounts.notStartedCount}}</div>
+                                <div class="label text-muted">Not Started <i
+                                        class="fa-solid fa-minus-circle fa-beat-fade" style="color: #9E9E9E;"></i></div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="col-md-2" style="display: flex;
-              justify-content: left;
-              max-width: fit-content;" (click)="selectStatusTab('completedInIshine')"
-                        [ngClass]="{'selected-card': selectedStatusTab === 'completedInIshine'}">
-                        <div class="mini-card1" style="border-left: 4px solid #17ceee;">
-                            <div class="value fw-bold" style="color: #17ceee;">{{tabCounts?.completedInIshineCount}}
-                            </div>
-                            <div class="label text-muted">Completed In Ishine<i
-                                    class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #17ceee;"></i></div>
-                        </div>
-                    </div>
-
-
-                    <div class="col-md-2" style="display: flex;
-                         justify-content: left;
-                         max-width: fit-content;" (click)="selectStatusTab('Completed')"
-                        [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
-                        <div class="mini-card1" style="border-left: 4px solid #00ec33;">
-                            <div class="value fw-bold" style="color: #00ec33;">{{tabCounts?.completedCount}}</div>
-                            <div class="label text-muted">Completed In Shankh<i
-                                    class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #00ec33;"></i></div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-2" style="display: flex;
-              justify-content: left;
-              max-width: fit-content;" (click)="selectStatusTab('CompletedWithTeam')"
-                        [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithTeam'}">
-                        <div class="mini-card1" style="border-left: 4px solid #7836c4;">
-                            <div class="value fw-bold" style="color: #7836c4;">{{tabCounts?.completedWithEmployeeCount}}
-                            </div>
-                            <div class="label text-muted">Completed In Shankh Have Active Team<i
-                                    class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #7836c4;"></i></div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <div class="mini-card1 timesheet-card" style="border-left: 4px solid #e91e63; padding: 12px;"
-                            (click)="EmployeeViewDataModel(employee_data,'Unfilled Timesheet Projects')">
-
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="value fw-bold" style="color: #e91e63;">
-                                    <ng-container
-                                        *ngIf="unfilledTimesheetProjectListCount !== null && unfilledTimesheetProjectListCount !== undefined; else loadingSpinner">
-                                        {{ unfilledTimesheetProjectListCount }}
-                                    </ng-container>
-                                    <ng-template #loadingSpinner>
-                                        <i class="fa fa-spinner fa-spin text-secondary"></i>
-                                    </ng-template>
+                        <div class="col-md-2" style="display: flex;
+                justify-content: left;
+                max-width: fit-content;" (click)="selectStatusTab('Pending for approval')"
+                            [ngClass]="{'selected-card': selectedStatusTab === 'Pending for approval'}">
+                            <div class="mini-card1" style="border-left: 4px solid #FFB300;">
+                                <div class="value fw-bold" style="color: #FFB300;">{{tabCounts.pendingForApprovalCount}}
                                 </div>
-                                <div class="label fw-semibold text-muted text-end">
-                                    Unfilled Timesheet
+                                <div class="label text-muted">Pending For Approval<i
+                                        class="fa-solid fa-clock fa-beat-fade" style="color: #FFB300;"></i></div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2" style="display: flex;
+                  justify-content: left;
+                  max-width: fit-content;" (click)="selectStatusTab('Approved')"
+                            [ngClass]="{'selected-card': selectedStatusTab === 'Approved'}">
+                            <div class="mini-card1" style="border-left: 4px solid #4CAF50;">
+                                <div class="value fw-bold" style="color: #4CAF50;">{{tabCounts.approvedCount}}</div>
+                                <div class="label text-muted">Approved <i class="fa-solid fa-check-circle fa-beat-fade"
+                                        style="color: #4CAF50;"></i></div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2" style="display: flex;
+              justify-content: left;
+              max-width: fit-content;" (click)="selectStatusTab('Rejected')"
+                            [ngClass]="{'selected-card': selectedStatusTab === 'Rejected'}">
+                            <div class="mini-card1" style="border-left: 4px solid #F44336;">
+                                <div class="value fw-bold" style="color: #F44336;">{{tabCounts.rejectedCount}}</div>
+                                <div class="label text-muted">Rejected <i class="fa-solid fa-circle-xmark fa-beat-fade"
+                                        style="color: #F44336;"></i></div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2" style="display: flex;
+              justify-content: left;
+              max-width: fit-content;" (click)="selectStatusTab('All')"
+                            [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
+                            <div class="mini-card1" style="border-left: 4px solid #03A9F4;">
+                                <div class="value fw-bold" style="color: #03A9F4;">{{tabCounts.totalCount}}</div>
+                                <div class="label text-muted">Total <i class="fa-solid fa-plus-circle fa-beat-fade"
+                                        style="color: #03A9F4;"></i>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="label fw-semibold " style="color: #e91e63;">Last</div>
-                                <div class="range-buttons" (click)="$event.stopPropagation()">
-                                    <button *ngFor="let range of ranges" [class.active]="selectedRange === range"
-                                        class="pill-button" (click)="selectRange(range)" [title]="range.unit === 'M' 
-                                        ? range.value + ' months' 
-                                        : range.value + ' year'">
-                                        {{ range.label }}
-                                    </button>
+                        <div class="col-md-2" style="display: flex;
+                  justify-content: left;
+                  max-width: fit-content;" (click)="selectStatusTab('completedInIshine')"
+                            [ngClass]="{'selected-card': selectedStatusTab === 'completedInIshine'}">
+                            <div class="mini-card1" style="border-left: 4px solid #17ceee;">
+                                <div class="value fw-bold" style="color: #17ceee;">{{tabCounts.completedInIshineCount}}
                                 </div>
-                            </div>
-
-                            <div class="label text-muted"> Non-Compliance Projects
-                                <i class="fa-solid fa-calendar-xmark fa-beat-fade" style="color: #e91e63"></i>
+                                <div class="label text-muted">Completed In Ishine<i
+                                        class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #17ceee;"></i></div>
                             </div>
                         </div>
+
+
+                        <div class="col-md-2" style="display: flex;
+                             justify-content: left;
+                             max-width: fit-content;" (click)="selectStatusTab('Completed')"
+                            [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
+                            <div class="mini-card1" style="border-left: 4px solid #00ec33;">
+                                <div class="value fw-bold" style="color: #00ec33;">{{tabCounts.completedCount}}</div>
+                                <div class="label text-muted">Completed In Shankh<i
+                                        class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #00ec33;"></i></div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2" style="display: flex;
+                  justify-content: left;
+                  max-width: fit-content;" (click)="selectStatusTab('CompletedWithTeam')"
+                            [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithTeam'}">
+                            <div class="mini-card1" style="border-left: 4px solid #7836c4;">
+                                <div class="value fw-bold" style="color: #7836c4;">
+                                    {{tabCounts.completedWithEmployeeCount}}
+                                </div>
+                                <div class="label text-muted">Completed In Shankh Have Active Team<i
+                                        class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #7836c4;"></i></div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="mini-card1 timesheet-card"
+                                style="border-left: 4px solid #e91e63; padding: 12px;"
+                                (click)="EmployeeViewDataModel(employee_data,'Unfilled Timesheet Projects')">
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="value fw-bold" style="color: #e91e63;">
+                                        <ng-container
+                                            *ngIf="unfilledTimesheetProjectListCount !== null && unfilledTimesheetProjectListCount !== undefined; else loadingSpinner">
+                                            {{ unfilledTimesheetProjectListCount }}
+                                        </ng-container>
+                                        <ng-template #loadingSpinner>
+                                            <i class="fa fa-spinner fa-spin text-secondary"></i>
+                                        </ng-template>
+                                    </div>
+                                    <div class="label fw-semibold text-muted text-end">
+                                        Unfilled Timesheet
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="label fw-semibold " style="color: #e91e63;">Last</div>
+                                    <div class="range-buttons" (click)="$event.stopPropagation()">
+                                        <button *ngFor="let range of ranges" [class.active]="selectedRange === range"
+                                            class="pill-button" (click)="selectRange(range)" [title]="range.unit === 'M' 
+                                            ? range.value + ' months' 
+                                            : range.value + ' year'">
+                                            {{ range.label }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="label text-muted"> Non-Compliance Projects
+                                    <i class="fa-solid fa-calendar-xmark fa-beat-fade" style="color: #e91e63"></i>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
                 </div>
+                <!-- Employee Card Section -->
+                <div class="col-md-4">
+                    <div *ngIf="!myDept || currentUser.employeeRole == 'SuperAdmin' ">
+                        <div class="row">
+                            <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
+                                <label class="info-label" style="justify-self: left;"
+                                    title="As Per Resource - Project Mapping">
+                                    <span class="text-danger" *ngIf="currentUser.employeeRole != 'SuperAdmin'"><i
+                                            class="fa-solid fa-toggle-off" (click)="toggleDept();clearSelection($event)"
+                                            style="cursor: pointer; color: #193D8A;"></i></span>
+                                    <span class="text-danger">*</span>
+                                    Departments
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                   
+                        <div class="row mb-3" *ngIf="!myDept || currentUser.employeeRole == 'SuperAdmin' ">
+                            <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
+                                <mat-select class="form-control" multiple [(ngModel)]="deptIdList"
+                                    (selectionChange)="onDepartmentSelectionChange()">
+                                    <!-- Search Input (non-selectable) -->
+                                    <mat-option class="non-selectable" disabled>
+                                        <div style="display: flex; align-items: center;">
+                                            <input type="text" placeholder="Search Department"
+                                                [(ngModel)]="searchTextDept" (ngModelChange)="filterDepartments()"
+                                                class="form-control" style="width: 100%; padding: 5px;" />
 
-            </div>
-            <!-- Employee Card Section -->
-            <div class="col-md-4">
-                <div *ngIf="!myDept">
+                                            <button *ngIf="deptIdList?.length > 0" (click)="clearSelection($event)"
+                                                style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                                                title="Clear Selection">
+                                                Clear
+                                            </button>
+                                        </div>
+                                    </mat-option>
+
+
+                                    <!-- Select All/Deselect All -->
+                                    <mat-option (click)="toggleSelectAllDept()" [disabled]="departments.length === 0">
+                                        {{ isAllSelected ? 'Deselect All' : 'Select All' }}
+                                    </mat-option>
+
+                                    <!-- Department options -->
+                                    <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
+                                        {{ dept.name }}
+                                    </mat-option>
+                                </mat-select>
+
+                            </div>
+                        </div>
+                    
+                    <div *ngIf="myDept && currentUser.employeeRole != 'SuperAdmin' ">
+                        <div class="row">
+                            <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
+                                <label class="info-label" style="justify-self: left;">
+                                    <span class="text-danger"><i class="fa-solid fa-toggle-on"
+                                            (click)="toggleDept();clearSelectionByUser($event)"
+                                            style="cursor: pointer; color: #193D8A;"
+                                            title="Toggle off to view all departments associated with resources mapped to projects under your bucket."></i></span>
+                                    <span class="text-danger">*</span>
+                                    My Departments
+                                </label>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
+                                <mat-select class="form-control" multiple [(ngModel)]="deptIdListByUser"
+                                    (selectionChange)="onDepartmentSelectionChangeByUser()">
+                                    <!-- Search Input (non-selectable) -->
+                                    <mat-option class="non-selectable" disabled>
+                                        <div style="display: flex; align-items: center;">
+                                            <input type="text" placeholder="Search Department"
+                                                [(ngModel)]="searchTextDeptByUser"
+                                                (ngModelChange)="filterDepartmentsByUser()" class="form-control"
+                                                style="width: 100%; padding: 5px;" />
+
+                                            <button *ngIf="deptIdListByUser?.length > 0"
+                                                (click)="clearSelectionByUser($event)"
+                                                style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                                                title="Clear Selection">
+                                                Clear
+                                            </button>
+                                        </div>
+                                    </mat-option>
+
+                                    <!-- Select All/Deselect All -->
+                                    <mat-option (click)="toggleSelectAllDeptByUser()"
+                                        [disabled]="departmentListByUser.length === 0">
+                                        {{ isAllSelectedByUser ? 'Deselect All' : 'Select All' }}
+                                    </mat-option>
+
+                                    <!-- Department options -->
+                                    <mat-option *ngFor="let dept of filteredDepartmentsByUser" [value]="dept.deptId">
+                                        {{ dept.name }}
+                                    </mat-option>
+                                </mat-select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                            <label class="info-label" style="justify-self: left;"
-                                title="As Per Resource - Project Mapping">
-                                <span class="text-danger"><i class="fa-solid fa-toggle-off"
-                                        (click)="toggleDept();clearSelection($event)"
-                                        style="cursor: pointer; color: #193D8A;"></i></span>
-                                <span class="text-danger">*</span>
-                                Departments
-                            </label>
+                            <label class="info-label" style="justify-self: left;">Global Employee Search:</label>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                            <mat-select class="form-control" multiple [(ngModel)]="deptIdList"
-                                (selectionChange)="onDepartmentSelectionChange()">
-                                <!-- Search Input (non-selectable) -->
-                                <mat-option class="non-selectable" disabled>
-                                    <div style="display: flex; align-items: center;">
-                                        <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDept"
-                                            (ngModelChange)="filterDepartments()" class="form-control"
-                                            style="width: 100%; padding: 5px;" />
+                            <input id="employeeSearch" type="text" class="form-control"
+                                style="min-width: 200px;" placeholder="Search by Name or Emp ID"
+                                aria-label="Search employee" [formControl]="employeeCtrl" [matAutocomplete]="auto">
 
-                                        <button *ngIf="deptIdList?.length > 0" (click)="clearSelection($event)"
-                                            style="margin-left: 5px; background: none; border: none; cursor: pointer;"
-                                            title="Clear Selection">
-                                            Clear
-                                        </button>
-                                    </div>
+                            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
+                                [displayWith]="displayEmployee">
+                                <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
+                                    {{ emp.name }}
                                 </mat-option>
-
-                                <!-- Select All/Deselect All -->
-                                <mat-option (click)="toggleSelectAllDept()" [disabled]="departments.length === 0">
-                                    {{ isAllSelected ? 'Deselect All' : 'Select All' }}
-                                </mat-option>
-
-                                <!-- Department options -->
-                                <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
-                                    {{ dept.name }}
-                                </mat-option>
-                            </mat-select>
-
+                            </mat-autocomplete>
                         </div>
                     </div>
-                </div>
-                <div *ngIf="myDept">
-                    <div class="row">
-                        <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                            <label class="info-label" style="justify-self: left;">
-                                <span class="text-danger"><i class="fa-solid fa-toggle-on"
-                                        (click)="toggleDept();clearSelectionByUser($event)"
-                                        style="cursor: pointer; color: #193D8A;"
-                                        title="Toggle off to view all departments associated with resources mapped to projects under your bucket."></i></span>
-                                <span class="text-danger">*</span>
-                                My Departments
-                            </label>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                            <mat-select class="form-control" multiple [(ngModel)]="deptIdListByUser"
-                                (selectionChange)="onDepartmentSelectionChangeByUser()">
-                                <!-- Search Input (non-selectable) -->
-                                <mat-option class="non-selectable" disabled>
-                                    <div style="display: flex; align-items: center;">
-                                        <input type="text" placeholder="Search Department"
-                                            [(ngModel)]="searchTextDeptByUser"
-                                            (ngModelChange)="filterDepartmentsByUser()" class="form-control"
-                                            style="width: 100%; padding: 5px;" />
-
-                                        <button *ngIf="deptIdListByUser?.length > 0"
-                                            (click)="clearSelectionByUser($event)"
-                                            style="margin-left: 5px; background: none; border: none; cursor: pointer;"
-                                            title="Clear Selection">
-                                            Clear
-                                        </button>
-                                    </div>
-                                </mat-option>
-
-                                <!-- Select All/Deselect All -->
-                                <mat-option (click)="toggleSelectAllDeptByUser()"
-                                    [disabled]="departmentListByUser?.length === 0">
-                                    {{ isAllSelectedByUser ? 'Deselect All' : 'Select All' }}
-                                </mat-option>
-
-                                <!-- Department options -->
-                                <mat-option *ngFor="let dept of filteredDepartmentsByUser" [value]="dept.deptId">
-                                    {{ dept.name }}
-                                </mat-option>
-                            </mat-select>
-                        </div>
+                    <div *ngIf="selectedEmpId" class="button-container">
+                        <button class="rounded-button summary-button"
+                            (click)="openSummaryModal(projectSummaryModal, selectedEmpId)">Employee Summary</button>
+                        <button class="rounded-button details-button"
+                            [navigateToEmployee360]="this.selectedEmpId">Employee
+                            360</button>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                        <label class="info-label" style="justify-self: left;">Global Employee Search:</label>
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                        <input id="employeeSearch" type="text" class="form-select custom-select-style"
-                            style="min-width: 200px;" placeholder="Search by Name or Emp ID"
-                            aria-label="Search employee" [formControl]="employeeCtrl" [matAutocomplete]="auto">
 
-                        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
-                            [displayWith]="displayEmployee">
-                            <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
-                                {{ emp.name }}
-                            </mat-option>
-                        </mat-autocomplete>
-                    </div>
-                </div>
-                <div *ngIf="selectedEmpId" class="button-container">
-                    <button class="rounded-button summary-button"
-                        (click)="openSummaryModal(projectSummaryModal, selectedEmpId)">Employee Summary</button>
-                    <button class="rounded-button details-button" [navigateToEmployee360]="this.selectedEmpId">Employee
-                        360</button>
-                </div>
             </div>
-
         </div>
+
 
         <div class="row">
-            <div class="col-md-4 mb-2">
-                <h5>Employee Status Report</h5>
+            <!-- <div class="col-md-4 mb-2">
+                <h5></h5>
+            </div> -->
+            <div class="col-md-4 mb-2 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Employee Status Report</h5>
+                <i class="fa" [ngClass]="isCollapsedEmployee ? 'fa-chevron-down' : 'fa-chevron-up'"
+                    style="cursor: pointer; padding-right: 90px;" (click)="isCollapsedEmployee = !isCollapsedEmployee"
+                    title="{{ isCollapsedEmployee ? 'Expand Section' : 'Collapse Employee Status Report' }}">
+                </i>
+            </div>
+
+            <div class="row" *ngIf="!isCollapsedEmployee">
+                <div class="col-md-4 mb-2">
+                    <div class="mini-card">
+                        <strong>Total ApMoSys Employees</strong><br />
+                        <h2>{{ totalEmployees }}</h2>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(sankhMappedEmployeesList) }"
+                        (click)="EmployeeViewDataModel(employee_data,'Sankh')">
+                        <div class="value">
+                            <ng-container
+                                *ngIf="sankhMappedEmployees !== null && sankhMappedEmployees !== undefined; else loading1">
+                                {{ sankhMappedEmployees }}
+                            </ng-container>
+                            <ng-template #loading1>
+                                <i class="fa fa-spinner fa-spin text-secondary"></i>
+                            </ng-template>
+                        </div>
+                        <div class="label weight" style="color: #2E7D32;">
+                            Mapped to Shankh Projects <i class="fa fa-link" style="color: #2E7D32;"></i>
+                        </div>
+                        <div class="text-primary text-end small">View Employees</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(internalMappedEmployeesList) }"
+                        (click)="EmployeeViewDataModel(employee_data,'Internal')">
+                        <div class="value">
+                            <ng-container
+                                *ngIf="internalMappedEmployees !== null && internalMappedEmployees !== undefined; else loading2">
+                                {{ internalMappedEmployees }}
+                            </ng-container>
+                            <ng-template #loading2>
+                                <i class="fa fa-spinner fa-spin text-secondary"></i>
+                            </ng-template>
+                        </div>
+                        <div class="label" style="color: #F9A825;">
+                            Mapped to Internal Projects <i class="fa fa-link" style="color: #F9A825;"></i>
+                        </div>
+                        <div class="text-primary text-end small">View Employees</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(mappedToBothEmployeesList) }"
+                        (click)="EmployeeViewDataModel(employee_data,'Both')">
+                        <div class="value">
+                            <ng-container
+                                *ngIf="mappedToBothEmployees !== null && mappedToBothEmployees !== undefined; else loading3">
+                                {{ mappedToBothEmployees }}
+                            </ng-container>
+                            <ng-template #loading3>
+                                <i class="fa fa-spinner fa-spin text-secondary"></i>
+                            </ng-template>
+                        </div>
+                        <div class="label weight" style="color: #820beb;">
+                            Mapped to Internal and Shankh Projects <i class="fa fa-link" style="color: #ff74f8;"></i>
+                        </div>
+                        <div class="text-primary text-end small">View Employees</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeesWithoutProjectList) }"
+                        (click)="EmployeeViewDataModel(employee_data,'Not Mapped')">
+                        <div class="value">
+                            <ng-container
+                                *ngIf="employeesWithoutProject !== null && employeesWithoutProject !== undefined; else loading4">
+                                {{ employeesWithoutProject }}
+                            </ng-container>
+                            <ng-template #loading4>
+                                <i class="fa fa-spinner fa-spin text-secondary"></i>
+                            </ng-template>
+                        </div>
+                        <div class="label weight text-danger">
+                            Employees Not Mapped to Any Project <i class="fa fa-unlink text-danger"></i>
+                        </div>
+                        <div class="text-primary text-end small">View Employees</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(allMappedEmployeesList) }"
+                        (click)="EmployeeViewDataModel(employee_data,'All Mapped')">
+                        <div class="value">
+                            <ng-container
+                                *ngIf="allMappedEmployees !== null && allMappedEmployees !== undefined; else loading5">
+                                {{ allMappedEmployees }}
+                            </ng-container>
+                            <ng-template #loading5>
+                                <i class="fa fa-spinner fa-spin text-secondary"></i>
+                            </ng-template>
+                        </div>
+                        <div class="label weight" style="color: #6F1D1B;">
+                            Employees Mapped to Project <i class="fa fa-link" style="color: #6F1D1B;"></i>
+                        </div>
+                        <div class="text-primary text-end small">View Employees</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(exceptionEmployeesList) }"
+                        (click)="EmployeeViewDataModel(employee_data,'Exception')">
+                        <div class="value">
+                            <ng-container
+                                *ngIf="exceptionEmployees !== null && exceptionEmployees !== undefined; else loading5">
+                                {{ exceptionEmployees }}
+                            </ng-container>
+                            <ng-template #loading5>
+                                <i class="fa fa-spinner fa-spin text-secondary"></i>
+                            </ng-template>
+                        </div>
+                        <div class="label" style="color: #ee0a0a;">
+                            Employees on Bench but Assigned to Other Projects <i class="fa fa-link"
+                                style="color: #ee0a0a;"></i>
+                        </div>
+                        <div class="text-primary text-end small">View Employees</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeeBenchRepot) }"
+                        (click)="EmployeeViewDataModel(employee_data,'OnBench')">
+                        <div class="value">
+                            <ng-container *ngIf="employeeBench !== null && employeeBench !== undefined; else loading5">
+                                {{ employeeBench }}
+                            </ng-container>
+                            <ng-template #loading5>
+                                <i class="fa fa-spinner fa-spin text-secondary"></i>
+                            </ng-template>
+                        </div>
+                        <div class="label" style="color: #144552;">
+                            Employee On Bench For More Than 30 Days <i class="fa fa-link" style="color: #144552;"></i>
+                        </div>
+                        <div class="text-primary text-end small">View Employees</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeesWithoutBillability) }"
+                        (click)="EmployeeViewDataModel(employee_data,'Without Billability')">
+                        <div class="value">
+                            <ng-container
+                                *ngIf="employeesWithoutBillable !== null && employeesWithoutBillable !== undefined; else loading5">
+                                {{ employeesWithoutBillable }}
+                            </ng-container>
+                            <ng-template #loading5>
+                                <i class="fa fa-spinner fa-spin text-secondary"></i>
+                            </ng-template>
+                        </div>
+                        <div class="label" style="color: #a04e1f;">
+                            Employee Without Any Billability <i class="fa fa-link" style="color: #a04e1f;"></i>
+                        </div>
+                        <div class="text-primary text-end small">View Employees</div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-4 mb-2">
-                <div class="mini-card">
-                    <strong>Total ApMoSys Employees</strong><br />
-                    <h2>{{ totalEmployees }}</h2>
-                </div>
-            </div>
-
-            <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(sankhMappedEmployeesList) }"
-                    (click)="EmployeeViewDataModel(employee_data,'Sankh')">
-                    <div class="value">
-                        <ng-container
-                            *ngIf="sankhMappedEmployees !== null && sankhMappedEmployees !== undefined; else loading1">
-                            {{ sankhMappedEmployees }}
-                        </ng-container>
-                        <ng-template #loading1>
-                            <i class="fa fa-spinner fa-spin text-secondary"></i>
-                        </ng-template>
-                    </div>
-                    <div class="label weight" style="color: #2E7D32;">
-                        Mapped to Shankh Projects <i class="fa fa-link" style="color: #2E7D32;"></i>
-                    </div>
-                    <div class="text-primary text-end small">View Employees</div>
-                </div>
-            </div>
-
-            <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(internalMappedEmployeesList) }"
-                    (click)="EmployeeViewDataModel(employee_data,'Internal')">
-                    <div class="value">
-                        <ng-container
-                            *ngIf="internalMappedEmployees !== null && internalMappedEmployees !== undefined; else loading2">
-                            {{ internalMappedEmployees }}
-                        </ng-container>
-                        <ng-template #loading2>
-                            <i class="fa fa-spinner fa-spin text-secondary"></i>
-                        </ng-template>
-                    </div>
-                    <div class="label" style="color: #F9A825;">
-                        Mapped to Internal Projects <i class="fa fa-link" style="color: #F9A825;"></i>
-                    </div>
-                    <div class="text-primary text-end small">View Employees</div>
-                </div>
-            </div>
-
-            <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(mappedToBothEmployeesList) }"
-                    (click)="EmployeeViewDataModel(employee_data,'Both')">
-                    <div class="value">
-                        <ng-container
-                            *ngIf="mappedToBothEmployees !== null && mappedToBothEmployees !== undefined; else loading3">
-                            {{ mappedToBothEmployees }}
-                        </ng-container>
-                        <ng-template #loading3>
-                            <i class="fa fa-spinner fa-spin text-secondary"></i>
-                        </ng-template>
-                    </div>
-                    <div class="label weight" style="color: #820beb;">
-                        Mapped to Internal and Shankh Projects <i class="fa fa-link" style="color: #ff74f8;"></i>
-                    </div>
-                    <div class="text-primary text-end small">View Employees</div>
-                </div>
-            </div>
-
-            <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeesWithoutProjectList) }"
-                    (click)="EmployeeViewDataModel(employee_data,'Not Mapped')">
-                    <div class="value">
-                        <ng-container
-                            *ngIf="employeesWithoutProject !== null && employeesWithoutProject !== undefined; else loading4">
-                            {{ employeesWithoutProject }}
-                        </ng-container>
-                        <ng-template #loading4>
-                            <i class="fa fa-spinner fa-spin text-secondary"></i>
-                        </ng-template>
-                    </div>
-                    <div class="label weight text-danger">
-                        Employees Not Mapped to Any Project <i class="fa fa-unlink text-danger"></i>
-                    </div>
-                    <div class="text-primary text-end small">View Employees</div>
-                </div>
-            </div>
-
-            <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(allMappedEmployeesList) }"
-                    (click)="EmployeeViewDataModel(employee_data,'All Mapped')">
-                    <div class="value">
-                        <ng-container
-                            *ngIf="allMappedEmployees !== null && allMappedEmployees !== undefined; else loading5">
-                            {{ allMappedEmployees }}
-                        </ng-container>
-                        <ng-template #loading5>
-                            <i class="fa fa-spinner fa-spin text-secondary"></i>
-                        </ng-template>
-                    </div>
-                    <div class="label weight" style="color: #6F1D1B;">
-                        Employees Mapped to Project <i class="fa fa-link" style="color: #6F1D1B;"></i>
-                    </div>
-                    <div class="text-primary text-end small">View Employees</div>
-                </div>
-            </div>
-
-            <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(exceptionEmployeesList) }"
-                    (click)="EmployeeViewDataModel(employee_data,'Exception')">
-                    <div class="value">
-                        <ng-container
-                            *ngIf="exceptionEmployees !== null && exceptionEmployees !== undefined; else loading5">
-                            {{ exceptionEmployees }}
-                        </ng-container>
-                        <ng-template #loading5>
-                            <i class="fa fa-spinner fa-spin text-secondary"></i>
-                        </ng-template>
-                    </div>
-                    <div class="label" style="color: #ee0a0a;">
-                        Employees on Bench but Assigned to Other Projects <i class="fa fa-link"
-                            style="color: #ee0a0a;"></i>
-                    </div>
-                    <div class="text-primary text-end small">View Employees</div>
-                </div>
-            </div>
-
-            <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeeBenchRepot) }"
-                    (click)="EmployeeViewDataModel(employee_data,'OnBench')">
-                    <div class="value">
-                        <ng-container *ngIf="employeeBench !== null && employeeBench !== undefined; else loading5">
-                            {{ employeeBench }}
-                        </ng-container>
-                        <ng-template #loading5>
-                            <i class="fa fa-spinner fa-spin text-secondary"></i>
-                        </ng-template>
-                    </div>
-                    <div class="label" style="color: #144552;">
-                        Employee On Bench For More Than 30 Days <i class="fa fa-link" style="color: #144552;"></i>
-                    </div>
-                    <div class="text-primary text-end small">View Employees</div>
-                </div>
-            </div>
-
-            <div class="col-md-4 mb-2">
-                <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeesWithoutBillability) }"
-                    (click)="EmployeeViewDataModel(employee_data,'Without Billability')">
-                    <div class="value">
-                        <ng-container
-                            *ngIf="employeesWithoutBillable !== null && employeesWithoutBillable !== undefined; else loading5">
-                            {{ employeesWithoutBillable }}
-                        </ng-container>
-                        <ng-template #loading5>
-                            <i class="fa fa-spinner fa-spin text-secondary"></i>
-                        </ng-template>
-                    </div>
-                    <div class="label" style="color: #a04e1f;">
-                        Employee Without Any Billability <i class="fa fa-link" style="color: #a04e1f;"></i>
-                    </div>
-                    <div class="text-primary text-end small">View Employees</div>
-                </div>
-            </div>
-
-
-
-
-        </div>
     </div>
 
     <!-- start :: View Projects -->
@@ -589,7 +609,7 @@
 
                                                 <!-- Dropdown Menu -->
                                                 <ul *ngIf="openMenuIndex === i" class="custom-dropdown">
-                                                    <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
+                                                    <li *ngIf="project.draftStatus != 'Not Started' || project.isTeamCreated == 'true'"
                                                         (click)="openProjectPreviewModal(preview_team_new, project);closeMenu(i);isEditProject = false">
                                                         <i class="fas fa-eye"></i> Preview
                                                     </li>
@@ -598,7 +618,7 @@
                                                         <i class="fas fa-pen"></i> Edit
                                                     </li>
                                                     <!-- <li (click)="onAction('Audit', project);closeMenu(i)"><i class="fas fa-clock"></i> Audit</li> -->
-                                                    <li *ngIf="project.isTeamCreated == true || project.isTeamCreated == 'true'"
+                                                    <li *ngIf="project.draftStatus == 'Approved' || project.isTeamCreated == 'true'"
                                                         (click)="openDatePicker(MarkAsCompleteDefaultProject,OtherProjectDefaultMapping,project,customDatePickerTemplate);closeMenu(i)">
                                                         <i class="fas fa-check-double"></i> Mark as Complete
                                                     </li>
@@ -629,7 +649,7 @@
                                         </td>
                                         <td>{{project.poNo ? project.poNo : 'NA' }}</td>
 
-                                        <td>{{project.projectType ? project.projectType : 'NA' }} </td>
+                                        <td>{{ getProjectType(project) }}</td>
 
                                         <td class="text-capitalize">
                                             <ng-container id="clickablefor360"
@@ -761,6 +781,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            
                                                             <div class="col-md-4 mb-0">
                                                                 <div class="info-wrapper">
                                                                     <div class="form-group">
@@ -1024,7 +1045,7 @@
         <div class="modal-body text-center">
             <p>{{alertMessage}}</p>
             <button type="button" class="btn btn-primary"
-                (click)="cancelRequest();CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO)">OK</button>&nbsp;
+                (click)="cancelRequest();reloadPage()">OK</button>&nbsp;
         </div>
     </ng-template>
     <ng-template #alert_team_message>
@@ -1306,6 +1327,7 @@
                                     </div>
                                 </div>
                             </div>
+                            
                             <div class="col-md-4 mb-0">
                                 <div class="info-wrapper">
                                     <div class="form-group">
@@ -1435,8 +1457,16 @@
                         <input type="text" disabled [(ngModel)]="projectObj.poNo" />
                     </div>
                     <div class="form-field">
+                        <label>Project Type</label>
+                        <input type="text" disabled [ngModel]="getProjectType(projectObj)" />
+                    </div>
+                    <div class="form-field">
                         <label>Client Name</label>
                         <input type="text" disabled [(ngModel)]="projectObj.clientName" />
+                    </div>
+                    <div class="form-field">
+                        <label>Status</label>
+                        <input type="text" disabled [ngModel]="projectObj.draftStatus || 'NA'" />
                     </div>
                     <div class="form-field">
                         <label>Department</label>
@@ -1445,7 +1475,7 @@
                                 [value]="dept">{{dept}}</mat-option>
                         </mat-select>
                     </div>
-                    <div class="form-field">
+                    <!-- <div class="form-field">
                         <label><span class="text-danger">*</span>Project Manager</label>
                         <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectManagerId">
 
@@ -1473,8 +1503,45 @@
                             </mat-option>
 
                         </mat-select>
-                    </div>
+                    </div> -->
                     <div class="form-field">
+                        <label><span class="text-danger">*</span> Project Manager</label>
+                        <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectManagerId"
+                            panelClass="custom-select-panel">
+                            <!-- Sticky Search Box -->
+                            <mat-option disabled class="search-option">
+                                <div class="search-header" (click)="$event.stopPropagation()">
+                                    <input type="text" [(ngModel)]="searchManagerText"
+                                        (ngModelChange)="filterManagers()" placeholder="Search Project Manager"
+                                        class="form-control" />
+                                    <button *ngIf="projectObj.projectManagerId?.length"
+                                        (click)="clearManagerSelection($event)" class="clear-btn" type="button">
+                                        ✕ Clear
+                                    </button>
+                                </div>
+                            </mat-option>
+
+                            <!-- Select/Deselect -->
+                            <mat-option (click)="toggleSelectAllManagers()"
+                                [disabled]="filteredManagerList.length === 0">
+                                {{ isAllManagersSelected ? 'Deselect All' : 'Select All' }}
+                            </mat-option>
+
+                            <!-- Options List -->
+                            <mat-option *ngFor="let employee of filteredManagerList" [value]="employee.empId">
+                                {{ employee.name }}
+                            </mat-option>
+                        </mat-select>
+                    </div>
+
+
+
+
+
+
+
+
+                    <!-- <div class="form-field">
                         <label>Project Overhead</label>
                         <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectOverheadId">
 
@@ -1502,7 +1569,40 @@
                             </mat-option>
 
                         </mat-select>
+                    </div> -->
+
+
+                    <div class="form-field">
+                        <label>Project Overhead</label>
+                        <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectOverheadId"
+                            panelClass="custom-select-panel">
+                            <!-- Sticky Search Box -->
+                            <mat-option disabled class="search-option">
+                                <div class="search-header" (click)="$event.stopPropagation()">
+                                    <input type="text" [(ngModel)]="searchOverheadText"
+                                        (ngModelChange)="filterOverhead()" placeholder="Search Project Overhead"
+                                        class="form-control" />
+                                    <button *ngIf="projectObj.projectOverheadId?.length"
+                                        (click)="clearOverheadSelection($event)" class="clear-btn" type="button">
+                                        ✕ Clear
+                                    </button>
+                                </div>
+                            </mat-option>
+
+                            <!-- Select/Deselect All -->
+                            <mat-option (click)="toggleSelectAllOverhead()"
+                                [disabled]="filteredOverheadList.length === 0">
+                                {{ isAllOverheadsSelected ? 'Deselect All' : 'Select All' }}
+                            </mat-option>
+
+                            <!-- Options List -->
+                            <mat-option *ngFor="let employee of filteredOverheadList" [value]="employee.empId">
+                                {{ employee.name }}
+                            </mat-option>
+                        </mat-select>
                     </div>
+
+
                     <div class="form-field">
                         <label>Project Status</label>
                         <input type="text" disabled [(ngModel)]="projectObj.status" />
@@ -1519,7 +1619,12 @@
                 </div>
 
                 <div class="teams-section">
-                    <h3>Teams</h3>
+                    <h3>Teams
+                        <span *ngIf="fallBackMsg !== '' && isApproved"
+                            style="color: red; font-size: 14px; margin-left: 10px;">
+                            {{ fallBackMsg }}
+                        </span>
+                    </h3>
                     <div class="col-md-12 mb-3 px-0 ml-0" *ngIf="allTeamList.length > 1">
                         <div class="d-flex justify-content-between align-items-center">
 
@@ -1600,6 +1705,21 @@
                             </mat-autocomplete>
                         </div>
 
+                        <!-- <div class="form-field">
+                            <label>SPOC</label>
+                            <input type="text" class="form-control" placeholder="Search by Emp ID or Name" [(ngModel)]="teamObj.spoc"
+                                aria-label="Search employee" [formControl]="spocCtrl" [matAutocomplete]="spocAuto" />
+
+                            <mat-autocomplete #spocAuto="matAutocomplete" (optionSelected)="onSpocSelected($event)"
+                                panelClass="custom-autocomplete-panel">
+                                <mat-option *ngFor="let employee of filteredEmployees | filterEmployee: spocCtrl.value"
+                                    [value]="employee.name">
+                                    {{ employee.name }}
+                                </mat-option>
+                            </mat-autocomplete>
+                        </div> -->
+
+
                         <div class="form-field">
                             <label>Team Lead</label>
                             <input type="text" class="form-select name-field" placeholder="Search by Emp ID or Name"
@@ -1626,7 +1746,7 @@
                             <button class="icon-button" (click)="addInputTeamField()">
                                 <i class="fa-solid fa-square-plus" aria-hidden="true"></i>
                             </button>
-                            <button class="icon-button m-1"
+                            <button *ngIf="!this.teamObj.teamId" class="icon-button m-1"
                                 (click)="openDeleteModalForTeam(delete_team_modal,alert_message, teamObj, projectObj)">
                                 <i class="fa-solid fa fa-trash" aria-hidden="true"></i>
                             </button>
@@ -1684,13 +1804,24 @@
 
                 <div *ngIf="projectObj.resourceRequirements?.length > 0">
                     <div class="requirement-select-container">
-                        <label>Select Requirement</label>
-                        <mat-select placeholder="Select Requirement" [(ngModel)]="selectedRequirement">
+                        <label style="font-weight: 500; margin-bottom: 8px; display: block; color: #424242;">
+                            Select Requirement 
+                            <span style="color: #f44336; font-weight: bold; margin-left: 4px;">*</span>
+                        </label>
+                        <mat-select 
+                            placeholder="Select Requirement" 
+                            [(ngModel)]="selectedRequirement"
+                            required
+                            style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 8px; background-color: #fafafa;">
+                             <mat-option value="">
+                                Select
+                            </mat-option>
                             <mat-option *ngFor="let requirement of projectObj.resourceRequirements"
                                 [value]="requirement">
                                 Role - {{ requirement.role }} || Dept - {{ requirement.department }} || Exp - {{
                                 requirement.experience }}
                             </mat-option>
+                           
                         </mat-select>
                     </div>
                 </div>
@@ -1739,12 +1870,18 @@
                     </div>
 
                     <!-- Add Button -->
-                    <div>
+                  <!-- <div>
                         <button type="button" class="btn btn-outline-primary"
                             (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()"
-                            [disabled]="projectObj.resourceRequirements?.length > 0
-                          ? (!selectedRequirement || !newteamMember.empId || !newteamMember.employeeRole?.length ||(projectDetails.length !== 0 && newteamMember.billableType === 'TNM') )
-                          : (!newteamMember.empId || !newteamMember.employeeRole?.length || (projectDetails.length !== 0 && newteamMember.billableType === 'TNM') )">
+                            [disabled]="isAddButtonDisabled">
+                            <i class="fa fa-plus" aria-hidden="true"></i>
+                        </button>
+                  </div> -->
+                  <div>
+                        <button type="button" class="btn btn-outline-primary"
+                            (click)="handleAddButtonClick();hasNewTeamMembers = true"
+                            [class.disabled]="isAddButtonDisabled"
+                            [style.pointer-events]="'auto'">
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>
                     </div>
@@ -1802,6 +1939,8 @@
                                                         employeeInformation.jobRole }}</div>
                                                     <div class="info-line"><span class="label">Billability Type:</span>
                                                         {{ employeeInformation.billableType }}</div>
+                                                    <div class="info-line"><span class="label"> Start Date:</span>
+                                                        {{ employeeInformation.startDate}}</div>
                                                     <div class="info-line"><span class="label">Department:</span> {{
                                                         employeeInformation.deptName }}</div>
                                                     <div class="info-line"><span class="label">Previous
@@ -1973,6 +2112,9 @@
                                                 <div class="info-line"><span class="label">Billability type</span>:
                                                     <span class="label">{{ employeeInformation.billableType }}</span>
                                                 </div>
+                                                <div class="info-line"><span class="label">Start Date</span>:
+                                                    <span class="label">{{ employeeInformation.startDate }}</span>
+                                                </div>
                                                 <div class="info-line"><span class="label">Department</span>: <span
                                                         class="label">{{ employeeInformation.deptName }}</span></div>
                                                 <div class="info-line"><span class="label">Previous Experience</span>:
@@ -2029,11 +2171,49 @@
                                         <label style="color: #040404;">No existing team members to display...</label>
                                     </div>
                                 </div>
+                                <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class="team-member-section">
+                                    <label>New Team Members</label>
+                                    <div *ngFor="let teamMember of allTeamMembers" class="team-member-row">
+
+                                        <div class="team-member-fields">
+                                            <div class="team-member-field">
+                                                <input type="text" class="form-control" disabled
+                                                    [(ngModel)]="teamMember.name" />
+                                            </div>
+                                            <div class="team-member-field">
+                                                <mat-select class="form-control" multiple
+                                                    [(ngModel)]="teamMember.employeeRole">
+                                                    <mat-option value="" disabled selected>Select</mat-option>
+                                                    <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role
+                                                        }}</mat-option>
+                                                </mat-select>
+                                            </div>
+                                            <div class="checkbox-group">
+                                                <label><input type="checkbox" [(ngModel)]="teamMember.isShadow"
+                                                        (ngModelChange)="teamMember.isShadow = $event ? 1 : 0" />
+                                                    Shadow</label>
+                                                <label><input type="checkbox" [(ngModel)]="teamMember.isDefaultProject"
+                                                        (ngModelChange)="teamMember.isDefaultProject = $event ? 1 : 0" />
+                                                    Default Project</label>
+                                            </div>
+                                            <div class="action-buttons">
+                                                <button type="button" class="btn btn-outline-primary"
+                                                    (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <button class="set-team-btn mt-3" (click)="addTeamMemberMapping()">Add Team Member(s)</button>
+                <button *ngIf="hasNewTeamMembers" class="set-team-btn mt-3" (click)="addTeamMemberMapping()">Add Team
+                    Member(s)</button>
+                <button *ngIf="!hasNewTeamMembers" class="set-team-btn mt-3" (click)="addTeamMemberMapping()">
+                    Update Member(s)
+                </button>
             </div>
         </div>
     </ng-template>
@@ -2079,7 +2259,11 @@
 
     <ng-template #employee_data>
         <div class="modal-header">
-            <b>Employee Information</b>
+            <b>
+              <ng-container *ngIf="catagory === 'Unfilled Timesheet Projects'">Project</ng-container>
+              <ng-container *ngIf="catagory !== 'Unfilled Timesheet Projects'">Employee</ng-container>
+              Information
+            </b>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="closeModal()">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -2117,7 +2301,7 @@
                 </div>
                 <div class="team-preview-field">
                     <label>State</label>
-                    <input type="text" readonly [value]="projectObj?.clientState" />
+                    <input type="text" readonly [value]="projectObj?.state" />
                 </div>
             </div>
 
@@ -2423,7 +2607,7 @@
                 <h1 class="table-header-title">Employee(s) With New Default Project Mappings Requirement</h1>
                 <i class="fa-solid" [ngClass]="isBulkUpdateMode ? 'fa-toggle-on' : 'fa-toggle-off'"
                     style="font-size: 24px; cursor: pointer; color: #061E5C;"
-                    (click)="isBulkUpdateMode = !isBulkUpdateMode">
+                    (click)="clearField();isBulkUpdateMode = !isBulkUpdateMode">
                 </i>
             </div>
 
@@ -2504,7 +2688,7 @@
                     </div>
 
                     <!-- Requirement -->
-                    <div class="col-md-4 form-field" *ngIf="resourceRequirementListBulk?.length">
+                    <div class="col-md-4 form-field" *ngIf="resourceRequirementListBulk?.length > 0">
                         <label>Project Requirement</label>
                         <mat-select [(ngModel)]="setDefaultProjectObj.resourceOverViewId">
                             <mat-option *ngFor="let req of resourceRequirementListBulk"
@@ -2625,7 +2809,7 @@
                                             }}</mat-option>
                                     </mat-select>
                                 </td>
-                                <td>
+                                <td >
                                     <mat-select [(ngModel)]="emp.resourceOverViewId">
                                         <mat-option *ngFor="let req of resourceRequirementListBulk"
                                             [value]="req.resourceOverviewId">

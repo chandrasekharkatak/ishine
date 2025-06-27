@@ -154,6 +154,7 @@
                         <th scope="col" class="info-label" mat-sort-header="teamName|string">Team Name</th>
                         <th scope="col" class="info-label" mat-sort-header="clientName|string">Client Name</th>
                         <th scope="col" class="info-label" mat-sort-header="billableType|string">Billable Type</th>
+                        <th scope="col" class="info-label" mat-sort-header="billableType|string">Project Type</th>
                         <th scope="col" class="info-label" mat-sort-header="startDate|datetime">Start Date</th>
                         <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">End Date</th>
                         <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Po Start Date</th>
@@ -173,10 +174,16 @@
                         <th class="info-label">{{17*(page-1)+i+1}}</th>
                         <td><a id="clickablefor360"
                                 (click)="redirecttoProjectTeam(project.projectId)">{{project.projectName }}</a></td>
+
+                                <!-- <td [navigateToProjectView]="project.projectId"><a id="clickablefor360"
+                                 >{{project.projectName }}</a></td> -->
+
                         <td><a id="clickablefor360" (click)="redirecttoTeam(project.teamId,project.projectId)">{{
                                 project.teamName }}</a></td>
+
                         <td>{{ project.clientName }}</td>
                         <td>{{ project.billableType }}</td>
+                        <td>{{ getProjectType(project) }}</td>
                         <!-- <td>{{ project.startDate }}</td>
                         <td>{{ project.endDate }}</td> -->
                         <td style="white-space: nowrap;"> 

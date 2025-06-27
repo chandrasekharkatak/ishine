@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.hibernate.query.NativeQuery;
@@ -13,9 +14,11 @@ import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProje
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
+import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.ProjectManagerMapping;
 
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Integer> {
@@ -252,6 +255,30 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	List<ProjectFetchDTO> getAllActiveProjectList(@Param("projectStatus")String projectStatus, @Param("status")String status, @Param("approvalStatus")String approvalStatus, Set<Integer> projectId, boolean isProjectId,boolean approvalCheck);
 	
 	
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
+			+ "			p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
+			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
+			+ "			p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
+			+ "			p.apmosysRmEmail, p.projectCompletionDate, p.projectStatus, p.internalProjectType,c.clientName,\n"
+			+ "CASE \n"
+			+ "	 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
+			+ "	 WHEN p.isDraftProject = 'false' THEN 'Approved' \n"
+			+ "	 WHEN p.isDraftProject = 'Rejected' THEN 'Rejected' \n"
+			+ "	 WHEN p.isDraftProject = 'Completed' THEN 'Completed' \n"
+			+ "	 WHEN p.isDraftProject = null THEN 'Not Started' \n"
+			+ "	 ELSE 'Un Mentioned Test Data' \n"
+			+ "END, \n"
+			+ "CASE \n"
+			+ "  WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', p.poProjectId) \n"
+			+ "  ELSE CONCAT('', p.projectId) \n"
+			+ "END ) \n"
+			+ "			FROM Project p\n"
+			+ "			LEFT JOIN Client c ON c.clientId = p.clientId\n"
+			+ "			inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId\n"
+			+ "			WHERE p.active = 'true'\n"
+			+ "			AND p.isDraftProject is null \n"
+			+ "			and (p.status != 'Completed' or p.projectStatus = 'Not Started') and pdm.deptId IN :deptIds")
+	List<ProjectFetchDTO> getAllNotStartedProjects(@Param("deptIds") List<Long> deptIds);
 //	@Query(value = "SELECT \n"
 //			+ "    distinct p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
 //			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
@@ -336,8 +363,15 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "AND (:projectFilter = false OR p.projectId IN :projectIds)")
 	Integer getAllActiveProjecCountstList(@Param("approvalStatus")String approvalStatus, @Param("projectIds")Set<Integer> projectIds,@Param("projectFilter") Boolean projectFilter);
 
-	@Query(value="select Distinct count(*) from projects where active= 'true' and is_draft_project is null and status != 'Completed'", nativeQuery = true)
+	@Query(value="select Distinct count(*) from Project p \n"
+			+ " inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId \n"
+			+ " where p.active= 'true' and p.isDraftProject is null and (p.status != 'Completed' or p.projectStatus = 'Not Started') and pdm.deptId IN :deptIds")
+	Integer getAllNotStartedProjectCountInDept(List<Long> deptIds);
+	
+	@Query(nativeQuery = true,value ="select distinct count(*) from projects where active= 'true' and is_draft_project is null and status != 'Completed'")
 	Integer getAllNotStartedProjectCount();
+	
+	
 	  
 	@Query(value = "SELECT COUNT(DISTINCT p.projectId)\n"
 			+ "FROM Project p \n"
@@ -424,7 +458,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 //			+ "			AND  p.status = 'Completed' ", nativeQuery=true)
 //	List<Object[]> completedInSankhButTeamMappedList(@Param("deptIds") List<Long> deptIds);
 	
-	@Query(value = "SELECT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
+	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
 			+ "p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
 			+ "p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
 			+ "p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
@@ -553,7 +587,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	
 	@Query(value = "Select distinct new com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO( p.projectId, p.projectName, t.teamId, t.teamName, r.resourceOverviewId,  \n" + 
-			"r.count, r.department, r.experience) from Project p  \n" + 
+			"r.count, r.department, r.experience, r.role) from Project p  \n" + 
 			"left join Team t on t.projectId = p.projectId  \n" + 
 			"left join EmployeeTeamMap etm on etm.teamId = t.teamId  \n" + 
 			"left join ResourceRequirement r on r.projectId = p.projectId  \n" + 
@@ -568,7 +602,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	
 	@Query(value = "Select distinct new com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO( p.projectId, p.projectName, t.teamId, t.teamName, r.resourceOverviewId, \n"  +
-	 		"r.count, r.department,  r.experience) from Project p  \n" + 
+	 		"r.count, r.department,  r.experience, r.role) from Project p  \n" + 
 	 		"left join Team t on t.projectId = p.projectId  \n" + 
 	 		"left join EmployeeTeamMap etm on etm.teamId = t.teamId  \n" + 
 	 		"left join ResourceRequirement r on r.projectId = p.projectId  \n" + 
@@ -670,4 +704,32 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getProjectStatusByPoProjectId(Set<Long> poProjectId);
+
+	@Query(value = "select p.* from project_manager_mapping pm " +
+            "inner join projects p on pm.project_id = p.project_id " +
+            "where pm.project_manager_id = :projectManagerId and pm.active = 1", 
+    nativeQuery = true)
+public Optional<List<Project>> findProjectsOfProjectManager(Long projectManagerId);
+
+	@Query(value = "select p.* from project_overhead_mapping po\n"
+			+ "inner join projects p on po.project_id = p.project_id\n"
+			+ "where po.project_overhead_id= :projectOverheadId and po.active =1 " , nativeQuery = true)
+	public Optional<List<Project>> findProjectOfProjectOverhead(Long projectOverheadId);
+
+	
+	
+	@Query(value = "select p.* from teams t\n"
+			+ "inner join projects p on t.project_id = p.project_id\n"
+			+ "where t.team_lead_id= :teamLeadId and t.is_active = 'Y'" , nativeQuery = true)
+	public Optional<List<Project>> findProjectOfTeamLead(Long teamLeadId);
+
+	
+	@Query(value = "select p.* from teams t\n"
+			+ "inner join projects p on t.project_id = p.project_id\n"
+			+ "where t.spoc_id= :spocId and t.is_active = 'Y'" , nativeQuery = true)
+	public Optional<List<Project>> findProjectOfSpoc(Long spocId);
+	
+	@Query(value ="SELECT NEW com.apmosys.employeeportal.dto.ResourceManagementDTO(projectId,poProjectId,projectName )\n"
+			+ "from Project where active= 'true' and isDraftProject is null and status != 'Completed'")
+	public List<ResourceManagementDTO> getAllNotStartedProjects();
 }

@@ -48,8 +48,8 @@ this.employmentId = employmentId; // The CS-xxx or A-xxx value
 		    this.billableType = billableType;
 		    this.employmentId = employmentId;
 		}
-	 public EmployeeDTO(long empId, long employeementId, String email, String employmentstatus,
-             long mobileNo, long managerId, String managerName,
+	 public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
+             Long mobileNo, Long managerId, String managerName,
              String jobRoleName, String deptName, String name) {
 this.empId = empId;
 this.employeementId = employeementId;
@@ -332,21 +332,22 @@ this.name = name;
     private Long timesheetId;
     private Long totalTimesheetsFilled;
     private String deptName;
+    
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
     public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
             Long mobileNo, Long managerId, String managerName, String jobRoleName,
             String departmentName, String name, String billableType) {
-this.empId = empId;
-this.employeementId = employeementId;
-this.email = email;
-this.employmentstatus = employmentstatus;
-this.mobileNo = mobileNo;
-this.managerId = managerId;
-this.managerName = managerName;
-this.jobRoleName = jobRoleName;
-this.departmentName = departmentName;
-this.name = name;
-this.billableType = billableType;
+this.empId = empId != null ? empId : null;
+this.employeementId = employeementId !=null ? employeementId : null;
+this.email = email !=null ? email : null;
+this.employmentstatus = employmentstatus != null ? employmentstatus : null;
+this.mobileNo = mobileNo != null ? mobileNo : null;
+this.managerId = managerId !=null ? managerId : null;
+this.managerName = managerName != null ? managerName: null;
+this.jobRoleName = jobRoleName !=null ? jobRoleName : null;
+this.departmentName = departmentName !=null ? departmentName : null;
+this.name = name !=null ? name : null;
+this.billableType = billableType !=null ? billableType : null;
 } 
  
     

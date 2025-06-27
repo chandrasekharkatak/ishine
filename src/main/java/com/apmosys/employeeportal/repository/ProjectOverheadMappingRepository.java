@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -40,5 +41,10 @@ boolean isUserProjectOverheadOfAnyActiveInternalAndExternalProject(@Param("empId
             "JOIN projects p ON p.project_id = pom.project_id " +
             "WHERE p.active = 'true' AND pom.project_overhead_id = :empId", nativeQuery = true)
 List<Integer> isUserProjectOverheadOfAnyActiveInternalAndExternalProjectList(@Param("empId") Long empId);
+	
+	
+	Optional<List<ProjectOverheadMapping>> findByProjectOverheadIdAndActive(Long projectOverheadMappingId, Integer active);
+	
+	List<ProjectOverheadMapping> findByProjectIdAndActive(Long projectId, Integer active);
 	
 }

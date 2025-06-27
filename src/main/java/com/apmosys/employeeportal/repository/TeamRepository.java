@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -92,16 +93,16 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	 boolean existsBySpocId(Long spocId);
 	 
 	 
-	 @Query(nativeQuery = true,value = "select DISTINCT t.project_id from teams t inner join projects p on p.project_id = t.project_id where t.spoc_id = :spocId and t.is_active = 'Y' and p.active = 'true' and p.po_project_id IS NULL")
+	 @Query(value = "select DISTINCT t.projectId from Team t inner join Project p on p.projectId = t.projectId where t.spocId = :spocId and t.isActive = 'Y' and p.active = 'true' and p.poProjectId IS NULL")
 	 Set<Integer>findActiveInternalProjectIdsBySpocId(@Param("spocId") Long spocId);
 	 
-	 @Query(nativeQuery = true,value = "select DISTINCT t.project_id from teams t inner join projects p on p.project_id = t.project_id where t.spoc_id = :spocId and t.is_active = 'Y' and p.active = 'true' and p.po_project_id IS NOT NULL")
+	 @Query(value = "select DISTINCT t.projectId from Team t inner join Project p on p.projectId = t.projectId where t.spocId = :spocId and t.isActive = 'Y' and p.active = 'true' and p.poProjectId IS NOT NULL")
 	 Set<Integer>findActiveShankhProjectIdsBySpocId(@Param("spocId") Long spocId);
 	
-	 @Query(nativeQuery = true,value = "select DISTINCT t.project_id from teams t inner join projects p on p.project_id = t.project_id where t.spoc_id = :spocId and t.is_active = 'Y' and p.active = 'true'")
+	 @Query(value = "select DISTINCT t.projectId from Team t inner join Project p on p.projectId = t.projectId where t.spocId = :spocId and t.isActive = 'Y' and p.active = 'true'")
 	 Set<Integer>findActiveShankhInternalProjectIdsBySpocId(@Param("spocId") Long spocId);
 	 
-	 @Query(nativeQuery = true,value = "select DISTINCT t.project_id from teams t inner join projects p on p.project_id = t.project_id where t.spoc_id = :spocId and t.is_active = 'Y' and p.active = 'true'")
+	 @Query(value = "select DISTINCT t.projectId from Team t inner join Project p on p.projectId = t.projectId where t.spocId = :spocId and t.isActive = 'Y' and p.active = 'true'")
 	 List<Integer>findActiveShankhInternalProjectIdsBySpocIdList(@Param("spocId") Long spocId);
 	
 	@Query(value = "select t from Team t inner join Project p on p.projectId = t.projectId where  t.isActive = 'Y' and p.active = 'true' and p.poProjectId IS NULL")
@@ -128,4 +129,8 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	
 	@Query("SELECT t FROM Team t WHERE t.projectId IN :projectIds")
 	List<Team> findByProjectIdIn(@Param("projectIds") List<Integer> projectIds);
+
+	public Optional<List<Team>> findByTeamLeadIdAndIsActive(Long teamLeadId, String isActive);
+
+	public Optional<List<Team>> findBySpocIdAndIsActive(Long spocId, String string);
 }

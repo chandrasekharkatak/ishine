@@ -46,8 +46,9 @@ public class EmployeeTeamMap {
 	private LocalDateTime updatedOn;
 	
     private Long updatedBy;
-	//added by rahul singh
     private Long resourceOverviewId;
     private Integer isShadow;
-	
+    private Long createdBy;
+    @Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = true ,updatable = true)
+	private Timestamp createdOn;
 }

@@ -149,8 +149,8 @@ export class Employee360ProjectComponent implements OnInit {
 
   }
   redirecttoProjectTeam(id: any) {
-    this.isProjectVisible = false;
-    this.isProjectTeamVisible = true;
+    this.isProjectVisible = true;
+    this.isProjectTeamVisible = false;
     this.isProjectTeamMemberVisible = false;
     this.flag = true;
 
@@ -176,7 +176,7 @@ export class Employee360ProjectComponent implements OnInit {
       next: (response: any) => {
         if (response.serviceStatus === "Success") {
           this.filterProjectByProjectId = response.serviceResponse;
-          // console.log("getTeamInfo ", this.teamMemberList);
+           console.log("getTeamInfo ", this.filterProjectByProjectId);
 
           const groupedData = {};
 
@@ -200,6 +200,7 @@ export class Employee360ProjectComponent implements OnInit {
               startDate: member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null,
               billableType: member.billableType,
               active: member.active,
+              employeeTeamMapId:member.employeeTeamMapId,
               emp360: {}
             });
 
@@ -281,39 +282,57 @@ export class Employee360ProjectComponent implements OnInit {
     this.getTeamListByProjectName(project);
   }
 
-  async getExistingProjectsByUser() {
-    let projectObj = new Project();
-    projectObj.empId = this.employeeData.empId;
-    projectObj.isAllProj = true;
 
-    // getExistingProjectsAndTeamsByEmployee service impl
-    this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allProjectList = response.serviceResponse;
 
-        console.log("dekhauchi re project details ::::::::", this.allProjectList);
-        console.log("this.projectDetails ", this.allProjectList);
-
-        console.log("Existing project detauls fetched for employee", this.allProjectList);
-        // if (this.allProjectList.length > 0) {
-        //   if (this.allProjectList[0].billableType == "TNM") {
-        //     this.openAlertMod(this.alertTemplate, "This Employee is already mapped to TNM project. Can't add to another project or Team !!");
-        //     this.getBillableType = this.allProjectList.find(employee => this.newteamMember.billableType = employee.billableType);
-        //   } else {
-        //     this.newMemberInProject = "NewMember";
-        //     this.newteamMember.billableType = this.newMemberInProject;
-        //   }
-        // } else {
-        //   this.newMemberInProject = "NewMember";
-        //   this.newteamMember.billableType = this.newMemberInProject;
-        // }
-
-        console.log("this.allProjectList ", this.allProjectList);
-        console.log("this.getBillableType ", this.getBillableType);
-        console.log(" newTeamMember   details   ", this.newteamMember)
-      }
-    });
+getProjectType(project: any): string {
+  if (project.poProjectType !== null && project.poProjectType !== undefined && project.poProjectType !== '') {
+    return project.poProjectType;
+  } else if (project.internalProjectType !== null && project.internalProjectType !== undefined && project.internalProjectType !== '') {
+    return project.internalProjectType;
+  } else {
+    return 'NA';
   }
+}
+
+async getExistingProjectsByUser() {
+  let projectObj = new Project();
+  projectObj.empId = this.employeeData.empId;
+  projectObj.isAllProj = true;
+
+  // getExistingProjectsAndTeamsByEmployee service impl
+  this.projectService.getExistingProjectsAndTeamsByEmployee(projectObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.allProjectList = response.serviceResponse;
+
+      // Add combined project type to each project in the list
+      this.allProjectList = this.allProjectList.map((project: any) => {
+        project.combinedProjectType = this.getProjectType(project);
+        return project;
+      });
+
+      console.log("dekhauchi re project details ::::::::", this.allProjectList);
+      console.log("this.projectDetails ", this.allProjectList);
+      console.log("Existing project detauls fetched for employee", this.allProjectList);
+
+      // if (this.allProjectList.length > 0) {
+      //   if (this.allProjectList[0].billableType == "TNM") {
+      //     this.openAlertMod(this.alertTemplate, "This Employee is already mapped to TNM project. Can't add to another project or Team !!");
+      //     this.getBillableType = this.allProjectList.find(employee => this.newteamMember.billableType = employee.billableType);
+      //   } else {
+      //     this.newMemberInProject = "NewMember";
+      //     this.newteamMember.billableType = this.newMemberInProject;
+      //   }
+      // } else {
+      //   this.newMemberInProject = "NewMember";
+      //   this.newteamMember.billableType = this.newMemberInProject;
+      // }
+
+      console.log("this.allProjectList ", this.allProjectList);
+      console.log("this.getBillableType ", this.getBillableType);
+      console.log(" newTeamMember   details   ", this.newteamMember)
+    }
+  });
+}
 
 
   deleteResourceModal1(template: TemplateRef<any>, projObj, member) {
@@ -325,6 +344,7 @@ export class Employee360ProjectComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.projectObj = projObj;
     this.projectObj.empId = member.empId;
+  
   }
 
 
@@ -336,7 +356,7 @@ export class Employee360ProjectComponent implements OnInit {
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
     projectObj.endDate = this.lastDate;
-
+    projectObj.employeeTeamMapId = this.employeeTeamMapId;
 
     console.log("team details ", projectObj)
     this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
@@ -559,6 +579,7 @@ export class Employee360ProjectComponent implements OnInit {
   modalRef3: BsModalRef = new BsModalRef();
   activeProjects: any;
   EmployessIds: any;
+  employeeTeamMapId:any;
   setDefaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
 
 
@@ -567,7 +588,8 @@ export class Employee360ProjectComponent implements OnInit {
     const empIds: number[] = [projObj.empId];
     this.EmployessIds = empIds;
     this.projectteamInfo.projectId = projObj.projectId;
-
+   
+ console.log("test", projObj.empId);
     this.resourceManagementService.getTeamListByProjectName(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectObj.teamList = response.serviceResponse;
@@ -603,7 +625,10 @@ export class Employee360ProjectComponent implements OnInit {
 
           const empIds: number[] = this.allTeamList.reduce((acc: number[], team: any) => {
             const members = Array.isArray(team.teamMemberList) ? team.teamMemberList : [];
+const targetMember = members.find(member => member.empId === projObj.empId);
 
+this.employeeTeamMapId = targetMember ? targetMember.employeeTeamMapId : null;
+console.log("mapping ID",this.employeeTeamMapId);
             members.forEach(member => {
               if (
                 Array.isArray(member.otherActiveProjects) &&
@@ -660,7 +685,7 @@ export class Employee360ProjectComponent implements OnInit {
     });
    
     this.projectObj = projObj;
-
+ console.log("test",this.projectObj);
 
     this.lastDate = projObj.poEndDate
       ? moment(projObj.poEndDate).format('YYYY-MM-DD')
@@ -745,6 +770,10 @@ export class Employee360ProjectComponent implements OnInit {
     this.defaultProjectUpdate.empIds = [details.empId];
     this.defaultProjectUpdate.projectId = projectId;
     this.defaultProjectUpdate.createdBy = this.currentUser.empId;
+     if(!this.defaultProjectUpdate.projectId){
+      this.openAlertMod3(this.alertTemplateWithoutReload, "Please update Default Project");
+      return;
+    }
     this.resourceManagementService.setDefaultProjectUpdateBillable(this.defaultProjectUpdate).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
@@ -797,6 +826,16 @@ export class Employee360ProjectComponent implements OnInit {
   setProjectMappingAndDefaultProjectBulk(setDefaultProjectObj, template: TemplateRef<any>) {
 
     setDefaultProjectObj.empId = this.EmployessIds;
+
+     if (
+      !setDefaultProjectObj.projectId ||
+      !setDefaultProjectObj.teamId ||
+      !setDefaultProjectObj.employeeRole
+    ) {
+         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+      // alert('Project, Team, and Employee Role must be selected.');
+      return;
+    }
     if (setDefaultProjectObj.teamId !== null) {
       this.resourceManagementService.setProjectMappingAndDefaultProject(setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -840,6 +879,16 @@ export class Employee360ProjectComponent implements OnInit {
     this.setDefaultProjectObj.teamId = emp.teamId;
     this.setDefaultProjectObj.employeeRole = emp.employeeRole;
     this.setDefaultProjectObj.resourceOverViewId = emp.resourceOverViewId;
+
+      if (
+      !this.setDefaultProjectObj.projectId ||
+      !this.setDefaultProjectObj.teamId ||
+      !this.setDefaultProjectObj.employeeRole
+    ) {
+         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+      // alert('Project, Team, and Employee Role must be selected.');
+      return;
+    }
     
     if (this.setDefaultProjectObj.teamId !== null) {
       this.resourceManagementService.setProjectMappingAndDefaultProject(this.setDefaultProjectObj).pipe(first()).subscribe((response: any) => {

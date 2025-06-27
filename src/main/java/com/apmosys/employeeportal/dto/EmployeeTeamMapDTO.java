@@ -31,5 +31,6 @@ public class EmployeeTeamMapDTO {
     private Long resourceOverviewId;
     private Integer isDefaultProject;
     private Integer isShadow;
-	
+    private Long createdBy;
+    private String createdOn;
 }

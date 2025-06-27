@@ -206,7 +206,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	public List<Employee> findByManagerId(Long empId);
 	
-	@Query(nativeQuery = true , value="SELECT e.employeement_id,e.name AS employname,d.name AS departmentName,e.is_apprenticeship,e.is_consultant FROM employee e JOIN job_role jr ON e.job_role_id = jr.job_role_id JOIN department d ON jr.dept_id = d.dept_id where e.manager_id= :managerId AND e.employmentstatus!='InActive'")
+	@Query(nativeQuery = true , value="SELECT e.employeement_id,e.name AS employname,d.name AS departmentName,"
+			+ "e.is_apprenticeship,e.is_consultant "
+			+ "FROM employee e "
+			+ "JOIN job_role jr ON e.job_role_id = jr.job_role_id "
+			+ "JOIN department d ON jr.dept_id = d.dept_id "
+			+ "where e.manager_id= :managerId AND e.employmentstatus!='InActive'")
 	public List<Object[]> findReporteesOfManager(Long managerId);
 	
 	public Employee findByEmpId(Long empid);	
@@ -669,7 +674,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             "WHERE e.jobRoleId = jr.jobRoleId AND jr.deptId = d.deptId " + 
             "AND e.billableType IS NULL " +
             "AND e.empId NOT BETWEEN 1 AND 6 " +
-            "AND e.employmentstatus <> 'InActive' " +
+            "AND e.employmentstatus != 'InActive' " +
             "AND d.deptId IN :deptIds")
      List<EmployeeDTO> findAllEmployeesWithoutAnyBillableInDeptIds(@Param("deptIds") List<Long> deptIds);
 
@@ -679,7 +684,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             "WHERE e.jobRoleId = jr.jobRoleId AND jr.deptId = d.deptId " + 
             "AND e.billableType IS NULL " +
             "AND e.empId NOT BETWEEN 1 AND 6 " +
-            "AND e.employmentstatus <> 'InActive' " +
+            "AND e.employmentstatus != 'InActive' " +
             "AND d.deptId = :deptId")
      List<EmployeeDTO> findAllEmployeesWithoutBillableInDeptId(@Param("deptId") Long deptId);
     

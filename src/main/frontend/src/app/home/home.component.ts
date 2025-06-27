@@ -33,17 +33,18 @@ import { RewardsServiceService } from '../services/rewards-service.service';
 import { TimesheetService } from '../services/timesheet.service';
 import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
+import { TimesheetCreateSelfComponent } from '../timesheet-create-self/timesheet-create-self.component';
 
-interface objlms{
-  email:any
+interface objlms {
+  email: any
 }
-interface LmsRediredtion{
-  
-    email:any,
-    message:any,
-    url:any,
-    tokem:any
-  
+interface LmsRediredtion {
+
+  email: any,
+  message: any,
+  url: any,
+  tokem: any
+
 }
 
 @Component({
@@ -52,10 +53,13 @@ interface LmsRediredtion{
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit, AfterViewInit {
- private lmsbaseurl:any = '';
-  lines:any=[];
+  private lmsbaseurl: any = '';
+  lines: any = [];
 
- 
+  @ViewChild(TimesheetCreateSelfComponent)
+  childComp!: TimesheetCreateSelfComponent;
+
+
   data: string;
   //modal
   alertMessage: any;
@@ -111,13 +115,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
   bulkCompOffReject: any = [];
   overLapsLeaveForManager: any = [];
   fieldTextType: boolean = false;
- fieldTextTypePassword: boolean = false;
- fieldTextTypeOldPass: boolean = false;
- config = {
-     backdrop: true,
-     ignoreBackdropClick: true,
-     keyboard: false
-   };
+  fieldTextTypePassword: boolean = false;
+  fieldTextTypeOldPass: boolean = false;
+  config = {
+    backdrop: true,
+    ignoreBackdropClick: true,
+    keyboard: false
+  };
   oldPasswordValid: boolean = false;
   rewardCategoryObj: RewardCategory = new RewardCategory();
   password: any;
@@ -131,62 +135,66 @@ export class HomeComponent implements OnInit, AfterViewInit {
   show: number = -1;
   leaveTypes: Leave[] = [];
   leaveBucketDetails: any[] = [];
-  lmsauthentication:any;
-// Expired Po section
-expiredList:any[] = [];
-popUpMessege:any;
-//  notificationObj: NotificationMessage = new NotificationMessage();
-//  timesheetDetails: any[] = [];
+  lmsauthentication: any;
+  // Expired Po section
+  expiredList: any[] = [];
+  popUpMessege: any;
+  //  notificationObj: NotificationMessage = new NotificationMessage();
+  //  timesheetDetails: any[] = [];
 
-//  items = 10;
-//  bulkApprove: any = [];
-//  bulkReject: any = [];
-//  isSelectAll: boolean = false;
-//  bulkLeaveApprove: any = [];
-//  bulkLeaveReject: any = [];
-//  bulkCompOffApprove: any = [];
-//  bulkCompOffReject: any = [];
-//  overLapsLeaveForManager: any = [];
+  //  items = 10;
+  //  bulkApprove: any = [];
+  //  bulkReject: any = [];
+  //  isSelectAll: boolean = false;
+  //  bulkLeaveApprove: any = [];
+  //  bulkLeaveReject: any = [];
+  //  bulkCompOffApprove: any = [];
+  //  bulkCompOffReject: any = [];
+  //  overLapsLeaveForManager: any = [];
 
- //Timesheet form render
+  //Timesheet form render
   isTimesheetFormVisible: boolean = false;
   lastTimesheetData: any = null;
 
- leaveObj = new Leave();
+  leaveObj = new Leave();
 
- @ViewChild("thisMonthCal")
- private thisMonthCalendar: CalendarComponent;
- @ViewChild("lastMonthCal")
- private lastMonthCalendar: CalendarComponent;
+  @ViewChild("thisMonthCal")
+  private thisMonthCalendar: CalendarComponent;
+  @ViewChild("lastMonthCal")
+  private lastMonthCalendar: CalendarComponent;
 
- @ViewChild('updateInfo')
- private updateInfoTempRef: TemplateRef<any>;
+  @ViewChild('updateInfo')
+  private updateInfoTempRef: TemplateRef<any>;
 
- @ViewChild('consent_notification_template')
- private consentNotificationTemplate: TemplateRef<any>;
- 
- @ViewChild('poexpire_template_fixed')
- poExpireTemplateRef:TemplateRef<any> ;
-  
- 
- @ViewChild('mailSentPopUp')
- mailSentPopUp:TemplateRef<any> ;
+  @ViewChild('consent_notification_template')
+  private consentNotificationTemplate: TemplateRef<any>;
 
- consentModalConfig = {
+  @ViewChild('inactiveEmployeeTemplate') inactiveEmployeeTemplate!: TemplateRef<any>;
+
+  @ViewChild('noTimesheetFoundEmployeeTemplate') noTimesheetFoundEmployeeTemplate!: TemplateRef<any>;
+
+  @ViewChild('poexpire_template_fixed')
+  poExpireTemplateRef: TemplateRef<any>;
+
+
+  @ViewChild('mailSentPopUp')
+  mailSentPopUp: TemplateRef<any>;
+
+  consentModalConfig = {
     backdrop: true,
     ignoreBackdropClick: true,
     keyboard: false,
     class: 'modal-lg'
   }
   // TOP BAR
- @ViewChild("change_password")
- changePasswordTemplate: TemplateRef<any>;
- @ViewChild("LoadingLogin") LoadingLoginTemplate: TemplateRef<any>;
+  @ViewChild("change_password")
+  changePasswordTemplate: TemplateRef<any>;
+  @ViewChild("LoadingLogin") LoadingLoginTemplate: TemplateRef<any>;
   selectedCategoryId: any;
   selectedCategoryName: any;
-  selectedMonth:any;
+  selectedMonth: any;
   scrollingInterval: any;
-  showEmptyMessage:any;
+  showEmptyMessage: any;
 
   isError: boolean = false;
   profileCompletedPercentage: any = 0;
@@ -197,7 +205,7 @@ popUpMessege:any;
   timesheetApplicationsColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
   isShowReleaseNote: boolean = false;
   releaseNoteText = "";
-  currentIndex: any = 0; 
+  currentIndex: any = 0;
   currentGroup: any = null;
   scrollDelay: number = 18700;
   employeesFor360: any[] = [];
@@ -240,77 +248,80 @@ popUpMessege:any;
       this.log.featureName = this.feature;
     });
   }
-//added by rahul for lms redirection
-//added by rahul for lms redirection
-LmsRedirection(){
-  let obj = new Object();
-obj = { email: this.currentUser.email,token:sessionStorage.getItem('token')};
+  //added by rahul for lms redirection
+  //added by rahul for lms redirection
+  LmsRedirection() {
+    let obj = new Object();
+    obj = { email: this.currentUser.email, token: sessionStorage.getItem('token') };
 
-   
-//obj = { email: "mohamed.owais@apmosys.com"};
-//obj = { email: "mohamed2.owais@apmosys.com"};
- this.employeeService.IsValidateLMSPORTAL(obj).subscribe((response:any)=>{
-   //this.lmsauthentication = response.serviceResponse;
-   this.lmsauthentication = response.serviceResponse;
-   
-    if(response.serviceStatus=="success"){
-     window.open(response.serviceResponse, '_blank');
-   }
-  else{
-     window.open(`${this.lmsbaseurl}home/sign_up`,'_blank');
-   }
- })
 
-}
+    //obj = { email: "mohamed.owais@apmosys.com"};
+    //obj = { email: "mohamed2.owais@apmosys.com"};
+    this.employeeService.IsValidateLMSPORTAL(obj).subscribe((response: any) => {
+      //this.lmsauthentication = response.serviceResponse;
+      this.lmsauthentication = response.serviceResponse;
 
-async ngOnInit(): Promise<void> {
-  if (this.currentUser.isNew === "true") {
+      if (response.serviceStatus == "success") {
+        window.open(response.serviceResponse, '_blank');
+      }
+      else {
+        window.open(`${this.lmsbaseurl}home/sign_up`, '_blank');
+      }
+    })
+
+  }
+
+  async ngOnInit(): Promise<void> {
+    if (this.currentUser.isNew === "true") {
       sessionStorage.setItem('isFirstTimeLogin', 'true');
-        window.history.pushState(null, "", window.location.href);
-      window.onpopstate = function() {
-            window.history.pushState(null, "", window.location.href); // Keep pushing new states
-        };
+      window.history.pushState(null, "", window.location.href);
+      window.onpopstate = function () {
+        window.history.pushState(null, "", window.location.href); // Keep pushing new states
+      };
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
 
     }
 
-    
+
+
+
+
 
     if (sessionStorage.getItem('isFirstTimeLogin') === 'true') {
-        this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-        sessionStorage.removeItem('isFirstTimeLogin');
+      this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
+      sessionStorage.removeItem('isFirstTimeLogin');
     }
     this.getEmployeeProfileCompletion();
     this.logService.updateLogInfo(this.log);
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-     featureMap.subFeatures?.forEach(sub => {
+    featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
 
-   this.getAllNotifications();
-   this.getAllLeaveTypesByLeavePolicies(this.currentUser);
-   if (this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
-   if (this.userMapping.view_work_anniversary_list) this.getAllEmployeesWorkAnniversaryToday();
-   if (this.userMapping.view_all_team_requests) {
-     this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
-     this.countPendingCompOffRequestsByManagerId();
-     this.countMyReporteesTimesheetRequests();
-   }
-   if (this.userMapping.view_my_leave_details) {
-     this.getMyLeaveBalancesByEmpId();
-   }
-   if (this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
-   if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
-  //  if (this.userMapping.view_employee_rewards) this.fetchEmployeesForHomepageByCategoryId(1);
+    this.getAllNotifications();
+    this.getAllLeaveTypesByLeavePolicies(this.currentUser);
+    if (this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
+    if (this.userMapping.view_work_anniversary_list) this.getAllEmployeesWorkAnniversaryToday();
+    if (this.userMapping.view_all_team_requests) {
+      this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+      this.countPendingCompOffRequestsByManagerId();
+      this.countMyReporteesTimesheetRequests();
+    }
+    if (this.userMapping.view_my_leave_details) {
+      this.getMyLeaveBalancesByEmpId();
+    }
+    if (this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
+    if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
+    //  if (this.userMapping.view_employee_rewards) this.fetchEmployeesForHomepageByCategoryId(1);
 
-  if (this.userMapping.view_employee_rewards) this.fetchRewardCategoryForHomePage();
+    if (this.userMapping.view_employee_rewards) this.fetchRewardCategoryForHomePage();
 
-   this.preventBackButton();
-   this.isEmployeeOnBench();
+    this.preventBackButton();
+    this.isEmployeeOnBench();
     //console.log('User Mapping', this.userMapping);
 
-    
+
   }
 
 
@@ -318,18 +329,18 @@ async ngOnInit(): Promise<void> {
     this.selectedTab = tab;
   }
 
- preventBackButton() {
-   history.pushState(null, null, location.href);
-   this.locationStrategy.onPopState(() => {
-     history.pushState(null, null, location.href);
-   })
- }
+  preventBackButton() {
+    history.pushState(null, null, location.href);
+    this.locationStrategy.onPopState(() => {
+      history.pushState(null, null, location.href);
+    })
+  }
 
- ngAfterViewInit(): void {
-   if (this.currentUser.isNew == "false" && this.currentUser.isUserInfoUpdated == false && this.currentUser.updateFormCounter == 0) {
-     this.openUpdateInfo(this.updateInfoTempRef);
-     this.currentUser.updateFormCounter = 1;
-   }
+  ngAfterViewInit(): void {
+    if (this.currentUser.isNew == "false" && this.currentUser.isUserInfoUpdated == false && this.currentUser.updateFormCounter == 0) {
+      this.openUpdateInfo(this.updateInfoTempRef);
+      this.currentUser.updateFormCounter = 1;
+    }
 
     if (this.currentUser.isNew == "false") {
       //console.log("this.currentUser : ", this.currentUser);
@@ -340,24 +351,24 @@ async ngOnInit(): Promise<void> {
     if (this.currentUser.employeeRole == "RMG") {
       this.openPoExpiredMod();
     }
-    
+
   }
 
- reset() {
-   let leaveObj = new Leave();
-   leaveObj.isSelected = false
-   this.isSelectAll = false;
+  reset() {
+    let leaveObj = new Leave();
+    leaveObj.isSelected = false
+    this.isSelectAll = false;
 
- }
+  }
 
- // Leave Applications
- getAllMyTeamsPendingLeaveApplicationsByManagerId() {
-   this.data = ''
-   this.leaveApplicationList = []
-   this.bulkLeaveApprove = []
-   this.bulkLeaveReject = []
-   this.isSelectAll = false
-   this.items = 10;
+  // Leave Applications
+  getAllMyTeamsPendingLeaveApplicationsByManagerId() {
+    this.data = ''
+    this.leaveApplicationList = []
+    this.bulkLeaveApprove = []
+    this.bulkLeaveReject = []
+    this.isSelectAll = false
+    this.items = 10;
 
     let leaveObj = new Leave();
     leaveObj.managerId = this.currentUser.empId;
@@ -376,7 +387,7 @@ async ngOnInit(): Promise<void> {
           }
           leave.emp360 = leave.empId;
           leave.emp360AppLev1 = leave.level1ApproverId;
-          leave.emp360AppLev2 =leave.level2ApproverId;
+          leave.emp360AppLev2 = leave.level2ApproverId;
           leave.emp360AppLev3 = leave.level3ApproverId;
           leave.createdBy360 = leave.empId
 
@@ -388,82 +399,82 @@ async ngOnInit(): Promise<void> {
     });
   }
 
- /* Leave Applications Count
- *  Added by suraj 07/08/2022
- */
- countAllMyTeamsPendingLeaveApplicationsByManagerId() {
-   this.leaveApplicationList = []
+  /* Leave Applications Count
+  *  Added by suraj 07/08/2022
+  */
+  countAllMyTeamsPendingLeaveApplicationsByManagerId() {
+    this.leaveApplicationList = []
 
-   let leaveObj = new Leave();
-   leaveObj.managerId = this.currentUser.empId;
-   this.leaveService.countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
-     if (response.serviceStatus == "Success") {
-       this.leaveApplicationCount = response.serviceResponse.applicationCount;
-       //console.log("leaveApplicationCount : ", this.leaveApplicationCount);
-     } else {
-       this.leaveApplicationCount = 0;
-       console.error(response.serviceResponse);
-     }
-   });
- }
+    let leaveObj = new Leave();
+    leaveObj.managerId = this.currentUser.empId;
+    this.leaveService.countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.leaveApplicationCount = response.serviceResponse.applicationCount;
+        //console.log("leaveApplicationCount : ", this.leaveApplicationCount);
+      } else {
+        this.leaveApplicationCount = 0;
+        console.error(response.serviceResponse);
+      }
+    });
+  }
 
- onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
-   this.cancelRequest();
-   // 1 = pending , 2 = Approved , 3= Rejected
-   leaveApplication.leaveStatusId = updatedLeaveStatusId;
-   leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
-   leaveApplication.rejectReason = leaveApplication.rejectReason?.trim();
+  onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
+    this.cancelRequest();
+    // 1 = pending , 2 = Approved , 3= Rejected
+    leaveApplication.leaveStatusId = updatedLeaveStatusId;
+    leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
+    leaveApplication.rejectReason = leaveApplication.rejectReason?.trim();
 
-   //console.log("leaveApplication : ", leaveApplication);
+    //console.log("leaveApplication : ", leaveApplication);
 
-   this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
-     if (response.serviceStatus == "Success") {
-       this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
-       this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
-       this.openAlertMod(template, response.serviceResponse);
-     } else {
-       this.openAlertMod(template, response.serviceResponse);
-     }
-   });
- }
+    this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+        this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 
- onUpdateLeaveStatusCheck(template: TemplateRef<any>, updatedLeaveStatusId) {
-   this.cancelRequest();
-   // 1 = pending , 2 = Approved , 3= Rejected
-   this.leaveApplication.leaveStatusId = updatedLeaveStatusId;
-   this.leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
-   this.leaveApplication.rejectReason = this.leaveApplication.rejectReason?.trim();
+  onUpdateLeaveStatusCheck(template: TemplateRef<any>, updatedLeaveStatusId) {
+    this.cancelRequest();
+    // 1 = pending , 2 = Approved , 3= Rejected
+    this.leaveApplication.leaveStatusId = updatedLeaveStatusId;
+    this.leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
+    this.leaveApplication.rejectReason = this.leaveApplication.rejectReason?.trim();
 
-   //console.log("leaveApplication : ", this.leaveApplication);
+    //console.log("leaveApplication : ", this.leaveApplication);
 
-   this.leaveService.updateLeaveStatus(this.leaveApplication).pipe(first()).subscribe((response: any) => {
-     if (response.serviceStatus == "Success") {
-       this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
-       this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
-       this.openAlertMod(template, response.serviceResponse);
-     } else {
-       this.openAlertMod(template, response.serviceResponse);
-     }
-   });
- }
+    this.leaveService.updateLeaveStatus(this.leaveApplication).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.countAllMyTeamsPendingLeaveApplicationsByManagerId();
+        this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 
- // single leave reject modal
- onSingleReject(template: TemplateRef<any>,) {
-   this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
-   if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)) {
-     this.alertMessage = "Please enter valid reason !!"
-     this.openAlertMod(template, this.alertMessage);
-     return false;
-   }
-   this.onUpdateLeaveStatus(template, this.leaveObj, 3);
- }
+  // single leave reject modal
+  onSingleReject(template: TemplateRef<any>,) {
+    this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+    if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)) {
+      this.alertMessage = "Please enter valid reason !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    this.onUpdateLeaveStatus(template, this.leaveObj, 3);
+  }
 
- // openLeaveRejectModal
- openLeaveRejectModal(template: TemplateRef<any>, leave: any) {
-   this.cancelRequest();
-   this.leaveObj = leave
-   this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
- }
+  // openLeaveRejectModal
+  openLeaveRejectModal(template: TemplateRef<any>, leave: any) {
+    this.cancelRequest();
+    this.leaveObj = leave
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
 
 
 
@@ -487,7 +498,7 @@ async ngOnInit(): Promise<void> {
           compOff.createdOn = (compOff.createdOn) ? moment(compOff.createdOn).format(AppComponent.DATE_FORMAT) : null;
           compOff.emp360 = compOff.empId;
           compOff.emp360Manager = compOff.managerId;
-         compOff.emp360Level2Approver = compOff.level2ApproverId;
+          compOff.emp360Level2Approver = compOff.level2ApproverId;
         });
         // console.log("allCompOffApplications : ", this.allCompOffApplications);
       } else {
@@ -570,7 +581,7 @@ async ngOnInit(): Promise<void> {
         console.log(this.allTeamTimesheetRequests);
         this.allTeamTimesheetRequests.forEach((timesheet, index) => {
           timesheet.checkId = "timesheet" + index;
-           timesheet.employeementId = this.utilityService.getFormattedEmployeeId(timesheet);
+          timesheet.employeementId = this.utilityService.getFormattedEmployeeId(timesheet);
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -1005,7 +1016,7 @@ async ngOnInit(): Promise<void> {
         ],
     });
   }
-  
+
   /* Today's Birthday List */
   getAllEmployeesBirthDayToday() {
     this.employeeService.getAllEmployeesBirthDayToday().pipe(first()).subscribe((response: any) => {
@@ -1027,13 +1038,13 @@ async ngOnInit(): Promise<void> {
       if (response.serviceStatus == "Success") {
         this.workAnniversaryList = response.serviceResponse;
         this.workAnniversaryList.forEach((employee) => {
-          
+
           // let matchingEmployee = this.employeesFor360.find(emp => emp.empId === employee.empId);
-         
+
           // employee.emp360 = matchingEmployee ? matchingEmployee : {};
           employee.emp360 = employee.empId;
         });
-        
+
       } else {
         this.compOffApplicationCount = 0;
         console.error(response.serviceResponse);
@@ -1044,46 +1055,46 @@ async ngOnInit(): Promise<void> {
   /* Quick Links */
   showApplyLeaveForm() {
     if (this.currentUser.isNew === "true") {
-  
+
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-   
-   }else{
-    this.router.navigate(['/user-leaves'],
-      { queryParams: { tabName: 'leave-tab' }, queryParamsHandling: '' });
-   }
-    
+
+    } else {
+      this.router.navigate(['/user-leaves'],
+        { queryParams: { tabName: 'leave-tab' }, queryParamsHandling: '' });
+    }
+
   }
 
   showApplyCompOffForm() {
     if (this.currentUser.isNew === "true") {
-  
+
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-   
-   }else{
-    this.router.navigate(['/user-leaves'],
-      { queryParams: { tabName: 'compOff-tab' }, queryParamsHandling: '' });
+
+    } else {
+      this.router.navigate(['/user-leaves'],
+        { queryParams: { tabName: 'compOff-tab' }, queryParamsHandling: '' });
     }
   }
 
   showApplyTimesheetForm() {
     if (this.currentUser.isNew === "true") {
-  
+
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-   
-   }else{
-    this.router.navigate(['/user-timesheet'],
-      { queryParams: { tabName: 'my-timesheet-tab' }, queryParamsHandling: '' });
+
+    } else {
+      this.router.navigate(['/user-timesheet'],
+        { queryParams: { tabName: 'my-timesheet-tab' }, queryParamsHandling: '' });
     }
   }
 
   showHolidayList() {
     if (this.currentUser.isNew === "true") {
-  
+
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-   
-   }else{
-    this.router.navigate(['/user-leaves'],
-      { queryParams: { tabName: 'holidays-tab' }, queryParamsHandling: '' });
+
+    } else {
+      this.router.navigate(['/user-leaves'],
+        { queryParams: { tabName: 'holidays-tab' }, queryParamsHandling: '' });
     }
   }
 
@@ -1184,11 +1195,11 @@ async ngOnInit(): Promise<void> {
 
   getTimesheetsForHomePageByEmpId(dateRange: any) {
     if (this.currentUser.isNew === "true") {
-  
+
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-   
-   }
-    
+
+    }
+
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
     const currentDate = new Date();
@@ -1414,34 +1425,35 @@ async ngOnInit(): Promise<void> {
   openPoExpiredMod() {
     this.cancelRequest();
     this.geExpiredtPoData();
-      console.log(this.expiredList);
+    console.log(this.expiredList);
     // alert("hi");
-    this.modalRef = this.modalService.show(this.poExpireTemplateRef, { class: 'modal-xl' ,
+    this.modalRef = this.modalService.show(this.poExpireTemplateRef, {
+      class: 'modal-xl',
       backdrop: 'static',
-      keyboard: false 
-  });
-  
+      keyboard: false
+    });
+
   }
 
   openReqMod(template: TemplateRef<any>) {
     if (this.currentUser.isNew === "true") {
-  
+
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
-   
-   }else{
-    this.filters = {};
-    this.isSearchEnabled = false;
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-   }
-   
+
+    } else {
+      this.filters = {};
+      this.isSearchEnabled = false;
+      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    }
+
   }
 
 
-  openRevokeLeaveRejectModalCompOff(template: TemplateRef<any>, leave: any){
-      this.cancelRequest();
-      this.leaveObj = leave;
-      this.modalRef = this.modalService.show(template);
-    }
+  openRevokeLeaveRejectModalCompOff(template: TemplateRef<any>, leave: any) {
+    this.cancelRequest();
+    this.leaveObj = leave;
+    this.modalRef = this.modalService.show(template);
+  }
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
@@ -1984,73 +1996,73 @@ async ngOnInit(): Promise<void> {
 
   }
 
- updateEmployeePassword(template: TemplateRef<any>) {
-   this.isError = false;
-   this.errorMsg = '';
+  updateEmployeePassword(template: TemplateRef<any>) {
+    this.isError = false;
+    this.errorMsg = '';
 
-   if (!this.validationService.validateNullUndefinedEmptyString(this.password)) {
-     this.isError = true;
-     this.errorMsg = 'Please enter old Password!!';
-     return;
-   }
+    if (!this.validationService.validateNullUndefinedEmptyString(this.password)) {
+      this.isError = true;
+      this.errorMsg = 'Please enter old Password!!';
+      return;
+    }
 
-   if (!this.validationService.validateNullUndefinedEmptyString(this.userNewPass)) {
-     this.isError = true;
-     this.errorMsg = 'Please enter new Password!!';
-     return;
-   }
+    if (!this.validationService.validateNullUndefinedEmptyString(this.userNewPass)) {
+      this.isError = true;
+      this.errorMsg = 'Please enter new Password!!';
+      return;
+    }
 
-   if (!this.validationService.validateNullUndefinedEmptyString(this.newpassword)) {
-     this.isError = true;
-     this.errorMsg = 'Please enter Confirm password !!';
-     return;
-   }
+    if (!this.validationService.validateNullUndefinedEmptyString(this.newpassword)) {
+      this.isError = true;
+      this.errorMsg = 'Please enter Confirm password !!';
+      return;
+    }
 
-   if (this.userNewPass != this.newpassword) {
-     this.isError = true;
-     this.errorMsg = 'Password did not match. Please try again... !!';
-     this.userNewPass = '';
-     this.newpassword = '';
-     return;
-   }
+    if (this.userNewPass != this.newpassword) {
+      this.isError = true;
+      this.errorMsg = 'Password did not match. Please try again... !!';
+      this.userNewPass = '';
+      this.newpassword = '';
+      return;
+    }
 
-   if (!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) &&
-     !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)) {
-     this.isError = true;
-     this.errorMsg = 'Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are !@#$%^&*';
-     return;
-   }
+    if (!this.validationService.validateAlphaNumericSpecialCharacters(this.userNewPass) &&
+      !this.validationService.validateAlphaNumericSpecialCharacters(this.newpassword)) {
+      this.isError = true;
+      this.errorMsg = 'Password should not be set less than 8 characters and at least 1 lowercase character,  1 uppercase character, 1 digit , 1 special character should be there. Allowed Special characters are !@#$%^&*';
+      return;
+    }
 
-   if (this.userNewPass == this.newpassword) {
-     this.user.email = this.currentUser.email;
-     this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
-     this.user.newPassword = this.setEncryption("PkdtRsJidheGitvS", this.newpassword);
+    if (this.userNewPass == this.newpassword) {
+      this.user.email = this.currentUser.email;
+      this.user.password = this.setEncryption("PkdtRsJidheGitvS", this.password);
+      this.user.newPassword = this.setEncryption("PkdtRsJidheGitvS", this.newpassword);
 
-     this.employeeService.updateEmployeePassword(this.user).pipe(first()).subscribe((response: any) => {
-       if (response.serviceStatus == "Success") {
-         this.cancelRequest();
-         this.passreset();
+      this.employeeService.updateEmployeePassword(this.user).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.cancelRequest();
+          this.passreset();
 
-         this.modalRef = this.modalService.show(this.LoadingLoginTemplate);
-         setTimeout(() => {
-           this.cancelRequest();
-           this.userLogout();
-         }, 2000);
+          this.modalRef = this.modalService.show(this.LoadingLoginTemplate);
+          setTimeout(() => {
+            this.cancelRequest();
+            this.userLogout();
+          }, 2000);
 
-       }
-       else {
-         this.isError = true;
-         this.errorMsg = response.serviceResponse;
-       }
-     });
-   } else {
-     this.isError = true;
-     this.errorMsg = 'Password and Confirm Password do not match !!';
-     return;
-   }
- }
+        }
+        else {
+          this.isError = true;
+          this.errorMsg = response.serviceResponse;
+        }
+      });
+    } else {
+      this.isError = true;
+      this.errorMsg = 'Password and Confirm Password do not match !!';
+      return;
+    }
+  }
 
- //Notification Consent
+  //Notification Consent
 
   getAllNotifications() {
     this.notificationObj = new NotificationMessage();
@@ -2064,72 +2076,72 @@ async ngOnInit(): Promise<void> {
           notification.updatedOn = (notification.updatedOn) ? moment(notification.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
-       this.allNotification = this.allNotification.filter(x => x.isActive == 'true' && x.notificationType != "consentNotification" && x.notificationType != "releaseNotes");
+        this.allNotification = this.allNotification.filter(x => x.isActive == 'true' && x.notificationType != "consentNotification" && x.notificationType != "releaseNotes");
 
-       //console.log("notificationList : ", this.allNotification);
-     } else {
-       console.error(response.serviceResponse);
-     }
-   });
- }
+        //console.log("notificationList : ", this.allNotification);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
 
   openConsentNotificationModal() {
     //console.log(this.currentUser.notificationConsent, " : this.currentUser.notificationConsent");
 
-   if (this.currentUser.notificationConsent != null || this.currentUser.notificationConsent != undefined) {
-     this.consentNotificationMessage = this.currentUser.notificationConsent.notificationMessage;
-     // this.modalRef = this.modalService.show(this.consentNotificationTemplate, this.consentModalConfig);
-   }
- }
+    if (this.currentUser.notificationConsent != null || this.currentUser.notificationConsent != undefined) {
+      this.consentNotificationMessage = this.currentUser.notificationConsent.notificationMessage;
+      // this.modalRef = this.modalService.show(this.consentNotificationTemplate, this.consentModalConfig);
+    }
+  }
 
   submitNotificationConsent() {
     // this.cancelRequest();
 
-   let notificationObj = new NotificationMessage();
+    let notificationObj = new NotificationMessage();
 
-   notificationObj.empId = this.currentUser.empId;
-   notificationObj.notificationId = this.currentUser.notificationConsent.notificationId;
-   notificationObj.notificationType = this.currentUser.notificationConsent.notificationType;
-   this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
-     if (response.serviceStatus == "Success") {
-       let dtoResponse = response.serviceResponse;
-       this.currentUser.notificationConsent = dtoResponse.notificationConsent;
+    notificationObj.empId = this.currentUser.empId;
+    notificationObj.notificationId = this.currentUser.notificationConsent.notificationId;
+    notificationObj.notificationType = this.currentUser.notificationConsent.notificationType;
+    this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        let dtoResponse = response.serviceResponse;
+        this.currentUser.notificationConsent = dtoResponse.notificationConsent;
 
-       this.authenticationService.setcurrentUserSubject(this.currentUser);
-       this.openConsentNotificationModal();
-     }
-   });
- }
+        this.authenticationService.setcurrentUserSubject(this.currentUser);
+        this.openConsentNotificationModal();
+      }
+    });
+  }
 
 
   // Release Note Consent 
   setReleaseNote() {
     this.isShowReleaseNote = false;
 
-   //console.log(this.currentUser.releaseNoteNotification, " : releaseNoteNotification");
+    //console.log(this.currentUser.releaseNoteNotification, " : releaseNoteNotification");
 
-   if (this.currentUser.releaseNoteNotification != null || this.currentUser.releaseNoteNotification != undefined) {
-     this.releaseNoteText = this.currentUser.releaseNoteNotification.notificationMessage;
-     this.isShowReleaseNote = true;
-   }
- }
+    if (this.currentUser.releaseNoteNotification != null || this.currentUser.releaseNoteNotification != undefined) {
+      this.releaseNoteText = this.currentUser.releaseNoteNotification.notificationMessage;
+      this.isShowReleaseNote = true;
+    }
+  }
 
 
   submitReleaseNoteNotificationConsent() {
     let notificationObj = new NotificationMessage();
 
-   notificationObj.empId = this.currentUser.empId;
-   notificationObj.notificationId = this.currentUser.releaseNoteNotification.notificationId;
-   notificationObj.notificationType = this.currentUser.releaseNoteNotification.notificationType;
-   this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
-     if (response.serviceStatus == "Success") {
-       let dtoResponse = response.serviceResponse;
-       this.currentUser.releaseNoteNotification = dtoResponse.releaseNoteNotification;
-       this.authenticationService.setcurrentUserSubject(this.currentUser);
-       this.setReleaseNote()
-     }
-   });
- }
+    notificationObj.empId = this.currentUser.empId;
+    notificationObj.notificationId = this.currentUser.releaseNoteNotification.notificationId;
+    notificationObj.notificationType = this.currentUser.releaseNoteNotification.notificationType;
+    this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        let dtoResponse = response.serviceResponse;
+        this.currentUser.releaseNoteNotification = dtoResponse.releaseNoteNotification;
+        this.authenticationService.setcurrentUserSubject(this.currentUser);
+        this.setReleaseNote()
+      }
+    });
+  }
 
   sortData(sort: Sort) {
     //console.log(sort);
@@ -2165,16 +2177,16 @@ async ngOnInit(): Promise<void> {
   findOverLapsLeaveForManager() {
     let leaveApp = new Leave();
 
-   const dateFormat = 'YYYY-MM-DD';
+    const dateFormat = 'YYYY-MM-DD';
 
-   leaveApp.managerId = this.currentUser.empId;
-   leaveApp.empId = this.leaveApplication.empId;
-   // leaveApp.fromDate = moment(this.leaveApplication.fromDate).format(dateFormat);
-   // leaveApp.toDate = moment(this.leaveApplication.toDate).format(dateFormat);
+    leaveApp.managerId = this.currentUser.empId;
+    leaveApp.empId = this.leaveApplication.empId;
+    // leaveApp.fromDate = moment(this.leaveApplication.fromDate).format(dateFormat);
+    // leaveApp.toDate = moment(this.leaveApplication.toDate).format(dateFormat);
 
-   leaveApp.fromDate = this.leaveApplication.fromDate;
-   leaveApp.toDate = this.leaveApplication.toDate;
-   leaveApp.status = this.leaveApplication.status;
+    leaveApp.fromDate = this.leaveApplication.fromDate;
+    leaveApp.toDate = this.leaveApplication.toDate;
+    leaveApp.status = this.leaveApplication.status;
 
     //console.log(leaveApp);
     this.overLapsLeaveForManager = [];
@@ -2192,312 +2204,416 @@ async ngOnInit(): Promise<void> {
         //   let matchingEmployee = this.employeeList.find(emp => emp.employeementId === y.employeementId);
         //   y.emp360 = matchingEmployee ? matchingEmployee : {};
         // }
-        console.log("this.getOverLapsLeaveForManager ",this.overLapsLeaveForManager);
+        console.log("this.getOverLapsLeaveForManager ", this.overLapsLeaveForManager);
       }
     })
 
 
- }
+  }
 
- fetchRewardCategoryForHomePage(){
-  this.rewardsService.fetchRewardCategoryForHomePage().pipe(first()).subscribe((response:any) => {
-    if(response.serviceStatus == 'Success'){
-      this.rewardCategoryList = response.serviceResponse;
-      if (this.rewardCategoryList.length > 0) {
-        this.onCategoryTabClick(this.rewardCategoryList[0]);
-      }else {
+  fetchRewardCategoryForHomePage() {
+    this.rewardsService.fetchRewardCategoryForHomePage().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == 'Success') {
+        this.rewardCategoryList = response.serviceResponse;
+        if (this.rewardCategoryList.length > 0) {
+          this.onCategoryTabClick(this.rewardCategoryList[0]);
+        } else {
+          console.error(response.serviceResponse);
+        }
+      }
+    })
+  }
+
+  onCategoryTabClick(category: any) {
+    this.selectedCategoryId = category.rewardCategoryId;
+    this.selectedCategoryName = category.categoryName;
+    this.showEmptyMessage = false;
+    this.rewardsList = [];
+    this.fetchEmployeesForHomepageByCategoryId(this.selectedCategoryId);
+  }
+
+  fetchEmployeesForHomepageByCategoryId(categoryId: number) {
+    this.rewardCategoryObj.rewardCategoryId = categoryId;
+    this.rewardsService.fetchEmployeesForHomepageByCategoryId(this.rewardCategoryObj).subscribe((response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.rewardsList = response.serviceResponse;
+
+        this.rewardsList.forEach((employee) => {
+          employee.emp360 = employee.rewardedTo;
+        });
+
+
+        this.groupRewardsByMonth();
+        setTimeout(() => {
+
+          this.startScrolling();
+
+          if (this.rewardsList.length === 0) {
+            this.showEmptyMessage = true;
+          }
+        }, 500);
+
+      } else {
+        this.showEmptyMessage = true;
         console.error(response.serviceResponse);
       }
-    }
-  })
- }
-
- onCategoryTabClick(category: any) {
-  this.selectedCategoryId = category.rewardCategoryId;
-  this.selectedCategoryName = category.categoryName;
-  this.showEmptyMessage = false;
-  this.rewardsList = []; 
-  this.fetchEmployeesForHomepageByCategoryId(this.selectedCategoryId);
-}
-
-fetchEmployeesForHomepageByCategoryId(categoryId: number) {
-  this.rewardCategoryObj.rewardCategoryId = categoryId;
-  this.rewardsService.fetchEmployeesForHomepageByCategoryId(this.rewardCategoryObj).subscribe((response: any) => {
-    if (response.serviceStatus === 'Success') {
-      this.rewardsList = response.serviceResponse;
-
-      this.rewardsList.forEach((employee) => {
-        employee.emp360 = employee.rewardedTo;
-      });
+    });
+  }
 
 
-    this.groupRewardsByMonth();
-    setTimeout(() => {
-
-      this.startScrolling();
-
-      if (this.rewardsList.length === 0) {
-        this.showEmptyMessage = true;
+  groupRewardsByMonth() {
+    this.groupedRewards = this.rewardsList.reduce((groups: any, reward: any) => {
+      if (!groups[reward.ofMonthYear]) {
+        groups[reward.ofMonthYear] = [];
       }
-      }, 500); 
+      groups[reward.ofMonthYear].push(reward);
+      return groups;
+    }, {});
 
-    } else {
+    this.monthKeys = Object.keys(this.groupedRewards).sort();
+
+    if (this.monthKeys.length > 0) {
+      this.selectedMonth = this.monthKeys[0];
+    }
+
+    this.currentMonthIndex = 0;
+    this.updateCurrentRewards();
+
+    this.startScrolling();
+  }
+
+  updateCurrentRewards() {
+    const currentMonth = this.monthKeys[this.currentMonthIndex];
+
+    const newRewards = this.groupedRewards[currentMonth] || [];
+
+    if (newRewards.length === 0) {
       this.showEmptyMessage = true;
-      console.error(response.serviceResponse);
+    } else {
+      this.showEmptyMessage = false;
     }
-  });
-}
 
-
-groupRewardsByMonth() {
-  this.groupedRewards = this.rewardsList.reduce((groups: any, reward: any) => {
-    if (!groups[reward.ofMonthYear]) {
-      groups[reward.ofMonthYear] = [];
+    if (JSON.stringify(this.currentRewards) !== JSON.stringify(newRewards)) {
+      this.currentRewards = newRewards;
+      this.selectedMonth = currentMonth;
+      this.cdr.markForCheck();
     }
-    groups[reward.ofMonthYear].push(reward);
-    return groups;
-  }, {});
-
-  this.monthKeys = Object.keys(this.groupedRewards).sort();
-
-  if (this.monthKeys.length > 0) {
-    this.selectedMonth = this.monthKeys[0]; 
   }
 
-  this.currentMonthIndex = 0;
-  this.updateCurrentRewards();
+  // startScrolling() {
+  //   if (this.scrollInterval) {
+  //     clearInterval(this.scrollInterval); 
+  //   }
 
-  this.startScrolling();
-}
+  //   let scrollTime = Math.min(Math.max(this.currentRewards.length * 3 * 1000, 30000), 90000);
 
-updateCurrentRewards() {
-  const currentMonth = this.monthKeys[this.currentMonthIndex];
-  
-  const newRewards = this.groupedRewards[currentMonth] || [];
+  //   this.updateCurrentRewards(); 
 
-  if (newRewards.length === 0) {
-    this.showEmptyMessage = true;
-  } else {
-    this.showEmptyMessage = false;
+  //   this.scrollInterval = setInterval(() => {
+  //     this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
+
+  //     // Ensure there are rewards for the next month before updating
+  //     const nextMonth = this.monthKeys[this.currentMonthIndex];
+  //     if (this.groupedRewards[nextMonth] && this.groupedRewards[nextMonth].length > 0) {
+  //       this.updateCurrentRewards();
+  //     } else {
+  //       console.warn(`No rewards for the month: ${nextMonth}`);
+  //     }
+  //   }, scrollTime);
+  // }
+
+  startScrolling() {
+    if (this.scrollInterval) {
+      clearInterval(this.scrollInterval);
+    }
+
+    let scrollTime = Math.min(Math.max(this.currentRewards.length * 3 * 1000, 30000), 90000);
+
+    this.updateCurrentRewards();
+
+    this.scrollInterval = setInterval(() => {
+
+      this.currentRewards = [];
+      this.cdr.markForCheck();
+
+      setTimeout(() => {
+        this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
+
+        const nextMonth = this.monthKeys[this.currentMonthIndex];
+        if (this.groupedRewards[nextMonth] && this.groupedRewards[nextMonth].length > 0) {
+          this.updateCurrentRewards();
+        } else {
+          console.warn(`No rewards for the month: ${nextMonth}`);
+        }
+      }, 3000);
+    }, scrollTime);
   }
 
-  if (JSON.stringify(this.currentRewards) !== JSON.stringify(newRewards)) {
-    this.currentRewards = newRewards;
-    this.selectedMonth = currentMonth;  
-    this.cdr.markForCheck();  
-  }
-}
-
-// startScrolling() {
-//   if (this.scrollInterval) {
-//     clearInterval(this.scrollInterval); 
-//   }
-
-//   let scrollTime = Math.min(Math.max(this.currentRewards.length * 3 * 1000, 30000), 90000);
-
-//   this.updateCurrentRewards(); 
-
-//   this.scrollInterval = setInterval(() => {
-//     this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
-
-//     // Ensure there are rewards for the next month before updating
-//     const nextMonth = this.monthKeys[this.currentMonthIndex];
-//     if (this.groupedRewards[nextMonth] && this.groupedRewards[nextMonth].length > 0) {
-//       this.updateCurrentRewards();
-//     } else {
-//       console.warn(`No rewards for the month: ${nextMonth}`);
-//     }
-//   }, scrollTime);
-// }
-
-startScrolling() {
-  if (this.scrollInterval) {
-    clearInterval(this.scrollInterval); 
-  }
-
-  let scrollTime = Math.min(Math.max(this.currentRewards.length * 3 * 1000, 30000), 90000);
-
-  this.updateCurrentRewards(); 
-
-  this.scrollInterval = setInterval(() => {
-    
-    this.currentRewards = [];
-    this.cdr.markForCheck();
+  startRewardCycle(): void {
+    this.currentGroup = this.rewardsList[this.currentIndex];
 
     setTimeout(() => {
-      this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
-
-      const nextMonth = this.monthKeys[this.currentMonthIndex];
-      if (this.groupedRewards[nextMonth] && this.groupedRewards[nextMonth].length > 0) {
-        this.updateCurrentRewards();
-      } else {
-        console.warn(`No rewards for the month: ${nextMonth}`);
-      }
-    }, 3000); 
-  }, scrollTime);
-}
-
-startRewardCycle(): void {
-  this.currentGroup = this.rewardsList[this.currentIndex];
-
-  setTimeout(() => {
-    this.moveToNextGroup();
-  }, this.scrollDelay);
-}
-
-moveToNextGroup(): void {
-  this.currentIndex = (this.currentIndex + 1) % this.rewardsList.length;
-
-  this.startRewardCycle();
-}
-emailSentPopUp(msg:any){
-  this.openAlertMod(this.mailSentPopUp,msg);
-}
-geExpiredtPoData(){
-  this.employeeService.getExpiredPo().pipe(first()).subscribe((response: any) => {
-  if(response.serviceStatus == "Success"){
-   this.expiredList =  response.serviceResponse
-    console.log(response,":::::::::::::::::::Response,geExpiredtPoData")
+      this.moveToNextGroup();
+    }, this.scrollDelay);
   }
-  });
-}
 
-handleEmailRequest(eventData: { poEndDate: any, projectName: any, poNo: any, poProjectType: any }) {
-  console.log('Email Request Received:', eventData);
-  this.sendEmail(eventData.poEndDate,eventData.projectName,eventData.poNo,eventData.poProjectType);
-  // Perform email sending logic here
-}
+  moveToNextGroup(): void {
+    this.currentIndex = (this.currentIndex + 1) % this.rewardsList.length;
 
-sendEmail(poEndDate:any,projectName:any,poNo:any,poProjectType:any){
+    this.startRewardCycle();
+  }
+  emailSentPopUp(msg: any) {
+    this.openAlertMod(this.mailSentPopUp, msg);
+  }
+  geExpiredtPoData() {
+    this.employeeService.getExpiredPo().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.expiredList = response.serviceResponse
+        console.log(response, ":::::::::::::::::::Response,geExpiredtPoData")
+      }
+    });
+  }
 
-  console.log(poEndDate,projectName,poNo,poProjectType)
-  let expiredEmailData: ExpiredEmailData = new ExpiredEmailData();
-  let poObject: PoObject = new PoObject();
-  poObject.poNo = poNo;
-  poObject.projectName = projectName;
-  poObject.endDate = poEndDate;
-  poObject.poType = poProjectType;
-  expiredEmailData.expiredData = poObject;
-  let user = JSON.parse(sessionStorage.getItem('currentUser'));
-  expiredEmailData.userEmail = user.email;
-  console.log(expiredEmailData,"expiredEmailData",)
-  console.log(expiredEmailData.expiredData,"expiredEmailData")
-  console.log(expiredEmailData,"expiredEmailData")
-  this.employeeService.sendExpiredPoEmail(expiredEmailData).pipe(first()).subscribe((response: any) => {
-    if(response.serviceStatus == "Success"){
-      this.popUpMessege =  response.serviceMessage;
-       console.log(response,":::::::::::::::::::Response,geExpiredtPoData");
-       this.cancelRequest();
-      this.emailSentPopUp(this.popUpMessege);
-     }
-  });
-}
+  handleEmailRequest(eventData: { poEndDate: any, projectName: any, poNo: any, poProjectType: any }) {
+    console.log('Email Request Received:', eventData);
+    this.sendEmail(eventData.poEndDate, eventData.projectName, eventData.poNo, eventData.poProjectType);
+    // Perform email sending logic here
+  }
 
-closeTimesheetForm() {
-  this.isTimesheetFormVisible = false;
+  sendEmail(poEndDate: any, projectName: any, poNo: any, poProjectType: any) {
+
+    console.log(poEndDate, projectName, poNo, poProjectType)
+    let expiredEmailData: ExpiredEmailData = new ExpiredEmailData();
+    let poObject: PoObject = new PoObject();
+    poObject.poNo = poNo;
+    poObject.projectName = projectName;
+    poObject.endDate = poEndDate;
+    poObject.poType = poProjectType;
+    expiredEmailData.expiredData = poObject;
+    let user = JSON.parse(sessionStorage.getItem('currentUser'));
+    expiredEmailData.userEmail = user.email;
+    console.log(expiredEmailData, "expiredEmailData",)
+    console.log(expiredEmailData.expiredData, "expiredEmailData")
+    console.log(expiredEmailData, "expiredEmailData")
+    this.employeeService.sendExpiredPoEmail(expiredEmailData).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.popUpMessege = response.serviceMessage;
+        console.log(response, ":::::::::::::::::::Response,geExpiredtPoData");
+        this.cancelRequest();
+        this.emailSentPopUp(this.popUpMessege);
+      }
+    });
+  }
+
+  closeTimesheetForm() {
+    this.isTimesheetFormVisible = false;
 
 
-}
+  }
 
-renderTimesheet(day?: any): void {
+  // renderTimesheet(day?: any): void {
+  //     console.log("Render triggered for:", day?.displayDate);
+  //   const empId = this.currentUser?.empId;
+  //   if (empId) {
+  //     this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
+  //       next: (res) => {
+  //         if (res.serviceStatus === 'Success') {
+  //           this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse));
+  //         } else {
+  //           this.lastTimesheetData = null;
+  //         }
+  //         this.isTimesheetFormVisible = true;
+  //       },
+  //       error: (err) => {
+  //         console.error("Failed to fetch last timesheet", err);
+  //         this.lastTimesheetData = null;
+  //         this.isTimesheetFormVisible = true;
+  //       }
+  //     });
+  //   }
+  // }
+
+
+
+
+
+
+  renderTimesheet(day?: any): void {
     console.log("Render triggered for:", day?.displayDate);
-  const empId = this.currentUser?.empId;
-  if (empId) {
+    const empId = this.currentUser?.empId;
+
+    if (empId) {
+      this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
+        next: (res) => {
+
+
+          if (res.serviceStatus === 'Success') {
+
+            if (res.serviceResponse1 === 'No Timesheet') {
+
+              this.triggerNoTimesheetPopup = true;
+
+              this.lastTimesheetData = null;
+
+
+
+
+            } if (res.serviceResponse1 === 'Not Active') {
+              this.triggerNoTimesheetPopupForInactiveEmployee = true;
+            }
+            else {
+              this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse));
+            }
+          } else {
+            this.lastTimesheetData = null;
+          }
+
+
+          this.isTimesheetFormVisible = true;
+        },
+        error: (err) => {
+          console.error("Failed to fetch last timesheet", err);
+          this.lastTimesheetData = null;
+          this.isTimesheetFormVisible = true;
+        }
+      });
+    }
+  }
+
+
+
+  //  renderTimesheet(day?: any): void {
+  //     const empId = this.currentUser?.empId;
+
+  //     if (empId) {
+  //       this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
+  //         next: (res) => {
+  //           if (res.serviceResponse1 === 'Not Active') {
+  //              this.openInactiveModal();
+  //             this.isTimesheetFormVisible = false;
+  //             return;
+  //           }
+
+  //            if (res.serviceResponse1 === 'No Timesheet') {
+  //              this.openNoTimesheet();
+  //             this.isTimesheetFormVisible = false;
+  //             return;
+  //           }
+
+  //           if (res.serviceStatus === 'Success') {
+  //             this.lastTimesheetData = { ...res.serviceResponse };
+  //           } else {
+  //             this.lastTimesheetData = null;
+  //           }
+
+  //           this.isTimesheetFormVisible = true;
+  //         },
+  //         error: (err) => {
+  //           console.error("Error fetching timesheet:", err);
+  //           this.lastTimesheetData = null;
+  //           this.isTimesheetFormVisible = true;
+  //         }
+  //       });
+  //     }
+  //   }
+
+
+
+  onTimesheetSubmissionComplete(): void {
+    this.isTimesheetFormVisible = false; // 👈 this hides the form
+    // Optional: navigate to the tab if needed
+    this.router.navigate(['/user-timesheet', 'my-timesheet']); // or 'team-timesheet' based on context
+  }
+
+
+
+
+  onTeamMemberSelected(empId: string): void {
+    if (empId) {
+      this.fetchLastTimesheet(empId);
+    }
+  }
+
+  // fetchLastTimesheet(empId: number | string): void {
+  //   this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
+  //     next: (res) => {
+  //       if (res.serviceStatus === 'Success') {
+  //         this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse)); // Force reference change
+  //       }
+  //     },
+  //     error: (err) => {
+  //       console.error("Failed to fetch last timesheet", err);
+  //     }
+  //   });
+  // }
+
+  triggerNoTimesheetPopup: boolean = false;
+
+  triggerNoTimesheetPopupForInactiveEmployee: boolean = false;
+
+
+  fetchLastTimesheet(empId: number | string): void {
+
     this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
       next: (res) => {
+
         if (res.serviceStatus === 'Success') {
-          this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse));
+          if (res.serviceResponse1 === 'No Timesheet') {
+
+            this.triggerNoTimesheetPopup = true;
+
+            this.lastTimesheetData = null;
+
+
+
+
+          } if (res.serviceResponse1 === 'Not Active') {
+            this.triggerNoTimesheetPopupForInactiveEmployee = true;
+          } else {
+            this.lastTimesheetData = { ...res.serviceResponse };
+          }
+
+
+
+
         } else {
           this.lastTimesheetData = null;
         }
-        this.isTimesheetFormVisible = true;
+
       },
       error: (err) => {
         console.error("Failed to fetch last timesheet", err);
         this.lastTimesheetData = null;
-        this.isTimesheetFormVisible = true;
+
       }
     });
   }
-}
 
-onTimesheetSubmissionComplete(): void {
-  this.isTimesheetFormVisible = false; // 👈 this hides the form
-  // Optional: navigate to the tab if needed
-  this.router.navigate(['/user-timesheet', 'my-timesheet']); // or 'team-timesheet' based on context
-}
-
-
-
-
-onTeamMemberSelected(empId: string): void {
-  if (empId) {
-    this.fetchLastTimesheet(empId);
+  onCreateTimesheet() {
+    console.log("Timesheet submitted!");
   }
-}
-
-// fetchLastTimesheet(empId: number | string): void {
-//   this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
-//     next: (res) => {
-//       if (res.serviceStatus === 'Success') {
-//         this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse)); // Force reference change
-//       }
-//     },
-//     error: (err) => {
-//       console.error("Failed to fetch last timesheet", err);
-//     }
-//   });
-// }
 
 
-fetchLastTimesheet(empId: number | string): void {
+  shouldRenderTimesheet(): boolean {
+    return this.timesheetDetails.some(
+      ts => ts.status === 'Pending' || ts.status === 'Not Filled'
+    );
 
-  this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
-    next: (res) => {
-      if (res.serviceStatus === 'Success') {
-        this.lastTimesheetData = { ...res.serviceResponse }; // change reference
-      } else {
-        this.lastTimesheetData = null;
-      }
-      // setTimeout(() => {
-      //   this.isTimesheetFormVisible = true; // re-render component
-      // }, 0);
-    },
-    error: (err) => {
-      console.error("Failed to fetch last timesheet", err);
-      this.lastTimesheetData = null;
-      // setTimeout(() => {
-      //   this.isTimesheetFormVisible = true;
-      // }, 0);
+  }
+
+  handleTabClick(): void {
+
+    console.log("shouldRenderTimesheet called")
+    console.log('Timesheet Details:', this.timesheetDetails);
+
+    if (this.shouldRenderTimesheet()) {
+      this.renderTimesheet();
     }
-  });
-}
-
-onCreateTimesheet() {
-  console.log("Timesheet submitted!");
-}
-
-
-shouldRenderTimesheet(): boolean {
-  return this.timesheetDetails.some(
-    ts => ts.status === 'Pending' || ts.status === 'Not Filled'
-  );
-
-}
-
-handleTabClick(): void {
-
-  console.log("shouldRenderTimesheet called")
-  console.log('Timesheet Details:', this.timesheetDetails);
-
-  if (this.shouldRenderTimesheet()) {
-    this.renderTimesheet();
   }
-}
 
 }
 
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {
- return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

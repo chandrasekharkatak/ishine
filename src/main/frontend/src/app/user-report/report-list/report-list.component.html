@@ -363,8 +363,30 @@
       <div class="col-md-12 table-header">
         <h1 class="table-header-title">Employee Report</h1>
       </div>
-      <button *ngIf="returnUrl" type="button" class="btn btn-secondary btn-sm" (click)="goBack()">Back</button>
+      <div class="">
+        <button *ngIf="returnUrl" type="button" class="backButton btn-sm text-white" 
+          (click)="goBack()">
+          Back to ProjectView
+        </button>
+      </div>
     </div>
+    <!-- <div class="row">
+      <div class="col-12">
+        <h1 class="table-header-title">Employee Report</h1>
+      </div>
+      <div class="col-12 text-end">
+        <button *ngIf="returnUrl"
+                type="button"
+                class="btn btn-sm text-white"
+                style="background-color: #007bff;"
+                (click)="goBack()">
+          Back to ProjectView
+        </button>
+      </div>
+    </div> -->
+    
+
+
     <div class="col-md-3 col-sm-6 custom-control custom-switch">
       <input type="checkbox" class="custom-control-input" id="hierarchy-switch-1" [checked]="showDetails"
         (change)="toggleView()">
@@ -382,7 +404,7 @@
         </div>
         <div class="row mb-3">
           <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-            <input id="employeeSearch" type="text" class="form-select custom-select-style" style="min-width: 200px;"
+            <input id="employeeSearch" type="text" class="form-control" style="min-width: 200px;"
               placeholder="Search by Name or Emp ID" aria-label="Search employee" [formControl]="employeeCtrl"
               [matAutocomplete]="auto">
 
@@ -510,22 +532,22 @@
             </div>
           </div>
           <div class="summary-box" (click)="openModalProjectLess(employee_data, 'Not Mapped')"
-          [ngClass]="{ 'glow-card': isEmployeeInList(projectLessEmployeesDepartwise) }">
-          <button class="info-btn" (click)="toggleInfoPopup('unmapped'); $event.stopPropagation()"
-            title="Show Billable Type Count">
-            <i class="fa-solid fa-circle-info"></i>
+            [ngClass]="{ 'glow-card': isEmployeeInList(projectLessEmployeesDepartwise) }">
+            <button class="info-btn" (click)="toggleInfoPopup('unmapped'); $event.stopPropagation()"
+              title="Show Billable Type Count">
+              <i class="fa-solid fa-circle-info"></i>
 
-          </button>
+            </button>
 
-          <h3>Unmapped Employees</h3>
+            <h3>Unmapped Employees</h3>
 
-          <div class="count-text">{{ projectLessEmployeesDepartwiseCount }}</div>
-          <div *ngIf="activeInfoPopup === 'unmapped'" class="tooltip-label-wrapper">
-            <div *ngFor="let item of billableCountsNotMApped; let i = index" class="tooltip-label">
-              {{ item.type }}: {{ item.count }}
+            <div class="count-text">{{ projectLessEmployeesDepartwiseCount }}</div>
+            <div *ngIf="activeInfoPopup === 'unmapped'" class="tooltip-label-wrapper">
+              <div *ngFor="let item of billableCountsNotMApped; let i = index" class="tooltip-label">
+                {{ item.type }}: {{ item.count }}
+              </div>
             </div>
           </div>
-        </div>
 
         </div>
 

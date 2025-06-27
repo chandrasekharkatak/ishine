@@ -14,5 +14,6 @@ export class EmployeeInformation{
 	employeeRole:any;
 	resourceOverViewId:any;
 	projectType:any;
+startDate: any;
 
 }

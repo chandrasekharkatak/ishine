@@ -14,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
+import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.Project;
 
 @Repository
 public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap, Long> {
@@ -63,7 +65,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 
 //	@Query(nativeQuery = true)
 //	EmployeeTeamMap findByEmpIdAndTeamIdAndActiveStatus(Long empId, Long teamId);
-	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.empId = :empId AND etm.teamId = :teamId AND etm.active <> 0")
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.empId = :empId AND etm.teamId = :teamId AND etm.active != 0")
 	EmployeeTeamMap findByEmpIdAndTeamIdAndActiveStatus(@Param("empId") Long empId, 
 	                                                          @Param("teamId") Long teamId);
 
@@ -103,6 +105,13 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	 		+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
 	 		+ "WHERE t.projectId = :projectId AND etm.active = :active")
 	 List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
+	 
+	 @Query("select etm from EmployeeTeamMap etm " +
+		       "inner join Team t on t.teamId = etm.teamId " +
+		       "inner join Project p on t.projectId = p.projectId " +
+		       "where t.projectId = :projectId " +
+		       "and etm.active = :active")
+		List<Project> findByProjectIdAndActiveForDraftProject(Integer projectId, Long active);
 
 //	 @Query(nativeQuery = true)
 //	List<EmployeeTeamMap> findTeammembersByTeamIdAndStatus(Long teamId);
@@ -355,7 +364,76 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 	 		+ "and t.is_active = 'Y'\n"
 	 		+ "and etm.active != 0\n"
 	 		+ "and e.employmentstatus != 'InActive'")
-	 List<Object[]> findNonComplianceProjects(@Param("projectIds") Set<Integer> projectIds,@Param("fromDate")LocalDate fromDate,@Param("toDate")LocalDate toDate);
+	 List<Object[]> findNonComplianceProjectss(@Param("projectIds") Set<Integer> projectIds,@Param("fromDate")LocalDate fromDate,@Param("toDate")LocalDate toDate);
 	 
+	 
+//	 @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO(" +
+//		       "p.projectId, p.projectName, p.apmosysRM, p.clientRM, p.poStartDate, p.poEndDate, " +
+//		       "p.poNo, p.poProjectType, c.clientName, pm.empId, pm.name, t.teamId, t.teamName, " +
+//		       "e.empId, e.name, jr.name, d.name, e.mobileNo, e.email, e.billable, e.billableType, " +
+//		       "etm.startDate, e.employeementId) " +
+//		       "FROM Project p " +
+//		       "INNER JOIN Team t ON t.projectId = p.projectId " +
+//		       "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId " +
+//		       "LEFT JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId " +
+//		       "INNER JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
+//		       "INNER JOIN Employee e ON e.empId = etm.empId " +
+//		       "INNER JOIN Client c ON c.clientId = p.clientId " +
+//		       "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+//		       "INNER JOIN Department d ON jr.deptId = d.deptId " +
+//		       "WHERE p.projectId NOT IN (" +
+//		       "  SELECT p2.projectId FROM Timesheet et " +
+//		       "  INNER JOIN TimesheetActivityMap etam ON et.timesheetId = etam.timesheetId " +
+//		       "  INNER JOIN Activity a ON a.activityId = etam.activityId " +
+//		       "  INNER JOIN Team t2 ON t2.teamId = a.teamId " +
+//		       "  INNER JOIN Project p2 ON p2.projectId = t2.projectId " +
+//		       "  WHERE et.date >= :fromDate AND et.date <= :toDate" +
+//		       ") " +
+//		       "AND p.active = 'true' " +
+//		       "AND p.projectId IN :projectIds " +
+//		       "AND t.isActive = 'Y' " +
+//		       "AND etm.active != 0 " +
+//		       "AND e.employmentstatus != 'InActive'")
+//		List<RMGProjectToEmployeeFlatDTO> findNonComplianceProjects(@Param("projectIds") Set<Integer> projectIds,@Param("fromDate") LocalDate fromDate,@Param("toDate") LocalDate toDate);
+
+	 @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO(" +
+		       "p.projectId, p.projectName, p.apmosysRM, p.clientRM, " +
+		       "p.poStartDate, p.poEndDate, p.poNo, p.poProjectType, " +
+		       "c.clientName, " +                         
+		       "pm.empId, pm.name, " +
+		       "t.teamId, t.teamName, " +
+		       "e.empId, e.name, " +
+		       "jr.name, d.name, e.mobileNo, e.email, " +
+		       "e.billable, e.billableType, " +
+		       "etm.startDate, " +
+		       "e.employeementId" +
+		       ") " +
+		       "FROM Project p " +
+		       "INNER JOIN Team t ON t.projectId = p.projectId " +
+		       "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId " +
+		       "LEFT JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId " +
+		       "INNER JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
+		       "INNER JOIN Employee e ON e.empId = etm.empId " +
+		       "INNER JOIN Client c ON c.clientId = p.clientId " +
+		       "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+		       "INNER JOIN Department d ON jr.deptId = d.deptId " +
+		       "WHERE p.projectId NOT IN (" +
+		       "  SELECT p2.projectId FROM Timesheet et " +
+		       "  INNER JOIN TimesheetActivityMap etam ON et.timesheetId = etam.timesheetId " +
+		       "  INNER JOIN Activity a ON a.activityId = etam.activityId " +
+		       "  RIGHT JOIN Team t2 ON t2.teamId = a.teamId " +
+		       "  INNER JOIN Project p2 ON p2.projectId = t2.projectId " +
+		       "  WHERE et.date >= :fromDate AND et.date <= :toDate" +
+		       ") " +
+		       "AND p.active = 'true' " +
+		       "AND p.projectId IN :projectIds " +
+		       "AND t.isActive = 'Y' " +
+		       "AND etm.active != 0 " +
+		       "AND e.employmentstatus != 'InActive'")
+		List<RMGProjectToEmployeeFlatDTO> findNonComplianceProjects(
+		    @Param("projectIds") Set<Integer> projectIds,
+		    @Param("fromDate") LocalDate fromDate,
+		    @Param("toDate") LocalDate toDate
+		);
 	 
 }
