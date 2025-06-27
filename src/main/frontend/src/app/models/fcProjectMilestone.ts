@@ -1,6 +1,7 @@
 export class FCProjectMilestone {
     id: any;
     poId: any;
+    poProjectId:any;
     projectId: any;
     name: any;
     description: any;
@@ -16,4 +17,5 @@ export class FCProjectMilestone {
     documentName: any;
     documentPath: any;
    documentBase64: any;
+   
 }

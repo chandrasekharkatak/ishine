@@ -13,6 +13,8 @@ public class FCProjectMilestoneDTO {
 	private Long id;
 
 	private Long poId;
+	
+	private Long poProjectId;
 
 	private Long projectId;
 
@@ -45,7 +47,7 @@ public class FCProjectMilestoneDTO {
 	private String documentBase64;
 	
 	// Constructor for repository query
-	public FCProjectMilestoneDTO(Long id,Long poId,Long projectId, String name, String description, Date startDate, Date endDate, String status, String remarks,Long lineItemId,String lineItemName,String lineItemStatus) {
+	public FCProjectMilestoneDTO(Long id,Long poId,Long projectId, String name, String description, Date startDate, Date endDate, String status, String remarks,Long lineItemId,String lineItemName,String lineItemStatus,Long poProjectId) {
 		this.id = id;
 		this.poId = poId;
 		this.projectId = projectId;
@@ -58,5 +60,6 @@ public class FCProjectMilestoneDTO {
 		this.lineItemId = lineItemId;
 		this.lineItemName = lineItemName;
 		this.lineItemStatus = lineItemStatus;
+		this.poProjectId=poProjectId;
 	}
 }

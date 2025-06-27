@@ -4699,7 +4699,9 @@ getProjectType(project: any): string {
     projectObjTemp.projectId = projectObj?.projectId;
     this.projectService.getAllProjectFCLineItemListByProjectId(projectObjTemp).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        console.log("response.serviceStatus "+JSON.stringify(response.serviceResponse));
         this.fcProjectMilestoneList = response.serviceResponse;
+
         this.openProjectLineItemListModal();
       } else {
         this.openAlertMod(this.alertTemplate, response.serviceResponse);

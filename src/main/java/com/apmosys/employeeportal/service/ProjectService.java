@@ -45,6 +45,8 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -169,6 +171,10 @@ public class ProjectService {
 	
 	@Value("${file.location.documents.fcmilestone}")
 	private String fcMileStone;
+	
+	
+	@Value("${poPortal.api.updateMilestones}")
+	private String updateMilestoneUrl;
 	
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
@@ -2606,6 +2612,12 @@ public class ProjectService {
 						apiLogInfo.setApiResponse("No Milestone(s) found for this project!");
 						return serviceResponse;
 					} else {
+						
+						fcProjectMilestoneDTOList.forEach(dto -> {
+						    System.out.println("DTO ID: " + dto.getId() + ", PO Project ID: " + dto.getPoProjectId());
+						});
+
+						
 						serviceResponse.setServiceResponse(fcProjectMilestoneDTOList);
 						serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -2628,15 +2640,16 @@ public class ProjectService {
 
      @Transactional
      public ServiceResponse updateMilestoneById(FCProjectMilestoneDTO dto, MultipartFile file) {
-
+    	 System.out.println("call comes to updatemilestone");
+    	 
          ServiceResponse response = new ServiceResponse();
          LogDTO apiLogInfo = new LogDTO();
          apiLogInfo.setApiUrl("/api/updateMilestoneById");
          apiLogInfo.setLogLevel("INFO");
          StringBuilder logBuilder = new StringBuilder();
+         Path filePath = null;
 
          try {
-           
              if (dto == null || dto.getId() == null) {
                  String msg = "Milestone ID cannot be null.";
                  response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -2646,7 +2659,6 @@ public class ProjectService {
                  return response;
              }
 
-            
              Optional<FCProjectMilestone> optionalMilestone = fcProjectMilestoneRepository.findById(dto.getId());
              if (optionalMilestone.isEmpty()) {
                  String msg = "Milestone not found.";
@@ -2658,36 +2670,26 @@ public class ProjectService {
              }
 
              FCProjectMilestone milestone = optionalMilestone.get();
-
-             
              logBuilder.append("Milestone ID: ").append(dto.getId())
                        .append(", UpdatedBy: ").append(dto.getUpdatedBy());
 
-           
              if (file != null && !file.isEmpty()) {
-            	 
-            	 
-            	 String originalFilename = file.getOriginalFilename();
-            	    String contentType = file.getContentType();
+                 String originalFilename = file.getOriginalFilename();
+                 String contentType = file.getContentType();
+                 List<String> allowedContentTypes = Arrays.asList(
+                     "application/pdf", "image/jpeg", "image/png"
+                 );
 
-            	   
-            	    List<String> allowedContentTypes = Arrays.asList(
-            	        "application/pdf",
-            	        "image/jpeg",
-            	        "image/png"
-            	    );
+                 if (!allowedContentTypes.contains(contentType)) {
+                     String msg = "Invalid file type. Only PDF, JPG, JPEG, or PNG files are allowed.";
+                     response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                     response.setServiceResponse(msg);
+                     apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                     apiLogInfo.setApiResponse(msg);
+                     apiLogInfo.setApiRequest(logBuilder.toString());
+                     return response;
+                 }
 
-            	    if (!allowedContentTypes.contains(contentType)) {
-            	        String msg = "Invalid file type. Only PDF, JPG, JPEG, or PNG files are allowed.";
-            	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            	        response.setServiceResponse(msg);
-            	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-            	        apiLogInfo.setApiResponse(msg);
-            	        apiLogInfo.setApiRequest(logBuilder.toString());
-            	        return response;
-            	    }
-
-            	 
                  try {
                      Path directory = Paths.get(fcMileStone);
                      if (!Files.exists(directory)) {
@@ -2695,20 +2697,25 @@ public class ProjectService {
                      }
 
                      String newFileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-                     Path filePath = directory.resolve(newFileName);
+                     filePath = directory.resolve(newFileName);
 
                      Files.write(filePath, file.getBytes());
 
                      File savedFile = filePath.toFile();
                      if (savedFile.exists()) {
                          milestone.setDocumentName(newFileName);
-                         
                          milestone.setDocumentPath(filePath.toString());
-                         
                      } else {
                          throw new IOException("File write succeeded but file not found on disk.");
                      }
                  } catch (IOException ioEx) {
+                     if (filePath != null) {
+                         try {
+                             Files.deleteIfExists(filePath);
+                         } catch (IOException e) {
+                             logBuilder.append(" [File deletion failed after rollback: ").append(e.getMessage()).append("]");
+                         }
+                     }
                      response.setServiceStatus(ServiceResponse.STATUS_FAIL);
                      response.setServiceResponse("Failed to upload milestone document.");
                      response.setServiceError(ioEx.getMessage());
@@ -2727,44 +2734,62 @@ public class ProjectService {
                  return response;
              }
 
-             
              if (dto.getStatus() != null) milestone.setStatus(dto.getStatus());
              if (dto.getUpdatedBy() != null) milestone.setUpdatedBy(dto.getUpdatedBy());
              if (dto.getUpdatedOn() != null) milestone.setUpdatedOn(dto.getUpdatedOn());
              
-             if (milestone.getLineItemId() != null) {
-            	    Optional<FCLineItem> optionalLineItem = fcLineItemRepository.findByid(milestone.getLineItemId());
-            	    if (optionalLineItem.isPresent()) {
-            	        FCLineItem lineItem = optionalLineItem.get();
-            	        lineItem.setStatus(dto.getStatus());
-            	        fcLineItemRepository.save(lineItem);
-            	    } else {
-            	        logBuilder.append(", FCLineItem not found for lineItemId: ").append(milestone.getLineItemId());
-            	    }
-            	}
-
-
-             
              FCProjectMilestone updatedMilestone = fcProjectMilestoneRepository.save(milestone);
 
-           
+             if (milestone.getLineItemId() != null) {
+                 Optional<FCLineItem> optionalLineItem = fcLineItemRepository.findByid(milestone.getLineItemId());
+                 if (optionalLineItem.isPresent()) {
+                     FCLineItem lineItem = optionalLineItem.get();
+                     lineItem.setStatus(dto.getStatus());
+                     fcLineItemRepository.save(lineItem);
+                 } else {
+                     logBuilder.append(", FCLineItem not found for lineItemId: ").append(milestone.getLineItemId());
+                 }
+             }
+
+         //calling update api of po portal for milestone update
+             
+           try {
+          	    
+        	   FCProjectMilestoneDTO[] updatedMilestoneArr = restTemplate.exchange(
+        			    updateMilestoneUrl,
+        			    HttpMethod.PUT,
+        			    new HttpEntity<>(dto),
+        			    FCProjectMilestoneDTO[].class
+        			).getBody();
+
+
+          	    List<FCProjectMilestoneDTO> updatedMilestones = Arrays.asList(
+          	        updatedMilestoneArr != null ? updatedMilestoneArr : new FCProjectMilestoneDTO[0]
+          	    );
+
+          	    logBuilder.append("Milestones updated via po portal API: ").append(updatedMilestones.size()).append("\n");
+
+          	} catch (RestClientException e) {
+                    throw new RuntimeException("External API error: " + e.getMessage());
+          	}
+
              response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
              response.setServiceResponse(updatedMilestone);
              response.setServiceMessage("Milestone updated successfully.");
              apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
              apiLogInfo.setApiResponse("Milestone updated successfully.");
-
          } catch (DataAccessException dae) {
              response.setServiceStatus(ServiceResponse.STATUS_FAIL);
              response.setServiceResponse("Database error occurred.");
              response.setServiceError(dae.getMessage());
+             response.setServiceMessage(dae.getMessage());
              apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
              apiLogInfo.setApiResponse("DataAccessException: " + dae.getMessage());
-
          } catch (Exception e) {
              response.setServiceStatus(ServiceResponse.STATUS_FAIL);
              response.setServiceResponse("Unexpected error occurred.");
              response.setServiceError(e.getMessage());
+             response.setServiceMessage(e.getMessage());
              apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
              apiLogInfo.setApiResponse("Exception: " + e.getMessage());
          }
@@ -2772,8 +2797,7 @@ public class ProjectService {
          apiLogInfo.setApiRequest(logBuilder.toString());
          return response;
      }
-     
-     
+
      
      
      
@@ -2833,6 +2857,7 @@ public class ProjectService {
     	        }
 
     	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+    	        response.setServiceMessage(ServiceResponse.STATUS_SUCCESS);   	        
     	        response.setServiceResponse(dto);
     	        return response;
 

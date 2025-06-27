@@ -21,6 +21,8 @@ public class FCProjectMilestone {
 	private Long id;
 
 	private Long poId;
+	
+	private Long poProjectId;
 
 	private Long projectId;
 
