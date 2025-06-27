@@ -255,7 +255,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	List<ProjectFetchDTO> getAllActiveProjectList(@Param("projectStatus")String projectStatus, @Param("status")String status, @Param("approvalStatus")String approvalStatus, Set<Integer> projectId, boolean isProjectId,boolean approvalCheck);
 	
 	
-	@Query(value="SELECT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
+	@Query(value="SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
 			+ "			p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
 			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
 			+ "			p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
@@ -732,4 +732,29 @@ public Optional<List<Project>> findProjectsOfProjectManager(Long projectManagerI
 	@Query(value ="SELECT NEW com.apmosys.employeeportal.dto.ResourceManagementDTO(projectId,poProjectId,projectName )\n"
 			+ "from Project where active= 'true' and isDraftProject is null and status != 'Completed'")
 	public List<ResourceManagementDTO> getAllNotStartedProjects();
+	
+	
+	@Query(value="SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
+			+ "			p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
+			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
+			+ "			p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
+			+ "			p.apmosysRmEmail, p.projectCompletionDate, p.projectStatus, p.internalProjectType,c.clientName,\n"
+			+ "CASE \n"
+			+ "	 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
+			+ "	 WHEN p.isDraftProject = 'false' THEN 'Approved' \n"
+			+ "	 WHEN p.isDraftProject = 'Rejected' THEN 'Rejected' \n"
+			+ "	 WHEN p.isDraftProject = 'Completed' THEN 'Completed' \n"
+			+ "	 WHEN p.isDraftProject = null THEN 'Not Started' \n"
+			+ "	 ELSE 'Un Mentioned Test Data' \n"
+			+ "END, \n"
+			+ "CASE \n"
+			+ "  WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', p.poProjectId) \n"
+			+ "  ELSE CONCAT('', p.projectId) \n"
+			+ "END ) \n"
+			+ "			FROM Project p\n"
+			+ "			LEFT JOIN Client c ON c.clientId = p.clientId\n"
+			+ "			inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId\n"
+			+ "			WHERE p.active = 'true'\n"
+			+ "			AND p.projectStatus = 'Completed' and pdm.deptId IN :deptIds")
+	List<ProjectFetchDTO> getAllCompletedProjectListInIshine(@Param("deptIds") List<Long> deptIds);
 }
