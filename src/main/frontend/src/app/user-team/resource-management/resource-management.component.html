@@ -1803,12 +1803,12 @@
                             <span style="color: #f44336; font-weight: bold; margin-left: 4px;">*</span>
                         </label>
                         <mat-select 
-                            placeholder="Select Resource Requirement" 
+                            placeholder="Select Requirement" 
                             [(ngModel)]="selectedRequirement"
                             required
                             style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 8px; background-color: #fafafa;">
-                             <mat-option disabled value="">
-                                Select Resource Requirement
+                             <mat-option value="">
+                                Select
                             </mat-option>
                             <mat-option *ngFor="let requirement of projectObj.resourceRequirements"
                                 [value]="requirement">
