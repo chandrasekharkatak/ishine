@@ -190,4 +190,18 @@
     visibility: visible;
     opacity: 1;
   }
+
+
+.btn-extra-small {
+
+margin: 1rem 1rem;
+  padding: 0.1rem 0.2rem;
+  font-size: 0.75rem; /* 12px if base font is 16px */
+  line-height: 1.2;
+}
+
+/* Adjust icon size to match the smaller button */
+.btn-extra-small .fa {
+  font-size: 0.7rem;
+}
   

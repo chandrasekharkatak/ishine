@@ -204,5 +204,11 @@ public class Employee {
     private String isRetain;
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate dateOfRetain;
-
+	
+	private Long extensionPeriod;
+	
+	private String extensionReason;
+	
+	@JsonFormat(pattern = "dd/MM/yyyy")
+	private LocalDate confirmationRequestDate;
 }

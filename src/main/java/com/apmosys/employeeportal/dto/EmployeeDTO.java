@@ -332,6 +332,7 @@ this.name = name;
     private Long timesheetId;
     private Long totalTimesheetsFilled;
     private String deptName;
+    private Long daysLeftForFullTime;
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
     public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
             Long mobileNo, Long managerId, String managerName, String jobRoleName,

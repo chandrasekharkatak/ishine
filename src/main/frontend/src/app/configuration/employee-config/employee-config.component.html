@@ -1586,6 +1586,7 @@
                                 <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="referedName|string">
                                     Referred by</th>
                                 <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
+                                <th scope="col" class="info-label" *ngIf="isTable">Days Left for Full Time</th>
                                 <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
                                     scope="col" class="info-label">Actions</th>
                             </tr>
@@ -1643,6 +1644,11 @@
                                     {{employee.updatedByName}}</td>
                                 <td *ngIf="isTable">{{employee.referedName}}</td>
                                 <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
+                                <td *ngIf="isTable">
+                                    <ng-container *ngTemplateOutlet="daysLeftCell; context: { $implicit: employee }">
+                                    </ng-container>
+                                </td>
+
                                 <td
                                     *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
                                     <button
@@ -3519,6 +3525,85 @@
 
     </div>
 </ng-template>
+
+
+<!-- ng-template for Table Cell -->
+<ng-template #daysLeftCell let-employee>
+  <div class="d-flex align-items-center">
+    <span>
+      {{employee.days_left_for_full_time}}
+    </span>
+    <button 
+      *ngIf="employee.employmentstatus === 'Probation'"
+      class="btn btn-sm btn-outline-primary ms-2 btn-extra-small"
+      (click)="openEmployeeModal(employee)"
+      data-bs-toggle="modal" 
+      data-bs-target="#employeeConfirmationModal">
+      <i class="fa fa-eye"></i> View
+    </button>
+  </div>
+</ng-template>
+<!-- Employee Confirmation Modal -->
+<div class="modal fade" id="employeeConfirmationModal" tabindex="-1" aria-labelledby="employeeConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="employeeConfirmationModalLabel">
+            Employee Confirmation Details
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        
+        <div class="modal-body">
+          <!-- The *ngIf ensures the body is only shown when you have data -->
+          <div *ngIf="selectedEmployee">
+            <!-- Employee Basic Info -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <strong>Employee ID:</strong> A-{{selectedEmployee.employeementId}}
+              </div>
+              <div class="col-md-6">
+                <strong>Employee Name:</strong> {{selectedEmployee.employeeName}}
+              </div>
+            </div>
+            
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <strong>Date of Joining:</strong> {{selectedEmployee.dateOfJoining | date:'dd-MM-yyyy'}}
+              </div>
+              <div class="col-md-6">
+                <strong>Employment Status:</strong> 
+                <span [ngClass]="getEmploymentStatusClass(selectedEmployee.employmentstatus)">
+                  {{selectedEmployee.employmentstatus}}
+                </span>
+              </div>
+            </div>
+            
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <strong>Probation Period:</strong> {{selectedEmployee.probationPeriod}} days
+              </div>
+               <div class="col-md-6">
+                <strong>Confirmation Date:</strong> {{selectedEmployee.confirmationDate | date:'dd-MM-yyyy'}}
+              </div>
+            </div>
+            
+            <!-- Action Buttons Section -->
+            <ng-container *ngTemplateOutlet="actionSection; context: { $implicit: selectedEmployee }">
+            </ng-container>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+
+<!-- Render the Modal -->
 
 <!-- added by anurag for Managing manager in case of InActive thier status -->
 
