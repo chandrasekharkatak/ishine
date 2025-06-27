@@ -1135,3 +1135,37 @@ thead {
   background-color: rgb(199, 195, 195);
 }
 
+.action-menu-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-right-menu {
+  position: initial;
+  top: 0;
+  left: 100%; 
+  background-color: #fff;
+  border: 1px solid #ccc;
+  min-width: 180px;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 6px 0;
+  border-radius: 4px;
+}
+
+.dropdown-right-menu li {
+  padding: 8px 14px;
+  list-style: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: #1b1e5e;
+}
+
+.dropdown-right-menu li:hover {
+  background-color: #f5f5f5;
+}
+
+
+
+
+
