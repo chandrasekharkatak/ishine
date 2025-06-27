@@ -363,7 +363,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "AND (:projectFilter = false OR p.projectId IN :projectIds)")
 	Integer getAllActiveProjecCountstList(@Param("approvalStatus")String approvalStatus, @Param("projectIds")Set<Integer> projectIds,@Param("projectFilter") Boolean projectFilter);
 
-	@Query(value="select Distinct count(*) from Project p \n"
+	@Query(value="select  count( Distinct p.projectId) from Project p \n"
 			+ " inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId \n"
 			+ " where p.active= 'true' and p.isDraftProject is null and (p.status != 'Completed' or p.projectStatus = 'Not Started') and pdm.deptId IN :deptIds")
 	Integer getAllNotStartedProjectCountInDept(List<Long> deptIds);
@@ -757,4 +757,10 @@ public Optional<List<Project>> findProjectsOfProjectManager(Long projectManagerI
 			+ "			WHERE p.active = 'true'\n"
 			+ "			AND p.projectStatus = 'Completed' and pdm.deptId IN :deptIds")
 	List<ProjectFetchDTO> getAllCompletedProjectListInIshine(@Param("deptIds") List<Long> deptIds);
+	
+	
+	@Query(value="select  count( Distinct p.projectId) from Project p \n"
+			+ "			 inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId \n"
+			+ "			 where p.active= 'true' and  p.projectStatus = 'Completed' and pdm.deptId IN :deptIds")
+	Integer getAllCompletedProjectCountInIshine(@Param("deptIds") List<Long> deptIds);
 }
