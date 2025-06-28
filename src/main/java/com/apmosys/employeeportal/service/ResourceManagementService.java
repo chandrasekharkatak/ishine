@@ -6291,6 +6291,8 @@ public class ResourceManagementService {
 	
 	public ServiceResponse fillDepartmentforAllProjectsInIshine() {
 	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+
 	    try {
 	        List<ResourceManagementDTO> poPortalProjects = Optional.ofNullable(fetchPoPortalProjects())
 	                .orElse(new ArrayList<>());
@@ -6299,77 +6301,111 @@ public class ResourceManagementService {
 	        int insertCount = 0, updateCount = 0, deactivateCount = 0;
 
 	        for (ResourceManagementDTO activeProject : activePOProjects) {
-	            Long poProjectId = activeProject.getPoProjectId();
-	            Integer projectId = activeProject.getProjectId();
+	            try {
+	                Long poProjectId = activeProject.getPoProjectId();
+	                Integer projectId = activeProject.getProjectId();
 
-	            
-	            ResourceManagementDTO portalProject = poPortalProjects.stream()
-	                    .filter(p -> poProjectId != null && poProjectId.equals(p.getId()))
-	                    .findFirst()
-	                    .orElse(null);
+	                if (poProjectId == null || projectId == null) continue;
 
-	            if (portalProject == null || portalProject.getDepartment() == null)
-	                continue;
+	                ResourceManagementDTO portalProject = poPortalProjects.stream()
+	                        .filter(p -> poProjectId.equals(p.getId()))
+	                        .findFirst()
+	                        .orElse(null);
 
-	            List<String> newDeptNames = Arrays.asList(portalProject.getDepartment());
-	            List<Long> newDeptIds = new ArrayList<>();
+	                if (portalProject == null || portalProject.getDepartment() == null)
+	                    continue;
 
-	            for (String deptName : newDeptNames) {
-	                Department dept = departmentRepository.findByName(deptName.trim());
-	                if (dept != null) {
-	                    newDeptIds.add(dept.getDeptId());
-	                }
-	            }
+	                List<String> newDeptNames = Arrays.asList(portalProject.getDepartment());
+	                List<Long> newDeptIds = new ArrayList<>();
 
-	          
-	            List<ProjectDepartmentMap> existingMaps = projectDepartmentMapRepository.findByProjectId(projectId);
-	            Map<Long, ProjectDepartmentMap> deptIdToMap = existingMaps.stream()
-	                    .collect(Collectors.toMap(ProjectDepartmentMap::getDeptId, map -> map));
-
-	            Set<Long> newDeptIdSet = new HashSet<>(newDeptIds);
-
-	          
-	            for (ProjectDepartmentMap map : existingMaps) {
-	                if (!newDeptIdSet.contains(map.getDeptId()) && map.getActive() != 0L) {
-	                    map.setActive(0L);
-	                    deactivateCount++;
-	                }
-	            }
-
-	       
-	            for (Long deptId : newDeptIds) {
-	                if (deptIdToMap.containsKey(deptId)) {
-	                    ProjectDepartmentMap existing = deptIdToMap.get(deptId);
-	                    if (existing.getActive() == null || existing.getActive() == 0L) {
-	                        existing.setActive(1L);
-	                        updateCount++;
+	                for (String deptName : newDeptNames) {
+	                    try {
+	                        if (deptName != null && !deptName.trim().isEmpty()) {
+	                            Department dept = departmentRepository.findByName(deptName.trim());
+	                            if (dept != null) {
+	                                newDeptIds.add(dept.getDeptId());
+	                            } else {
+	                                apiLogInfo.setApiResponse("Department not found for name: '" + deptName + "' (Project ID: " + projectId + ")");
+	                            }
+	                        }
+	                    } catch (Exception e) {
+	                        apiLogInfo.setApiResponse("Error while finding department '" + deptName + "' for project ID: " + projectId);
+	                        e.printStackTrace();
 	                    }
-	                } else {
-	                    ProjectDepartmentMap newMap = new ProjectDepartmentMap();
-	                    newMap.setProjectId(projectId);
-	                    newMap.setDeptId(deptId);
-	                    newMap.setActive(1L);
-	                    existingMaps.add(newMap);
-	                    insertCount++;
 	                }
-	            }
 
-	         
-	            projectDepartmentMapRepository.saveAll(existingMaps);
+	                List<ProjectDepartmentMap> existingMaps = projectDepartmentMapRepository.findByProjectId(projectId);
+	                Map<Long, ProjectDepartmentMap> deptIdToMap = existingMaps.stream()
+	                        .filter(Objects::nonNull)
+	                        .filter(m -> m.getDeptId() != null)
+	                        .collect(Collectors.toMap(ProjectDepartmentMap::getDeptId, map -> map));
+
+	                Set<Long> newDeptIdSet = new HashSet<>(newDeptIds);
+
+	                for (ProjectDepartmentMap map : existingMaps) {
+	                    try {
+	                        if (map != null && map.getDeptId() != null &&
+	                                !newDeptIdSet.contains(map.getDeptId()) && !Objects.equals(map.getActive(), 0L)) {
+	                            map.setActive(0L);
+	                            deactivateCount++;
+	                        }
+	                    } catch (Exception e) {
+	                        apiLogInfo.setApiResponse("Error while deactivating department mapping (Project ID: " + projectId + ")");
+	                        e.printStackTrace();
+	                    }
+	                }
+
+	                for (Long deptId : newDeptIds) {
+	                    try {
+	                        if (deptId != null) {
+	                            if (deptIdToMap.containsKey(deptId)) {
+	                                ProjectDepartmentMap existing = deptIdToMap.get(deptId);
+	                                if (existing.getActive() == null || existing.getActive() == 0L) {
+	                                    existing.setActive(1L);
+	                                    updateCount++;
+	                                }
+	                            } else {
+	                                ProjectDepartmentMap newMap = new ProjectDepartmentMap();
+	                                newMap.setProjectId(projectId);
+	                                newMap.setDeptId(deptId);
+	                                newMap.setActive(1L);
+	                                existingMaps.add(newMap);
+	                                insertCount++;
+	                            }
+	                        }
+	                    } catch (Exception e) {
+	                        apiLogInfo.setApiResponse("Error inserting/updating mapping (Dept ID: " + deptId + ", Project ID: " + projectId + ")");
+	                        e.printStackTrace();
+	                    }
+	                }
+
+	                projectDepartmentMapRepository.saveAll(existingMaps);
+
+	            } catch (Exception innerEx) {
+	                apiLogInfo.setApiResponse("Error processing project with PoProjectId: " + activeProject.getPoProjectId()
+	                        + ", ProjectId: " + activeProject.getProjectId());
+	                innerEx.printStackTrace();
+	            }
 	        }
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse("Department mapping synced successfully! Inserted: " + insertCount +
-	                ", Updated: " + updateCount + ", Deactivated: " + deactivateCount);
+	        String finalMessage = "Department mapping synced successfully! Inserted: " + insertCount +
+	                ", Updated: " + updateCount + ", Deactivated: " + deactivateCount;
+	        response.setServiceResponse(finalMessage);
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        apiLogInfo.setApiResponse(finalMessage);
 
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceResponse("Something went wrong while syncing departments.");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("Exception occurred during department sync");
 	    }
 
 	    return response;
 	}
+
 
 	
 	
