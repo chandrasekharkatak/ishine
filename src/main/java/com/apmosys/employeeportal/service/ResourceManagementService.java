@@ -6238,56 +6238,139 @@ public class ResourceManagementService {
 		return serviceResponse;
 	}
 	
-	public ServiceResponse fillDepartmentforNotStartedProjects() {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("fillDepartmentforNotStartedProjects");
-		apiLogInfo.setApiUrl("/api/fillDepartmentforNotStartedProjects");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("\n fillDepartmentforNotStartedProjects ");
-		try {
-			
-			List<ResourceManagementDTO> poPortalProjects = Optional.ofNullable(fetchPoPortalProjects()).orElse(new ArrayList<>());
-			List<ResourceManagementDTO> poNotStartedProjects = projectRepository.getAllNotStartedProjects();
-			
-			for (ResourceManagementDTO notStarted : poNotStartedProjects) {
-				Long poProjectId = notStarted.getPoProjectId();
-				Integer projectId = notStarted.getProjectId();
+//	public ServiceResponse fillDepartmentforAllProjectsInIshine() {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("fillDepartmentforNotStartedProjects");
+//		apiLogInfo.setApiUrl("/api/fillDepartmentforNotStartedProjects");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("\n fillDepartmentforNotStartedProjects ");
+//		try {
+//			
+//			List<ResourceManagementDTO> poPortalProjects = Optional.ofNullable(fetchPoPortalProjects()).orElse(new ArrayList<>());
+//			List<ResourceManagementDTO> poNotStartedProjects = projectRepository.getAllActivePOProjects();
+//			
+//			for (ResourceManagementDTO notStarted : poNotStartedProjects) {
+//				Long poProjectId = notStarted.getPoProjectId();
+//				Integer projectId = notStarted.getProjectId();
+//
+//				
+//				for (ResourceManagementDTO poPortal : poPortalProjects) {
+//					if (poProjectId != null && poProjectId.equals(poPortal.getId())) {
+//						
+//						List<String> departments = Arrays.asList(poPortal.getDepartment()); 
+//						
+//						if (departments != null && !departments.isEmpty()) {
+//							for (String deptName : departments) {
+//								Department dept = departmentRepository.findByName(deptName.trim());
+//								if (dept != null) {
+//									ProjectDepartmentMap map = new ProjectDepartmentMap();
+//									map.setProjectId(projectId);
+//									map.setDeptId(dept.getDeptId());
+//									projectDepartmentMapRepository.save(map);
+//								}
+//							}
+//						}
+//						break; 
+//					}
+//				}
+//			}
+//
+//			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			response.setServiceResponse("Department mapping inserted successfully!");
+//			
+//			
+//		}catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			response.setServiceResponse("\n Something went wrong!");
+//		}   
+//		return response;
+//	}
+	
+	public ServiceResponse fillDepartmentforAllProjectsInIshine() {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        List<ResourceManagementDTO> poPortalProjects = Optional.ofNullable(fetchPoPortalProjects())
+	                .orElse(new ArrayList<>());
+	        List<ResourceManagementDTO> activePOProjects = projectRepository.getAllActivePOProjects();
 
-				
-				for (ResourceManagementDTO poPortal : poPortalProjects) {
-					if (poProjectId != null && poProjectId.equals(poPortal.getId())) {
-						
-						List<String> departments = Arrays.asList(poPortal.getDepartment()); 
-						
-						if (departments != null && !departments.isEmpty()) {
-							for (String deptName : departments) {
-								Department dept = departmentRepository.findByName(deptName.trim());
-								if (dept != null) {
-									ProjectDepartmentMap map = new ProjectDepartmentMap();
-									map.setProjectId(projectId);
-									map.setDeptId(dept.getDeptId());
-									projectDepartmentMapRepository.save(map);
-								}
-							}
-						}
-						break; 
-					}
-				}
-			}
+	        int insertCount = 0, updateCount = 0, deactivateCount = 0;
 
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Department mapping inserted successfully!");
-			
-			
-		}catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("\n Something went wrong!");
-		}   
-		return response;
+	        for (ResourceManagementDTO activeProject : activePOProjects) {
+	            Long poProjectId = activeProject.getPoProjectId();
+	            Integer projectId = activeProject.getProjectId();
+
+	            
+	            ResourceManagementDTO portalProject = poPortalProjects.stream()
+	                    .filter(p -> poProjectId != null && poProjectId.equals(p.getId()))
+	                    .findFirst()
+	                    .orElse(null);
+
+	            if (portalProject == null || portalProject.getDepartment() == null)
+	                continue;
+
+	            List<String> newDeptNames = Arrays.asList(portalProject.getDepartment());
+	            List<Long> newDeptIds = new ArrayList<>();
+
+	            for (String deptName : newDeptNames) {
+	                Department dept = departmentRepository.findByName(deptName.trim());
+	                if (dept != null) {
+	                    newDeptIds.add(dept.getDeptId());
+	                }
+	            }
+
+	          
+	            List<ProjectDepartmentMap> existingMaps = projectDepartmentMapRepository.findByProjectId(projectId);
+	            Map<Long, ProjectDepartmentMap> deptIdToMap = existingMaps.stream()
+	                    .collect(Collectors.toMap(ProjectDepartmentMap::getDeptId, map -> map));
+
+	            Set<Long> newDeptIdSet = new HashSet<>(newDeptIds);
+
+	          
+	            for (ProjectDepartmentMap map : existingMaps) {
+	                if (!newDeptIdSet.contains(map.getDeptId()) && map.getActive() != 0L) {
+	                    map.setActive(0L);
+	                    deactivateCount++;
+	                }
+	            }
+
+	       
+	            for (Long deptId : newDeptIds) {
+	                if (deptIdToMap.containsKey(deptId)) {
+	                    ProjectDepartmentMap existing = deptIdToMap.get(deptId);
+	                    if (existing.getActive() == null || existing.getActive() == 0L) {
+	                        existing.setActive(1L);
+	                        updateCount++;
+	                    }
+	                } else {
+	                    ProjectDepartmentMap newMap = new ProjectDepartmentMap();
+	                    newMap.setProjectId(projectId);
+	                    newMap.setDeptId(deptId);
+	                    newMap.setActive(1L);
+	                    existingMaps.add(newMap);
+	                    insertCount++;
+	                }
+	            }
+
+	         
+	            projectDepartmentMapRepository.saveAll(existingMaps);
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Department mapping synced successfully! Inserted: " + insertCount +
+	                ", Updated: " + updateCount + ", Deactivated: " + deactivateCount);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Something went wrong while syncing departments.");
+	    }
+
+	    return response;
 	}
+
 	
 	
 	@Transactional

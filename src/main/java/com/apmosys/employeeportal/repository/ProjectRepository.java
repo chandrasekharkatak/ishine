@@ -729,9 +729,9 @@ public Optional<List<Project>> findProjectsOfProjectManager(Long projectManagerI
 			+ "where t.spoc_id= :spocId and t.is_active = 'Y'" , nativeQuery = true)
 	public Optional<List<Project>> findProjectOfSpoc(Long spocId);
 	
-	@Query(value ="SELECT NEW com.apmosys.employeeportal.dto.ResourceManagementDTO(projectId,poProjectId,projectName )\n"
-			+ "from Project where active= 'true' and isDraftProject is null and status != 'Completed'")
-	public List<ResourceManagementDTO> getAllNotStartedProjects();
+	@Query(value ="SELECT DISTINCT NEW com.apmosys.employeeportal.dto.ResourceManagementDTO(projectId,poProjectId,projectName)\n"
+			+ "from Project where active = 'true' and poProjectId IS NOT NULL")
+	public List<ResourceManagementDTO> getAllActivePOProjects();
 	
 	
 	@Query(value="SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
