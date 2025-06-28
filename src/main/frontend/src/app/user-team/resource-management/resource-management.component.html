@@ -224,12 +224,12 @@
 
 
                                 <!-- Select All/Deselect All -->
-                                <mat-option (click)="toggleSelectAllDept()" [disabled]="departments.length === 0">
+                                <mat-option (click)="skipSelectionChange = true;toggleSelectAllDept()" [disabled]="departments.length === 0">
                                     {{ isAllSelected ? 'Deselect All' : 'Select All' }}
                                 </mat-option>
 
                                 <!-- Department options -->
-                                <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
+                                <mat-option  (click)="skipSelectionChange = false" *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
                                     {{ dept.name }}
                                 </mat-option>
                             </mat-select>
@@ -272,13 +272,13 @@
                                     </mat-option>
 
                                     <!-- Select All/Deselect All -->
-                                    <mat-option (click)="toggleSelectAllDeptByUser()"
+                                    <mat-option (click)="skipSelectionChange = true;toggleSelectAllDeptByUser()"
                                         [disabled]="departmentListByUser.length === 0">
                                         {{ isAllSelectedByUser ? 'Deselect All' : 'Select All' }}
                                     </mat-option>
 
                                     <!-- Department options -->
-                                    <mat-option *ngFor="let dept of filteredDepartmentsByUser" [value]="dept.deptId">
+                                    <mat-option (click)="skipSelectionChange = false"  *ngFor="let dept of filteredDepartmentsByUser" [value]="dept.deptId">
                                         {{ dept.name }}
                                     </mat-option>
                                 </mat-select>
@@ -1032,7 +1032,7 @@
     <ng-template #alert_message>
         <div class="modal-body text-center">
             <p>{{alertMessage}}</p>
-            <button type="button" class="btn btn-primary" (click)="cancelRequest();reloadPage()">OK</button>&nbsp;
+            <button type="button" class="btn btn-primary" (click)="cancelRequest();rbacApiCalls()">OK</button>&nbsp;
         </div>
     </ng-template>
     <ng-template #alert_team_message>

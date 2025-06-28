@@ -451,6 +451,7 @@ export class ResourceManagementComponent implements OnInit {
   fallBackMsg: any;
   isApproved: boolean = false;
   advanceFilter: any;
+  skipSelectionChange: boolean = true;
 
   constructor(
     private filterStateService: FilterStateService,
@@ -790,6 +791,7 @@ export class ResourceManagementComponent implements OnInit {
 
   clearSelection(event: Event) {
     console.log(this.isAllSelected, "this.isAllSelected");
+    this.skipSelectionChange = true;
     event.stopPropagation();
     if (this.isAllSelected == true) {
       console.log(this.isAllSelected, "this.isAllSelected");
@@ -805,7 +807,7 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.departments = [];
       this.filterStateService.deptIdList = this.deptIdList;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
+      this.rbacApiCalls();
     }
 
   }
@@ -818,7 +820,10 @@ export class ResourceManagementComponent implements OnInit {
     );
   }
 
-  onDepartmentSelectionChange() {
+  onDepartmentSelectionChange() {  
+    if (this.skipSelectionChange) {
+      return;
+    }
     console.log(this.isAllSelected, "this.isAllSelected", this.deptIdList.length, "this.dept length");
     if (!this.isAllSelected && this.deptIdList.length > 0 && this.deptIdList[0] != null) {
       this.projectFilterDTO.approvalStatus = "All";
@@ -827,8 +832,7 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.departments = [];
       this.filterStateService.deptIdList = this.deptIdList;
       this.filterStateService.myDept = this.myDept;
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.rbacApiCalls();
 
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       console.log(this.filterStateService.deptIdList, "this.filterStateService.deptIdListByUser");
@@ -840,10 +844,8 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.departmentsids = this.deptIdList;
       this.projectFilterDTO.departments = [];
       this.filterStateService.deptIdList = this.deptIdList;
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
-    }
-
+      this.rbacApiCalls();
+    } 
   }
 
   //   onDepartmentSelectionChange1() {
@@ -869,34 +871,22 @@ export class ResourceManagementComponent implements OnInit {
   // }
 
   toggleSelectAllDept() {
-    // this.employeeReportObj.deptId = [];
     console.log(this.isAllSelected, "this.isAllSelected")
+    
     if (this.isAllSelected) {
-      // Deselect all if already selected
       this.deptIdList = [];
       this.isAllSelected = false;
-      this.projectFilterDTO.approvalStatus = "All";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = [];
-      this.projectFilterDTO.departments = [];
-      this.filterStateService.deptIdList = this.deptIdList;
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
     } else {
-      // Select all departments
       this.deptIdList = this.filteredDepartments.map(dept => dept.deptId);
       this.isAllSelected = true;
-      this.projectFilterDTO.approvalStatus = "All";
-      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = this.deptIdList;
-      this.projectFilterDTO.departments = [];
-      this.filterStateService.deptIdList = this.deptIdList;
-      console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
     }
 
+    this.projectFilterDTO.approvalStatus = "All";
+    this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+    this.projectFilterDTO.departmentsids = this.deptIdList;
+    this.projectFilterDTO.departments = [];
+    this.filterStateService.deptIdList = this.deptIdList;
+    this.rbacApiCalls();
   }
 
 
@@ -4472,6 +4462,9 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   onDepartmentSelectionChangeByUser() {
+    if (this.skipSelectionChange) {
+      return;
+    }
     console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser");
     if (!this.isAllSelectedByUser && this.deptIdListByUser.length > 0 && this.deptIdListByUser[0] != null) {
       this.projectFilterDTO.approvalStatus = "All";
@@ -4481,10 +4474,17 @@ export class ResourceManagementComponent implements OnInit {
       this.filterStateService.deptIdListByUser = this.deptIdListByUser;
       this.filterStateService.myDept = this.myDept;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.rbacApiCalls();
       // this.getEmployeeReportData();
-    }
+    }else {
+      this.projectFilterDTO = this.deptList2;
+      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+      this.projectFilterDTO.departmentsids = this.deptIdList;
+      this.projectFilterDTO.departments = [];
+      this.filterStateService.deptIdList = this.deptIdList;
+      this.rbacApiCalls();
+    } 
   }
 
   filterDepartmentsByUser() {
@@ -4499,7 +4499,7 @@ export class ResourceManagementComponent implements OnInit {
     event.stopPropagation();
     if (this.isAllSelectedByUser == true) {
       console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser");
-      this.toggleSelectAllDept();
+      this.toggleSelectAllDeptByUser();
     }
     else {
       this.deptIdListByUser = [];
@@ -4509,8 +4509,7 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.departments = [];
       this.filterStateService.deptIdListByUser = this.deptIdListByUser;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.rbacApiCalls();
     }
   }
 
@@ -4527,9 +4526,7 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.departments = [];
       this.filterStateService.deptIdListByUser = this.deptIdListByUser;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
-
+      this.rbacApiCalls();
     } else {
       // Select all departments
       this.deptIdListByUser = this.filteredDepartmentsByUser.map(dept => dept.deptId);
@@ -4540,8 +4537,7 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.departments = [];
       this.filterStateService.deptIdListByUser = this.deptIdListByUser;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.rbacApiCalls();
     }
 
   }
@@ -4571,14 +4567,14 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.departments = this.deptIdList;
       const deptIds: number[] = this.deptIdList.map(dept => dept.deptId);
       this.projectFilterDTO.departmentsids = deptIds;
-      this.combinedPOINTERNALCountList(projectFilterDTO);
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
       this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
     }
     else {
       this.projectFilterDTO.departments = this.deptIdListByUser;
       const deptIds: number[] = this.deptIdListByUser.map(dept => dept.deptId);
       this.projectFilterDTO.departmentsids = deptIds;
-      this.combinedPOINTERNALCountList(projectFilterDTO);
+      this.combinedPOINTERNALCountList(this.projectFilterDTO);
       this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
     }
   }
@@ -4634,8 +4630,18 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
-  reloadPage() {
-    location.reload();
+  rbacApiCalls() {
+    // location.reload();
+    this.combinedPOINTERNALCountList(this.projectFilterDTO);
+    this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    this.RbacInternalProjects(this.projectFilterDTO);
+    this.RbacShankhProjects(this.projectFilterDTO);
+    this.getEmployeesWithoutBillability(this.projectFilterDTO);
+    this.RbacAllShankhInternalProjects(this.projectFilterDTO);
+    this.ExceptionEmployeeReport(this.projectFilterDTO);
+    this.RbacBothShankhInternal(this.projectFilterDTO);
+    this.ProjectLessEmployees(this.projectFilterDTO);
+    this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
   }
 
   clearField() {
