@@ -4738,17 +4738,17 @@ public class ResourceManagementService {
 		            || specialDepartments.contains(departmentName)) {
 		        internalProjectIds = projectRepository.findAllActiveInternalProjectIds();
 		    } else {
-		       
-		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findInternalProjectsByProjectManager(empIdd);
-		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findInternalProjectsByOverhead(empIdd);
-		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findInternalProjectsBySpocOrTeamLead(empIdd);
-
-		    	Set<Integer> combinedProjectIds = new HashSet<>();
-		    	combinedProjectIds.addAll(projectIdsByManager);
-		    	combinedProjectIds.addAll(projectIdsByOverhead);
-		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
-
-		    	internalProjectIds = combinedProjectIds;
+		    	internalProjectIds = projectRepository.findInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
+//		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findInternalProjectsByProjectManager(empIdd);
+//		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findInternalProjectsByOverhead(empIdd);
+//		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findInternalProjectsBySpocOrTeamLead(empIdd);
+//
+//		    	Set<Integer> combinedProjectIds = new HashSet<>();
+//		    	combinedProjectIds.addAll(projectIdsByManager);
+//		    	combinedProjectIds.addAll(projectIdsByOverhead);
+//		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
+//
+//		    	internalProjectIds = combinedProjectIds;
 
 		       
 		        if (departmentRepository.existsByHodId(empIdd)) {
@@ -4908,17 +4908,17 @@ public class ResourceManagementService {
 		            || specialDepartments.contains(departmentName)) {
 		    	shankhProjectIds = projectRepository.findAllActiveShankhProjectIds();
 		    } else {
-		       
-		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findShankhProjectsByProjectManager(empIdd);
-		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findShankhProjectsByOverhead(empIdd);
-		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findShankhProjectsBySpocOrTeamLead(empIdd);
-
-		    	Set<Integer> combinedProjectIds = new HashSet<>();
-		    	combinedProjectIds.addAll(projectIdsByManager);
-		    	combinedProjectIds.addAll(projectIdsByOverhead);
-		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
-
-		    	shankhProjectIds = combinedProjectIds;
+		    	shankhProjectIds = projectRepository.findShankhProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
+//		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findShankhProjectsByProjectManager(empIdd);
+//		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findShankhProjectsByOverhead(empIdd);
+//		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findShankhProjectsBySpocOrTeamLead(empIdd);
+//
+//		    	Set<Integer> combinedProjectIds = new HashSet<>();
+//		    	combinedProjectIds.addAll(projectIdsByManager);
+//		    	combinedProjectIds.addAll(projectIdsByOverhead);
+//		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
+//
+//		    	shankhProjectIds = combinedProjectIds;
 
 		       
 		        if (departmentRepository.existsByHodId(empIdd)) {
@@ -5070,17 +5070,17 @@ public class ResourceManagementService {
 		    	allshankhInternalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
 		    } else {
 		       
-//		    	allshankhInternalProjectIds = projectRepository.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
-		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findProjectsByProjectManager(empIdd);
-		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findProjectsByOverhead(empIdd);
-		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findProjectsBySpocOrTeamLead(empIdd);
-
-		    	Set<Integer> combinedProjectIds = new HashSet<>();
-		    	combinedProjectIds.addAll(projectIdsByManager);
-		    	combinedProjectIds.addAll(projectIdsByOverhead);
-		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
-
-		    	allshankhInternalProjectIds = combinedProjectIds;
+		    	allshankhInternalProjectIds = projectRepository.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
+//		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findProjectsByProjectManager(empIdd);
+//		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findProjectsByOverhead(empIdd);
+//		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findProjectsBySpocOrTeamLead(empIdd);
+//
+//		    	Set<Integer> combinedProjectIds = new HashSet<>();
+//		    	combinedProjectIds.addAll(projectIdsByManager);
+//		    	combinedProjectIds.addAll(projectIdsByOverhead);
+//		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
+//
+//		    	allshankhInternalProjectIds = combinedProjectIds;
 
 		       
 		        if (departmentRepository.existsByHodId(empIdd)) {
@@ -5235,17 +5235,17 @@ public class ResourceManagementService {
 		            || specialDepartments.contains(departmentName)) {
 		    	allshankhInternalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
 		    } else {
-		       
-		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findProjectsByProjectManager(empIdd);
-		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findProjectsByOverhead(empIdd);
-		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findProjectsBySpocOrTeamLead(empIdd);
-
-		    	Set<Integer> combinedProjectIds = new HashSet<>();
-		    	combinedProjectIds.addAll(projectIdsByManager);
-		    	combinedProjectIds.addAll(projectIdsByOverhead);
-		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
-
-		    	allshankhInternalProjectIds = combinedProjectIds;
+		    	allshankhInternalProjectIds = projectRepository.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
+//		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findProjectsByProjectManager(empIdd);
+//		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findProjectsByOverhead(empIdd);
+//		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findProjectsBySpocOrTeamLead(empIdd);
+//
+//		    	Set<Integer> combinedProjectIds = new HashSet<>();
+//		    	combinedProjectIds.addAll(projectIdsByManager);
+//		    	combinedProjectIds.addAll(projectIdsByOverhead);
+//		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
+//
+//		    	allshankhInternalProjectIds = combinedProjectIds;
 
 		       
 		        if (departmentRepository.existsByHodId(empIdd)) {
@@ -5513,17 +5513,19 @@ public class ResourceManagementService {
 		            || specialDepartments.contains(departmentName)) {
 		    	allshankhInternalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
 		    } else {
+		    	
+		    	allshankhInternalProjectIds = projectRepository.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
 		       
-		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findProjectsByProjectManager(empIdd);
-		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findProjectsByOverhead(empIdd);
-		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findProjectsBySpocOrTeamLead(empIdd);
-
-		    	Set<Integer> combinedProjectIds = new HashSet<>();
-		    	combinedProjectIds.addAll(projectIdsByManager);
-		    	combinedProjectIds.addAll(projectIdsByOverhead);
-		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
-
-		    	allshankhInternalProjectIds = combinedProjectIds;
+//		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findProjectsByProjectManager(empIdd);
+//		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findProjectsByOverhead(empIdd);
+//		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findProjectsBySpocOrTeamLead(empIdd);
+//
+//		    	Set<Integer> combinedProjectIds = new HashSet<>();
+//		    	combinedProjectIds.addAll(projectIdsByManager);
+//		    	combinedProjectIds.addAll(projectIdsByOverhead);
+//		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
+//
+//		    	allshankhInternalProjectIds = combinedProjectIds;
 
 		       
 		        if (departmentRepository.existsByHodId(empIdd)) {
