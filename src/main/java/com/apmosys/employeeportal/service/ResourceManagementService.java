@@ -7119,6 +7119,7 @@ public class ResourceManagementService {
 									projectFilterDTO.getCurrentUserEmpId());
 					if (projectIdListTemp != null)
 						projectIdSet.addAll(projectIdListTemp);
+					
 				}
 
 				if (teamRepository.existsBySpocId(projectFilterDTO.getCurrentUserEmpId())) {
@@ -7126,8 +7127,10 @@ public class ResourceManagementService {
 							.findActiveShankhInternalProjectIdsBySpocIdList(projectFilterDTO.getCurrentUserEmpId());
 					if (projectIdListTemp != null)
 						projectIdSet.addAll(projectIdListTemp);
-						projectIdSet.addAll(matchingProjectIds);
+						
 				}
+				
+				projectIdSet.addAll(matchingProjectIds);
 				
 				if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null ) {
 					List<Long> selectedDeptList= projectFilterDTO.getDepartmentsids();
