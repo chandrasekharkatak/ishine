@@ -36,6 +36,7 @@ public class FormBuilderServiceImpl implements FormBuilderService {
 	        DynamicFormStructure entity = new DynamicFormStructure();
 	        entity.setFormName(dynamicFormStructureDTO.getFormName());
 	        entity.setDepartmentId(dynamicFormStructureDTO.getDepartmentId());
+	        entity.setParentFormId(dynamicFormStructureDTO.getParentFormId());
 	        entity.setFields(dynamicFormStructureDTO.getFields());
 	        
 	        DynamicFormStructure dbResponse = dynamicFormStructureRepository.save(entity);
@@ -57,6 +58,7 @@ public class FormBuilderServiceImpl implements FormBuilderService {
             DynamicFormStructure form = optional.get();
             form.setFormName(dynamicFormStructureDTO.getFormName());
             form.setDepartmentId(dynamicFormStructureDTO.getDepartmentId());
+            form.setParentFormId(dynamicFormStructureDTO.getParentFormId());
             form.setFields(dynamicFormStructureDTO.getFields());
             
             DynamicFormStructure dbResponse = dynamicFormStructureRepository.save(form);

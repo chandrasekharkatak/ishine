@@ -119,6 +119,17 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-6 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label">Parent Form</label>
+                                <select class="form-control" aria-hidden="true" [(ngModel)]="parentFormId">
+                                    <option selected="selected" value="" disabled>Select</option>
+                                    <option *ngFor="let form of allFormListList" value="{{form.id}}">{{form.formName}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -344,119 +355,16 @@
             </button>
         </div>
         
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="preview-form">
-            <div class="row">
-                <div *ngFor="let row of layoutConfig">
-                    <div *ngFor="let field of row" [class]="'col-md-' + (12 / (100 / field.width)) + ' mb-0'">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label>
-                                    <span class="text-danger" *ngIf="field.required">*</span>
-                                    {{field.label}}
-                                </label>
-                                
-                                <input *ngIf="field.type === 'text'" 
-                                    class="form-control" 
-                                    [formControlName]="field.name"
-                                    [placeholder]="field.placeholder"
-                                    autocomplete="none" />
-                                
-                                <textarea *ngIf="field.type === 'textarea'" 
-                                    class="form-control" 
-                                    [formControlName]="field.name"
-                                    [placeholder]="field.placeholder"></textarea>
-                                
-                                <!-- Single-select dropdown (not dependent) -->
-                                <mat-form-field *ngIf="field.type === 'select' && !field.multiple && field.optionSource !== 'dependent'" class="w-100">
-                                    <mat-select class="form-control" [formControlName]="field.name" (selectionChange)="onSelectChange($event, field.name)">
-                                        <mat-option value="" disabled>Select</mat-option>
-                                        <mat-option *ngFor="let opt of field.options" [value]="opt.value">{{opt.label}}</mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-
-                                <!-- Multi-select dropdown (not dependent) -->
-                                <mat-form-field *ngIf="field.type === 'select' && field.multiple && field.optionSource !== 'dependent'" class="w-100">
-                                    <mat-select class="form-control" [formControlName]="field.name" multiple (selectionChange)="onMultiSelectChange($event, field)">
-                                        <mat-option *ngFor="let opt of field.options" [value]="opt.value">{{opt.label}}</mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-                                
-                                <input *ngIf="field.type === 'date'" 
-                                    class="form-control" 
-                                    [formControlName]="field.name" 
-                                    type="date" />
-                                
-                                <input *ngIf="field.type === 'number'" 
-                                    class="form-control" 
-                                    [formControlName]="field.name"
-                                    type="number" />
-                                
-                                <input *ngIf="field.type === 'email'" 
-                                    class="form-control" 
-                                    [formControlName]="field.name"
-                                    type="email" />
-                                
-                                <input *ngIf="field.type === 'file'" 
-                                    class="form-control" 
-                                    [formControlName]="field.name" 
-                                    type="file" />
-                                
-                                <div class="checkbox-group" *ngIf="field.type === 'checkbox'">
-                                    <div *ngFor="let opt of field.options" class="custom-control custom-checkbox">
-                                        <input type="checkbox" 
-                                            class="custom-control-input" 
-                                            [formControlName]="field.name" 
-                                            [value]="opt.value" 
-                                            [id]="'cb-' + opt.value"
-                                            (change)="onCheckboxChange($event, field.name, opt.value)">
-                                        <label class="custom-control-label" [for]="'cb-' + opt.value">{{opt.label}}</label>
-                                    </div>
-                                </div>
-                                
-                                <div class="radio-group" *ngIf="field.type === 'radio'">
-                                    <div *ngFor="let opt of field.options" class="custom-control custom-radio">
-                                        <input type="radio" 
-                                            class="custom-control-input" 
-                                            [formControlName]="field.name" 
-                                            [value]="opt.value" 
-                                            [id]="'radio-' + opt.value">
-                                        <label class="custom-control-label" [for]="'radio-' + opt.value">{{opt.label}}</label>
-                                    </div>
-                                </div>
-
-                                <!-- Dependent Field: Render multiple child dropdowns if parent is multi-select -->
-                                <div *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field)">
-                                    <div *ngFor="let parentValue of getParentSelectedValues(field); let index = index">
-                                        <label>{{field.label}} for {{getParentLabel(field, parentValue)}}</label>
-                                        <mat-form-field class="w-100">
-                                            <mat-select class="form-control"
-                                                        [formControlName]="getDependentControlName(field, parentValue)"
-                                                        multiple>
-                                                <mat-option *ngFor="let opt of getDependentOptions(field, parentValue)" [value]="opt.value">{{opt.label}}</mat-option>
-                                            </mat-select>
-                                        </mat-form-field>
-                                    </div>
-                                </div>
-
-                                <!-- Dependent Field: Single parent value (not multi-select) -->
-                                <mat-form-field *ngIf="field.type === 'select' && field.optionSource === 'dependent' && !isParentMultiSelect(field)" class="w-100">
-                                    <mat-select class="form-control" [formControlName]="field.name"
-                                                (selectionChange)="onDependentSelectChange($event, field, getParentSelectedValue(field))">
-                                        <mat-option value="" disabled>Select</mat-option>
-                                        <mat-option *ngFor="let opt of getDependentOptions(field, getParentSelectedValue(field))" [value]="opt.value">{{opt.label}}</mat-option>
-                                    </mat-select>
-                                </mat-form-field>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="preview-form">
+            <app-form-renderer
+                [fields]="fields"
+                [layoutConfig]="previewLayoutConfig">
+            </app-form-renderer>
             
             <div class="preview-actions">
-                <button class="btn btn-primary" type="submit">Submit</button>
                 <button class="btn btn-secondary" type="button" (click)="hidePreview()">Close</button>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 

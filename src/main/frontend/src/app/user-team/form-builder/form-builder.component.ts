@@ -74,6 +74,7 @@ export class FormBuilderComponent implements OnInit {
   formName: any;
   id: any;
   departmentId: any;
+  parentFormId: any;
   fields: FormField[] = [];
   allDeptList: any[] = [];
   allFormListList: any[] = [];
@@ -92,9 +93,13 @@ export class FormBuilderComponent implements OnInit {
   fieldDependencies: Map<string, string> = new Map();
 
   layoutConfig: FormField[][] = [];
+  previewLayoutConfig: any[] = [];
 
   parentSelectedValuesMap: { [key: string]: any[] } = {};
   dependentOptionsMap: { [key: string]: any[] } = {};
+
+  // Add these new properties for the form renderer
+  previewFormData: any = {};
 
   constructor(private fb: FormBuilder,
     private http: HttpClient,
@@ -130,6 +135,7 @@ export class FormBuilderComponent implements OnInit {
     this.formName = null;
     this.id = null;
     this.departmentId = null;
+    this.parentFormId = null;
     this.fields = [];
   }
 
@@ -141,6 +147,7 @@ export class FormBuilderComponent implements OnInit {
     this.formName = formObj.formName;
     this.id = formObj.id;
     this.departmentId = formObj.departmentId;
+    this.parentFormId = formObj.parentFormId;
     this.fields = formObj.fields;
   }
 
@@ -148,6 +155,7 @@ export class FormBuilderComponent implements OnInit {
     this.formName = formObj.formName;
     this.id = formObj.id;
     this.departmentId = formObj.departmentId;
+    this.parentFormId = formObj.parentFormId;
     this.modalRef = this.modalService.show(template);
   }
 
@@ -336,6 +344,7 @@ export class FormBuilderComponent implements OnInit {
     const formConfig = {
       formName: this.formName,
       departmentId: this.departmentId,
+      parentFormId: this.parentFormId,
       fields: this.fields,
       // layout: this.getLayoutConfig()
     };
@@ -344,6 +353,7 @@ export class FormBuilderComponent implements OnInit {
       next: (response: any) => {
         this.formName = null;
         this.departmentId = null;
+        this.parentFormId = null;
         this.fields = [];
         console.log(response);
       },
@@ -360,6 +370,7 @@ export class FormBuilderComponent implements OnInit {
       id: this.id,
       formName: this.formName,
       departmentId: this.departmentId,
+      parentFormId: this.parentFormId,
       fields: this.fields
     };
     console.log('Form Configuration:', formConfig);
@@ -367,6 +378,7 @@ export class FormBuilderComponent implements OnInit {
       next: (response: any) => {
         this.formName = null;
         this.departmentId = null;
+        this.parentFormId = null;
         this.fields = [];
         console.log(response);
       },
@@ -406,7 +418,6 @@ export class FormBuilderComponent implements OnInit {
   }
 
   getLayoutConfig() {
-    alert("hi")
     console.log("hi getLayoutConfig");
     
     const rows = new Map<number, FormField[]>();
@@ -447,8 +458,6 @@ export class FormBuilderComponent implements OnInit {
   }
 
   buildForm() {
-    console.log("hiii");
-    alert("build")
     const group: any = {};
     this.fields.forEach(field => {
       if (field.type === 'checkbox') {
@@ -490,12 +499,30 @@ export class FormBuilderComponent implements OnInit {
   }
 
   showPreview() {
-    this.buildForm();
     this.preview = true;
+    // Initialize preview form data with default values
+    this.previewFormData = {};
+    this.previewLayoutConfig = this.getLayoutConfig();
+    this.fields.forEach(field => {
+      if (field.defaultValue) {
+        this.previewFormData[field.name] = field.defaultValue;
+      }
+    });
   }
 
   hidePreview() {
     this.preview = false;
+  }
+
+  onPreviewFormValueChange(formData: any) {
+    this.previewFormData = formData;
+    console.log('Preview form data changed:', formData);
+  }
+  
+  onPreviewSubmit() {
+    console.log('Preview form submitted:', this.previewFormData);
+    // Handle the form submission in preview mode
+    // You might want to show a success message or validate the data
   }
 
   onSubmit() {

@@ -20,6 +20,7 @@ public class DynamicFormStructure {
     private String id;
     private String formName;
     private Long departmentId;
+    private String parentFormId;
     
     @Transient
     private String departmentName;
