@@ -2475,9 +2475,9 @@ public class EmployeeService {
 						Optional<List<ProjectManagerMapping>> activeProjectManagerMappings = projectManagerMappingRepository
 							    .findByProjectManagerIdAndActive(employeedto.getEmpId(), 1);
 						
-						Optional<List<Project>> activeProjectsOfThatManager = projectRepository.findProjectsOfProjectManager(employeedto.getEmpId());
+						List<Project> activeProjectsOfThatManager = projectRepository.findProjectsOfProjectManager(employeedto.getEmpId());
 
-						if(activeProjectsOfThatManager.isPresent()) {
+						if(activeProjectsOfThatManager != null) {
 							
 							StringBuilder html = new StringBuilder();
 							html.append("<html>\n" +
@@ -2507,21 +2507,21 @@ public class EmployeeService {
 						            "        <th>PoNo</th>\n" +
 						            "      </tr>\n");	
 							
-							for (Project obj : activeProjectsOfThatManager.get()) {
-								
+							
+							activeProjectsOfThatManager.forEach(obj ->{
+
 //							obj.getClientName();
 //							obj.getProjectName();
 //							obj.getPoNo();
 //							
 //							
-							
-							 html.append("      <tr>\n");
+								html.append("      <tr>\n");
 						        html.append("        <td>").append(obj.getClientName()).append("</td>\n");
 						        html.append("        <td>").append(obj.getProjectName()).append("</td>\n");
 						        html.append("        <td>").append(obj.getPoNo()).append("</td>\n");
 						        html.append("      </tr>\n");
-							
-						}
+							});
+						
 							html.append("    </table>\n" +
 					                "    <p>Kindly take the necessary action to update the Projects under another active project manager.</p>\n" +
 					                "  </body>\n" +
@@ -2551,9 +2551,9 @@ public class EmployeeService {
 							Optional<List<ProjectOverheadMapping>> activeProjectOverheadMappings = projectOverheadMappingRepository
 								    .findByProjectOverheadIdAndActive(employeedto.getEmpId(), 1);
 							
-							Optional<List<Project>> activeProjectsOfProjectOverhead = projectRepository.findProjectOfProjectOverhead(employeedto.getEmpId());
+							List<Project> activeProjectsOfProjectOverhead = projectRepository.findProjectOfProjectOverhead(employeedto.getEmpId());
 							
-							if(activeProjectsOfProjectOverhead.isPresent()){
+							if(activeProjectsOfProjectOverhead != null){
 								StringBuilder html = new StringBuilder();
 								html.append("<html>\n" +
 							            "  <head>\n" +
@@ -2581,13 +2581,18 @@ public class EmployeeService {
 							            "        <th>Project Name</th>\n" +
 							            "        <th>PoNo</th>\n" +
 							            "      </tr>\n");	
-								for(Project obj : activeProjectsOfProjectOverhead.get()) {
+								
+								activeProjectsOfProjectOverhead.forEach(obj ->{
+									
+								
+								
+//								for(Project obj : activeProjectsOfProjectOverhead.get()) {
 									 html.append("      <tr>\n");
 								        html.append("        <td>").append(obj.getClientName()).append("</td>\n");
 								        html.append("        <td>").append(obj.getProjectName()).append("</td>\n");
 								        html.append("        <td>").append(obj.getPoNo()).append("</td>\n");
 								        html.append("      </tr>\n");
-								}
+								});
 								html.append("    </table>\n" +
 						                "    <p>Kindly take the necessary action to update the projects under another active project ober head.</p>\n" +
 						                "  </body>\n" +
@@ -2617,11 +2622,11 @@ public class EmployeeService {
 								
 								
 								// for teamLead 
-								Optional<List<Team>> activeTeamLead = teamRepository.findByTeamLeadIdAndIsActive(employeedto.getEmpId(), "Y");
+								List<Team> activeTeamLead = teamRepository.findByTeamLeadIdAndIsActive(employeedto.getEmpId(), "Y");
 								
-								Optional<List<Project>> activeProjectOfTeamlead = projectRepository.findProjectOfTeamLead(employeedto.getEmpId());
+								List<Project> activeProjectOfTeamlead = projectRepository.findProjectOfTeamLead(employeedto.getEmpId());
 								
-								if(activeProjectOfTeamlead.isPresent()) {
+								if(activeProjectOfTeamlead != null) {
 									StringBuilder html = new StringBuilder();
 									html.append("<html>\n" +
 								            "  <head>\n" +
@@ -2650,13 +2655,16 @@ public class EmployeeService {
 								            "        <th>PoNo</th>\n" +
 								            "      </tr>\n");
 									
-									for(Project obj : activeProjectOfTeamlead.get()) {
+									activeProjectOfTeamlead.forEach(obj ->{
+										
+									
+//									for(Project obj : activeProjectOfTeamlead.get()) {
 										 html.append("      <tr>\n");
 									        html.append("        <td>").append(obj.getClientName()).append("</td>\n");
 									        html.append("        <td>").append(obj.getProjectName()).append("</td>\n");
 									        html.append("        <td>").append(obj.getPoNo()).append("</td>\n");
 									        html.append("      </tr>\n");
-									}
+									});
 									html.append("    </table>\n" +
 							                "    <p>Kindly take the necessary action to update the projects under another active Team Lead.</p>\n" +
 							                "  </body>\n" +
@@ -2668,8 +2676,11 @@ public class EmployeeService {
 							    boolean flag = mailService.sendMailWithCC(rmgMail,hrMailAddress, subject, mailBody);
 								}
 
-								if (activeTeamLead.isPresent()) {
-								    for (Team obj : activeTeamLead.get()) {
+								if (activeTeamLead != null) {
+									activeTeamLead.forEach(obj ->{
+										
+								
+//								    for (Team obj : activeTeamLead.get()) {
 								        Team teamDetails = teamRepository.findByTeamId(obj.getTeamId());
 								        teamDetails.setTeamLeadId(null);
 								        teamDetails.setTeamLeadName(null);
@@ -2677,15 +2688,15 @@ public class EmployeeService {
 								        teamDetails.setUpdatedOn(LocalDateTime.now());
 								        
 								        Team dbResponse = teamRepository.save(teamDetails);
-								    }
+									});
 								}
 								
 							// for spoc 
-								Optional<List<Team>> activeSpoc = teamRepository.findBySpocIdAndIsActive(employeedto.getEmpId() , "Y");
+								List<Team> activeSpoc = teamRepository.findBySpocIdAndIsActive(employeedto.getEmpId() , "Y");
 								
-								Optional<List<Project>> activeProjectOfSpoc = projectRepository.findProjectOfSpoc(employeedto.getEmpId());
+								List<Project> activeProjectOfSpoc = projectRepository.findProjectOfSpoc(employeedto.getEmpId());
 								
-								if(activeProjectOfSpoc.isPresent()) {
+								if(activeProjectOfSpoc != null ) {
 									StringBuilder html = new StringBuilder();
 									html.append("<html>\n" +
 								            "  <head>\n" +
@@ -2713,13 +2724,17 @@ public class EmployeeService {
 								            "        <th>Project Name</th>\n" +
 								            "        <th>PoNo</th>\n" +
 								            "      </tr>\n");
-									for(Project obj : activeProjectOfSpoc.get()){
+									
+									activeProjectOfSpoc.forEach(obj ->{
+										
+									
+//									for(Project obj : activeProjectOfSpoc.get()){
 										html.append("      <tr>\n");
 								        html.append("        <td>").append(obj.getClientName()).append("</td>\n");
 								        html.append("        <td>").append(obj.getProjectName()).append("</td>\n");
 								        html.append("        <td>").append(obj.getPoNo()).append("</td>\n");
 								        html.append("      </tr>\n");
-									}
+									});
 									html.append("    </table>\n" +
 							                "    <p>Kindly take the necessary action to update the projects under another active SPOC .</p>\n" +
 							                "  </body>\n" +
@@ -2731,8 +2746,11 @@ public class EmployeeService {
 							    boolean flag = mailService.sendMailWithCC(rmgMail,hrMailAddress, subject, mailBody);
 								}
 								
-								if(activeSpoc.isPresent()) {
-									for( Team obj: activeSpoc.get()) {
+								if(activeSpoc != null) {
+									activeSpoc.forEach(obj ->{
+										
+									
+//									for( Team obj: activeSpoc.get()) {
 										Team spocDetails = teamRepository.findByTeamId(obj.getTeamId());
 										spocDetails.setSpocId(null);
 										spocDetails.setUpdatedBy(employeedto.getUpdatedBy());
@@ -2740,7 +2758,7 @@ public class EmployeeService {
 										
 										Team dbResponse = teamRepository.save(spocDetails);
 										
-									}
+									});
 								}
 
 						// department HOD 

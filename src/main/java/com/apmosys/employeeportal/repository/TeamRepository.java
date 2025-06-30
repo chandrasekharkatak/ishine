@@ -130,7 +130,7 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	@Query("SELECT t FROM Team t WHERE t.projectId IN :projectIds")
 	List<Team> findByProjectIdIn(@Param("projectIds") List<Integer> projectIds);
 
-	public Optional<List<Team>> findByTeamLeadIdAndIsActive(Long teamLeadId, String isActive);
+	public List<Team> findByTeamLeadIdAndIsActive(Long teamLeadId, String isActive);
 
-	public Optional<List<Team>> findBySpocIdAndIsActive(Long spocId, String string);
+	public List<Team> findBySpocIdAndIsActive(Long spocId, String string);
 }
