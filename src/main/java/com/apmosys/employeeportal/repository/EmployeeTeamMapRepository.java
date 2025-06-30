@@ -106,11 +106,12 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	 		+ "WHERE t.projectId = :projectId AND etm.active = :active")
 	 List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	 
-	 @Query("select etm from EmployeeTeamMap etm " +
-		       "inner join Team t on t.teamId = etm.teamId " +
-		       "inner join Project p on t.projectId = p.projectId " +
-		       "where t.projectId = :projectId " +
-		       "and etm.active = :active")
+	 
+	 @Query("select p from Project p \n"
+	 		+ "inner join Team t on t.projectId = p.projectId\n"
+	 		+ "inner join EmployeeTeamMap etm on etm.teamId = t.teamId\n"
+	 		+ "where p.projectId = :projectId\n"
+	 		+ "and p.active = :active")
 		List<Project> findByProjectIdAndActiveForDraftProject(Integer projectId, Long active);
 
 //	 @Query(nativeQuery = true)
