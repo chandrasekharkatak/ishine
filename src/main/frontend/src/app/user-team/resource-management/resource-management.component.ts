@@ -1987,11 +1987,27 @@ export class ResourceManagementComponent implements OnInit {
     this.newteamMember = new TeamMember();
     // this.teamMemberCtrl.setValue('');
   }
+errorMessage:any;
 
-isAddButtonDisabled(): boolean {
+addTeamMember1(): boolean {
   // Hierarchical validation - each step must be completed in order
   console.log("this.projectObj.resourceRequirements=================", this.projectObj);
   // Step 1: Check requirement selection first (if requirements exist)
+  if(this.projectObj.resourceRequirements?.length==0 ){
+    this.errorMessage= "Please add requirements before adding team members.";
+    return;
+  }
+
+  //second step
+  //
+
+
+  //service call
+}
+isAddButtonDisabled(): boolean {
+  console.log("this.projectObj.resourceRequirements=================", this.projectObj);
+  // Step 1: Check requirement selection first (if requirements exist)
+
   if (this.projectObj.resourceRequirements?.length > 0 && 
       (this.selectedRequirement == null || this.selectedRequirement == undefined)
     ) {
@@ -2008,27 +2024,15 @@ isAddButtonDisabled(): boolean {
       return true;
     }
 
-    // Step 4: Check checkbox selection (only after role is selected)
-    // if (!this.newteamMember.isShadow && !this.newteamMember.isDefaultProject) {
-    //   return true;
-    // }
-    // if (this.newteamMember.otherActiveProjects.length == 0 && !this.newteamMember.isDefaultProject) {
-    //   return true;
-    // }
-
-    // Step 5: Additional business rule validation
+    // Step 4: Additional business rule validation
     if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
       return true;
     }
 
-    return this.getValidationErrorMessage() !== "";
+    return false;
   }
 
-  // resetTeamMemberForm() {
-  //   this.selectedRequirement = null;
-  //   this.newteamMember = new TeamMember()
-  // }
-  // Method to get specific error message based on current validation step
+ 
   getValidationErrorMessage(): string {
     // Step 1: Check requirement selection first (if requirements exist)
     if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
@@ -2047,16 +2051,8 @@ isAddButtonDisabled(): boolean {
       return "Please select Role";
     }
 
-    // Step 4: Check checkbox selection (only show this error after role is selected)
-    // if (!this.newteamMember.isShadow && !this.newteamMember.isDefaultProject) {
-    //   return "Please choose Default project or shadow";
-    // }
 
-    // if (this.newteamMember.otherActiveProjects.length == 0 && !this.newteamMember.isDefaultProject) {
-    //   return "Please choose Default project or shadow";
-    // }
-
-    // Step 5: Additional business rule validation
+    // Step 4: Additional business rule validation
     if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
       return "TNM billable type is not allowed with existing project details";
     }
