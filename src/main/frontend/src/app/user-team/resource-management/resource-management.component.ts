@@ -451,7 +451,7 @@ export class ResourceManagementComponent implements OnInit {
   fallBackMsg: any;
   isApproved: boolean = false;
   advanceFilter: any;
-  skipSelectionChange: boolean = true;
+  skipSelectionChange: boolean = false;
 
   constructor(
     private filterStateService: FilterStateService,
@@ -554,8 +554,14 @@ export class ResourceManagementComponent implements OnInit {
     // await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
 
     await this.RbacInternalProjects(this.projectFilterDTO);
-    await this.RbacShankhProjects(this.projectFilterDTO);
+
     await this.getEmployeesWithoutBillability(this.projectFilterDTO);
+
+    this.fetchTimesheetMissingCount();
+   
+
+    await this.RbacShankhProjects(this.projectFilterDTO);
+
     await this.RbacAllShankhInternalProjects(this.projectFilterDTO);
     await this.ExceptionEmployeeReport(this.projectFilterDTO);
     await this.RbacBothShankhInternal(this.projectFilterDTO);
@@ -564,6 +570,7 @@ export class ResourceManagementComponent implements OnInit {
 
 
     this.fetchTimesheetMissingCount();
+    
 
 
 
@@ -790,8 +797,10 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   clearSelection(event: Event) {
+    console.log(this.skipSelectionChange,"this.skipSelectionChange")
     console.log(this.isAllSelected, "this.isAllSelected");
-    this.skipSelectionChange = true;
+    // this.skipSelectionChange = true;
+    console.log(this.skipSelectionChange,"this.skipSelectionChange")
     event.stopPropagation();
     if (this.isAllSelected == true) {
       console.log(this.isAllSelected, "this.isAllSelected");
@@ -819,11 +828,14 @@ export class ResourceManagementComponent implements OnInit {
       dept.name.toLowerCase().includes(lowerText)
     );
   }
-
-  onDepartmentSelectionChange() {  
+ 
+  onDepartmentSelectionChange() { 
+    this.skipSelectionChange = false 
+    console.log(this.skipSelectionChange,"this.skipSelectionChange")
     if (this.skipSelectionChange) {
       return;
     }
+    console.log(this.skipSelectionChange,"this.skipSelectionChange")
     console.log(this.isAllSelected, "this.isAllSelected", this.deptIdList.length, "this.dept length");
     if (!this.isAllSelected && this.deptIdList.length > 0 && this.deptIdList[0] != null) {
       this.projectFilterDTO.approvalStatus = "All";
@@ -871,14 +883,22 @@ export class ResourceManagementComponent implements OnInit {
   // }
 
   toggleSelectAllDept() {
+    console.log(this.skipSelectionChange,"this.skipSelectionChange")
+    // this.skipSelectionChange = true
     console.log(this.isAllSelected, "this.isAllSelected")
     
     if (this.isAllSelected) {
       this.deptIdList = [];
+      this.skipSelectionChange = false;
       this.isAllSelected = false;
+      console.log(this.skipSelectionChange,"this.skipSelectionChange")
+      console.log(this.isAllSelected, "this.isAllSelected")
     } else {
       this.deptIdList = this.filteredDepartments.map(dept => dept.deptId);
       this.isAllSelected = true;
+      this.skipSelectionChange = true;
+       console.log(this.skipSelectionChange,"this.skipSelectionChange")
+      console.log(this.isAllSelected, "this.isAllSelected")
     }
 
     this.projectFilterDTO.approvalStatus = "All";
@@ -4232,17 +4252,36 @@ isAddButtonDisabled(): boolean {
     this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
     this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
   }
+  // getTeamListForSelectedProject1(emp) {
+  //   let selectedProjectId = emp.projectId;
+
+  //   if (!selectedProjectId || !this.bulkProjectType)
+  //     this.teamListBulk = [];
+
+  //   const projectList = emp.projectType === 'bench' ? this.benchProjectListBulk : this.otherProjectListBulk;
+  //   this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
+  //   this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
+  //   this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
+  // }
+
   getTeamListForSelectedProject1(emp) {
     let selectedProjectId = emp.projectId;
 
-    if (!selectedProjectId || !this.bulkProjectType)
-      this.teamListBulk = [];
+
+    if (!selectedProjectId || !this.bulkProjectType) {
+        this.teamListBulk = [];
+        return;
+    }
 
     const projectList = emp.projectType === 'bench' ? this.benchProjectListBulk : this.otherProjectListBulk;
     this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
-    this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
-    this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
-  }
+    
+    if (this.teamListBulk) {
+        this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
+        this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
+    }
+}
+
   filterTeamsForDefaultBulk() {
     const lowerSearch = this.searchTermTeam.toLowerCase();
     this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList.filter(team =>
@@ -4256,6 +4295,36 @@ isAddButtonDisabled(): boolean {
       team.teamName.toLowerCase().includes(lowerSearch)
     );
   }
+searchTextProject:any;
+projects: any[] = [];
+filteredProjects: any[] = [];
+
+
+
+ filterProjects(emp) {
+    const lowerText = this.searchTextProject.toLowerCase();
+
+    if (lowerText.trim() === '') {
+       
+        this.filteredProjectsForDefaultBulkBench = [...this.benchProjectListBulk];
+        this.filteredProjectsForDefaultBulkOther = [...this.otherProjectListBulk];
+    } else {
+      
+        if (emp.projectType === 'other') {
+           
+            this.filteredProjectsForDefaultBulkOther = this.otherProjectListBulk.filter(project =>
+                project.projectName.toLowerCase().includes(lowerText)
+                
+            );
+        } else if (emp.projectType === 'bench') {
+         
+            this.filteredProjectsForDefaultBulkBench = this.benchProjectListBulk.filter(project =>
+                project.projectName.toLowerCase().includes(lowerText)
+            );
+        }
+    }
+    this.searchTextProject = '';   
+}
 
   getEmployeeInformationBulk(empIds) {
     this.resourceManagementService.getEmployeeInformationBulk(empIds).pipe(first()).subscribe((response: any) => {
@@ -4458,9 +4527,11 @@ isAddButtonDisabled(): boolean {
   }
 
   onDepartmentSelectionChangeByUser() {
+        console.log(this.skipSelectionChange,"this.skipSelectionChange")
     if (this.skipSelectionChange) {
       return;
     }
+    console.log(this.skipSelectionChange,"this.skipSelectionChange")
     console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser");
     if (!this.isAllSelectedByUser && this.deptIdListByUser.length > 0 && this.deptIdListByUser[0] != null) {
       this.projectFilterDTO.approvalStatus = "All";
@@ -4476,7 +4547,7 @@ isAddButtonDisabled(): boolean {
       this.projectFilterDTO = this.deptList2;
       this.projectFilterDTO.approvalStatus = "All";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
-      this.projectFilterDTO.departmentsids = this.deptIdList;
+      this.projectFilterDTO.departmentsids = this.deptIdListByUser;
       this.projectFilterDTO.departments = [];
       this.filterStateService.deptIdList = this.deptIdList;
       this.rbacApiCalls();
@@ -4511,7 +4582,7 @@ isAddButtonDisabled(): boolean {
 
   toggleSelectAllDeptByUser() {
     // this.employeeReportObj.deptId = [];
-    console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser")
+    console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser.......")
     if (this.isAllSelectedByUser) {
       // Deselect all if already selected
       this.deptIdListByUser = [];
