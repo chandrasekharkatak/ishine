@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -6365,7 +6366,7 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-
+	
 	public ServiceResponse unlockAllTimesheet(EmployeeDTO employeeDto) {
 		
 		LogDTO apiLogInfo = new LogDTO();
@@ -7496,5 +7497,152 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	@Transactional
+    public ServiceResponse extendEmployeeProbation(EmployeeDTO employeeDto) {
+        ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/extendEmployeeProbation");
+        apiLogInfo.setLogLevel("INFO");
+
+        try {
+
+        	Optional<Long> actualHodIdOptional = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());
+
+        	if (actualHodIdOptional.isEmpty()) {
+        	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        	    response.setServiceResponse("Could not determine the HOD for employee " + employeeDto.getEmpId() + ". The employee may not be assigned to a department.");
+        	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                logService.logMyInfo(httpRequest, apiLogInfo);
+        	    return response;
+        	}
+
+        	Long actualHodId = actualHodIdOptional.get();
+        	if (!actualHodId.equals(employeeDto.getHodId())) {
+        	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        	    response.setServiceResponse("User " + employeeDto.getHodId() + " is not the authorized HOD for this employee. The correct HOD is " + actualHodId + ".");
+        	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                logService.logMyInfo(httpRequest, apiLogInfo);
+        	    return response;
+        	}
+
+            Employee employee = employeeRepository.findByEmpId(employeeDto.getEmpId());
+            if (employee == null) {
+            	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Employee with ID " + employeeDto.getEmpId() + " not found.");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                logService.logMyInfo(httpRequest, apiLogInfo);
+                return response;
+            }
+            
+            short newTotalProbation = (short) (employee.getProbationPeriod() + employeeDto.getExtendedPeriod());
+            
+            employee.setProbationPeriod(newTotalProbation);
+
+            employee.setExtendedPeriod(employeeDto.getExtendedPeriod());
+            employee.setReasonOfExtension(employeeDto.getReasonOfExtension());
+            employee.setUpdatedOn(LocalDateTime.now());
+            employee.setUpdatedBy(employeeDto.getHodId().intValue()); 
+            employeeRepository.save(employee);
+
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse("Probation for employee '" + employee.getName() + "' has been successfully extended.");
+            apiLogInfo.setApiResponse("Successfully extended probation for empId: " + employee.getEmpId());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+        } catch (Exception e) {
+            e.printStackTrace(); 
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("An internal error occurred: " + e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            apiLogInfo.setLogLevel("ERROR");
+            response.setServiceError(e.getMessage());
+        }
+
+        logService.logMyInfo(httpRequest, apiLogInfo);
+        return response;
+    }
+	
+	@Transactional
+    public ServiceResponse confirmEmployeeFromProbation(EmployeeDTO employeeDto) {
+        ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/confirmEmployeeFromProbation");
+        apiLogInfo.setLogLevel("INFO");
+
+        try {
+            Optional<Long> actualHodIdOptional = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());
+            if (actualHodIdOptional.isEmpty()) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Could not determine the HOD for employee. The employee may not be assigned to a department.");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                logService.logMyInfo(httpRequest, apiLogInfo);
+                return response;
+            }
+
+            Long actualHodId = actualHodIdOptional.get();
+            if (!actualHodId.equals(employeeDto.getHodId())) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("User is not the authorized HOD for this employee.");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                logService.logMyInfo(httpRequest, apiLogInfo);
+                return response;
+            }
+
+            Optional<Employee> employeeOptional = employeeRepository.findByIdAndStatusNot(employeeDto.getEmpId(), "Confirmed");
+            if (employeeOptional.isEmpty()) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Employee not found with ID " + employeeDto.getEmpId() + ", or is already in 'Confirmed' status.");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                logService.logMyInfo(httpRequest, apiLogInfo);
+                return response;
+            }
+
+            Employee employee = employeeOptional.get();
+            
+            LocalDate probationEndDate = employee.getDateOfJoining().plusDays(employee.getProbationPeriod());
+            LocalDate today = LocalDate.now();
+
+            if (today.isBefore(probationEndDate)) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Cannot confirm employee before probation ends. Probation period ends on " + probationEndDate);
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                logService.logMyInfo(httpRequest, apiLogInfo);
+                return response;
+
+            } else if (today.isAfter(probationEndDate)) {
+                if (!StringUtils.hasText(employeeDto.getReasonOfExtension())) { 
+                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                    response.setServiceResponse("Confirmation is after the probation end date. An extension reason is required.");
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                    logService.logMyInfo(httpRequest, apiLogInfo);
+                    return response;
+                }
+                employee.setReasonOfExtension(employeeDto.getReasonOfExtension());
+
+            }
+
+            employee.setEmploymentstatus("Confirmed");
+            employee.setUpdatedOn(LocalDateTime.now());
+            employee.setUpdatedBy(employeeDto.getHodId().intValue());
+            employeeRepository.save(employee);
+
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse("Status for employee '" + employee.getName() + "' has been successfully changed to Confirmed.");
+            apiLogInfo.setApiResponse("Employment status changed to Confirmed for empId: " + employee.getEmpId());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("An internal error occurred: " + e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            apiLogInfo.setLogLevel("ERROR");
+            response.setServiceError(e.getMessage());
+        }
+
+        logService.logMyInfo(httpRequest, apiLogInfo);
+        return response;
+    }
 }
 	

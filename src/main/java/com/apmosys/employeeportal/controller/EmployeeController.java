@@ -572,4 +572,14 @@ public class EmployeeController {
 	    return employeeService.getAllEmployeesBasedOnUserLogined(department);
 	}
 	
+	@PostMapping("/extendEmployeeProbation")
+	public ServiceResponse extendEmployeeProbation(@RequestBody EmployeeDTO employee) {
+	    return employeeService.extendEmployeeProbation(employee);
+	}
+	
+	@PostMapping("/confirmEmployeeFromProbation")
+	public ServiceResponse confirmEmployeeFromProbation(@RequestBody EmployeeDTO employee) {
+	    return employeeService.confirmEmployeeFromProbation(employee);
+	}
+	
 }

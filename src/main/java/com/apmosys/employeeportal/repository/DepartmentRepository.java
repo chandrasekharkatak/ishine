@@ -156,5 +156,11 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 				+ "        WHERE t2.spocId = :empId AND t2.isActive = 'Y'\n"
 				+ "    )")
 		boolean isUserMappedInAnyRole( Long empId);
+		
+		@Query("SELECT d.hodId FROM Department d " +
+			       "JOIN JobRole jr ON d.deptId = jr.deptId " +
+			       "JOIN Employee e ON jr.jobRoleId = e.jobRoleId " +
+			       "WHERE e.empId = :empId")
+			Optional<Long> findHodIdForEmployee(@Param("empId") Long empId);
 
 }

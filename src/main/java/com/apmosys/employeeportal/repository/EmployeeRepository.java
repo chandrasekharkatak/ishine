@@ -815,5 +815,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "\n"
     		+ "ORDER BY e.name;")
     public List<Object[]> getAllEmployeesBasedOnUserLogined(@Param("deptIds") List<Integer> deptIds);
+    
+    @Query("SELECT e FROM Employee e WHERE e.empId = :empId AND LOWER(e.employmentstatus) != LOWER(:statusToExclude)")
+    Optional<Employee> findByIdAndStatusNot(@Param("empId") Long empId, @Param("statusToExclude") String statusToExclude);
 
 }

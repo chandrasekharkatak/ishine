@@ -205,10 +205,10 @@ public class Employee {
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate dateOfRetain;
 	
-	private Long extensionPeriod;
+	@Column(name = "extended_period")
+	private Short extendedPeriod;
 	
-	private String extensionReason;
+	private String reasonOfExtension;
 	
-	@JsonFormat(pattern = "dd/MM/yyyy")
-	private LocalDate confirmationRequestDate;
+
 }
