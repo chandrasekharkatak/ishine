@@ -1988,11 +1988,11 @@ export class ResourceManagementComponent implements OnInit {
     // this.teamMemberCtrl.setValue('');
   }
 
-  get isAddButtonDisabled(): boolean {
-    // Hierarchical validation - each step must be completed in order
-
-    // Step 1: Check requirement selection first (if requirements exist)
-    if (this.projectObj.resourceRequirements?.length > 0 &&
+isAddButtonDisabled(): boolean {
+  // Hierarchical validation - each step must be completed in order
+  console.log("this.projectObj.resourceRequirements=================", this.projectObj);
+  // Step 1: Check requirement selection first (if requirements exist)
+  if (this.projectObj.resourceRequirements?.length > 0 && 
       (this.selectedRequirement == null || this.selectedRequirement == undefined)
     ) {
       return true;

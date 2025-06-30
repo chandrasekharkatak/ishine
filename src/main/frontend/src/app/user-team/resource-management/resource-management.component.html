@@ -1858,8 +1858,8 @@
                   </div> -->
                     <div>
                         <button type="button" class="btn btn-outline-primary"
-                            (click)="handleAddButtonClick();hasNewTeamMembers = true"
-                            [class.disabled]="isAddButtonDisabled" [style.pointer-events]="'auto'">
+                            (click)="handleAddButtonClick()"
+                            [class.disabled]="isAddButtonDisabled()">
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>
                     </div>
