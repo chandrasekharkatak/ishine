@@ -2472,7 +2472,7 @@ public class EmployeeService {
 						}
 						
 						// of project manager 
-						Optional<List<ProjectManagerMapping>> activeProjectManagerMappings = projectManagerMappingRepository
+						List<ProjectManagerMapping> activeProjectManagerMappings = projectManagerMappingRepository
 							    .findByProjectManagerIdAndActive(employeedto.getEmpId(), 1);
 						
 						List<Project> activeProjectsOfThatManager = projectRepository.findProjectsOfProjectManager(employeedto.getEmpId());
@@ -2535,20 +2535,20 @@ public class EmployeeService {
 					    
 						}
 						
-							activeProjectManagerMappings
-							    .filter(mappings -> !mappings.isEmpty())
-							    .ifPresent(mappings -> {
-							        mappings.forEach(mapping -> {
-							            mapping.setActive(0);
-							            mapping.setUpdatedBy(Long.valueOf(employeedto.getUpdatedBy().toString()));
-							            mapping.setUpdatedOn(LocalDateTime.now());
-							            projectManagerMappingRepository.save(mapping);
-							        });
-							        System.out.println("Deactivated " + mappings.size() + " project manager mappings for employee: " + employeedto.getEmpId());
-							    });
+						if (activeProjectManagerMappings != null && !activeProjectManagerMappings.isEmpty()) {
+							activeProjectManagerMappings.forEach(mapping -> {
+						        mapping.setActive(0);
+						        mapping.setUpdatedBy(Long.valueOf(employeedto.getUpdatedBy().toString()));
+						        mapping.setUpdatedOn(LocalDateTime.now());
+						        projectManagerMappingRepository.save(mapping);
+						    });
+						    System.out.println("deactivated " + activeProjectManagerMappings.size() + " project manger mappings for employee: " + employeedto.getEmpId());
+						}
+							
+							
 						
 						// of project overhead
-							Optional<List<ProjectOverheadMapping>> activeProjectOverheadMappings = projectOverheadMappingRepository
+							List<ProjectOverheadMapping> activeProjectOverheadMappings = projectOverheadMappingRepository
 								    .findByProjectOverheadIdAndActive(employeedto.getEmpId(), 1);
 							
 							List<Project> activeProjectsOfProjectOverhead = projectRepository.findProjectOfProjectOverhead(employeedto.getEmpId());
@@ -2606,17 +2606,15 @@ public class EmployeeService {
 								
 							}
 
-								activeProjectOverheadMappings
-								    .filter(mappings -> !mappings.isEmpty())
-								    .ifPresent(mappings -> {
-								        mappings.forEach(mapping -> {
-								            mapping.setActive(0);
-								            mapping.setUpdatedBy(Long.valueOf(employeedto.getUpdatedBy().toString()));
-								            mapping.setUpdatedOn(LocalDateTime.now());
-								            projectOverheadMappingRepository.save(mapping);
-								        });
-								        System.out.println("Deactivated " + mappings.size() + " project overhead mappings for employee: " + employeedto.getEmpId());
-								    });
+							if (activeProjectOverheadMappings != null && !activeProjectOverheadMappings.isEmpty()) {
+								activeProjectOverheadMappings.forEach(mapping -> {
+							        mapping.setActive(0);
+							        mapping.setUpdatedBy(Long.valueOf(employeedto.getUpdatedBy().toString()));
+							        mapping.setUpdatedOn(LocalDateTime.now());
+							        projectOverheadMappingRepository.save(mapping);
+							    });
+							    System.out.println("deactivated " + activeProjectOverheadMappings.size() + " project overhead mappings for employee: " + employeedto.getEmpId());
+							}
 								
 								
 								
