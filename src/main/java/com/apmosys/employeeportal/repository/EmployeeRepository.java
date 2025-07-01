@@ -179,6 +179,17 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeInProbationAndNotice();
+	
+//	@Query("SELECT e.employeementId, e.name, hod.email, e.probationPeriod, e.noticePeriod, e.dateOfJoining \n"
+//			+ "FROM Employee e \n"
+//			+ "INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId \n"
+//			+ "INNER JOIN Department d ON jr.deptId = d.deptId \n"
+//			+ "INNER JOIN Employee hod ON d.hodId = hod.empId \n"
+//			+ "WHERE e.employmentstatus NOT LIKE 'InActive' AND DATEDIFF(CURDATE(), e.dateOfJoining) < e.probationPeriod")
+//	public List<EmployeeDTO> getEmployeeInProbation();
+	
+	@Query(nativeQuery = true)
+	public List<Employee> getEmployeeInProbation();
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getManagerEmail(Long empId);
@@ -818,5 +829,17 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     @Query("SELECT e FROM Employee e WHERE e.empId = :empId AND LOWER(e.employmentstatus) != LOWER(:statusToExclude)")
     Optional<Employee> findByIdAndStatusNot(@Param("empId") Long empId, @Param("statusToExclude") String statusToExclude);
+    
+    @Query(nativeQuery = true,value = "select d.name from employee e inner join job_role j on e.job_role_id = j.job_role_id inner join department d on d.dept_id = j.dept_id where e.emp_id = :empId")
+    public String getDepartment(@Param("empId") Long empId );
+    
+    @Query(nativeQuery = true,value ="select email from employee where emp_id = :empId")
+    public String getMailByEmpId(@Param("empId") Long empId );
+    
+    @Query(nativeQuery = true,value = "select d.* from employee e inner join job_role j on e.job_role_id = j.job_role_id inner join department d on d.dept_id = j.dept_id where e.emp_id = :empId")
+    public Department getDepartmentRow(Long empId );
+    
+    @Query(nativeQuery = true,value = "select d.hod_id from employee e inner join job_role j on e.job_role_id = j.job_role_id inner join department d on d.dept_id = j.dept_id where e.emp_id = :empId")
+    public Long getDepartmentHod(@Param("empId") Long empId );
 
 }

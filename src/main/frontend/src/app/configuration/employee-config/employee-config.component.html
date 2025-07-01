@@ -1618,7 +1618,7 @@
                                     *ngIf="isDraftTable && employee.employmentStatus == 'InActive' && !isActiveTable">
                                     {{employee.employmentReleaseStatus}}</td> -->
                                 <td
-                                    *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : !isActiveTable">
+                                    *ngIf="isDraftTable == true && (employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' ) && !isActiveTable">
                                     {{employee.employmentReleaseStatus}}</td>
 
                                 <td id="clickablefor360" *ngIf="userMapping.employee_360"
@@ -3541,7 +3541,9 @@
 <ng-template #employeeConfirmationModal>
   <div class="modal-header">
     <h5 class="modal-title">Employee Confirmation Details</h5>
-    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.hide()"></button>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="decline()">
+            <span aria-hidden="true">&times;</span>
+    </button>
   </div>
   
   <div class="modal-body">
@@ -3587,8 +3589,8 @@
 
       <button type="button" class="btn btn-outline-danger m-1"*ngIf="selectedEmployee.employmentstatus === 'Probation'"
 
-                                          (click)="toggleExtensionForm()"
-                                          title="Click to Extend Employee Probation Period">
+                                           (click)="toggleExtensionForm()"
+                                           title="Click to Extend Employee Probation Period">
                                            Extend Employee
       </button>
       <div *ngIf="showConfirmationReasonForm" class="card card-body mt-2 bg-light border-success">
@@ -3609,37 +3611,48 @@
             <button type="button" class="btn btn-secondary m-2" (click)="showConfirmationReasonForm = false">
                 Cancel
             </button>
-            <button type="button" class="btn btn-success m-2" (click)="confirmEmployee(selectedEmployee, alert_message)">
+            <button type="button" class="btn btn-success m-2" (click)="openEmployeeConfimationModal(confirmationModal,alert_message)">
                 Confirm
             </button>
         </div>
     </div>
       <div *ngIf="showExtensionForm" class="card card-body mt-2 bg-light border-danger">
             <h5 class="card-title">Extend Probation</h5>
+            <p class="card-text">
+                The probation period will end on <strong>{{ selectedEmployee.confirmationDate | date:'dd-MM-yyyy' }}</strong>
+            </p>            
             <p class="card-text">Please provide the reason and duration for the extension.</p>
             <div class="mb-3">
-                <label for="extensionReason" class="form-label">Reason for Extension:</label>
+                <label for="extensionReason" class="form-label">
+                    Reason for Extension: <span class="text-danger">*</span>
+                </label>
                 <textarea class="form-control" 
                           id="extensionReason" 
                           rows="3" 
                           [(ngModel)]="reasonOfExtension"
-                          placeholder="e.g., Performance requires further evaluation.">
+                          placeholder="e.g., Performance requires further evaluation."
+                          required>
                 </textarea>
             </div>
 
             <div class="mb-3">
-                <label for="extensionDays" class="form-label">Extension Days:</label>
+                <label for="extensionDays" class="form-label">
+                    Extension Days: <span class="text-danger">*</span>
+                </label>
                 <input type="number" 
                        class="form-control" 
                        id="extensionDays" 
                        [(ngModel)]="extensionPeriod"
-                       placeholder="e.g., 30">
+                       placeholder="e.g., 30"
+                       min="1" 
+                       required>
             </div>
             <div class="d-flex justify-content-end">
               <button type="button" class="btn btn-secondary m-2" (click)="showExtensionForm = false">
                 Cancel
               </button>
-              <button type="button" class="btn btn-danger m-2" (click)="extendEmployee(selectedEmployee,alert_message)">
+              <button type="button" class="btn btn-danger m-2" 
+                (click)="openExtensionConfirmationModal(extensionConfirmationModal,alert_message)">
                 Confirm Extension
               </button>
             </div>
@@ -3649,9 +3662,53 @@
   
   
   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+    <button type="button" class="btn btn-secondary" (click)="decline()">Close</button>
   </div>
 </ng-template>
+
+<ng-template #confirmationModal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Confirm Employee</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+    </button>
+    </div>
+    <div class="modal-body">
+        <p><strong>Are you sure you want to confirm the employee?</strong></p>
+        <ul>
+            <li>Employee: <strong>{{ selectedEmployee.name }}</strong></li>
+            <li>Date of Joining: <strong>{{ selectedEmployee.dateOfJoining}}</strong></li>
+        </ul>    
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+        <button type="button" class="btn btn-success" (click)="confirmAndExecuteConfirmation(selectedEmployee,alert_message)">Yes, Confirm</button>    
+    </div>
+</ng-template>>
+
+
+<ng-template #extensionConfirmationModal >
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">Confirm Probation Extension</h4>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p><strong>Are you sure you want to extend the probation period?</strong></p>
+    <ul>
+      <li>Employee: <strong>{{ selectedEmployee?.name }}</strong></li>
+      <li>Extension Period: <strong>{{ extensionPeriod }} days</strong></li>
+      <li>Reason: <span class="text-muted">{{ reasonOfExtension || 'No reason provided' }}</span></li>
+    </ul>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+    <button type="button" class="btn btn-danger" (click)="confirmAndExecuteExtension(alert_message)">Yes, Extend</button>
+  </div>
+</ng-template>
+
+
 <ng-template #change_manager_template>
 
     <div class="modal-body text-center">
@@ -3661,6 +3718,7 @@
     </div>
 
 </ng-template>
+
 
 
 <ng-template #manager_modal>
