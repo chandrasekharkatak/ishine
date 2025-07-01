@@ -113,5 +113,18 @@ public class FormBuilderServiceImpl implements FormBuilderService {
 		return ResponseEntity.ok(response);
 	}
 
+	@Override
+	public ResponseEntity<List<DynamicFormStructure>> getAllDynamicFormByDepartmentAndType(
+	        DynamicFormStructureDTO dynamicFormStructureDTO) {
+
+	    Long departmentId = dynamicFormStructureDTO.getDepartmentId();
+
+	    List<DynamicFormStructure> forms = dynamicFormStructureRepository
+	            .findByDepartmentIdAndParentFormIdIsNull(departmentId);
+
+	    return ResponseEntity.ok(forms);
+	}
+
+
 
 }

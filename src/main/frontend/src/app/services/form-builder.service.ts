@@ -30,4 +30,8 @@ export class FormBuilderService {
     return this.http.get(`${this.baseUrl}` + `form/deleteFormById/`+ `${formId}`);
   }
 
+  getAllDynamicFormByDepartmentAndType(formObject: any){
+    return this.http.post(`${this.baseUrl}` + `form/getAllDynamicFormByDepartmentAndType`,formObject);
+  }
+
 }

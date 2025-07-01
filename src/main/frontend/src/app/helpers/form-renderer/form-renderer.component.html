@@ -3,7 +3,7 @@
     <div *ngFor="let field of row" class="col-md-{{ getBootstrapCol(field.width) }}">
       <div class="info-wrapper">
         <div class="form-group">
-          <label [for]="field.id" *ngIf="!(field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field))">
+          <label [for]="field.id">
             {{ field.label }}
             <span class="text-danger" *ngIf="field.required">*</span>
           </label>
@@ -22,7 +22,7 @@
           </div>
   
           <!-- Dependent Select Field with Multi-Select Parent -->
-          <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field)">
+          <!-- <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field)">
             <div class="form-multiselect-parent d-flex flex-wrap" style="gap: 20px;">
               <div *ngFor="let parentValue of getParentSelectedValues(field)"
                    class="dependent-field-container"
@@ -41,6 +41,22 @@
                   </div>
               </div>
             </div>
+          </ng-container> -->
+          <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field)">
+            <mat-form-field class="w-100">
+              <mat-select
+                class="form-control"
+                [formControlName]="field.name"
+                [multiple]="field.multiple">
+                <ng-container *ngFor="let parentValue of getParentSelectedValues(field)">
+                  <mat-optgroup [label]="getParentLabel(field, parentValue)">
+                    <mat-option *ngFor="let opt of getDependentOptions(field, parentValue)" [value]="opt.value">
+                      {{opt.label}}
+                    </mat-option>
+                  </mat-optgroup>
+                </ng-container>
+              </mat-select>
+            </mat-form-field>
           </ng-container>
   
           <!-- Dependent Select Field with Single Parent -->
@@ -218,5 +234,5 @@
       </div>
     </div>
   </div>
-  <button class="btn btn-primary" type="submit">Submit</button>
+  <!-- <button class="btn btn-primary" type="submit">Submit</button> -->
 </form>

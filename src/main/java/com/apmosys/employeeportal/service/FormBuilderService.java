@@ -22,4 +22,7 @@ public interface FormBuilderService {
 
 	ResponseEntity<ServiceResponse> deleteFormById(String id);
 
+	ResponseEntity<List<DynamicFormStructure>> getAllDynamicFormByDepartmentAndType(
+			DynamicFormStructureDTO dynamicFormStructureDTO);
+
 }

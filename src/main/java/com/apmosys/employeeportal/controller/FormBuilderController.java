@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,6 +51,11 @@ public class FormBuilderController {
 	@GetMapping("/deleteFormById/{id}")
 	public ResponseEntity<ServiceResponse> deleteFormById(@PathVariable String id) {
 		return formBuilderService.deleteFormById(id);
+	}
+	
+	@PostMapping("/getAllDynamicFormByDepartmentAndType")
+	public ResponseEntity<List<DynamicFormStructure>> getAllDynamicFormByDepartmentAndType(@RequestBody DynamicFormStructureDTO dynamicFormStructureDTO) {
+		return formBuilderService.getAllDynamicFormByDepartmentAndType(dynamicFormStructureDTO);
 	}
 	
 

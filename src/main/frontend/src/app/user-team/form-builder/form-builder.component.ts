@@ -149,6 +149,8 @@ export class FormBuilderComponent implements OnInit {
     this.departmentId = formObj.departmentId;
     this.parentFormId = formObj.parentFormId;
     this.fields = formObj.fields;
+
+    this.getAllDepartmentList();
   }
 
   openDeleteDepartment(template: TemplateRef<any> ,formObj: any){
