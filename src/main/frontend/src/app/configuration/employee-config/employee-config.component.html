@@ -1618,7 +1618,7 @@
                                     *ngIf="isDraftTable && employee.employmentStatus == 'InActive' && !isActiveTable">
                                     {{employee.employmentReleaseStatus}}</td> -->
                                 <td
-                                    *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable">
+                                    *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : !isActiveTable">
                                     {{employee.employmentReleaseStatus}}</td>
 
                                 <td id="clickablefor360" *ngIf="userMapping.employee_360"
@@ -1645,8 +1645,18 @@
                                 <td *ngIf="isTable">{{employee.referedName}}</td>
                                 <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
                                 <td *ngIf="isTable">
-                                    <ng-container *ngTemplateOutlet="daysLeftCell; context: { $implicit: employee }">
-                                    </ng-container>
+                                    <div class="d-flex align-items-center">
+                                        <span>
+                                          {{employee.days_left_for_full_time}}
+                                        </span>
+                                        <button 
+                                          *ngIf="employee.employmentstatus === 'Probation'"
+                                          class="btn btn-sm btn-outline-primary ms-2 btn-extra-small"
+                                          (click)="openEmployeeModal(employee, employeeConfirmationModal)"
+                                          title="Click to view Employee Confirmation">
+                                          <i class="fa fa-eye"></i> View
+                                        </button>
+                                    </div>
                                 </td>
 
                                 <td
@@ -3527,94 +3537,121 @@
 </ng-template>
 
 
-<!-- ng-template for Table Cell -->
-<ng-template #daysLeftCell let-employee>
-  <div class="d-flex align-items-center">
-    <span>
-      {{employee.days_left_for_full_time}}
-    </span>
-    <button 
-      *ngIf="employee.employmentstatus === 'Probation'"
-      class="btn btn-sm btn-outline-primary ms-2 btn-extra-small"
-      (click)="openEmployeeModal(employee)"
-      data-bs-toggle="modal" 
-      data-bs-target="#employeeConfirmationModal">
-      <i class="fa fa-eye"></i> View
-    </button>
-  </div>
-</ng-template>
 <!-- Employee Confirmation Modal -->
-<div class="modal fade" id="employeeConfirmationModal" tabindex="-1" aria-labelledby="employeeConfirmationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="employeeConfirmationModalLabel">
-            Employee Confirmation Details
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<ng-template #employeeConfirmationModal>
+  <div class="modal-header">
+    <h5 class="modal-title">Employee Confirmation Details</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.hide()"></button>
+  </div>
+  
+  <div class="modal-body">
+    <div *ngIf="selectedEmployee">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Employee ID:</strong>{{selectedEmployee.employeementId}}
         </div>
-        
-        <div class="modal-body">
-          <!-- The *ngIf ensures the body is only shown when you have data -->
-          <div *ngIf="selectedEmployee">
-            <!-- Employee Basic Info -->
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <strong>Employee ID:</strong> A-{{selectedEmployee.employeementId}}
-              </div>
-              <div class="col-md-6">
-                <strong>Employee Name:</strong> {{selectedEmployee.employeeName}}
-              </div>
-            </div>
-            
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <strong>Date of Joining:</strong> {{selectedEmployee.dateOfJoining | date:'dd-MM-yyyy'}}
-              </div>
-              <div class="col-md-6">
-                <strong>Employment Status:</strong> 
-                <span [ngClass]="getEmploymentStatusClass(selectedEmployee.employmentstatus)">
-                  {{selectedEmployee.employmentstatus}}
-                </span>
-              </div>
-            </div>
-            
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <strong>Probation Period:</strong> {{selectedEmployee.probationPeriod}} days
-              </div>
-               <div class="col-md-6">
-                <strong>Confirmation Date:</strong> {{selectedEmployee.confirmationDate | date:'dd-MM-yyyy'}}
-              </div>
-            </div>
-            
-            <!-- Action Buttons Section -->
-            <ng-container *ngTemplateOutlet="actionSection; context: { $implicit: selectedEmployee }">
-            </ng-container>
-          </div>
-        </div>
-        
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <div class="col-md-6">
+          <strong>Employee Name:</strong> {{selectedEmployee.name}}
         </div>
       </div>
+      
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Date of Joining:</strong> {{selectedEmployee.dateOfJoining}}
+        </div>
+        <div class="col-md-6">
+          <strong>Employment Status:</strong> 
+          <span [ngClass]="getEmploymentStatusClass(selectedEmployee.employmentstatus)">
+            {{selectedEmployee.employmentstatus}}
+          </span>
+        </div>
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Probation Period:</strong> {{selectedEmployee.probationPeriod}} days
+        </div>
+        <div class="col-md-6">
+          <strong>Expected Confirmation Date:</strong> {{selectedEmployee.confirmationDate | date:'dd-MM-yyyy'}}
+        </div>
+      </div>
+    
+      <button type="button" class="btn btn-outline-success m-1" 
+            *ngIf="selectedEmployee.employmentstatus === 'Probation'"
+            (click)="handleConfirmClick(selectedEmployee, alert_message)"
+            title="Click to Confirm Employee">
+        Confirm Employee
+      </button>
+      
+
+
+      <button type="button" class="btn btn-outline-danger m-1"*ngIf="selectedEmployee.employmentstatus === 'Probation'"
+
+                                          (click)="toggleExtensionForm()"
+                                          title="Click to Extend Employee Probation Period">
+                                           Extend Employee
+      </button>
+      <div *ngIf="showConfirmationReasonForm" class="card card-body mt-2 bg-light border-success">
+        <h5 class="card-title">Confirm Employee (Late)</h5>
+        <p class="card-text">The probation period has ended. Please provide a reason for the delayed confirmation.</p>
+
+        <div class="mb-3">
+            <label for="confirmationReason" class="form-label">Reason for Late Confirmation:</label>
+            <textarea class="form-control" 
+                      id="confirmationReason" 
+                      rows="3" 
+                      [(ngModel)]="confirmationReason"
+                      placeholder="e.g., Awaiting final project review from manager.">
+            </textarea>
+        </div>
+
+         <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-secondary m-2" (click)="showConfirmationReasonForm = false">
+                Cancel
+            </button>
+            <button type="button" class="btn btn-success m-2" (click)="confirmEmployee(selectedEmployee, alert_message)">
+                Confirm
+            </button>
+        </div>
     </div>
-</div>
+      <div *ngIf="showExtensionForm" class="card card-body mt-2 bg-light border-danger">
+            <h5 class="card-title">Extend Probation</h5>
+            <p class="card-text">Please provide the reason and duration for the extension.</p>
+            <div class="mb-3">
+                <label for="extensionReason" class="form-label">Reason for Extension:</label>
+                <textarea class="form-control" 
+                          id="extensionReason" 
+                          rows="3" 
+                          [(ngModel)]="reasonOfExtension"
+                          placeholder="e.g., Performance requires further evaluation.">
+                </textarea>
+            </div>
 
-
-
-<!-- Render the Modal -->
-
-<!-- added by anurag for Managing manager in case of InActive thier status -->
-
-<!-- <ng-template #change_manager_template>
-
-    <div class="modal-body text-center">
-        <p>{{listOfReporties}}</p>
-         <button type="button" class="btn btn-primary" (click)="cancelRequest();openManagerDetailsModal(manager_modal, employeeObj.empId);">OK</button>&nbsp;
+            <div class="mb-3">
+                <label for="extensionDays" class="form-label">Extension Days:</label>
+                <input type="number" 
+                       class="form-control" 
+                       id="extensionDays" 
+                       [(ngModel)]="extensionPeriod"
+                       placeholder="e.g., 30">
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="button" class="btn btn-secondary m-2" (click)="showExtensionForm = false">
+                Cancel
+              </button>
+              <button type="button" class="btn btn-danger m-2" (click)="extendEmployee(selectedEmployee,alert_message)">
+                Confirm Extension
+              </button>
+            </div>
+        </div>
     </div>
-
-</ng-template> -->
+ </div>
+  
+  
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+  </div>
+</ng-template>
 <ng-template #change_manager_template>
 
     <div class="modal-body text-center">

@@ -47,7 +47,11 @@ class FilterData {
   styleUrls: ['./employee-config.component.css']
 })
 export class EmployeeConfigComponent implements OnInit {
+
 actionSection: TemplateRef<any>;
+extensionReason: any;
+extensionPeriod: any;
+reasonOfExtension: any;
 getStatusClass(arg0: any): string|string[]|Set<string>|{ [klass: string]: any; } {
 throw new Error('Method not implemented.');
 }
@@ -245,6 +249,9 @@ selectedEmployee: any;
 isProcessing= false ;
 showExtensionForm = false;
 extensionData: any;
+showConfirmationReasonForm: boolean = false;
+confirmationReason: string = '';
+
 
   constructor(
 
@@ -297,7 +304,7 @@ extensionData: any;
     //console.log('user -- ', this.userMapping);
   }
 
-
+//
   getEmploymentStatusClass(status: string): string {
   switch(status?.toLowerCase()) {
     case 'confirmed': return 'badge bg-success';
@@ -307,21 +314,98 @@ extensionData: any;
   }
 }
 
-    openEmployeeModal(employee: any) {
+    openEmployeeModal(employee: any,employeeTemplate: TemplateRef<any>) {
     this.selectedEmployee = employee;
-    // You can also calculate dynamic properties here
+   
     if (this.selectedEmployee && this.selectedEmployee.dateOfJoining && this.selectedEmployee.probationPeriod) {
-        const doj = new Date(this.selectedEmployee.dateOfJoining);
-        doj.setDate(doj.getDate() + this.selectedEmployee.probationPeriod);
-        this.selectedEmployee.confirmationDate = doj;
-    }
+    const [day, month, year] = this.selectedEmployee.dateOfJoining.split('-');
+    const doj = new Date(year, month - 1, day); 
     
-    // Reset form state when opening the modal
+    const probationDays = parseInt(this.selectedEmployee.probationPeriod);
+    const confirmationDate = new Date(doj.getTime() + (probationDays * 24 * 60 * 60 * 1000));
+    
+    this.selectedEmployee.confirmationDate = confirmationDate;
+}
+    
     this.showExtensionForm = false;
+
+    this.modalRef = this.modalService.show(employeeTemplate, {
+      class: 'modal-xl'  
+    });
   }
-    confirmEmployee(employee: any) {
-    // Logic to confirm employee
+
+
+    handleConfirmClick(employee: any,alert_message: TemplateRef<any>) {
+    this.showExtensionForm = false;
+    if (employee.days_left_for_full_time < 0) {
+    this.showConfirmationReasonForm = true;
+    }
+    else
+    {
+      this.confirmEmployee(employee, alert_message);
+    }
   }
+
+  confirmEmployee(employee: any, alert_message: TemplateRef<any>) {
+    if (employee.days_left_for_full_time < 0 && !this.confirmationReason.trim()) {
+    alert('A reason is required for late confirmation.');
+    return; 
+  }
+    const payload = {
+      empId: employee.empId,
+      hodId: this.currentUser.empId,
+      reasonOfExtension: this.confirmationReason || '',
+    };
+
+    this.employeeService.confirmEmployee(payload).pipe(first()).subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus === "Success") {
+        const message = "Employee has been confirmed for Full Time Employment";
+        this.openAlertMod(alert_message, message);
+      } else {
+        this.openAlertMod(alert_message, response.serviceResponse);
+      }
+      
+      // Step 4: Clean up the UI state after the call completes.
+      this.showConfirmationReasonForm = false;
+      this.confirmationReason = '';
+    },
+    error: (error) => {
+      console.error("Error confirming employee", error);
+      // It's good practice to also hide the form on error
+      this.showConfirmationReasonForm = false;
+      this.confirmationReason = '';
+    }
+  });
+  }
+
+  toggleExtensionForm() {
+    this.showExtensionForm = !this.showExtensionForm;
+    this.showConfirmationReasonForm = false; 
+  }
+
+  extendEmployee(employee: any,template: TemplateRef<any>) {
+    // this.showExtensionForm = false;
+    this.showConfirmationReasonForm = false;
+    const payload = {
+      empId: employee.empId,
+      probationPeriod: employee.probationPeriod,
+      reasonOfExtension: this.reasonOfExtension || '',
+      extendedPeriod: this.extensionPeriod,
+      hodId:this.currentUser.empId
+    };
+    this.employeeService.extendemployee(payload).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        const Message = "Employee's probation period has been extended";
+        this.openAlertMod(template,Message);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    }, error => {
+      console.error("Error confirming employee", error);
+    });
+}
+
 
   preventBackButton() {
     history.pushState(null, null, location.href);

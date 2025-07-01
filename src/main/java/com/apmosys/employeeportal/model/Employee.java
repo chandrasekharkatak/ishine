@@ -208,7 +208,5 @@ public class Employee {
 	@Column(name = "extended_period")
 	private Short extendedPeriod;
 	
-	private String reasonOfExtension;
-	
-
+   private String reasonOfExtension;//reason_of_extension	
 }

@@ -7498,7 +7498,6 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		return response;
 	}
 	
-	@Transactional
     public ServiceResponse extendEmployeeProbation(EmployeeDTO employeeDto) {
         ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
@@ -7540,7 +7539,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
             employee.setProbationPeriod(newTotalProbation);
 
             employee.setExtendedPeriod(employeeDto.getExtendedPeriod());
-            employee.setReasonOfExtension(employeeDto.getReasonOfExtension());
+             employee.setReasonOfExtension(employeeDto.getReasonOfExtension());
             employee.setUpdatedOn(LocalDateTime.now());
             employee.setUpdatedBy(employeeDto.getHodId().intValue()); 
             employeeRepository.save(employee);
@@ -7583,7 +7582,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
             Long actualHodId = actualHodIdOptional.get();
             if (!actualHodId.equals(employeeDto.getHodId())) {
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("User is not the authorized HOD for this employee.");
+                response.setServiceResponse("User is not the authorized HOD for this employee." + actualHodId);
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
                 logService.logMyInfo(httpRequest, apiLogInfo);
                 return response;
@@ -7618,7 +7617,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
                     logService.logMyInfo(httpRequest, apiLogInfo);
                     return response;
                 }
-                employee.setReasonOfExtension(employeeDto.getReasonOfExtension());
+              //  employee.setReasonOfExtension(employeeDto.getReasonOfExtension());
 
             }
 

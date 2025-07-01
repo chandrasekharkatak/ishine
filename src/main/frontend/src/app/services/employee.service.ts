@@ -10,6 +10,7 @@ import { User } from '../models/user';
   providedIn: 'root'
 })
 export class EmployeeService {
+
   
   private baseUrl:any = environment.baseUrl;
   
@@ -407,5 +408,16 @@ updateDefaultProject(newemployeeObj : any){
  
  getAllPieGraphListSummary(params: any){
   return this.http.post(`${this.baseUrl}`+`api/getAllPieGraphListSummary`, params)
+}
+
+
+
+//Employee Confirmation
+extendemployee(payload: any) {
+  return this.http.post(`${this.baseUrl}` + `api/extendEmployeeProbation`, payload);
+}
+
+confirmEmployee(payload: any) {
+  return this.http.post(`${this.baseUrl}` + `api/confirmEmployeeFromProbation`, payload);
 }
 }
