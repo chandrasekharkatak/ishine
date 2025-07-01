@@ -6110,9 +6110,9 @@ public class ResourceManagementService {
 		processPoPortalProjects(poPortalProjects,teamCreatedProjects);
 		System.out.println(poPortalProjects);
 		for (ResourceManagementDTO poData :  poPortalProjects) {
-			ProjectTemp data = new ProjectTemp();
+			Project data = new Project();
 			data.setPoNo(poData.getPoNo());
-			data.setApmosysrm(poData.getApmosysRM());
+			data.setApmosysRM(poData.getApmosysRM());
 			data.setApmosysRmEmail(poData.getApmosysRmEmail());	
 			
 			data.setActive(poData.getActive() != null ? poData.getActive().toString() : null);
@@ -6204,8 +6204,8 @@ public class ResourceManagementService {
 		    data.setState(poData.getClientState());
 		    data.setUpdatedBy(poData.getUpdatedBy());
 		    data.setUpdatedOn(poData.getUpdatedOn() != null ? LocalDateTime.parse(poData.getUpdatedOn()) : null);
-		    data.setApmosysrm(poData.getApmosysRM());
-		    data.setClientrm(poData.getClientRM());
+		    data.setApmosysRM(poData.getApmosysRM());
+		    data.setClientRM(poData.getClientRM());
 		    data.setDeptId(poData.getDeptId());
 		    data.setIsRenewable(poData.getIsRenewable());
 		    data.setStatus(poData.getStatus());
@@ -6213,8 +6213,8 @@ public class ResourceManagementService {
 		    data.setProjectCompletionDate(poData.getProjectCompletionDate());
 		    data.setProjectStatus(poData.getProjectStatus());
 		    data.setProjectId(poData.getProjectId());
-		    data.setPrevPoNo(poData.getPrevPo()); 
-		    data.setNextPoNo(poData.getNextPo());
+//		    data.setPrevPoNo(poData.getPrevPo()); 
+//		    data.setNextPoNo(poData.getNextPo());
 		    if (!poData.getResourceRequirements().isEmpty() && poData.getResourceRequirements() != null) {
 		    	poData.getResourceRequirements().forEach(req -> {
 					ResourceRequirementTemp resourceManagementDTO = new ResourceRequirementTemp();
@@ -6233,7 +6233,7 @@ public class ResourceManagementService {
 			}
 		    
 		    System.out.println(data);
-		    projectTempRepo.save(data);
+//		    projectTempRepo.save(data);
 		    }
 		serviceResponse.setServiceResponse(poPortalProjects);
 		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
