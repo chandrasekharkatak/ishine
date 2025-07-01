@@ -20,5 +20,6 @@ public class ProjectDepartmentMap {
 	private Integer projectDepartmentMapId;
 	private Integer projectId;
 	private Long deptId;
+	private Long active;
 	
 }

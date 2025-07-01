@@ -79,6 +79,7 @@ import com.apmosys.employeeportal.dto.PoTeamTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
+import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SyncableProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Activity;
@@ -93,8 +94,7 @@ import com.apmosys.employeeportal.model.FCProjectMilestone;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
-import com.apmosys.employeeportal.model.ProjectsTemp;
-import com.apmosys.employeeportal.model.ProjectsTempRepository;
+import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
@@ -107,6 +107,7 @@ import com.apmosys.employeeportal.repository.FCLineItemRepository;
 import com.apmosys.employeeportal.repository.FCProjectMilestoneRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -135,9 +136,6 @@ public class ProjectService {
 	
 	@Autowired
 	TeamRepository teamRepository;
-	
-	 @Autowired
-	 ProjectsTempRepository projectstempRepository;
 	 
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
@@ -159,6 +157,9 @@ public class ProjectService {
 	
 	@Autowired
 	ActivitiesRepository activitiesRepository;
+	
+	@Autowired
+	ResourceRequirementRepository resourceRequirementRepository;
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
@@ -2871,4 +2872,116 @@ public class ProjectService {
 
 
     
+	 
+	 @Transactional
+	 public ServiceResponse getResourceRequirementFromPoPortal() {
+	     ServiceResponse serviceResponse = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setSubFeatureName("getResourceRequirementFromPoPortal");
+	     apiLogInfo.setApiUrl("/api/getResourceRequirementFromPoPortal");
+	     apiLogInfo.setLogLevel("INFO");
+
+	     StringBuilder logBuilder = new StringBuilder();
+	     logBuilder.append("API to update existing resource requirement table\n");
+	     System.out.println("API to update existing resource requirement table");
+
+	     List<ProjectPoPortalDTO> list = new ArrayList<>();
+
+	     try {
+	         ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
+	         list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
+	         String msg = "Total Projects Fetched = " + list.size() + "\n";
+	         logBuilder.append(msg);
+	         System.out.println(msg);
+	     } catch (RestClientException e) {
+	         String msg = "Error fetching projects from PoPortal API: " + e.getMessage();
+	         logBuilder.append(msg);
+	         System.out.println(msg);
+	         serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	         serviceResponse.setServiceResponse(msg);
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setApiResponse(msg);
+	         return serviceResponse;
+	     }
+
+	     if (!list.isEmpty()) {
+	         for (ProjectPoPortalDTO dto : list) {
+	             try {
+	                 if (!"TNM".equalsIgnoreCase(dto.getProjectType())) {
+	                     String msg = "Skipping projectId = " + dto.getId() + " as it is not TNM\n";
+	                     logBuilder.append(msg);
+	                     System.out.println(msg);
+	                     continue;
+	                 }
+
+	                 Project project = projectRepository.findByPoProjectId(dto.getId());
+
+	                 if (project != null) {
+	                     Integer projectId = project.getProjectId();
+	                     List<ResourceRequirementDTO> requirements = dto.getResourceRequirements();
+
+	                     if (requirements != null && !requirements.isEmpty()) {
+	                         int saveCount = 0;
+
+	                         for (ResourceRequirementDTO rrDto : requirements) {
+	                             if (rrDto.getResourceOverviewId() == null) continue;
+
+	                             ResourceRequirement existing = resourceRequirementRepository
+	                                     .findByProjectIdAndResourceOverviewId(projectId, rrDto.getResourceOverviewId());
+
+	                             boolean isChanged = false;
+
+	                             if (existing == null) {
+	                                 isChanged = true;
+	                             } else {
+	                                 isChanged = !Objects.equals(existing.getRole(), rrDto.getRole()) ||
+	                                         !Objects.equals(existing.getCount(), rrDto.getCount()) ||
+	                                         !Objects.equals(existing.getExperience(), rrDto.getExperience()) ||
+	                                         !Objects.equals(existing.getDepartment(), rrDto.getDepartment());
+	                             }
+
+	                             if (isChanged) {
+	                                 ResourceRequirement rr = existing != null ? existing : new ResourceRequirement();
+	                                 rr.setProjectId(projectId);
+	                                 rr.setResourceOverviewId(rrDto.getResourceOverviewId());
+	                                 rr.setRole(rrDto.getRole());
+	                                 rr.setCount(rrDto.getCount());
+	                                 rr.setExperience(rrDto.getExperience());
+	                                 rr.setDepartment(rrDto.getDepartment());
+	                                 resourceRequirementRepository.save(rr);
+	                                 saveCount++;
+	                             }
+	                         }
+
+	                         String msg = "Updated/Inserted " + saveCount + " Resource Requirements for Project ID = " + dto.getId() + "\n";
+	                         logBuilder.append(msg);
+	                         System.out.println(msg);
+	                     }
+
+	                 } else {
+	                     String msg = "Project not found for PoProjectId = " + dto.getId() + "\n";
+	                     logBuilder.append(msg);
+	                     System.out.println(msg);
+	                 }
+	             } catch (Exception ex) {
+	                 ex.printStackTrace();
+	                 String msg = "Error updating project ID: " + dto.getId() + " - " + ex.getMessage() + "\n";
+	                 logBuilder.append(msg);
+	                 System.out.println(msg);
+	             }
+	         }
+	     } else {
+	         String msg = "No projects found from PoPortal API.\n";
+	         logBuilder.append(msg);
+	         System.out.println(msg);
+	     }
+
+	     apiLogInfo.setApiResponse(logBuilder.toString());
+	     apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	     serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	     serviceResponse.setServiceResponse("Sync completed. Summary:\n" + logBuilder);
+	     return serviceResponse;
+	 }
+
+
 }

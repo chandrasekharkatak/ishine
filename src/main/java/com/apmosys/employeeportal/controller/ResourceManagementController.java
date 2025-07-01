@@ -329,9 +329,9 @@ public class ResourceManagementController {
 		return resourceManagementService.dumpPODataInIshine();
 	}
 	
-	@GetMapping("/fillDepartmentforNotStartedProjects")
-	public ServiceResponse fillDepartmentforNotStartedProjects() {
-		return resourceManagementService.fillDepartmentforNotStartedProjects();
+	@GetMapping("/fillDepartmentforAllProjectsInIshine")
+	public ServiceResponse fillDepartmentforAllProjectsInIshine() {
+		return resourceManagementService.fillDepartmentforAllProjectsInIshine();
 	}
 	
 	@GetMapping("/getPreviousDefaultProjectDetails")

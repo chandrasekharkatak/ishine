@@ -1194,7 +1194,7 @@ getFilteredDates(dayType: string): Date[] {
       }
       } else {
         console.error(response.serviceResponse)
-        this.openAlertMod(this.alertTemplate, "Either you are not mapped to any project or one of your project has expired!! Please contact RMG team.");
+        this.openAlertMod(this.alertTemplate, "Please contact the RMG team and set up your default project mapping!");
 
       }
     });

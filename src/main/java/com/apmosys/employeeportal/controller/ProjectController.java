@@ -148,4 +148,8 @@ public class ProjectController {
 		return ResponseEntity.ok(projectService.getMilestoneById(milestoneId));
 	}
 
+	@GetMapping(value = "/getResourceRequirementFromPoPortal")
+	public ServiceResponse getResourceRequirementFromPoPortal() {
+		return projectService.getResourceRequirementFromPoPortal();
+	}
 }

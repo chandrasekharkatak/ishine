@@ -203,6 +203,10 @@ getHierarchicalSrNo1(pIndex: number, tIndex: number, eIndex: number): string {
     const itemsPerPage = 5; // Match with HTML
     return (this.page - 1) * itemsPerPage + localPIndex;
   }
+  getGlobalProjectIndex1(localPIndex: number): number {
+    const itemsPerPage = 10; 
+    return (this.page - 1) * itemsPerPage + localPIndex;
+  }
 
   toggleSearch() {
     this.isSearchEnabled = !this.isSearchEnabled;

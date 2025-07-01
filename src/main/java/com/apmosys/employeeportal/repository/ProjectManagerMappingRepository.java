@@ -63,7 +63,7 @@ boolean isUserProjectManagerOfAnyActiveInternalAndExternalProject(@Param("empId"
             "WHERE p.active = 'true' AND pm.project_manager_id = :empId", nativeQuery = true)
 List<Integer> isUserProjectManagerOfAnyActiveInternalProjectList(@Param("empId") Long empId);
 
-	Optional<List<ProjectManagerMapping>> findByProjectManagerIdAndActive(Long projectManagerId, Integer active);
+	List<ProjectManagerMapping> findByProjectManagerIdAndActive(Long projectManagerId, Integer active);
 
 	
 //	@Query(value = "select p.* from project_manager_mapping pm\n"

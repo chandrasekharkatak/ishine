@@ -255,7 +255,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	List<ProjectFetchDTO> getAllActiveProjectList(@Param("projectStatus")String projectStatus, @Param("status")String status, @Param("approvalStatus")String approvalStatus, Set<Integer> projectId, boolean isProjectId,boolean approvalCheck);
 	
 	
-	@Query(value="SELECT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
+	@Query(value="SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
 			+ "			p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
 			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
 			+ "			p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
@@ -363,7 +363,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "AND (:projectFilter = false OR p.projectId IN :projectIds)")
 	Integer getAllActiveProjecCountstList(@Param("approvalStatus")String approvalStatus, @Param("projectIds")Set<Integer> projectIds,@Param("projectFilter") Boolean projectFilter);
 
-	@Query(value="select Distinct count(*) from Project p \n"
+	@Query(value="select  count( Distinct p.projectId) from Project p \n"
 			+ " inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId \n"
 			+ " where p.active= 'true' and p.isDraftProject is null and (p.status != 'Completed' or p.projectStatus = 'Not Started') and pdm.deptId IN :deptIds")
 	Integer getAllNotStartedProjectCountInDept(List<Long> deptIds);
@@ -638,14 +638,14 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "        SELECT p.project_id\n"
 			+ "        FROM projects p\n"
 			+ "        JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
-			+ "        WHERE p.active = 'true' AND p.po_project_id IS NOT NULL AND pm.project_manager_id = 14\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NOT NULL AND pm.project_manager_id = :empId\n"
 			+ "    )\n"
 			+ "    UNION\n"
 			+ "    (\n"
 			+ "        SELECT p.project_id\n"
 			+ "        FROM projects p\n"
 			+ "        JOIN project_overhead_mapping po ON p.project_id = po.project_id\n"
-			+ "        WHERE p.active = 'true' AND p.po_project_id IS NOT NULL AND po.project_overhead_id = 14\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NOT NULL AND po.project_overhead_id = :empId\n"
 			+ "    )\n"
 			+ "    UNION\n"
 			+ "    (\n"
@@ -653,19 +653,81 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "        FROM projects p\n"
 			+ "        JOIN teams t ON p.project_id = t.project_id\n"
 			+ "        WHERE p.active = 'true' AND p.po_project_id IS NOT NULL\n"
-			+ "          AND t.is_active = 'Y' AND t.spoc_id = 14\n"
+			+ "          AND t.is_active = 'Y' AND t.spoc_id = :empId\n"
 			+ "    )\n"
 			+ "    UNION\n"
 			+ "    (SELECT p.project_id\n"
 			+ "        FROM projects p\n"
 			+ "        JOIN teams t ON p.project_id = t.project_id\n"
 			+ "        WHERE p.active = 'true' AND p.po_project_id IS NOT NULL\n"
-			+ "          AND t.is_active = 'Y' AND t.team_lead_id = 14\n"
+			+ "          AND t.is_active = 'Y' AND t.team_lead_id = :empId\n"
 			+ "    )")
 	Set<Integer> findShankhProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
 	
+	@Query(nativeQuery = true,value ="(\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL AND pm.project_manager_id = :empId\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN project_overhead_mapping po ON p.project_id = po.project_id\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL AND po.project_overhead_id = :empId\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN teams t ON p.project_id = t.project_id\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL\n"
+			+ "          AND t.is_active = 'Y' AND t.spoc_id = :empId\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN teams t ON p.project_id = t.project_id\n"
+			+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL\n"
+			+ "          AND t.is_active = 'Y' AND t.team_lead_id = :empId\n"
+			+ "    )")
+	Set<Integer> findInternalProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
+	
 
 	
+
+	@Query(nativeQuery = true,value ="(\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
+			+ "        WHERE p.active = 'true'  AND pm.project_manager_id = :empId\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN project_overhead_mapping po ON p.project_id = po.project_id\n"
+			+ "        WHERE p.active = 'true' AND po.project_overhead_id = :empId\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (\n"
+			+ "        SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN teams t ON p.project_id = t.project_id\n"
+			+ "        WHERE p.active = 'true' \n"
+			+ "          AND t.is_active = 'Y' AND t.spoc_id = :empId\n"
+			+ "    )\n"
+			+ "    UNION\n"
+			+ "    (SELECT p.project_id\n"
+			+ "        FROM projects p\n"
+			+ "        JOIN teams t ON p.project_id = t.project_id\n"
+			+ "        WHERE p.active = 'true'\n"
+			+ "          AND t.is_active = 'Y' AND t.team_lead_id = :empId\n"
+			+ "    )")
+	Set<Integer> findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
+	
+
 	
 	
 	
@@ -709,27 +771,58 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
             "inner join projects p on pm.project_id = p.project_id " +
             "where pm.project_manager_id = :projectManagerId and pm.active = 1", 
     nativeQuery = true)
-public Optional<List<Project>> findProjectsOfProjectManager(Long projectManagerId);
+public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 
 	@Query(value = "select p.* from project_overhead_mapping po\n"
 			+ "inner join projects p on po.project_id = p.project_id\n"
 			+ "where po.project_overhead_id= :projectOverheadId and po.active =1 " , nativeQuery = true)
-	public Optional<List<Project>> findProjectOfProjectOverhead(Long projectOverheadId);
+	public List<Project> findProjectOfProjectOverhead(Long projectOverheadId);
 
 	
 	
 	@Query(value = "select p.* from teams t\n"
 			+ "inner join projects p on t.project_id = p.project_id\n"
 			+ "where t.team_lead_id= :teamLeadId and t.is_active = 'Y'" , nativeQuery = true)
-	public Optional<List<Project>> findProjectOfTeamLead(Long teamLeadId);
+	public List<Project> findProjectOfTeamLead(Long teamLeadId);
 
 	
 	@Query(value = "select p.* from teams t\n"
 			+ "inner join projects p on t.project_id = p.project_id\n"
 			+ "where t.spoc_id= :spocId and t.is_active = 'Y'" , nativeQuery = true)
-	public Optional<List<Project>> findProjectOfSpoc(Long spocId);
+	public List<Project> findProjectOfSpoc(Long spocId);
 	
-	@Query(value ="SELECT NEW com.apmosys.employeeportal.dto.ResourceManagementDTO(projectId,poProjectId,projectName )\n"
-			+ "from Project where active= 'true' and isDraftProject is null and status != 'Completed'")
-	public List<ResourceManagementDTO> getAllNotStartedProjects();
+	@Query(value ="SELECT DISTINCT NEW com.apmosys.employeeportal.dto.ResourceManagementDTO(projectId,poProjectId,projectName)\n"
+			+ "from Project where active = 'true' and poProjectId IS NOT NULL")
+	public List<ResourceManagementDTO> getAllActivePOProjects();
+	
+	
+	@Query(value="SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
+			+ "			p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
+			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
+			+ "			p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
+			+ "			p.apmosysRmEmail, p.projectCompletionDate, p.projectStatus, p.internalProjectType,c.clientName,\n"
+			+ "CASE \n"
+			+ "	 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
+			+ "	 WHEN p.isDraftProject = 'false' THEN 'Approved' \n"
+			+ "	 WHEN p.isDraftProject = 'Rejected' THEN 'Rejected' \n"
+			+ "	 WHEN p.isDraftProject = 'Completed' THEN 'Completed' \n"
+			+ "	 WHEN p.isDraftProject = null THEN 'Not Started' \n"
+			+ "	 ELSE 'Un Mentioned Test Data' \n"
+			+ "END, \n"
+			+ "CASE \n"
+			+ "  WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', p.poProjectId) \n"
+			+ "  ELSE CONCAT('', p.projectId) \n"
+			+ "END ) \n"
+			+ "			FROM Project p\n"
+			+ "			LEFT JOIN Client c ON c.clientId = p.clientId\n"
+			+ "			inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId\n"
+			+ "			WHERE p.active = 'true'\n"
+			+ "			AND p.projectStatus = 'Completed' and pdm.deptId IN :deptIds")
+	List<ProjectFetchDTO> getAllCompletedProjectListInIshine(@Param("deptIds") List<Long> deptIds);
+	
+	
+	@Query(value="select  count( Distinct p.projectId) from Project p \n"
+			+ "			 inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId \n"
+			+ "			 where p.active= 'true' and  p.projectStatus = 'Completed' and pdm.deptId IN :deptIds")
+	Integer getAllCompletedProjectCountInIshine(@Param("deptIds") List<Long> deptIds);
 }

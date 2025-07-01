@@ -1110,6 +1110,14 @@ public class ResourceManagementService {
 
 					List<EmployeeTeamMap> teamMapDbResponse = employeeTeamMapRepository.saveAll(mapList);
 					
+					Project projectdetails= projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+                    projectdetails.setIsDraftProject("true");
+                    Project dbResponse=projectRepository.save(projectdetails);
+                    
+                    if(dbResponse != null) {
+						logBuilder.append(dbResponse + " /n Project draft staus updated to true");
+					}
+					
 					//Add default project mapping
 					if(!defaultProjectEmpIds.isEmpty()) {
 						ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(defaultProjectEmpIds, resourceManagementDTO.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
@@ -4738,17 +4746,17 @@ public class ResourceManagementService {
 		            || specialDepartments.contains(departmentName)) {
 		        internalProjectIds = projectRepository.findAllActiveInternalProjectIds();
 		    } else {
-		       
-		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findInternalProjectsByProjectManager(empIdd);
-		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findInternalProjectsByOverhead(empIdd);
-		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findInternalProjectsBySpocOrTeamLead(empIdd);
-
-		    	Set<Integer> combinedProjectIds = new HashSet<>();
-		    	combinedProjectIds.addAll(projectIdsByManager);
-		    	combinedProjectIds.addAll(projectIdsByOverhead);
-		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
-
-		    	internalProjectIds = combinedProjectIds;
+		    	internalProjectIds = projectRepository.findInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
+//		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findInternalProjectsByProjectManager(empIdd);
+//		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findInternalProjectsByOverhead(empIdd);
+//		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findInternalProjectsBySpocOrTeamLead(empIdd);
+//
+//		    	Set<Integer> combinedProjectIds = new HashSet<>();
+//		    	combinedProjectIds.addAll(projectIdsByManager);
+//		    	combinedProjectIds.addAll(projectIdsByOverhead);
+//		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
+//
+//		    	internalProjectIds = combinedProjectIds;
 
 		       
 		        if (departmentRepository.existsByHodId(empIdd)) {
@@ -4908,17 +4916,17 @@ public class ResourceManagementService {
 		            || specialDepartments.contains(departmentName)) {
 		    	shankhProjectIds = projectRepository.findAllActiveShankhProjectIds();
 		    } else {
-		       
-		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findShankhProjectsByProjectManager(empIdd);
-		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findShankhProjectsByOverhead(empIdd);
-		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findShankhProjectsBySpocOrTeamLead(empIdd);
-
-		    	Set<Integer> combinedProjectIds = new HashSet<>();
-		    	combinedProjectIds.addAll(projectIdsByManager);
-		    	combinedProjectIds.addAll(projectIdsByOverhead);
-		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
-
-		    	shankhProjectIds = combinedProjectIds;
+		    	shankhProjectIds = projectRepository.findShankhProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
+//		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findShankhProjectsByProjectManager(empIdd);
+//		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findShankhProjectsByOverhead(empIdd);
+//		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findShankhProjectsBySpocOrTeamLead(empIdd);
+//
+//		    	Set<Integer> combinedProjectIds = new HashSet<>();
+//		    	combinedProjectIds.addAll(projectIdsByManager);
+//		    	combinedProjectIds.addAll(projectIdsByOverhead);
+//		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
+//
+//		    	shankhProjectIds = combinedProjectIds;
 
 		       
 		        if (departmentRepository.existsByHodId(empIdd)) {
@@ -5070,17 +5078,17 @@ public class ResourceManagementService {
 		    	allshankhInternalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
 		    } else {
 		       
-//		    	allshankhInternalProjectIds = projectRepository.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
-		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findProjectsByProjectManager(empIdd);
-		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findProjectsByOverhead(empIdd);
-		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findProjectsBySpocOrTeamLead(empIdd);
-
-		    	Set<Integer> combinedProjectIds = new HashSet<>();
-		    	combinedProjectIds.addAll(projectIdsByManager);
-		    	combinedProjectIds.addAll(projectIdsByOverhead);
-		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
-
-		    	allshankhInternalProjectIds = combinedProjectIds;
+		    	allshankhInternalProjectIds = projectRepository.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
+//		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findProjectsByProjectManager(empIdd);
+//		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findProjectsByOverhead(empIdd);
+//		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findProjectsBySpocOrTeamLead(empIdd);
+//
+//		    	Set<Integer> combinedProjectIds = new HashSet<>();
+//		    	combinedProjectIds.addAll(projectIdsByManager);
+//		    	combinedProjectIds.addAll(projectIdsByOverhead);
+//		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
+//
+//		    	allshankhInternalProjectIds = combinedProjectIds;
 
 		       
 		        if (departmentRepository.existsByHodId(empIdd)) {
@@ -5235,17 +5243,17 @@ public class ResourceManagementService {
 		            || specialDepartments.contains(departmentName)) {
 		    	allshankhInternalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
 		    } else {
-		       
-		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findProjectsByProjectManager(empIdd);
-		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findProjectsByOverhead(empIdd);
-		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findProjectsBySpocOrTeamLead(empIdd);
-
-		    	Set<Integer> combinedProjectIds = new HashSet<>();
-		    	combinedProjectIds.addAll(projectIdsByManager);
-		    	combinedProjectIds.addAll(projectIdsByOverhead);
-		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
-
-		    	allshankhInternalProjectIds = combinedProjectIds;
+		    	allshankhInternalProjectIds = projectRepository.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
+//		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findProjectsByProjectManager(empIdd);
+//		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findProjectsByOverhead(empIdd);
+//		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findProjectsBySpocOrTeamLead(empIdd);
+//
+//		    	Set<Integer> combinedProjectIds = new HashSet<>();
+//		    	combinedProjectIds.addAll(projectIdsByManager);
+//		    	combinedProjectIds.addAll(projectIdsByOverhead);
+//		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
+//
+//		    	allshankhInternalProjectIds = combinedProjectIds;
 
 		       
 		        if (departmentRepository.existsByHodId(empIdd)) {
@@ -5513,17 +5521,19 @@ public class ResourceManagementService {
 		            || specialDepartments.contains(departmentName)) {
 		    	allshankhInternalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
 		    } else {
+		    	
+		    	allshankhInternalProjectIds = projectRepository.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empIdd);
 		       
-		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findProjectsByProjectManager(empIdd);
-		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findProjectsByOverhead(empIdd);
-		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findProjectsBySpocOrTeamLead(empIdd);
-
-		    	Set<Integer> combinedProjectIds = new HashSet<>();
-		    	combinedProjectIds.addAll(projectIdsByManager);
-		    	combinedProjectIds.addAll(projectIdsByOverhead);
-		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
-
-		    	allshankhInternalProjectIds = combinedProjectIds;
+//		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findProjectsByProjectManager(empIdd);
+//		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findProjectsByOverhead(empIdd);
+//		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findProjectsBySpocOrTeamLead(empIdd);
+//
+//		    	Set<Integer> combinedProjectIds = new HashSet<>();
+//		    	combinedProjectIds.addAll(projectIdsByManager);
+//		    	combinedProjectIds.addAll(projectIdsByOverhead);
+//		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
+//
+//		    	allshankhInternalProjectIds = combinedProjectIds;
 
 		       
 		        if (departmentRepository.existsByHodId(empIdd)) {
@@ -6108,9 +6118,9 @@ public class ResourceManagementService {
 		processPoPortalProjects(poPortalProjects,teamCreatedProjects);
 		System.out.println(poPortalProjects);
 		for (ResourceManagementDTO poData :  poPortalProjects) {
-			ProjectTemp data = new ProjectTemp();
+			Project data = new Project();
 			data.setPoNo(poData.getPoNo());
-			data.setApmosysrm(poData.getApmosysRM());
+			data.setApmosysRM(poData.getApmosysRM());
 			data.setApmosysRmEmail(poData.getApmosysRmEmail());	
 			
 			data.setActive(poData.getActive() != null ? poData.getActive().toString() : null);
@@ -6202,8 +6212,8 @@ public class ResourceManagementService {
 		    data.setState(poData.getClientState());
 		    data.setUpdatedBy(poData.getUpdatedBy());
 		    data.setUpdatedOn(poData.getUpdatedOn() != null ? LocalDateTime.parse(poData.getUpdatedOn()) : null);
-		    data.setApmosysrm(poData.getApmosysRM());
-		    data.setClientrm(poData.getClientRM());
+		    data.setApmosysRM(poData.getApmosysRM());
+		    data.setClientRM(poData.getClientRM());
 		    data.setDeptId(poData.getDeptId());
 		    data.setIsRenewable(poData.getIsRenewable());
 		    data.setStatus(poData.getStatus());
@@ -6211,8 +6221,8 @@ public class ResourceManagementService {
 		    data.setProjectCompletionDate(poData.getProjectCompletionDate());
 		    data.setProjectStatus(poData.getProjectStatus());
 		    data.setProjectId(poData.getProjectId());
-		    data.setPrevPoNo(poData.getPrevPo()); 
-		    data.setNextPoNo(poData.getNextPo());
+//		    data.setPrevPoNo(poData.getPrevPo()); 
+//		    data.setNextPoNo(poData.getNextPo());
 		    if (!poData.getResourceRequirements().isEmpty() && poData.getResourceRequirements() != null) {
 		    	poData.getResourceRequirements().forEach(req -> {
 					ResourceRequirementTemp resourceManagementDTO = new ResourceRequirementTemp();
@@ -6231,63 +6241,182 @@ public class ResourceManagementService {
 			}
 		    
 		    System.out.println(data);
-		    projectTempRepo.save(data);
+//		    projectTempRepo.save(data);
 		    }
 		serviceResponse.setServiceResponse(poPortalProjects);
 		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		return serviceResponse;
 	}
 	
-	public ServiceResponse fillDepartmentforNotStartedProjects() {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("fillDepartmentforNotStartedProjects");
-		apiLogInfo.setApiUrl("/api/fillDepartmentforNotStartedProjects");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("\n fillDepartmentforNotStartedProjects ");
-		try {
-			
-			List<ResourceManagementDTO> poPortalProjects = Optional.ofNullable(fetchPoPortalProjects()).orElse(new ArrayList<>());
-			List<ResourceManagementDTO> poNotStartedProjects = projectRepository.getAllNotStartedProjects();
-			
-			for (ResourceManagementDTO notStarted : poNotStartedProjects) {
-				Long poProjectId = notStarted.getPoProjectId();
-				Integer projectId = notStarted.getProjectId();
+//	public ServiceResponse fillDepartmentforAllProjectsInIshine() {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("fillDepartmentforNotStartedProjects");
+//		apiLogInfo.setApiUrl("/api/fillDepartmentforNotStartedProjects");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("\n fillDepartmentforNotStartedProjects ");
+//		try {
+//			
+//			List<ResourceManagementDTO> poPortalProjects = Optional.ofNullable(fetchPoPortalProjects()).orElse(new ArrayList<>());
+//			List<ResourceManagementDTO> poNotStartedProjects = projectRepository.getAllActivePOProjects();
+//			
+//			for (ResourceManagementDTO notStarted : poNotStartedProjects) {
+//				Long poProjectId = notStarted.getPoProjectId();
+//				Integer projectId = notStarted.getProjectId();
+//
+//				
+//				for (ResourceManagementDTO poPortal : poPortalProjects) {
+//					if (poProjectId != null && poProjectId.equals(poPortal.getId())) {
+//						
+//						List<String> departments = Arrays.asList(poPortal.getDepartment()); 
+//						
+//						if (departments != null && !departments.isEmpty()) {
+//							for (String deptName : departments) {
+//								Department dept = departmentRepository.findByName(deptName.trim());
+//								if (dept != null) {
+//									ProjectDepartmentMap map = new ProjectDepartmentMap();
+//									map.setProjectId(projectId);
+//									map.setDeptId(dept.getDeptId());
+//									projectDepartmentMapRepository.save(map);
+//								}
+//							}
+//						}
+//						break; 
+//					}
+//				}
+//			}
+//
+//			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			response.setServiceResponse("Department mapping inserted successfully!");
+//			
+//			
+//		}catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			response.setServiceResponse("\n Something went wrong!");
+//		}   
+//		return response;
+//	}
+	
+	public ServiceResponse fillDepartmentforAllProjectsInIshine() {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
 
-				
-				for (ResourceManagementDTO poPortal : poPortalProjects) {
-					if (poProjectId != null && poProjectId.equals(poPortal.getId())) {
-						
-						List<String> departments = Arrays.asList(poPortal.getDepartment()); 
-						
-						if (departments != null && !departments.isEmpty()) {
-							for (String deptName : departments) {
-								Department dept = departmentRepository.findByName(deptName.trim());
-								if (dept != null) {
-									ProjectDepartmentMap map = new ProjectDepartmentMap();
-									map.setProjectId(projectId);
-									map.setDeptId(dept.getDeptId());
-									projectDepartmentMapRepository.save(map);
-								}
-							}
-						}
-						break; 
-					}
-				}
-			}
+	    try {
+	        List<ResourceManagementDTO> poPortalProjects = Optional.ofNullable(fetchPoPortalProjects())
+	                .orElse(new ArrayList<>());
+	        List<ResourceManagementDTO> activePOProjects = projectRepository.getAllActivePOProjects();
 
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Department mapping inserted successfully!");
-			
-			
-		}catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("\n Something went wrong!");
-		}   
-		return response;
+	        int insertCount = 0, updateCount = 0, deactivateCount = 0;
+
+	        for (ResourceManagementDTO activeProject : activePOProjects) {
+	            try {
+	                Long poProjectId = activeProject.getPoProjectId();
+	                Integer projectId = activeProject.getProjectId();
+
+	                if (poProjectId == null || projectId == null) continue;
+
+	                ResourceManagementDTO portalProject = poPortalProjects.stream()
+	                        .filter(p -> poProjectId.equals(p.getId()))
+	                        .findFirst()
+	                        .orElse(null);
+
+	                if (portalProject == null || portalProject.getDepartment() == null)
+	                    continue;
+
+	                List<String> newDeptNames = Arrays.asList(portalProject.getDepartment());
+	                List<Long> newDeptIds = new ArrayList<>();
+
+	                for (String deptName : newDeptNames) {
+	                    try {
+	                        if (deptName != null && !deptName.trim().isEmpty()) {
+	                            Department dept = departmentRepository.findByName(deptName.trim());
+	                            if (dept != null) {
+	                                newDeptIds.add(dept.getDeptId());
+	                            } else {
+	                                apiLogInfo.setApiResponse("Department not found for name: '" + deptName + "' (Project ID: " + projectId + ")");
+	                            }
+	                        }
+	                    } catch (Exception e) {
+	                        apiLogInfo.setApiResponse("Error while finding department '" + deptName + "' for project ID: " + projectId);
+	                        e.printStackTrace();
+	                    }
+	                }
+
+	                List<ProjectDepartmentMap> existingMaps = projectDepartmentMapRepository.findByProjectId(projectId);
+	                Map<Long, ProjectDepartmentMap> deptIdToMap = existingMaps.stream()
+	                        .filter(Objects::nonNull)
+	                        .filter(m -> m.getDeptId() != null)
+	                        .collect(Collectors.toMap(ProjectDepartmentMap::getDeptId, map -> map));
+
+	                Set<Long> newDeptIdSet = new HashSet<>(newDeptIds);
+
+	                for (ProjectDepartmentMap map : existingMaps) {
+	                    try {
+	                        if (map != null && map.getDeptId() != null &&
+	                                !newDeptIdSet.contains(map.getDeptId()) && !Objects.equals(map.getActive(), 0L)) {
+	                            map.setActive(0L);
+	                            deactivateCount++;
+	                        }
+	                    } catch (Exception e) {
+	                        apiLogInfo.setApiResponse("Error while deactivating department mapping (Project ID: " + projectId + ")");
+	                        e.printStackTrace();
+	                    }
+	                }
+
+	                for (Long deptId : newDeptIds) {
+	                    try {
+	                        if (deptId != null) {
+	                            if (deptIdToMap.containsKey(deptId)) {
+	                                ProjectDepartmentMap existing = deptIdToMap.get(deptId);
+	                                if (existing.getActive() == null || existing.getActive() == 0L) {
+	                                    existing.setActive(1L);
+	                                    updateCount++;
+	                                }
+	                            } else {
+	                                ProjectDepartmentMap newMap = new ProjectDepartmentMap();
+	                                newMap.setProjectId(projectId);
+	                                newMap.setDeptId(deptId);
+	                                newMap.setActive(1L);
+	                                existingMaps.add(newMap);
+	                                insertCount++;
+	                            }
+	                        }
+	                    } catch (Exception e) {
+	                        apiLogInfo.setApiResponse("Error inserting/updating mapping (Dept ID: " + deptId + ", Project ID: " + projectId + ")");
+	                        e.printStackTrace();
+	                    }
+	                }
+
+	                projectDepartmentMapRepository.saveAll(existingMaps);
+
+	            } catch (Exception innerEx) {
+	                apiLogInfo.setApiResponse("Error processing project with PoProjectId: " + activeProject.getPoProjectId()
+	                        + ", ProjectId: " + activeProject.getProjectId());
+	                innerEx.printStackTrace();
+	            }
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        String finalMessage = "Department mapping synced successfully! Inserted: " + insertCount +
+	                ", Updated: " + updateCount + ", Deactivated: " + deactivateCount;
+	        response.setServiceResponse(finalMessage);
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        apiLogInfo.setApiResponse(finalMessage);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Something went wrong while syncing departments.");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("Exception occurred during department sync");
+	    }
+
+	    return response;
 	}
+
+
 	
 	
 	@Transactional
@@ -6590,7 +6719,7 @@ public class ResourceManagementService {
 			List<Long> deptIdList = new ArrayList<>();
 			Set<Integer> projectIdSet = new HashSet<>();
 			List<Integer> projectIdListTemp;
-			Integer pendingForApprovalCount,approvedCount,notStartedCount,rejectedCount,totalCount;
+			Integer pendingForApprovalCount,approvedCount,notStartedCount,rejectedCount,totalCount,completedInIshine;
 			CombinedPOInternalProjectResponse responseData = new CombinedPOInternalProjectResponse();
 			if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()))
 				projectFilterDTO.setApprovalStatus(null);
@@ -6614,6 +6743,7 @@ public class ResourceManagementService {
 					approvedCount = projectRepository.getAllActiveProjecCountstList("false", projectIdSet, true);
 					notStartedCount = projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
+					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(selectedDeptList);
 					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 					map.put("approvedCount",approvedCount);
@@ -6623,14 +6753,14 @@ public class ResourceManagementService {
 							.completedInSankhButTeamMapped(projectIdSet, true));
 					map.put("notStartedCount",notStartedCount);
 					map.put("rejectedCount",rejectedCount);
-					map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(
-							 "Complete", projectIdSet,  true));
+					map.put("completedInIshineCount", completedInIshine);
 					map.put("totalCount", totalCount);
 				}else {
 					List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 					pendingForApprovalCount = projectRepository.getAllActiveProjecCountstList( "true", null, false);
 					approvedCount = projectRepository.getAllActiveProjecCountstList( "false", null, false);
 					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(deptIdsAccToRole);
+					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(deptIdsAccToRole);
 					rejectedCount = projectRepository
 							.getAllActiveProjecCountstList("Rejected", null, false);
 					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
@@ -6642,8 +6772,7 @@ public class ResourceManagementService {
 						.completedInSankhButTeamMapped( null,false));
 				map.put("notStartedCount",notStartedCount);
 				map.put("rejectedCount",rejectedCount );
-				map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(
-						 "Complete", null, false));
+				map.put("completedInIshineCount", completedInIshine);
 				map.put("totalCount", totalCount);
 				}
 				
@@ -6717,6 +6846,7 @@ public class ResourceManagementService {
 					approvedCount = projectRepository.getAllActiveProjecCountstList("false", projectIdSet, true);
 					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
+					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(selectedDeptList);
 					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
 					
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
@@ -6727,14 +6857,14 @@ public class ResourceManagementService {
 							.completedInSankhButTeamMapped(projectIdSet, true));
 					map.put("notStartedCount",notStartedCount );
 					map.put("rejectedCount",rejectedCount );
-					map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(
-							 "Complete", projectIdSet,  true));
+					map.put("completedInIshineCount",completedInIshine);
 					map.put("totalCount", totalCount);
 				}else {
 					
 					pendingForApprovalCount = projectRepository.getAllActiveProjecCountstList("true", projectIdSet, true);
 					approvedCount = projectRepository.getAllActiveProjecCountstList("false", projectIdSet, true);
 					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(deptIdList);
+					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(deptIdList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
 					
@@ -6746,8 +6876,7 @@ public class ResourceManagementService {
 							.completedInSankhButTeamMapped(projectIdSet, true));
 					map.put("notStartedCount",notStartedCount );
 					map.put("rejectedCount",rejectedCount );
-					map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList(
-							 "Complete", projectIdSet,  true));
+					map.put("completedInIshineCount", completedInIshine);
 					map.put("totalCount", totalCount);
 				}
 				
@@ -6802,6 +6931,7 @@ public class ResourceManagementService {
 					pendingForApprovalCount = projectRepository.getAllActiveProjecCountstList("true", projectIdSet, true);
 					approvedCount = projectRepository.getAllActiveProjecCountstList("false", projectIdSet, true);
 					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
+					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(selectedDeptList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
 					
@@ -6811,7 +6941,7 @@ public class ResourceManagementService {
 					map.put("completedWithEmployeeCount", projectRepository.completedInSankhButTeamMapped(projectIdSet, true));
 					map.put("notStartedCount", notStartedCount);
 					map.put("rejectedCount", rejectedCount);
-					map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList("Complete", projectIdSet,  true));
+					map.put("completedInIshineCount",completedInIshine);
 					map.put("totalCount", totalCount);
 					}else {
 						Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
@@ -6820,6 +6950,7 @@ public class ResourceManagementService {
 						pendingForApprovalCount = projectRepository.getAllActiveProjecCountstList("true", projectIdSet, true);
 						approvedCount = projectRepository.getAllActiveProjecCountstList("false", projectIdSet, true);
 						notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(deptIdOfOther);
+						completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(deptIdOfOther);
 						rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 						totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
 						
@@ -6829,7 +6960,7 @@ public class ResourceManagementService {
 						map.put("completedWithEmployeeCount", projectRepository.completedInSankhButTeamMapped(projectIdSet, true));
 						map.put("notStartedCount", notStartedCount);
 						map.put("rejectedCount", rejectedCount);
-						map.put("completedInIshineCount", projectRepository.getAllCompleteProjectInIshineCountstList("Complete", projectIdSet,  true));
+						map.put("completedInIshineCount",completedInIshine);
 						map.put("totalCount", totalCount);
 					}
 					
@@ -6934,6 +7065,8 @@ public class ResourceManagementService {
 //						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
 						
+					}else if("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+						finalDataList=projectRepository.getAllCompletedProjectListInIshine(selectedDeptList);
 					}
 					else if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 						finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,projectIdSet,true,approvalCheck);
@@ -6945,6 +7078,10 @@ public class ResourceManagementService {
 						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 						finalDataList = projectRepository.getAllNotStartedProjects(deptIdsAccToRole);
 						
+					}
+					else if("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
+						finalDataList=projectRepository.getAllCompletedProjectListInIshine(deptIdsAccToRole);
 					}
 					else if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 						finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,null,false,approvalCheck);
@@ -6992,6 +7129,7 @@ public class ResourceManagementService {
 									projectFilterDTO.getCurrentUserEmpId());
 					if (projectIdListTemp != null)
 						projectIdSet.addAll(projectIdListTemp);
+					
 				}
 
 				if (teamRepository.existsBySpocId(projectFilterDTO.getCurrentUserEmpId())) {
@@ -6999,8 +7137,10 @@ public class ResourceManagementService {
 							.findActiveShankhInternalProjectIdsBySpocIdList(projectFilterDTO.getCurrentUserEmpId());
 					if (projectIdListTemp != null)
 						projectIdSet.addAll(projectIdListTemp);
-						projectIdSet.addAll(matchingProjectIds);
+						
 				}
+				
+				projectIdSet.addAll(matchingProjectIds);
 				
 				if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null ) {
 					List<Long> selectedDeptList= projectFilterDTO.getDepartmentsids();
@@ -7022,18 +7162,22 @@ public class ResourceManagementService {
 //						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
 						
+					}else if("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+						finalDataList=projectRepository.getAllCompletedProjectListInIshine(selectedDeptList);
 					}
 					}else {
 						if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 //							List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 							finalDataList = projectRepository.getAllNotStartedProjects(deptIdList);
 							
+						}else if("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+							finalDataList=projectRepository.getAllCompletedProjectListInIshine(deptIdList);
 						}
 					}
 				
-				 if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus()) && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+				 if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus()) && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) && !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 					finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,projectIdSet,true,approvalCheck);
-					}else if(!"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+					}else if(!"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())&& !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
 					}
 			}
@@ -7087,6 +7231,8 @@ public class ResourceManagementService {
 //						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
 						
+					}else if("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+						finalDataList=projectRepository.getAllCompletedProjectListInIshine(selectedDeptList);
 					}
 				}else {
 					Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
@@ -7095,12 +7241,14 @@ public class ResourceManagementService {
 //						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 						finalDataList = projectRepository.getAllNotStartedProjects(deptIdOfOther);
 						
+					}else if("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+						finalDataList=projectRepository.getAllCompletedProjectListInIshine(deptIdOfOther);
 					}
 				}
 					
-					if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus()) && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+					if(!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus()) && !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) && !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllActiveProjectList(projectStatus,status,approvalStatus,projectIdSet,true,approvalCheck);
-						}else if(!"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+						}else if(!"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()) && !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 							finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
 						}
 
