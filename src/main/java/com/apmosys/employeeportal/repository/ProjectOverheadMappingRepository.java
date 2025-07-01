@@ -43,7 +43,7 @@ boolean isUserProjectOverheadOfAnyActiveInternalAndExternalProject(@Param("empId
 List<Integer> isUserProjectOverheadOfAnyActiveInternalAndExternalProjectList(@Param("empId") Long empId);
 	
 	
-	Optional<List<ProjectOverheadMapping>> findByProjectOverheadIdAndActive(Long projectOverheadMappingId, Integer active);
+	List<ProjectOverheadMapping> findByProjectOverheadIdAndActive(Long projectOverheadMappingId, Integer active);
 	
 	List<ProjectOverheadMapping> findByProjectIdAndActive(Long projectId, Integer active);
 	
