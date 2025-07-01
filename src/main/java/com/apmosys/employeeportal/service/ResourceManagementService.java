@@ -1110,6 +1110,14 @@ public class ResourceManagementService {
 
 					List<EmployeeTeamMap> teamMapDbResponse = employeeTeamMapRepository.saveAll(mapList);
 					
+					Project projectdetails= projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+                    projectdetails.setIsDraftProject("true");
+                    Project dbResponse=projectRepository.save(projectdetails);
+                    
+                    if(dbResponse != null) {
+						logBuilder.append(dbResponse + " /n Project draft staus updated to true");
+					}
+					
 					//Add default project mapping
 					if(!defaultProjectEmpIds.isEmpty()) {
 						ServiceResponse defaultProjectResponse = this.handleDefaultProjectUpdate(defaultProjectEmpIds, resourceManagementDTO.getProjectId(), resourceManagementDTO.getCreatedBy(), logBuilder);
