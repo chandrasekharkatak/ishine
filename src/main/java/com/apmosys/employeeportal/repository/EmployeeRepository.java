@@ -190,6 +190,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	@Query(nativeQuery = true)
 	public List<Employee> getEmployeeInProbation();
+	
+	@Query(nativeQuery = true)
+	public List<Employee> getEmployeeInProbationExtended();
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getManagerEmail(Long empId);
@@ -841,5 +844,18 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     @Query(nativeQuery = true,value = "select d.hod_id from employee e inner join job_role j on e.job_role_id = j.job_role_id inner join department d on d.dept_id = j.dept_id where e.emp_id = :empId")
     public Long getDepartmentHod(@Param("empId") Long empId );
+    
+    
+    @Query(nativeQuery = true,value = "SELECT e.* \n"
+    		+ "FROM employee e \n"
+    		+ "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id \n"
+    		+ "INNER JOIN department d ON jr.dept_id = d.dept_id \n"
+    		+ "INNER JOIN employee hod ON d.hod_id = hod.emp_id \n"
+    		+ "WHERE e.employmentstatus NOT LIKE 'InActive' AND DATEDIFF(CURDATE(), e.date_of_joining) < e.probation_period and e.is_confirmed_clicked = 1")
+    public List<Employee> getEmployeeProbationAndIsClicked();
+    
+    
+//    @Query("UPDATE employee SET long_overdue_notified = :status WHERE emp_id = :empId")
+//    public void updateLongOverdueNotified1(@Param("empId") Long empId, @Param("status") boolean status);
 
 }

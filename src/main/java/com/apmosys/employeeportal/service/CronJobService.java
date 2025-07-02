@@ -1623,7 +1623,7 @@ public class CronJobService {
 		
 		//Confirmation Mail ///Raj Alpha Swain
 //		@Scheduled(cron = "${mailTrigger.time}")
-		@Scheduled(cron = "30 42 19 * * *")
+		@Scheduled(cron = "0 0 10 * * *")
 		public void portalConfigConfirmation() {
 			try {
 				sendProbationReminder();
@@ -1636,10 +1636,13 @@ public class CronJobService {
 		public void sendProbationReminder() {
 			LocalDate today = LocalDate.now();
 			List<Employee> employeesInProbation = employeeRepository.getEmployeeInProbation();
+			List<Employee> employeesInProbationExtended = employeeRepository.getEmployeeInProbationExtended();
 			
 			List<Employee> preConfirmationList = new ArrayList<>();
 	        List<Employee> overdueList = new ArrayList<>();
+	        List<Long> employeeIdsToUpdate = new ArrayList<>();
 			
+	        if(!employeesInProbation.isEmpty()) {
 			for(Employee employee : employeesInProbation) {
 				
 				if(employee.getProbationPeriod() == null || employee.getDateOfJoining() == null)
@@ -1659,18 +1662,67 @@ public class CronJobService {
 				else if(confirmationDate.isBefore(today))
 				{
 					Long daysoverdue = ChronoUnit.DAYS.between(confirmationDate,today);
-					if(daysoverdue >0 && daysoverdue % 5 == 0)
+					boolean hasExtensionReason = employee.getReasonOfExtension() != null && !employee.getReasonOfExtension().isEmpty();
+					
+					if(daysoverdue >= 100 && hasExtensionReason && !employee.isLongOverdueNotified())
+					{
+						 if (daysoverdue % 5 == 0) {
+			                    overdueList.add(employee);
+			                    employeeIdsToUpdate.add(employee.getEmpId());
+			                }
+					}
+					
+					else if(daysoverdue >0 && daysoverdue % 5 == 0)
 					{
 						overdueList.add(employee);
 					}
 				}    
 			} 
+	        }
+	        else if(!employeesInProbationExtended.isEmpty()) {
+			for(Employee employee : employeesInProbationExtended) {
+				
+				LocalDate confirmationDate = employee.getDateOfJoining().plusDays(employee.getProbationPeriod());
+				
+				if(confirmationDate.isBefore(today))
+				{
+					Long daysLeftUntilConfirmation = ChronoUnit.DAYS.between(today,confirmationDate);
+					Long daysoverdue = ChronoUnit.DAYS.between(confirmationDate,today);
+					boolean hasExtensionReason = employee.getReasonOfExtension() != null && !employee.getReasonOfExtension().isEmpty();
+					
+					if(daysoverdue >= 100 && hasExtensionReason && !employee.isLongOverdueNotified())
+					{
+						 if (daysoverdue % 5 == 0) {
+			                    overdueList.add(employee);
+			                    employeeIdsToUpdate.add(employee.getEmpId());
+			                }
+					}
+					
+					else if(daysoverdue >0 && daysoverdue % 5 == 0 && !employee.isLongOverdueNotified())
+					{
+						overdueList.add(employee);
+					}
+				}  
+			}
+	        }
 			if (!preConfirmationList.isEmpty()) {
 				sendPreConfirmationEmail(preConfirmationList);
 	        }
 			if (!overdueList.isEmpty()) {
 				sendOverdueConfirmationEmail(overdueList);
 	        }
+			List<Employee> empList=new ArrayList<>();
+			 if (!employeeIdsToUpdate.isEmpty()) {
+			        for (Long empId : employeeIdsToUpdate) {
+			        	Optional<Employee> empOpt=employeeRepository.findById(empId);
+			        	if(empOpt.isPresent()) {
+			        		Employee emp=empOpt.get();
+			        		emp.setLongOverdueNotified(true);
+			        		empList.add(emp);			        	}
+			        }
+			        
+			        employeeRepository.saveAll(empList);
+			 }
 		}
 		
 		
@@ -1735,11 +1787,15 @@ public class CronJobService {
 		        String hrBody = buildHtmlEmailBody(hrIntro, employees); 
 		        
 		        try {
+		        	
 		            mailService.sendMail(hrMailAddress, hrSubject, hrBody);
 		        } catch (Exception e) {
 		            e.printStackTrace();
 		        }
 	    }
+		
+		
+		
 		
 		
 		public void sendOverdueConfirmationEmail(List<Employee> employees) {
@@ -1803,6 +1859,7 @@ public class CronJobService {
 		        String hrBody = buildHtmlEmailBody(hrIntro, employees);
 		        
 		        try {
+		        	
 		            mailService.sendMail(hrMailAddress, hrSubject, hrBody);
 		        } catch (Exception e) {
 		            e.printStackTrace();
@@ -1820,7 +1877,7 @@ public class CronJobService {
 		            .append("<th style='padding: 8px;'>Name</th>")
 		            .append("<th style='padding: 8px;'>Department</th>")
 		            .append("<th style='padding: 8px;'>Date of Joining</th>")
-		            .append("<th style='padding: 8px;'>Days to Confirmation</th>")
+		            .append("<th style='padding: 8px;'>Due Days</th>")
 		            .append("</tr></thead>");
 		        
 		        body.append("<tbody>");
@@ -1843,12 +1900,41 @@ public class CronJobService {
 		                .append("</tr>");
 		        }
 		        body.append("</tbody></table><br>");
-		        body.append("Thank you.");
+		        body.append("Thank you.<br>");
+		        body.append("<a href=\"https://ishine.apmosys.com/\">Visit iShine Portal</a>");		     
 
 		        return body.toString();
 		    }
 
 		
+		 
+		@Scheduled(cron = "0 0 10 * * *") 
+		public void automaticConfirmation()
+		{
+			try {
+			LocalDate today = LocalDate.now();
+			List<Employee> employeeList = employeeRepository.getEmployeeProbationAndIsClicked();
+			
+			if(employeeList != null) {
+				for(Employee employee :employeeList) {
+
+		            LocalDate probationEndDate = employee.getDateOfJoining().plusDays(employee.getProbationPeriod());
+		            if(employee.getIsConfirmedClicked() == 1 && employee.getEmploymentstatus() == "Probation" && today.isEqual(probationEndDate))
+		            {
+		            	Long hodId = employeeRepository.getDepartmentHod(employee.getEmpId());
+		            	employee.setEmploymentstatus("Confirmed");
+		            	employee.setUpdatedOn(LocalDateTime.now());
+		                employee.setUpdatedBy(Integer.parseInt(hodId.toString()));
+		                employeeRepository.save(employee);
+		            }
+				}
+				
+				System.out.print("++++++++++++ =========== Running"+ today);
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
 		
 		//0 0 4 2 * ? - At 04:00:00am, on the 2nd day, every month
  		//0 0/2 * ? * * - Run at every 2 min

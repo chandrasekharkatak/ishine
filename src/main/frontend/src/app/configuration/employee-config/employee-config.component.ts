@@ -52,6 +52,8 @@ actionSection: TemplateRef<any>;
 extensionReason: any;
 extensionPeriod: any;
 reasonOfExtension: any;
+showReasonForm: any;
+reasonForDelay: any;
 getStatusClass(arg0: any): string|string[]|Set<string>|{ [klass: string]: any; } {
 throw new Error('Method not implemented.');
 }
@@ -196,7 +198,7 @@ throw new Error('Method not implemented.');
   filters: any = {};
   filterOnhistory = {};
   isSearchEnabled: boolean = false;
-  employeeActiveColumns: any[] = ['employeementId', 'employeeType', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
+  employeeActiveColumns: any[] = ['employeementId', 'employeeType', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName','days_left_for_full_time','blank'];
   employeeInActiveColumns: any[] = ['employeementId', 'employeeType', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'dateOfRelieving', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName'];
   draftEmployeeColumns: any[] = ['employeementId', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'updateApplicationStatus']
   domainColumns: any[] = ['blank', 'domainName', 'createdByName', 'createdOn']
@@ -250,7 +252,7 @@ selectedEmployee: any;
 isProcessing= false ;
 showExtensionForm = false;
 extensionData: any;
-showConfirmationReasonForm: boolean = false;
+showConfirmationReasonForm = false;
 confirmationReason: string = '';
 
 
@@ -329,6 +331,13 @@ confirmationReason: string = '';
 }
     
     this.showExtensionForm = false;
+    this.showConfirmationReasonForm = false;
+    this.confirmationReason = '';
+    this.reasonForDelay = '';
+    this.extensionReason = '';
+    this.reasonOfExtension = '';
+    this.extensionPeriod = null;
+    this.showReasonForm = false;
 
     this.modalRef1 = this.modalService.show(employeeTemplate, {
       class: 'modal-xl'  
@@ -339,14 +348,17 @@ confirmationReason: string = '';
   toggleExtensionForm() {
     this.showExtensionForm = !this.showExtensionForm;
     this.showConfirmationReasonForm = false; 
+    this.showReasonForm = false;
   }
     handleConfirmClick(employee: any,alert_message: TemplateRef<any>) {
     this.showExtensionForm = false;
+    this.showReasonForm = false;
     if (employee.days_left_for_full_time < 0) {
     this.showConfirmationReasonForm = true;
     }
     else
     {
+      this.showConfirmationReasonForm = false;
       this.confirmAndExecuteConfirmation(employee, alert_message);
     }
   }
@@ -395,6 +407,50 @@ confirmationReason: string = '';
     }
     
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  openReasonConfirmationModal(template:TemplateRef<any>, template2:TemplateRef<any>)
+  {
+    this.showReasonForm = true;
+    if (!this.selectedEmployee || !this.selectedEmployee.empId) {
+      const message = 'Please select an employee to provide a reason for delay.';
+      this.openAlertMod(template2, message);
+      return;
+    }
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  confirmAndExecuteReasonSubmission(selectedEmployee:any, template: TemplateRef<any>) {
+    this.modalRef?.hide();
+    
+    if (!this.reasonForDelay || !this.reasonForDelay.trim()) {
+      const message = 'A reason for the delay is required.';
+      this.openAlertMod(template, message);
+      return;
+    }
+    
+    const payload = {
+      empId: selectedEmployee.empId,
+      reasonOfExtension: this.reasonForDelay,
+      hodId: this.currentUser.empId
+    };
+
+    this.employeeService.submitReasonForDelay(payload).pipe(first()).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          const message = "Reason for delay has been submitted successfully.";
+          this.openAlertMod(template, message);
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+        this.showReasonForm = false; 
+        this.reasonForDelay = '';
+      },
+      error: (error) => {
+        console.error("Error submitting reason for delay", error);
+        alert("An error occurred while submitting the reason for delay.");
+      }
+    });
   }
 
   openExtensionConfirmationModal(template: TemplateRef<any>,template2: TemplateRef<any>) {
@@ -451,6 +507,7 @@ confirmationReason: string = '';
         alert("An error occurred while extending the probation period.");
       }
     });
+    this.resetExtensionForm();
   }
 
 

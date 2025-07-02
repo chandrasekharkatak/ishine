@@ -582,4 +582,10 @@ public class EmployeeController {
 	    return employeeService.confirmEmployeeFromProbation(employee);
 	}
 	
+	@PostMapping("/submitReasonForDelay")
+	public ServiceResponse submitForDelay(@RequestBody EmployeeDTO employee)
+	{
+		return employeeService.submitForDelay(employee);
+	}
+	
 }

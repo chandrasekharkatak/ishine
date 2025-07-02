@@ -209,4 +209,8 @@ public class Employee {
 	private Short extendedPeriod;
 	
    private String reasonOfExtension;//reason_of_extension	
+   
+   private Long isConfirmedClicked = 0L;
+   
+   private boolean longOverdueNotified;
 }

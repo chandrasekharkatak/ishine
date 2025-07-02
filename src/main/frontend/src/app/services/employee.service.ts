@@ -420,4 +420,7 @@ extendemployee(payload: any) {
 confirmEmployee(payload: any) {
   return this.http.post(`${this.baseUrl}` + `api/confirmEmployeeFromProbation`, payload);
 }
+submitReasonForDelay(payload: any) {
+  return this.http.post(`${this.baseUrl}` + `api/submitReasonForDelay`, payload);
+}
 }

@@ -335,6 +335,8 @@ this.name = name;
     private Long daysLeftForFullTime;
     private Short extendedPeriod;
 	private String reasonOfExtension;
+	private Long isConfirmedClicked;
+	
 	
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
     public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,

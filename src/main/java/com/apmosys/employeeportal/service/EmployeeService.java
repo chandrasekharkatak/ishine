@@ -7603,8 +7603,11 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
             LocalDate today = LocalDate.now();
 
             if (today.isBefore(probationEndDate)) {
+            	employee.setIsConfirmedClicked(1L);
+            	
+            	System.out.print("++++++++++++++++++++++++++++++++++++++++++++++"+employee.getIsConfirmedClicked());
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Cannot confirm employee before probation ends. Probation period ends on " + probationEndDate);
+                response.setServiceResponse("Employee will be confired on " + probationEndDate);
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
                 logService.logMyInfo(httpRequest, apiLogInfo);
                 return response;
@@ -7617,10 +7620,12 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
                     logService.logMyInfo(httpRequest, apiLogInfo);
                     return response;
                 }
-              //  employee.setReasonOfExtension(employeeDto.getReasonOfExtension());
+            employee.setReasonOfExtension(employeeDto.getReasonOfExtension());
 
             }
 
+            
+            employee.setIsConfirmedClicked(1L);
             employee.setEmploymentstatus("Confirmed");
             employee.setUpdatedOn(LocalDateTime.now());
             employee.setUpdatedBy(employeeDto.getHodId().intValue());
@@ -7643,5 +7648,50 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
         logService.logMyInfo(httpRequest, apiLogInfo);
         return response;
     }
+	
+	
+	public  ServiceResponse submitForDelay(EmployeeDTO employeeDto)
+	{
+		 ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/submitForDelay");
+         apiLogInfo.setLogLevel("INFO");
+         try {
+        	 Optional<Long> actualHodIdOptional = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());	
+        	 Optional<Employee> employeeOptional = employeeRepository.findById(employeeDto.getEmpId());
+        	 
+        	 Employee employee = employeeOptional.get();
+        	 if(employeeDto.getReasonOfExtension()!=null)
+        	 {
+        		employee.setReasonOfExtension(employeeDto.getReasonOfExtension());
+                employee.setUpdatedOn(LocalDateTime.now());
+                employee.setUpdatedBy(employeeDto.getHodId().intValue());
+                employeeRepository.save(employee);	
+                
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse("Delay for '" + employee.getName() + "' has been successfully sent.");
+                apiLogInfo.setApiResponse("Reason has been submitted for: " + employee.getEmpId());
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+        	 }
+        	 else
+        	 {
+        		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                 response.setServiceResponse("An delay reason is required.");
+                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                 logService.logMyInfo(httpRequest, apiLogInfo);
+        	 }
+        	 
+        	 return response;
+         }catch(Exception e) {
+        	 e.printStackTrace();
+             response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+             response.setServiceResponse("An internal error occurred: " + e.getMessage());
+             apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+             apiLogInfo.setLogLevel("ERROR");
+             response.setServiceError(e.getMessage());
+         }
+		 return null;
+	}
+	
 }
 	
