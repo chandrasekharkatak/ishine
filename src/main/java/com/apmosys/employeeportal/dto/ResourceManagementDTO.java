@@ -93,8 +93,4 @@ public class ResourceManagementDTO {
 		this.projectId = projectId;
 		this.projectName = projectName;
 	}
-    
-    
-    
-
 }

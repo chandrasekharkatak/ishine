@@ -56,6 +56,8 @@ import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExceptionReportDTO;
+import com.apmosys.employeeportal.dto.FCLineItemDTO;
+import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
@@ -103,6 +105,8 @@ import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.FCLineItem;
+import com.apmosys.employeeportal.model.FCProjectMilestone;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
@@ -120,6 +124,8 @@ import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.FCLineItemRepository;
+import com.apmosys.employeeportal.repository.FCProjectMilestoneRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
@@ -204,6 +210,12 @@ public class ResourceManagementService {
 
 	@Autowired
 	private JobRoleRepository jobRoleRepository;
+	
+	@Autowired 
+	private FCLineItemRepository fCLineItemRepository;
+	
+	@Autowired 
+	private FCProjectMilestoneRepository fCProjectMilestoneRepository;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -8372,8 +8384,6 @@ public class ResourceManagementService {
 		                project.setCreatedBy(6l);
 
 		                if (poData.getCreatedOn() != null) {
-//		                    ZonedDateTime zdt = ZonedDateTime.parse(poData.getCreatedOn());
-//		                    project.setCreatedOn(Timestamp.valueOf(zdt.toLocalDateTime()));
 		                	 try {
 		                	        long epochMillis = Long.parseLong(poData.getCreatedOn());
 		                	        Instant instant = Instant.ofEpochMilli(epochMillis);
@@ -8382,7 +8392,7 @@ public class ResourceManagementService {
 		                	    } catch (NumberFormatException | DateTimeException e) {
 		                	        System.err.println("Failed to parse createdOn: " + poData.getCreatedOn() +
 		                	                           " | Exception: " + e.getMessage());
-		                	        project.setCreatedOn(null); // Or handle as needed
+		                	        project.setCreatedOn(null);
 		                	    }
 		                }
 
@@ -8397,11 +8407,16 @@ public class ResourceManagementService {
 		                    Client savedClient = clientsRepository.save(newClient);
 
 		                    if (savedClient == null) {
-		                        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		                        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		                        serviceResponse.setServiceResponse("Failed to add client");
 		                        apiLogInfo.setApiResponse("Failed to add client");
-		                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		                        return serviceResponse;
+		                    } else {
+		                    	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		                        serviceResponse.setServiceResponse("Client added!");
+		                        apiLogInfo.setApiResponse("Client added!");
+		                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		                    }
 
 		                    clientId = savedClient.getClientId();
@@ -8424,138 +8439,222 @@ public class ResourceManagementService {
 		                    }
 
 		                    List<ClientLocation> savedLocations = clientLocationRepository.saveAll(locations);
-		                    if (savedLocations.isEmpty()) {
-		                        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		                    if (savedLocations.isEmpty() || savedLocations == null) {
+		                        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		                        serviceResponse.setServiceResponse("Failed to add client Location");
 		                        apiLogInfo.setApiResponse("Failed to add client Location");
-		                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		                        return serviceResponse;
+		                    } else {
+			                    serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			                    serviceResponse.setServiceResponse("Client Location added");
+			                    apiLogInfo.setApiResponse("Client Location added");
+			                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		                    }
-
-		                    serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		                    serviceResponse.setServiceResponse("Client Location added");
-		                    apiLogInfo.setApiResponse("Client Location added");
-		                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		                }
 
 		                project.setClientId(clientId);
-		                project.setClientLocation(poData.getClientLocation() != null ?
-		                                          String.join(", ", poData.getClientLocation()) : null);
+		                project.setClientLocation(poData.getClientLocation() != null ? String.join(", ", poData.getClientLocation()) : null);
 
 		                Project savedProject = projectRepository.save(project);
-		                if (savedProject == null) return serviceResponse;
+		                if (savedProject == null) {
+		                	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			                serviceResponse.setServiceResponse("Create operation failed! " );
+			                return serviceResponse;
+		                } else {
+		                	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			                serviceResponse.setServiceResponse("Project created successfully! " );
+		                }
+		                
+		                if("TNM".equalsIgnoreCase(savedProject.getPoProjectType())) {
+		                	if (poData.getResourceRequirements() != null && !poData.getResourceRequirements().isEmpty()) {
+			                    for (ResourceRequirementDTO req : poData.getResourceRequirements()) {
+			                        ResourceRequirement res = new ResourceRequirement();
+			                        res.setCount(req.getCount());
+			                        res.setDepartment(req.getDepartment());
+			                        res.setExperience(req.getExperience());
+			                        res.setRole(req.getRole());
+			                        res.setResourceOverviewId(req.getResourceOverviewId() != null ?
+			                            Long.parseLong(req.getResourceOverviewId().toString()) : null);
+			                        res.setProjectId(savedProject.getProjectId());
 
-		                if (poData.getResourceRequirements() != null && !poData.getResourceRequirements().isEmpty()) {
-		                    for (ResourceRequirementDTO req : poData.getResourceRequirements()) {
-		                        ResourceRequirement res = new ResourceRequirement();
-		                        res.setCount(req.getCount());
-		                        res.setDepartment(req.getDepartment());
-		                        res.setExperience(req.getExperience());
-		                        res.setRole(req.getRole());
-		                        res.setResourceOverviewId(req.getResourceOverviewId() != null ?
-		                            Long.parseLong(req.getResourceOverviewId().toString()) : null);
-		                        res.setProjectId(savedProject.getProjectId());
-
-		                        resourceRequirementRepository.save(res);
-		                    }
+			                        ResourceRequirement rr = resourceRequirementRepository.save(res);
+			                        if (rr == null) {
+			                        	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						                serviceResponse.setServiceResponse("Create operation failed at saving resource requirement! " );
+						                return serviceResponse;
+			                        }else {
+			                        	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						                serviceResponse.setServiceResponse("Project created successfully! " );
+			                        }
+			                    }
+			                }
 		                }
 
-		                if (poData.getDepartment() != null ) {
-		                    for (String deptName : poData.getDepartment()) {
-		                        Department dept = departmentRepository.findByName(deptName);
-		                        if (dept != null) {
-		                            ProjectDepartmentMap pdMap = new ProjectDepartmentMap();
-		                            pdMap.setProjectId(savedProject.getProjectId());
-		                            pdMap.setDeptId(dept.getDeptId());
-		                            projectDepartmentMapRepository.save(pdMap);
-		                            logBuilder.append("Mapped department: ").append(deptName).append("\n");
-		                        } else {
-		                            logBuilder.append("Department not found: ").append(deptName).append("\n");
-		                        }
-		                    }
-		                }
+					    if (poData.getDepartment() != null ) {
+					        for (String deptName : poData.getDepartment()) {
+					            Department dept = departmentRepository.findByName(deptName);
+					            if (dept != null) {
+					                ProjectDepartmentMap pdMap = new ProjectDepartmentMap();
+					                pdMap.setProjectId(savedProject.getProjectId());
+					                pdMap.setDeptId(dept.getDeptId());
+					                ProjectDepartmentMap pdm = projectDepartmentMapRepository.save(pdMap);
+					                if(pdm == null) {
+					                	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						                serviceResponse.setServiceResponse("Create operation failed at saving departments! " );
+						                return serviceResponse;
+					                }else {
+					                	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						                serviceResponse.setServiceResponse("Project created successfully! " );
+					                }
+					                logBuilder.append("Mapped department: ").append(deptName).append("\n");
+					            } else {
+					            	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					                serviceResponse.setServiceResponse("Create operation failed at saving departments! " );
+					                logBuilder.append("Unmapped department: ").append(deptName).append("\n");
+					                return serviceResponse;
+					            }
+					        }
+					    }
+			
+						if (poData.getFcLineItemDtoList() != null && !poData.getFcLineItemDtoList().isEmpty()) {
+					        for (FCLineItemDTO lineItemDTO : poData.getFcLineItemDtoList()) {
+			
+					            FCLineItem lineItem = new FCLineItem();
+					            lineItem.setId(lineItemDTO.getId());
+					            lineItem.setPoId(lineItemDTO.getPoId());
+					            lineItem.setProjectId(Long.parseLong(savedProject.getProjectId().toString()));
+					            lineItem.setPoProjectId(lineItemDTO.getProjectId());
+					            lineItem.setName(lineItemDTO.getName());
+					            lineItem.setStatus(lineItemDTO.getStatus());
+					            FCLineItem savedLineItem = fCLineItemRepository.save(lineItem);
+					            if(savedLineItem == null) {
+					            	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					                serviceResponse.setServiceResponse("Create operation failed at saving departments! " );
+					                logBuilder.append("Failed to save lineItem for projectId : ").append(savedLineItem.getProjectId()).append("\n");
+					                return serviceResponse;
+					            } else {
+					            	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					                serviceResponse.setServiceResponse("Project created successfully! " );
+					            	logBuilder.append("Saved LineItem Successfully for projectId : ").append(savedLineItem.getProjectId()).append("\n");
+			            		}
+					            if (lineItemDTO.getMilestones() != null && !lineItemDTO.getMilestones().isEmpty()) {
+					                for (FCProjectMilestoneDTO milestoneDTO : lineItemDTO.getMilestones()) {
+					                    FCProjectMilestone milestone = new FCProjectMilestone();
+					                    milestone.setId(milestoneDTO.getId());
+					                    milestone.setPoId(milestoneDTO.getPoId());
+					                    milestone.setPoProjectId(milestoneDTO.getProjectId());
+					                    milestone.setProjectId(Long.parseLong(savedProject.getProjectId().toString()));
+					                    milestone.setName(milestoneDTO.getName());
+					                    milestone.setDescription(milestoneDTO.getDescription());
+					                    milestone.setStartDate(milestoneDTO.getStartDate());
+					                    milestone.setEndDate(milestoneDTO.getEndDate());
+					                    milestone.setStatus(milestoneDTO.getStatus());
+					                    milestone.setRemarks(milestoneDTO.getRemarks());
+					                    milestone.setLineItemId(milestoneDTO.getLineItemId());
+					                    milestone.setUpdatedBy(6L); 
+					                    milestone.setUpdatedOn(LocalDateTime.now());
+					                    
+					                    FCProjectMilestone savedMilestone = fCProjectMilestoneRepository.save(milestone);
+							            if(savedMilestone == null) {
+							                logBuilder.append("Failed to save lineItem for projectId : ").append(savedMilestone.getProjectId()).append("\n");
+							                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							                serviceResponse.setServiceResponse("Create operation failed at saving departments! " );
+							                return serviceResponse;
+							            } else {
+							            	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							                serviceResponse.setServiceResponse("Project created successfully! " );
+							                logBuilder.append("Saved LineItem Successfully for projectId : ").append(savedMilestone.getProjectId()).append("\n");
+							            }
+					                }
+					            }
+					        }
+					    }
 		            } catch (Exception e) {
 		                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		                serviceResponse.setServiceResponse("Create operation failed: " + e.getMessage());
+		                logBuilder.append("Create operation failed!");
+		                System.err.println("Create operation failed: " + e.getMessage());
 		                return serviceResponse;
 		            }
-		        } else if ("Update".equals(poPortalProjects.getRequestType())) {
-		            try {
-		            	Project existingProject = projectRepository.findByPoProjectId(poPortalProjects.getId());
-
+				} else if ("Update".equals(poPortalProjects.getRequestType())) {
+					
+				    try {
+				    	Project existingProject = projectRepository.findByPoProjectId(poPortalProjects.getId());
+		
 		    		    if (existingProject != null) {
 		    		        boolean isModified = false;
-
+		
 		    		        if (!Objects.equals(existingProject.getPoNo(), poPortalProjects.getPoNo())) {
 		    		            existingProject.setPoNo(poPortalProjects.getPoNo());
 		    		            isModified = true;
 		    		        }
-
+		
 		    		        if (!Objects.equals(existingProject.getApmosysRM(), poPortalProjects.getApmosysRM())) {
 		    		            existingProject.setApmosysRM(poPortalProjects.getApmosysRM());
 		    		            isModified = true;
 		    		        }
-
+		
 		    		        if (!Objects.equals(existingProject.getApmosysRmEmail(), poPortalProjects.getApmosysRmEmail())) {
 		    		            existingProject.setApmosysRmEmail(poPortalProjects.getApmosysRmEmail());
 		    		            isModified = true;
 		    		        }
-
+		
 		    		        String newActive = poPortalProjects.getStatus() != null && !poPortalProjects.getStatus().equals("Pending")
 		    		                ? "true" : poPortalProjects.getStatus().equals("Completed") ? "false" : null;
 		    		        if (!Objects.equals(existingProject.getActive(), newActive)) {
 		    		            existingProject.setActive(newActive);
 		    		            isModified = true;
 		    		        }
-
+		
 		    		        if (!Objects.equals(existingProject.getClientRM(), poPortalProjects.getClientRM())) {
 		    		            existingProject.setClientRM(poPortalProjects.getClientRM());
 		    		            isModified = true;
 		    		        }
-
+		
 		    		        if (!Objects.equals(existingProject.getPoEndDate(), convertIsoToDate(poPortalProjects.getEndDate()))) {
 		    		            existingProject.setPoEndDate(convertIsoToDate(poPortalProjects.getEndDate()));
 		    		            isModified = true;
 		    		        }
-
+		
 		    		        if (!Objects.equals(existingProject.getPoProjectType(), poPortalProjects.getProjectType())) {
 		    		            existingProject.setPoProjectType(poPortalProjects.getProjectType());
 		    		            isModified = true;
 		    		        }
-
+		
 		    		        if (!Objects.equals(existingProject.getPoStartDate(), convertIsoToDate(poPortalProjects.getStartDate()))) {
 		    		            existingProject.setPoStartDate(convertIsoToDate(poPortalProjects.getStartDate()));
 		    		            isModified = true;
 		    		        }
-
+		
 		    		        if (!Objects.equals(existingProject.getProjectName(), poPortalProjects.getName())) {
 		    		            existingProject.setProjectName(poPortalProjects.getName());
 		    		            isModified = true;
 		    		        }
-
+		
 		    		        if (!Objects.equals(existingProject.getState(), poPortalProjects.getClientState())) {
 		    		            existingProject.setState(poPortalProjects.getClientState());
 		    		            isModified = true;
 		    		        }
-
+		
 		    		        if (!Objects.equals(existingProject.getStatus(), poPortalProjects.getStatus())) {
 		    		            existingProject.setStatus(poPortalProjects.getStatus());
 		    		            isModified = true;
 		    		        }
-
+		
 		    		        String joinedLocations = poPortalProjects.getClientLocation() != null ?
 		    		            String.join(", ", poPortalProjects.getClientLocation()) : null;
-
+		
 		    		        if (!Objects.equals(existingProject.getClientLocation(), joinedLocations)) {
 		    		            existingProject.setClientLocation(joinedLocations);
 		    		            isModified = true;
 		    		        }
-
+		
 		    		        String input = poPortalProjects.getCreatedOn();
 		    		        if (input != null) {
 		    		            ZonedDateTime zdt = ZonedDateTime.parse(input);
 		    		            Timestamp parsedCreatedOn = Timestamp.valueOf(zdt.toLocalDateTime());
-
+		
 		    		            if (!Objects.equals(existingProject.getCreatedOn(), parsedCreatedOn)) {
 		    		                existingProject.setCreatedOn(parsedCreatedOn);
 		    		                isModified = true;
@@ -8564,7 +8663,7 @@ public class ResourceManagementService {
 		    		        
 		    		        Integer clientId = existingProject.getClientId();
 		    		        Client currentClient = clientId != null ? clientsRepository.findById(clientId).orElse(null) : null;
-
+		
 		    		        if (currentClient == null || !currentClient.getClientName().equals(poPortalProjects.getClientName())) {
 		    		            Optional<Client> existingClientOpt = clientsRepository.findByClientName(poPortalProjects.getClientName());
 		    		            Client newClient;
@@ -8574,15 +8673,26 @@ public class ResourceManagementService {
 		    		                newClient = new Client();
 		    		                newClient.setClientName(poPortalProjects.getClientName());
 		    		                newClient = clientsRepository.save(newClient);
+		    		                
+		    		                if(newClient == null) {
+		    		                	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						                serviceResponse.setServiceResponse("Failed to update the new client!" );
+						                logBuilder.append("Client could not be saved successfully ");
+						                return serviceResponse;
+						            } else {
+						            	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						                serviceResponse.setServiceResponse("Client updated successfully! " );
+						                logBuilder.append("Client saved successfully ");
+						            }
 		    		            }
 		    		            existingProject.setClientId(newClient.getClientId());
 		    		            isModified = true;
 		    		        }
-
+		
 		    		        List<ClientLocation> existingLocations = clientLocationRepository.findByClientId(existingProject.getClientId());
 		    		        List<String> dbLocations = existingLocations.stream().map(ClientLocation::getClientLocation).collect(Collectors.toList());
 		    		        List<String> newLocations = Arrays.asList(poPortalProjects.getClientLocation());
-
+		
 		    		        if (!new HashSet<>(dbLocations).equals(new HashSet<>(newLocations))) {
 		    		            clientLocationRepository.deleteAll(existingLocations);
 		    		            List<ClientLocation> newClientLocs = newLocations.stream().map(loc -> {
@@ -8591,146 +8701,296 @@ public class ResourceManagementService {
 		    		                cl.setClientLocation(loc);
 		    		                return cl;
 		    		            }).collect(Collectors.toList());
-
-		    		            clientLocationRepository.saveAll(newClientLocs);
-		    		        }
-
-		    		        List<ProjectDepartmentMap> existingDeptMap = projectDepartmentMapRepository.findByProjectId(existingProject.getProjectId());
-		    		        Set<Long> existingDeptIds = existingDeptMap.stream().map(ProjectDepartmentMap::getDeptId).collect(Collectors.toSet());
-		    		        Set<Long> newDeptIds = new HashSet<>();
-
-		    		        for (String deptName : poPortalProjects.getDepartment()) {
-		    		            Department dept = departmentRepository.findByName(deptName);
-		    		            if (dept != null) newDeptIds.add(dept.getDeptId());
-		    		        }
-
-		    		        if (!existingDeptIds.equals(newDeptIds)) {
-		    		            projectDepartmentMapRepository.deleteAll(existingDeptMap);
-		    		            List<ProjectDepartmentMap> newMappings = newDeptIds.stream().map(id -> {
-		    		                ProjectDepartmentMap pdm = new ProjectDepartmentMap();
-		    		                pdm.setDeptId(id);
-		    		                pdm.setProjectId(existingProject.getProjectId());
-		    		                return pdm;
-		    		            }).collect(Collectors.toList());
-		    		            projectDepartmentMapRepository.saveAll(newMappings);
-		    		        }
-
-		    		        List<ResourceRequirementDTO> existingReqList = resourceRequirementRepository.findByProjectId(existingProject.getProjectId());
-		    		        Map<Long, ResourceRequirementDTO> existingReqMap = new HashMap<>();
-		    		        for (ResourceRequirementDTO r : existingReqList) {
-		    		            if (r.getResourceOverviewId() != null) {
-		    		                existingReqMap.put(r.getResourceOverviewId(), r);
-		    		            }
-		    		        }
-
-		    		        for (ResourceRequirementDTO req : poPortalProjects.getResourceRequirements()) {
-		    		            Long overviewId = req.getResourceOverviewId() != null ? Long.parseLong(req.getResourceOverviewId().toString()) : null;
-		    		            if (overviewId == null) continue;
-
-		    		            ResourceRequirementDTO existing = existingReqMap.get(overviewId);
-		    		            if (existing != null) {
-		    		                boolean needsUpdate =
-		    		                    !Objects.equals(existing.getCount(), req.getCount()) ||
-		    		                    !Objects.equals(existing.getDepartment(), req.getDepartment()) ||
-		    		                    !Objects.equals(existing.getExperience(), req.getExperience()) ||
-		    		                    !Objects.equals(existing.getRole(), req.getRole());
-
-		    		                if (needsUpdate) {
-		    		                    ResourceRequirement updatedEntity = new ResourceRequirement();
-		    		                    updatedEntity.setProjectId(existingProject.getProjectId());
-		    		                    updatedEntity.setResourceOverviewId(overviewId);
-		    		                    updatedEntity.setCount(req.getCount());
-		    		                    updatedEntity.setDepartment(req.getDepartment());
-		    		                    updatedEntity.setExperience(req.getExperience());
-		    		                    updatedEntity.setRole(req.getRole());
-		    		                    resourceRequirementRepository.save(updatedEntity);
-		    		                }
-		    		            } else {
-		    		                ResourceRequirement newEntity = new ResourceRequirement();
-		    		                newEntity.setProjectId(existingProject.getProjectId());
-		    		                newEntity.setResourceOverviewId(overviewId);
-		    		                newEntity.setCount(req.getCount());
-		    		                newEntity.setDepartment(req.getDepartment());
-		    		                newEntity.setExperience(req.getExperience());
-		    		                newEntity.setRole(req.getRole());
-		    		                ResourceRequirement rr =resourceRequirementRepository.save(newEntity);
+		
+		    		            List<ClientLocation> clientLoc= clientLocationRepository.saveAll(newClientLocs);
+		    		            
+		    		            if(clientLoc.isEmpty()|| clientLoc == null) {
+	    		                	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					                serviceResponse.setServiceResponse("Failed to update the new client location!" );
+					                logBuilder.append("Client location could not be added ");
+					                return serviceResponse;
+					            } else {
+					            	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					                serviceResponse.setServiceResponse("Client location updated successfully! " );
+					                logBuilder.append("Client location saved successfully ");
+					            }
+					        }
+					
+							existingProject.setUpdatedBy(6l);
+						    
+						    String input2 = poPortalProjects.getUpdatedOn();
+						    if (input2 != null) {
+						        existingProject.setUpdatedOn(LocalDateTime.now());
+						    } else {
+						    	existingProject.setUpdatedOn(null);
+						    }		
+					
+						    if (isModified) {
+						        Project updateProj = projectRepository.save(existingProject);
+						        String log = "Project updated successfully with PoProjectId: " + poPortalProjects.getId();
+						        System.out.println(log);
+						        logBuilder.append(log).append("\n");
+						        
+						        if(updateProj == null) {
+						        	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					                serviceResponse.setServiceResponse("Update operation failed ! " );
+					                logBuilder.append("Update operation failed to save project");
+					                return serviceResponse;
+					            } else {
+					            	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					                serviceResponse.setServiceResponse("Project updated successfully! " );
+					                logBuilder.append("Project updated successfully!");
+					            }
+						    } else {
+						        String log = "No changes detected for PoProjectId: " + poPortalProjects.getId();
+						        System.out.println(log);
+						        logBuilder.append(log).append("\n");
+						        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				                serviceResponse.setServiceResponse("Project updated successfully!" );
+				                logBuilder.append("Project was already updated in Ishine!");
+						    }
+					
+					        List<ProjectDepartmentMap> existingDeptMap = projectDepartmentMapRepository.findByProjectId(existingProject.getProjectId());
+					        Set<Long> existingDeptIds = existingDeptMap.stream().map(ProjectDepartmentMap::getDeptId).collect(Collectors.toSet());
+					        Set<Long> newDeptIds = new HashSet<>();
+			
+					        for (String deptName : poPortalProjects.getDepartment()) {
+					            Department dept = departmentRepository.findByName(deptName);
+					            if (dept != null) newDeptIds.add(dept.getDeptId());
+					        }
+			
+					        if (!existingDeptIds.equals(newDeptIds)) {
+					            projectDepartmentMapRepository.deleteAll(existingDeptMap);
+					            List<ProjectDepartmentMap> newMappings = newDeptIds.stream().map(id -> {
+					                ProjectDepartmentMap pdm = new ProjectDepartmentMap();
+					                pdm.setDeptId(id);
+					                pdm.setProjectId(existingProject.getProjectId());
+					                return pdm;
+					            }).collect(Collectors.toList());
+					            List<ProjectDepartmentMap> pdm = projectDepartmentMapRepository.saveAll(newMappings);
+					            if(pdm == null) {
+				                	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					                serviceResponse.setServiceResponse("Create operation failed at saving departments! " );
+					                logBuilder.append("Create operation failed at saving departments!  \n");	
+					                return serviceResponse;
+				                } else {
+				                	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					                serviceResponse.setServiceResponse("Project created successfully! " );
+					                logBuilder.append("Project created successfully! \n");
+				                }
+					        }
+			
+					        List<ResourceRequirementDTO> existingReqList = resourceRequirementRepository.findByProjectId(existingProject.getProjectId());
+					        Map<Long, ResourceRequirementDTO> existingReqMap = new HashMap<>();
+					        for (ResourceRequirementDTO r : existingReqList) {
+					            if (r.getResourceOverviewId() != null) {
+					                existingReqMap.put(r.getResourceOverviewId(), r);
+					            }
+					        }
+			
+					        for (ResourceRequirementDTO req : poPortalProjects.getResourceRequirements()) {
+					            Long overviewId = req.getResourceOverviewId() != null ? Long.parseLong(req.getResourceOverviewId().toString()) : null;
+					            if (overviewId == null) continue;
+				
+					            ResourceRequirementDTO existing = existingReqMap.get(overviewId);
+					            if (existing != null) {
+					                boolean needsUpdate =
+					                    !Objects.equals(existing.getCount(), req.getCount()) ||
+					                    !Objects.equals(existing.getDepartment(), req.getDepartment()) ||
+					                    !Objects.equals(existing.getExperience(), req.getExperience()) ||
+					                    !Objects.equals(existing.getRole(), req.getRole());
+				
+			                		if (needsUpdate) {
+					                    ResourceRequirement updatedEntity = new ResourceRequirement();
+					                    updatedEntity.setProjectId(existingProject.getProjectId());
+					                    updatedEntity.setResourceOverviewId(overviewId);
+					                    updatedEntity.setCount(req.getCount());
+					                    updatedEntity.setDepartment(req.getDepartment());
+					                    updatedEntity.setExperience(req.getExperience());
+					                    updatedEntity.setRole(req.getRole());
+					                    
+					                    ResourceRequirement rr = resourceRequirementRepository.save(updatedEntity);
+				                        if (rr == null) {
+				                        	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							                serviceResponse.setServiceResponse("Update operation failed at saving resource requirement! " );
+							                return serviceResponse;
+				                        }else {
+				                        	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							                serviceResponse.setServiceResponse("Project updated successfully! " );
+				                        }
+					                }
+					            } else {
+					                ResourceRequirement newEntity = new ResourceRequirement();
+					                newEntity.setProjectId(existingProject.getProjectId());
+					                newEntity.setResourceOverviewId(overviewId);
+					                newEntity.setCount(req.getCount());
+					                newEntity.setDepartment(req.getDepartment());
+					                newEntity.setExperience(req.getExperience());
+					                newEntity.setRole(req.getRole());
+					                ResourceRequirement rr =resourceRequirementRepository.save(newEntity);
 		    		                
-		    		                if(rr != null) {
-			    		    			logBuilder.append("Project resource  updated in Ishine successfully");
+					                if (rr == null) {
+			                        	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						                serviceResponse.setServiceResponse("Update operation failed at saving resource requirement! " );
+						                logBuilder.append("Project resource requirement failed to save in Ishine");
+			                        	System.out.println("Project resource requirement failed to save in Ishine");
+						                return serviceResponse;
+			                        }else {
+			                        	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						                serviceResponse.setServiceResponse("Project updated successfully! " );
+						                logBuilder.append("Project resource  updated in Ishine successfully");
 			                        	System.out.println("Project details updated in Ishine successfully");
-		    		                }
-		    		            }
+			                        }
+		    		            }							
 		    		        }
-		    		        
-		    		        existingProject.setUpdatedBy(6l);
-		    			    
-		    			    String input2 = poPortalProjects.getUpdatedOn();
-		    			    if (input2 != null) {
-		    			        existingProject.setUpdatedOn(LocalDateTime.now());
-		    			        existingProject.setUpdatedBy(6l);
-		    			    } else {
-		    			    	existingProject.setUpdatedOn(null);
-		    			    }		
-
-		    		        if (isModified) {
-		    		            projectRepository.save(existingProject);
-		    		            System.out.println("Project updated successfully with PoProjectId: " + poPortalProjects.getId());
-		    		        } else {
-		    		            System.out.println("No changes detected for PoProjectId: " + poPortalProjects.getId());
-		    		        }
-		    		    } else {
-		    		        System.out.println("No project found with PoProjectId: " + poPortalProjects.getId());
-		    		    }
-		    		    
-		    		    serviceResponse.setServiceResponse("Project details updated in Ishine successfully");
-		    			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		    			logBuilder.append("Project details updated in Ishine successfully");
-                    	System.out.println("Project details updated in Ishine successfully");
-		    			
-		            } catch (Exception e) {
+					        
+				         List<FCLineItemDTO> lineItemDTOList = poPortalProjects.getFcLineItemDtoList();
+				        
+				         if (lineItemDTOList != null && !lineItemDTOList.isEmpty()) {
+					        for (FCLineItemDTO lineItemDTO : lineItemDTOList) {
+					            FCLineItem existingLineItem = (lineItemDTO.getId() != null)
+					                ? fCLineItemRepository.findById(lineItemDTO.getId()).orElse(null)
+					                : null;
+				
+					            boolean isNewLineItem = existingLineItem == null;
+					            if (isNewLineItem) {
+					                existingLineItem = new FCLineItem();
+					            }
+				
+					            boolean isLineItemChanged = 
+					                !Objects.equals(existingLineItem.getPoId(), lineItemDTO.getPoId()) ||
+					                !Objects.equals(existingLineItem.getPoProjectId(), lineItemDTO.getProjectId()) ||
+					                !Objects.equals(existingLineItem.getName(), lineItemDTO.getName()) ||
+					                !Objects.equals(existingLineItem.getStatus(), lineItemDTO.getStatus());
+				
+					            if (isNewLineItem || isLineItemChanged) {
+					                existingLineItem.setPoId(lineItemDTO.getPoId());
+					                existingLineItem.setProjectId(Long.parseLong(existingProject.getProjectId().toString()));
+					                existingLineItem.setPoProjectId(lineItemDTO.getProjectId());
+					                existingLineItem.setName(lineItemDTO.getName());
+					                existingLineItem.setStatus(lineItemDTO.getStatus());
+				
+					                FCLineItem savedLineItem = fCLineItemRepository.save(existingLineItem);
+					                
+					                if(savedLineItem == null) {
+						            	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						                serviceResponse.setServiceResponse("Create operation failed at saving LineItems! " );
+						                logBuilder.append("Failed to save lineItem for projectId : ").append(savedLineItem.getProjectId()).append("\n");
+						                return serviceResponse;
+						            } else {
+						            	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						                serviceResponse.setServiceResponse("Project created successfully! " );
+						            	logBuilder.append("Saved LineItem Successfully for projectId : ").append(savedLineItem.getProjectId()).append("\n");
+						            	logBuilder.append("Saved/Updated LineItem for projectId: ").append(savedLineItem.getProjectId()).append("\n");
+						            	System.out.println("Saved/Updated Milestone for projectId: " + savedLineItem.getProjectId());
+				            		}
+					            }
+				
+					            if (lineItemDTO.getFcProjectMilestoneDTOList() != null &&
+					                !lineItemDTO.getFcProjectMilestoneDTOList().isEmpty()) {
+				
+					                for (FCProjectMilestoneDTO milestoneDTO : lineItemDTO.getFcProjectMilestoneDTOList()) {
+					                    FCProjectMilestone existingMilestone = (milestoneDTO.getId() != null)
+					                        ? fCProjectMilestoneRepository.findById(milestoneDTO.getId()).orElse(null)
+					                        : null;
+				
+					                    boolean isNewMilestone = existingMilestone == null;
+					                    if (isNewMilestone) {
+					                        existingMilestone = new FCProjectMilestone();
+					                    }
+				
+					                    boolean isMilestoneChanged =
+					                        !Objects.equals(existingMilestone.getName(), milestoneDTO.getName()) ||
+					                        !Objects.equals(existingMilestone.getDescription(), milestoneDTO.getDescription()) ||
+					                        !Objects.equals(existingMilestone.getStartDate(), milestoneDTO.getStartDate()) ||
+					                        !Objects.equals(existingMilestone.getEndDate(), milestoneDTO.getEndDate()) ||
+					                        !Objects.equals(existingMilestone.getStatus(), milestoneDTO.getStatus()) ||
+					                        !Objects.equals(existingMilestone.getRemarks(), milestoneDTO.getRemarks());
+				
+					                    if (isNewMilestone || isMilestoneChanged) {
+					                        existingMilestone.setPoId(milestoneDTO.getPoId());
+					                        existingMilestone.setPoProjectId(milestoneDTO.getPoProjectId());
+					                        existingMilestone.setProjectId(Long.parseLong(existingProject.getProjectId().toString()));
+					                        existingMilestone.setName(milestoneDTO.getName());
+					                        existingMilestone.setDescription(milestoneDTO.getDescription());
+					                        existingMilestone.setStartDate(milestoneDTO.getStartDate());
+					                        existingMilestone.setEndDate(milestoneDTO.getEndDate());
+					                        existingMilestone.setStatus(milestoneDTO.getStatus());
+					                        existingMilestone.setRemarks(milestoneDTO.getRemarks());
+					                        existingMilestone.setLineItemId(existingLineItem.getId());
+					                        existingMilestone.setUpdatedBy(6L);
+					                        existingMilestone.setUpdatedOn(LocalDateTime.now());
+				
+					                        FCProjectMilestone savedMilestone = fCProjectMilestoneRepository.save(existingMilestone);
+					                        
+					                        if(savedMilestone == null) {
+								                logBuilder.append("Failed to save lineItem for projectId : ").append(savedMilestone.getProjectId()).append("\n");
+								                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+								                serviceResponse.setServiceResponse("Create operation failed at saving MileStones! " );
+								                return serviceResponse;
+								            } else {
+								            	serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+								                serviceResponse.setServiceResponse("Project created successfully! " );
+								                logBuilder.append("Saved LineItem Successfully for projectId : ").append(savedMilestone.getProjectId()).append("\n");
+								            }
+					                    }
+					                }
+					            }
+					        }
+					    }
+				        
+				    } else {
+				        System.out.println("No project found with PoProjectId: " + poPortalProjects.getId());
+				    }
+				    
+				    serviceResponse.setServiceResponse(poPortalProjects);
+					serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				    }catch (Exception e) {
 		                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		                serviceResponse.setServiceResponse("Update operation failed: " + e.getMessage());
 		                return serviceResponse;
 		            }
-		        } else if("delete".equals(poPortalProjects.getRequestType())) {
-		            try {
-		                Project existingProject = projectRepository.findByPoProjectId(poPortalProjects.getId());
-
+				    
+				} else if("Delete".equals(poPortalProjects.getRequestType())) {
+					
+				    try {
+				    	Project existingProject = projectRepository.findByPoProjectId(poPortalProjects.getId());
+		
 		                if (existingProject != null) {
 		                    existingProject.setActive("false");
 		                    existingProject.setUpdatedBy(6l);
 		                    Project inactiveProj = projectRepository.save(existingProject);
-
+		
 		                    List<ProjectManagerMapping> activePMs = projectManagerMappingRepository.findByProjectIdAndActive(Long.parseLong(existingProject.getProjectId().toString()), 1);
 		                    for (ProjectManagerMapping pm : activePMs) {
 		                        pm.setActive(0);
 		                        pm.setUpdatedBy(6l);
 		                        pm.setUpdatedOn(LocalDateTime.now());
 		                    }
-
+		
 		                    List<ProjectManagerMapping> inactivePM = projectManagerMappingRepository.saveAll(activePMs);
 		                    
 		                    if(inactivePM.isEmpty() || inactivePM != null) {
 		                    	logBuilder.append("Project manager mappings made inactive Successfully in Ishine");
 		                    	System.out.println("Project manager mappings made inactive Successfully in Ishine");
 		                    }
-
+		
 		                    List<ProjectOverheadMapping> activeOverheads = projectOverheadMappingRepository.findByProjectIdAndActive(Long.parseLong(existingProject.getProjectId().toString()), 1);
 		                    for (ProjectOverheadMapping oh : activeOverheads) {
 		                        oh.setActive(0);
 		                        oh.setUpdatedBy(6l);
 		                        oh.setUpdatedOn(LocalDateTime.now());
 		                    }
-
+		
 		                    List<ProjectOverheadMapping> inactivePO = projectOverheadMappingRepository.saveAll(activeOverheads);
 		                    
 		                    if(inactivePO.isEmpty() || inactivePO != null) {
 		                    	logBuilder.append("Project overhead mappings made inactive Successfully in Ishine");
 		                    	System.out.println("Project overhead mappings made inactive Successfully in Ishine");
 		                    }
-
+		
 			                if(inactiveProj != null) {
-
+		
 			                    System.out.println("Project updated successfully with PoProjectId: " + poPortalProjects.getId());
 			                    logBuilder.append("Project updated successfully with PoProjectId: ")
 			                    .append(poPortalProjects.getId());
@@ -8746,7 +9006,7 @@ public class ResourceManagementService {
 		                    serviceResponse.setServiceResponse("Project not found in Ishine Portal!");
 			                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			                
-	                    }
+		                }
 		            } catch (Exception e) {
 		                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		                serviceResponse.setServiceResponse("Delete operation failed: " + e.getMessage());

@@ -19,6 +19,7 @@ public class FCLineItem {
 	private Long poId;
 
 	private Long projectId;
+	private Long poProjectId;
 
 	private String name;
 

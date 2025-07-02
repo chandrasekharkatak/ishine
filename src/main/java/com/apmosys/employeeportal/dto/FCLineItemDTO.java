@@ -14,11 +14,13 @@ public class FCLineItemDTO {
 	private Long poId;
 
 	private Long projectId;
+	private Long poProjectId;
 
 	private String name;
 
 	private String status;
 	
 	private List<FCProjectMilestoneDTO>  fcProjectMilestoneDTOList;
+	private List<FCProjectMilestoneDTO>  milestones;
 
 }
