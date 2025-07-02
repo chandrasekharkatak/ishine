@@ -32,6 +32,7 @@ import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
+import org.apache.logging.log4j.LogBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,6 +128,8 @@ import com.apmosys.employeeportal.repository.ResourceRequirementTempRepo;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 
 @Service
 public class ResourceManagementService {
@@ -6414,9 +6417,6 @@ public class ResourceManagementService {
 	    return response;
 	}
 
-
-	
-	
 	@Transactional
 	private ServiceResponse setProjectOverheads(ResourceManagementDTO resourceManagementDTO, Project projectDbResponse) {
 		ServiceResponse response = new ServiceResponse();
@@ -6424,87 +6424,103 @@ public class ResourceManagementService {
 		apiLogInfo.setSubFeatureName("setProjectOverheads");
 		apiLogInfo.setApiUrl("/api/setProjectOverheads");
 		apiLogInfo.setLogLevel("INFO");
+
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("\n setProjectOverheads ");
 
 		try {
+			if (resourceManagementDTO == null || projectDbResponse == null) {
+				logBuilder.append("\n Invalid input: resourceManagementDTO or projectDbResponse is null");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid input");
+				return response;
+			}
 
-			Project project = null;
-			if (!resourceManagementDTO.getProjectManagerId().isEmpty()) {
+			if (resourceManagementDTO.getProjectManagerId() == null || resourceManagementDTO.getProjectManagerId().isEmpty()) {
+				logBuilder.append("\n Project Manager ID is empty. Skipping overhead assignment.");
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("No project manager ID provided.");
+				return response;
+			}
 
-				if (resourceManagementDTO.getProjectType().equals("Internal")) {
-					project = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+			Project project;
+			if ("Internal".equals(resourceManagementDTO.getProjectType())) {
+				project = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+			} else {
+				project = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+			}
 
-				} else {
-					project = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
-				}
+			if (project == null || project.getProjectId() == null) {
+				logBuilder.append("\n Project not found.");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found.");
+				return response;
+			}
 
-//				Project project = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+			List<ProjectOverheadMapping> existingMappings = projectOverheadMappingRepository
+					.findByProjectId(Long.parseLong(project.getProjectId().toString()));
 
-				List<ProjectOverheadMapping> existingMappings = projectOverheadMappingRepository
-						.findByProjectId(Long.parseLong(project.getProjectId().toString()));
+			List<Long> newOverheadIds = resourceManagementDTO.getProjectOverheadId();
+			Set<Long> newOverheadIdsSet = (newOverheadIds != null) ? new HashSet<>(newOverheadIds) : new HashSet<>();
 
-				List<Long> newOverheadIds = resourceManagementDTO.getProjectOverheadId();
-				
+			if (existingMappings != null && !existingMappings.isEmpty()) {
 				Set<Long> existingOverheadIds = existingMappings.stream()
 						.filter(mapping -> mapping.getActive() == 1)
 						.map(ProjectOverheadMapping::getProjectOverheadId)
 						.collect(Collectors.toSet());
 
-				Set<Long> newOverheadIdsSet = new HashSet<>(newOverheadIds);
-
-				// If no change then return
-				if (existingOverheadIds.equals(newOverheadIdsSet)) {
+				if (!existingOverheadIds.isEmpty() && existingOverheadIds.equals(newOverheadIdsSet)) {
 					logBuilder.append("\n No changes detected in project overheads.");
 					response.setServiceResponse("No changes detected in project overheads.");
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					return response;
 				}
 
-				// In case a existing project overhead is deselected and sent
-				existingMappings.forEach(existingMapping -> {
-					if (!newOverheadIds.contains(existingMapping.getProjectOverheadId())) {
+				// Deactivate removed overheads
+				for (ProjectOverheadMapping existingMapping : existingMappings) {
+					if (!newOverheadIdsSet.contains(existingMapping.getProjectOverheadId())) {
 						existingMapping.setActive(0);
 						existingMapping.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
 						existingMapping.setUpdatedOn(LocalDateTime.now());
 						projectOverheadMappingRepository.save(existingMapping);
 					}
-				});
+				}
+			}
 
-				// In case project overhead was present but made inactive then make active again
-				// in the same row
-				newOverheadIds.forEach(overheadId -> {
-					ProjectOverheadMapping existingMapping = projectOverheadMappingRepository
-							.findByProjectIdAndProjectOverheadId(
-									Long.parseLong(projectDbResponse.getProjectId().toString()), overheadId);
+			// Add or reactivate new overheads
+			for (Long overheadId : newOverheadIdsSet) {
+				if (overheadId == null) continue;
 
-					if (existingMapping == null) {
-						ProjectOverheadMapping newMapping = new ProjectOverheadMapping();
-						newMapping.setProjectId(Long.parseLong(projectDbResponse.getProjectId().toString()));
-						newMapping.setProjectOverheadId(overheadId);
-						newMapping.setActive(1);
-						newMapping.setCreatedBy(resourceManagementDTO.getCreatedBy());
-						newMapping.setCreatedOn(new Timestamp(System.currentTimeMillis()));
-						projectOverheadMappingRepository.save(newMapping);
-					} else {
-						existingMapping.setActive(1);
-						existingMapping.setUpdatedBy(resourceManagementDTO.getCreatedBy());
-						existingMapping.setUpdatedOn(LocalDateTime.now());
-						projectOverheadMappingRepository.save(existingMapping);
-					}
-				});
+				ProjectOverheadMapping existingMapping = projectOverheadMappingRepository
+						.findByProjectIdAndProjectOverheadId(Long.parseLong(projectDbResponse.getProjectId().toString()), overheadId);
+
+				if (existingMapping == null) {
+					ProjectOverheadMapping newMapping = new ProjectOverheadMapping();
+					newMapping.setProjectId(Long.parseLong(projectDbResponse.getProjectId().toString()));
+					newMapping.setProjectOverheadId(overheadId);
+					newMapping.setActive(1);
+					newMapping.setCreatedBy(resourceManagementDTO.getCreatedBy());
+					newMapping.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+					projectOverheadMappingRepository.save(newMapping);
+				} else {
+					existingMapping.setActive(1);
+					existingMapping.setUpdatedBy(resourceManagementDTO.getCreatedBy());
+					existingMapping.setUpdatedOn(LocalDateTime.now());
+					projectOverheadMappingRepository.save(existingMapping);
+				}
 			}
 
 			response.setServiceResponse("Project Overhead saved successfully!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			logBuilder.append("\n Project Overhead saved successfully!");
 
-			return response;
 		} catch (Exception e) {
 			e.printStackTrace();
+			logBuilder.append("\n Exception: ").append(e.getMessage());
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("\n Something went wrong!");
-		}   
+			response.setServiceResponse("Something went wrong!");
+		}
+
 		return response;
 	}
 	
@@ -8358,16 +8374,16 @@ public class ResourceManagementService {
 		                      "Completed".equals(poData.getStatus()) ? null : "true");
 		    project.setIsDraftProject(null);
 		    project.setClientRM(poData.getClientRM());
-		    project.setPoEndDate(poData.getEndDate());
+		    project.setPoEndDate(convertIsoToDate(poData.getEndDate()));
 		    project.setPoProjectType(poData.getProjectType());
-		    project.setPoStartDate(poData.getStartDate());
+		    project.setPoStartDate(convertIsoToDate(poData.getStartDate()));
 		    project.setProjectName(poData.getName());
 		    project.setState(poData.getClientState());
 		    project.setProjectCompletionDate(poData.getProjectCompletionDate());
 		    project.setProjectStatus(poData.getProjectStatus());
 		    project.setStatus(poData.getStatus());
 		    
-//		    project.setCreatedBy(poData.getCreatedBy());
+		    project.setCreatedBy(6l);
 
 		    if (poData.getCreatedOn() != null) {
 		        ZonedDateTime zdt = ZonedDateTime.parse(poData.getCreatedOn());
@@ -8465,6 +8481,7 @@ public class ResourceManagementService {
 		            }
 		        }
 		    }
+		    
 		} else if ("Update".equals(poPortalProjects.getRequestType())) {
 			
 		    Project existingProject = projectRepository.findByPoProjectId(poPortalProjects.getId());
@@ -8499,8 +8516,8 @@ public class ResourceManagementService {
 		            isModified = true;
 		        }
 
-		        if (!Objects.equals(existingProject.getPoEndDate(), poPortalProjects.getEndDate())) {
-		            existingProject.setPoEndDate(poPortalProjects.getEndDate());
+		        if (!Objects.equals(existingProject.getPoEndDate(), convertIsoToDate(poPortalProjects.getEndDate()))) {
+		            existingProject.setPoEndDate(convertIsoToDate(poPortalProjects.getEndDate()));
 		            isModified = true;
 		        }
 
@@ -8509,8 +8526,8 @@ public class ResourceManagementService {
 		            isModified = true;
 		        }
 
-		        if (!Objects.equals(existingProject.getPoStartDate(), poPortalProjects.getStartDate())) {
-		            existingProject.setPoStartDate(poPortalProjects.getStartDate());
+		        if (!Objects.equals(existingProject.getPoStartDate(), convertIsoToDate(poPortalProjects.getStartDate()))) {
+		            existingProject.setPoStartDate(convertIsoToDate(poPortalProjects.getStartDate()));
 		            isModified = true;
 		        }
 
@@ -8521,16 +8538,6 @@ public class ResourceManagementService {
 
 		        if (!Objects.equals(existingProject.getState(), poPortalProjects.getClientState())) {
 		            existingProject.setState(poPortalProjects.getClientState());
-		            isModified = true;
-		        }
-
-		        if (!Objects.equals(existingProject.getProjectCompletionDate(), poPortalProjects.getProjectCompletionDate())) {
-		            existingProject.setProjectCompletionDate(poPortalProjects.getProjectCompletionDate());
-		            isModified = true;
-		        }
-
-		        if (!Objects.equals(existingProject.getProjectStatus(), poPortalProjects.getProjectStatus())) {
-		            existingProject.setProjectStatus(poPortalProjects.getProjectStatus());
 		            isModified = true;
 		        }
 
@@ -8663,7 +8670,7 @@ public class ResourceManagementService {
 		            }
 		        }
 		        
-//			    data.setUpdatedBy(poData.getUpdatedBy());
+		        existingProject.setUpdatedBy(6l);
 			    
 			    String input2 = poPortalProjects.getUpdatedOn();
 			    if (input2 != null) {
@@ -8691,13 +8698,13 @@ public class ResourceManagementService {
 
 		    if (existingProject != null) {
 		        existingProject.setActive("false");
-//		        existingProject.setUpdatedBy(poPortalProjects.getUpdatedBy());
+		        existingProject.setUpdatedBy(6l);
 		        projectRepository.save(existingProject);
 
 		        List<ProjectManagerMapping> activePMs = projectManagerMappingRepository.findByProjectIdAndActive(Long.parseLong(existingProject.getProjectId().toString()), 1);
 		        for (ProjectManagerMapping pm : activePMs) {
 		            pm.setActive(0);
-//		            pm.setUpdatedBy(poPortalProjects.getUpdatedBy());
+		            pm.setUpdatedBy(6l);
 		            pm.setUpdatedOn(LocalDateTime.now());
 		        }
 		        
@@ -8706,9 +8713,10 @@ public class ResourceManagementService {
 		        List<ProjectOverheadMapping> activeOverheads = projectOverheadMappingRepository.findByProjectIdAndActive(Long.parseLong(existingProject.getProjectId().toString()), 1);
 		        for (ProjectOverheadMapping oh : activeOverheads) {
 		            oh.setActive(0);
-//		            oh.setUpdatedBy(poPortalProjects.getUpdatedBy());
+		            oh.setUpdatedBy(6l);
 		            oh.setUpdatedOn(LocalDateTime.now());
 		        }
+		        
 		        projectOverheadMappingRepository.saveAll(activeOverheads);
 
 		        System.out.println("Project updated successfully with PoProjectId: " + poPortalProjects.getId());
@@ -8790,5 +8798,21 @@ public class ResourceManagementService {
 			}
 		}
 	}
+	
+	public static String convertIsoToDate(String isoDateString) {
+		StringBuilder logInfo = new StringBuilder();
+        try {
+            OffsetDateTime offsetDateTime = OffsetDateTime.parse(isoDateString);
+            return offsetDateTime.toLocalDate().toString();
+        } catch (DateTimeParseException | NullPointerException e) {
+        	
+        	logInfo.append("Failed to parse date: ").append(isoDateString)
+            .append(" | Exception: ").append(e.getClass().getSimpleName())
+            .append(" - ").append(e.getMessage());
+     
+        	System.err.println(logInfo.toString());
+        	return null;
+        }
+    }
 
 }
