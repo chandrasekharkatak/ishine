@@ -317,13 +317,6 @@ public class ResourceManagementController {
 	    return resourceManagementService.getEmployeeInformation(empId);
 	}
 	
-	
-
-	@PostMapping("/poCrudOperationsInIshine")
-	public ServiceResponse importAllNotStartedProjects(@RequestBody ResourceManagementDTO resourceManagementDTO) {
-		return resourceManagementService.crudOnAllNotstartedProjs(resourceManagementDTO);
-	}
-	
 	@GetMapping("/poDump")
 	public ServiceResponse getAllPOPortalDumpInIshineTemp() {
 		return resourceManagementService.dumpPODataInIshine();
@@ -395,5 +388,9 @@ public class ResourceManagementController {
 	public ServiceResponse getDeptsByUser(@RequestBody Long currentUserEmpId) {
 	    return resourceManagementService.getDeptsByUser(currentUserEmpId);
 	}
-
+	
+	@PostMapping("/poCrudOperationsInIshine")
+	public ServiceResponse poCrudOperationsInIshine(@RequestBody ResourceManagementDTO poPortalProjects) {
+	    return resourceManagementService.poCrudOperationsInIshine(poPortalProjects);
+	}
 }

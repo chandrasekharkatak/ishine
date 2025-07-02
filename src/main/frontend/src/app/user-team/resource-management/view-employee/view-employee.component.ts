@@ -208,6 +208,11 @@ getHierarchicalSrNo1(pIndex: number, tIndex: number, eIndex: number): string {
     return (this.page - 1) * itemsPerPage + localPIndex;
   }
 
+  getGlobalProjectIndex2(localPIndex: number): number {
+    const itemsPerPage = 10; // Match with HTML
+    return (this.page - 1) * itemsPerPage + localPIndex;
+  }
+
   toggleSearch() {
     this.isSearchEnabled = !this.isSearchEnabled;
     if (!this.isSearchEnabled) {
