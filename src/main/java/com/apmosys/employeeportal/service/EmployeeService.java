@@ -7506,9 +7506,9 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 
         try {
 
-        	Optional<Long> actualHodIdOptional = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());
+        	Long actualHodIdOptional = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());
 
-        	if (actualHodIdOptional.isEmpty()) {
+        	if (actualHodIdOptional != null) {
         	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
         	    response.setServiceResponse("Could not determine the HOD for employee " + employeeDto.getEmpId() + ". The employee may not be assigned to a department.");
         	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -7516,10 +7516,10 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
         	    return response;
         	}
 
-        	Long actualHodId = actualHodIdOptional.get();
-        	if (!actualHodId.equals(employeeDto.getHodId())) {
+//        	Long actualHodId = actualHodIdOptional.get();
+        	if (actualHodIdOptional != (employeeDto.getHodId())) {
         	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-        	    response.setServiceResponse("User " + employeeDto.getHodId() + " is not the authorized HOD for this employee. The correct HOD is " + actualHodId + ".");
+        	    response.setServiceResponse("User " + employeeDto.getHodId() + " is not the authorized HOD for this employee. The correct HOD is " + actualHodIdOptional + ".");
         	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
                 logService.logMyInfo(httpRequest, apiLogInfo);
         	    return response;
@@ -7570,8 +7570,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
         apiLogInfo.setLogLevel("INFO");
 
         try {
-            Optional<Long> actualHodIdOptional = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());
-            if (actualHodIdOptional.isEmpty()) {
+            Long actualHodIdOptional = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());
+            if (actualHodIdOptional != null) {
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
                 response.setServiceResponse("Could not determine the HOD for employee. The employee may not be assigned to a department.");
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -7579,10 +7579,10 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
                 return response;
             }
 
-            Long actualHodId = actualHodIdOptional.get();
-            if (!actualHodId.equals(employeeDto.getHodId())) {
+            
+            if (actualHodIdOptional != (employeeDto.getHodId())) {
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("User is not the authorized HOD for this employee." + actualHodId);
+                response.setServiceResponse("User is not the authorized HOD for this employee." + actualHodIdOptional);
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
                 logService.logMyInfo(httpRequest, apiLogInfo);
                 return response;
@@ -7650,6 +7650,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
     }
 	
 	
+	
 	public  ServiceResponse submitForDelay(EmployeeDTO employeeDto)
 	{
 		 ServiceResponse response = new ServiceResponse();
@@ -7657,21 +7658,34 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	     apiLogInfo.setApiUrl("/api/submitForDelay");
          apiLogInfo.setLogLevel("INFO");
          try {
-        	 Optional<Long> actualHodIdOptional = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());	
+        	 
+        	 String employeeRole = employeeRepository.getEmployeeRoleByEmpId(employeeDto.getHodId());
+ 
+        	
         	 Optional<Employee> employeeOptional = employeeRepository.findById(employeeDto.getEmpId());
         	 
         	 Employee employee = employeeOptional.get();
         	 if(employeeDto.getReasonOfExtension()!=null)
         	 {
+        		if("HR".equalsIgnoreCase(employeeRole)  || "HOD".equalsIgnoreCase(employeeRole) || "superAdmin".equalsIgnoreCase(employeeRole) ) {
         		employee.setReasonOfExtension(employeeDto.getReasonOfExtension());
                 employee.setUpdatedOn(LocalDateTime.now());
                 employee.setUpdatedBy(employeeDto.getHodId().intValue());
                 employeeRepository.save(employee);	
                 
+                
                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                 response.setServiceResponse("Delay for '" + employee.getName() + "' has been successfully sent.");
                 apiLogInfo.setApiResponse("Reason has been submitted for: " + employee.getEmpId());
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+        		}
+        		else
+        		{
+        			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                    response.setServiceResponse("Current User should be HOD or HR");
+                    apiLogInfo.setApiResponse("Reason can not be submitted for: " + employee.getEmpId());
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+        		}
         	 }
         	 else
         	 {

@@ -855,6 +855,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     public List<Employee> getEmployeeProbationAndIsClicked();
     
     
+    @Query(nativeQuery = true,value = "select j.employee_role from employee e inner join job_role j on j.job_role_id = e.job_role_id where e.emp_id = :empId")
+    public String getEmployeeRoleByEmpId(@Param("empId") Long empId);
+    
 //    @Query("UPDATE employee SET long_overdue_notified = :status WHERE emp_id = :empId")
 //    public void updateLongOverdueNotified1(@Param("empId") Long empId, @Param("status") boolean status);
 
