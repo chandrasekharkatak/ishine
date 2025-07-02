@@ -23,7 +23,7 @@ import lombok.ToString;
 @ToString
 @Entity
 @Audited
-@Table(name = "EmployeeTeamMapping")
+@Table(name = "employee_team_mapping")
 public class EmployeeTeamMap {
 	
 	@Id

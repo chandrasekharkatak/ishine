@@ -23,7 +23,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 
 	@Transactional
 	void deleteAllByTeamId(Long teamId);
-	//added by rahul SIngh
+	
 		@Query(nativeQuery = true)
 		List<Object[]> findEmployeeByTeamId(Long team_id);
 

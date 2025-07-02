@@ -763,9 +763,7 @@ public class ResourceManagementService {
 								for (TeamMemberDTO newMember : newTeamMember) {
 									// Update teamMember mapping
 									if (presentMember.getEmpId().equals(newMember.getEmpId())) {
-										EmployeeTeamMap updateMember = employeeTeamMapRepository
-												.findByEmpIdAndTeamIdAndActive(presentMember.getEmpId(),
-														teamDbResponse.getTeamId(), 1L);
+										EmployeeTeamMap updateMember = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActive(presentMember.getEmpId(),teamDbResponse.getTeamId(), 1L);
 
 										if (updateMember != null) {
 											StringBuilder employeeRole = new StringBuilder("");
