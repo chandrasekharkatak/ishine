@@ -1816,7 +1816,7 @@
                             (optionSelected)="onTeamMemberSelected($event)" [displayWith]="displayEmployee">
                             <mat-option
                                 *ngFor="let newteamMember of employeeListByDept | filterEmployee: teamMemberCtrl.value"
-                                [value]="newteamMember" [disabled]="newteamMember.isSelected"
+                                [value]="newteamMember" [disabled]="newteamMember.isSelected || isEmployeeInTeam(newteamMember)"
                                 (onSelectionChange)="openProjectTemplateModal(projectTemplate, newteamMember)">
                                 {{ newteamMember.name }}
                             </mat-option>

@@ -2888,6 +2888,12 @@ isAddButtonDisabled(): boolean {
     return list?.some(emp => emp.empId === this.selectedEmpId);
   }
 
+  isEmployeeInTeam(employee: any): boolean {
+  return this.teamObj.allTeamMemberList.some(
+    (member: any) => member.empId === employee.empId
+  );
+}
+
   displayEmployee(emp: any): string {
     console.log("emp", emp);  // This is helpful for debugging
     if (typeof emp === 'string') {

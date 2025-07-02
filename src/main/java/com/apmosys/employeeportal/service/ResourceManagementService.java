@@ -7331,7 +7331,7 @@ public class ResourceManagementService {
 				response.setServiceResponse(responseData);
 				response.setServiceStatus(response.STATUS_SUCCESS);
 			} else {
-				response.setServiceResponse("Either user is not qualified to see any data or has no project related authirity..");
+				response.setServiceResponse("No projects found...!!");
 				response.setServiceStatus(response.STATUS_FAIL);
 			}
 			return response;
