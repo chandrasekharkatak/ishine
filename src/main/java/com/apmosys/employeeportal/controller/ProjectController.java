@@ -123,4 +123,8 @@ public class ProjectController {
 		return projectService.handleTeamsAsPerLinkedPo(payloadDTO);
 	}
 	
+	@GetMapping(value = "/getResourceRequirementFromPoPortal")
+	public ServiceResponse getResourceRequirementFromPoPortal() {
+		return projectService.getResourceRequirementFromPoPortal();
+	}
 }

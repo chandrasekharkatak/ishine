@@ -2,13 +2,17 @@ package com.apmosys.employeeportal.dto;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @Getter
 @Setter
 @ToString
+@AllArgsConstructor
+@NoArgsConstructor
 public class ResourceManagementDTO {
 	
 	private Long id;    // poPortal Project Id
@@ -83,5 +87,14 @@ public class ResourceManagementDTO {
     private String internalProjectType;
     private String poProjectType;
     private String draftStatus;
+	public ResourceManagementDTO(Integer projectId,Long poProjectId , String projectName) {
+		
+		this.poProjectId = poProjectId;
+		this.projectId = projectId;
+		this.projectName = projectName;
+	}
+    
+    
+    
 
 }

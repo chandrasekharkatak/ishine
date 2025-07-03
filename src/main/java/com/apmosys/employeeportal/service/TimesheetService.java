@@ -389,6 +389,22 @@ public class TimesheetService {
 			newTimesheet.setIsNightShift(timesheetDTO.getIsNightShift());
 			newTimesheet.getCommonProperty().setCreatedBy(timesheetDTO.getCreatedBy());
 			
+			
+//			added by sakti
+			
+//			Timesheet existing = timesheetsRepository.findByEmpIdAndDate(timesheetDTO.getEmpId(), stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
+//			if (existing != null) {
+//			    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			    response.setServiceResponse("Timesheet already exists for this date.");
+//			    
+//			    apiLogInfo.setApiResponse("Duplicate timesheet entry attempt");
+//			    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			    logService.logMyInfo(httpRequest, apiLogInfo);
+//			    
+//			    return response;
+//			}
+
+			
 			System.err.println("Time sheet checked "+newTimesheet);
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);

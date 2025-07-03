@@ -302,8 +302,8 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
    
 	    		List<Object[]> checkEmployeeActiveOrNot(@Param("empId") Long empId);
 
-	      
-	      
+//	            added by sakti for duplicate timesheet check
+//	    		Optional<Timesheet> findByEmpIdAndDate(Long empId, Date date);
 	      
 	      
 

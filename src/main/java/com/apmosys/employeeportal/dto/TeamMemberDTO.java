@@ -30,5 +30,7 @@ public class TeamMemberDTO {
 	private SpocDTO shadow;
 	private List<Map<String, Object>> otherActiveProjects;
 	private Long employeeTeamMapId;
+    private Long createdBy;
+    private String createdOn;
 	
 }

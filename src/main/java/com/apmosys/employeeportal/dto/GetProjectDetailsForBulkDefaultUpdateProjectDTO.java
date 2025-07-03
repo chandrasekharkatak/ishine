@@ -23,7 +23,8 @@ public class GetProjectDetailsForBulkDefaultUpdateProjectDTO {
 	    Long resourceOverviewId,
 	    Integer count,
 	    String department,
-	    String experience
+	    String experience,
+	    String role
 	) {
 	    this.projectId = projectId != null ? projectId.intValue() : null; // since field is Integer
 	    this.projectName = projectName;
@@ -33,6 +34,7 @@ public class GetProjectDetailsForBulkDefaultUpdateProjectDTO {
 	    this.count = count;
 	    this.department = department;
 	    this.experience = experience;
+	    this.role = role;
 	}
 
 	  Integer projectId;
@@ -45,6 +47,7 @@ public class GetProjectDetailsForBulkDefaultUpdateProjectDTO {
     Integer count;
     String department;
     String experience;
+    String role;
     
     public GetProjectDetailsForBulkDefaultUpdateProjectDTO() {}
 }

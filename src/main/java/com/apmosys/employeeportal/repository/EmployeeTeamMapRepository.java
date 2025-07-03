@@ -16,6 +16,7 @@ import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.Project;
 
 @Repository
 public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap, Long> {
@@ -64,7 +65,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 
 //	@Query(nativeQuery = true)
 //	EmployeeTeamMap findByEmpIdAndTeamIdAndActiveStatus(Long empId, Long teamId);
-	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.empId = :empId AND etm.teamId = :teamId AND etm.active <> 0")
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.empId = :empId AND etm.teamId = :teamId AND etm.active != 0")
 	EmployeeTeamMap findByEmpIdAndTeamIdAndActiveStatus(@Param("empId") Long empId, 
 	                                                          @Param("teamId") Long teamId);
 
@@ -104,6 +105,14 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	 		+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
 	 		+ "WHERE t.projectId = :projectId AND etm.active = :active")
 	 List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
+	 
+	 
+	 @Query("select p from Project p \n"
+	 		+ "inner join Team t on t.projectId = p.projectId\n"
+	 		+ "inner join EmployeeTeamMap etm on etm.teamId = t.teamId\n"
+	 		+ "where p.projectId = :projectId\n"
+	 		+ "and p.active = :active")
+		List<Project> findByProjectIdAndActiveForDraftProject(Integer projectId, Long active);
 
 //	 @Query(nativeQuery = true)
 //	List<EmployeeTeamMap> findTeammembersByTeamIdAndStatus(Long teamId);

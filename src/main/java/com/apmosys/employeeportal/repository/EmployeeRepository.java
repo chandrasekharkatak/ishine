@@ -688,7 +688,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             "WHERE e.jobRoleId = jr.jobRoleId AND jr.deptId = d.deptId " + 
             "AND e.billableType IS NULL " +
             "AND e.empId NOT BETWEEN 1 AND 6 " +
-            "AND e.employmentstatus <> 'InActive' " +
+            "AND e.employmentstatus != 'InActive' " +
             "AND d.deptId IN :deptIds")
      List<EmployeeDTO> findAllEmployeesWithoutAnyBillableInDeptIds(@Param("deptIds") List<Long> deptIds);
 
@@ -698,7 +698,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             "WHERE e.jobRoleId = jr.jobRoleId AND jr.deptId = d.deptId " + 
             "AND e.billableType IS NULL " +
             "AND e.empId NOT BETWEEN 1 AND 6 " +
-            "AND e.employmentstatus <> 'InActive' " +
+            "AND e.employmentstatus != 'InActive' " +
             "AND d.deptId = :deptId")
      List<EmployeeDTO> findAllEmployeesWithoutBillableInDeptId(@Param("deptId") Long deptId);
     
