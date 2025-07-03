@@ -128,10 +128,13 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
 
   patchFormFromLastData(): void {
+    
     const data = this.autofillData;
+    console.log("lalalala data",data);
 
     const activity = {
       clientId: data.clientId || '',
+       activity: data?.activity ?? '',
       clientLocationId: data.clientLocationId || '',
       clientLocationList: data.clientLocation ? [{ clientLocationId: data.clientLocationId, clientLocation: data.clientLocation }] : [],
       teamId: data.teamId || '',
@@ -195,6 +198,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
       dayType: data?.dayType || '',
       date: data?.date || '',
       officeInTime: data?.officeInTime ? new Date(data.officeInTime.replace(' ', 'T')) : null,
+      
       officeOutTime: data?.officeOutTime ? new Date(data.officeOutTime.replace(' ', 'T')) : null,
       totalWorkingOfficeHours: data?.totalWorkingOfficeHours || '00:00',
       isNightShift: data?.isNightShift || false,
@@ -1237,6 +1241,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
     if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
+      // this.timesheetObj.officeInTime = "wow";
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
     } else {
       this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
