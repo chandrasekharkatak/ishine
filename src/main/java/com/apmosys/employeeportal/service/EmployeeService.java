@@ -7587,7 +7587,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 
         try {
             Long actualHodIdOptional = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());
-            if (actualHodIdOptional != null) {
+            if (actualHodIdOptional == null) {
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
                 response.setServiceResponse("Could not determine the HOD for employee. The employee may not be assigned to a department.");
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
