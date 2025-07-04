@@ -100,6 +100,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
   @Input() autofillData: any;
 
   @Output() timesheetSubmitted = new EventEmitter<void>();
+ 
 
 
 
@@ -2073,6 +2074,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+   
   }
 
   openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {

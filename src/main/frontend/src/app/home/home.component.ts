@@ -2535,9 +2535,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
 
   onTimesheetSubmissionComplete(): void {
-    this.isTimesheetFormVisible = false; // 👈 this hides the form
+    this.isTimesheetFormVisible = false;
+    this.getTimesheetsForHomePageByEmpId('This Month');
     // Optional: navigate to the tab if needed
-    this.router.navigate(['/user-timesheet', 'my-timesheet']); // or 'team-timesheet' based on context
+    // this.router.navigate(['/user-timesheet', 'my-timesheet']); // or 'team-timesheet' based on context
   }
 
 
