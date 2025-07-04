@@ -25,6 +25,7 @@ public class UploadPolicyDTO {
 	private Long empId;
 	private String name;
 	private String isAllPolicyMarkAsRead;
+	private String departmentName;
 
 	
 	@Override

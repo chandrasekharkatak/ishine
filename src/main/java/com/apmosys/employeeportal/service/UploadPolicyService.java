@@ -470,11 +470,12 @@ public class UploadPolicyService {
 				list.forEach((object) -> {
 					
 					UploadPolicyDTO dto = new UploadPolicyDTO();
-					dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+					dto.setEmpId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
 					dto.setPolicyName(object[3] != null ? object[3].toString() : null);
 					dto.setPolicyID(object[4] != null ? Long.parseLong(object[1].toString()) : null);
 					dto.setName(object[0] != null ? object[0].toString() : null);
 					dto.setReadEnabled(object[2] != null ? object[2].toString() : null);
+					dto.setDepartmentName(object[6] != null ? object[6].toString() : null);
 					dtoList.add(dto);
 									
 				});
