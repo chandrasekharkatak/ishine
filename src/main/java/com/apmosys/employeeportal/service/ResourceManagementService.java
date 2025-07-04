@@ -6121,9 +6121,9 @@ public class ResourceManagementService {
 		processPoPortalProjects(poPortalProjects,teamCreatedProjects);
 		System.out.println(poPortalProjects);
 		for (ResourceManagementDTO poData :  poPortalProjects) {
-			Project data = new Project();
+			ProjectTemp data = new ProjectTemp();
 			data.setPoNo(poData.getPoNo());
-			data.setApmosysRM(poData.getApmosysRM());
+			data.setApmosysrm(poData.getApmosysRM());
 			data.setApmosysRmEmail(poData.getApmosysRmEmail());	
 			
 			data.setActive(poData.getActive() != null ? poData.getActive().toString() : null);
@@ -6215,8 +6215,8 @@ public class ResourceManagementService {
 		    data.setState(poData.getClientState());
 		    data.setUpdatedBy(poData.getUpdatedBy());
 		    data.setUpdatedOn(poData.getUpdatedOn() != null ? LocalDateTime.parse(poData.getUpdatedOn()) : null);
-		    data.setApmosysRM(poData.getApmosysRM());
-		    data.setClientRM(poData.getClientRM());
+		    data.setApmosysrm(poData.getApmosysRM());
+		    data.setClientrm(poData.getClientRM());
 		    data.setDeptId(poData.getDeptId());
 		    data.setIsRenewable(poData.getIsRenewable());
 		    data.setStatus(poData.getStatus());
@@ -6244,7 +6244,7 @@ public class ResourceManagementService {
 			}
 		    
 		    System.out.println(data);
-//		    projectTempRepo.save(data);
+		    projectTempRepo.save(data);
 		    }
 		serviceResponse.setServiceResponse(poPortalProjects);
 		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
