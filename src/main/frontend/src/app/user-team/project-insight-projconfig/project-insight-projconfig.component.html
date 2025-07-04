@@ -70,20 +70,20 @@
     <button class="btn btn-sm btn-outline-primary mb-1" (click)="showTable()"><em><i
           class="fa-solid fa-arrow-left-long"></i></em></button>
   </div>
-  <div class="main-content" *ngIf="isCreateForm && !isTable">
+  <div class="col-md-12 main-content" *ngIf="isCreateForm && !isTable">
     <div class="filters">
       <div class="filters-header d-flex align-items-center gap-2">
         <label class="mb-0">Project</label>
-
+  
         <div class="custom-control custom-switch">
           <input type="checkbox" class="custom-control-input" id="domain-history-switch" [(ngModel)]="isDomainStructure"
             (change)="toggleDomainProjectView($event)" style="cursor: pointer;" />
           <label class="custom-control-label mx-2" for="domain-history-switch"></label>
         </div>
-
+  
         <label class="mb-0">Domain</label>
       </div>
-
+  
       <div class="filter-list">
         <!-- DOMAIN STRUCTURE TREE -->
         <ul class="filter-tree" *ngIf="isDomainStructure">
@@ -148,8 +148,7 @@
                                           <li>
                                             <div class="tree-label">
                                               {{ subFeature.feature_name }}
-                                              <button class="add-btn"
-                                                (click)="addItem('subfeature', subFeature, $event)">
+                                              <button class="add-btn" (click)="addItem('subfeature', subFeature, $event)">
                                                 <i class="fa fa-plus"></i>
                                               </button>
                                             </div>
@@ -170,12 +169,11 @@
               </ul>
             </li>
           </ng-container>
-          <button class="btn btn-outline-primary btn-sm" style="width: 11.5rem"
-            (click)="addItem('domain', null, $event)">
+          <button class="btn btn-outline-primary btn-sm" style="width: 11.5rem" (click)="addItem('domain', null, $event)">
             <i class="fa fa-plus"></i> Add domain
           </button>
         </ul>
-
+  
         <!-- PROJECT INSIGHT TREE (NO ADD BUTTONS) -->
         <ul class="filter-tree" *ngIf="!isDomainStructure">
           <ng-container *ngIf="projectInsightProject">
@@ -192,7 +190,7 @@
             </li>
           </ng-container>
         </ul>
-
+  
         <!-- Recursive group template for projectInsightProject -->
         <ng-template #recursiveGroup let-group="group">
           <li>
@@ -212,34 +210,70 @@
         </ng-template>
       </div>
     </div>
-
-    <!-- Form start -->
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-md-12">
-          <h5 class="section-title mt-3 mb-3">Project Details</h5>
-        </div>
-      </div>
-      <app-form-renderer [fields]="fields" [layoutConfig]="layoutConfig" [formData]="projectInsightProjectObj"
-        (formValueChange)="syncFormToProjectObj($event)">
-      </app-form-renderer>
-
-      <!-- buttons -->
-      <div class="row mt-4">
-        <div class="col-12">
-          <h5 class="section-title">Questions</h5>
-          <a href="#" class="add-questions-link">Add Questions <span class="ml-1"><i class="fa fa-plus"></i></span></a>
-        </div>
-      </div>
-      <div class="row mt-3 align-items-center">
-        <div class="col-md-12">
-          <button type="submit" class="btn btn-secondary btn-sm mr-2" (click)="onSubmit()">Save</button>
-          <button type="button" class="btn btn-secondary btn-sm mr-2">Save and Assign</button>
-          <button type="button" class="btn btn-primary btn-sm mr-2">Add Group</button>
-          <button type="button" class="btn btn-outline-secondary btn-sm mr-2">Cancel</button>
-          <button type="button" class="btn btn-outline-primary btn-sm">
-            <i class="fa fa-upload"></i> Upload Questions
+  
+    <div class="form-content">
+      <div *ngIf="isCreateForm && rootNode">
+        <!-- Project Form -->
+        <h5 class="section-title mt-3 mb-3">{{ rootNode.formName }} Details</h5>
+        <app-form-renderer [fields]="rootNode.fields" [layoutConfig]="rootNode.layoutConfig"
+          [formData]="rootNode.formData" (formValueChange)="onFormValueChange(rootNode, $event)">
+        </app-form-renderer>
+  
+        <!-- Groups Section -->
+        <ng-container *ngFor="let group of rootNode.children; let groupIndex = index">
+          <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h6 class="section-title mb-0">{{ group.formName }} {{ groupIndex + 1 }}</h6>
+              <button type="button" class="btn btn-danger btn-sm" (click)="removeGroup(groupIndex)">
+                <i class="fa fa-trash"></i> Remove Group
+              </button>
+            </div>
+            <div class="card-body">
+              <app-form-renderer [fields]="group.fields" [layoutConfig]="group.layoutConfig" [formData]="group.formData"
+                (formValueChange)="onFormValueChange(group, $event)">
+              </app-form-renderer>
+  
+              <!-- SubGroups Section -->
+              <ng-container *ngFor="let subGroup of group.children; let subGroupIndex = index">
+                <div class="card mt-3 ml-3">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="section-title mb-0">{{ subGroup.formName }} {{ subGroupIndex + 1 }}</h6>
+                    <button type="button" class="btn btn-danger btn-sm" (click)="removeSubGroup(group, subGroupIndex)">
+                      <i class="fa fa-trash"></i> Remove Sub Group
+                    </button>
+                  </div>
+                  <div class="card-body">
+                    <app-form-renderer [fields]="subGroup.fields" [layoutConfig]="subGroup.layoutConfig"
+                      [formData]="subGroup.formData" (formValueChange)="onFormValueChange(subGroup, $event)">
+                    </app-form-renderer>
+                  </div>
+                </div>
+              </ng-container>
+  
+              <!-- Add SubGroup Button -->
+              <div class="mt-3">
+                <button type="button" class="btn btn-primary btn-sm" (click)="addSubGroup(group)">
+                  <i class="fa fa-plus"></i> Add Sub Group
+                </button>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+  
+        <!-- Add Group Button -->
+        <div class="mt-3">
+          <button type="button" class="btn btn-primary btn-sm" (click)="addGroup()">
+            <i class="fa fa-plus"></i> Add Group
           </button>
+        </div>
+  
+        <!-- Save Buttons -->
+        <div class="row mt-3 align-items-center">
+          <div class="col-md-12">
+            <button type="button" class="btn btn-secondary btn-sm mr-2" (click)="onSaveAndAssign()">Save and
+              Assign</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="openTableView()">Cancel</button>
+          </div>
         </div>
       </div>
     </div>

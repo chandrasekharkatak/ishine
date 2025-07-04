@@ -94,9 +94,24 @@ public class FormBuilderServiceImpl implements FormBuilderService {
 
 	@Override
 	public ResponseEntity<DynamicFormStructure> getByDynamicFormById(String id) {
-		Optional<DynamicFormStructure> form = dynamicFormStructureRepository.findById(id);
-        return form.map(ResponseEntity::ok)
-                   .orElseGet(() -> ResponseEntity.status(404).body(null));
+	    Optional<DynamicFormStructure> optionalForm = dynamicFormStructureRepository.findById(id);
+
+	    if (optionalForm.isEmpty()) {
+	        return ResponseEntity.status(404).body(null);
+	    }
+
+	    DynamicFormStructure form = optionalForm.get();
+	    populateChildren(form);
+
+	    return ResponseEntity.ok(form);
+	}
+
+	private void populateChildren(DynamicFormStructure form) {
+	    List<DynamicFormStructure> children = dynamicFormStructureRepository.findAllByParentFormId(form.getId());
+	    for (DynamicFormStructure child : children) {
+	        populateChildren(child);
+	    }
+	    form.setChildren(children);
 	}
 
 	@Override
@@ -113,16 +128,15 @@ public class FormBuilderServiceImpl implements FormBuilderService {
 		return ResponseEntity.ok(response);
 	}
 
-	@Override
 	public ResponseEntity<List<DynamicFormStructure>> getAllDynamicFormByDepartmentAndType(
 	        DynamicFormStructureDTO dynamicFormStructureDTO) {
 
 	    Long departmentId = dynamicFormStructureDTO.getDepartmentId();
 
-	    List<DynamicFormStructure> forms = dynamicFormStructureRepository
+	    List<DynamicFormStructure> topLevelForms = dynamicFormStructureRepository
 	            .findByDepartmentIdAndParentFormIdIsNull(departmentId);
-
-	    return ResponseEntity.ok(forms);
+	    
+	    return ResponseEntity.ok(topLevelForms);
 	}
 
 

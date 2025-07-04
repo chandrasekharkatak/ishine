@@ -1,238 +1,240 @@
-<form [formGroup]="dynamicForm" (ngSubmit)="onSubmit()">
-  <div class="row" *ngFor="let row of layoutConfig; let rowIndex = index">
-    <div *ngFor="let field of row" class="col-md-{{ getBootstrapCol(field.width) }}">
-      <div class="info-wrapper">
-        <div class="form-group">
-          <label [for]="field.id">
-            {{ field.label }}
-            <span class="text-danger" *ngIf="field.required">*</span>
-          </label>
-  
-          <!-- Select Field (non-dependent) -->
-          <div class="w-100" *ngIf="field.type === 'select' && field.optionSource !== 'dependent'">
-            <mat-select
-              class="form-control"
-              [formControlName]="field.name"
-              [multiple]="field.multiple"
-              (selectionChange)="onSelectChange($event, field)">
-              <mat-option *ngFor="let option of field.options" [value]="option.value">
-                {{ option.label }}
-              </mat-option>
-            </mat-select>
-          </div>
-  
-          <!-- Dependent Select Field with Multi-Select Parent -->
-          <!-- <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field)">
-            <div class="form-multiselect-parent d-flex flex-wrap" style="gap: 20px;">
-              <div *ngFor="let parentValue of getParentSelectedValues(field)"
-                   class="dependent-field-container"
-                   [style.flex]="'0 0 ' + (field.width || 33) + '%'"
-                   style="min-width: 220px;">
-                   <div class="w-100">
-                    <label>{{field.label}} for {{getParentLabel(field, parentValue)}}</label>
-                    <mat-select
-                      class="form-control"
-                      [formControlName]="getDependentControlName(field, parentValue)"
-                      [multiple]="field.multiple">
-                      <mat-option *ngFor="let opt of getDependentOptions(field, parentValue)" [value]="opt.value">
-                        {{opt.label}}
-                      </mat-option>
-                    </mat-select>
-                  </div>
-              </div>
-            </div>
-          </ng-container> -->
-          <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field)">
-            <mat-form-field class="w-100">
+<div class="col-md-12">
+  <form [formGroup]="dynamicForm" (ngSubmit)="onSubmit()">
+    <div class="row" *ngFor="let row of layoutConfig; let rowIndex = index">
+      <div *ngFor="let field of row" class="col-md-{{ getBootstrapCol(field.width) }}">
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label [for]="field.id">
+              {{ field.label }}
+              <span class="text-danger" *ngIf="field.required">*</span>
+            </label>
+    
+            <!-- Select Field (non-dependent) -->
+            <div class="w-100" *ngIf="field.type === 'select' && field.optionSource !== 'dependent'">
               <mat-select
                 class="form-control"
                 [formControlName]="field.name"
-                [multiple]="field.multiple">
-                <ng-container *ngFor="let parentValue of getParentSelectedValues(field)">
-                  <mat-optgroup [label]="getParentLabel(field, parentValue)">
-                    <mat-option *ngFor="let opt of getDependentOptions(field, parentValue)" [value]="opt.value">
-                      {{opt.label}}
-                    </mat-option>
-                  </mat-optgroup>
-                </ng-container>
-              </mat-select>
-            </mat-form-field>
-          </ng-container>
-  
-          <!-- Dependent Select Field with Single Parent -->
-          <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && !isParentMultiSelect(field)">
-            <div appearance="fill" class="w-100">
-              <mat-label>{{ field.label }}</mat-label>
-              <mat-select
-                [formControlName]="field.name"
-                [multiple]="field.multiple">
-                <mat-option *ngFor="let opt of getDependentOptions(field, getParentSelectedValue(field))" [value]="opt.value">
-                  {{opt.label}}
+                [multiple]="field.multiple"
+                (selectionChange)="onSelectChange($event, field)">
+                <mat-option *ngFor="let option of field.options" [value]="option.value">
+                  {{ option.label }}
                 </mat-option>
               </mat-select>
             </div>
-          </ng-container>
-  
-          <!-- Text Input Field -->
-          <input 
-            *ngIf="field.type === 'text'"
-            [id]="field.id"
-            [formControlName]="field.name"
-            type="text"
-            class="form-control"
-            [placeholder]="field.placeholder"
-            [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
-  
-          <!-- Number Input Field -->
-          <input 
-            *ngIf="field.type === 'number'"
-            [id]="field.id"
-            [formControlName]="field.name"
-            type="number"
-            class="form-control"
-            [placeholder]="field.placeholder"
-            [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
-  
-          <!-- Email Input Field -->
-          <input 
-            *ngIf="field.type === 'email'"
-            [id]="field.id"
-            [formControlName]="field.name"
-            type="email"
-            class="form-control"
-            [placeholder]="field.placeholder"
-            [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
-  
-          <!-- Textarea Field -->
-          <textarea 
-            *ngIf="field.type === 'textarea'"
-            [id]="field.id"
-            [formControlName]="field.name"
-            class="form-control"
-            [placeholder]="field.placeholder"
-            rows="3"
-            [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched"></textarea>
-  
-          <!-- Checkbox Field -->
-          <div *ngIf="field.type === 'checkbox'" class="form-check">
-            <div *ngFor="let option of field.options" class="form-check">
-              <input 
-                [id]="field.id + '_' + option.value"
-                [name]="field.name"
-                type="checkbox"
-                class="form-check-input"
-                [value]="option.value"
-                [checked]="getFormValue(field.name) === option.value"
-                (change)="dynamicForm.get(field.name)?.setValue(option.value)"
-                [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
-              <label [for]="field.id + '_' + option.value" class="form-check-label">
-                {{ option.label }}
-              </label>
+    
+            <!-- Dependent Select Field with Multi-Select Parent -->
+            <!-- <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field)">
+              <div class="form-multiselect-parent d-flex flex-wrap" style="gap: 20px;">
+                <div *ngFor="let parentValue of getParentSelectedValues(field)"
+                     class="dependent-field-container"
+                     [style.flex]="'0 0 ' + (field.width || 33) + '%'"
+                     style="min-width: 220px;">
+                     <div class="w-100">
+                      <label>{{field.label}} for {{getParentLabel(field, parentValue)}}</label>
+                      <mat-select
+                        class="form-control"
+                        [formControlName]="getDependentControlName(field, parentValue)"
+                        [multiple]="field.multiple">
+                        <mat-option *ngFor="let opt of getDependentOptions(field, parentValue)" [value]="opt.value">
+                          {{opt.label}}
+                        </mat-option>
+                      </mat-select>
+                    </div>
+                </div>
+              </div>
+            </ng-container> -->
+            <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field)">
+              <mat-form-field class="w-100">
+                <mat-select
+                  class="form-control"
+                  [formControlName]="field.name"
+                  [multiple]="field.multiple">
+                  <ng-container *ngFor="let parentValue of getParentSelectedValues(field)">
+                    <mat-optgroup [label]="getParentLabel(field, parentValue)">
+                      <mat-option *ngFor="let opt of getDependentOptions(field, parentValue)" [value]="opt.value">
+                        {{opt.label}}
+                      </mat-option>
+                    </mat-optgroup>
+                  </ng-container>
+                </mat-select>
+              </mat-form-field>
+            </ng-container>
+    
+            <!-- Dependent Select Field with Single Parent -->
+            <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && !isParentMultiSelect(field)">
+              <div appearance="fill" class="w-100">
+                <mat-label>{{ field.label }}</mat-label>
+                <mat-select
+                  [formControlName]="field.name"
+                  [multiple]="field.multiple">
+                  <mat-option *ngFor="let opt of getDependentOptions(field, getParentSelectedValue(field))" [value]="opt.value">
+                    {{opt.label}}
+                  </mat-option>
+                </mat-select>
+              </div>
+            </ng-container>
+    
+            <!-- Text Input Field -->
+            <input 
+              *ngIf="field.type === 'text'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="text"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+    
+            <!-- Number Input Field -->
+            <input 
+              *ngIf="field.type === 'number'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="number"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+    
+            <!-- Email Input Field -->
+            <input 
+              *ngIf="field.type === 'email'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="email"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+    
+            <!-- Textarea Field -->
+            <textarea 
+              *ngIf="field.type === 'textarea'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              rows="3"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched"></textarea>
+    
+            <!-- Checkbox Field -->
+            <div *ngIf="field.type === 'checkbox'" class="form-check">
+              <div *ngFor="let option of field.options" class="form-check">
+                <input 
+                  [id]="field.id + '_' + option.value"
+                  [name]="field.name"
+                  type="checkbox"
+                  class="form-check-input"
+                  [value]="option.value"
+                  [checked]="getFormValue(field.name) === option.value"
+                  (change)="dynamicForm.get(field.name)?.setValue(option.value)"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+                <label [for]="field.id + '_' + option.value" class="form-check-label">
+                  {{ option.label }}
+                </label>
+              </div>
             </div>
-          </div>
-  
-          <!-- Radio Field -->
-          <div *ngIf="field.type === 'radio'" class="form-check">
-            <div *ngFor="let option of field.options" class="form-check">
-              <input 
-                [id]="field.id + '_' + option.value"
-                [name]="field.name"
-                type="radio"
-                class="form-check-input"
-                [value]="option.value"
-                [checked]="getFormValue(field.name) === option.value"
-                (change)="dynamicForm.get(field.name)?.setValue(option.value)"
-                [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
-              <label [for]="field.id + '_' + option.value" class="form-check-label">
-                {{ option.label }}
-              </label>
+    
+            <!-- Radio Field -->
+            <div *ngIf="field.type === 'radio'" class="form-check">
+              <div *ngFor="let option of field.options" class="form-check">
+                <input 
+                  [id]="field.id + '_' + option.value"
+                  [name]="field.name"
+                  type="radio"
+                  class="form-check-input"
+                  [value]="option.value"
+                  [checked]="getFormValue(field.name) === option.value"
+                  (change)="dynamicForm.get(field.name)?.setValue(option.value)"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+                <label [for]="field.id + '_' + option.value" class="form-check-label">
+                  {{ option.label }}
+                </label>
+              </div>
             </div>
-          </div>
-  
-          <!-- Date Input Field -->
-          <input 
-            *ngIf="field.type === 'date'"
-            [id]="field.id"
-            [formControlName]="field.name"
-            type="date"
-            class="form-control"
-            [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
-  
-          <!-- File Input Field -->
-          <input 
-            *ngIf="field.type === 'file'"
-            [id]="field.id"
-            [formControlName]="field.name"
-            type="file"
-            class="form-control"
-            [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
-  
-          <!-- Password Input Field -->
-          <input 
-            *ngIf="field.type === 'password'"
-            [id]="field.id"
-            [formControlName]="field.name"
-            type="password"
-            class="form-control"
-            [placeholder]="field.placeholder"
-            [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
-  
-          <!-- URL Input Field -->
-          <input 
-            *ngIf="field.type === 'url'"
-            [id]="field.id"
-            [formControlName]="field.name"
-            type="url"
-            class="form-control"
-            [placeholder]="field.placeholder"
-            [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
-  
-          <!-- Tel Input Field -->
-          <input 
-            *ngIf="field.type === 'tel'"
-            [id]="field.id"
-            [formControlName]="field.name"
-            type="tel"
-            class="form-control"
-            [placeholder]="field.placeholder"
-            [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
-  
-          <!-- Time Input Field -->
-          <input 
-            *ngIf="field.type === 'time'"
-            [id]="field.id"
-            [formControlName]="field.name"
-            type="time"
-            class="form-control"
-            [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
-  
-          <!-- Hidden Input Field -->
-          <input 
-            *ngIf="field.type === 'hidden'"
-            [id]="field.id"
-            [formControlName]="field.name"
-            type="hidden">
-  
-          <!-- Help text if available -->
-          <small *ngIf="field.helpText" class="form-text text-muted">
-            {{ field.helpText }}
-          </small>
-  
-          <!-- Error message display -->
-          <div *ngIf="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched" class="invalid-feedback d-block">
-            <span *ngIf="dynamicForm.get(field.name)?.errors?.['required']">
-              {{ field.label }} is required.
-            </span>
-            <span *ngIf="dynamicForm.get(field.name)?.errors?.['email']">
-              Please enter a valid email address.
-            </span>
-            <span *ngIf="dynamicForm.get(field.name)?.errors?.['minlength']">
-              {{ field.label }} must be at least {{ dynamicForm.get(field.name)?.errors?.['minlength']?.requiredLength }} characters.
-            </span>
+    
+            <!-- Date Input Field -->
+            <input 
+              *ngIf="field.type === 'date'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="date"
+              class="form-control"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+    
+            <!-- File Input Field -->
+            <input 
+              *ngIf="field.type === 'file'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="file"
+              class="form-control"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+    
+            <!-- Password Input Field -->
+            <input 
+              *ngIf="field.type === 'password'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="password"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+    
+            <!-- URL Input Field -->
+            <input 
+              *ngIf="field.type === 'url'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="url"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+    
+            <!-- Tel Input Field -->
+            <input 
+              *ngIf="field.type === 'tel'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="tel"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+    
+            <!-- Time Input Field -->
+            <input 
+              *ngIf="field.type === 'time'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="time"
+              class="form-control"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+    
+            <!-- Hidden Input Field -->
+            <input 
+              *ngIf="field.type === 'hidden'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="hidden">
+    
+            <!-- Help text if available -->
+            <small *ngIf="field.helpText" class="form-text text-muted">
+              {{ field.helpText }}
+            </small>
+    
+            <!-- Error message display -->
+            <div *ngIf="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched" class="invalid-feedback d-block">
+              <span *ngIf="dynamicForm.get(field.name)?.errors?.['required']">
+                {{ field.label }} is required.
+              </span>
+              <span *ngIf="dynamicForm.get(field.name)?.errors?.['email']">
+                Please enter a valid email address.
+              </span>
+              <span *ngIf="dynamicForm.get(field.name)?.errors?.['minlength']">
+                {{ field.label }} must be at least {{ dynamicForm.get(field.name)?.errors?.['minlength']?.requiredLength }} characters.
+              </span>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  <!-- <button class="btn btn-primary" type="submit">Submit</button> -->
-</form>
+    <!-- <button class="btn btn-primary" type="submit">Submit</button> -->
+  </form>  
+</div>

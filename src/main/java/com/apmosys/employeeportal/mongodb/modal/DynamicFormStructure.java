@@ -25,4 +25,7 @@ public class DynamicFormStructure {
     @Transient
     private String departmentName;
     private List<FormFieldDTO> fields;
+    
+    @Transient
+    private List<DynamicFormStructure> children;
 }

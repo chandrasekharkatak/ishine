@@ -11,6 +11,15 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Template } from '@angular/compiler/src/render3/r3_ast';
 import { FormBuilderService } from 'src/app/services/form-builder.service';
 
+interface FormNode {
+  id: string;
+  formName: string;
+  fields: any[];
+  formData: any;
+  layoutConfig?: any[];
+  children: FormNode[];
+}
+
 @Component({
   selector: 'app-project-insight-projconfig',
   templateUrl: './project-insight-projconfig.component.html',
@@ -255,6 +264,35 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   // Public property for template binding
   layoutConfig: any[][] = [];
 
+  // Dynamic form layouts (these will be loaded from your JSON configurations)
+  projectFormLayout: any;
+  groupFormLayout: any;
+  subGroupFormLayout: any;
+
+  // Data structure to hold all form data
+  projectData = {
+    project: {},
+    groups: [] as Array<{
+      group: any,
+      subGroups: any[]
+    }>
+  };
+
+  // Form state management
+  currentFormType: 'project' | 'group' | 'subgroup' = 'project';
+  currentGroupIndex: number = -1;
+  currentSubGroupIndex: number = -1;
+
+  // Dynamic form fields and layout for the group/module
+  currentGroupObj: any = {};
+
+  // Updated data structure to handle nested forms
+  formStructure: any = null;
+  currentFormData: any = {};
+  currentFormPath: string[] = []; // Track current form path like ['project', 'group1', 'subgroup1']
+
+  rootNode: FormNode = null; // The root of the form tree
+
   constructor(
     private projectInsightProjconfigService:ProjectInsightProjconfigService,
     private formBuilder: FormBuilder,
@@ -272,6 +310,12 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     setTimeout(async () => {
       await this.loadInitialOptions();
     }, 200);
+
+    // Initialize project form data
+    this.projectData.project = {};
+    
+    // Load your dynamic form layouts here
+    this.loadFormLayouts();
   }
 
   showTable(){
@@ -300,47 +344,47 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.layoutConfig = [];
   }  
 
-  buildDynamicForm(): void {
-    const formControls: any = {};
+  // buildDynamicForm(): void {
+  //   const formControls: any = {};
     
-    this.fields.forEach(field => {
-      if (!field.name || field.name.trim() === '') {
-        console.warn('Field without name found:', field.label);
-        return;
-      }
+  //   this.fields.forEach(field => {
+  //     if (!field.name || field.name.trim() === '') {
+  //       console.warn('Field without name found:', field.label);
+  //       return;
+  //     }
 
-      const validators = [];
-      if (field.required) {
-        validators.push(Validators.required);
-      }
+  //     const validators = [];
+  //     if (field.required) {
+  //       validators.push(Validators.required);
+  //     }
       
-      let defaultValue = this.projectInsightProjectObj[field.name] || field.defaultValue || '';
+  //     let defaultValue = this.projectInsightProjectObj[field.name] || field.defaultValue || '';
       
-      // Handle multi-select fields
-      if (field.type === 'select' && field.multiple) {
-        defaultValue = Array.isArray(defaultValue) ? defaultValue : [];
-      formControls[field.name] = [defaultValue, validators];
-      } else {
-        // For dependent fields, start with empty value
-        if (field.optionSource === 'dependent') {
-          formControls[field.name] = ['', validators];
-        } else {
-          formControls[field.name] = [defaultValue, validators];
-        }
-      }
-    });
+  //     // Handle multi-select fields
+  //     if (field.type === 'select' && field.multiple) {
+  //       defaultValue = Array.isArray(defaultValue) ? defaultValue : [];
+  //     formControls[field.name] = [defaultValue, validators];
+  //     } else {
+  //       // For dependent fields, start with empty value
+  //       if (field.optionSource === 'dependent') {
+  //         formControls[field.name] = ['', validators];
+  //       } else {
+  //         formControls[field.name] = [defaultValue, validators];
+  //       }
+  //     }
+  //   });
     
-    this.dynamicForm = this.formBuilder.group(formControls);
+  //   this.dynamicForm = this.formBuilder.group(formControls);
     
-    // Clear layout cache when form is rebuilt
-    this.clearLayoutCache();
+  //   // Clear layout cache when form is rebuilt
+  //   this.clearLayoutCache();
     
-    // Initialize dependencies after form is built
-    this.initializeDependencies();
+  //   // Initialize dependencies after form is built
+  //   this.initializeDependencies();
     
-    // Initialize layout config
-    this.getLayoutConfig();
-  }
+  //   // Initialize layout config
+  //   this.getLayoutConfig();
+  // }
 
   populateFormWithData(data: any): void {
     if (data && this.dynamicForm) {
@@ -400,19 +444,13 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     });
   }
 
-  getFormByFormId(formId: any) {
+  getFormByFormId(formId: string) {
     this.cancelRequest();
     this.formBuilderService.getByDynamicFormById(formId).pipe(first()).subscribe({
       next: (response: any) => {
-        this.fields = response.fields;
-
-         // Ensure form is properly initialized when opening create form
-          if (!this.dynamicForm) {
-            this.buildDynamicForm();
-          }
-
-          // Setup form value changes
-          this.setupFormValueChanges();
+        this.rootNode = this.buildFormNodeTree(response);
+        console.log(this.rootNode, ": rootNode ===");
+        
       },
       error: (error: any) => {
         this.alertMessage = error;
@@ -421,7 +459,42 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     });
   }
 
-  getAllDynamicFormByDepartmentAndType(){
+  getLayoutConfigForNode(node: FormNode): any[][] {
+    const rows = new Map<number, any[]>();
+    let currentRow = 0;
+    let currentRowWidth = 0;
+  
+    (node.fields || []).forEach(field => {
+      const fieldWidth = Number(field.width) || 100;
+      if (currentRowWidth + fieldWidth > 100) {
+        currentRow++;
+        currentRowWidth = fieldWidth;
+      } else {
+        currentRowWidth += fieldWidth;
+      }
+      if (!rows.has(currentRow)) {
+        rows.set(currentRow, []);
+      }
+      rows.get(currentRow)?.push(field);
+    });
+  
+    return Array.from(rows.values());
+  }
+
+  buildFormNodeTree(formDef: any): FormNode {
+    const node: FormNode = {
+      id: formDef.id,
+      formName: formDef.formName,
+      fields: formDef.fields || [],
+      formData: {},
+      layoutConfig: this.getLayoutConfig(formDef.fields || []),
+      children: []
+    };
+    node.children = (formDef.children || []).map(child => this.buildFormNodeTree(child));
+    return node;
+  }
+
+  getAllDynamicFormByDepartmentAndType() {
     let formObject = {
       departmentId: this.selectedDepartment
     }
@@ -531,7 +604,15 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   // Method to update layout when fields change
   private updateLayout(): void {
-    this.getLayoutConfig();
+    if (this.rootNode) {
+      this.rootNode.layoutConfig = this.getLayoutConfig(this.rootNode.fields);
+      this.rootNode.children.forEach(child => this.updateLayoutForTree(child));
+    }
+  }
+
+  private updateLayoutForTree(node: FormNode): void {
+    node.layoutConfig = this.getLayoutConfig(node.fields);
+    node.children.forEach(child => this.updateLayoutForTree(child));
   }
 
   async handleDependentFieldChange(fieldName: string, parentValue: string) {
@@ -625,46 +706,26 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     return [];
   }
 
-  getLayoutConfig(): any[][] {
-    // Create a hash of the fields to check if they've changed
-    const fieldsHash = JSON.stringify(this.fields.map(f => ({ id: f.id, width: f.width, rowPosition: f.rowPosition })));
-    
-    // If fields haven't changed and we have cached layout, return it
-    if (this._fieldsHash === fieldsHash && this._layoutConfigCache.length > 0) {
-      this.layoutConfig = this._layoutConfigCache;
-      return this._layoutConfigCache;
-    }
-
-    // Calculate new layout
-    const rows: any[][] = [];
-    let currentRow: any[] = [];
-    let currentWidth = 0;
-
-    this.fields.forEach(field => {
-      const fieldWidth = field.width || 100;
-      
-      if (currentWidth + fieldWidth > 100) {
-        if (currentRow.length > 0) {
-          rows.push(currentRow);
-        }
-        currentRow = [field];
-        currentWidth = fieldWidth;
+  getLayoutConfig(fields: any[]): any[][] {
+    const rows = new Map<number, any[]>();
+    let currentRow = 0;
+    let currentRowWidth = 0;
+  
+    (fields || []).forEach(field => {
+      const fieldWidth = Number(field.width) || 100;
+      if (currentRowWidth + fieldWidth > 100) {
+        currentRow++;
+        currentRowWidth = fieldWidth;
       } else {
-        currentRow.push(field);
-        currentWidth += fieldWidth;
+        currentRowWidth += fieldWidth;
       }
+      if (!rows.has(currentRow)) {
+        rows.set(currentRow, []);
+      }
+      rows.get(currentRow)?.push(field);
     });
-
-    if (currentRow.length > 0) {
-      rows.push(currentRow);
-    }
-
-    // Cache the result and update hash
-    this._layoutConfigCache = rows;
-    this._fieldsHash = fieldsHash;
-    this.layoutConfig = rows;
-
-    return rows;
+  
+    return Array.from(rows.values());
   }
 
   initializeDependencies() {
@@ -846,5 +907,106 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   // utitlity
   cancelRequest() {
     this.modalRef.hide();
+  }
+
+  loadFormLayouts() {
+    // Load your JSON form layouts
+    // This is where you'll fetch your dynamic form configurations
+    this.projectFormLayout = {
+      // Your project form layout JSON
+    };
+    this.groupFormLayout = {
+      // Your group form layout JSON
+    };
+    this.subGroupFormLayout = {
+      // Your subgroup form layout JSON
+    };
+  }
+
+  // Method to add a new group
+  addGroup() {
+    if (!this.rootNode) return;
+    let newGroup: FormNode;
+    if (this.rootNode.children.length > 0) {
+      const groupTemplate = this.rootNode.children[0];
+      newGroup = this.cloneFormNode(groupTemplate);
+    } else {
+      // try {
+      //   // fallback to API if no sibling present
+      //   newGroup = await this.apiService.getGroupTemplate().toPromise();
+      // } catch (error) {
+      //   console.error("API failed, using empty group fallback", error);
+      //   newGroup = {
+      //     id: '',
+      //     formName: 'Group',
+      //     fields: [],
+      //     formData: {},
+      //     children: []
+      //   };
+      // }
+    }
+  
+    this.rootNode.children.push(newGroup);
+  }
+  
+
+  // Method to add a subgroup to a specific group
+  // ... existing code ...
+  addSubGroup(group: FormNode) {
+    let newSubGroup: FormNode;
+    if (group.children.length > 0) {
+      const subGroupTemplate = group.children[0];
+      newSubGroup = this.cloneFormNode(subGroupTemplate);
+    } else {
+      newSubGroup = {
+        id: '',
+        formName: 'SubGroup',
+        fields: [],
+        formData: {},
+        children: []
+      };
+    }
+    group.children.push(newSubGroup);
+  }
+
+  // Method to remove a group
+  removeGroup(index: number) {
+    this.rootNode.children.splice(index, 1);
+  }
+
+  // Method to remove a subgroup
+  removeSubGroup(group: FormNode, subIndex: number) {
+    group.children.splice(subIndex, 1);
+  }
+
+  // Deep clone a form node (without formData)
+  cloneFormNode(node: FormNode): FormNode {
+    return {
+      id: node.id,
+      formName: node.formName,
+      fields: node.fields,
+      formData: {},
+      layoutConfig: this.getLayoutConfig(node.fields || []),
+      children: node.children.map(child => this.cloneFormNode(child))
+    };
+  }
+
+  // Recursive save: collect all formData in the tree
+  collectFormData(node: FormNode): any {
+    return {
+      fields: node.formData,
+      child: node.children.map(child => this.collectFormData(child))
+    };
+  }
+
+  onSaveAndAssign() {
+    const dataToSave = this.collectFormData(this.rootNode);
+    // Call your API here
+    console.log('Saving structure:', dataToSave);
+  }
+
+  // Called by form-renderer on value change
+  onFormValueChange(node: FormNode, value: any) {
+    node.formData = value;
   }
 }
