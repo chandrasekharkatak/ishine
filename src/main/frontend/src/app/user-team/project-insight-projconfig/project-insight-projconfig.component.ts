@@ -28,7 +28,7 @@ interface FormNode {
 export class ProjectInsightProjconfigComponent implements OnInit {
   @ViewChild(FormRendererComponent) formRenderer!: FormRendererComponent;
   @ViewChild('open_create_project_modal') openCreateProjectModal: TemplateRef<any>;
-  @ViewChild('alert_message') alertMessageTemplate : TemplateRef<any>;
+  @ViewChild('alert_message') alertMessageTemplate: TemplateRef<any>;
 
   rows = Array(8).fill({});
 
@@ -42,204 +42,28 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   currentNodePath: FormNode[] = [];
 
   //List
-  allDeptList:any[] = [];
-  allFormListList:any[] = [];
-  allProjectInsightProjectList:any[] = [];
-  allDomainDataList:any[] = [
-    {
-      "domain_id": "1",
-      "domain": "Banking",
-      "subDomainList": [
-        {
-          "subdomain_id": "1",
-          "subdomain": "Retail Banking",
-          "domain_id": "1",
-          "serviceList": [
-            {
-              "service_id": "1",
-              "service": "Deposit Services",
-              "subdomain_id": "1",
-              "businessFeatureList": [
-                {
-                  "business_feature_id": "1",
-                  "business_feature": "CASA",
-                  "service_id": "1",
-                  "featureList": [
-                    {
-                      "feature_id": "1",
-                      "feature_name": "Account Opening",
-                      "parent_feature_id": null,
-                      "business_feature_id": "1",
-                      "featureList": [
-                        {
-                          "feature_id": "2",
-                          "feature_name": "XYZ",
-                          "parent_feature_id": "1",
-                          "business_feature_id": "1"
-                        }
-                      ]
-                    },
-                    {
-                      "feature_id": "3",
-                      "feature_name": "KYC",
-                      "parent_feature_id": null,
-                      "business_feature_id": "1"
-                    }
-                  ]
-                },
-                {
-                  "business_feature_id": "2",
-                  "business_feature": "Fixed Deposit",
-                  "service_id": "1"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "subdomain_id": "2",
-          "subdomain": "Corporate Banking",
-          "domain_id": "1",
-          "serviceList": []
-        }
-      ]
-    },
-    {
-      "domain_id": "2",
-      "domain": "Healthcare",
-      "subDomainList": []
-    }  
-  ];
-  projectInsightProjectTreeBreadcrumb: any = {
-    "project": "ICICI BANK",
-    "projectid": "1",
-    "groupList": [
-      {
-        "groupid": 1,
-        "groupName": "Architecture",
-        "title": "System Design Overview",
-        "groupList": [
-          {
-            "groupid": 76,
-            "groupName": "Load Balancing",
-            "title": "Load Distribution Mechanism",
-            "groupList": [
-              {
-                "groupid": 45,
-                "groupName": "ALB",
-                "title": "Application Load Balancer Setup",
-                "groupList": [
-                  {
-                    "groupid": 101,
-                    "groupName": "Routing Rules",
-                    "title": "Rules for URL path-based routing",
-                    "groupList": []
-                  },
-                  {
-                    "groupid": 102,
-                    "groupName": "Health Checks",
-                    "title": "Configured for backend service health",
-                    "groupList": []
-                  }
-                ]
-              },
-              {
-                "groupid": 46,
-                "groupName": "NLB",
-                "title": "Network Load Balancer Setup",
-                "groupList": []
-              }
-            ]
-          },
-          {
-            "groupid": 77,
-            "groupName": "Microservices",
-            "title": "Microservice Deployment Architecture",
-            "groupList": [
-              {
-                "groupid": 103,
-                "groupName": "Service Registry",
-                "title": "Eureka setup for service discovery",
-                "groupList": []
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "groupid": 2,
-        "groupName": "User",
-        "title": "User Access & Authentication",
-        "groupList": [
-          {
-            "groupid": 104,
-            "groupName": "Login Module",
-            "title": "OAuth2 / SSO Integration",
-            "groupList": []
-          },
-          {
-            "groupid": 105,
-            "groupName": "User Roles",
-            "title": "Role-based Access Control",
-            "groupList": []
-          }
-        ]
-      },
-      {
-        "groupid": 3,
-        "groupName": "Deployment",
-        "title": "CI/CD Pipeline",
-        "groupList": [
-          {
-            "groupid": 106,
-            "groupName": "Jenkins",
-            "title": "Build and Deploy Automation",
-            "groupList": []
-          },
-          {
-            "groupid": 107,
-            "groupName": "Kubernetes",
-            "title": "Container Orchestration",
-            "groupList": []
-          }
-        ]
-      }
-    ]
-  };  
+  allDeptList: any[] = [];
+  allFormListList: any[] = [];
+  allProjectInsightProjectList: any[] = [];
+  allDomainDataList: any[] = [];
 
   fields: any[] = [];
-  projectInsightProjectObj: any = {
-    "projectName": "2",
-    "projectManager": ["4", "5"],
-    "teamLead": "5",
-    "client": "6",
-    "outcome": "4",
-    "technologystack": "3",
-    "deliveryModel": "3",
-    "startDate": "2025-06-13",
-    "businessFucntion": "9",
-    "selectDomain": "1",
-    "subdomain": "",
-    "service": "",
-    "businessFeature": "",
-    "subBusinessFeature": "",
-    "xyz": "3"
-  };
+  projectInsightProjectObj: any = {};
 
   //object
   selectedDepartment: any;
   selectedFormId: any;
-  selectedFormType:any;
-  alertMessage:any;
+  selectedFormType: any;
+  alertMessage: any;
 
   //columnList
-  projectColumns:any[] = ['blank','','','','',''];
+  projectColumns: any[] = ['blank', '', '', '', '', ''];
 
   //boolean
-  isCreateForm:boolean = false;
-  isTable:boolean = false;
-  isDomainStructure:boolean = false;
-  isSelected:any
+  isCreateForm: boolean = false;
+  isTable: boolean = false;
+  isDomainStructure: boolean = false;
+  isSelected: any
 
   //domain tree
   expanded: { [key: string]: boolean } = {};
@@ -247,10 +71,10 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   //Utility
   sortDirection = 'asc';
   sortColumn: any;
-  sortColumnType:any;
+  sortColumnType: any;
   abbreviationError: string = '';
-  filters:any = {};
-  isSearchEnabled:boolean = false;
+  filters: any = {};
+  isSearchEnabled: boolean = false;
 
   // Add new properties for field dependency
   dependentFieldsMap: Map<string, any[]> = new Map();
@@ -263,7 +87,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   // Add a property to cache the layout config
   private _layoutConfigCache: any[][] = [];
   private _fieldsHash: string = '';
-  
+
   // Public property for template binding
   layoutConfig: any[][] = [];
 
@@ -297,7 +121,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   rootNode: FormNode = null; // The root of the form tree
 
   constructor(
-    private projectInsightProjconfigService:ProjectInsightProjconfigService,
+    private projectInsightProjconfigService: ProjectInsightProjconfigService,
     private formBuilder: FormBuilder,
     private http: HttpClient,
     private departmentService: DepartmentService,
@@ -306,101 +130,33 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Open table view by default
     this.openTableView();
-    
-    // Load initial options after form is ready
+
     setTimeout(async () => {
       await this.loadInitialOptions();
     }, 200);
 
-    // Initialize project form data
     this.projectData.project = {};
-    
-    // Load your dynamic form layouts here
-    // this.loadFormLayouts();
+
   }
 
-  showTable(){
+  showTable() {
     this.isTable = true;
     this.isCreateForm = false;
   }
-
-  // setupFormValueChanges(): void {
-  //   this.dynamicForm.valueChanges.subscribe(values => {
-  //     this.syncFormToProjectObj(values);
-  //   });
-  // }
-
-  // syncFormToProjectObj(formValues: any): void {
-  //   Object.keys(formValues).forEach(key => {
-  //     this.projectInsightProjectObj[key] = formValues[key];
-  //   });
-  
-  //   console.log('Form values synced to projectInsightProjectObj:', this.projectInsightProjectObj);
-  // }  
-
-  // Method to clear layout cache when fields are updated
-  // private clearLayoutCache(): void {
-  //   this._layoutConfigCache = [];
-  //   this._fieldsHash = '';
-  //   this.layoutConfig = [];
-  // }  
-
-  // buildDynamicForm(): void {
-  //   const formControls: any = {};
-    
-  //   this.fields.forEach(field => {
-  //     if (!field.name || field.name.trim() === '') {
-  //       console.warn('Field without name found:', field.label);
-  //       return;
-  //     }
-
-  //     const validators = [];
-  //     if (field.required) {
-  //       validators.push(Validators.required);
-  //     }
-      
-  //     let defaultValue = this.projectInsightProjectObj[field.name] || field.defaultValue || '';
-      
-  //     // Handle multi-select fields
-  //     if (field.type === 'select' && field.multiple) {
-  //       defaultValue = Array.isArray(defaultValue) ? defaultValue : [];
-  //     formControls[field.name] = [defaultValue, validators];
-  //     } else {
-  //       // For dependent fields, start with empty value
-  //       if (field.optionSource === 'dependent') {
-  //         formControls[field.name] = ['', validators];
-  //       } else {
-  //         formControls[field.name] = [defaultValue, validators];
-  //       }
-  //     }
-  //   });
-    
-  //   this.dynamicForm = this.formBuilder.group(formControls);
-    
-  //   // Clear layout cache when form is rebuilt
-  //   this.clearLayoutCache();
-    
-  //   // Initialize dependencies after form is built
-  //   this.initializeDependencies();
-    
-  //   // Initialize layout config
-  //   this.getLayoutConfig();
-  // }
 
   populateFormWithData(data: any): void {
     if (data && this.dynamicForm) {
       // Use setTimeout to ensure form is fully initialized
       setTimeout(() => {
-      this.dynamicForm.patchValue(data);
+        this.dynamicForm.patchValue(data);
       }, 0);
     }
   }
 
   loadProjectData(projectId: string): void {
     console.log('Loading project data for ID:', projectId);
-    
+
     // For now, using the existing projectInsightProjectObj
     // In real implementation, you would make an API call here
     setTimeout(() => {
@@ -408,28 +164,23 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     }, 100);
   }
 
-  // onProjectSelect(projectId: string): void {
-  //   this.loadProjectData(projectId);
-  // }
-
-  openTableView(){
+  openTableView() {
     this.isCreateForm = false;
     this.isTable = true;
   }
 
-  openCreateProject(){
+  openCreateProject() {
     this.getAllDepartmentList();
     this.modalRef = this.modalService.show(this.openCreateProjectModal);
   }
 
-  showCreateProject(){
+  showCreateProject() {
     this.cancelRequest();
     this.isCreateForm = true;
     this.isTable = false;
 
-    //fetch the form as per formid
     this.getFormByFormId(this.selectedFormId);
-    
+
     // Load initial options after a short delay to ensure form is ready
     setTimeout(async () => {
       await this.loadInitialOptions();
@@ -465,7 +216,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     const rows = new Map<number, any[]>();
     let currentRow = 0;
     let currentRowWidth = 0;
-  
+
     (node.fields || []).forEach(field => {
       const fieldWidth = Number(field.width) || 100;
       if (currentRowWidth + fieldWidth > 100) {
@@ -479,7 +230,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       }
       rows.get(currentRow)?.push(field);
     });
-  
+
     return Array.from(rows.values());
   }
 
@@ -526,7 +277,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
           console.error('API call failed:', err);
         }
       });
-  }  
+  }
 
   toggle(node: any, type: string, idField: string) {
     const key = `${type}-${node[idField]}`;
@@ -538,6 +289,31 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     return !!this.expanded[key];
   }
 
+  get projectInsightProjectTreeBreadcrumb(): any {
+    if (!this.rootNode) {
+      return null;
+    }
+
+    // Build the tree structure dynamically from rootNode
+    const treeStructure = {
+      project: this.rootNode.formName,
+      projectid: this.rootNode.id,
+      groupList: this.buildGroupList(this.rootNode.children || [])
+    };
+
+    return treeStructure;
+  }
+
+  // Helper method to build group list
+  private buildGroupList(children: FormNode[]): any[] {
+    return children.map(child => ({
+      groupid: child.id,
+      groupName: child.formName,
+      title: child.formName,
+      groupList: this.buildGroupList(child.children || [])
+    }));
+  }
+
   addItem(type: string, parent: any, event: MouseEvent) {
     event.stopPropagation(); // Prevents toggling when clicking +
     // Open dialog, show inline input, or emit event
@@ -546,25 +322,16 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     console.log('Add', type, 'under', parent);
   }
 
-  toggleDomainProjectView(event: any){}
-
-  // getBootstrapCol(width: number): number {
-  //   // Convert percentage width to Bootstrap column size
-  //   if (width <= 25) return 3;      // col-md-3 (25%)
-  //   if (width <= 33) return 4;      // col-md-4 (33.33%)
-  //   if (width <= 50) return 6;      // col-md-6 (50%)
-  //   if (width <= 75) return 9;      // col-md-9 (75%)
-  //   return 12;                      // col-md-12 (100%)
-  // }
+  toggleDomainProjectView(event: any) { }
 
   onSelectChange(event: any, fieldName: string) {
     const selectedValue = event.value;
     const field = this.fields.find(f => f.name === fieldName);
-    
+
     // Check if this field has dependent fields
     if (this.dependentFieldsMap.has(fieldName)) {
       const dependentFields = this.dependentFieldsMap.get(fieldName)!;
-      
+
       // Clear and reload options for all dependent fields
       dependentFields.forEach(dependentFieldName => {
         this.handleDependentFieldChange(dependentFieldName, selectedValue);
@@ -574,11 +341,11 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   onMultiSelectChange(event: any, field: any) {
     const selectedValues = event.value;
-    
+
     // Check if this field has dependent fields
     if (this.dependentFieldsMap.has(field.name)) {
       const dependentFields = this.dependentFieldsMap.get(field.name)!;
-      
+
       // Handle multi-select dependent fields
       dependentFields.forEach(dependentFieldName => {
         this.handleMultiSelectDependentFieldChange(dependentFieldName, selectedValues);
@@ -588,11 +355,11 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   onDependentSelectChange(event: any, field: any, parentValue: string) {
     const selectedValue = event.value;
-    
+
     // Check if this field has dependent fields
     if (this.dependentFieldsMap.has(field.name)) {
       const dependentFields = this.dependentFieldsMap.get(field.name)!;
-      
+
       // Clear and reload options for all dependent fields
       dependentFields.forEach(dependentFieldName => {
         this.handleDependentFieldChange(dependentFieldName, selectedValue);
@@ -623,10 +390,10 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
     // Clear the dependent field's value
     this.dynamicForm.get(fieldName)?.setValue('');
-    
+
     // Clear existing options
     field.options = [];
-    
+
     // Load new options only if parent value is not empty
     if (parentValue) {
       await this.loadDependentOptions(field, parentValue);
@@ -641,10 +408,10 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
     // Clear the dependent field's value
     this.dynamicForm.get(fieldName)?.setValue('');
-    
+
     // Clear existing options
     field.options = [];
-    
+
     // Load new options for each parent value only if there are values
     if (parentValues && parentValues.length > 0) {
       const allOptions: any[] = [];
@@ -654,10 +421,10 @@ export class ProjectInsightProjconfigComponent implements OnInit {
           allOptions.push(...options);
         }
       }
-      
+
       // Remove duplicates
       field.options = this.removeDuplicateOptions(allOptions);
-      
+
       // Update layout after options are loaded
       this.updateLayout();
     }
@@ -680,19 +447,19 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     try {
       const url = field.dependentApiUrl.replace('{parentValue}', parentValue);
       const response = await this.http.get<any[]>(url).toPromise();
-      
+
       if (response && Array.isArray(response)) {
         const options = response.map(item => ({
           label: item[field.dependentLabelKey || 'name'],
           value: item[field.dependentValueKey || 'id']
         }));
-        
+
         // Cache the options
         if (!this.dependentFieldOptions.has(field.name)) {
           this.dependentFieldOptions.set(field.name, new Map());
         }
         this.dependentFieldOptions.get(field.name)!.set(parentValue, options);
-        
+
         return options;
       }
     } catch (error) {
@@ -700,7 +467,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       // Return empty array on error to prevent hanging
       return [];
     }
-    
+
     return [];
   }
 
@@ -708,7 +475,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     const rows = new Map<number, any[]>();
     let currentRow = 0;
     let currentRowWidth = 0;
-  
+
     (fields || []).forEach(field => {
       const fieldWidth = Number(field.width) || 100;
       if (currentRowWidth + fieldWidth > 100) {
@@ -722,7 +489,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       }
       rows.get(currentRow)?.push(field);
     });
-  
+
     return Array.from(rows.values());
   }
 
@@ -733,7 +500,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   //   this.fields.forEach(field => {
   //     if (field.optionSource === 'dependent' && field.parentField) {
   //       this.fieldDependencies.set(field.name, field.parentField);
-        
+
   //       if (!this.dependentFieldsMap.has(field.parentField)) {
   //         this.dependentFieldsMap.set(field.parentField, []);
   //       }
@@ -749,10 +516,10 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         promises.push(this.loadApiOptions(field));
       }
     }
-    
+
     // Wait for all API options to load
     await Promise.all(promises);
-    
+
     // Update layout after all options are loaded
     this.updateLayout();
   }
@@ -762,13 +529,13 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
     try {
       const response = await this.http.get<any[]>(field.apiUrl).toPromise();
-      
+
       if (response && Array.isArray(response)) {
         const options = response.map(item => ({
           label: item[field.apiLabelKey || 'name'],
           value: item[field.apiValueKey || 'id']
         }));
-        
+
         // Cache the options
         field.options = options;
         return options;
@@ -778,7 +545,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       // Return empty array on error to prevent hanging
       return [];
     }
-    
+
     return [];
   }
 
@@ -802,7 +569,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   getParentLabel(field: any, parentValue: string): string {
     const parentField = this.fields.find(f => f.name === field.parentField);
     if (!parentField || !parentField.options) return parentValue;
-    
+
     const option = parentField.options.find((opt: any) => opt.value === parentValue);
     return option ? option.label : parentValue;
   }
@@ -815,7 +582,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     if (!this.dependentFieldOptions.has(field.name)) {
       return [];
     }
-    
+
     const fieldOptions = this.dependentFieldOptions.get(field.name)!;
     return fieldOptions.get(parentValue) || [];
   }
@@ -826,24 +593,24 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.page = event;
   }
 
-  sortData(sort: Sort){
+  sortData(sort: Sort) {
     //console.log(sort);
-    if(sort.active){
-      let sortParams:any[] = sort.active?.split("|");
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;
     }
   }
 
-  toggleSearch(){
+  toggleSearch() {
     this.isSearchEnabled = !this.isSearchEnabled;
-    if(!this.isSearchEnabled){
+    if (!this.isSearchEnabled) {
       this.filters = {};
     }
   }
 
-  onSearch(searchData){
+  onSearch(searchData) {
     this.filters = searchData;
   }
 
@@ -925,13 +692,24 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   startProjectForm() {
     this.currentNodePath = [this.rootNode];
   }
-  
+
   get currentNode(): FormNode {
     return this.currentNodePath[this.currentNodePath.length - 1];
   }
-  
+
   navigateToNode(index: number) {
     this.currentNodePath = this.currentNodePath.slice(0, index + 1);
+  }
+
+  navigateToTreeNode(path: number[]) {
+    let node = this.rootNode;
+    const newPath = [node];
+    for (const idx of path) {
+      if (!node.children || !node.children[idx]) break;
+      node = node.children[idx];
+      newPath.push(node);
+    }
+    this.currentNodePath = newPath;
   }
 
   private findExistingGroup(): FormNode | null {
@@ -940,65 +718,65 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     }
     return this.rootNode.children[0];
   }
-  
+
   // --------------------- SubGroup impl------------------
   addSubGroup() {
-    const node = this.currentNode;
     let newSubGroup: FormNode;
-    
+
+    // Try to get the template subgroup from the first group and its first child
+    const templateSubGroup = this.rootNode.children?.[0]?.children?.[0] || null;
+    console.log('Template SubGroup:', templateSubGroup);
+
+    if (templateSubGroup) {
+      newSubGroup = this.cloneFormNode(templateSubGroup, false);
+    } else {
+      // Use default for the very first subgroup
+      newSubGroup = this.getDefaultSubGroupStructure();
+    }
+
+    const node = this.currentNode;
+
+    // If at project level, move to first group
     if (node === this.rootNode) {
-      const existingGroup = this.findExistingGroup();
-      
-      if (existingGroup) {
-        this.currentNodePath.push(existingGroup);
+      if (this.rootNode.children?.[0]) {
+        this.currentNodePath.push(this.rootNode.children[0]);
         this.addSubGroup();
-        return;
       } else {
         this.addGroup();
-        return;
       }
+      return;
     }
-    
+
+    // If at group level, add to its children
     if (this.rootNode.children.includes(node)) {
-      const existingSubGroup = this.findExistingSubGroup(node);
-      
-      if (existingSubGroup) {
-        newSubGroup = this.cloneFormNode(existingSubGroup);
-      } else {
-        newSubGroup = this.getDefaultSubGroupStructure();
-      }
       node.children.push(newSubGroup);
-    } else {
-      const parentGroup = this.findParentNode(node);
-      
-      if (parentGroup) {
-        const existingSubGroup = this.findExistingSubGroup(parentGroup);
-        
-        if (existingSubGroup) {
-          newSubGroup = this.cloneFormNode(existingSubGroup);
-        } else {
-          newSubGroup = this.getDefaultSubGroupStructure();
-        }
-        parentGroup.children.push(newSubGroup);
-      } else {
-        console.error('Cannot find parent group for subgroup');
-        return;
-      }
+      this.currentNodePath.push(newSubGroup);
+      return;
     }
-    this.currentNodePath.push(newSubGroup);
+
+    // If at subgroup level, add sibling to parent group
+    const parentGroup = this.findParentNode(node);
+    if (parentGroup) {
+      parentGroup.children.push(newSubGroup);
+      this.currentNodePath.push(newSubGroup);
+      return;
+    }
+
+    // Fallback error
+    console.error('Cannot find parent group for subgroup');
   }
-  
+
   private findExistingSubGroup(groupNode: FormNode): FormNode | null {
     if (!groupNode.children || groupNode.children.length === 0) {
       return null;
     }
     return groupNode.children[0];
   }
-  
+
   private findParentNode(childNode: FormNode): FormNode | null {
     return this.findParentNodeRecursive(this.rootNode, childNode);
   }
-  
+
   private findParentNodeRecursive(parent: FormNode, targetChild: FormNode): FormNode | null {
     if (!parent.children) return null;
     if (parent.children.includes(targetChild)) {
@@ -1010,16 +788,16 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     }
     return null;
   }
-  
+
   private generateUniqueId(): string {
     return 'subgroup_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
-  
+
   private getDefaultSubGroupStructure(): FormNode {
     //  API call later ============================
     return {
       id: this.generateUniqueId(),
-      formName: 'SubGroup',
+      formName: '',
       fields: [],
       formData: {},
       layoutConfig: [],
@@ -1029,35 +807,25 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   // group logic
   addGroup() {
-    const node = this.currentNode;
     let newGroup: FormNode;
-    if (node === this.rootNode) {
-      const existingGroup = this.findExistingGroup();
-      
-      if (existingGroup) {
-        newGroup = this.cloneFormNode(existingGroup);
-      } else {
-        newGroup = this.getDefaultGroupStructure();
-      }
-      
-      this.rootNode.children.push(newGroup);
+    const existingGroup = this.findExistingGroup();
+
+    if (existingGroup) {
+      // Pass false to NOT clone children
+      newGroup = this.cloneFormNode(existingGroup, false);
     } else {
-      const existingGroup = this.findExistingGroup();
-      
-      if (existingGroup) {
-        newGroup = this.cloneFormNode(existingGroup);
-      } else {
-        newGroup = this.getDefaultGroupStructure();
-      }
-      node.children.push(newGroup);
+      newGroup = this.getDefaultGroupStructure();
     }
+    this.rootNode.children.push(newGroup);
     this.currentNodePath.push(newGroup);
+
+    console.log(this.currentNodePath, " : this.currentNodePath");
   }
-  
+
   private getDefaultGroupStructure(): FormNode {
     return {
       id: this.generateUniqueId(),
-      formName: 'Group',
+      formName: '',
       fields: [],
       formData: {},
       layoutConfig: [],
@@ -1073,14 +841,14 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     group.children.splice(subIndex, 1);
   }
 
-  cloneFormNode(node: FormNode): FormNode {
+  cloneFormNode(node: FormNode, cloneChildren: boolean = true): FormNode {
     return {
-      id: node.id,
-      formName: node.formName,
+      id: this.generateUniqueId(),
+      formName: node.formName || '',
       fields: node.fields,
       formData: {},
       layoutConfig: this.getLayoutConfig(node.fields || []),
-      children: node.children.map(child => this.cloneFormNode(child))
+      children: cloneChildren ? node.children.map(child => this.cloneFormNode(child)) : []
     };
   }
 
@@ -1098,5 +866,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   onFormValueChange(node: FormNode, value: any) {
     node.formData = value;
+  }
+
+  navigateToProject() {
+    this.currentNodePath = [this.rootNode];
   }
 }

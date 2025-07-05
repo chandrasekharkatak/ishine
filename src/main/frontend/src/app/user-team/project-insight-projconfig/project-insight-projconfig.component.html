@@ -74,16 +74,16 @@
     <div class="filters">
       <div class="filters-header d-flex align-items-center gap-2">
         <label class="mb-0">Project</label>
-  
+
         <div class="custom-control custom-switch">
           <input type="checkbox" class="custom-control-input" id="domain-history-switch" [(ngModel)]="isDomainStructure"
             (change)="toggleDomainProjectView($event)" style="cursor: pointer;" />
           <label class="custom-control-label mx-2" for="domain-history-switch"></label>
         </div>
-  
+
         <label class="mb-0">Domain</label>
       </div>
-  
+
       <div class="filter-list">
         <!-- DOMAIN STRUCTURE TREE -->
         <ul class="filter-tree" *ngIf="isDomainStructure">
@@ -148,7 +148,8 @@
                                           <li>
                                             <div class="tree-label">
                                               {{ subFeature.feature_name }}
-                                              <button class="add-btn" (click)="addItem('subfeature', subFeature, $event)">
+                                              <button class="add-btn"
+                                                (click)="addItem('subfeature', subFeature, $event)">
                                                 <i class="fa fa-plus"></i>
                                               </button>
                                             </div>
@@ -169,73 +170,69 @@
               </ul>
             </li>
           </ng-container>
-          <button class="btn btn-outline-primary btn-sm" style="width: 11.5rem" (click)="addItem('domain', null, $event)">
+          <button class="btn btn-outline-primary btn-sm" style="width: 11.5rem"
+            (click)="addItem('domain', null, $event)">
             <i class="fa fa-plus"></i> Add domain
           </button>
         </ul>
-  
+
         <!-- PROJECT INSIGHT TREE (NO ADD BUTTONS) -->
         <ul class="filter-tree" *ngIf="!isDomainStructure">
           <ng-container *ngIf="projectInsightProjectTreeBreadcrumb">
             <li>
-              <div class="tree-label project-title">
+              <div class="tree-label project-title" (click)="navigateToProject()" style="cursor: pointer;">
                 {{ projectInsightProjectTreeBreadcrumb.project }}
               </div>
               <ul>
-                <ng-container *ngFor="let group of projectInsightProjectTreeBreadcrumb.groupList">
+                <ng-container *ngFor="let group of projectInsightProjectTreeBreadcrumb.groupList; let i = index">
                   <ng-template [ngTemplateOutlet]="recursiveGroup"
-                    [ngTemplateOutletContext]="{ group: group }"></ng-template>
+                    [ngTemplateOutletContext]="{ group: group, path: [i] }"></ng-template>
                 </ng-container>
               </ul>
             </li>
           </ng-container>
         </ul>
-  
-        <!-- Recursive group template for projectInsightProjectTreeBreadcrumb -->
-        <ng-template #recursiveGroup let-group="group">
+
+        <ng-template #recursiveGroup let-group="group" let-path="path">
           <li>
-            <div class="tree-label" (click)="toggle(group, 'group', 'groupid');">
-              <span class="arrow" *ngIf="group.groupList?.length">
+            <div class="tree-label" style="cursor: pointer;">
+              <span class="arrow" *ngIf="group.groupList?.length"
+                (click)="toggle(group, 'group', 'groupid'); $event.stopPropagation()">
                 {{ isExpanded(group, 'group', 'groupid') ? '▼' : '▶' }}
               </span>
-              {{ group.groupName }}
+              <span (click)="navigateToTreeNode(path)">{{ group.groupName }}</span>
             </div>
             <ul *ngIf="isExpanded(group, 'group', 'groupid')">
-              <ng-container *ngFor="let child of group.groupList">
+              <ng-container *ngFor="let child of group.groupList; let j = index">
                 <ng-template [ngTemplateOutlet]="recursiveGroup"
-                  [ngTemplateOutletContext]="{ group: child }"></ng-template>
+                  [ngTemplateOutletContext]="{ group: child, path: path.concat([j]) }"></ng-template>
               </ng-container>
             </ul>
           </li>
         </ng-template>
       </div>
     </div>
-  
+
     <div class="form-content">
       <div *ngIf="isCreateForm && rootNode">
         <!-- Breadcrumb -->
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
-            <li *ngFor="let node of currentNodePath; let i = index"
-                class="breadcrumb-item"
-                [class.active]="i === currentNodePath.length - 1"
-                [attr.aria-current]="i === currentNodePath.length - 1 ? 'page' : null"
-                style="cursor:pointer"
-                (click)="navigateToNode(i)">
+            <li *ngFor="let node of currentNodePath; let i = index" class="breadcrumb-item"
+              [class.active]="i === currentNodePath.length - 1"
+              [attr.aria-current]="i === currentNodePath.length - 1 ? 'page' : null" style="cursor:pointer"
+              (click)="navigateToNode(i)">
               {{ node.formName }} <span *ngIf="i > 0">#{{ i }}</span>
             </li>
           </ol>
         </nav>
-      
+
         <!-- Single Form Renderer -->
-        <h5 class="section-title mt-3 mb-3">{{ currentNode.formName }} Details</h5>
-        <app-form-renderer
-          [fields]="currentNode.fields"
-          [layoutConfig]="currentNode.layoutConfig"
-          [formData]="currentNode.formData"
-          (formValueChange)="onFormValueChange(currentNode, $event)">
+        <h5 class="section-title mt-3 mb-3">{{ currentNode?.formName }} Details</h5>
+        <app-form-renderer [fields]="currentNode.fields" [layoutConfig]="currentNode.layoutConfig"
+          [formData]="currentNode.formData" (formValueChange)="onFormValueChange(currentNode, $event)">
         </app-form-renderer>
-      
+
         <!-- Action Buttons -->
         <div class="row mt-3 align-items-center">
           <div class="col-md-12">
@@ -245,8 +242,10 @@
             <button type="button" class="btn btn-primary btn-sm mr-2" (click)="addSubGroup()">
               <i class="fa fa-plus"></i> Add Sub Group
             </button>
-            <button type="button" class="btn btn-secondary btn-sm mr-2" (click)="onSaveAndAssign()">Save and Assign</button>
-            <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="openTableView()">Cancel</button>
+            <button type="button" class="btn btn-secondary btn-sm mr-2" (click)="onSaveAndAssign()">Save and
+              Assign</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm mr-2"
+              (click)="openTableView()">Cancel</button>
           </div>
         </div>
       </div>
@@ -261,7 +260,8 @@
       <div class="info-wrapper">
         <div class="form-group d-flex">
           <label><span class="text-danger">*</span>Select Department</label>
-          <select class="form-control ml-4" (change)="getAllDynamicFormByDepartmentAndType()" aria-hidden="true" [(ngModel)]="selectedDepartment">
+          <select class="form-control ml-4" (change)="getAllDynamicFormByDepartmentAndType()" aria-hidden="true"
+            [(ngModel)]="selectedDepartment">
             <option selected="selected" value="" disabled>Select</option>
             <option *ngFor="let department of allDeptList" value="{{department.deptId}}">{{department.name}}
             </option>
@@ -288,7 +288,7 @@
 
 <ng-template #alert_message>
   <div class="modal-body text-center">
-      <p>{{alertMessage}}</p>
-      <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
   </div>
 </ng-template>
