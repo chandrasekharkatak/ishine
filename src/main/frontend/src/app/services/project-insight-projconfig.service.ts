@@ -15,4 +15,8 @@ export class ProjectInsightProjconfigService {
   getAllDomainData(){
     return this.http.get(`${this.baseUrl}` + `api/createProjectInsightQuestion`);
   }
+
+  getDefaultSubGroupStructure(){
+    
+  }
 }

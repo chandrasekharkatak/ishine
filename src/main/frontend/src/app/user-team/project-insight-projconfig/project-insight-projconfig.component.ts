@@ -38,6 +38,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   // Form
   dynamicForm: FormGroup;
 
+  //breadcrumb
+  currentNodePath: FormNode[] = [];
+
   //List
   allDeptList:any[] = [];
   allFormListList:any[] = [];
@@ -107,7 +110,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       "subDomainList": []
     }  
   ];
-  projectInsightProject: any = {
+  projectInsightProjectTreeBreadcrumb: any = {
     "project": "ICICI BANK",
     "projectid": "1",
     "groupList": [
@@ -315,7 +318,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.projectData.project = {};
     
     // Load your dynamic form layouts here
-    this.loadFormLayouts();
+    // this.loadFormLayouts();
   }
 
   showTable(){
@@ -323,26 +326,26 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.isCreateForm = false;
   }
 
-  setupFormValueChanges(): void {
-    this.dynamicForm.valueChanges.subscribe(values => {
-      this.syncFormToProjectObj(values);
-    });
-  }
+  // setupFormValueChanges(): void {
+  //   this.dynamicForm.valueChanges.subscribe(values => {
+  //     this.syncFormToProjectObj(values);
+  //   });
+  // }
 
-  syncFormToProjectObj(formValues: any): void {
-    Object.keys(formValues).forEach(key => {
-      this.projectInsightProjectObj[key] = formValues[key];
-    });
+  // syncFormToProjectObj(formValues: any): void {
+  //   Object.keys(formValues).forEach(key => {
+  //     this.projectInsightProjectObj[key] = formValues[key];
+  //   });
   
-    console.log('Form values synced to projectInsightProjectObj:', this.projectInsightProjectObj);
-  }  
+  //   console.log('Form values synced to projectInsightProjectObj:', this.projectInsightProjectObj);
+  // }  
 
   // Method to clear layout cache when fields are updated
-  private clearLayoutCache(): void {
-    this._layoutConfigCache = [];
-    this._fieldsHash = '';
-    this.layoutConfig = [];
-  }  
+  // private clearLayoutCache(): void {
+  //   this._layoutConfigCache = [];
+  //   this._fieldsHash = '';
+  //   this.layoutConfig = [];
+  // }  
 
   // buildDynamicForm(): void {
   //   const formControls: any = {};
@@ -405,9 +408,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     }, 100);
   }
 
-  onProjectSelect(projectId: string): void {
-    this.loadProjectData(projectId);
-  }
+  // onProjectSelect(projectId: string): void {
+  //   this.loadProjectData(projectId);
+  // }
 
   openTableView(){
     this.isCreateForm = false;
@@ -449,8 +452,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.formBuilderService.getByDynamicFormById(formId).pipe(first()).subscribe({
       next: (response: any) => {
         this.rootNode = this.buildFormNodeTree(response);
-        console.log(this.rootNode, ": rootNode ===");
-        
+        this.startProjectForm();
       },
       error: (error: any) => {
         this.alertMessage = error;
@@ -544,20 +546,16 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     console.log('Add', type, 'under', parent);
   }
 
-  selectGroup(group: any){
-
-  }
-
   toggleDomainProjectView(event: any){}
 
-  getBootstrapCol(width: number): number {
-    // Convert percentage width to Bootstrap column size
-    if (width <= 25) return 3;      // col-md-3 (25%)
-    if (width <= 33) return 4;      // col-md-4 (33.33%)
-    if (width <= 50) return 6;      // col-md-6 (50%)
-    if (width <= 75) return 9;      // col-md-9 (75%)
-    return 12;                      // col-md-12 (100%)
-  }
+  // getBootstrapCol(width: number): number {
+  //   // Convert percentage width to Bootstrap column size
+  //   if (width <= 25) return 3;      // col-md-3 (25%)
+  //   if (width <= 33) return 4;      // col-md-4 (33.33%)
+  //   if (width <= 50) return 6;      // col-md-6 (50%)
+  //   if (width <= 75) return 9;      // col-md-9 (75%)
+  //   return 12;                      // col-md-12 (100%)
+  // }
 
   onSelectChange(event: any, fieldName: string) {
     const selectedValue = event.value;
@@ -728,21 +726,21 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     return Array.from(rows.values());
   }
 
-  initializeDependencies() {
-    this.dependentFieldsMap.clear();
-    this.fieldDependencies.clear();
+  // initializeDependencies() {
+  //   this.dependentFieldsMap.clear();
+  //   this.fieldDependencies.clear();
 
-    this.fields.forEach(field => {
-      if (field.optionSource === 'dependent' && field.parentField) {
-        this.fieldDependencies.set(field.name, field.parentField);
+  //   this.fields.forEach(field => {
+  //     if (field.optionSource === 'dependent' && field.parentField) {
+  //       this.fieldDependencies.set(field.name, field.parentField);
         
-        if (!this.dependentFieldsMap.has(field.parentField)) {
-          this.dependentFieldsMap.set(field.parentField, []);
-        }
-        this.dependentFieldsMap.get(field.parentField)!.push(field.name);
-      }
-    });
-  }
+  //       if (!this.dependentFieldsMap.has(field.parentField)) {
+  //         this.dependentFieldsMap.set(field.parentField, []);
+  //       }
+  //       this.dependentFieldsMap.get(field.parentField)!.push(field.name);
+  //     }
+  //   });
+  // }
 
   async loadInitialOptions() {
     const promises = [];
@@ -909,77 +907,172 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
-  loadFormLayouts() {
-    // Load your JSON form layouts
-    // This is where you'll fetch your dynamic form configurations
-    this.projectFormLayout = {
-      // Your project form layout JSON
-    };
-    this.groupFormLayout = {
-      // Your group form layout JSON
-    };
-    this.subGroupFormLayout = {
-      // Your subgroup form layout JSON
-    };
+  // loadFormLayouts() {
+  //   // Load your JSON form layouts
+  //   // This is where you'll fetch your dynamic form configurations
+  //   this.projectFormLayout = {
+  //     // Your project form layout JSON
+  //   };
+  //   this.groupFormLayout = {
+  //     // Your group form layout JSON
+  //   };
+  //   this.subGroupFormLayout = {
+  //     // Your subgroup form layout JSON
+  //   };
+  // }
+
+  //Breadcrumb
+  startProjectForm() {
+    this.currentNodePath = [this.rootNode];
+  }
+  
+  get currentNode(): FormNode {
+    return this.currentNodePath[this.currentNodePath.length - 1];
+  }
+  
+  navigateToNode(index: number) {
+    this.currentNodePath = this.currentNodePath.slice(0, index + 1);
   }
 
-  // Method to add a new group
-  addGroup() {
-    if (!this.rootNode) return;
-    let newGroup: FormNode;
-    if (this.rootNode.children.length > 0) {
-      const groupTemplate = this.rootNode.children[0];
-      newGroup = this.cloneFormNode(groupTemplate);
-    } else {
-      // try {
-      //   // fallback to API if no sibling present
-      //   newGroup = await this.apiService.getGroupTemplate().toPromise();
-      // } catch (error) {
-      //   console.error("API failed, using empty group fallback", error);
-      //   newGroup = {
-      //     id: '',
-      //     formName: 'Group',
-      //     fields: [],
-      //     formData: {},
-      //     children: []
-      //   };
-      // }
+  private findExistingGroup(): FormNode | null {
+    if (!this.rootNode.children || this.rootNode.children.length === 0) {
+      return null;
     }
-  
-    this.rootNode.children.push(newGroup);
+    return this.rootNode.children[0];
   }
   
-
-  // Method to add a subgroup to a specific group
-  // ... existing code ...
-  addSubGroup(group: FormNode) {
+  // --------------------- SubGroup impl------------------
+  addSubGroup() {
+    const node = this.currentNode;
     let newSubGroup: FormNode;
-    if (group.children.length > 0) {
-      const subGroupTemplate = group.children[0];
-      newSubGroup = this.cloneFormNode(subGroupTemplate);
-    } else {
-      newSubGroup = {
-        id: '',
-        formName: 'SubGroup',
-        fields: [],
-        formData: {},
-        children: []
-      };
+    
+    if (node === this.rootNode) {
+      const existingGroup = this.findExistingGroup();
+      
+      if (existingGroup) {
+        this.currentNodePath.push(existingGroup);
+        this.addSubGroup();
+        return;
+      } else {
+        this.addGroup();
+        return;
+      }
     }
-    group.children.push(newSubGroup);
+    
+    if (this.rootNode.children.includes(node)) {
+      const existingSubGroup = this.findExistingSubGroup(node);
+      
+      if (existingSubGroup) {
+        newSubGroup = this.cloneFormNode(existingSubGroup);
+      } else {
+        newSubGroup = this.getDefaultSubGroupStructure();
+      }
+      node.children.push(newSubGroup);
+    } else {
+      const parentGroup = this.findParentNode(node);
+      
+      if (parentGroup) {
+        const existingSubGroup = this.findExistingSubGroup(parentGroup);
+        
+        if (existingSubGroup) {
+          newSubGroup = this.cloneFormNode(existingSubGroup);
+        } else {
+          newSubGroup = this.getDefaultSubGroupStructure();
+        }
+        parentGroup.children.push(newSubGroup);
+      } else {
+        console.error('Cannot find parent group for subgroup');
+        return;
+      }
+    }
+    this.currentNodePath.push(newSubGroup);
+  }
+  
+  private findExistingSubGroup(groupNode: FormNode): FormNode | null {
+    if (!groupNode.children || groupNode.children.length === 0) {
+      return null;
+    }
+    return groupNode.children[0];
+  }
+  
+  private findParentNode(childNode: FormNode): FormNode | null {
+    return this.findParentNodeRecursive(this.rootNode, childNode);
+  }
+  
+  private findParentNodeRecursive(parent: FormNode, targetChild: FormNode): FormNode | null {
+    if (!parent.children) return null;
+    if (parent.children.includes(targetChild)) {
+      return parent;
+    }
+    for (const child of parent.children) {
+      const result = this.findParentNodeRecursive(child, targetChild);
+      if (result) return result;
+    }
+    return null;
+  }
+  
+  private generateUniqueId(): string {
+    return 'subgroup_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
+  
+  private getDefaultSubGroupStructure(): FormNode {
+    //  API call later ============================
+    return {
+      id: this.generateUniqueId(),
+      formName: 'SubGroup',
+      fields: [],
+      formData: {},
+      layoutConfig: [],
+      children: []
+    };
   }
 
-  // Method to remove a group
+  // group logic
+  addGroup() {
+    const node = this.currentNode;
+    let newGroup: FormNode;
+    if (node === this.rootNode) {
+      const existingGroup = this.findExistingGroup();
+      
+      if (existingGroup) {
+        newGroup = this.cloneFormNode(existingGroup);
+      } else {
+        newGroup = this.getDefaultGroupStructure();
+      }
+      
+      this.rootNode.children.push(newGroup);
+    } else {
+      const existingGroup = this.findExistingGroup();
+      
+      if (existingGroup) {
+        newGroup = this.cloneFormNode(existingGroup);
+      } else {
+        newGroup = this.getDefaultGroupStructure();
+      }
+      node.children.push(newGroup);
+    }
+    this.currentNodePath.push(newGroup);
+  }
+  
+  private getDefaultGroupStructure(): FormNode {
+    return {
+      id: this.generateUniqueId(),
+      formName: 'Group',
+      fields: [],
+      formData: {},
+      layoutConfig: [],
+      children: []
+    };
+  }
+
   removeGroup(index: number) {
     this.rootNode.children.splice(index, 1);
   }
 
-  // Method to remove a subgroup
   removeSubGroup(group: FormNode, subIndex: number) {
     group.children.splice(subIndex, 1);
   }
 
-  // Deep clone a form node (without formData)
   cloneFormNode(node: FormNode): FormNode {
     return {
       id: node.id,
@@ -991,7 +1084,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     };
   }
 
-  // Recursive save: collect all formData in the tree
   collectFormData(node: FormNode): any {
     return {
       fields: node.formData,
@@ -1001,11 +1093,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   onSaveAndAssign() {
     const dataToSave = this.collectFormData(this.rootNode);
-    // Call your API here
     console.log('Saving structure:', dataToSave);
   }
 
-  // Called by form-renderer on value change
   onFormValueChange(node: FormNode, value: any) {
     node.formData = value;
   }
