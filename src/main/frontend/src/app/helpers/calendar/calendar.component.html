@@ -16,7 +16,7 @@
       >
 
 
-       <div *ngIf="day.status === 'Not Filled'" class="hover-hint">
+       <div *ngIf="day.status === 'Not Filled'  && day.displayDate <= todayDate" class="hover-hint">
         Create Timesheet
       </div>
       

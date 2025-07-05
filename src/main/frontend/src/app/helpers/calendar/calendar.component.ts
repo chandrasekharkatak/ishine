@@ -188,7 +188,10 @@ onHoverEnd(): void {
     this.popupActivity = '';
 }
 
+todayDate: string = new Date().toISOString().split('T')[0];
+
 onDayClick(day: CalendarItem): void {
+  console.log("dayyyy",day);
   if (day.status === 'Not Filled') {
     this.openTimesheet.emit(day);
   } else if (day.status === 'Approved') {
