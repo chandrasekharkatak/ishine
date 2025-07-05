@@ -1578,13 +1578,13 @@
                                 <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdOn|datetime">
                                     Created On</th>
                                 <th scope="col" class="info-label" *ngIf="isTable"
-                                    mat-sort-header="createdByName|string"> Created by</th>
+                                    mat-sort-header="createdByName|string"> Created By</th>
                                 <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedOn|datetime">
                                     Updated On</th>
                                 <th scope="col" class="info-label" *ngIf="isTable"
-                                    mat-sort-header="updatedByName|string"> Updated by</th>
+                                    mat-sort-header="updatedByName|string"> Updated By</th>
                                 <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="referedName|string">
-                                    Referred by</th>
+                                    Referred By</th>
                                 <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
                                 <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
                                     scope="col" class="info-label">Actions</th>
@@ -1617,7 +1617,7 @@
                                     *ngIf="isDraftTable && employee.employmentStatus == 'InActive' && !isActiveTable">
                                     {{employee.employmentReleaseStatus}}</td> -->
                                 <td
-                                    *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable">
+                                    *ngIf="isDraftTable == true && (employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' ) && !isActiveTable">
                                     {{employee.employmentReleaseStatus}}</td>
 
                                 <td id="clickablefor360" *ngIf="userMapping.employee_360"

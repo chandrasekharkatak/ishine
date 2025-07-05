@@ -157,8 +157,8 @@
                         <th scope="col" class="info-label" mat-sort-header="surveyName|string">Survey Name</th>
                         <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>
                         <th scope="col" class="info-label" mat-sort-header="isActive|string">Status</th>
-                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
-                        <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
                         <th scope="col" class="info-label">Actions</th>
                       </tr>
                       <tr app-column-filter-bar *ngIf="isSurveyList && isSearchEnabled" [columnList]="surveyColumns" (onSearch)="onSearch($event);page=1" ></tr>

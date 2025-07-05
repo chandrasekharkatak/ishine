@@ -152,7 +152,6 @@ export class ReportListComponent implements OnInit {
   endDate: any;
   startDate: any;
   employeeReportObj: employeeReport = new employeeReport();
-
   customQuery: any;
   leaveReportFlag: boolean = false;
   timesheetReportFlag: boolean = false;
@@ -168,7 +167,6 @@ export class ReportListComponent implements OnInit {
   leaveReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
-  // 'dateOfJoining', 'aadhar', 'aboutMe', 'address', 'permanentAddress', 'city', 'bloodGroup', 'dateOfBirth', 'gender', 'fatherName', 'panNumber', 'placeOfBirth', 'workLocation', 'probationPeriod', 'noticePeriod', 'country', 'totalExperience', 'emergencyContactMobile', 'emergencyContactPerson', 'landline', 'maritalStatus', 'motherTongue', 'alternateMobileNo', 'pincode', 'relation', 'state', 'viewsOnOrganisation', 'passportNumber', 'bankAccountNo', 'bankIFSCCode', 'bankName', 'pfAccountNumber', 'previousPfAccountNumber', 'uan', 'esicNumber', 'graduationType', 'pursuing', 'passingGrade', 'yearOfPassing',
   leaveTimesheetReportColumn: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   defaultMappingColumns: any[] = ['tabName', 'featureName', 'subFeatureName'];
   employeeReportColumnForDetailedProjecttttView: any[] = ['blank',
@@ -219,9 +217,13 @@ export class ReportListComponent implements OnInit {
   selectedEmpId: any = 0;
   summaryModalRef: BsModalRef;
   projectSummaryData: any[] = [];
+  searchText: string = '';
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
+  private allDepartments: any[] = [];
+  showBillableOnly: boolean = false;
+  
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -237,19 +239,42 @@ export class ReportListComponent implements OnInit {
     private departmentService: DepartmentService,
     private location: Location, private router: Router,
     private resourceManagementService: ResourceManagementService,
-
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     const navigation = this.router.getCurrentNavigation();
     this.returnUrl = navigation?.extras?.state?.['returnUrl'] || null;
-
-
-
   }
 
   async ngOnInit(): Promise<void> {
+    this.allDepartments = [
+      { deptId: 1, name: 'Super Admin', isBillable: false },
+      { deptId: 2, name: 'Accounts', isBillable: false },
+      { deptId: 3, name: 'APM', isBillable: true },
+      { deptId: 4, name: 'Application Performance Monitoring', isBillable: true },
+      { deptId: 5, name: 'Automation Testing', isBillable: true },
+      { deptId: 6, name: 'Business Development', isBillable: false },
+      { deptId: 7, name: 'Development', isBillable: true },
+      { deptId: 8, name: 'Functional Testing', isBillable: true },
+      { deptId: 9, name: 'HR', isBillable: false },
+      { deptId: 10, name: 'IT', isBillable: false },
+      { deptId: 11, name: 'Performance Testing', isBillable: true },
+      { deptId: 12, name: 'Production Support', isBillable: true },
+      { deptId: 13, name: 'Security Testing', isBillable: true },
+      { deptId: 14, name: 'Admin', isBillable: false },
+      { deptId: 15, name: 'Director', isBillable: false },
+      { deptId: 16, name: 'Resource Management Group', isBillable: false },
+      { deptId: 18, name: 'Presales', isBillable: false },
+      { deptId: 20, name: 'Production Support 24x7', isBillable: true },
+      { deptId: 21, name: 'Unknown Department', isBillable: false },
+      { deptId: 25, name: 'RPA', isBillable: true },
+      { deptId: 26, name: 'Products and RND', isBillable: true },
+      { deptId: 27, name: 'Consultant', isBillable: false },
+      { deptId: 28, name: 'Training', isBillable: false },
+      { deptId: 29, name: 'Floor Automation', isBillable: true }
+    ];
+    
+    this.setDepartmentView(true);
 
-    // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -267,20 +292,12 @@ export class ReportListComponent implements OnInit {
     if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")) {
       await this.getAllDepartmentsFromId();
       this.isDeptFilter = true;
-
-    }
-    else {
-
+    } else {
       await this.getAllDepartments();
-
     }
-    // const deptName = String(this.currentUser.departmentName).trim();
+
     this.sectionViewInit();
-    this.onDepartmentSelectionChange();
     this.getTotalActiveEmployeeCount();
-    this.getTotalActiveEmployeeCountInDepartments();
-    this.projectLessEmployeesDepartmentWise();
-    this.employeesMappedProjectsDepartmentWise();
     this.getEmployeeByNameAndEmpld();
 
     this.employeeCtrl.valueChanges
@@ -292,10 +309,89 @@ export class ReportListComponent implements OnInit {
       .subscribe(filtered => {
         this.filteredEmployees2 = filtered;
       });
-
-    console.log("lalalalala ngoninit", this.employeeReportObj.deptId);
   }
 
+  private refreshReportData(): void {
+    console.log("Refreshing data with dept IDs:", this.employeeReportObj.deptId);
+    this.getEmployeeReportData();
+    this.getTotalActiveEmployeeCountInDepartments();
+    this.projectLessEmployeesDepartmentWise();
+    this.employeesMappedProjectsDepartmentWise();
+  }
+
+  setDepartmentView(showBillable: boolean) {
+    this.showBillableOnly = showBillable;
+
+    if (this.showBillableOnly) {
+      this.departments = this.allDepartments.filter(dept => dept.isBillable);
+    } else {
+      this.departments = [...this.allDepartments];
+    }
+    
+    this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
+
+    this.filterDepartments();
+    this.updateSelectAllState();
+    
+    this.refreshReportData();
+  }
+
+  updateSelectAllState(): void {
+    const selectedCount = this.employeeReportObj.deptId?.length - 1 || 0;
+    const totalCount = this.departments.length;
+
+ 
+    this.isAllSelected = totalCount > 0 && selectedCount === totalCount;
+  }
+  
+
+  isAllSelected = true;
+  showSearchInput = true;
+
+
+  
+  toggleSelectAll(): void {
+    //  event.stopPropagation();
+     if (this.isAllSelected) {
+      this.employeeReportObj.deptId = []; 
+      this.clearSelection();
+      console.log("All departments deselected 0", this.employeeReportObj.deptId);
+      
+    } else {
+      this.isAllSelected = true;
+      console.log("All departments deselected 1", this.employeeReportObj.deptId);
+      this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId); 
+      
+    }
+     this.refreshReportData();
+    // this.isAllSelected = !this.isAllSelected;
+    // this.updateSelectAllState();
+    // this.refreshReportData();
+  }
+
+  filteredDepartments: any[] = [];
+  filterDepartments() {
+    const lowerText = this.searchText.toLowerCase();
+    this.filteredDepartments = this.departments.filter(dept =>
+      dept && dept.name && dept.name.toLowerCase().includes(lowerText)
+    );
+  }
+
+  clearSelection() {
+    
+    this.employeeReportObj.deptId = [];
+    this.isAllSelected = false;
+    this.searchText = '';
+    this.filterDepartments();
+    this.updateSelectAllState();
+    this.refreshReportData();
+  }
+
+  onDepartmentSelectionChange() {
+    this.updateSelectAllState();
+    this.refreshReportData();
+  }
+  
   getSlicedProjects(projectList: Project[], count: number): Project[] {
     return projectList.slice(0, count);
   }
@@ -306,58 +402,6 @@ export class ReportListComponent implements OnInit {
       history.pushState(null, null, location.href);
     })
   }
-
-
-  isAllSelected = false;
-  showSearchInput = true;
-  toggleSelectAll() {
-    // this.employeeReportObj.deptId = [];
-    if (this.isAllSelected) {
-      // Deselect all if already selected
-      this.employeeReportObj.deptId = [];
-      this.isAllSelected = false;
-    } else {
-      // Select all departments
-      this.employeeReportObj.deptId = this.filteredDepartments.map(dept => dept.deptId);
-      this.isAllSelected = true;
-      this.getEmployeeReportData();
-      console.log("lalalalala toggle", this.employeeReportObj.deptId);
-    }
-    // this.getEmployeeReportData();
-
-  }
-
-  searchText: any;
-  filteredDepartments: any[] = [];
-  filterDepartments() {
-    const lowerText = this.searchText.toLowerCase();
-    this.filteredDepartments = this.departments.filter(dept =>
-      dept.name.toLowerCase().includes(lowerText)
-    );
-  }
-
-
-  clearSelection(event: Event) {
-    event.stopPropagation(); // prevent dropdown from closing
-    this.employeeReportObj.deptId = [];
-    this.isAllSelected = false;
-    this.searchText = '';
-    this.filterDepartments();
-    // Optionally: refresh data
-  }
-
-  //   onDepartmentDropdownClosed() {
-  //     this.showSearchInput = false;
-  //     this.searchText = '';
-  //     this.filteredDepartments = [...this.departments];
-  //   }
-
-  //   showSearchBar = false;
-
-  // toggleSearchBar() {
-  //   this.showSearchBar = !this.showSearchBar;
-  // }
-
   totalInshineEmployeeCount: any;
   getTotalActiveEmployeeCount() {
     this.employeeService.getTotalActiveEmployeeCount().pipe(first()).subscribe((response: any) => {
@@ -396,7 +440,6 @@ export class ReportListComponent implements OnInit {
           }
         });
 
-        // Filter only those with count > 0 and convert to array
         this.billableCountsNotMApped = Array.from(billableTypeMap.entries())
           .filter(([_, count]) => count > 0)
           .map(([type, count]) => ({ type, count }))
@@ -426,7 +469,6 @@ export class ReportListComponent implements OnInit {
           }
         });
 
-        // Filter only those with count > 0 and convert to array
         this.mappedBillableCounts = Array.from(billableTypeMap.entries())
           .filter(([_, count]) => count > 0)
           .map(([type, count]) => ({ type, count }))
@@ -471,23 +513,6 @@ export class ReportListComponent implements OnInit {
     this.activeInfoPopup = null;
   }
 
-
-
-
-  onDepartmentSelectionChange() {
-    if (!this.isAllSelected && this.employeeReportObj.deptId.length > 0) {
-      this.getEmployeeReportData();
-      this.getTotalActiveEmployeeCountInDepartments();
-      this.projectLessEmployeesDepartmentWise();
-      this.employeesMappedProjectsDepartmentWise();
-      console.log("deptbodyselectionchange", this.employeeReportObj.deptId);
-    }
-  }
-
-
-
-
-
   flattenProjectList() {
     this.flatProjectList = [];
     for (const project of this.projectList) {
@@ -526,16 +551,6 @@ export class ReportListComponent implements OnInit {
       this.showLeaveReportTable();
     }
   }
-
-  // sectionViewInit() {
-  //   if (this.userMapping.leave_report) {
-  //     this.showLeaveReportTable();
-  //   } else if (this.userMapping.timesheet_report) {
-  //     this.showTimesheetReportTable();
-  //   } else if (this.userMapping.employee_report) {
-  //     this.showEmployeeReportTable();
-  //   }
-  // }
 
   toggleViewTimesheet() {
     if (this.showDetailsTimesheet === true) {
@@ -591,7 +606,6 @@ export class ReportListComponent implements OnInit {
 
 
     this.getEmployeeReportData();
-    // this.flattenProjectList();
   }
 
   selectFlag(box: string, flag: string, template: TemplateRef<any>) {
@@ -732,7 +746,6 @@ export class ReportListComponent implements OnInit {
           employee.emp360ManagerId = employee.managerId;
 
         });
-        // console.log(this.employeeList,"Employee_List");
         this.projectList = res.getProjectToEmployeeReportForProjectDTO || [];
         this.projectList.forEach(project => {
           project.teamDetails.forEach(team => {
@@ -742,15 +755,9 @@ export class ReportListComponent implements OnInit {
             });
           });
         });
-        // console.log(this.projectList,"projectList");departmentName
         this.projectSummary = res.projectSummary || {};
         console.log("employeeList", this.employeeList);
         console.log("projectList", this.projectList);
-        const empRole = String(this.currentUser.employeeRole).trim();
-        const deptName = String(this.currentUser.departmentName).trim();
-        console.log(empRole);
-        console.log(deptName);
-        console.log(this.departments);
         this.flattenProjectList();
         this.editIndex = -1
       } else {
@@ -761,62 +768,11 @@ export class ReportListComponent implements OnInit {
 
   }
 
-
-
-  // getEmployeeReportData() {
-  //   this.employeeList = [];
-  //   this.projectList = [];
-  //   this.projectSummary = {};
-  //   console.log("updated", this.employeeReportObj);
-
-  //   this.employeeService.getEmployeeProjectReport(this.employeeReportObj).pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus === "Success") {
-  //       const res = response.serviceResponse;
-
-
-  //       this.employeeList = (res.getEmployeeProjectReportForEmployeeDTO || []).map(employeeObj => {
-  //         return {
-  //           ...employeeObj,
-  //           effectiveStartDate: employeeObj.effectiveStartDate ? moment(employeeObj.effectiveStartDate).format('DD-MM-YYYY') : null,
-  //           effectiveEndDate: employeeObj.effectiveEndDate ? moment(employeeObj.effectiveEndDate).format('DD-MM-YYYY') : null
-  //         };
-  //       });
-
-  //       // Format projectList effectiveStartDate
-  //       this.projectList = (res.getProjectToEmployeeReportForProjectDTO || []).map(projectObj => {
-  //         return {
-  //           ...projectObj,
-  //           effectiveStartDate: projectObj.effectiveStartDate ? moment(projectObj.effectiveStartDate).format('DD-MM-YYYY') : null,
-  //           teamDetails: (projectObj.teamDetails || []).map(team => {
-  //             return {
-  //               ...team,
-  //               mappedEmployeeDetails: (team.mappedEmployeeDetails || []).map(emp => {
-  //                 return {
-  //                   ...emp,
-  //                   effectiveStartDate: emp.effectiveStartDate ? moment(emp.effectiveStartDate).format('DD-MM-YYYY') : null
-  //                 };
-  //               })
-  //             };
-  //           })
-  //         };
-  //       });
-
-  //       this.projectSummary = res.projectSummary || {};
-  //       console.log("employeeList", this.employeeList);
-  //       console.log("projectList", this.projectList);
-  //       this.flattenProjectList();
-  //     } else {
-  //       console.error("API Error: ", response.serviceError || "Unknown error");
-  //     }
-  //   });
-  // }
-
-
   getTotalCount(box: string): number {
     const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
     const key = `${box}.${selectedMainFlag}`;
     const isActiveBox = box === this.activeBox;
-    const category = this.selectedTab[this.activeBox]; // Current active tab
+    const category = this.selectedTab[this.activeBox]; 
 
     if (category === 'Project' && isActiveBox) {
       return this.projectSummary[key]?.Project?.total_projects_per_po_project || 0;
@@ -824,8 +780,6 @@ export class ReportListComponent implements OnInit {
 
     return this.projectSummary[key]?.Employee?.totalEmpPerProjectType || 0;
   }
-
-
 
   getCount(box: string, billableType: string): number {
     const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
@@ -894,8 +848,6 @@ export class ReportListComponent implements OnInit {
     );
   }
 
-
-
   getAllOrDeptWiseEmployeeTimesheetReport() {
     this.filteringTimesheet.deptId = this.selectedDepartment;
     this.timesheetService.getAllOrDeptWiseEmployeeTimesheetReport(this.filteringTimesheet).pipe(first()).subscribe((response: any) => {
@@ -916,36 +868,23 @@ export class ReportListComponent implements OnInit {
     });
   }
 
-
-
-
   toggleView() {
-    console.log("lalala", this.departments);
     this.showDetails = !this.showDetails;
     this.show = -1;
     if (this.showDetails === false) {
-      // alert("toggle off")
       this.showEmployeeReportTable()
     }
     else {
       this.changeTable = true;
       this.selectedDepartment = 'all';
-
-      // this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
-      // alert("toggle on" + this.departments.length);
-
-      this.employeeReportObj = {
-        deptId: this.departments.map(dept => dept.deptId),
-        poProjectType: null,
-        category: 'Employee',
-        flag: null,
-        billableType: null,
-        report: 'EC'
-
-      };
+      this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
+      this.employeeReportObj.poProjectType = null;
+      this.employeeReportObj.category = 'Employee';
+      this.employeeReportObj.flag = null;
+      this.employeeReportObj.billableType = null;
+      this.employeeReportObj.report = 'EC';
 
       this.isAllSelected = true;
-      // this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
       ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
         this.selectedTab[box] = 'Employee';
         this.selectedFlag[box] = null;
@@ -960,36 +899,15 @@ export class ReportListComponent implements OnInit {
       this.fixedCostPoExpiredCountList = [];
       this.fixedCostPoValidCountList = [];
       this.internalCountList = [];
-      // this.employeeService.getAllEmployeesReportByProjectTypeInConsolidated().pipe(first()).subscribe((response: any) => {
-      //   if (response.serviceStatus == "Success") {
-      //     this.allEmployee = response.serviceResponse;
-      //     this.filteredEmployees = this.allEmployee;
-      //     this.deptWiseConsolidated = this.allEmployee;
-      //     this.deptWiseCount();
-
-
-      //   }
-      //   error: (err) => {
-      //     console.error('Error fetching employees', err);
-      //   }
-      // });
-
     }
   }
   toggleTableView() {
     this.activeBox = "";
     if (this.changeTable === true) {
       this.changeTable = false;
-      // this.getAllEmployeesReportByProjectType();
     }
     else {
       this.changeTable = true;
-      // this.getAllEmployeesReportByProjectTypeInConsolidated();
-      //   this.tnmPoExpiredCount=0;
-      // this.tnmPOValidCount=0;
-      // this.fixedCostPoExpiredCount=0;
-      // this.fixedCostPoValidCount=0;
-      // this.internalCount=0;
     }
     if (this.employeeReportObj.category === 'Project') {
       this.employeeReportObj.report = 'P';
@@ -1003,17 +921,9 @@ export class ReportListComponent implements OnInit {
 
   departmentChange() {
     this.getEmployeeReportData();
-
-    // this.employeeReportObj.deptId = [];
-    // console.log(this.employeeReportObj.deptId.length,":this.employeeReportObj.deptId.length");
-    // if (this.isAllSelected == false) {
-    //   this.getEmployeeReportData();
-    // }
-
   }
 
   onMouseOver(box: string): void {
-
     this.isHovering = box;
   }
 
@@ -1027,23 +937,16 @@ export class ReportListComponent implements OnInit {
     this.fixedCostPoValidCountList = [];
     this.fixedCostPoExpiredCountList = [];
     this.internalCountList = [];
-    // this.tnmPoExpiredCount=0;
-    // this.tnmPOValidCount=0;
-    // this.fixedCostPoExpiredCount=0;
-    // this.fixedCostPoValidCount=0;
-    // this.internalCount=0;
+
     this.employeeService.getAllEmployeesReportByProjectTypeInConsolidated().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        // console.log('response -- ',response.serviceResponse);
         this.allEmployee = response.serviceResponse;
-        // this.deptWiseConsolidated = this.allEmployee;
         console.log('emps -- ', this.allEmployee);
         this.filterEmployees();
 
 
         this.allEmployee.forEach((emp) => {
           if (!emp.poEndDate) {
-            // this.internalCount++;
             this.internalCountList.push(emp);
             return;
           }
@@ -1057,10 +960,8 @@ export class ReportListComponent implements OnInit {
             projectTypes.forEach((type) => {
               type = type.trim();
               if (type === 'tnm') {
-                // this.tnmPoExpiredCount++;
                 this.tnmPoExpiredCountList.push(emp);
               } else if (type === 'fixed cost') {
-                // this.fixedCostPoExpiredCount++;
                 this.fixedCostPoExpiredCountList.push(emp);
               }
             });
@@ -1069,18 +970,12 @@ export class ReportListComponent implements OnInit {
             projectTypes.forEach((type) => {
               type = type.trim();
               if (type === 'tnm') {
-                // this.tnmPOValidCount++;
                 this.tnmPOValidCountList.push(emp);
               } else if (type === 'fixed cost') {
-                // this.fixedCostPoValidCount++;
                 this.fixedCostPoValidCountList.push(emp);
               }
             });
           }
-          console.log("TNM Expired Count:", this.tnmPoExpiredCount);
-          console.log("Fixed Cost Expired Count:", this.fixedCostPoExpiredCount);
-          console.log("TNM Valid Count:", this.tnmPOValidCount);
-          console.log("Fixed Cost Valid Count:", this.fixedCostPoValidCount);
         });
 
       } else {
@@ -1144,217 +1039,42 @@ export class ReportListComponent implements OnInit {
           }
         });
       }
-      console.log("TNM Expired Count:", this.tnmPoExpiredCount);
-      console.log("Fixed Cost Expired Count:", this.fixedCostPoExpiredCount);
-      console.log("TNM Valid Count:", this.tnmPOValidCount);
-      console.log("Fixed Cost Valid Count:", this.fixedCostPoValidCount);
     });
-    // this.filteredEmployees.forEach((emp) => {
-    //   if (!emp.poEndDate) {
-    //     this.internalCount++;
-    //     this.internalCountList.push(emp);
-    //     return;
-    //   }
-
-    //   const currentDate = new Date();
-    //   const poEndDate = new Date(emp.poEndDate);
-
-    //   const projectTypes = emp.poProjectType.toLowerCase().split(',');
-
-    //   if (poEndDate < currentDate) {
-    //     projectTypes.forEach((type) => {
-    //       type = type.trim(); 
-    //       if (type === 'tnm') {
-    //         this.tnmPoExpiredCount++;
-    //         this.tnmPoExpiredCountList.push(emp);
-    //       } else if (type === 'fixed cost') {
-    //         this.fixedCostPoExpiredCount++;
-    //         this.fixedCostPoExpiredCountList.push(emp);
-    //       }
-    //     });
-    //   } else {
-    //     projectTypes.forEach((type) => {
-    //       type = type.trim(); 
-    //       if (type === 'tnm') {
-    //         this.tnmPOValidCount++;
-    //         this.tnmPOValidCountList.push(emp);
-    //       } else if (type === 'fixed cost') {
-    //         this.fixedCostPoValidCount++;
-    //         this.fixedCostPoValidCountList.push(emp);
-    //       }
-    //     });
-    //   }
-    //   console.log("TNM Expired Count:", this.tnmPoExpiredCount);
-    //   console.log("Fixed Cost Expired Count:", this.fixedCostPoExpiredCount);
-    //   console.log("TNM Valid Count:", this.tnmPOValidCount);
-    //   console.log("Fixed Cost Valid Count:", this.fixedCostPoValidCount);
-    // });
-
-
   }
-  // onBoxClickDataChange(boxName){
-  //   this.filteredEmployees=[];
-  //   this.activeBox = boxName;
-  //   //TNM-Active,TNM-Expired,FC-Active,FC-Expired
-  //   const currentDate = new Date();
-  //   //const poEndDate = new Date(emp.poEndDate)
-
-  //     if (boxName === 'TNM-Active') {
-  //       this.filteredEmployees = this.allEmployee.filter(emp => 
-  //         emp.poProjectType === "TNM" && new Date(emp.poEndDate) >= currentDate
-  //       );
-  //     } else if (boxName === 'TNM-Expired') {
-  //       this.filteredEmployees = this.allEmployee.filter(emp => 
-  //         emp.poProjectType === "TNM" && new Date(emp.poEndDate) < currentDate
-  //       );
-  //     } else if (boxName === 'FC-Active') {
-  //       this.filteredEmployees = this.allEmployee.filter(emp => 
-  //         emp.poProjectType === "Fixed Cost" && new Date(emp.poEndDate) >= currentDate
-  //       );
-  //     } else if (boxName === 'FC-Expired') {
-  //       this.filteredEmployees = this.allEmployee.filter(emp => 
-  //         emp.poProjectType === "Fixed Cost" && new Date(emp.poEndDate) < currentDate
-  //       );
-  //     } else {
-  //       this.filteredEmployees = this.allEmployee.filter(emp => 
-  //         emp.poProjectType !== "Fixed Cost" && emp.poProjectType !== "TNM"
-  //       );
-  //     }
-  //     console.log('Box click data-- ', this.filteredEmployees);
-
-
-  // }
-  //   onBoxClickDataChange(boxName) {
-  //     this.filteredEmployees = [];
-  //     this.activeBox = boxName;
-  //     const currentDate = new Date();
-
-  //     this.filteredEmployees = this.allEmployee.filter(emp => {
-
-  //       const projectTypes = emp.poProjectType.toLowerCase().split(',').map(type => type.trim()); 
-  //       if(emp.poProjectType){
-
-
-  //         if (boxName === 'TNM-Active') {
-  //             return projectTypes.includes('tnm') && new Date(emp.poEndDate) >= currentDate;
-  //         } else if (boxName === 'TNM-Expired') {
-  //             return projectTypes.includes('tnm') && new Date(emp.poEndDate) < currentDate;
-  //         } else if (boxName === 'FC-Active') {
-  //             return projectTypes.includes('fixed cost') && new Date(emp.poEndDate) >= currentDate;
-  //         } else if (boxName === 'FC-Expired') {
-  //             return projectTypes.includes('fixed cost') && new Date(emp.poEndDate) < currentDate;
-  //         } 
-  //       }else {
-  //         return !projectTypes.includes('fixed cost') && !projectTypes.includes('tnm');
-  //     }
-
-  //     });
-
-  //     console.log('Box click data-- ', this.filteredEmployees);
-  // }
-  // onBoxClickDataChange(boxName) {
-  //   this.filteredEmployees = [];
-  //   this.activeBox = boxName;
-  //   const currentDate = new Date();
-
-  // this.filteredEmployees = this.allEmployee.filter(emp => {
-  //     // Handle null poProjectType
-  //     if (!emp.poProjectType) {
-  //         return false; // Exclude employees with null or undefined poProjectType
-  //     }
-
-  //     // Normalize poProjectType: convert to lowercase and split by commas
-  //     const projectTypes = emp.poProjectType.toLowerCase().split(',').map(type => type.trim());
-
-  //     if (boxName === 'TNM-Active') {
-  //         return projectTypes.includes('tnm') && new Date(emp.poEndDate) >= currentDate;
-  //     } else if (boxName === 'TNM-Expired') {
-  //         return projectTypes.includes('tnm') && new Date(emp.poEndDate) < currentDate;
-  //     } else if (boxName === 'FC-Active') {
-  //         return projectTypes.includes('fixed cost') && new Date(emp.poEndDate) >= currentDate;
-  //     } else if (boxName === 'FC-Expired') {
-  //         return projectTypes.includes('fixed cost') && new Date(emp.poEndDate) < currentDate;
-  //     } else {
-  //         return !projectTypes.includes('fixed cost') && !projectTypes.includes('tnm');
-  //     }
-  // });
-
-  //   console.log('Box click data-- ', this.filteredEmployees);
-  // }
+  
   onBoxClickDataChange(boxName) {
     this.filteredEmployees = [];
     this.activeBox = boxName;
-    // const currentDate = new Date();
-
-    // this.filteredEmployees = this.allEmployee.filter(emp => {
-    //     if (!emp.poProjectType) {
-    //         return false; 
-    //     }
-
-    // const projectTypes = emp.poProjectType.toLowerCase().split(',').map(type => type.trim());
 
     if (boxName === 'TNM-Active') {
-      // return projectTypes.includes('tnm') && new Date(emp.poEndDate) >= currentDate;
       this.filteredEmployees = this.tnmPOValidCountList;
     } else if (boxName === 'TNM-Expired') {
       this.filteredEmployees = this.tnmPoExpiredCountList;
 
-      // return projectTypes.includes('tnm') && new Date(emp.poEndDate) < currentDate;
     } else if (boxName === 'FC-Active') {
       this.filteredEmployees = this.fixedCostPoValidCountList;
-      // return projectTypes.includes('fixed cost') && new Date(emp.poEndDate) >= currentDate;
     } else if (boxName === 'FC-Expired') {
       this.filteredEmployees = this.fixedCostPoExpiredCountList;
 
-      // return projectTypes.includes('fixed cost') && new Date(emp.poEndDate) < currentDate;
     } else {
-      // return !projectTypes.includes('fixed cost') && !projectTypes.includes('tnm');
       this.filteredEmployees = this.internalCountList;
     }
-    // });
-
     console.log('Box click data-- :::::::::::::::::', this.filteredEmployees);
   }
-
-  // onDepartmentChangeTimesheet(event: any) {
-  //   this.selectedDepartment = event.target.value;
-  //   this.getAllOrDeptWiseEmployeeTimesheetReport();
-
-  // }
 
   onDepartmentChangeTimesheet(event: any) {
     this.selectedDepartment = event.target.value;
     this.getAllOrDeptWiseEmployeeTimesheetReport();
-
   }
 
   onDepartmentChange(event: any) {
     this.activeBox = "";
     this.filteredEmployees = [];
-
-    // if(this.selectedDepartment === 'all'){
-    //   this.filteredEmployees=this.allEmployee;
-    // }else{
     this.selectedDepartment = event.target.value;
-    // }
     console.log('Selected Department:', this.selectedDepartment);
-
-    // this.filterEmployees();
     this.deptWiseCount();
-
   }
-  //  getAllDepartments(): {
-  //   this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus == "Success") {
-  //       // console.log('response -- ',response.serviceResponse);
-  //       this.departments = response.serviceResponse;
-  //       // console.log('dept response -- ',this.departments);
-
-  //     }
-  //     }
-  //   );
-  // }
-
+  
   getAllDepartmentsFromId(): Promise<any> {
     return new Promise((resolve, reject) => {
       this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
@@ -1379,10 +1099,7 @@ export class ReportListComponent implements OnInit {
       this.departmentService.getAllDepartments().pipe(first()).subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
-            this.departments = response.serviceResponse;
-            this.filteredDepartments = this.departments;
             resolve(response.serviceResponse);
-
           } else {
             reject("Failed to fetch departments");
           }
@@ -1408,37 +1125,7 @@ export class ReportListComponent implements OnInit {
         }));
       }
     }
-    console.log('Filtered dept data with project name   :::::::::::::::::::::::::::::::::::-- ', this.filteredEmployees);
-    //Fixed Cost,TNM,Bench,InternalRNDProducts,Shadow
-    //poEndDate 
   }
-
-  // updateDefaultProject(employee : any){
-  //   this.updatedEmpObj = new Employee();
-  //   console.log('emp data :::::::::::',employee);
-  // this.getProjectId(employee);
-  // const selectedProjectId = this.getProjectId(employee);
-  // console.log("Selected Project ID:", selectedProjectId);
-  // this.selectedProjectId = selectedProjectId ;
-  // let newemployeeObj: Employee = new Employee();
-
-  // newemployeeObj.selectedProjectId = this.selectedProjectId;
-  // newemployeeObj.projectName = employee.projectName;
-  // newemployeeObj.empId = employee.empId;
-
-
-  // console.log('new Employee OBJ :::::::::::::',newemployeeObj);
-
-  // this.employeeService.updateDefaultProject(newemployeeObj).pipe(first()).subscribe((response: any) => {
-  //   console.log('response ::::::::::::::::::::::',response);
-  //   if (response.serviceStatus == "Success") {
-  //     this.updatedEmpObj= response.serviceResponse ;
-  //     console.log('updated project details ::::::::',this.updatedEmpObj);
-  //     this.openAlertMod(this.alertModal, "Default Project Updated Successfully  !! ")
-  //   }
-  // });
-
-  // }
 
   updateDefaultProject(employee: any) {
     this.updatedEmpObj = new Employee();
@@ -1461,33 +1148,17 @@ export class ReportListComponent implements OnInit {
       console.log('response ::::::::::::::::::::::', response);
       if (response.serviceStatus === "Success") {
         this.updatedEmpObj = response.serviceResponse;
-        //console.log('updated project details ::::::::', this.updatedEmpObj);
         this.openAlertMod(this.alertModal, "Default Project Updated Successfully  !! ")
         this.getEmployeeReportData();
-        // this.getAllEmployeesReportByProjectTypeInConsolidated();
-        //employee.defaultProjectAssigned = this.updatedEmpObj.primaryProjectName;
       }
     });
   }
-
-  // getProjectId(employee: any): string | null {
-  //   const projectNames = employee.projectName.split(',');
-  //   const projectIds = employee.projectIds.split(',');
-
-  //   const selectedIndex = projectNames.findIndex(project => project.trim() === employee.selectedProject.trim());
-  //   if (selectedIndex !== -1 && selectedIndex < projectIds.length) {
-  //     return projectIds[selectedIndex].trim();
-  //   } else {
-  //     return null;
-  //   }
-  // }
 
   getProjectId(employee: any): string | null {
     if (employee.projectName && employee.projectIds) {
       const projectNames = employee.projectName.split(',');
       const projectIds = employee.projectIds.split(',');
 
-      // Ensure both arrays have valid data before proceeding
       if (projectNames.length > 0 && projectIds.length > 0) {
         const selectedIndex = projectNames.findIndex(project => project.trim() === employee.selectedProject.trim());
 
@@ -1518,12 +1189,10 @@ export class ReportListComponent implements OnInit {
     this.filters = {};
     this.isSearchEnabled = false;
 
-    //console.log(this.storedDataList, " : storeddatalist");
     const today = new Date();
     const oneMonthBefore = new Date();
     oneMonthBefore.setMonth(today.getMonth() - 1);
 
-    // ✅ Format date as yyyy-MM-dd
     const formatDate = (date: Date): string => {
       const yyyy = date.getFullYear();
       const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -1549,12 +1218,8 @@ export class ReportListComponent implements OnInit {
 
 
       ];
-      // this.getAllLeaveApplicationsList();
-
       this.getCustomLeaveApplicationsList(inActiveQuery, this.alertModal);
-
     }
-
     this.data = ''
   }
 
@@ -1580,7 +1245,6 @@ export class ReportListComponent implements OnInit {
     const oneMonthBefore = new Date();
     oneMonthBefore.setMonth(today.getMonth() - 1);
 
-    // ✅ Format date as yyyy-MM-dd
     const formatDate = (date: Date): string => {
       const yyyy = date.getFullYear();
       const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -1605,8 +1269,6 @@ export class ReportListComponent implements OnInit {
       ];
 
       this.getCustomTimesheetApplicationsList(inActiveQuery, this.alertModal);
-
-      //this.getAllTimesheetApplicationsList();
     }
 
     this.data = ''
@@ -1643,12 +1305,7 @@ export class ReportListComponent implements OnInit {
       ];
 
       this.getCustomEmployeesList(inActiveQuery, this.alertModal);
-
-      //this.getAllTimesheetApplicationsList();
-
     }
-
-
     this.data = ''
   }
 
@@ -1713,8 +1370,6 @@ export class ReportListComponent implements OnInit {
     return false;
   }
 
-
-  // Leave Report 
   getAllLeaveApplicationsList() {
     this.queryList = [];
     this.allLeaveApplicationsList = [];
@@ -1722,10 +1377,8 @@ export class ReportListComponent implements OnInit {
     this.leaveService.leaveReport().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allLeaveApplicationsList = response.serviceResponse;
-        // this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter(x => x.employmentstatus != 'InActive');
         this.allLeaveApplicationsList.forEach(leave => {
           leave.employeementId = "A-".concat(leave.employeementId);
-          // leave.employeementId = (leave.isConsultant === 'true' ? "A-CS-" : "A-").concat(leave.employeementId);
           leave.employeeType = ((leave.isApprenticeship === 'true') ? 'Apprentice' : ((leave.isConsultant === 'true') ? 'Consultant' : 'Regular')),
             leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
@@ -1738,24 +1391,16 @@ export class ReportListComponent implements OnInit {
           if (leave.toDateDayType != null) {
             leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
           }
-          // console.log("allLeaveApplicationsList ",this.employeesFor360);
         });
         this.allLeaveApplicationsList.forEach(leave => {
-          // console.log("leave.empId ",leave.empId);
           let matchingEmployee = this.employeesFor360.find(emp => emp.empId === leave.empId);
-          // console.log("allLeaveApplicationsList matchingEmployee",matchingEmployee);
           leave.emp360 = matchingEmployee ? matchingEmployee : {};
-          // console.log("allLeaveApplicationsList ",this.employeesFor360);
-          // console.log("leave.managerId ",leave.managerId);
           let matchingEmployee2 = this.employeesFor360.find(emp => emp.empId === leave.managerId);
-          // console.log("allLeaveApplicationsList matchingEmployee2",matchingEmployee2);
           leave.emp360Manager = matchingEmployee2 ? matchingEmployee2 : {};
           leave.emp360 = matchingEmployee ? matchingEmployee : {};
           let matchingEmployee3 = this.employeesFor360.find(emp => emp.empId === leave.timesheetStatusUpdatedBy);
-          // console.log("timesheet ",matchingEmployee)
           leave.emp360UpdatedBy = matchingEmployee3 ? matchingEmployee3 : {};
         });
-        // console.log("allLeaveApplicationsList : getAllLeaveApplicationsList", this.allLeaveApplicationsList)
       } else {
         alert(response.serviceResponse)
       }
@@ -1775,18 +1420,11 @@ export class ReportListComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.allLeaveApplicationsList = response.serviceResponse;
 
-          // this.allLeaveApplicationsList = this.allLeaveApplicationsList.filter((value, index, self) =>
-          //   index === self.findIndex((t) => (
-          //     t.employeementId === value.employeementId && t.fromDate === value.fromDate
-          //   ))
-          // )
-
           if (this.allLeaveApplicationsList.length == 0) {
             this.openAlertMod(this.alertModal, "No Leave Application Report found ")
           }
           this.allLeaveApplicationsList.forEach(leave => {
             leave.employeementId = "A-".concat(leave.employeementId);
-            // leave.employeementId = (leave.isConsultant === 'true' ? "A-CS-" : "A-").concat(leave.employeementId);
             leave.employeeType = ((leave.isApprenticeship === 'true') ? 'Apprentice' : ((leave.isConsultant === 'true') ? 'Consultant' : 'Regular')),
               leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
             leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
@@ -1802,11 +1440,8 @@ export class ReportListComponent implements OnInit {
             leave.emp360 = leave.empId;
             leave.emp360Manager = leave.managerId;
             leave.emp360UpdatedBy = leave.leaveStatusUpdatedBy;
-
-
           });
 
-          // console.log("allLeaveApplicationsList getCustomLeaveApplicationsList: ", this.allLeaveApplicationsList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
         }
@@ -1814,18 +1449,14 @@ export class ReportListComponent implements OnInit {
     }
   }
 
-  // Timesheet Report
   getAllTimesheetApplicationsList() {
     this.allTimesheetApplicationsList = [];
 
     this.timesheetService.timesheetReport().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTimesheetApplicationsList = response.serviceResponse;
-        // this.allTimesheetApplicationsList = this.allTimesheetApplicationsList.filter(x => x.employmentstatus != 'InActive');	
-
         this.allTimesheetApplicationsList.forEach(timesheet => {
           timesheet.employeementId = "A-".concat(timesheet.employeementId);
-          // timesheet.employeementId = (timesheet.isConsultant === 'true' ? "A-CS-" : "A-").concat(timesheet.employeementId);
           timesheet.employeeType = ((timesheet.isApprenticeship === 'true') ? 'Apprentice' : ((timesheet.isConsultant === 'true') ? 'Consultant' : 'Regular')),
             timesheet.description = timesheet.description?.replaceAll('<br>', '')
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
@@ -1862,7 +1493,6 @@ export class ReportListComponent implements OnInit {
           }
           this.allTimesheetApplicationsList.forEach(timesheet => {
             timesheet.employeementId = "A-".concat(timesheet.employeementId);
-            // timesheet.employeementId = (timesheet.isConsultant === 'true' ? "A-CS-" : "A-").concat(timesheet.employeementId);
             timesheet.employeeType = ((timesheet.isApprenticeship === 'true') ? 'Apprentice' : ((timesheet.isConsultant === 'true') ? 'Consultant' : 'Regular')),
               timesheet.description = timesheet.description?.replaceAll('<br>', '')
             timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
@@ -1875,7 +1505,6 @@ export class ReportListComponent implements OnInit {
 
           });
 
-          //console.log("allTimesheetApplicationsList : ", this.allTimesheetApplicationsList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
         }
@@ -1883,7 +1512,6 @@ export class ReportListComponent implements OnInit {
     }
   }
 
-  // Employee Report 
   getAllEmployeeList() {
     this.queryList = [];
     this.allEmployeeList = [];
@@ -1891,11 +1519,8 @@ export class ReportListComponent implements OnInit {
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-        // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');	
-
         this.allEmployeeList.forEach(employee => {
           employee.employeementId = "A-".concat(employee.employeementId);
-          // employee.employeementId = (employee.isConsultant === 'true' ? "A-CS-" : "A-").concat(employee.employeementId);
           employee.employeeType = ((employee.isApprenticeship === 'true') ? 'Apprentice' : ((employee.isConsultant === 'true') ? 'Consultant' : 'Regular')),
             employee.profileCompletedPercent = employee.profileCompletedPercent + "%";
           employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
@@ -1907,8 +1532,6 @@ export class ReportListComponent implements OnInit {
           employee.emp360CreatedBy = employee.createdBy;
           employee.emp360UpdatedBy = employee.updatedBy;
         });
-
-        //console.log("allEmployeeList : ", this.allEmployeeList)
       } else {
         alert(response.serviceResponse)
       }
@@ -1929,18 +1552,11 @@ export class ReportListComponent implements OnInit {
         if (response.serviceStatus == "Success") {
           this.allEmployeeList = response.serviceResponse;
 
-          // this.allEmployeeList = this.allEmployeeList.filter((value, index, self) =>
-          //   index === self.findIndex((t) => (
-          //     t.employeementId === value.employeementId
-          //   ))
-          // )
-
           if (this.allEmployeeList.length == 0) {
             this.openAlertMod(this.alertModal, "No Data found")
           }
           this.allEmployeeList.forEach(employee => {
             employee.employeementId = "A-".concat(employee.employeementId);
-            // employee.employeementId = (employee.isConsultant === 'true' ? "A-CS-" : "A-").concat(employee.employeementId);
             employee.employeeType = ((employee.isApprenticeship === 'true') ? 'Apprentice' : ((employee.isConsultant === 'true') ? 'Consultant' : 'Regular')),
               employee.profileCompletedPercent = employee.profileCompletedPercent + "%";
             employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
@@ -1951,18 +1567,13 @@ export class ReportListComponent implements OnInit {
             employee.emp360Manager = employee.managerId;
             employee.emp360CreatedBy = employee.createdBy;
             employee.emp360UpdatedBy = employee.updatedBy;
-
           });
-
-          //console.log("allEmployeeList : ", this.allEmployeeList)
         } else {
           this.openAlertMod(template, response.serviceResponse)
         }
       });
     }
   }
-
-  // ACL Start
 
   selectPersona(event) {
     this.employeeRole = event.target.value;
@@ -1991,7 +1602,6 @@ export class ReportListComponent implements OnInit {
             this.personaWiseJobRole = this.allJobRoleList.filter((x) => x.employeeRole == persona);
             this.personaWiseJobRole.forEach(role => { this.columns.push({ "field": role.jobRoleId, "header": role.name, "department": role.departmentName }) })
 
-            // segregating jobroles by department
             var final = [];
             this.columns.forEach(function (e) {
               var match = false;
@@ -2016,9 +1626,6 @@ export class ReportListComponent implements OnInit {
             });
 
             this.finalColumns = final;
-            //console.log(this.finalColumns, " : final arr");
-
-            // Generate Template
             this.subfeatureList.forEach(subfeature => {
               let paginateDataItem = {}
 
@@ -2032,14 +1639,12 @@ export class ReportListComponent implements OnInit {
               });
               this.paginateData.push(paginateDataItem)
             });
-            //console.log("paginateData : ", this.paginateData);
 
             this.personaWiseJobRole.forEach((role) => {
               this.employeeObj.jobRoleId = role.jobRoleId;
               this.jobRoleService.getMappedSubFeatureList(this.employeeObj).pipe(first()).subscribe((response: any) => {
                 if (response.serviceStatus == "Success") {
                   const mappedSubFeatures = response.serviceResponse;
-                  //console.log("mappedSubFeatures : ", mappedSubFeatures);
                   mappedSubFeatures.forEach(subFeature => {
                     let mappedSubFeatureData = this.paginateData.find(data => {
                       const subFeatureName = data.subFeature;
@@ -2108,7 +1713,6 @@ export class ReportListComponent implements OnInit {
         "subFeatureId": subFeatureId
       });
     }
-    //console.log(this.updatedRoleSubFeature, " :   updatedRoleSubFeature");
   }
 
   updateJobRoleSubFeatureMapping(template: TemplateRef<any>) {
@@ -2143,7 +1747,6 @@ export class ReportListComponent implements OnInit {
   }
 
   toggleAccessList(event?: any) {
-
     if (this.isAccessFeatureMapping == false && this.isDefaultFeatureMapping == false) {
       this.isAccessFeatureMapping = true;
     }
@@ -2159,12 +1762,9 @@ export class ReportListComponent implements OnInit {
   }
 
   getDefaultMapping(template: TemplateRef<any>) {
-
     this.jobRoleService.getDefaultMapping().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.defaultMappingList = response.serviceResponse;
-
-        console.log(this.defaultMappingList, " :  this.defaultMappingList ");
         this.defaultMappingList.forEach((object) => {
           const formattedPermissions = object.permissionList.reduce((permissions, permission) => {
 
@@ -2181,8 +1781,6 @@ export class ReportListComponent implements OnInit {
         });
 
         this.processData();
-        console.log("test");
-        console.log(this.defaultMappingList, " :  this.defaultMappingList 1 ");
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -2201,7 +1799,6 @@ export class ReportListComponent implements OnInit {
         "subFeatureName": subFeatureName
       });
     }
-    //console.log(this.updateDefaultMapping, " :   updateDefaultMapping");
   }
 
   updateDefaultFeatureMapping(template: TemplateRef<any>) {
@@ -2249,15 +1846,9 @@ export class ReportListComponent implements OnInit {
 
       return { ...x, tabSpan, featureSpan };
     });
-
-    //console.log(this.defaultMappingListFilter,  " : defaultMappingListFilter");
   }
 
-  // ACL end
-
-  /* Filter */
   openFilterModal(template: TemplateRef<any>, columns: any[], title: any) {
-    //console.log("columns : ", columns);
     this.queryList = [];
 
     this.filterData.title = title;
@@ -2291,9 +1882,6 @@ export class ReportListComponent implements OnInit {
           if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-")) {
             queryObj.value = "A-".concat(queryObj.value);
           }
-          // if(queryObj.column == "Employee Id" && !queryObj.value.includes("A-") && (data.isConsultant == 'true')){
-          //   queryObj.value = "A-CS-".concat(queryObj.value);
-          // }
 
           if (queryObj.column == 'From Date' || queryObj.column == 'To Date' || queryObj.column == 'Date' || queryObj.column == 'Date Of Joining') {
             queryObj.value = (queryObj.value) ? moment(queryObj.value).format("DD-MM-YYYY") : '';
@@ -2307,13 +1895,11 @@ export class ReportListComponent implements OnInit {
 
     this.filterData.queryList = JSON.stringify(this.queryList);
 
-    //console.log("filterData : ", this.filterData);
     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
   }
 
   onFilterSubmit(emittedArray: any, template: TemplateRef<any>) {
     if (emittedArray[0].length != 0) {
-      //console.log("queryList : ", emittedArray[0]);
       this.queryList = JSON.parse(JSON.stringify(emittedArray[0]));
       this.cancelRequest();
 
@@ -2365,7 +1951,6 @@ export class ReportListComponent implements OnInit {
     }
   }
 
-  // Leave Timesheet Report
   getAllLeaveTimesheets(template?: TemplateRef<any>) {
     this.allLeaveTimesheets = [];
 
@@ -2389,7 +1974,6 @@ export class ReportListComponent implements OnInit {
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
     timesheetObj.currentUser = this.currentUser.empId;
-    //console.log("timesheet obj  : ", timesheetObj)
 
     this.timesheetService.getAllLeaveTimesheetsWithoutLeaveApplication(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -2397,7 +1981,6 @@ export class ReportListComponent implements OnInit {
 
         for (let x of this.allLeaveTimesheets) {
           x.employeementId = "A-".concat(x.employeementId);
-          // x.employeementId = (x.isConsultant === 'true' ? "A-CS-" : "A-").concat(x.employeementId);
           x.employeeType = ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
             x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
           x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -2407,15 +1990,12 @@ export class ReportListComponent implements OnInit {
           x.emp360UpdatedBy = x.timesheetStatusUpdatedBy;
         }
 
-        // console.log("allLeaveTimesheets :", this.allLeaveTimesheets);
       } else {
         console.error(response.serviceResponse)
       }
     });
   }
 
-
-  // Custom Query Data 
   getCustomQueryData(template: TemplateRef<any>) {
     this.customQuery = this.customQuery?.trim().replace(/\s{2,}/g, ' ');
     if (!this.validationService.validateNullUndefinedEmptyString(this.customQuery)) {
@@ -2430,7 +2010,6 @@ export class ReportListComponent implements OnInit {
     this.utilityService.getCustomQueryData(queryObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         let responseData = response.serviceResponse;
-        //console.log("responseData : ", responseData);
 
         if (responseData) {
           let exportData = responseData.map((dataArr) => {
@@ -2456,8 +2035,7 @@ export class ReportListComponent implements OnInit {
       }
     });
   }
-
-  //pagination 	
+	
   page = 1;
   itemsPerPage = 5;
   handlePageChange(event) {
@@ -2477,7 +2055,7 @@ export class ReportListComponent implements OnInit {
     const itemsPerPage = 5; // Match with HTML
     return (this.page - 1) * itemsPerPage + localPIndex;
   }
-  // Excel Export 
+
   exportToExcel(): void {
 
     if (this.isLeaveReportTable == true) {
@@ -2529,7 +2107,6 @@ export class ReportListComponent implements OnInit {
     }
 
     if (this.isEmployeeReportTable == true) {
-      // this.excelName = 'EmployeeReport.xlsx';
 
       if (!this.showDetails) {
         this.excelName = 'EmployeeReport.xlsx';
@@ -2552,45 +2129,6 @@ export class ReportListComponent implements OnInit {
             "Po Start Date": x.poStartDate,
             "Po End Date": x.poEndDate,
             "Po Project Type": x.poProjectType,
-            // "Aadhar": x.aadhar,
-            // "About Me": x.aboutMe,
-            // "address": x.address,
-            // "permanentAddress": x.permanentAddress,
-            // "city": x.city,
-            // "Manager Name": x.managerName,
-            // "Blood Group": x.bloodGroup,
-            // "date Of Birth": x.dateOfBirth,
-            // "gender": x.gender,
-            // "fatherName": x.fatherName,
-            // "mobileNo": x.mobileNo,
-            // "panNumber": x.panNumber,
-            // "placeOfBirth": x.placeOfBirth,
-            // "workLocation": x.workLocation,
-            // "Probation Period": x.probationPeriod,
-            // "noticePeriod": x.noticePeriod,
-            // "country": x.country,
-            // "emergencyContactMobile": x.emergencyContactMobile,
-            // "emergencyContactPerson": x.emergencyContactPerson,
-            // "landline": x.landline,
-            // "maritalStatus": x.maritalStatus,
-            // "motherTongue": x.motherTongue,
-            // "alternateMobileNo": x.alternateMobileNo,
-            // "pincode": x.pincode,
-            // "relation": x.relation,
-            // "State": x.state,
-            // "viewsOnOrganisation": x.viewsOnOrganisation,
-            // "passportNumber": x.passportNumber,
-            // "bankAccountNo": x.bankAccountNo,
-            // "bankIFSCCode": x.bankIFSCCode,
-            // "bankName": x.bankName,
-            // "pfAccountNumber": x.pfAccountNumber,
-            // "previousPfAccountNumber": x.previousPfAccountNumber,
-            // "uan": x.uan,
-            // "esicNumber": x.esicNumber,
-            // "graduationType": x.graduationType,
-            // "pursuing": x.pursuing,
-            // "passingGrade": x.passingGrade,
-            // "yearOfPassing": x.yearOfPassing,
             "createdBy": x.createdBy,
             "createdOn": x.createdOn,
             "Proile Completion Perecentage": x.profileCompletedPercent,
@@ -2696,7 +2234,6 @@ export class ReportListComponent implements OnInit {
 
     }
 
-
     if (this.isAccessControlListTable == true) {
       this.excelName = `${this.employeeRole}-ACLReport.xlsx`;
 
@@ -2768,8 +2305,6 @@ export class ReportListComponent implements OnInit {
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     }
 
-
-
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -2782,7 +2317,6 @@ export class ReportListComponent implements OnInit {
   }
 
   sortData(sort: Sort) {
-    //console.log(sort);
     if (sort.active) {
       let sortParams: any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -2803,7 +2337,6 @@ export class ReportListComponent implements OnInit {
 
   onSearch(searchData) {
     this.filters = searchData;
-    //console.log("Updated Filter : ", this.filters);
   }
 
   onSearchh(updatedFilters: any) {
@@ -2821,14 +2354,8 @@ export class ReportListComponent implements OnInit {
         const filteredEmployees = team.mappedEmployeeDetails.filter(emp =>
           Object.keys(this.filters).every(key => {
             const searchValue = this.filters[key]?.toLowerCase() || '';
-
-
             const empValue = emp[key]?.toString()?.toLowerCase() || '';
-
-
             const teamValue = team[key]?.toString()?.toLowerCase() || '';
-
-
             const projValue = project[key]?.toString()?.toLowerCase() || '';
 
             return empValue.includes(searchValue) ||
@@ -2852,8 +2379,6 @@ export class ReportListComponent implements OnInit {
     return filtered;
   }
 
-
-
   getAllEmployeesReportByProjectType() {
     this.allEmployee = [];
 
@@ -2868,7 +2393,6 @@ export class ReportListComponent implements OnInit {
     });
   }
 
-
   goBack() {
     if (this.returnUrl) {
       this.router.navigateByUrl(this.returnUrl);
@@ -2877,19 +2401,17 @@ export class ReportListComponent implements OnInit {
     }
   }
 
-onEmployeeSelected(event: any) {
-  const selectedEmp = event.option.value;
-  if (selectedEmp) {
-    this.selectedEmpId = selectedEmp.empId;
-    // this.employeeCtrl.setValue(selectedEmp.name);
-    console.log('Selected Employee ID:', this.selectedEmpId);
+  onEmployeeSelected(event: any) {
+    const selectedEmp = event.option.value;
+    if (selectedEmp) {
+      this.selectedEmpId = selectedEmp.empId;
+      console.log('Selected Employee ID:', this.selectedEmpId);
+    }
   }
-}
 
   displayEmployee(emp: any): string {
-    console.log("emp", emp);  // This is helpful for debugging
     if (typeof emp === 'string') {
-      return emp;  // User is typing or you manually set value to string
+      return emp;
     }
     return emp && emp.name ? emp.name : '';
   }
@@ -2898,26 +2420,25 @@ onEmployeeSelected(event: any) {
     return list?.some(emp => emp.empId === this.selectedEmpId);
   }
 
-getEmployeeByNameAndEmpld() {
-  this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus === 'Success') {
-      this.employeeList = response.serviceResponse;
-      this.filteredEmployees2 = this.employeeList;
-      this.employeeCtrl.setValue('');
-    } else {
-      // this.openAlertMod(this.alertTemplate, response.serviceResponse);
-    }
-  });
-}
+  getEmployeeByNameAndEmpld() {
+    this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.employeeList = response.serviceResponse;
+        this.filteredEmployees2 = this.employeeList;
+        this.employeeCtrl.setValue('');
+      } else {
+      }
+    });
+  }
 
-filterEmployees2(searchText: string) {
-      const filterValue = searchText.toLowerCase();
+  filterEmployees2(searchText: string) {
+    const filterValue = searchText.toLowerCase();
 
     return this.employeeList.filter(emp => {
       if (!emp) {
         return false;
       }
-      
+
       const nameMatch = emp.name && emp.name.toLowerCase().includes(filterValue);
       const idMatch = emp.empId && emp.empId.toString().toLowerCase().includes(filterValue);
       return nameMatch || idMatch;
@@ -2936,24 +2457,19 @@ filterEmployees2(searchText: string) {
   }
 
   getProjectTimesheetSummaryData() {
-    // 1. Check if the current user and their empId are available.
     if (!this.selectedEmpId) {
       this.openAlertMod(this.alertTemplate, "Cannot fetch summary. User information is missing.");
       console.error("Current user or empId is not available.");
-      // Close the modal or show an error state in the chart container if the modal is already open
       if (this.summaryModalRef) {
-        // You could display an error message inside the modal body here
         document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Could not load data: User not identified.</p>';
       }
       return;
     }
 
-    // 2. Create the DTO object to send to the backend.
     const resourceManagementDTO = {
       empId: this.selectedEmpId
     };
 
-    // 3. Pass the DTO to the service call.
     console.log("================================", resourceManagementDTO);
     this.resourceManagementService.getProjectTimesheetSummary(resourceManagementDTO).pipe(first()).subscribe({
       next: (response: any) => {
@@ -2963,11 +2479,9 @@ filterEmployees2(searchText: string) {
           if (this.projectSummaryData && this.projectSummaryData.length > 0) {
             this.processProjectSummaryData(this.projectSummaryData);
           } else {
-            // Handle the case where the API succeeds but returns no data
             document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center">No timesheet summary data found for your projects.</p>';
           }
         } else {
-          // this.openAlertMod(this.alertTemplate, "Failed to load project summary data.");
           console.error(response.serviceResponse);
           document.getElementById('projectTimesheetSummaryChart').innerHTML = '<p class="text-center text-danger">Error:No timesheets filled till date</p>';
         }
@@ -2984,7 +2498,6 @@ filterEmployees2(searchText: string) {
     const categories = [];
     const seriesData = [];
 
-    // Sort data by totalTimesheetsFilled in descending order and take top 20 for better visualization
     const sortedData = summaryData
       .sort((a, b) => b.totalTimesheetsFilled - a.totalTimesheetsFilled)
       .slice(0, 20);
@@ -2997,7 +2510,7 @@ filterEmployees2(searchText: string) {
     const chartData = [{
       name: 'Timesheets Filled',
       data: seriesData,
-      color: '#0275d8' // A bootstrap primary-like color
+      color: '#0275d8'
     }];
 
     this.renderColumnChart(
@@ -3026,7 +2539,7 @@ filterEmployees2(searchText: string) {
           text: 'Projects'
         },
         labels: {
-          rotation: -45, // Rotate labels to prevent overlap
+          rotation: -45,
           style: {
             fontSize: '11px',
             fontFamily: 'Verdana, sans-serif'
@@ -3061,7 +2574,7 @@ filterEmployees2(searchText: string) {
         enabled: false,
       },
       legend: {
-        enabled: false // Not needed for a single series chart
+        enabled: false
       },
       series: chartData
     });
