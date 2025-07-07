@@ -638,12 +638,14 @@
                                         </td>
                                         <td>{{project.poNo ? project.poNo : 'NA' }}</td>
 
-                                        <td>{{ getProjectType(project) }}</td>
+                                        <td>
+                                          {{ project.poProjectType ? project.poProjectType : (project.internalProjectType ? project.internalProjectType : 'NA') }}
+                                        </td>
 
                                         <td class="text-capitalize">
-                                            <ng-container id="clickablefor360"
-                                                *ngIf="userMapping.my_team_resource_management_employee_360 && project.projectManagerName && !isAccounts">
-                                                <span
+                                            <ng-container 
+                                                *ngIf="userMapping.rmg_employee_360 && project.projectManagerName && !isAccounts">
+                                                <span id="clickablefor360"
                                                     *ngFor="let managerData of project.projectManagers; let last = last"
                                                     [navigateToEmployee360]="managerData.projectManagerId"
                                                     style="cursor: pointer;" title="Click to view Employee 360"
@@ -651,8 +653,8 @@
                                                     ? managerData.projectManagerName : 'NA' }} {{!last ? ',' :
                                                     ''}}</span>
                                             </ng-container>
-                                            <ng-container
-                                                *ngIf="!userMapping.my_team_resource_management_employee_360 || !project.projectManagerName">
+                                            <ng-container 
+                                                *ngIf="!userMapping.rmg_employee_360 || !project.projectManagerName">
                                                 <span
                                                     *ngFor="let managerData of project.projectManagers; let last = last"
                                                     style="cursor: pointer;" class="info-label">

@@ -189,7 +189,7 @@ export class ResourceManagementComponent implements OnInit {
   filters: any = {};
   isSearchEnabled: boolean = false;
   // projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
-  projectColumns: any[] = ["blank", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status", "draftStatus"];
+  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status", "draftStatus"];
 
   projectDetails: any = [];
   copyDepartment: any = [];
@@ -2720,7 +2720,7 @@ isAddButtonDisabled(): boolean {
   }
 
   // alert_message template is to be passed
-  CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilterDTO) {
+CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilterDTO) {
     this.allProject_Po_Internal = [];
     this.resourceManagementService.combinedPOINTERNALDataList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -2728,6 +2728,17 @@ isAddButtonDisabled(): boolean {
         this.allProject_Po_Internal = response.serviceResponse.combinedNewProjects.map((project: any) => {
           // Add the combined project type to each project object
           project.combinedProjectType = this.getProjectType(project);
+
+          if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
+            const managerNamesString = project.projectManagers
+              .map(manager => manager.projectManagerName)
+              .join(', ');
+
+            project.projectManagerName = managerNamesString;
+          } else {
+
+            project.projectManagerName = ''; 
+          }
           return project;
           this.createDepartmentArray();
         });
