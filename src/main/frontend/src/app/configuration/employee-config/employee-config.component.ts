@@ -317,18 +317,18 @@ confirmationReason: string = '';
   }
 }
 
-    openEmployeeModal(employee: any,employeeTemplate: TemplateRef<any>) {
+openEmployeeModal(employee: any, employeeTemplate: TemplateRef<any>) {
     this.selectedEmployee = employee;
    
     if (this.selectedEmployee && this.selectedEmployee.dateOfJoining && this.selectedEmployee.probationPeriod) {
-    const [day, month, year] = this.selectedEmployee.dateOfJoining.split('-');
-    const doj = new Date(year, month - 1, day); 
-    
-    const probationDays = parseInt(this.selectedEmployee.probationPeriod);
-    const confirmationDate = new Date(doj.getTime() + (probationDays * 24 * 60 * 60 * 1000));
-    
-    this.selectedEmployee.confirmationDate = confirmationDate;
-}
+        const [day, month, year] = this.selectedEmployee.dateOfJoining.split('-');
+        const doj = new Date(year, month - 1, day); 
+        
+        const probationDays = parseInt(this.selectedEmployee.probationPeriod);
+        const confirmationDate = new Date(doj.getTime() + (probationDays * 24 * 60 * 60 * 1000));
+        
+        this.selectedEmployee.confirmationDate = confirmationDate;
+    }
     
     this.showExtensionForm = false;
     this.showConfirmationReasonForm = false;
@@ -340,176 +340,208 @@ confirmationReason: string = '';
     this.showReasonForm = false;
 
     this.modalRef1 = this.modalService.show(employeeTemplate, {
-      class: 'modal-xl'  
+        class: 'modal-xl'  
     });
-  }
+}
 
-
-  toggleExtensionForm() {
+toggleExtensionForm() {
     this.showExtensionForm = !this.showExtensionForm;
     this.showConfirmationReasonForm = false; 
     this.showReasonForm = false;
-  }
-    handleConfirmClick(employee: any,alert_message: TemplateRef<any>) {
+}
+
+handleConfirmClick(employee: any, alert_message: TemplateRef<any>) {
     this.showExtensionForm = false;
     this.showReasonForm = false;
     if (employee.days_left_for_full_time < 0) {
-    this.showConfirmationReasonForm = true;
+        this.showConfirmationReasonForm = true;
+    } else {
+        this.showConfirmationReasonForm = false;
+        this.confirmAndExecuteConfirmation(employee, alert_message);
     }
-    else
-    {
-      this.showConfirmationReasonForm = false;
-      this.confirmAndExecuteConfirmation(employee, alert_message);
-    }
-  }
-  confirmAndExecuteConfirmation(employee: any, alert_message: TemplateRef<any>) {
+}
+
+confirmAndExecuteConfirmation(employee: any, alert_message: TemplateRef<any>) {
     if (employee.days_left_for_full_time < 0 && !this.confirmationReason.trim()) {
-    alert('A reason is required for late confirmation.');
-    return; 
-  }
+        alert('A reason is required for late confirmation.');
+        return; 
+    }
+    
     const payload = {
-      empId: employee.empId,
-      hodId: this.currentUser.empId,
-      reasonOfExtension: this.confirmationReason || '',
+        empId: employee.empId,
+        hodId: this.currentUser.empId,
+        reasonOfExtension: this.confirmationReason || '',
     };
 
     this.employeeService.confirmEmployee(payload).pipe(first()).subscribe({
-    next: (response: any) => {
-      if (response.serviceStatus === "Success") {
-        const message = "Employee has been confirmed for Full Time Employment";
-        this.openAlertMod(alert_message, message);
-      } else {
-        this.openAlertMod(alert_message, response.serviceResponse);
-      }
-      
-      this.showConfirmationReasonForm = false;
-      this.confirmationReason = '';
-    },
-    error: (error) => {
-      console.error("Error confirming employee", error);
-      this.showConfirmationReasonForm = false;
-      this.confirmationReason = '';
-    }
-  });
-  }
+        next: (response: any) => {
+            this.closeAllModals();
+            
+            if (response.serviceStatus === "Success") {
+                const message = "Employee has been confirmed for Full Time Employment";
+                this.openAlertMod(alert_message, message);
+            } else {
+                this.openAlertMod(alert_message, response.serviceResponse);
+            }
+            
+            this.resetAllForms();
+        },
+        error: (error) => {
+            console.error("Error confirming employee", error);
+            this.closeAllModals();
+            this.resetAllForms();
+        }
+    });
+}
 
-  openEmployeeConfimationModal(template: TemplateRef<any>,template2: TemplateRef<any>) {
+openEmployeeConfimationModal(template: TemplateRef<any>, template2: TemplateRef<any>) {
     if (!this.selectedEmployee || !this.selectedEmployee.empId) {
-      const message = 'Please select an employee to confirm.';
-      this.openAlertMod(template2, message);
-      return;
+        const message = 'Please select an employee to confirm.';
+        this.openAlertMod(template2, message);
+        return;
     }
     
     if (this.selectedEmployee.days_left_for_full_time < 0) {
-      this.showConfirmationReasonForm = true; 
+        this.showConfirmationReasonForm = true; 
     } else {
-      this.showConfirmationReasonForm = false; 
+        this.showConfirmationReasonForm = false; 
     }
     
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
-  }
+}
 
-  openReasonConfirmationModal(template:TemplateRef<any>, template2:TemplateRef<any>)
-  {
+openReasonConfirmationModal(template: TemplateRef<any>, template2: TemplateRef<any>) {
     this.showReasonForm = true;
     if (!this.selectedEmployee || !this.selectedEmployee.empId) {
-      const message = 'Please select an employee to provide a reason for delay.';
-      this.openAlertMod(template2, message);
-      return;
+        const message = 'Please select an employee to provide a reason for delay.';
+        this.openAlertMod(template2, message);
+        return;
     }
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
-  }
+}
 
-  confirmAndExecuteReasonSubmission(selectedEmployee:any, template: TemplateRef<any>) {
-    this.modalRef?.hide();
-    
+confirmAndExecuteReasonSubmission(selectedEmployee: any, template: TemplateRef<any>) {
     if (!this.reasonForDelay || !this.reasonForDelay.trim()) {
-      const message = 'A reason for the delay is required.';
-      this.openAlertMod(template, message);
-      return;
+        const message = 'A reason for the delay is required.';
+        this.openAlertMod(template, message);
+        return;
     }
     
     const payload = {
-      empId: selectedEmployee.empId,
-      reasonOfExtension: this.reasonForDelay,
-      hodId: this.currentUser.empId
+        empId: selectedEmployee.empId,
+        reasonOfExtension: this.reasonForDelay,
+        hodId: this.currentUser.empId
     };
 
     this.employeeService.submitReasonForDelay(payload).pipe(first()).subscribe({
-      next: (response: any) => {
-        if (response.serviceStatus === "Success") {
-          const message = "Reason for delay has been submitted successfully.";
-          this.openAlertMod(template, message);
-        } else {
-          this.openAlertMod(template, response.serviceResponse);
+        next: (response: any) => {
+            this.closeAllModals();
+            
+            if (response.serviceStatus === "Success") {
+                const message = "Reason for delay has been submitted successfully.";
+                this.openAlertMod(template, message);
+            } else {
+                this.openAlertMod(template, response.serviceResponse);
+            }
+            
+            this.resetAllForms();
+        },
+        error: (error) => {
+            console.error("Error submitting reason for delay", error);
+            this.closeAllModals();
+            this.resetAllForms();
+            alert("An error occurred while submitting the reason for delay.");
         }
-        this.showReasonForm = false; 
-        this.reasonForDelay = '';
-      },
-      error: (error) => {
-        console.error("Error submitting reason for delay", error);
-        alert("An error occurred while submitting the reason for delay.");
-      }
     });
-  }
+}
 
-  openExtensionConfirmationModal(template: TemplateRef<any>,template2: TemplateRef<any>) {
+openExtensionConfirmationModal(template: TemplateRef<any>, template2: TemplateRef<any>) {
     if (!this.extensionPeriod || this.extensionPeriod <= 0) {
-      const message = 'Please enter a valid number of extension days.';
-      this.openAlertMod(template2, message);
-      return;
+        const message = 'Please enter a valid number of extension days.';
+        this.openAlertMod(template2, message);
+        return;
     }
     if (!this.reasonOfExtension || !this.reasonOfExtension.trim()) {
-      const message = 'A reason for the extension is required.';
-      this.openAlertMod(template2, message);
-      return;
+        const message = 'A reason for the extension is required.';
+        this.openAlertMod(template2, message);
+        return;
     }
     
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
-  }
+}
 
-  confirmAndExecuteExtension(template: TemplateRef<any>): void {
+confirmAndExecuteExtension(template: TemplateRef<any>): void {
     this.modalRef?.hide();
-    
     this.executeExtendEmployee(template);
-  }
+}
 
-  decline(): void {
-    this.modalRef1?.hide();
-  }
+decline(): void {
+    this.closeAllModals();
+    this.resetAllForms();
+}
 
-
- executeExtendEmployee(template: TemplateRef<any>) {
-    this.showConfirmationReasonForm = false;
+executeExtendEmployee(template: TemplateRef<any>) {
     const payload = {
-      empId: this.selectedEmployee.empId,
-      probationPeriod: this.selectedEmployee.probationPeriod,
-      reasonOfExtension: this.reasonOfExtension,
-      extendedPeriod: this.extensionPeriod,
-      hodId: this.currentUser.empId
+        empId: this.selectedEmployee.empId,
+        probationPeriod: this.selectedEmployee.probationPeriod,
+        reasonOfExtension: this.reasonOfExtension,
+        extendedPeriod: this.extensionPeriod,
+        hodId: this.currentUser.empId
     };
 
     this.employeeService.extendemployee(payload).pipe(first()).subscribe({
-      next: (response: any) => {
-        if (response.serviceStatus === "Success") {
-          const Message = "Employee's probation period has been extended";
-          this.openAlertMod(template, Message); 
-          // alert(Message); 
-        } else {
-          this.openAlertMod(template, response.serviceResponse);
-          // alert(response.serviceResponse);
+        next: (response: any) => {
+            this.closeAllModals();
+            
+            if (response.serviceStatus === "Success") {
+                const Message = "Employee's probation period has been extended";
+                this.openAlertMod(template, Message); 
+            } else {
+                this.openAlertMod(template, response.serviceResponse);
+            }
+            
+            this.resetAllForms();
+        },
+        error: (error) => {
+            console.error("Error extending employee", error);
+            this.closeAllModals();
+            this.resetAllForms();
+            alert("An error occurred while extending the probation period.");
         }
-        this.showExtensionForm = false; 
-        this.resetExtensionForm();
-      },
-      error: (error) => {
-        console.error("Error extending employee", error);
-        alert("An error occurred while extending the probation period.");
-      }
     });
-    this.resetExtensionForm();
-  }
+}
 
+private closeAllModals(): void {
+    if (this.modalRef) {
+        this.modalRef.hide();
+        this.modalRef = null;
+    }
+    if (this.modalRef1) {
+        this.modalRef1.hide();
+        this.modalRef1 = null;
+    }
+}
+
+private resetAllForms(): void {
+    this.showExtensionForm = false;
+    this.showConfirmationReasonForm = false;
+    this.showReasonForm = false;
+    this.confirmationReason = '';
+    this.reasonForDelay = '';
+    this.extensionReason = '';
+    this.reasonOfExtension = '';
+    this.extensionPeriod = null;
+}
+
+onModalClose(): void {
+    this.closeAllModals();
+    this.resetAllForms();
+}
+
+onModalBackdropClick(): void {
+    this.closeAllModals();
+    this.resetAllForms();
+}
 
   preventBackButton() {
     history.pushState(null, null, location.href);

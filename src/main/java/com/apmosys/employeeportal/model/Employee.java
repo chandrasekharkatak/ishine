@@ -210,7 +210,7 @@ public class Employee {
 	
    private String reasonOfExtension;//reason_of_extension	
    
-   private Long isConfirmedClicked = 0L;
+   private Long isConfirmedClicked;
    
    private boolean longOverdueNotified;
 }
