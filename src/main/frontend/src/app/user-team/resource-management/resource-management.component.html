@@ -1639,7 +1639,7 @@
 
                             </div>
                             <label class="mb-0"><span class="text-danger">*</span>Team Name</label>
-                            <input type="text" class="form-select name-field" [(ngModel)]="teamObj.teamName"
+                            <input style="min-width:200px" type="text" class="form-select name-field" [(ngModel)]="teamObj.teamName"
                                 (blur)="checkTeamName(alert_message_without_reload, teamObj, i)" />
                         </div>
                         <div class="form-field">
@@ -1675,7 +1675,7 @@
 
                         <div class="form-field">
                             <label>SPOC</label>
-                            <input type="text" class="form-select name-field" placeholder="Search by Emp ID or Name"
+                            <input type="text" class="form-select name-field" style="min-width:240px" placeholder="Search by Emp ID or Name"
                                 aria-label="Search employee" [formControl]="spocCtrl" [matAutocomplete]="spocAuto"
                                 [(ngModel)]="teamObj.spoc">
                             <mat-autocomplete #spocAuto="matAutocomplete" [displayWith]="displaySPOC"
@@ -1704,7 +1704,7 @@
 
                         <div class="form-field">
                             <label>Team Lead</label>
-                            <input type="text" class="form-select name-field" placeholder="Search by Emp ID or Name"
+                            <input type="text" style="min-width:240px" class="form-select name-field" placeholder="Search by Emp ID or Name"
                                 aria-label="Search employee" [formControl]="teamLeadCtrl"
                                 [matAutocomplete]="teamLeadAuto" [(ngModel)]="teamObj.teamLead">
                             <mat-autocomplete #teamLeadAuto="matAutocomplete" [displayWith]="displayTeamLead"

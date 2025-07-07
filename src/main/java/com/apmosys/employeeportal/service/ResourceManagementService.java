@@ -6760,7 +6760,7 @@ public class ResourceManagementService {
 					notStartedCount = projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(selectedDeptList);
-					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
+					totalCount = pendingForApprovalCount + approvedCount + rejectedCount;
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 					map.put("approvedCount",approvedCount);
 					map.put("completedCount",

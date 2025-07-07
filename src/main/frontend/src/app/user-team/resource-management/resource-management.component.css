@@ -299,7 +299,8 @@ thead {
   }
   
   .form-container {
-    max-width: 780px;
+    min-width: 780px;
+    max-width: fit-content;
     background: white;
     padding: 30px;
     margin: auto;

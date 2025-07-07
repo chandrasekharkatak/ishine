@@ -3073,7 +3073,7 @@ isAddButtonDisabled(): boolean {
     this.getTeamListByProjectName(project);
     this.getEmployeeByNameAndEmpld();
 
-    this.modalRef1 = this.modalService.show(template, { class: 'custom-modal' });
+    this.modalRef1 = this.modalService.show(template, { class: 'modal-xl' });
     // this.modalRef1 = this.modalService.show(template, { class: 'modal-lg' });
   }
 
