@@ -111,7 +111,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	 		+ "inner join Team t on t.projectId = p.projectId\n"
 	 		+ "inner join EmployeeTeamMap etm on etm.teamId = t.teamId\n"
 	 		+ "where p.projectId = :projectId\n"
-	 		+ "and p.active = :active")
+	 		+ "and etm.active = :active")
 		List<Project> findByProjectIdAndActiveForDraftProject(Integer projectId, Long active);
 
 //	 @Query(nativeQuery = true)
