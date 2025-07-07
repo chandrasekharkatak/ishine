@@ -882,7 +882,7 @@ public class ResourceManagementService {
 							}
 
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							response.setServiceResponse("Team updated successfully.");
+							response.setServiceResponse("Team updated successfully. Please approve it's Project to enable timesheets.");
 							apiLogInfo.setApiResponse("Team Updated!");
 							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 						}

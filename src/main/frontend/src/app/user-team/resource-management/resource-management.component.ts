@@ -1,7 +1,7 @@
 import { ViewportScroller } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { _MatAutocompleteBase, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
@@ -189,7 +189,7 @@ export class ResourceManagementComponent implements OnInit {
   filters: any = {};
   isSearchEnabled: boolean = false;
   // projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
-  projectColumns: any[] = ["blank", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status", "draftStatus"];
+  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status", "draftStatus"];
 
   projectDetails: any = [];
   copyDepartment: any = [];
@@ -452,6 +452,7 @@ export class ResourceManagementComponent implements OnInit {
   isApproved: boolean = false;
   advanceFilter: any;
   skipSelectionChange: boolean = false;
+
 
   constructor(
     private filterStateService: FilterStateService,
@@ -1352,6 +1353,7 @@ export class ResourceManagementComponent implements OnInit {
         this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);
+            this.allTeamMembers = [];
 
           } else {
             this.openAlertMod3(template2, response.serviceResponse);
@@ -1365,6 +1367,7 @@ export class ResourceManagementComponent implements OnInit {
             this.openAlertMod(this.alertTemplate, response.serviceResponse);
             this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {
               if (response.serviceStatus == "Success") {
+                this.allTeamMembers = [];
                 // this.cancelRequest();
                 // this.openAlertMod(template, response.serviceResponse);
               } else {
@@ -1946,7 +1949,8 @@ export class ResourceManagementComponent implements OnInit {
         employeeRole: this.newteamMember.employeeRole,
         resourceOverviewId: this.selectedRequirement?.resourceOverviewId,
         isShadow: this.newteamMember.isShadow,
-        isDefaultProject: this.newteamMember.isDefaultProject
+        isDefaultProject: this.newteamMember.isDefaultProject,
+        teamName: this.currentTeam.teamName
       };
       if (this.selectedRequirement) {
         memberToAdd['resourceOverviewId'] = this.selectedRequirement.resourceOverviewId;
@@ -1964,7 +1968,8 @@ export class ResourceManagementComponent implements OnInit {
         ...newTeamMember,
         employeeRole: this.newteamMember.employeeRole,
         isShadow: this.newteamMember.isShadow,
-        isDefaultProject: this.newteamMember.isDefaultProject
+        isDefaultProject: this.newteamMember.isDefaultProject,
+        teamName: this.currentTeam.teamName
       };
 
       this.allTeamMembers.push(memberToAdd);
@@ -2720,7 +2725,7 @@ isAddButtonDisabled(): boolean {
   }
 
   // alert_message template is to be passed
-  CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilterDTO) {
+CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilterDTO) {
     this.allProject_Po_Internal = [];
     this.resourceManagementService.combinedPOINTERNALDataList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -2728,6 +2733,17 @@ isAddButtonDisabled(): boolean {
         this.allProject_Po_Internal = response.serviceResponse.combinedNewProjects.map((project: any) => {
           // Add the combined project type to each project object
           project.combinedProjectType = this.getProjectType(project);
+
+          if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
+            const managerNamesString = project.projectManagers
+              .map(manager => manager.projectManagerName)
+              .join(', ');
+
+            project.projectManagerName = managerNamesString;
+          } else {
+
+            project.projectManagerName = ''; 
+          }
           return project;
           this.createDepartmentArray();
         });
@@ -3100,6 +3116,9 @@ isAddButtonDisabled(): boolean {
     this.teamObj.teamLeadId = '';
     this.newteamMember.empId = '';
     this.newteamMember.employeeRole = null;
+    // this.newteamMember.departmentId = null;
+    this.newteamMember.name = null;
+  
     // this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     // this.getAllEmployeesByRole(currentTeam.departmentList);
     console.log("this.copyDepartment ", this.copyDepartment);
