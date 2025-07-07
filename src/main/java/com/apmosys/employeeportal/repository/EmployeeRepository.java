@@ -839,8 +839,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query(nativeQuery = true,value ="select email from employee where emp_id = :empId")
     public String getMailByEmpId(@Param("empId") Long empId );
     
-    @Query(nativeQuery = true,value = "select d.* from employee e inner join job_role j on e.job_role_id = j.job_role_id inner join department d on d.dept_id = j.dept_id where e.emp_id = :empId")
-    public Department getDepartmentRow(Long empId );
+    @Query(nativeQuery = true,value = "select d.dept_id from employee e inner join job_role j on e.job_role_id = j.job_role_id inner join department d on d.dept_id = j.dept_id where e.emp_id = :empId")
+    public Object[] getDepartmentRow(Long empId );
     
     @Query(nativeQuery = true,value = "select d.hod_id from employee e inner join job_role j on e.job_role_id = j.job_role_id inner join department d on d.dept_id = j.dept_id where e.emp_id = :empId")
     public Long getDepartmentHod(@Param("empId") Long empId );

@@ -7516,6 +7516,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		return response;
 	}
 	
+	
+
 	public ServiceResponse extendEmployeeProbation(EmployeeDTO employeeDto) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
@@ -7548,14 +7550,15 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	                return response;
 	            }
 	            
-	            
-	            Department department = employeeRepository.getDepartmentRow(employeeDto.getEmpId());
-	            
 	            cachedEmployee = new EmployeeDTO();
 	            cachedEmployee.setEmpId(employee.getEmpId());
 	            cachedEmployee.setName(employee.getName());
 	            cachedEmployee.setProbationPeriod(employee.getProbationPeriod());
-	            cachedEmployee.setDepartmentId(department.getDeptId());
+	            
+	            Object[] department = employeeRepository.getDepartmentRow(Long.parseLong(employee.getEmpId().toString()));
+	            if (department != null && department.length > 0) {
+	                cachedEmployee.setDepartmentId(Long.parseLong(department[0].toString()));
+	            }
 	            	            
 	            apiLogInfo.setApiResponse("Employee data retrieved from database for empId: " + employeeDto.getEmpId());
 	        }
@@ -7564,8 +7567,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	        if (cachedEmployee.getHodId() != null) {
 	            actualHodIdOptional = cachedEmployee.getHodId();
 	        } else {
-	            
-	        	actualHodIdOptional = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());
+	            actualHodIdOptional = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());
 	        }
 
 	        if (actualHodIdOptional == null) {
@@ -7577,9 +7579,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	        }
 
 	        if (!actualHodIdOptional.equals(employeeDto.getHodId())) {
-                String hodName = employeeRepository.findEmployeeNameById(actualHodIdOptional);
-                String currenhod =employeeRepository.findEmployeeNameById(employeeDto.getHodId());
-
+	            String hodName = employeeRepository.findEmployeeNameById(actualHodIdOptional);
+	            String currenhod = employeeRepository.findEmployeeNameById(employeeDto.getHodId());
 
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("User " + currenhod + " is not the authorized HOD for this employee. The correct HOD is " + hodName + ".");
@@ -7640,101 +7641,170 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
-	
-	@Transactional
-    public ServiceResponse confirmEmployeeFromProbation(EmployeeDTO employeeDto) {
-        ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-        apiLogInfo.setApiUrl("/api/confirmEmployeeFromProbation");
-        apiLogInfo.setLogLevel("INFO");
 
-        try {
-            Long actualHodIdOptional = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());
-            if (actualHodIdOptional == null) {
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Could not determine the HOD for employee. The employee may not be assigned to a department.");
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-                logService.logMyInfo(httpRequest, apiLogInfo);
-                return response;
-            }
+	public ServiceResponse confirmEmployeeFromProbation(EmployeeDTO employeeDto) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/confirmEmployeeFromProbation");
+	    apiLogInfo.setLogLevel("INFO");
 
-            
-            if (actualHodIdOptional != (employeeDto.getHodId())) {
-                String hodName = employeeRepository.findEmployeeNameById(actualHodIdOptional);
-                String errorMessage = "Incorrect Head of Department specified. The correct HOD is " + hodName + ". Please update the selection and try again.";
-                
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse(errorMessage);
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-                logService.logMyInfo(httpRequest, apiLogInfo);
-                return response;
-            }
+	    try {
+	        String cacheKey = "allEmployees";
+	        EmployeeDTO cachedEmployee = null;
+	        
+	        if (employeeCache.containsKey(cacheKey)) {
+	            List<EmployeeDTO> cachedEmployees = employeeCache.get(cacheKey);
+	            cachedEmployee = cachedEmployees.stream()
+	                    .filter(emp -> emp.getEmpId().equals(employeeDto.getEmpId()))
+	                    .findFirst()
+	                    .orElse(null);
+	                    
+	            if (cachedEmployee != null) {
+	                apiLogInfo.setApiResponse("Employee data retrieved from cache for empId: " + employeeDto.getEmpId());
+	            }
+	        }
+	       
+	        if (cachedEmployee == null) {
+	            Optional<Employee> employeeOptional = employeeRepository.findByIdAndStatusNot(employeeDto.getEmpId(), "Confirmed");
+	            if (employeeOptional.isEmpty()) {
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Employee not found with ID " + employeeDto.getEmploymentId() + ", or is already in 'Confirmed' status.");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                logService.logMyInfo(httpRequest, apiLogInfo);
+	                return response;
+	            }
+	            
+	            Employee employee = employeeOptional.get();
+	            
+	            cachedEmployee = new EmployeeDTO();
+	            cachedEmployee.setEmpId(employee.getEmpId());
+	            cachedEmployee.setName(employee.getName());
+	            cachedEmployee.setProbationPeriod(employee.getProbationPeriod());
+	            cachedEmployee.setDateOfJoining(employee.getDateOfJoining().toString());
+	            cachedEmployee.setEmploymentstatus(employee.getEmploymentstatus());
+	            
+	            Object[] department = employeeRepository.getDepartmentRow(Long.parseLong(employee.getEmpId().toString()));
+	            if (department != null && department.length > 0) {
+	                cachedEmployee.setDepartmentId(Long.parseLong(department[0].toString()));
+	            }
+	            	            
+	            apiLogInfo.setApiResponse("Employee data retrieved from database for empId: " + employeeDto.getEmpId());
+	        }
 
-            Optional<Employee> employeeOptional = employeeRepository.findByIdAndStatusNot(employeeDto.getEmpId(), "Confirmed");
-            if (employeeOptional.isEmpty()) {
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Employee not found with ID " + employeeDto.getEmploymentId() + ", or is already in 'Confirmed' status.");
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-                logService.logMyInfo(httpRequest, apiLogInfo);
-                return response;
-            }
+	        Long actualHodIdOptional;
+	        if (cachedEmployee.getHodId() != null) {
+	            actualHodIdOptional = cachedEmployee.getHodId();
+	        } else {
+	            actualHodIdOptional = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());
+	        }
 
-            Employee employee = employeeOptional.get();
-            
-            LocalDate probationEndDate = employee.getDateOfJoining().plusDays(employee.getProbationPeriod());
-            LocalDate today = LocalDate.now();
+	        if (actualHodIdOptional == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Could not determine the HOD for employee " + employeeDto.getEmploymentId() + ". The employee may not be assigned to a department.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
 
-            if (today.isBefore(probationEndDate)) {
-            	employee.setIsConfirmedClicked(1L);
-            	LocalDate date = LocalDate.parse(probationEndDate.toString()); 
-            	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-            	String formattedDate = date.format(formatter);
-            	response.setServiceResponse("Employee will be confirmed on " + formattedDate);
-            	
-            	employeeRepository.save(employee);
-            	System.out.print("++++++++++++++++++++++++++++++++++++++++++++++"+employee.getIsConfirmedClicked());
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-                logService.logMyInfo(httpRequest, apiLogInfo);
-                return response;
+	        if (!actualHodIdOptional.equals(employeeDto.getHodId())) {
+	            String hodName = employeeRepository.findEmployeeNameById(actualHodIdOptional);
+	            String currentHod = employeeRepository.findEmployeeNameById(employeeDto.getHodId());
 
-            } else if (today.isAfter(probationEndDate)) {
-                if (!StringUtils.hasText(employeeDto.getReasonOfExtension())) { 
-                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                    response.setServiceResponse("Confirmation is after the probation end date. An extension reason is required.");
-                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-                    logService.logMyInfo(httpRequest, apiLogInfo);
-                    return response;
-                }
-            employee.setReasonOfExtension(employeeDto.getReasonOfExtension());
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("User " + currentHod + " is not the authorized HOD for this employee. The correct HOD is " + hodName + ".");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
 
-            }
+	        // Check if employee is already confirmed
+	        if ("Confirmed".equals(cachedEmployee.getEmploymentstatus())) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Employee with ID " + employeeDto.getEmpId() + " is already in 'Confirmed' status.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
 
-            
-            employee.setIsConfirmedClicked(1L);
-            employee.setEmploymentstatus("Confirmed");
-            employee.setUpdatedOn(LocalDateTime.now());
-            employee.setUpdatedBy(employeeDto.getHodId().intValue());
-            employeeRepository.save(employee);
+	        LocalDate probationEndDate = LocalDate.parse(cachedEmployee.getDateOfJoining()).plusDays(cachedEmployee.getProbationPeriod());
+	        LocalDate today = LocalDate.now();
 
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse("Status for employee '" + employee.getName() + "' has been successfully changed to Confirmed.");
-            apiLogInfo.setApiResponse("Employment status changed to Confirmed for empId: " + employee.getEmpId());
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        Employee employee = employeeRepository.findByEmpId(employeeDto.getEmpId());
+	        if (employee == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Employee with ID " + employeeDto.getEmpId() + " not found.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-            response.setServiceResponse("An internal error occurred: " + e.getMessage());
-            apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-            apiLogInfo.setLogLevel("ERROR");
-            response.setServiceError(e.getMessage());
-        }
+	        if (today.isBefore(probationEndDate)) {
+	            employee.setIsConfirmedClicked(1L);
+	            LocalDate date = LocalDate.parse(probationEndDate.toString()); 
+	            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+	            String formattedDate = date.format(formatter);
+	            response.setServiceResponse("Employee will be confirmed on " + formattedDate);
+	            
+	            employeeRepository.save(employee);
+	            System.out.print("++++++++++++++++++++++++++++++++++++++++++++++"+employee.getIsConfirmedClicked());
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
 
-        logService.logMyInfo(httpRequest, apiLogInfo);
-        return response;
-    }
-	
+	        } else if (today.isAfter(probationEndDate)) {
+	            if (!StringUtils.hasText(employeeDto.getReasonOfExtension())) { 
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Confirmation is after the probation end date. An extension reason is required.");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                logService.logMyInfo(httpRequest, apiLogInfo);
+	                return response;
+	            }
+	            employee.setReasonOfExtension(employeeDto.getReasonOfExtension());
+	        }
+
+	        employee.setIsConfirmedClicked(1L);
+	        employee.setEmploymentstatus("Confirmed");
+	        employee.setUpdatedOn(LocalDateTime.now());
+	        employee.setUpdatedBy(employeeDto.getHodId().intValue());
+	        employeeRepository.save(employee);
+
+	        // Update cache with new data
+	        if (employeeCache.containsKey(cacheKey)) {
+	            List<EmployeeDTO> cachedEmployees = employeeCache.get(cacheKey);
+	            for (EmployeeDTO emp : cachedEmployees) {
+	                if (emp.getEmpId().equals(employeeDto.getEmpId())) {
+	                    emp.setEmploymentstatus("Confirmed");
+	                    emp.setIsConfirmedClicked(1L);
+	                    emp.setUpdatedOn(LocalDateTime.now().toString());
+	                    emp.setUpdatedBy(employeeDto.getHodId());
+	                    if (employeeDto.getReasonOfExtension() != null) {
+	                        emp.setReasonOfExtension(employeeDto.getReasonOfExtension());
+	                    }
+	                    break;
+	                }
+	            }
+	            employeeCache.put(cacheKey, cachedEmployees);
+	            apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | Cache updated with confirmation data");
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Status for employee '" + cachedEmployee.getName() + "' has been successfully changed to Confirmed.");
+	        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | Successfully confirmed empId: " + cachedEmployee.getEmpId());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("An internal error occurred: " + e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        apiLogInfo.setLogLevel("ERROR");
+	        response.setServiceError(e.getMessage());
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
 	
 	
 	public  ServiceResponse submitForDelay(EmployeeDTO employeeDto)
