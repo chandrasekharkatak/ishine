@@ -2889,9 +2889,15 @@ isAddButtonDisabled(): boolean {
   }
 
   isEmployeeInTeam(employee: any): boolean {
+    console.log("Checking if employee is in team:", employee);
+    console.log("All team members:", this.teamObj.allTeamMemberList);
+    if (!this.teamObj.allTeamMemberList == undefined) {
   return this.teamObj.allTeamMemberList.some(
     (member: any) => member.empId === employee.empId
-  );
+  );}
+  else{
+    return false;
+  }
 }
 
   displayEmployee(emp: any): string {
