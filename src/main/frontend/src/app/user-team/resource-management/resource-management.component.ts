@@ -2919,7 +2919,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
   }
   onEmployeeInputChange() {
     if (!this.employeeCtrl.value || this.employeeCtrl.value.trim() === '') {
-        this.selectedEmpId = null;
+        this.selectedEmpId = 0;
     }
 }
 
