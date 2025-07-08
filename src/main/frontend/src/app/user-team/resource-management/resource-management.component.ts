@@ -2914,6 +2914,11 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
       console.log('Selected Employee ID:', this.selectedEmpId);
     }
   }
+  onEmployeeInputChange() {
+    if (!this.employeeCtrl.value || this.employeeCtrl.value.trim() === '') {
+        this.selectedEmpId = null;
+    }
+}
 
   isEmployeeInList(list: any[]): boolean {
     return list?.some(emp => emp.empId === this.selectedEmpId);
