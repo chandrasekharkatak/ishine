@@ -784,6 +784,7 @@
                                                                 </div>
                                                             </div>
                                                         </div>
+
                                                         <!-- As per RMG request -->
 
                                                         <!-- <div class="row">
@@ -1590,6 +1591,11 @@
                     <div class="form-field">
                         <label>State</label>
                         <input type="text" disabled [(ngModel)]="projectObj.state" />
+                    </div>
+                </div>
+                <div class="row" *ngIf="projectObj?.poProjectType == 'Fixed Cost'">
+                    <div class="col-12 d-flex justify-content-end">
+                        <h3 (click)="showProjectMilestones(projectObj)" class="milestone-link">Show All Milestone</h3>
                     </div>
                 </div>
 
@@ -2923,3 +2929,214 @@
     <!-- <iframe [src]="reportListUrlSafe" width="100%" height="850px" frameborder="0"></iframe> -->
 
 </ng-container>
+
+<ng-template #project_line_item_list_modal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Project Milestone List</h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="closeProjectLineItemListModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="table-container" bassHorizontalScroll [tableId]="'projectMilestone'"
+            [tableTHeadId]="'projectMilestoneTHead'" [tableTHeadTrId]="'projectMilestoneTHeadTr'">
+            <table class="table" id="project-milestone" matSort (matSortChange)="sortProjectMilestoneData($event)">
+                <thead class="thead-light">
+                    <tr id="projectMilestoneTHeadTr">
+                        <th scope="col" class="info-label">Sr.No</th>
+                        <th scope="col" class="info-label" mat-sort-header="lineItemName|string">Line Item</th>
+                        <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>
+                        <th scope="col" class="info-label">Description</th>
+                        <th scope="col" class="info-label" mat-sort-header="startDate|string">Start Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="endDate|string">End Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                        <th scope="col" class="info-label">Remarks</th>
+                        <th scope="col" class="info-label">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngIf="fcProjectMilestoneList.length == 0">
+                        <tr>
+                            <td colspan="7" class="text-center info-label">No details to display...</td>
+                        </tr>
+                    </ng-container>
+                    <ng-container
+                        *ngFor="let milestone of fcProjectMilestoneList | sort : [projectMilestoneSortColumn, projectMilestoneSortColumnType, projectMilestoneSortDirection]| paginate: { itemsPerPage: 10, currentPage: projectMilestonepage }; let j = index">
+                        <tr>
+                            <td>{{j+1}}</td>
+                            <td>{{milestone.lineItemName}}</td>
+                            <td>{{milestone.name}}</td>
+                            <td>{{milestone.description}}</td>
+                            <td>{{milestone.startDate | date:'dd/MM/yyyy'}}</td>
+                            <td>{{milestone.endDate | date:'dd/MM/yyyy'}}</td>
+                            <td>{{milestone.status}}</td>
+                            <td>{{milestone.remarks}}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" [disabled]="milestone.status === 'Completed'"
+                                    [title]="milestone.status === 'Completed' ? 'Cannot edit completed milestone during In Progress phase' : ''"
+                                    (click)="openUpdateProjectMilestoneModal(milestone)">
+                                    <i class="fas fa-edit"></i>
+                                </button>&nbsp;&nbsp;
+
+
+                                
+                                <button *ngIf="milestone.status === 'Completed'" class="btn btn-sm btn-info" title="View Document"
+                                    (click)="viewMilestoneFile(milestone.id)">
+                                    <i class="fas fa-file-alt"></i> 
+                                </button>
+
+
+
+
+
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+            <div class="row col-md-12">
+                <pagination-controls class="my-pagination" [hidden]="fcProjectMilestoneList.length == 0"
+                    (pageChange)="handleProjectMilestonePageChange($event)"></pagination-controls>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeProjectLineItemListModal()">Close</button>
+    </div>
+</ng-template>
+
+<ng-template #update_project_milestone_modal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Update Project Milestone</h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="closeUpdateProjectMilestoneModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="form-group">
+            <div class="form-field">
+                <label>List Item Name</label>
+                <input type="text" disabled [(ngModel)]="projectMilestone.lineItemName" />
+            </div>
+            <div class="form-field">
+                <label>Name</label>
+                <input type="text" disabled [(ngModel)]="projectMilestone.name" />
+            </div>
+
+
+
+            <div class="form-field">
+                <label><span class="text-danger">*</span>Start Date</label>
+                <input id="startDate" class="form-control static-input" autocomplete="off"
+                    [(ngModel)]="projectMilestone.startDate" [owlDateTimeTrigger]="startDatePicker"
+                    [owlDateTime]="startDatePicker" placeholder="Select Start Date" [disabled]="true">
+                <owl-date-time #startDatePicker></owl-date-time>
+               
+            </div>
+
+
+            <div class="form-field">
+                <label><span class="text-danger">*</span>End Date</label>
+                <input id="endDate" class="form-control static-input" autocomplete="off"
+                    [(ngModel)]="projectMilestone.endDate" [owlDateTimeTrigger]="endDatePicker"
+                    [owlDateTime]="endDatePicker" placeholder="Select End Date" [disabled]="true">
+                <owl-date-time #endDatePicker></owl-date-time>
+               
+            </div>
+
+
+            <div class="form-field">
+                <label>Description</label>
+                <input type="text" disabled [(ngModel)]="projectMilestone.description" />
+            </div>
+
+
+            <div class="form-field">
+
+                <label>Status</label>
+                <mat-select [(ngModel)]="projectMilestone.status" (ngModelChange)="calculatePoStatus()">
+                    <mat-option [value]="projectMilestone.status">{{projectMilestone.status}}</mat-option>
+                    <ng-container *ngFor="let status of statusList; let i=index;">
+                        <mat-option *ngIf="status!=projectMilestone.status" [value]="status">
+                            {{status}}
+                        </mat-option>
+                    </ng-container>
+                </mat-select>
+            </div>
+
+            <div class="form-field full-width">
+                <label>Remarks</label>
+                <textarea class="form-control" [(ngModel)]="projectMilestone.remarks" rows="3"></textarea>
+            </div>
+
+
+            <div class="form-field full-width">
+                <label>Upload Document</label>
+                <input type="file" class="plain-file-input" (change)="onFileSelected($event)" accept=".pdf,.jpg,.jpeg,.png" />
+            </div>
+
+            
+           
+
+
+
+
+
+
+
+
+
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeUpdateProjectMilestoneModal()">Close</button>
+        <button type="button" class="btn btn-primary" (click)="updateMilestoneChanges()">Update</button>
+    </div>
+</ng-template>
+
+
+<ng-template #update_project_milestone_success_modal>
+    <div class="modal-header">
+        <h5 class="modal-title">Milestone Updated</h5>
+    </div>
+    <div class="modal-body">
+        <p>Milestone Updated successfully.</p>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" (click)="CancelUpdateMilestonePopup()">OK</button>
+    </div>
+</ng-template>
+
+
+
+<ng-template #milestoneDocumentModal>
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Milestone Document Preview</h5>
+                    <button type="button" class="close" aria-label="Close" (click)="closeModalViewDocument()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div *ngIf="milestoneDocumentUrl">
+                        <iframe [src]="milestoneDocumentUrl" width="100%" height="600px"></iframe>
+                    </div>
+                    <div *ngIf="!milestoneDocumentUrl">
+                        <p>No document available for this milestone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+
+<ng-template #alertTemplate>
+  <div class="modal-body text-center">
+    <p>{{ alertMessage }}</p>
+    <button type="button" class="btn btn-primary" (click)="modalRef.hide()">OK</button>
+  </div>
+</ng-template>

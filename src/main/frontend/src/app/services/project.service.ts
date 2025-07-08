@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Project } from '../models/project';
+import { FCProjectMilestone } from '../models/fcProjectMilestone';
 
 @Injectable({
   providedIn: 'root'
@@ -75,5 +77,18 @@ updateProjectResourcesAsInActiveBulk(project: any){
 deleteTeamsByIdsBulk(teamObj: any){
   return this.http.post(`${this.baseUrl}` + `api/deleteTeamsByIdsBulk`, teamObj);
 }
+
+  getAllProjectFCLineItemListByProjectId(projectObjTemp: Project) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`, projectObjTemp);
+  }
+
+  updateMilestoneById(formData: FormData): Observable<any> {
+    return this.http.put(`${this.baseUrl}` + `api/updateMilestoneById`, formData);
+  }
+
+  getMilestoneById(milestoneId:number): Observable<any> {
+    return this.http.get(`${this.baseUrl}` + `api/getMilestoneById`, { params: { milestoneId: milestoneId} });
+  }
+
 
 }

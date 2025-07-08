@@ -1,7 +1,7 @@
 import { ViewportScroller } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { FormControl } from '@angular/forms';
 import { _MatAutocompleteBase, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { FormControl, NgForm } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
@@ -10,11 +10,13 @@ import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
+import { Status } from 'src/app/enum/status';
 import { DefaultProjectUpdate } from 'src/app/models/defaultProjectUpdate';
 import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { EmployeeInformation } from 'src/app/models/employeeInformation';
 import { employeeReport } from 'src/app/models/employeeReport';
+import { FCProjectMilestone } from 'src/app/models/fcProjectMilestone';
 import { Feature } from 'src/app/models/feature';
 import { FilteredTimesheet } from 'src/app/models/filteredTimesheet';
 import { GetProjectDetailsForBulkDefaultUpdate } from 'src/app/models/getProjectDetailsForBulkDefaultUpdate';
@@ -39,6 +41,10 @@ import { TeamService } from 'src/app/services/team.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { environment } from 'src/environments/environment';
+
+
+
+
 class FilterData {
   title: any;
   columns: any;
@@ -52,8 +58,8 @@ class FilterData {
 export class ResourceManagementComponent implements OnInit {
 
   topStats = [
-    { value: 96, label: "Ishine’s Billable", icon: "fa-users", iconColor: "#5E35B1", borderColor: "#5E35B1" },
-    { value: 104, label: "Shankh’s Billable", icon: "fa-users", iconColor: "#FFB300", borderColor: "#FFB300" },
+    { value: 96, label: "Ishine's Billable", icon: "fa-users", iconColor: "#5E35B1", borderColor: "#5E35B1" },
+    { value: 104, label: "Shankh's Billable", icon: "fa-users", iconColor: "#FFB300", borderColor: "#FFB300" },
     { value: -5, label: "TNM Difference", icon: "", iconColor: "#D32F2F", borderColor: "#D32F2F" },
     { value: -7, label: "Fixed Cost Difference", icon: "", iconColor: "#D32F2F", borderColor: "#D32F2F" }
   ];
@@ -97,9 +103,19 @@ export class ResourceManagementComponent implements OnInit {
   summaryModalRef: BsModalRef;
   projectSummaryData: any[] = [];
 
+  selectedFile: File | null = null;
+
+  milestoneDocumentUrl: SafeResourceUrl | null = null;
+
+
   // new cards changes.....................................................................
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+
+
+  @ViewChild('alertTemplate') alertTemplateForMilestone!: TemplateRef<any>;
+
+
 
   @ViewChild("alert_message")
   alertModal: TemplateRef<any>;
@@ -109,6 +125,19 @@ export class ResourceManagementComponent implements OnInit {
 
   @ViewChild("alert_message_without_reload")
   alertTemplateWithoutReload: TemplateRef<any>;
+
+  @ViewChild("project_line_item_list_modal")
+  projectLineItemListModal: TemplateRef<any>;
+
+  @ViewChild("update_project_milestone_modal")
+  updateProjectMilestoneModal: TemplateRef<any>;
+
+  @ViewChild("update_project_milestone_success_modal")
+  updateProjectMilestoneSuccessModal: TemplateRef<any>;
+
+  @ViewChild("milestoneDocumentModal")
+  milestoneDocumentModal: TemplateRef<any>;
+
 
   data: string;
   currentUser: User;
@@ -128,6 +157,8 @@ export class ResourceManagementComponent implements OnInit {
   modalRef4: BsModalRef = new BsModalRef();
   modalRef5: BsModalRef = new BsModalRef();
   modalRefTeamMember: BsModalRef = new BsModalRef();
+  projectLineItemListModalRef: BsModalRef = new BsModalRef();
+  updateProjectMilestoneModalRef: BsModalRef = new BsModalRef();
 
   projectObj: Project = new Project();
   projectObj2: Project = new Project();
@@ -448,8 +479,17 @@ export class ResourceManagementComponent implements OnInit {
   filteredDepartmentsByUser: any[] = [];
   myDept: boolean = false;
   countList: any;
-  fallBackMsg: any;
-  isApproved: boolean = false;
+
+  projectMilestoneSortDirection = 'asc';
+  projectMilestoneSortColumn: any;
+  projectMilestoneSortColumnType: any;
+  projectMilestonepage = 1;
+  milestonePanelState = true;
+  fcProjectMilestoneList: FCProjectMilestone[] = [];
+  statusList = [Status.NOT_STARTED, Status.IN_PROGRESS, Status.ON_HOLD, Status.COMPLETED];
+  projectMilestone: any;
+  fallBackMsg:any;
+  isApproved:boolean = false;
   advanceFilter: any;
   skipSelectionChange: boolean = false;
 
@@ -959,6 +999,7 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   deptList2: any;
+
 
   getAllDepartments(): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -4750,7 +4791,247 @@ filteredProjects: any[] = [];
     this.setDefaultProjectObj.resourceOverViewId = '';
   }
 
-  getAllDepartmentList1(project: any) {
+  openProjectLineItemListModal() {
+    this.projectLineItemListModalRef = this.modalService.show(this.projectLineItemListModal, { class: 'modal-xl' });
+  }
+
+  closeProjectLineItemListModal() {
+    this.projectLineItemListModalRef.hide();
+  }
+
+  showProjectMilestones(projectObj: any) {
+    this.fcProjectMilestoneList = [];
+    let projectObjTemp = new Project();
+    projectObjTemp.projectId = projectObj?.projectId;
+    this.projectService.getAllProjectFCLineItemListByProjectId(projectObjTemp).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        console.log("response.serviceStatus "+JSON.stringify(response.serviceResponse));
+        this.fcProjectMilestoneList = response.serviceResponse;
+
+        this.openProjectLineItemListModal();
+      } else {
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    });
+  }
+
+
+
+
+
+
+
+
+  calculatePoStatus() {
+    let notStarted = 0, completed = 0, hold = 0, inProgress = 0;
+    let lineItemList = this.fcProjectMilestoneList.filter(milestone => milestone.lineItemId == this.projectMilestone.lineItemId);
+    for (let m of lineItemList) {
+      if (m.status == Status.IN_PROGRESS) {
+        inProgress++;
+      } else if (m.status == Status.COMPLETED) {
+        completed++;
+      } else if (m.status == Status.ON_HOLD) {
+        hold++;
+      } else if (m.status == Status.NOT_STARTED) {
+        notStarted++;
+      }
+    }
+    if (inProgress > 0) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
+    else if (hold > 0) { this.projectMilestone.lineItemStatus = Status.ON_HOLD }
+    else if (notStarted > 0 && notStarted < lineItemList?.length) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
+    else if (completed > 0) { this.projectMilestone.lineItemStatus = Status.COMPLETED }
+  }
+
+  sortProjectMilestoneData(sort: Sort) {
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.projectMilestoneSortColumn = sortParams[0];
+      this.projectMilestoneSortColumnType = sortParams[1];
+      this.projectMilestoneSortDirection = sort.direction;
+    }
+  }
+
+  handleProjectMilestonePageChange(event) {
+    this.projectMilestonepage = event;
+  }
+
+  openUpdateProjectMilestoneModal(milestone: any) {
+    // this.projectMilestone = new ProjectM  ;
+    this.projectMilestone = milestone;
+    this.updateProjectMilestoneModalRef = this.modalService.show(this.updateProjectMilestoneModal, { class: 'modal-xl' });
+  }
+
+  closeUpdateProjectMilestoneModal() {
+    this.updateProjectMilestoneModalRef.hide();
+  }
+
+  updateMilestone(): void {
+    this.modalRef = this.modalService.show(this.updateProjectMilestoneSuccessModal, {
+      class: 'modal-sm'
+    });
+  }
+
+  viewDocument(): void {
+    this.modalRef = this.modalService.show(this.milestoneDocumentModal, {
+      class: 'modal-xm'
+    });
+  }
+  closeModalViewDocument() {
+    this.modalRef.hide();
+  }
+
+  CancelUpdateMilestonePopup() {
+    this.modalRef.hide();
+  }
+
+
+  onFileSelected(event: any): void {
+    const file: File = event.target.files[0];
+
+    if (file) {
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+
+      if (!allowedTypes.includes(file.type)) {
+        alert('Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.');
+        event.target.value = '';
+        this.selectedFile = null;
+        return;
+      }
+
+
+      this.selectedFile = file;
+
+    }
+  }
+
+  openAlertModForMilestone(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+
+
+
+
+
+
+  updateMilestoneChanges() {
+    // Validate required fields
+    let isValid = true;
+    let errors: any;
+
+    if (!this.projectMilestone.startDate) {
+      isValid = false;
+      errors = 'Start date is required for milestone';
+    }
+    if (!this.projectMilestone.endDate) {
+      isValid = false;
+      errors = 'End date is required for milestone';
+    }
+    if (this.projectMilestone.startDate && this.projectMilestone.endDate && this.projectMilestone.startDate > this.projectMilestone.endDate) {
+      isValid = false;
+      errors = 'End date must be after start date for milestone';
+    }
+
+    else if (
+      !this.projectMilestone.remarks ||
+      this.projectMilestone.remarks.trim().length === 0
+    ) {
+      isValid = false;
+      errors = 'Remarks are required for milestone';
+    }
+
+    // Status validation
+    else if (
+      !this.projectMilestone.status ||
+      this.projectMilestone.status.trim().length === 0
+    ) {
+      isValid = false;
+      errors = 'Status is required for milestone';
+    }
+
+    // Document/file validation
+    else if (!this.selectedFile) {
+      isValid = false;
+      errors = 'Please upload a document for the milestone';
+    }
+
+
+    if (!isValid) {
+      this.openAlertMod(this.alertTemplateForMilestone, errors);
+      return;
+    }
+
+    console.log("before updaed by updated on", this.projectMilestone);
+
+    this.projectMilestone.updatedBy = this.currentUser.empId;
+    this.projectMilestone.updatedOn = new Date();
+
+    const formData = new FormData();
+    formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
+
+    if (this.selectedFile) {
+      formData.append('file', this.selectedFile);
+    }
+    console.log("after updaed by updated on", this.projectMilestone);
+
+    this.projectService.updateMilestoneById(formData).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.fcProjectMilestoneList = response.serviceResponse;
+        setTimeout(() => {
+          this.updateMilestone();
+        }, 2000);
+        // this.openProjectLineItemListModal();
+        this.closeUpdateProjectMilestoneModal();
+
+      } else {
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    });
+  }
+
+
+
+
+  viewMilestoneFile(milestoneId: number): void {
+    this.projectService.getMilestoneById(milestoneId).subscribe({
+      next: (res) => {
+        if (res.serviceStatus === 'Success') {
+          const milestone = res.serviceResponse;
+          if (milestone.documentBase64) {
+            const mimeType = this.getMimeType(milestone.documentName);
+            const base64Data = `data:${mimeType};base64,${milestone.documentBase64}`;
+            this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(base64Data);
+            setTimeout(() => {
+              this.viewDocument();
+            }, 2000);
+
+          } else {
+            alert('No document available for this milestone.');
+          }
+        } else {
+          console.error(res.serviceResponse);
+        }
+      },
+      error: (err) => {
+        console.error('Failed to retrieve milestone:', err);
+      }
+    });
+  }
+
+
+  getMimeType(fileName: string): string {
+    const ext = fileName?.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'pdf': return 'application/pdf';
+      case 'png': return 'image/png';
+      case 'jpg':
+      case 'jpeg': return 'image/jpeg';
+      default: return 'application/octet-stream';
+    }
+  }
+
+ getAllDepartmentList1(project: any) {
     this.allDeptList = [];
 
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
@@ -4775,4 +5056,7 @@ filteredProjects: any[] = [];
       }
     });
   }
+
 }
+ 
+

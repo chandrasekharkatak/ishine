@@ -1,5 +1,8 @@
 package com.apmosys.employeeportal.controller;
 
+
+import org.springframework.http.MediaType;
+
 import java.util.List;
 import java.util.Set;
 
@@ -10,8 +13,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
@@ -122,7 +129,25 @@ public class ProjectController {
 	public ServiceResponse handleTeamsAsPerLinkedPo(@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
 		return projectService.handleTeamsAsPerLinkedPo(payloadDTO);
 	}
+
+
+	@RequestMapping(value = "/getAllProjectFCLineItemListByProjectId", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> getAllProjectFCLineItemListByProjectId(@RequestBody ProjectDTO projectDto) {
+		return ResponseEntity.ok(projectService.getAllProjectFCLineItemListByProjectId(projectDto));
+	}
 	
+	@RequestMapping(value = "/updateMilestoneById", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ServiceResponse> updateMilestoneById(@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
+	                                                           @RequestPart("file") MultipartFile file) {
+	    return ResponseEntity.ok(projectService.updateMilestoneById(fcProjectMilestoneDTO, file));
+	}
+
+	
+	@RequestMapping(value = "/getMilestoneById", method = RequestMethod.GET)
+	public ResponseEntity<ServiceResponse> getMilestoneById(@RequestParam Long milestoneId) {
+		return ResponseEntity.ok(projectService.getMilestoneById(milestoneId));
+	}
+
 	@GetMapping(value = "/getResourceRequirementFromPoPortal")
 	public ServiceResponse getResourceRequirementFromPoPortal() {
 		return projectService.getResourceRequirementFromPoPortal();
