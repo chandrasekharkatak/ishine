@@ -293,8 +293,9 @@
                     <div class="row mb-3">
                         <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                             <input id="employeeSearch" type="text" class="form-control" style="min-width: 200px;"
-                                placeholder="Search by Name or Emp ID" aria-label="Search employee"
-                                [formControl]="employeeCtrl" [matAutocomplete]="auto">
+                            placeholder="Search by Name or Emp ID" aria-label="Search employee"
+                            [formControl]="employeeCtrl" [matAutocomplete]="auto"
+                            (input)="onEmployeeInputChange()">
 
                             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
                                 [displayWith]="displayEmployee">
@@ -305,9 +306,9 @@
                         </div>
                     </div>
                     <div class="button-container">
-                        <button class="rounded-button summary-button" [disabled] = "!selectedEmpId"
+                        <button class="rounded-button summary-button" [disabled]="!selectedEmpId"
                             (click)="openSummaryModal(projectSummaryModal, selectedEmpId)">Employee Summary</button>
-                        <button class="rounded-button details-button" [disabled] = "!selectedEmpId"
+                        <button class="rounded-button details-button" [disabled]="!selectedEmpId"
                             [navigateToEmployee360]="this.selectedEmpId">Employee
                             360</button>
                     </div>
@@ -2830,18 +2831,16 @@
                                     </div>
                                 </td>
                                 <td>
-                                   <div class="form-group" style="display: flex; align-items: center;">
-                                        <mat-select [(ngModel)]="emp.teamId" disableOptionCentering
-                                            (selectionChange)="getTeamListForSelectedProject()" >
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <mat-select [(ngModel)]="emp.teamId" disableOptionCentering>
                                             <mat-option disabled>
                                                 <input class="form-control" style="display: flex; width: 100%; padding: 5px;"
                                                     placeholder="Search Team..." type="text" [(ngModel)]="searchTermTeam"
                                                     (ngModelChange)="filterTeamsForDefaultBulk()" />
                                             </mat-option>
-                                           <mat-option *ngFor="let team of filteredTeamsForDefaultBulk"
-                                            [value]="team.teamId">
-                                            {{ team.teamName }}
-                                        </mat-option>
+                                            <mat-option *ngFor="let team of filteredTeamsForDefaultBulk" [value]="team.teamId">
+                                                {{ team.teamName }}
+                                            </mat-option>
                                         </mat-select>
                                     </div>
                                 </td>
@@ -2852,14 +2851,14 @@
                                             }}</mat-option>
                                     </mat-select>
                                 </td>
-                                <td>
+                                <!-- <td>
                                 <div class="form-group" style="display: flex; align-items: center;">
                                     <mat-select [(ngModel)]="emp.resourceOverViewId" disableOptionCentering (selectionChange)="getTeamListForSelectedProject()">
                                         <mat-option disabled>
                                             <input class="form-control" style="display: flex; width: 100%; padding: 5px;" placeholder="Search Requirement..."
-                                                type="text" [(ngModel)]="searchTermTeam" (ngModelChange)="filterResourceRequirementForDefaultBulk()" />
+                                                type="text" [(ngModel)]="searchTermRequirement" (ngModelChange)="filterResourceRequirementForDefaultBulk()" />
                                         </mat-option>
-                                         <mat-option *ngFor="let req of resourceRequirementListBulk"
+                                         <mat-option *ngFor="let req of filteredResourceRequirementListBulk"
                                             [value]="req.resourceOverviewId">
                                             Role - {{ req.role }} || Dept - {{ req.department }} || Exp - {{
                                             req.experience }} y
@@ -2867,6 +2866,20 @@
                                     </mat-select>
                                 </div>
  
+                                </td> -->
+                                <td>
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <mat-select [(ngModel)]="emp.resourceOverViewId" disableOptionCentering>
+                                            <mat-option disabled>
+                                                <input class="form-control" style="display: flex; width: 100%; padding: 5px;"
+                                                    placeholder="Search Requirement..." type="text" [(ngModel)]="searchTermRequirement"
+                                                    (ngModelChange)="filterResourceRequirementForDefaultBulk()" />
+                                            </mat-option>
+                                            <mat-option *ngFor="let req of filteredResourceRequirementListBulk" [value]="req.resourceOverviewId">
+                                                Role - {{ req.role }} || Dept - {{ req.department }} || Exp - {{ req.experience }} y
+                                            </mat-option>
+                                        </mat-select>
+                                    </div>
                                 </td>
 
                                 <td>
