@@ -729,13 +729,14 @@ public class ResourceManagementService {
 					// teamLead
 					Long teamLeadId = null;
 					String teamLeadName = null;
+					if(!teamObj.getTeamMemberList().isEmpty()) {
 					for (TeamMemberDTO teamMember : teamObj.getTeamMemberList()) {
 						if ((teamMember.getIsTeamLead() != null) && (teamMember.getIsTeamLead().equals("true"))) {
 							teamLeadId = teamMember.getEmpId();
 							teamLeadName = teamMember.getName();
 						}
 					}
-
+					}
 					if (teamPresent != null) {
 						allTeam.add(teamPresent.getTeamId());
 
@@ -8815,6 +8816,22 @@ public class ResourceManagementService {
         	System.err.println(logInfo.toString());
         	return null;
         }
+        
     }
 
+	@Transactional
+	public ServiceResponse deleteProjectTemp() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+		projectTempRepo.deleteAll();
+		response.setServiceStatus(response.STATUS_SUCCESS);
+		}
+		catch(Exception e) {
+			response.setServiceStatus(response.STATUS_FAIL);
+			response.setServiceResponse(e.getMessage());
+		}
+		return response;
+	}
+	
+	
 }

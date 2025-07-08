@@ -304,10 +304,10 @@
                             </mat-autocomplete>
                         </div>
                     </div>
-                    <div *ngIf="selectedEmpId" class="button-container">
-                        <button class="rounded-button summary-button"
+                    <div class="button-container">
+                        <button class="rounded-button summary-button" [disabled] = "!selectedEmpId"
                             (click)="openSummaryModal(projectSummaryModal, selectedEmpId)">Employee Summary</button>
-                        <button class="rounded-button details-button"
+                        <button class="rounded-button details-button" [disabled] = "!selectedEmpId"
                             [navigateToEmployee360]="this.selectedEmpId">Employee
                             360</button>
                     </div>
@@ -1696,7 +1696,7 @@
                         </div> -->
 
 
-                        <div class="form-field">
+                        <!-- <div class="form-field">
                             <label>Team Lead</label>
                             <input type="text" style="min-width:240px" class="form-select name-field" placeholder="Search by Emp ID or Name"
                                 aria-label="Search employee" [formControl]="teamLeadCtrl"
@@ -1707,7 +1707,7 @@
                                     {{ employee.name }}
                                 </mat-option>
                             </mat-autocomplete>
-                        </div>
+                        </div> -->
 
                         <div class="button-group">
 

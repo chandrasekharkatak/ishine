@@ -2920,8 +2920,8 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
   }
 
   isEmployeeInTeam(employee: any): boolean {
-    console.log("Checking if employee is in team:", employee);
-    console.log("All team members:", this.teamObj.allTeamMemberList);
+    // console.log("Checking if employee is in team:", employee);
+    // console.log("All team members:", this.teamObj.allTeamMemberList);
     if (!this.teamObj.allTeamMemberList == undefined) {
   return this.teamObj.allTeamMemberList.some(
     (member: any) => member.empId === employee.empId
@@ -3104,7 +3104,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
     this.getTeamListByProjectName(project);
     this.getEmployeeByNameAndEmpld();
 
-    this.modalRef1 = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef1 = this.modalService.show(template, { class: 'custom-modal' });
     // this.modalRef1 = this.modalService.show(template, { class: 'modal-lg' });
   }
 
@@ -3965,7 +3965,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
     this.resourceManagementService.getPreviousDefaultProjectDetails(empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.previousDefaultProjects = response.serviceResponse;
-        this.modalRef = this.modalService.show(this.previousDefaultProject, { class: 'custom-modal' });
+        // this.modalRef = this.modalService.show(this.previousDefaultProject, { class: 'custom-modal' });
       } else {
         this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
         console.error("Error employee informations");
