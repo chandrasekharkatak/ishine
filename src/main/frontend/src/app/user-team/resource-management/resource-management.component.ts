@@ -4298,48 +4298,101 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
     this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
     this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
   }
-  // getTeamListForSelectedProject1(emp) {
-  //   let selectedProjectId = emp.projectId;
 
-  //   if (!selectedProjectId || !this.bulkProjectType)
-  //     this.teamListBulk = [];
+//   getTeamListForSelectedProject1(emp) {
+//     let selectedProjectId = emp.projectId;
 
-  //   const projectList = emp.projectType === 'bench' ? this.benchProjectListBulk : this.otherProjectListBulk;
-  //   this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
-  //   this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
-  //   this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
-  // }
+
+//     if (!selectedProjectId || !this.bulkProjectType) {
+//         this.teamListBulk = [];
+//         return;
+//     }
+
+//     const projectList = emp.projectType === 'bench' ? this.benchProjectListBulk : this.otherProjectListBulk;
+//     this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
+    
+//     if (this.teamListBulk) {
+//         this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
+//         this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
+//     }
+// }
+// getTeamListForSelectedProject1(emp) {
+//     let selectedProjectId = emp.projectId;
+
+//     if (!selectedProjectId || !emp.projectType) {
+//         this.teamListBulk = null;
+//         this.filteredTeamsForDefaultBulk = [];
+//         this.resourceRequirementListBulk = [];
+//         return;
+//     }
+
+//     const projectList = emp.projectType === 'bench' ? this.benchProjectListBulk : this.otherProjectListBulk;
+//     this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
+    
+//     if (this.teamListBulk && this.teamListBulk.teamList) {
+//         this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
+//         this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
+//     } else {
+//         this.filteredTeamsForDefaultBulk = [];
+//         this.resourceRequirementListBulk = [];
+//     }
+// }
 
   getTeamListForSelectedProject1(emp) {
     let selectedProjectId = emp.projectId;
 
-
-    if (!selectedProjectId || !this.bulkProjectType) {
-        this.teamListBulk = [];
-        return;
+    if (!selectedProjectId || !emp.projectType) {
+      this.teamListBulk = null;
+      this.filteredTeamsForDefaultBulk = [];
+      this.resourceRequirementListBulk = [];
+      this.filteredResourceRequirementListBulk = [];
+      return;
     }
 
     const projectList = emp.projectType === 'bench' ? this.benchProjectListBulk : this.otherProjectListBulk;
     this.teamListBulk = projectList.find(p => p.projectId === selectedProjectId);
-    
+
     if (this.teamListBulk) {
+      // this is hanlding teams 
+      if (this.teamListBulk.teamList) {
         this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList;
+      } else {
+        this.filteredTeamsForDefaultBulk = [];
+      }
+
+      // this is handling requiremnts 
+      if (this.teamListBulk.resourceRequirement) {
         this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
+        this.filteredResourceRequirementListBulk = this.teamListBulk.resourceRequirement;
+      } else {
+        this.resourceRequirementListBulk = [];
+        this.filteredResourceRequirementListBulk = [];
+      }
+    } else {
+      this.filteredTeamsForDefaultBulk = [];
+      this.resourceRequirementListBulk = [];
+      this.filteredResourceRequirementListBulk = [];
     }
-}
+  }
 
   filterTeamsForDefaultBulk() {
     const lowerSearch = this.searchTermTeam.toLowerCase();
     this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList.filter(team =>
       team.teamName.toLowerCase().includes(lowerSearch)
     );
-  }
+  }  
+filteredResourceRequirementListBulk:any;
+searchTermRequirement:any;
 
   filterResourceRequirementForDefaultBulk() {
-    const lowerSearch = this.searchTermTeam.toLowerCase();
-    this.resourceRequirementListBulk = this.teamListBulk.filter(team =>
-      team.teamName.toLowerCase().includes(lowerSearch)
+    const lowerSearch = this.searchTermRequirement.toLowerCase();
+    console.log(this.resourceRequirementListBulk , "+++++++++++++++++++++++++++++++++++++++++++++++++++");
+    this.filteredResourceRequirementListBulk = this.resourceRequirementListBulk.filter(req =>
+        req.role.toLowerCase().includes(lowerSearch) ||
+        req.department.toLowerCase().includes(lowerSearch) ||
+        req.experience.toString().includes(lowerSearch)
     );
+    console.log(this.resourceRequirementListBulk , "+++++++++++++++++++++++++++++++++++++++++++++++++++");
   }
 searchTextProject:any;
 projects: any[] = [];
