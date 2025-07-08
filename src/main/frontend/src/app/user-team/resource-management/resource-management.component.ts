@@ -800,6 +800,7 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   clearSelection(event: Event) {
+    
     console.log(this.skipSelectionChange,"this.skipSelectionChange")
     console.log(this.isAllSelected, "this.isAllSelected");
     // this.skipSelectionChange = true;
@@ -821,6 +822,8 @@ export class ResourceManagementComponent implements OnInit {
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.rbacApiCalls();
     }
+    this.searchTextDept = '';
+    this.filterDepartments();
 
   }
 
@@ -1238,13 +1241,13 @@ export class ResourceManagementComponent implements OnInit {
   validateProjectObj(projectObj, template: TemplateRef<any>) {
     if (projectObj.projectManagerId == undefined || projectObj.projectManagerId.length == 0 || projectObj.projectManagerId == null) {
       this.alertMessage = `Please select project manager.`
-      this.openAlertMod3(template, this.alertMessage);
+      this.openAlertMod6(template, this.alertMessage);
       return;
     }
 
     if (projectObj.teamList.length == 0) {
       this.alertMessage = "Please add atleast one team."
-      this.openAlertMod3(template, this.alertMessage);
+      this.openAlertMod6(template, this.alertMessage);
       return false;
     }
 
@@ -1259,7 +1262,7 @@ export class ResourceManagementComponent implements OnInit {
         }
         if (!this.validationService.validateTeamName(projObj.teamName)) {
           this.alertMessage = "Please enter valid Team Name."
-          this.openAlertMod3(template, this.alertMessage);
+          this.openAlertMod6(template, this.alertMessage);
           return false;
         }
 
@@ -1295,7 +1298,7 @@ export class ResourceManagementComponent implements OnInit {
             }
           });
           if (!memberFlag) {
-            this.openAlertMod3(template, this.alertMessage);
+            this.openAlertMod6(template, this.alertMessage);
             return false;
           } else {
             return true;
@@ -1303,7 +1306,7 @@ export class ResourceManagementComponent implements OnInit {
         }
       });
       if (!flag) {
-        this.openAlertMod3(template, this.alertMessage);
+        this.openAlertMod6(template, this.alertMessage);
         return false;
       } else {
         return true;
@@ -2181,7 +2184,7 @@ isAddButtonDisabled(): boolean {
     
     this.modalRef3.hide();
   }
-   cancelRequest6() {
+  cancelRequest6() {
 
     console.log("cancel call 3");
     
