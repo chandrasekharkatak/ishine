@@ -423,4 +423,7 @@ confirmEmployee(payload: any) {
 submitReasonForDelay(payload: any) {
   return this.http.post(`${this.baseUrl}` + `api/submitReasonForDelay`, payload);
 }
+reduceExtension(payload: any) {
+  return this.http.post(`${this.baseUrl}` + `api/reduceEmployeeExtension`, payload);
+}
 }

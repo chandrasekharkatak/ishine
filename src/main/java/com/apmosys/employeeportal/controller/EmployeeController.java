@@ -587,5 +587,10 @@ public class EmployeeController {
 	{
 		return employeeService.submitForDelay(employee);
 	}
+	@PostMapping("/reduceEmployeeExtension")
+	public ServiceResponse reduceEmployeeProbation(@RequestBody EmployeeDTO employee)
+	{
+		return employeeService.reduceEmployeeProbation(employee);
+	}
 	
 }

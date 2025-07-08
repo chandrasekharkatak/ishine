@@ -213,4 +213,10 @@ public class Employee {
    private Long isConfirmedClicked;
    
    private boolean longOverdueNotified;
+   
+//   @Column(name = "reason_for_reduction")
+//   private String reasonForReduction;
+   
+   private Long isExtensionClicked;
+   
 }

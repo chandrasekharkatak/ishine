@@ -1919,7 +1919,8 @@ public class CronJobService {
 				for(Employee employee :employeeList) {
 
 		            LocalDate probationEndDate = employee.getDateOfJoining().plusDays(employee.getProbationPeriod());
-		            if(employee.getIsConfirmedClicked() == 1 && employee.getEmploymentstatus() == "Probation" && today.isEqual(probationEndDate))
+//		            )
+		            if (employee.getIsConfirmedClicked() == 1 && employee.getEmploymentstatus().equals("Probation") && today.isEqual(probationEndDate))
 		            {
 		            	Long hodId = employeeRepository.getDepartmentHod(employee.getEmpId());
 		            	employee.setEmploymentstatus("Confirmed");
@@ -6706,7 +6707,7 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		            mailService.sendMailWithCC(hodEmail, billablechangeMailAddress, subject, html.toString());
 		        } catch (MessagingException e) {
 		            e.printStackTrace();
-		            // log or notify failure to send email
+		            
 		        }
 		    }
 		}

@@ -336,6 +336,9 @@ this.name = name;
     private Short extendedPeriod;
 	private String reasonOfExtension;
 	private Long isConfirmedClicked;
+	private Long daysToReduce;
+//	private String reasonForReduction;	
+	private Long isExtensionClicked;
 	
 	
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId

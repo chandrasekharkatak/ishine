@@ -52,8 +52,9 @@ actionSection: TemplateRef<any>;
 extensionReason: any;
 extensionPeriod: any;
 reasonOfExtension: any;
-showReasonForm: any;
 reasonForDelay: any;
+selectedTab: string ;
+reduceExtension: number;
 getStatusClass(arg0: any): string|string[]|Set<string>|{ [klass: string]: any; } {
 throw new Error('Method not implemented.');
 }
@@ -250,9 +251,7 @@ throw new Error('Method not implemented.');
   tableName: string;
 selectedEmployee: any;
 isProcessing= false ;
-showExtensionForm = false;
 extensionData: any;
-showConfirmationReasonForm = false;
 confirmationReason: string = '';
 
 
@@ -330,33 +329,25 @@ openEmployeeModal(employee: any, employeeTemplate: TemplateRef<any>) {
         this.selectedEmployee.confirmationDate = confirmationDate;
     }
     
-    this.showExtensionForm = false;
-    this.showConfirmationReasonForm = false;
+    
     this.confirmationReason = '';
     this.reasonForDelay = '';
     this.extensionReason = '';
     this.reasonOfExtension = '';
     this.extensionPeriod = null;
-    this.showReasonForm = false;
 
     this.modalRef1 = this.modalService.show(employeeTemplate, {
         class: 'modal-xl'  
     });
 }
 
-toggleExtensionForm() {
-    this.showExtensionForm = !this.showExtensionForm;
-    this.showConfirmationReasonForm = false; 
-    this.showReasonForm = false;
-}
+
 
 handleConfirmClick(employee: any, alert_message: TemplateRef<any>) {
-    this.showExtensionForm = false;
-    this.showReasonForm = false;
     if (employee.days_left_for_full_time < 0) {
-        this.showConfirmationReasonForm = true;
+        this.selectedTab = 'Confirm Employee Late';
     } else {
-        this.showConfirmationReasonForm = false;
+        this.selectedTab = ' ';
         this.confirmAndExecuteConfirmation(employee, alert_message);
     }
 }
@@ -402,16 +393,101 @@ openEmployeeConfimationModal(template: TemplateRef<any>, template2: TemplateRef<
     }
     
     if (this.selectedEmployee.days_left_for_full_time < 0) {
-        this.showConfirmationReasonForm = true; 
+        this.selectedTab = 'Confirm Employee Late'; 
     } else {
-        this.showConfirmationReasonForm = false; 
+        this.selectedTab = ' '; 
     }
     
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
 }
 
+openReduceExtensionModal(template: TemplateRef<any>, template2: TemplateRef<any>) {
+    this.selectedTab = 'Reduce Extension';
+    if (!this.selectedEmployee || !this.selectedEmployee.empId) {
+        const message = 'Please select an employee to reduce the extension.';
+        this.openAlertMod(template2, message);
+        return;
+    }
+    if (this.selectedEmployee.extensionPeriod || this.selectedEmployee.extensionPeriod >= 0) {
+        const message = 'Please enter a valid number of extension days.';
+        this.openAlertMod(template2, message);
+        return;
+    }
+    this.extensionData = {
+        empId: this.selectedEmployee.empId,
+        daysToReduce: this.reduceExtension,
+        hodId: this.currentUser.empId
+    };
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+}
+
+reduceExtensionRequest(selectedEmployee: any, alert_message: TemplateRef<any>) {
+    if (this.reduceExtension == null) {
+        const message = 'Days to reduce cannot be empty. Please enter a valid number.';
+        this.openAlertMod(alert_message, message);
+        return;
+    }
+
+    const daysToReduce = Number(this.reduceExtension);
+
+    if (isNaN(daysToReduce)) {
+        const message = 'Please enter a valid numeric value for days to reduce.';
+        this.openAlertMod(alert_message, message);
+        return;
+    }
+
+    if (!Number.isInteger(daysToReduce)) {
+        const message = 'Days to reduce must be a whole number (integer).';
+        this.openAlertMod(alert_message, message);
+        return;
+    }
+
+    if (daysToReduce <= 0) {
+        const message = 'Days to reduce must be greater than 0.';
+        this.openAlertMod(alert_message, message);
+        return;
+    }
+
+    if (daysToReduce > 365) { 
+        const message = 'Days to reduce cannot exceed 365 days.';
+        this.openAlertMod(alert_message, message);
+        return;
+    }
+
+    this.extensionData.daystoReduce = daysToReduce;
+
+    this.isProcessing = true;
+
+    this.employeeService.reduceExtension(this.extensionData).pipe(first()).subscribe({
+        next: (response: any) => {
+            this.isProcessing = false;
+            this.closeAllModals();
+            
+            if (response.serviceStatus === "Success") {
+                const message = "Extension has been reduced successfully.";
+                this.openAlertMod(alert_message, message);
+            } else {
+                this.openAlertMod(alert_message, response.serviceResponse);
+            }
+            
+            this.resetAllForms();
+        },
+        error: (error) => {
+            console.error("Error reducing extension", error);
+            this.isProcessing = false;
+            this.closeAllModals();
+            
+            const message = 'An error occurred while reducing the extension. Please try again.';
+            this.openAlertMod(alert_message, message);
+            
+            this.resetAllForms();
+        }
+    });
+}
+
+
 openReasonConfirmationModal(template: TemplateRef<any>, template2: TemplateRef<any>) {
-    this.showReasonForm = true;
+    this.selectedTab = 'Reason for Delay';
     if (!this.selectedEmployee || !this.selectedEmployee.empId) {
         const message = 'Please select an employee to provide a reason for delay.';
         this.openAlertMod(template2, message);
@@ -456,7 +532,7 @@ confirmAndExecuteReasonSubmission(selectedEmployee: any, template: TemplateRef<a
 }
 
 openExtensionConfirmationModal(template: TemplateRef<any>, template2: TemplateRef<any>) {
-    if (!this.extensionPeriod || this.extensionPeriod <= 0) {
+    if (!this.extensionPeriod || this.extensionPeriod <= 0 || this.extensionPeriod > 90) {
         const message = 'Please enter a valid number of extension days.';
         this.openAlertMod(template2, message);
         return;
@@ -523,9 +599,7 @@ private closeAllModals(): void {
 }
 
 private resetAllForms(): void {
-    this.showExtensionForm = false;
-    this.showConfirmationReasonForm = false;
-    this.showReasonForm = false;
+    this.selectedTab = ' ';
     this.confirmationReason = '';
     this.reasonForDelay = '';
     this.extensionReason = '';
@@ -3732,6 +3806,7 @@ resetExtensionForm() {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
+  
 
   openApplicationRejectionMod(template: TemplateRef<any>, employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });

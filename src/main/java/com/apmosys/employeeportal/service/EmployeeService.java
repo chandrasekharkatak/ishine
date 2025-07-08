@@ -3380,6 +3380,7 @@ public class EmployeeService {
 			
 					empDTO.setUpdatedBy(object[88] != null ? Long.parseLong(object[88].toString()) : null);
 					empDTO.setIsConfirmedClicked(object[89]!= null ? Long.parseLong(object[89].toString()):null);
+					empDTO.setIsExtensionClicked(object[90]!= null ? Long.parseLong(object[90].toString()):null);
 
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
@@ -3399,6 +3400,7 @@ public class EmployeeService {
 					dtoList.add(empDTO);
 				});
 			 employeeCache.put(cacheKey, dtoList);
+			 
 
 //	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 //	                response.setServiceResponse(dtoList);
@@ -7603,17 +7605,18 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	        employee.setProbationPeriod(newTotalProbation);
 	        employee.setExtendedPeriod(employeeDto.getExtendedPeriod());
 	        employee.setReasonOfExtension(employeeDto.getReasonOfExtension());
+	        employee.setIsExtensionClicked(1L);
 	        employee.setUpdatedOn(LocalDateTime.now());
 	        employee.setUpdatedBy(employeeDto.getHodId().intValue());
 	        employeeRepository.save(employee);
 	        
-	        // Update cache with new data
 	        if (employeeCache.containsKey(cacheKey)) {
 	            List<EmployeeDTO> cachedEmployees = employeeCache.get(cacheKey);
 	            for (EmployeeDTO emp : cachedEmployees) {
 	                if (emp.getEmpId().equals(employeeDto.getEmpId())) {
 	                    emp.setProbationPeriod(newTotalProbation);
 	                    emp.setExtendedPeriod(employeeDto.getExtendedPeriod());
+	                    emp.setIsExtensionClicked(1L);
 	                    emp.setReasonOfExtension(employeeDto.getReasonOfExtension());
 	                    emp.setUpdatedOn(LocalDateTime.now().toString());
 	                    emp.setUpdatedBy(employeeDto.getHodId());
@@ -7717,7 +7720,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	            return response;
 	        }
 
-	        // Check if employee is already confirmed
+	     
 	        if ("Confirmed".equals(cachedEmployee.getEmploymentstatus())) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("Employee with ID " + employeeDto.getEmpId() + " is already in 'Confirmed' status.");
@@ -7750,8 +7753,26 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            if (employeeCache.containsKey(cacheKey)) {
+		            List<EmployeeDTO> cachedEmployees = employeeCache.get(cacheKey);
+		            for (EmployeeDTO emp : cachedEmployees) {
+		                if (emp.getEmpId().equals(employeeDto.getEmpId())) {
+		                    emp.setEmploymentstatus("Confirmed");
+		                    emp.setIsConfirmedClicked(1L);
+		                    emp.setUpdatedOn(LocalDateTime.now().toString());
+		                    emp.setUpdatedBy(employeeDto.getHodId());
+		                    if (employeeDto.getReasonOfExtension() != null) {
+		                        emp.setReasonOfExtension(employeeDto.getReasonOfExtension());
+		                    }
+		                    break;
+		                }
+		            }
+		            employeeCache.put(cacheKey, cachedEmployees);
+		            apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | Cache updated with confirmation data");
+		        }
 	            return response;
 
+	            
 	        } else if (today.isAfter(probationEndDate)) {
 	            if (!StringUtils.hasText(employeeDto.getReasonOfExtension())) { 
 	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -7769,7 +7790,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	        employee.setUpdatedBy(employeeDto.getHodId().intValue());
 	        employeeRepository.save(employee);
 
-	        // Update cache with new data
+	        
 	        if (employeeCache.containsKey(cacheKey)) {
 	            List<EmployeeDTO> cachedEmployees = employeeCache.get(cacheKey);
 	            for (EmployeeDTO emp : cachedEmployees) {
@@ -7862,6 +7883,158 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
          }
 		 return null;
 	}
+	
+	public ServiceResponse reduceEmployeeProbation(EmployeeDTO employeeDto) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/reduceEmployeeProbation");
+	    apiLogInfo.setLogLevel("INFO");
+	    final int STANDARD_PROBATION_DAYS = 180;
+
+	    try {
+	        String cacheKey = "allEmployees";
+	        EmployeeDTO cachedEmployee = null;
+
+	       
+	        if (employeeCache.containsKey(cacheKey)) {
+	            List<EmployeeDTO> cachedEmployees = employeeCache.get(cacheKey);
+	            cachedEmployee = cachedEmployees.stream()
+	                    .filter(emp -> emp.getEmpId().equals(employeeDto.getEmpId()))
+	                    .findFirst()
+	                    .orElse(null);
+	            if (cachedEmployee != null) {
+	                apiLogInfo.setApiResponse("Employee data retrieved from cache for empId: " + employeeDto.getEmpId());
+	            }
+	        }
+
+	        if (cachedEmployee == null) {
+	            Employee employee = employeeRepository.findByEmpId(employeeDto.getEmpId());
+	            if (employee == null) {
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Employee with ID " + employeeDto.getEmpId() + " not found.");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                logService.logMyInfo(httpRequest, apiLogInfo);
+	                return response;
+	            }
+	         
+	            cachedEmployee = new EmployeeDTO();
+	            apiLogInfo.setApiResponse("Employee data retrieved from database for empId: " + employeeDto.getEmpId());
+	        }
+
+	        Long actualHodId;
+	        if (cachedEmployee.getHodId() != null) {
+	            actualHodId = cachedEmployee.getHodId();
+	        } else {
+	            actualHodId = departmentRepository.findHodIdForEmployee(employeeDto.getEmpId());
+	        }
+
+	        if (actualHodId == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Could not determine the HOD for employee " + employeeDto.getEmpId() + ".");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        if (!actualHodId.equals(employeeDto.getHodId())) {
+	            String hodName = employeeRepository.findEmployeeNameById(actualHodId);
+	            String currentHod = employeeRepository.findEmployeeNameById(employeeDto.getHodId());
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("User " + currentHod + " is not the authorized HOD. The correct HOD is " + hodName + ".");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        Employee employee = employeeRepository.findByEmpId(employeeDto.getEmpId());
+	        if (employee == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Employee with ID " + employeeDto.getEmpId() + " not found.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	     
+	        if (employee.getProbationPeriod() <= STANDARD_PROBATION_DAYS) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Cannot reduce probation. Employee is not on an extended probation period.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	      
+	        short newTotalProbation = (short) (employee.getProbationPeriod() - employeeDto.getDaysToReduce());
+	        if (newTotalProbation < STANDARD_PROBATION_DAYS) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Probation period cannot be reduced below the standard " + STANDARD_PROBATION_DAYS + " days.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+	        
+	  
+	        if (employee.getUpdatedOn() != null && employee.getExtendedPeriod() > 0) {
+	            long daysSpentInExtension = ChronoUnit.DAYS.between(employee.getUpdatedOn().toLocalDate(), LocalDate.now());
+	            long remainingExtensionDays = employee.getExtendedPeriod() - daysSpentInExtension;
+	            remainingExtensionDays = Math.max(0, remainingExtensionDays);
+
+	            if (employeeDto.getDaysToReduce() > remainingExtensionDays) {
+	                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                 response.setServiceResponse("Cannot reduce probation by " + employeeDto.getDaysToReduce() + " days. " +
+	                                             "Only " + remainingExtensionDays + " days are left in the current extension period.");
+	                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                 logService.logMyInfo(httpRequest, apiLogInfo);
+	                 return response;
+	            }
+	        }
+
+	        short newExtendedPeriod = (short) (employee.getExtendedPeriod() - employeeDto.getDaysToReduce());
+
+	        employee.setProbationPeriod(newTotalProbation);
+	        employee.setExtendedPeriod(newExtendedPeriod);
+//	        employee.setReasonForReduction(employeeDto.getReasonForReduction()); 
+	        
+	        employee.setUpdatedOn(LocalDateTime.now());
+	        employee.setUpdatedBy(employeeDto.getHodId().intValue());
+	        employeeRepository.save(employee);
+
+	   
+	        if (employeeCache.containsKey(cacheKey)) {
+	            List<EmployeeDTO> cachedEmployees = employeeCache.get(cacheKey);
+	            for (EmployeeDTO emp : cachedEmployees) {
+	                if (emp.getEmpId().equals(employeeDto.getEmpId())) {
+	                    emp.setProbationPeriod(newTotalProbation);
+	                    emp.setExtendedPeriod(newExtendedPeriod);
+	                    emp.setUpdatedOn(LocalDateTime.now().toString());
+	                    emp.setUpdatedBy(employeeDto.getHodId());
+	                    break;
+	                }
+	            }
+	            employeeCache.put(cacheKey, cachedEmployees);
+	            apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | Cache updated with new probation data");
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Probation for employee '" + cachedEmployee.getName() + "' has been successfully reduced.");
+	        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | Successfully reduced probation for empId: " + cachedEmployee.getEmpId());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("An internal error occurred: " + e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        apiLogInfo.setLogLevel("ERROR");
+	        response.setServiceError(e.getMessage());
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+	
+	
 	
 }
 	
