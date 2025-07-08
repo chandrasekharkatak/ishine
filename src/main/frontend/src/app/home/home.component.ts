@@ -2462,7 +2462,22 @@ export class HomeComponent implements OnInit, AfterViewInit {
               this.triggerNoTimesheetPopupForInactiveEmployee = true;
             }
             else {
-              this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse));
+              // this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse));
+              const originalData = JSON.parse(JSON.stringify(res.serviceResponse));
+            const selectedDate = day?.displayDate; // e.g., '2025-07-04'
+
+          
+            const fixDateTime = (datetime: string): string => {
+              if (!datetime || !selectedDate) return datetime;
+              const timePart = datetime.split(' ')[1]; 
+              return `${selectedDate} ${timePart}`;
+            };
+
+            originalData.officeInTime = fixDateTime(originalData.officeInTime);
+            originalData.officeOutTime = fixDateTime(originalData.officeOutTime);
+            originalData.date = selectedDate;
+
+            this.lastTimesheetData = originalData;
             }
           } else {
             this.lastTimesheetData = null;
@@ -2520,9 +2535,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
 
   onTimesheetSubmissionComplete(): void {
-    this.isTimesheetFormVisible = false; // 👈 this hides the form
+    this.isTimesheetFormVisible = false;
+    this.getTimesheetsForHomePageByEmpId('This Month');
     // Optional: navigate to the tab if needed
-    this.router.navigate(['/user-timesheet', 'my-timesheet']); // or 'team-timesheet' based on context
+    // this.router.navigate(['/user-timesheet', 'my-timesheet']); // or 'team-timesheet' based on context
   }
 
 

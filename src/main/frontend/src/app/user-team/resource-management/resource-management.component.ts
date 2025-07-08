@@ -1,7 +1,7 @@
 import { ViewportScroller } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { _MatAutocompleteBase, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
@@ -127,6 +127,7 @@ export class ResourceManagementComponent implements OnInit {
   modalRef3: BsModalRef = new BsModalRef();
   modalRef4: BsModalRef = new BsModalRef();
   modalRef5: BsModalRef = new BsModalRef();
+  modalRef6: BsModalRef = new BsModalRef();
   modalRefTeamMember: BsModalRef = new BsModalRef();
 
   projectObj: Project = new Project();
@@ -189,7 +190,7 @@ export class ResourceManagementComponent implements OnInit {
   filters: any = {};
   isSearchEnabled: boolean = false;
   // projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
-  projectColumns: any[] = ["blank", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status", "draftStatus"];
+  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status", "draftStatus"];
 
   projectDetails: any = [];
   copyDepartment: any = [];
@@ -452,6 +453,7 @@ export class ResourceManagementComponent implements OnInit {
   isApproved: boolean = false;
   advanceFilter: any;
   skipSelectionChange: boolean = false;
+
 
   constructor(
     private filterStateService: FilterStateService,
@@ -1200,7 +1202,7 @@ export class ResourceManagementComponent implements OnInit {
               presentTeam.teamName = '';
             }
           });
-          this.openAlertMod3(template, response.serviceResponse);
+          this.openAlertMod6(template, response.serviceResponse);
         } else {
           this.allTeamListCopy.forEach((teamCopy) => {
             if (teamCopy.teamName == team.teamName && (team.teamName != null && team.teamName != '' && team.teamName != undefined)) {
@@ -1208,7 +1210,7 @@ export class ResourceManagementComponent implements OnInit {
               this.allTeamList.forEach((presentTeam, index) => {
                 if (index !== teamIndex) {
                   presentTeam.teamName = '';
-                  this.openAlertMod3(template, "Team Name already exists!!");
+                  this.openAlertMod6(template, "Team Name already exists!!");
                 }
               });
             }
@@ -1223,7 +1225,7 @@ export class ResourceManagementComponent implements OnInit {
           this.allTeamList.forEach((presentTeam, index) => {
             if (index !== teamIndex) {
               presentTeam.teamName = '';
-              this.openAlertMod3(template, "Team Name already exists!!");
+              this.openAlertMod6(template, "Team Name already exists!!");
             }
           });
         }
@@ -1352,9 +1354,10 @@ export class ResourceManagementComponent implements OnInit {
         this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);
+            this.allTeamMembers = [];
 
           } else {
-            this.openAlertMod3(template2, response.serviceResponse);
+            this.openAlertMod6(template2, response.serviceResponse);
           }
         });
       } else {
@@ -1362,9 +1365,10 @@ export class ResourceManagementComponent implements OnInit {
         console.log(this.projectObj, " : this.projectObj");
         this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
-            this.openAlertMod(this.alertTemplate, response.serviceResponse);
+            this.openAlertMod6(this.alertTemplate, response.serviceResponse);
             this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {
               if (response.serviceStatus == "Success") {
+                this.allTeamMembers = [];
                 // this.cancelRequest();
                 // this.openAlertMod(template, response.serviceResponse);
               } else {
@@ -1373,13 +1377,13 @@ export class ResourceManagementComponent implements OnInit {
               }
             });
           } else {
-            this.openAlertMod3(template2, response.serviceResponse);
+            this.openAlertMod6(template2, response.serviceResponse);
           }
         });
       }
     }
     else {
-      this.openAlertMod3(template2, "There are currently no teams to be set...!");
+      this.openAlertMod6(template2, "There are currently no teams to be set...!");
     }
   }
 
@@ -1685,20 +1689,20 @@ export class ResourceManagementComponent implements OnInit {
       if (!this.validationService.validateProjectName(projectObj.projectName)) {
         this.alertMessage = "Please enter valid Project Name !!"
         this.projectObj.projectName = '';
-        this.openAlertMod3(template, this.alertMessage);
+        this.openAlertMod6(template, this.alertMessage);
         return false;
       }
 
     } else {
       this.alertMessage = "Please enter more than 4 letters in Project Name !!"
       this.projectObj.projectName = '';
-      this.openAlertMod3(template, this.alertMessage);
+      this.openAlertMod6(template, this.alertMessage);
       return false;
     }
     this.projectService.checkProjectName(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.projectObj.projectName = '';
-        this.openAlertMod3(template, response.serviceResponse);
+        this.openAlertMod6(template, response.serviceResponse);
       }
     })
   }
@@ -1946,7 +1950,8 @@ export class ResourceManagementComponent implements OnInit {
         employeeRole: this.newteamMember.employeeRole,
         resourceOverviewId: this.selectedRequirement?.resourceOverviewId,
         isShadow: this.newteamMember.isShadow,
-        isDefaultProject: this.newteamMember.isDefaultProject
+        isDefaultProject: this.newteamMember.isDefaultProject,
+        teamName: this.currentTeam.teamName
       };
       if (this.selectedRequirement) {
         memberToAdd['resourceOverviewId'] = this.selectedRequirement.resourceOverviewId;
@@ -1964,7 +1969,8 @@ export class ResourceManagementComponent implements OnInit {
         ...newTeamMember,
         employeeRole: this.newteamMember.employeeRole,
         isShadow: this.newteamMember.isShadow,
-        isDefaultProject: this.newteamMember.isDefaultProject
+        isDefaultProject: this.newteamMember.isDefaultProject,
+        teamName: this.currentTeam.teamName
       };
 
       this.allTeamMembers.push(memberToAdd);
@@ -2155,6 +2161,7 @@ isAddButtonDisabled(): boolean {
   cancelRequest5() {
     this.modalRef5.hide();
   }
+  
   cancelRequest1() {
     console.log("cancel call ");
 
@@ -2169,10 +2176,21 @@ isAddButtonDisabled(): boolean {
 
   cancelRequest3() {
     console.log("cancel call 3");
-
+    
     this.modalRef3.hide();
   }
+   cancelRequest6() {
 
+    console.log("cancel call 3");
+    
+    this.modalRef6.hide();
+  }
+
+  
+  openAlertMod6(template: TemplateRef<any>, message: any) {
+    this.modalRef6 = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
   previewTeamModal(template: TemplateRef<any>, teamObj: any, projectObj: any) {
     this.selectedProjectManager = '';
     this.previewTeamList = [];
@@ -2345,7 +2363,7 @@ isAddButtonDisabled(): boolean {
 
             if (this.projectDetails.length > 0) {
               if (this.projectDetails[0].billableType === "TNM") {
-                this.openAlertMod(
+                this.openAlertMod6(
                   this.alertTemplateWithoutReload,
                   "This Employee is already mapped to TNM project. Can't add to another project or Team !!"
                 );
@@ -2720,7 +2738,7 @@ isAddButtonDisabled(): boolean {
   }
 
   // alert_message template is to be passed
-  CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilterDTO) {
+CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilterDTO) {
     this.allProject_Po_Internal = [];
     this.resourceManagementService.combinedPOINTERNALDataList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -2728,6 +2746,17 @@ isAddButtonDisabled(): boolean {
         this.allProject_Po_Internal = response.serviceResponse.combinedNewProjects.map((project: any) => {
           // Add the combined project type to each project object
           project.combinedProjectType = this.getProjectType(project);
+
+          if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
+            const managerNamesString = project.projectManagers
+              .map(manager => manager.projectManagerName)
+              .join(', ');
+
+            project.projectManagerName = managerNamesString;
+          } else {
+
+            project.projectManagerName = ''; 
+          }
           return project;
           this.createDepartmentArray();
         });
@@ -2889,9 +2918,15 @@ isAddButtonDisabled(): boolean {
   }
 
   isEmployeeInTeam(employee: any): boolean {
+    console.log("Checking if employee is in team:", employee);
+    console.log("All team members:", this.teamObj.allTeamMemberList);
+    if (!this.teamObj.allTeamMemberList == undefined) {
   return this.teamObj.allTeamMemberList.some(
     (member: any) => member.empId === employee.empId
-  );
+  );}
+  else{
+    return false;
+  }
 }
 
   displayEmployee(emp: any): string {
@@ -3067,7 +3102,7 @@ isAddButtonDisabled(): boolean {
     this.getTeamListByProjectName(project);
     this.getEmployeeByNameAndEmpld();
 
-    this.modalRef1 = this.modalService.show(template, { class: 'custom-modal' });
+    this.modalRef1 = this.modalService.show(template, { class: 'modal-xl' });
     // this.modalRef1 = this.modalService.show(template, { class: 'modal-lg' });
   }
 
@@ -3094,6 +3129,9 @@ isAddButtonDisabled(): boolean {
     this.teamObj.teamLeadId = '';
     this.newteamMember.empId = '';
     this.newteamMember.employeeRole = null;
+    // this.newteamMember.departmentId = null;
+    this.newteamMember.name = null;
+  
     // this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
     // this.getAllEmployeesByRole(currentTeam.departmentList);
     console.log("this.copyDepartment ", this.copyDepartment);
@@ -4123,7 +4161,7 @@ isAddButtonDisabled(): boolean {
       .pipe(first())
       .subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
-          this.openAlertMod(template, response.serviceResponse);
+          this.openAlertMod6(template, response.serviceResponse);
 
 
           this.selectedTeamEntries = [];

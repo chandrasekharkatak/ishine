@@ -882,7 +882,7 @@ public class ResourceManagementService {
 							}
 
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							response.setServiceResponse("Team updated successfully.");
+							response.setServiceResponse("Team updated successfully. Please approve it's Project to enable timesheets.");
 							apiLogInfo.setApiResponse("Team Updated!");
 							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 						}
@@ -6760,7 +6760,7 @@ public class ResourceManagementService {
 					notStartedCount = projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(selectedDeptList);
-					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
+					totalCount = pendingForApprovalCount + approvedCount + rejectedCount;
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 					map.put("approvedCount",approvedCount);
 					map.put("completedCount",
@@ -7331,7 +7331,7 @@ public class ResourceManagementService {
 				response.setServiceResponse(responseData);
 				response.setServiceStatus(response.STATUS_SUCCESS);
 			} else {
-				response.setServiceResponse("Either user is not qualified to see any data or has no project related authirity..");
+				response.setServiceResponse("No projects found...!!");
 				response.setServiceStatus(response.STATUS_FAIL);
 			}
 			return response;
