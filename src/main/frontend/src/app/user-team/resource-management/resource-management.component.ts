@@ -189,7 +189,7 @@ export class ResourceManagementComponent implements OnInit {
   filters: any = {};
   isSearchEnabled: boolean = false;
   // projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
-  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status", "draftStatus"];
+  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
 
   projectDetails: any = [];
   copyDepartment: any = [];
@@ -487,6 +487,7 @@ export class ResourceManagementComponent implements OnInit {
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
+      console.log(sub,"sub")
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     // console.log("lalalalalalalalal", this.userMapping);
@@ -969,8 +970,9 @@ export class ResourceManagementComponent implements OnInit {
             this.deptList2 = response.serviceResponse;
             this.departments = this.deptList.departments;
             this.deptIdList = this.departments;
-            this.departmentsList = [...this.departments];
-            this.filteredDepartments = this.departments;
+            console.log("this.departments",this.departments);
+            this.departmentsList = [...(this.departments || [])];
+            this.filteredDepartments = [...(this.departments || [])];
             this.filteredDepartmentsTeam = [...this.departmentsList];
             // console.log(this.filteredDepartments, "this.filteredDepartments");
             this.projectFilterDTO = this.deptList;

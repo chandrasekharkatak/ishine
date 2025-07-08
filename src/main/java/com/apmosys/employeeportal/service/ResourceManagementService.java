@@ -6779,7 +6779,7 @@ public class ResourceManagementService {
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(deptIdsAccToRole);
 					rejectedCount = projectRepository
 							.getAllActiveProjecCountstList("Rejected", null, false);
-					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
+					totalCount = pendingForApprovalCount + approvedCount + rejectedCount;
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 				map.put("approvedCount",approvedCount);
 				map.put("completedCount",
@@ -6863,7 +6863,7 @@ public class ResourceManagementService {
 					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(selectedDeptList);
-					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
+					totalCount = pendingForApprovalCount + approvedCount + rejectedCount;
 					
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 					map.put("approvedCount",approvedCount);
@@ -6882,7 +6882,7 @@ public class ResourceManagementService {
 					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(deptIdList);
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(deptIdList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
-					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
+					totalCount = pendingForApprovalCount + approvedCount + rejectedCount;
 					
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 					map.put("approvedCount",approvedCount);
@@ -6949,7 +6949,7 @@ public class ResourceManagementService {
 					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(selectedDeptList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
-					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
+					totalCount = pendingForApprovalCount + approvedCount  + rejectedCount;
 					
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 					map.put("approvedCount",approvedCount);

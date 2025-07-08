@@ -569,7 +569,9 @@
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
                                         mat-sort-header="createdOn|datetime">Created On</th>
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                        mat-sort-header="status|string">Project Status</th>
+                                        mat-sort-header="status|string">PO Project Status</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                        mat-sort-header="projectStatus|string">Ishine Project Status</th>
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 170px;"
                                         mat-sort-header="draftStatus|string">Approval
                                         Status</th>
@@ -671,6 +673,7 @@
                                         <td>{{project.state ? project.state:'NA'}}</td>
                                         <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.status ? project.status:'NA'}}</td>
+                                        <td>{{project.projectStatus ? project.projectStatus:'NA'}}</td>
                                         <td
                                             [ngStyle]="{'color': (project.draftStatus == 'Pending For Approval') ? 'orange' : (project.draftStatus == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
                                             <em>{{ project.draftStatus ? project.draftStatus : 'NA' }}</em>
@@ -2636,7 +2639,7 @@
                         <label>Project Type</label>
                         <mat-select class="form-control" [(ngModel)]="bulkProjectType" disableOptionCentering>
                             <mat-option [value]="null" disabled>Select</mat-option>
-                            <mat-option [value]="'bench'">Bench  mat option</mat-option>
+                            <mat-option [value]="'bench'">Bench</mat-option>
                             <mat-option [value]="'other'">Other</mat-option>
                         </mat-select>
                     </div>
