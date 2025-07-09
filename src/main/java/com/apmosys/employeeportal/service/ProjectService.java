@@ -32,9 +32,6 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
-
 import javax.persistence.Query;
 //import org.hibernate.Query;
 //import org.hibernate.Session;

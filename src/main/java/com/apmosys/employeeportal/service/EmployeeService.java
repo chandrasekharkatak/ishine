@@ -2,7 +2,6 @@ package com.apmosys.employeeportal.service;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -125,6 +124,7 @@ import com.apmosys.employeeportal.repository.UploadPolicyRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
 import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
+import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.LogEvents;
@@ -7500,36 +7500,38 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	}
 
 	public List<EmployeeTimesheetProjectResponse> getEmployeeAndTimesheetDetails(EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
-		ServiceResponse serviceResponse = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setApiUrl("/api/getEmployeeAndTimesheetDetails");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
+		List<EmployeeTimesheetProjectResponse> employeeTimesheetProjectResponseList = new ArrayList<>();
 		try {
-			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-			employeeRepository.findEmployeeAndTimesheetDetailsWithoutPagination(employeeTimesheetRequest.getStartDate().toLocalDate(),
-			employeeTimesheetRequest.getEndDate().toLocalDate(),employeeTimesheetRequest.getListType());
+			employeeTimesheetProjectResponseList = employeeRepository.findEmployeeAndTimesheetDetailsWithoutPagination(
+					employeeTimesheetRequest.getStartDate().toLocalDate(),
+					employeeTimesheetRequest.getEndDate().toLocalDate(), employeeTimesheetRequest.getListType());
 		} catch (Exception e) {
 			e.printStackTrace();
-			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			serviceResponse.setServiceResponse("Something Went Wrong.");
-			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			apiLogInfo.setLogLevel("ERROR");
-			serviceResponse.setServiceError(e.getMessage());
+			throw e;
 		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return null;
+		return employeeTimesheetProjectResponseList;
 	}
 
-    public List<EmployeeTimesheetProjectResponse> getTeamAndTimeSheetDetails(Long poProjectId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplementeld method 'getTeamAndTimeSheetDetails'");
+    public List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long poProjectId) {
+        List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = new ArrayList<>();
+		try {
+			teamTimesheetDetailsResponseList = employeeTeamMapRepository.getTeamAndTimeSheetDetails(poProjectId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return teamTimesheetDetailsResponseList;
     }
 
-    public List<EmployeeTimesheetProjectResponse> getProjectDetailsByEmpIdAndDateRange(EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getProjectDetailsByEmpIdAndDateRange'");
-    }
+    public List<TeamTimesheetDetailsResponse> getProjectDetailsByEmpIdAndDateRange(EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
+		List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = new ArrayList<>();
+		try {
+			teamTimesheetDetailsResponseList = employeeTeamMapRepository.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest.getEmpId(),employeeTimesheetRequest.getStartDate(),employeeTimesheetRequest.getEndDate());
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return teamTimesheetDetailsResponseList;
+	}
 }
 	

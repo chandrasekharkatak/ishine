@@ -821,7 +821,17 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     public List<Object[]> getAllEmployeesBasedOnUserLogined(@Param("deptIds") List<Integer> deptIds);
 
 
-    
-    public List<Object[]> findEmployeeAndTimesheetDetailsWithoutPagination(LocalDate startDate, LocalDate endDate, String listType);
+	@Query(value = "select new com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse(p.poNo, p.poProjectId, p.projectId, p.projectName, e.empId, e.employeementId, e.name, e.billableType, d.name, jr.name " +
+			",(select count(Ts) from Timesheet Ts where Ts.date between :startDate and :endDate and Ts.empId = e.empId) " +
+			",etm.active) " +
+			"from Employee e " +
+			"left join EmployeeTeamMap etm on etm.empId = e.empId " +
+			"left join Team t on t.teamId = etm.teamId " +
+			"left join JobRole jr on jr.jobRoleId = e.jobRoleId " +
+			"left join Project p on p.projectId = t.projectId " +
+			"left join Department d on d.deptId = jr.deptId " +
+			"where ((e.employmentstatus != 'InActive') OR e.dateOfRelieving between :startDate and :endDate) and ((:listType = 'Billable' AND e.billableType in ('TNM','Fixed Cost')) " +
+			"or (:listType = 'Non-Billable' and e.billableType in('InternalRNDProducts','Bench','Shadow')))")
+	List<EmployeeTimesheetProjectResponse> findEmployeeAndTimesheetDetailsWithoutPagination(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,@Param("listType") String listType);
 
 }
