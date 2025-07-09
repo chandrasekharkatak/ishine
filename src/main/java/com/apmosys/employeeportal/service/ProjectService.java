@@ -1669,7 +1669,9 @@ public class ProjectService {
 	        headers.set("Authorization",poPortalAPIAuthenticationJWTUtility.generateAccessToken());
 	        HttpEntity<String> entity = new HttpEntity<>(headers);
 	        ResponseEntity<ProjectPoPortalDTO[]> responseEntity = restTemplate.exchange(allPoPortalProjects,HttpMethod.GET,entity,ProjectPoPortalDTO[].class);
-
+	        if(responseEntity.getStatusCode() == HttpStatus.OK) {
+	        	finalHttpStatusCode = HttpStatus.OK.value();
+	        }
 	        ProjectPoPortalDTO[] projects = responseEntity.getBody();
 	        list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
 	        logBuilder.append("Total Projects Fetched = ").append(list.size()).append("\n");
@@ -1685,10 +1687,7 @@ public class ProjectService {
 	        return response;
 	    } finally {
 	        if (initialLog != null) {     
-	            String finalLogDetails = (exceptionDetailsForLog != null)
-	                ? logBuilder.toString() + exceptionDetailsForLog
-	                : logBuilder.toString();
-	                
+	            String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null ;
 	            apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
 	        }
 	    }
@@ -1696,7 +1695,6 @@ public class ProjectService {
 	    if(list.isEmpty()) {
 	    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	    	response.setServiceResponse("No projects found from Shankh Portal API to sync.");
-            finalHttpStatusCode = HttpStatus.OK.value();
             logBuilder.append("Sync completed successfully with 0 projects.");
 	    }
 	    else
@@ -2629,71 +2627,110 @@ public class ProjectService {
 	     return response;
 	 }
 
-     public ServiceResponse getAllProjectFCLineItemListByProjectId(ProjectDTO projectDto) {
-        ServiceResponse serviceResponse = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-        apiLogInfo.setApiUrl("/api/getAllProjectFCLineItemListByProjectId");
-        apiLogInfo.setLogLevel("INFO");
-		try {
-			if(projectDto == null || projectDto.getProjectId() == null){
-				serviceResponse.setServiceResponse("Project Id cannot be null!");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setApiResponse("Project Id cannot be null!");
-				return serviceResponse;
-			} else {
-				Project project = projectRepository.findByProjectId(projectDto.getProjectId());
-				if(project == null){
-					apiLogInfo.setApiResponse("Project not found!");
-					serviceResponse.setServiceResponse("Project not found!");
+		public ServiceResponse getAllProjectFCLineItemListByProjectId(ProjectDTO projectDto) {
+			ServiceResponse serviceResponse = new ServiceResponse();
+			LogDTO apiLogInfo = new LogDTO();
+			apiLogInfo.setApiUrl("/api/getAllProjectFCLineItemListByProjectId");
+			apiLogInfo.setLogLevel("INFO");
+			try {
+				if (projectDto == null || projectDto.getProjectId() == null) {
+					serviceResponse.setServiceResponse("Project Id cannot be null!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					apiLogInfo.setApiResponse("Project Id cannot be null!");
 					return serviceResponse;
-				} else {	
-					HttpHeaders headers = new HttpHeaders();
-					headers.set("Authorization",poPortalAPIAuthenticationJWTUtility.generateAccessToken());
-					HttpEntity<?> entity = new HttpEntity<>(headers);
-					String url = getFCLineItemDetailsURL + projectDto.getProjectId();
-					ResponseEntity<List<FCLineItemDTO>> response = restTemplate.exchange(url,HttpMethod.GET,entity,new ParameterizedTypeReference<List<FCLineItemDTO>>() {});
-					if(response.getStatusCode() != HttpStatus.OK) {
-//						return ;
-					}
-					List<FCLineItemDTO> fCLineItemDTO = response.getBody();
-					List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = mapLineItemToMilestone(fCLineItemDTO);
-					if(fcProjectMilestoneDTOList.isEmpty()){
-						serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						serviceResponse.setServiceResponse("No Milestone(s) found for this project!");
+				} else {
+					Project project = projectRepository.findByProjectId(projectDto.getProjectId());
+					if (project == null) {
+						apiLogInfo.setApiResponse("Project not found!");
+						serviceResponse.setServiceResponse("Project not found!");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-						apiLogInfo.setApiResponse("No Milestone(s) found for this project!");
+						serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						return serviceResponse;
 					} else {
+						ServiceResponse serviceResponseTemp = callGetFCLineItemDetails(projectDto.getProjectId());    
+						if(!serviceResponseTemp.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+							apiLogInfo.setApiResponse(serviceResponseTemp.getServiceResponse().toString());
+							serviceResponse.setServiceResponse(serviceResponseTemp.getServiceResponse());
+							apiLogInfo.setApiStatus(serviceResponseTemp.getServiceStatus());
+							serviceResponse.setServiceStatus(serviceResponseTemp.getServiceStatus());
+							return serviceResponse;
+						}
+						List<FCLineItemDTO> fCLineItemDTO = (List<FCLineItemDTO>) serviceResponseTemp.getServiceResponse();
 						
-						fcProjectMilestoneDTOList.forEach(dto -> {
-						    System.out.println("DTO ID: " + dto.getId() + ", PO Project ID: " + dto.getPoProjectId());
-						});
-
-						
-						serviceResponse.setServiceResponse(fcProjectMilestoneDTOList);
-						serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-						apiLogInfo.setApiResponse("FC Project Milestone list fetched successfully!");
-						return serviceResponse;
+						List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = mapLineItemToMilestone(fCLineItemDTO);
+						if (fcProjectMilestoneDTOList.isEmpty()) {
+							serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							serviceResponse.setServiceResponse("No Milestone(s) found for this project!");
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+							apiLogInfo.setApiResponse("No Milestone(s) found for this project!");
+							return serviceResponse;
+						} else {
+							fcProjectMilestoneDTOList.forEach(dto -> {
+								System.out
+										.println("DTO ID: " + dto.getId() + ", PO Project ID: " + dto.getPoProjectId());
+							});
+							serviceResponse.setServiceResponse(fcProjectMilestoneDTOList);
+							serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+							apiLogInfo.setApiResponse("FC Project Milestone list fetched successfully!");
+							return serviceResponse;
+						}
 					}
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Something went wrong.");
+				serviceResponse.setServiceError(e.getMessage());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			serviceResponse.setServiceResponse("Something went wrong.");
-			serviceResponse.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			return serviceResponse;
 		}
-		return serviceResponse;
-     }
-     
-   
 
-     @Transactional
+		private ServiceResponse callGetFCLineItemDetails(Integer projectId) {
+			ServiceResponse serviceResponse = new ServiceResponse();
+			ApiLog initialLog = null;
+			String traceId = UUID.randomUUID().toString();
+			int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+			String exceptionDetailsForLog = null;
+			initialLog = apiLogUtility.startLog(traceId, "getFcLineItemDetails", "Ishine", getCurrentUserId(),httpRequest);
+
+			if (initialLog == null || initialLog.getId() == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
+				return serviceResponse;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+			HttpEntity<?> entity = new HttpEntity<>(headers);
+			String url = getFCLineItemDetailsURL + projectId;
+			ResponseEntity<List<FCLineItemDTO>> apiResponse = null;
+			try {
+				apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity,new ParameterizedTypeReference<List<FCLineItemDTO>>() {});
+				if (apiResponse.getStatusCode() == HttpStatus.OK) {
+					serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					serviceResponse.setServiceResponse(apiResponse.getBody());
+					finalHttpStatusCode = HttpStatus.OK.value();
+				} else {
+					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					serviceResponse.setServiceResponse("Error fetching Milestones for Project.");
+				}
+			} catch (Exception e) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Error fetching Milestones for Project.");
+				exceptionDetailsForLog = e.toString();
+				return serviceResponse;
+			} finally {
+				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
+				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+			}
+			return serviceResponse;
+		}
+
+	@Transactional
      public ServiceResponse updateMilestoneById(FCProjectMilestoneDTO dto, MultipartFile file) {
     	 System.out.println("call comes to updatemilestone");
     	 
