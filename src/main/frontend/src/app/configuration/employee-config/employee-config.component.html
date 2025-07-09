@@ -1623,11 +1623,8 @@
                                 <ng-container *ngIf="!isActiveTable">
                                 <td>
                                   <ng-container *ngIf="employee.employmentStatus != 'InActive'">
-                                    {{ employee.employmentReleaseStatus ?? 'NA' }}
+                                    {{ employee.employmentReleaseStatus  }}
                                   </ng-container>
-                                  <ng-template *ngIf="employee.employmentStatus === 'InActive'">
-                                    N/A
-                                  </ng-template>
                                 </td>
                                 </ng-container>
                                 <td id="clickablefor360" *ngIf="userMapping.employee_360"
