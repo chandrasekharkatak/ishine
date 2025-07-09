@@ -1,17 +1,20 @@
 package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import javax.transaction.Transactional;
+
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
@@ -21,6 +24,7 @@ import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Timesheet;
+import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
@@ -815,5 +819,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "\n"
     		+ "ORDER BY e.name;")
     public List<Object[]> getAllEmployeesBasedOnUserLogined(@Param("deptIds") List<Integer> deptIds);
+
+
+    
+    public List<Object[]> findEmployeeAndTimesheetDetailsWithoutPagination(LocalDate startDate, LocalDate endDate, String listType);
 
 }

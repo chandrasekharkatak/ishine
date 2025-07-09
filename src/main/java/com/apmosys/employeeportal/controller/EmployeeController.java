@@ -28,6 +28,8 @@ import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
+import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -572,4 +574,19 @@ public class EmployeeController {
 	    return employeeService.getAllEmployeesBasedOnUserLogined(department);
 	}
 	
+	 @GetMapping("/getEmployeeAndTimesheetDetails")
+	 public ResponseEntity<List<EmployeeTimesheetProjectResponse>> getEmployeeAndTimesheetDetails(@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
+		return ResponseEntity.ok(employeeService.getEmployeeAndTimesheetDetails(employeeTimesheetRequest));
+	 }
+
+	 @GetMapping("/getTeamAndTimeSheetDetails/{poProjectId}")
+	 public  ResponseEntity<List<EmployeeTimesheetProjectResponse>> getTeamAndTimeSheetDetails(@PathVariable("poProjectId") Long poProjectId) {
+		return ResponseEntity.ok(employeeService.getTeamAndTimeSheetDetails(poProjectId));
+	 }
+	 
+	 @GetMapping("/getProjectDetailsByEmpIdAndDateRange")
+	 public  ResponseEntity<List<EmployeeTimesheetProjectResponse>> getProjectDetailsByEmpIdAndDateRange(@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
+		 return ResponseEntity.ok(employeeService.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest));
+	 }
+	 
 }
