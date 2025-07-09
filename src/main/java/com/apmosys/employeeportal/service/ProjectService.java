@@ -175,6 +175,9 @@ public class ProjectService {
 	@Value("${poPortal.api.updateMilestones}")
 	private String updateMilestoneUrl;
 	
+	@Value("${poPortal.api.getFCLineItemDetails}")
+	private String getFCLineItemDetailsURL;
+	
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
 
@@ -1629,17 +1632,13 @@ public class ProjectService {
 	    return dateTime.split("T")[0]; 
 	}
 	
-	public Long getCurrentUserId()
-	{
-		 String sessionToken = httpRequest.getHeader("Authorization");
-		    if (sessionToken != null) {
-	            sessionToken = sessionToken.substring(7);
-	        }
-		    UserSession existingUserSession = userSessionRepo.findBySessionKey(sessionToken);
-		    
-		    Long userId = existingUserSession.getEmpId();
-		    return userId;
-		    
+	public Long getCurrentUserId() {
+		String sessionToken = httpRequest.getHeader("Authorization");
+		if (sessionToken != null) {
+			sessionToken = sessionToken.substring(7);
+		}
+		UserSession existingUserSession = userSessionRepo.findBySessionKey(sessionToken);
+		return existingUserSession != null ? existingUserSession.getEmpId() : null;
 	}
 	
 	@Transactional
@@ -1650,21 +1649,13 @@ public class ProjectService {
 	    apiLogInfo.setApiUrl("/api/getProjectCloneFromPoPortal");
 	    apiLogInfo.setLogLevel("INFO");
 	    StringBuilder logBuilder = new StringBuilder();
-
 	    List<ProjectPoPortalDTO> list = new ArrayList<>();
-	    String traceId = UUID.randomUUID().toString();
-	    logBuilder.append("Trace ID: ").append(traceId).append("\n");
+
 	    ApiLog initialLog = null;
+	    String traceId = UUID.randomUUID().toString();
 	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value(); 
 	    String exceptionDetailsForLog = null;
-	    Long currentUserId = getCurrentUserId();
-	    
-        initialLog = apiLogUtility.startLog(traceId,
-            "getProjectCloneFromPoPortal",
-            "EmployeePortal",
-            currentUserId,
-            httpRequest
-        );
+        initialLog = apiLogUtility.startLog(traceId,"getProjectCloneFromPoPortal","Ishine",getCurrentUserId(),httpRequest);
 
         if (initialLog == null || initialLog.getId() == null) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -1673,28 +1664,33 @@ public class ProjectService {
         }
 
 	    try {
-	    	
 	    	HttpHeaders headers = new HttpHeaders();
 	        headers.set("X-Trace-Id", traceId);
+	        headers.set("Authorization",poPortalAPIAuthenticationJWTUtility.generateAccessToken());
 	        HttpEntity<String> entity = new HttpEntity<>(headers);
-	        ResponseEntity<ProjectPoPortalDTO[]> responseEntity = restTemplate.exchange(
-	                allPoPortalProjects,
-	                HttpMethod.GET,
-	                entity,
-	                ProjectPoPortalDTO[].class
-	        );
+	        ResponseEntity<ProjectPoPortalDTO[]> responseEntity = restTemplate.exchange(allPoPortalProjects,HttpMethod.GET,entity,ProjectPoPortalDTO[].class);
 
 	        ProjectPoPortalDTO[] projects = responseEntity.getBody();
 	        list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
 	        logBuilder.append("Total Projects Fetched = ").append(list.size()).append("\n");
-	    } catch (RestClientException e) {
+	        
+	    } catch (Exception e) {
 	        logBuilder.append("Error fetching projects from Shankh Portal API: ").append(e.getMessage()).append("\n");
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceResponse("Error fetching projects: " + e.getMessage());
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	        apiLogInfo.setApiRequest(logBuilder.toString());
 	        logService.logMyInfo(httpRequest, apiLogInfo);
+	        exceptionDetailsForLog = e.toString();
 	        return response;
+	    } finally {
+	        if (initialLog != null) {     
+	            String finalLogDetails = (exceptionDetailsForLog != null)
+	                ? logBuilder.toString() + exceptionDetailsForLog
+	                : logBuilder.toString();
+	                
+	            apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+	        }
 	    }
 
 	    if(list.isEmpty()) {
@@ -1786,34 +1782,14 @@ public class ProjectService {
 	                ex.printStackTrace();
 	                logBuilder.append("Error updating project ID: ").append(dto.getId())
 	                          .append(" - ").append(ex.getMessage()).append("\n");
-	                exceptionDetailsForLog = ex.toString(); 
 	            }
-	            finally {
-	    	      
-	    	        if (initialLog != null) {     
-	    	            String finalLogDetails = (exceptionDetailsForLog != null)
-	    	                ? logBuilder.toString() + exceptionDetailsForLog
-	    	                : logBuilder.toString();
-	    	                
-	    	            apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
-	    	        }
-	    	    }
 	        }
-
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse("Successfully synced project details from Shankh Portal.");
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        apiLogInfo.setApiResponse("Successfully updated projects from PoPortal.");
 	        finalHttpStatusCode = HttpStatus.OK.value();
 	    }
-	    
-//	    else {
-//	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//	        response.setServiceResponse("No projects found from Shank Portal API.");
-//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-//	        apiLogInfo.setApiResponse("No projects returned from PoPortal API.");
-//	    }
-
 	    apiLogInfo.setApiRequest(logBuilder.toString());
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
@@ -2674,17 +2650,17 @@ public class ProjectService {
 					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					return serviceResponse;
 				} else {	
-					RestTemplate restTemplate = new RestTemplate();
 					HttpHeaders headers = new HttpHeaders();
-					headers.set("Authorization",poPortalAPIAuthenticationJWTUtility.generateAccessToken("Apmosys"));
+					headers.set("Authorization",poPortalAPIAuthenticationJWTUtility.generateAccessToken());
 					HttpEntity<?> entity = new HttpEntity<>(headers);
-					String url = "http://localhost:8081/PoPortal/ishine/getFcLineItemDetails/" + projectDto.getProjectId();
+					String url = getFCLineItemDetailsURL + projectDto.getProjectId();
 					ResponseEntity<List<FCLineItemDTO>> response = restTemplate.exchange(url,HttpMethod.GET,entity,new ParameterizedTypeReference<List<FCLineItemDTO>>() {});
+					if(response.getStatusCode() != HttpStatus.OK) {
+//						return ;
+					}
 					List<FCLineItemDTO> fCLineItemDTO = response.getBody();
-
-					List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = new ArrayList<>();
-					// List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = fcProjectMilestoneRepository.findByProjectId(projectDto.getProjectId().longValue());
-					if(fcProjectMilestoneDTOList == null || fcProjectMilestoneDTOList.isEmpty()){
+					List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = mapLineItemToMilestone(fCLineItemDTO);
+					if(fcProjectMilestoneDTOList.isEmpty()){
 						serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						serviceResponse.setServiceResponse("No Milestone(s) found for this project!");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -3061,5 +3037,34 @@ public class ProjectService {
 	     return serviceResponse;
 	 }
 
+		private List<FCProjectMilestoneDTO> mapLineItemToMilestone(List<FCLineItemDTO> fCLineItemDTO) {
+			List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = new ArrayList<>();
+			if (fCLineItemDTO != null && !fCLineItemDTO.isEmpty()) {
+				for (FCLineItemDTO fcLineItemDTO : fCLineItemDTO) {
+					if (fcLineItemDTO.getFcProjectMilestoneDTOList() != null
+							&& !fcLineItemDTO.getFcProjectMilestoneDTOList().isEmpty()) {
+						for (FCProjectMilestoneDTO fcProjectMilestoneDTOTemp : fcLineItemDTO
+								.getFcProjectMilestoneDTOList()) {
+							FCProjectMilestoneDTO fcProjectMilestoneDTO = new FCProjectMilestoneDTO();
+							fcProjectMilestoneDTO.setId(fcProjectMilestoneDTOTemp.getId());
+							fcProjectMilestoneDTO.setPoId(fcProjectMilestoneDTOTemp.getPoId());
+							fcProjectMilestoneDTO.setPoProjectId(fcProjectMilestoneDTOTemp.getPoProjectId());
+							fcProjectMilestoneDTO.setProjectId(fcProjectMilestoneDTOTemp.getProjectId());
+							fcProjectMilestoneDTO.setName(fcProjectMilestoneDTOTemp.getName());
+							fcProjectMilestoneDTO.setDescription(fcProjectMilestoneDTOTemp.getDescription());
+							fcProjectMilestoneDTO.setStartDate(fcProjectMilestoneDTOTemp.getStartDate());
+							fcProjectMilestoneDTO.setEndDate(fcProjectMilestoneDTOTemp.getEndDate());
+							fcProjectMilestoneDTO.setStatus(fcProjectMilestoneDTOTemp.getStatus());
+							fcProjectMilestoneDTO.setRemarks(fcProjectMilestoneDTOTemp.getRemarks());
+							fcProjectMilestoneDTO.setLineItemId(fcLineItemDTO.getId());
+							fcProjectMilestoneDTO.setLineItemName(fcLineItemDTO.getName());
+							fcProjectMilestoneDTO.setStatus(fcLineItemDTO.getStatus());
+							fcProjectMilestoneDTOList.add(fcProjectMilestoneDTO);
+						}
+					}
+				}
+			}
+			return fcProjectMilestoneDTOList;
+		}
 
 }

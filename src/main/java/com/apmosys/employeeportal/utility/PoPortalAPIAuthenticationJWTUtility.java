@@ -27,8 +27,8 @@ public class PoPortalAPIAuthenticationJWTUtility {
 	public static final String JWT_ISSUER = "IShine-ApMoSys Technology Pvt. Ltd.";
 	public static final String JWT_TOKEN_ENCODER = "A1P2M3O4S5YS6#T1E2C3H4N5O6L7O8G9I10ES#P1V2T#L1T2D";
 
-	public String generateAccessToken(String userName) {
-		String jwtToken = JWT.create().withIssuer(JWT_ISSUER).withIssuedAt(new Date()).withSubject(userName)
+	public String generateAccessToken() {
+		String jwtToken = JWT.create().withIssuer(JWT_ISSUER).withIssuedAt(new Date()).withSubject("Ishine")
 				.withExpiresAt(new Date(System.currentTimeMillis() + tokenExpirationTimeout))
 				.sign(HMAC512(JWT_TOKEN_ENCODER.getBytes()));
 

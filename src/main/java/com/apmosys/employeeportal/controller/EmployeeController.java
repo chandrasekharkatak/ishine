@@ -576,7 +576,7 @@ public class EmployeeController {
 	    return employeeService.getAllEmployeesBasedOnUserLogined(department);
 	}
 	
-	 @GetMapping("/getEmployeeAndTimesheetDetails")
+	 @PostMapping("/getEmployeeAndTimesheetDetails")
 	 public ResponseEntity<List<EmployeeTimesheetProjectResponse>> getEmployeeAndTimesheetDetails(HttpServletRequest request,@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
 		return ResponseEntity.ok(employeeService.getEmployeeAndTimesheetDetails(employeeTimesheetRequest));
@@ -588,7 +588,7 @@ public class EmployeeController {
 		return ResponseEntity.ok(employeeService.getTeamAndTimeSheetDetails(poProjectId));
 	 }
 	 
-	 @GetMapping("/getProjectDetailsByEmpIdAndDateRange")
+	 @PostMapping("/getProjectDetailsByEmpIdAndDateRange")
 	 public ResponseEntity<List<TeamTimesheetDetailsResponse>> getProjectDetailsByEmpIdAndDateRange(HttpServletRequest request,@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
 		return ResponseEntity.ok(employeeService.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest));
