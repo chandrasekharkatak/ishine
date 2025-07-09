@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.utility;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,55 +23,63 @@ public class ApiLogUtility {
     @Autowired
     private PoPortalAPIAuthenticationJWTUtility jwtUtility; 
 	
-	public void setLog(String traceId,String endPoint,String portal,String initApi,Long userId,String apiStatus,HttpServletRequest request,
-			HttpServletResponse response, String ex)
-	{
-		
-		ApiLog log = new ApiLog();
-	    
-	    try {
-	        log.setTraceId(traceId);
-	        log.setApiEndpointName(endPoint);
-	        log.setPortal(portal);
-	        log.setInitiatedFromApi(initApi);
-	        log.setApiMethodType(request.getMethod());
-	        log.setEndpointUrl(request.getRequestURL().toString());
-	        log.setRequestTimestamp(LocalDateTime.now());
-	        
-	        log.setRequestedByUserId(userId); 
+    public static final String STATUS_SUCCESS = "SUCCESS";
+    public static final String STATUS_FAILURE = "FAILURE";
+    public static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
 
-	        String authHeader = request.getHeader("Authorization");
-	        if (authHeader != null && authHeader.startsWith(portal)) {
-	            String token = authHeader.substring(authHeader.indexOf(" ") + 1);
-	            DecodedJWT decodedJWT = jwtUtility.validateToken(token);
-	            String userIdStr = decodedJWT.getSubject();
-	            if (userIdStr != null) {
-	                log.setRequestedByUserId(Long.parseLong(userIdStr));
-	            }
-	        }
-	        
-	        if (ex != null) {
-	            log.setApiStatus("FAILURE");
-	            String exceptionDetails = ex.length() > 2000 ? ex.substring(0, 1997) + "..." : ex;
-	            log.setExceptionDetails(exceptionDetails);
-	        } else {
-	            log.setApiStatus("SUCCESS");
-	        }
+    public ApiLog startLog(String traceId,String endPoint, String portal, Long userId, HttpServletRequest request) {
+        ApiLog log = new ApiLog();
+        try {
+            log.setTraceId(traceId);
+            log.setApiEndpointName(endPoint);
+            log.setPortal(portal);
+            log.setInitiatedFromApi(request.getRequestURI());
+            log.setApiMethodType(request.getMethod());
+            log.setRequestTimestamp(LocalDateTime.now());
+            log.setRequestedByUserId(userId);
+            log.setApiStatus(STATUS_IN_PROGRESS);
 
-	    } catch (Exception e) {
-	        log.setApiStatus("FAILURE");
-	        
-	        String internalExceptionMessage = "Error during log creation: " + e.getMessage();
-	        log.setExceptionDetails(internalExceptionMessage.length() > 2000 
-	            ? internalExceptionMessage.substring(0, 1997) + "..." 
-	            : internalExceptionMessage);
+            return apilogrepository.save(log);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
-	   	        if(log.getRequestedByUserId() == null){
-	            log.setRequestedByUserId(0L);
-	        }
+    public ApiLog endLog(Long id, int httpStatusCode, String exceptionDetails,HttpServletRequest request) {
+    	 try {
+            Optional<ApiLog> optionalLog = apilogrepository.findById(id);
 
-	    } 
-	}
+             if (optionalLog.isPresent()) {
+                 ApiLog log = optionalLog.get();
+                 
+                 
+                 log.setApiStatusCode(httpStatusCode);
+                 log.setEndpointUrl(request.getRequestURL().toString());
+                 log.setResponseTimestamp(LocalDateTime.now());
+
+                 if (exceptionDetails != null) {
+                     String details = exceptionDetails.length() > 2000
+                             ? exceptionDetails.substring(0, 1997) + "..."
+                             : exceptionDetails;
+                     log.setExceptionDetails(details);
+                     log.setApiStatus(STATUS_FAILURE);
+                 }
+                 else {
+                	 log.setApiStatus(STATUS_SUCCESS);
+                 }
+                 
+                 return apilogrepository.save(log);
+             } else {
+            	 System.err.println("Could not find ApiLog ");
+                 return null;
+             }
+
+         } catch (Exception e) {
+        	 System.err.println("An unexpected error occurred while ending log ");
+             e.printStackTrace();
+             return null;
+         }
+}
 }
 
 
