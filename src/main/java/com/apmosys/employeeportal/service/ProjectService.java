@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -76,6 +78,7 @@ import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SyncableProjectDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
+import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.Department;
@@ -87,6 +90,7 @@ import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
@@ -100,6 +104,8 @@ import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.repository.UserSessionRepository;
+import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -112,6 +118,10 @@ public class ProjectService {
 
 	@Autowired
 	ProjectRepository projectRepository;
+	
+	@Autowired
+	UserSessionRepository userSessionRepo;
+	
 	
 	@Autowired
 	ClientsRepository clientsRepository;
@@ -176,6 +186,10 @@ public class ProjectService {
 
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+	
+	
+	@Autowired
+	private ApiLogUtility apiLogUtility;
 
 	public ServiceResponse getAllClients() {
 		ServiceResponse response = new ServiceResponse();
@@ -1615,6 +1629,19 @@ public class ProjectService {
 	    return dateTime.split("T")[0]; 
 	}
 	
+	public Long getCurrentUserId()
+	{
+		 String sessionToken = httpRequest.getHeader("Authorization");
+		    if (sessionToken != null) {
+	            sessionToken = sessionToken.substring(7);
+	        }
+		    UserSession existingUserSession = userSessionRepo.findBySessionKey(sessionToken);
+		    
+		    Long userId = existingUserSession.getEmpId();
+		    return userId;
+		    
+	}
+	
 	@Transactional
 	public ServiceResponse getProjectCloneFromPoPortal() {
 	    ServiceResponse response = new ServiceResponse();
@@ -1625,9 +1652,39 @@ public class ProjectService {
 	    StringBuilder logBuilder = new StringBuilder();
 
 	    List<ProjectPoPortalDTO> list = new ArrayList<>();
+	    String traceId = UUID.randomUUID().toString();
+	    logBuilder.append("Trace ID: ").append(traceId).append("\n");
+	    ApiLog initialLog = null;
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value(); 
+	    String exceptionDetailsForLog = null;
+	    Long currentUserId = getCurrentUserId();
+	    
+        initialLog = apiLogUtility.startLog(traceId,
+            "getProjectCloneFromPoPortal",
+            "EmployeePortal",
+            currentUserId,
+            httpRequest
+        );
+
+        if (initialLog == null || initialLog.getId() == null) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
+            return response;
+        }
 
 	    try {
-	        ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
+	    	
+	    	HttpHeaders headers = new HttpHeaders();
+	        headers.set("X-Trace-Id", traceId);
+	        HttpEntity<String> entity = new HttpEntity<>(headers);
+	        ResponseEntity<ProjectPoPortalDTO[]> responseEntity = restTemplate.exchange(
+	                allPoPortalProjects,
+	                HttpMethod.GET,
+	                entity,
+	                ProjectPoPortalDTO[].class
+	        );
+
+	        ProjectPoPortalDTO[] projects = responseEntity.getBody();
 	        list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
 	        logBuilder.append("Total Projects Fetched = ").append(list.size()).append("\n");
 	    } catch (RestClientException e) {
@@ -1640,7 +1697,14 @@ public class ProjectService {
 	        return response;
 	    }
 
-	    if (!list.isEmpty()) {
+	    if(list.isEmpty()) {
+	    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	    	response.setServiceResponse("No projects found from Shankh Portal API to sync.");
+            finalHttpStatusCode = HttpStatus.OK.value();
+            logBuilder.append("Sync completed successfully with 0 projects.");
+	    }
+	    else
+	    {
 	        for (ProjectPoPortalDTO dto : list) {
 	            try {
 	                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -1722,19 +1786,33 @@ public class ProjectService {
 	                ex.printStackTrace();
 	                logBuilder.append("Error updating project ID: ").append(dto.getId())
 	                          .append(" - ").append(ex.getMessage()).append("\n");
+	                exceptionDetailsForLog = ex.toString(); 
 	            }
+	            finally {
+	    	      
+	    	        if (initialLog != null) {     
+	    	            String finalLogDetails = (exceptionDetailsForLog != null)
+	    	                ? logBuilder.toString() + exceptionDetailsForLog
+	    	                : logBuilder.toString();
+	    	                
+	    	            apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+	    	        }
+	    	    }
 	        }
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse("Successfully synced project details from Shankh Portal.");
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        apiLogInfo.setApiResponse("Successfully updated projects from PoPortal.");
-	    } else {
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceResponse("No projects found from Shank Portal API.");
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setApiResponse("No projects returned from PoPortal API.");
+	        finalHttpStatusCode = HttpStatus.OK.value();
 	    }
+	    
+//	    else {
+//	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	        response.setServiceResponse("No projects found from Shank Portal API.");
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setApiResponse("No projects returned from PoPortal API.");
+//	    }
 
 	    apiLogInfo.setApiRequest(logBuilder.toString());
 	    logService.logMyInfo(httpRequest, apiLogInfo);
