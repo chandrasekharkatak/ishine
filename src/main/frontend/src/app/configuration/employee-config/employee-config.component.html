@@ -1663,7 +1663,7 @@
             {{employee.days_left_for_full_time}}
         </span>
         <button 
-            *ngIf="employee.employmentstatus === 'Probation' && employee.isConfirmedClicked != 1 "
+            *ngIf="employee.employmentstatus === 'Probation' && employee.isConfirmedClicked != 1 && employee.days_left_for_full_time != 'N/A' "
             (click)="openEmployeeModal(employee, employeeConfirmationModal)"
             title="Click to view Employee Confirmation"
             style="
