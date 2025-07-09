@@ -353,7 +353,7 @@ public class JobRoleService {
 		return response;
 	}
 
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse deleteJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -473,7 +473,7 @@ public class JobRoleService {
 		return response;
 	}
 
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse changeEmployeeJobRoleMapping(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();

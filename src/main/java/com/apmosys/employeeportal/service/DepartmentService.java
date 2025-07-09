@@ -366,7 +366,7 @@ public class DepartmentService {
 		return response;
 	}
 
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse deleteDepartment(DepartmentDTO departmentDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -484,7 +484,7 @@ public class DepartmentService {
 		return response;
 	}
 	
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse changeDepartmentJobRoleMapping(DepartmentDTO departmentDTO) {
 		ServiceResponse response = new ServiceResponse();
 		
