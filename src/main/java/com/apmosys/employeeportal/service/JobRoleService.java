@@ -11,6 +11,7 @@ import org.hibernate.internal.build.AllowSysOut;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -23,6 +24,7 @@ import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
+import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeRole;
@@ -35,6 +37,8 @@ import com.apmosys.employeeportal.repository.EmployeeRoleMasterRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.SubFeatureMasterRepository;
+import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -76,6 +80,14 @@ public class JobRoleService {
 	
 	@Value("${poPortal.api.deleteJobRole}")
 	private String deleteJobRolePoPortal;
+	
+	@Autowired
+	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+
+	@Autowired
+	private ApiLogUtility apiLogUtility;
+
+	
 	
 	public ServiceResponse createJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -353,7 +365,7 @@ public class JobRoleService {
 		return response;
 	}
 
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse deleteJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -473,7 +485,7 @@ public class JobRoleService {
 		return response;
 	}
 
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse changeEmployeeJobRoleMapping(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -836,32 +848,41 @@ public class JobRoleService {
 
 	public ServiceResponse getAllJobRoleInfo() {
 		ServiceResponse response = new ServiceResponse();
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+
 		try {
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllJobRoleInfo", "PoPortal", null, httpRequest);
 			List<JobRole> jobRoleObj = jobRoleRepository.findAll();
-			List<PoPortalDTO> dtoList = new ArrayList<PoPortalDTO>();
-			
-			if(!jobRoleObj.isEmpty()) {
+			List<PoPortalDTO> dtoList = new ArrayList<>();
+
+			if (!jobRoleObj.isEmpty()) {
 				jobRoleObj.forEach((object) -> {
 					PoPortalDTO dto = new PoPortalDTO();
-					
 					dto.setRoleId(object.getJobRoleId());
 					dto.setDeptId(object.getDeptId());
 					dto.setRoleName(object.getName());
-					
 					dtoList.add(dto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-			}else {
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("JobRole Info not found.");
 			}
-			
-		}catch(Exception e) {
+			finalHttpStatusCode = HttpStatus.OK.value();
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			exceptionDetailsForLog = e.toString();
+
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+			}
 		}
 		return response;
 	}

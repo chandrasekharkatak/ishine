@@ -10,13 +10,13 @@
         
         (mouseenter)="onHoverStart($event, day.description,day.activity)"
         (mouseleave)="onHoverEnd()"
-        (click)="onDayClick(day)"
+        (click)="day.displayDate <= todayDate && onDayClick(day)"
 
         
       >
 
 
-       <div *ngIf="day.status === 'Not Filled'" class="hover-hint">
+       <div *ngIf="day.status === 'Not Filled'  && day.displayDate <= todayDate" class="hover-hint">
         Create Timesheet
       </div>
       

@@ -427,34 +427,43 @@
       <!-- Right Section (Department Select) -->
       <div *ngIf="showDetails" style="min-width: 300px;">
         <div class="form-group">
-          <label class="info-label"><span class="text-danger">*</span>Department</label>
+          <div class="custom-control custom-switch">
+      <input type="checkbox" class="custom-control-input" id="billableToggle" 
+             [checked]="showBillableOnly" (change)="setDepartmentView(!showBillableOnly)">
+      <label class="custom-control-label" for="billableToggle">
+        <span class="text-danger">*</span>
+        {{ showBillableOnly ? 'Billable Departments' : 'All Departments' }}
+      </label>
+    </div>
+
 
           <mat-select class="form-control" multiple [(ngModel)]="employeeReportObj.deptId"
-            (selectionChange)="onDepartmentSelectionChange()">
+                (selectionChange)="onDepartmentSelectionChange()">
 
-            <!-- Search Input -->
-            <mat-option class="non-selectable" disabled>
-              <div style="display: flex; align-items: center;">
-                <input type="text" placeholder="Search Department" [(ngModel)]="searchText"
-                  (ngModelChange)="filterDepartments()" class="form-control" style="width: 100%; padding: 5px;" />
+      <!-- Search Input -->
+      <mat-option class="non-selectable" disabled>
+        <div style="display: flex; align-items: center;">
+          <input type="text" placeholder="Search Department" [(ngModel)]="searchText"
+                 (ngModelChange)="filterDepartments()" (click)="$event.stopPropagation()" 
+                 class="form-control" style="width: 100%; padding: 5px;" />
+          <button *ngIf="employeeReportObj.deptId?.length > 0" (click)="clearSelection()"
+                  style="margin-left: 5px; background: none; border: none; cursor: pointer;" 
+                  title="Clear Selection">
+            Clear
+          </button>
+        </div>
+      </mat-option>
 
-                <button *ngIf="employeeReportObj.deptId?.length > 0" (click)="clearSelection($event)"
-                  style="margin-left: 5px; background: none; border: none; cursor: pointer;" title="Clear Selection">
-                  Clear
-                </button>
-              </div>
-            </mat-option>
+      <!-- Select All / Deselect All -->
+      <mat-option (click)="toggleSelectAll()" [disabled]="filteredDepartments.length === 0">
+        {{ isAllSelected ? 'Deselect All' : 'Select All' }}
+      </mat-option>
 
-            <!-- Select All / Deselect All -->
-            <mat-option (click)="toggleSelectAll()" [disabled]="departments.length === 0">
-              {{ isAllSelected ? 'Deselect All' : 'Select All' }}
-            </mat-option>
-
-            <!-- Department Options -->
-            <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
-              {{ dept.name }}
-            </mat-option>
-          </mat-select>
+      <!-- Department Options -->
+      <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
+        {{ dept.name }}
+      </mat-option>
+    </mat-select>
         </div>
       </div>
     </div>

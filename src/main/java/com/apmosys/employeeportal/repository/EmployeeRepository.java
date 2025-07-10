@@ -1,26 +1,31 @@
 package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import javax.transaction.Transactional;
+
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
+import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Timesheet;
+import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
@@ -240,8 +245,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeProfileCompletion(Long empId);
 
-	@Query(nativeQuery = true)
-	public List<Object[]> getAllEmployeeInfoForPoPortal();
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.PoPortalDTO(e.employeementId, e.name, d.deptId, e.employmentstatus, e.email, e.mobileNo, e.jobRoleId, d.hodId, e.empId) \n" +
+			"FROM Employee e  \n" +
+			"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId  \n" +
+			"INNER JOIN Department d ON d.deptId = jr.deptId")
+	public List<PoPortalDTO> getAllEmployeeInfoForPoPortal();
 
 	public List<Employee> findByEmploymentstatus(String employmentStatus);
 
@@ -815,5 +823,19 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "\n"
     		+ "ORDER BY e.name;")
     public List<Object[]> getAllEmployeesBasedOnUserLogined(@Param("deptIds") List<Integer> deptIds);
+
+
+	@Query(value = "select new com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse(p.poNo, p.poProjectId, p.projectId, p.projectName, e.empId, e.employeementId, e.name, e.billableType, d.name, jr.name " +
+			",(select count(Ts) from Timesheet Ts where Ts.date between :startDate and :endDate and Ts.empId = e.empId) " +
+			",etm.active) " +
+			"from Employee e " +
+			"left join EmployeeTeamMap etm on etm.empId = e.empId " +
+			"left join Team t on t.teamId = etm.teamId " +
+			"left join JobRole jr on jr.jobRoleId = e.jobRoleId " +
+			"left join Project p on p.projectId = t.projectId " +
+			"left join Department d on d.deptId = jr.deptId " +
+			"where ((e.employmentstatus != 'InActive') OR e.dateOfRelieving between :startDate and :endDate) and ((:listType = 'Billable' AND e.billableType in ('TNM','Fixed Cost')) " +
+			"or (:listType = 'Non-Billable' and e.billableType in('InternalRNDProducts','Bench','Shadow')))")
+	List<EmployeeTimesheetProjectResponse> findEmployeeAndTimesheetDetailsWithoutPagination(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,@Param("listType") String listType);
 
 }

@@ -151,8 +151,8 @@ public class TimesheetService {
 	                
 	                if ("TNM".equalsIgnoreCase(projectType) || "Fixed Cost".equalsIgnoreCase(projectType)) {
 	                    if (poEndDateStr != null) {
-	                        
-	                        LocalDate poEndDate = LocalDate.parse(poEndDateStr); 
+	                    	String onlyDateStr = poEndDateStr.contains("T") ? poEndDateStr.split("T")[0] : poEndDateStr;
+	                        LocalDate poEndDate = LocalDate.parse(onlyDateStr); 
 	                        LocalDate currentDate = LocalDate.now();
 //	                        if (poEndDate.isBefore(currentDate)) {
 //	                            continue; // skip if poEndDate is in the past
