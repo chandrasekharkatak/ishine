@@ -8,6 +8,7 @@ import { first } from 'rxjs/operators';
 import { ApiSourceService } from 'src/app/services/api-source.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { FormBuilderService } from 'src/app/services/form-builder.service';
+import * as XLSX from 'xlsx';
 
 interface FormFieldOption {
   label: string;
@@ -44,6 +45,29 @@ interface FormField {
 })
 export class FormBuilderComponent implements OnInit {
   @ViewChild('alert_message') alertMessageTemplate : TemplateRef<any>;
+
+  instructions = [
+    ["Column", "Description", "Example"],
+    ["type", "Field type. Allowed: text, textarea, select, checkbox, radio, date, number, email, file", "text"],
+    ["label", "Field label (displayed to the user)", "Employee Name"],
+    ["name", "Unique key for the field (no spaces or special characters)", "employeeName"],
+    ["required", "Is this field mandatory? true/false", "true"],
+    ["placeholder", "Placeholder text (for text, textarea, number, email)", "Enter your name"],
+    ["defaultValue", "Default value for the field", "John Doe"],
+    ["optionSource", "For select/checkbox/radio: static, api, dependent", "static"],
+    ["options", "For static: JSON array of {label, value}. Leave blank for others.", `[{"label":"A","value":"a"}]`],
+    ["apiUrl", "For optionSource=api: API endpoint to fetch options", "https://api.example.com/items"],
+    ["apiLabelKey", "For optionSource=api: Key for label in API response", "name"],
+    ["apiValueKey", "For optionSource=api: Key for value in API response", "id"],
+    ["width", "Field width as percentage (100, 50, 33, 25)", "100"],
+    ["rowPosition", "Row number for layout (auto or leave blank)", "0"],
+    ["parentField", "For dependent: name of parent field", "department"],
+    ["dependentApiUrl", "For dependent: API endpoint with {parentValue} placeholder", "https://api.example.com/subitems?parentId={parentValue}"],
+    ["dependentLabelKey", "For dependent: Key for label in API response", "name"],
+    ["dependentValueKey", "For dependent: Key for value in API response", "id"],
+    ["dependentParamName", "For dependent: Query parameter name for parent value (default: parent field name)", "departmentId"],
+    ["multiple", "For select: Allow multiple selection? true/false", "false"],
+  ];
   
   fieldPalette = [
     { type: 'text', label: 'Text Input' },
@@ -222,6 +246,27 @@ export class FormBuilderComponent implements OnInit {
     this.editingField = JSON.parse(JSON.stringify(field));
     this.editingIndex = i;
     this.showFieldConfig = true;
+  }
+
+  downloadForm(form: any) {
+    const headers = [
+      'type', 'label', 'name', 'required', 'placeholder', 'defaultValue',
+      'optionSource', 'options', 'apiUrl', 'apiLabelKey', 'apiValueKey',
+      'width', 'rowPosition', 'parentField', 'dependentApiUrl',
+      'dependentLabelKey', 'dependentValueKey', 'dependentParamName', 'multiple'
+    ];
+    const formRows = (form.fields || []).map(f => ({
+      ...f,
+      options: f.options && Array.isArray(f.options) ? JSON.stringify(f.options) : '',
+      required: f.required ? 'true' : 'false',
+      multiple: f.multiple ? 'true' : 'false'
+    }));
+    const wsInstructions = XLSX.utils.aoa_to_sheet(this.instructions);
+    const ws = XLSX.utils.json_to_sheet(formRows, { header: headers });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsInstructions, 'Instructions');
+    XLSX.utils.book_append_sheet(wb, ws, 'FormTemplate');
+    XLSX.writeFile(wb, `${form.formName || 'form'}.xlsx`);
   }
 
   onOptionSourceChange() {
@@ -862,5 +907,81 @@ export class FormBuilderComponent implements OnInit {
     }
     
     return options;
+  }
+
+
+  // ------------------------ Import / Export excel ----------------------------------------------
+
+  exportTemplate() {
+    const headers = [
+      'type', 'label', 'name', 'required', 'placeholder', 'defaultValue',
+      'optionSource', 'options', 'apiUrl', 'apiLabelKey', 'apiValueKey',
+      'width', 'rowPosition', 'parentField', 'dependentApiUrl',
+      'dependentLabelKey', 'dependentValueKey', 'dependentParamName', 'multiple'
+    ];
+
+    const sampleRow = {
+      type: 'text',
+      label: 'Employee Name',
+      name: 'employeeName',
+      required: true,
+      placeholder: 'Enter name',
+      defaultValue: '',
+      optionSource: '',
+      options: '',
+      apiUrl: '',
+      apiLabelKey: '',
+      apiValueKey: '',
+      width: 100,
+      rowPosition: 0,
+      parentField: '',
+      dependentApiUrl: '',
+      dependentLabelKey: '',
+      dependentValueKey: '',
+      dependentParamName: '',
+      multiple: false
+    };
+
+    const wsInstructions = XLSX.utils.aoa_to_sheet(this.instructions);
+    const ws = XLSX.utils.json_to_sheet([sampleRow], { header: headers });
+  
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsInstructions, 'Instructions');
+    XLSX.utils.book_append_sheet(wb, ws, 'FormTemplate');
+  
+    XLSX.writeFile(wb, 'form_template.xlsx');
+  }
+
+  onFileChange(evt: any) {
+    const target: DataTransfer = <DataTransfer>(evt.target);
+    if (target.files.length !== 1) return;
+  
+    const reader: FileReader = new FileReader();
+    reader.onload = (e: any) => {
+      const bstr: string = e.target.result;
+      const wb: XLSX.WorkBook = XLSX.read(bstr, { type: 'binary' });
+      const wsname: string = wb.SheetNames.includes('FormTemplate')
+        ? 'FormTemplate'
+        : wb.SheetNames[0];
+  
+      const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+      const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+      this.fields = data.map((row: any) => ({
+        ...row,
+        required: row.required === 'true' || row.required === true,
+        multiple: row.multiple === 'true' || row.multiple === true,
+        options: row.options
+          ? (typeof row.options === 'string' && row.options.trim() !== ''
+              ? JSON.parse(row.options)
+              : [])
+          : [],
+        width: Number(row.width) || 100,
+        rowPosition: Number(row.rowPosition) || 0
+      }));
+  
+      this.updateLayoutConfig();
+    };
+    reader.readAsBinaryString(target.files[0]);
   }
 }

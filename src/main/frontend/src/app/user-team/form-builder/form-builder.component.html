@@ -45,10 +45,11 @@
                                 <td>{{form.formName}}</td>
                                 <td>{{form.departmentName}}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary"
-                                        type="submit" (click)="showUpdateForm(form)"><em class="fa fa-edit"></em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-danger"
-                                        type="submit" (click)="openDeleteDepartment(delete_template,form)"><em
+                                    <button class="btn btn-sm btn-outline-primary" (click)="downloadForm(form)">
+                                        <i class="fa-solid fa-arrow-down"></i></button>&nbsp;
+                                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(form)"><em
+                                            class="fa fa-edit"></em></button>&nbsp;
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteDepartment(delete_template,form)"><em
                                             class="fa fa-trash"></em></button>
                                 </td>
                             </tr>
@@ -85,13 +86,22 @@
             <div class="form-layout-header">
                 <h5>Form Layout</h5>
                 <div class="form-actions">
-                    <button class="btn btn-success" *ngIf="isCreation && !isUpdateForm" [disabled]="formName == null" (click)="saveForm()">
+
+                    <button class="btn btn-sm btn-outline-info" (click)="exportTemplate()">
+                        <i class="fa fa-download"></i> Export Template
+                    </button>
+                    <input type="file" accept=".xlsx, .xls" (change)="onFileChange($event)" style="display:none" #fileInput>
+                    <button class="btn btn-sm btn-outline-success" (click)="fileInput.click()">
+                        <i class="fa fa-upload"></i> Import Form Config
+                    </button>
+
+                    <button class="btn btn-sm btn-success" *ngIf="isCreation && !isUpdateForm" [disabled]="formName == null" (click)="saveForm()">
                         <i class="fa fa-save"></i> Save Form
                     </button>
-                    <button class="btn btn-success" *ngIf="isUpdateForm" [disabled]="formName == null" (click)="updateForm()">
+                    <button class="btn btn-sm btn-success" *ngIf="isUpdateForm" [disabled]="formName == null" (click)="updateForm()">
                         <i class="fa fa-save"></i> Update Form
                     </button>
-                    <button class="btn btn-primary" (click)="showPreview()">
+                    <button class="btn btn-sm btn-primary" (click)="showPreview()">
                         <i class="fa fa-eye"></i> Preview
                     </button>
                 </div>
