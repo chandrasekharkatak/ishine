@@ -42,7 +42,6 @@ import javax.transaction.Transactional;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -175,9 +174,6 @@ public class ProjectService {
 	@Value("${poPortal.api.updateMilestones}")
 	private String updateMilestoneUrl;
 	
-	@Value("${poPortal.api.getFCLineItemDetails}")
-	private String getFCLineItemDetailsURL;
-	
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
 
@@ -193,6 +189,9 @@ public class ProjectService {
 	
 	@Autowired
 	private ApiLogUtility apiLogUtility;
+	
+	@Autowired
+	PoPortalAPIService poPortalAPIService;
 
 	public ServiceResponse getAllClients() {
 		ServiceResponse response = new ServiceResponse();
@@ -2648,7 +2647,7 @@ public class ProjectService {
 						serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						return serviceResponse;
 					} else {
-						ServiceResponse serviceResponseTemp = callGetFCLineItemDetails(projectDto.getProjectId());    
+						ServiceResponse serviceResponseTemp = poPortalAPIService.callGetFCLineItemDetails(projectDto.getProjectId());    
 						if(!serviceResponseTemp.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
 							apiLogInfo.setApiResponse(serviceResponseTemp.getServiceResponse().toString());
 							serviceResponse.setServiceResponse(serviceResponseTemp.getServiceResponse());
@@ -2684,48 +2683,6 @@ public class ProjectService {
 				serviceResponse.setServiceResponse("Something went wrong.");
 				serviceResponse.setServiceError(e.getMessage());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-			return serviceResponse;
-		}
-
-		private ServiceResponse callGetFCLineItemDetails(Integer projectId) {
-			ServiceResponse serviceResponse = new ServiceResponse();
-			ApiLog initialLog = null;
-			String traceId = UUID.randomUUID().toString();
-			int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-			String exceptionDetailsForLog = null;
-			initialLog = apiLogUtility.startLog(traceId, "getFcLineItemDetails", "Ishine", getCurrentUserId(),httpRequest);
-
-			if (initialLog == null || initialLog.getId() == null) {
-				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
-				return serviceResponse;
-			}
-
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("X-Trace-Id", traceId);
-			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
-			HttpEntity<?> entity = new HttpEntity<>(headers);
-			String url = getFCLineItemDetailsURL + projectId;
-			ResponseEntity<List<FCLineItemDTO>> apiResponse = null;
-			try {
-				apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity,new ParameterizedTypeReference<List<FCLineItemDTO>>() {});
-				if (apiResponse.getStatusCode() == HttpStatus.OK) {
-					serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					serviceResponse.setServiceResponse(apiResponse.getBody());
-					finalHttpStatusCode = HttpStatus.OK.value();
-				} else {
-					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					serviceResponse.setServiceResponse("Error fetching Milestones for Project.");
-				}
-			} catch (Exception e) {
-				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				serviceResponse.setServiceResponse("Error fetching Milestones for Project.");
-				exceptionDetailsForLog = e.toString();
-				return serviceResponse;
-			} finally {
-				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
 			}
 			return serviceResponse;
 		}
