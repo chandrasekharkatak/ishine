@@ -115,7 +115,6 @@ public class ProjectController {
 	
 	@GetMapping(value = "/poprojectclone")
 	public ResponseEntity<ServiceResponse> poprojectclone(HttpServletRequest httpRequest) {
-		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
 	}
 	
