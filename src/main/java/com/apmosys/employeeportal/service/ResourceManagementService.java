@@ -189,6 +189,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
+	
+	@Autowired
+	 PoPortalAPIService poPortalAPIService;
 
 	@Autowired
 	MailService mailService;
@@ -4096,8 +4099,17 @@ public class ResourceManagementService {
 	        Set<String> deptIdStrings = departmentsids.stream().map(String::valueOf).collect(Collectors.toSet());
 
 	        // Fetch projects and team-created projects
-	        List<ResourceManagementDTO> poPortalProjects = Optional.ofNullable(fetchPoPortalProjects()).orElse(new ArrayList<>());
-
+	        ServiceResponse apiResponse = poPortalAPIService.getAllProjectsFromPoPortal();
+			List<ResourceManagementDTO> poPortalProjects;
+	        if(apiResponse.getServiceStatus()== ServiceResponse.STATUS_SUCCESS) {
+	        	 poPortalProjects = (List<ResourceManagementDTO>) apiResponse.getServiceResponse();
+	        }
+	        else
+	        {
+	        	poPortalProjects = new ArrayList<>();
+	        }
+	        
+	        
 	        ServiceResponse internalProjectResponse = getInternalProject();
 	        if (!ServiceResponse.STATUS_SUCCESS.equals(internalProjectResponse.getServiceStatus())) {
 	            return failResponse(response, apiLogInfo, "Failed to fetch internal projects.");
@@ -4276,19 +4288,19 @@ public class ResourceManagementService {
 		return (int) projects.stream().filter(p -> status.equalsIgnoreCase(p.getIsDraftProject())).count();
 	}
 
-	private List<ResourceManagementDTO> fetchPoPortalProjects() {
-		List<ResourceManagementDTO> poPortalProjects = new ArrayList<>();
-		try {
-			ResourceManagementDTO[] poPortalProjectArray = restTemplate.getForObject(allPoPortalProjects,
-					ResourceManagementDTO[].class);
-			poPortalProjects = Arrays
-					.asList(poPortalProjectArray != null ? poPortalProjectArray : new ResourceManagementDTO[0]);
-			System.out.println(poPortalProjects);
-		} catch (RestClientException e) {
-			throw new RuntimeException("Error fetching projects from PoPortal: " + e.getMessage());
-		}
-		return poPortalProjects;
-	}
+//	private List<ResourceManagementDTO> fetchPoPortalProjects() {
+//		List<ResourceManagementDTO> poPortalProjects = new ArrayList<>();
+//		try {
+//			ResourceManagementDTO[] poPortalProjectArray = restTemplate.getForObject(allPoPortalProjects,
+//					ResourceManagementDTO[].class);
+//			poPortalProjects = Arrays
+//					.asList(poPortalProjectArray != null ? poPortalProjectArray : new ResourceManagementDTO[0]);
+//			System.out.println(poPortalProjects);
+//		} catch (RestClientException e) {
+//			throw new RuntimeException("Error fetching projects from PoPortal: " + e.getMessage());
+//		}
+//		return poPortalProjects;
+//	}
 
 	private void processPoPortalProjects(List<ResourceManagementDTO> poPortalProjects,
 			List<ResourceManagementDTO> teamCreatedProjects) {
@@ -5933,14 +5945,18 @@ public class ResourceManagementService {
 		System.out.println(projectRepository.getAssignedEmployeesCountInProject(id));
 
 		try {
-			List<ResourceManagementDTO> poPortalProjects = fetchPoPortalProjects();
-
-			Optional<ResourceManagementDTO> projectDTO = poPortalProjects.stream()
-					.filter(dto -> dto.getId() != null && dto.getId().equals(id)).findFirst();
+//			List<ResourceManagementDTO> poPortalProjects = fetchPoPortalProjects();
+			ServiceResponse projectApiResponse = poPortalAPIService.fetchPoPortalProjectById(id);
+			if (projectApiResponse.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
+		         return projectApiResponse;
+			}
+			ResourceManagementDTO project = (ResourceManagementDTO) projectApiResponse.getServiceResponse();
+//			Optional<ResourceManagementDTO> projectDTO = poPortalProjects.stream()
+//					.filter(dto -> dto.getId() != null && dto.getId().equals(id)).findFirst();
 			
-			System.out.println(projectDTO.isPresent());
+//			System.out.println(projectDTO.isPresent());
 
-			if (!projectDTO.isPresent()) {
+			if (project == null) {
 
 				response.setServiceResponse("Unable to fetched project requirement details correctly!");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -5948,9 +5964,7 @@ public class ResourceManagementService {
 
 				return response;
 
-			} else {
-				ResourceManagementDTO project = projectDTO.get();
-
+			} else {	
 				int totalRequirements = project.getResourceRequirements().stream()
 						.mapToInt(ResourceRequirementDTO::getCount).sum();
 				int assigned = projectRepository.getAssignedEmployeesCountInProject(id);
@@ -6122,7 +6136,15 @@ public class ResourceManagementService {
             return failResponse(serviceResponse, apiLogInfo, "Failed to fetch already created team projects.");
         }
 		List<ResourceManagementDTO> teamCreatedProjects = castList(teamCreatedProjectsResponse.getServiceResponse());
-		List<ResourceManagementDTO> poPortalProjects = Optional.ofNullable(fetchPoPortalProjects()).orElse(new ArrayList<>());
+		ServiceResponse apiResponse = poPortalAPIService.getAllProjectsFromPoPortal();
+		List<ResourceManagementDTO> poPortalProjects;
+        if(apiResponse.getServiceStatus()== ServiceResponse.STATUS_SUCCESS) {
+        	 poPortalProjects = (List<ResourceManagementDTO>) apiResponse.getServiceResponse();
+        }
+        else
+        {
+        	poPortalProjects = new ArrayList<>();
+        }
 		System.out.println(poPortalProjects);
 		processPoPortalProjects(poPortalProjects,teamCreatedProjects);
 		System.out.println(poPortalProjects);
@@ -6313,8 +6335,16 @@ public class ResourceManagementService {
 	    LogDTO apiLogInfo = new LogDTO();
 
 	    try {
-	        List<ResourceManagementDTO> poPortalProjects = Optional.ofNullable(fetchPoPortalProjects())
-	                .orElse(new ArrayList<>());
+	    	ServiceResponse apiResponse = poPortalAPIService.getAllProjectsFromPoPortal();
+			List<ResourceManagementDTO> poPortalProjects;
+	        if(apiResponse.getServiceStatus()== ServiceResponse.STATUS_SUCCESS) {
+	        	 poPortalProjects = (List<ResourceManagementDTO>) apiResponse.getServiceResponse();
+	        }
+	        else
+	        {
+	        	poPortalProjects = new ArrayList<>();
+	        }
+	                
 	        List<ResourceManagementDTO> activePOProjects = projectRepository.getAllActivePOProjects();
 
 	        int insertCount = 0, updateCount = 0, deactivateCount = 0;
