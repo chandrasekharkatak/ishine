@@ -21,6 +21,7 @@ import { User } from 'src/app/models/user';
 import { AngularEditorConfig } from '@kolkov/angular-editor';
 import { Document } from 'src/app/models/document';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
+import { ApiSourceService } from 'src/app/services/api-source.service';
 interface FormNode {
   id: string;
   formName: string;
@@ -97,10 +98,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   editingField: FormField | null = null;
   editingIndex: number = -1;
 
-  apiList = [
-    { label: 'Countries API', url: 'https://restcountries.com/v3.1/all', labelKey: 'name.common', valueKey: 'cca2' },
-    { label: 'Users API', url: 'https://jsonplaceholder.typicode.com/users', labelKey: 'name', valueKey: 'id' }
-  ];
+  apiList = [];
 
   rows = Array(8).fill({});
 
@@ -243,18 +241,15 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
     private projectInsightService: ProjectInsightService,
+    private apiSourceService: ApiSourceService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x);  }
 
   ngOnInit(): void {
     this.isCurrentEmployeeRoleGreaterThanManager = this.rolesGreaterThanManager.includes(this.currentUser?.employeeRole);
     this.openTableView();
-
-    setTimeout(async () => {
-      await this.loadInitialOptions();
-    }, 200);
+    this.getAllApiSourceList();
 
     this.projectData.project = {};
-
     this.showTable();
   }
 
@@ -720,11 +715,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         promises.push(this.loadApiOptions(field));
       }
     }
-
-    // Wait for all API options to load
     await Promise.all(promises);
-
-    // Update layout after all options are loaded
     this.updateLayout();
   }
 
@@ -739,14 +730,11 @@ export class ProjectInsightProjconfigComponent implements OnInit {
           label: item[field.apiLabelKey || 'name'],
           value: item[field.apiValueKey || 'id']
         }));
-
-        // Cache the options
         field.options = options;
         return options;
       }
     } catch (error) {
       console.error(`Error loading API options for ${field.name}:`, error);
-      // Return empty array on error to prevent hanging
       return [];
     }
 
@@ -1643,6 +1631,22 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         this.editingField.apiValueKey = selectedApi.valueKey;
       }
     }
+  }
+
+  getAllApiSourceList(){
+    this.apiSourceService.getAllApiSourceList().pipe(first()).subscribe({
+      next: (response: any) => {
+        this.apiList = response;
+
+        setTimeout(async () => {
+          await this.loadInitialOptions();
+        }, 200);
+      },
+      error: (error: any) => {
+        this.alertMessage = error;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      }
+    });
   }
   
   mapApiOptions(data: any[], labelKey: string, valueKey: string): any[] {

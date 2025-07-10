@@ -269,14 +269,14 @@
         <!-- Action Buttons -->
         <div class="row mt-3 align-items-center">
           <div class="col-md-12">
-            <button type="button" class="btn btn-primary btn-sm mr-2" (click)="addGroup()">
+            <button type="button" *ngIf="isEdit" class="btn btn-primary btn-sm mr-2" (click)="addGroup()">
               <i class="fa fa-plus"></i> Add Group
             </button>
-            <button type="button" class="btn btn-primary btn-sm mr-2" (click)="addSubGroup()">
+            <button type="button" *ngIf="isEdit" class="btn btn-primary btn-sm mr-2" (click)="addSubGroup()">
               <i class="fa fa-plus"></i> Add Sub Group
             </button>
-            <button type="button" class="btn btn-secondary btn-sm mr-2" (click)="onSaveAsDraft()">Save as Draft</button>
-            <button type="button" class="btn btn-secondary btn-sm mr-2" (click)="onSaveAndAssign()">Save and
+            <button type="button" *ngIf="isEdit" class="btn btn-secondary btn-sm mr-2" (click)="onSaveAsDraft()">Save as Draft</button>
+            <button type="button" *ngIf="isEdit" class="btn btn-secondary btn-sm mr-2" (click)="onSaveAndAssign()">Save and
               Assign</button>
             <button type="button" class="btn btn-outline-secondary btn-sm mr-2"
               (click)="openTableView()">Cancel</button>

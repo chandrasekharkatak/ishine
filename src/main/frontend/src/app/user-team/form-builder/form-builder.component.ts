@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms'
 import { Sort } from '@angular/material/sort';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { ApiSourceService } from 'src/app/services/api-source.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { FormBuilderService } from 'src/app/services/form-builder.service';
 
@@ -84,10 +85,7 @@ export class FormBuilderComponent implements OnInit {
   preview = false;
   form: FormGroup;
   isDragging = false;
-  apiList = [
-    { label: 'Countries API', url: 'https://restcountries.com/v3.1/all', labelKey: 'name.common', valueKey: 'cca2' },
-    { label: 'Users API', url: 'https://jsonplaceholder.typicode.com/users', labelKey: 'name', valueKey: 'id' }
-  ];
+  apiList = [];
 
   dependentFieldsMap: Map<string, any[]> = new Map();
   fieldDependencies: Map<string, string> = new Map();
@@ -105,7 +103,8 @@ export class FormBuilderComponent implements OnInit {
     private http: HttpClient,
     private departmentService: DepartmentService,
     private formBuilderService: FormBuilderService,
-    private modalService: BsModalService) {
+    private modalService: BsModalService,
+    private apiSourceService: ApiSourceService) {
     this.form = this.fb.group({});
   }
 
@@ -121,6 +120,7 @@ export class FormBuilderComponent implements OnInit {
 
     this.resetForm();
     this.getAllDepartmentList();
+    this.getAllApiSourceList();
   }
 
   showTable(){
@@ -151,6 +151,7 @@ export class FormBuilderComponent implements OnInit {
     this.fields = formObj.fields;
 
     this.getAllDepartmentList();
+    this.getAllApiSourceList();
   }
 
   openDeleteDepartment(template: TemplateRef<any> ,formObj: any){
@@ -251,6 +252,18 @@ export class FormBuilderComponent implements OnInit {
         this.editingField.apiValueKey = selectedApi.valueKey;
       }
     }
+  }
+
+  getAllApiSourceList(){
+    this.apiSourceService.getAllApiSourceList().pipe(first()).subscribe({
+      next: (response: any) => {
+        this.apiList = response;
+      },
+      error: (error: any) => {
+        this.alertMessage = error;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      }
+    });
   }
 
   loadApiOptions() {
