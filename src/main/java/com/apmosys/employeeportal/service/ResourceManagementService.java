@@ -8826,6 +8826,7 @@ public class ResourceManagementService {
 		projectTempRepo.deleteAll();
 		dumpPODataInIshine();
 		projectRepository.callSyncProjectsSP();
+		fillDepartmentforAllProjectsInIshine();
 		response.setServiceStatus(response.STATUS_SUCCESS);
 		}
 		catch(Exception e) {
