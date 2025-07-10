@@ -8819,11 +8819,13 @@ public class ResourceManagementService {
         
     }
 
-	@Transactional
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse deleteProjectTemp() {
 		ServiceResponse response = new ServiceResponse();
 		try {
 		projectTempRepo.deleteAll();
+		dumpPODataInIshine();
+		projectRepository.callSyncProjectsSP();
 		response.setServiceStatus(response.STATUS_SUCCESS);
 		}
 		catch(Exception e) {

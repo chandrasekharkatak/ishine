@@ -4,8 +4,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.transaction.Transactional;
+
 import org.hibernate.query.NativeQuery;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -825,4 +828,9 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "			 inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId \n"
 			+ "			 where p.active= 'true' and  p.projectStatus = 'Completed' and pdm.deptId IN :deptIds")
 	Integer getAllCompletedProjectCountInIshine(@Param("deptIds") List<Long> deptIds);
+	
+	@Transactional
+	@Modifying
+    @Query(value = "CALL sp_SyncProjectsFromTemp", nativeQuery = true)
+    void callSyncProjectsSP();
 }
