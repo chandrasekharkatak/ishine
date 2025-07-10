@@ -3,6 +3,8 @@ package com.apmosys.employeeportal.controller;
 import java.util.List;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,20 +17,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
-
-import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
-
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
+import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
-import com.apmosys.employeeportal.dto.TeamMemberDTO;
-import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.service.ResourceManagementService;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
@@ -37,6 +36,9 @@ public class ResourceManagementController {
 	
 	@Autowired
 	ResourceManagementService resourceManagementService;
+	
+	@Autowired
+	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 
 	@RequestMapping(value = "/createDraftProjectInfo", method = RequestMethod.POST)
 	public ServiceResponse createDraftProjectInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
@@ -382,7 +384,8 @@ public class ResourceManagementController {
 	}
 	
 	@PostMapping("/getProjectStatusByPoProjectId")
-	public ServiceResponse getProjectStatusByPoProjectId(@RequestBody Set<Long> projectIds) {
+	public ServiceResponse getProjectStatusByPoProjectId(HttpServletRequest httpRequest,@RequestBody Set<Long> projectIds) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	    return resourceManagementService.getProjectStatusByPoProjectId(projectIds);
 	}
 	

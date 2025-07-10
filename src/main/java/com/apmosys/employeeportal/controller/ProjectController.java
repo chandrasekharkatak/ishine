@@ -1,12 +1,12 @@
 package com.apmosys.employeeportal.controller;
 
 
-import org.springframework.http.MediaType;
-
-import java.util.List;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,14 +20,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
-import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
-import com.apmosys.employeeportal.dto.PoProjectIdRequestDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
-import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.service.ProjectService;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
@@ -39,6 +37,9 @@ public class ProjectController {
 	
 	@Autowired
 	EmployeeService employeeService;
+	
+	@Autowired
+	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 	
 	@RequestMapping(value = "/getAllClients", method = RequestMethod.GET)
 	public ServiceResponse getAllClients() {
@@ -116,7 +117,8 @@ public class ProjectController {
 	}
 	
 	@PostMapping(value = "/poProjectTimesheetSync")
-	public ServiceResponse poProjectTimesheetSync(@RequestBody Set<Long> projectIdList) {
+	public ServiceResponse poProjectTimesheetSync(HttpServletRequest httpRequest,@RequestBody Set<Long> projectIdList) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return projectService.poProjectTimesheetSync(projectIdList);
 	}
 	

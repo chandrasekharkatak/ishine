@@ -1,14 +1,15 @@
 package com.apmosys.employeeportal.service;
 
-import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,11 +33,11 @@ import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
-import org.apache.logging.log4j.LogBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -47,7 +48,6 @@ import org.springframework.web.client.RestTemplate;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
-import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
@@ -94,6 +94,7 @@ import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamSpocDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
+import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.Department;
@@ -126,10 +127,10 @@ import com.apmosys.employeeportal.repository.ProjectTempRepo;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementTempRepo;
 import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeParseException;
 
 @Service
 public class ResourceManagementService {
@@ -228,6 +229,13 @@ public class ResourceManagementService {
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
 
+	@Autowired
+	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+
+	@Autowired
+	private ApiLogUtility apiLogUtility;
+
+	
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -8073,51 +8081,75 @@ public class ResourceManagementService {
 	}
 	
 	public ServiceResponse getProjectStatusByPoProjectId(Set<Long> poProjectId) {
-	    ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("getProjectStatusByPoProjectId");
-	    apiLogInfo.setApiUrl("/api/getProjectStatusByPoProjectId");
-	    apiLogInfo.setLogLevel("INFO");
-	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("\n getProjectStatusByPoProjectId ");
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getProjectStatusByPoProjectId");
+		apiLogInfo.setApiUrl("/api/getProjectStatusByPoProjectId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("\n getProjectStatusByPoProjectId ");
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 
-	    try {
-	    	if(!poProjectId.isEmpty()) {
-	    		
-	    		List<Object[]> poProjectStatus = projectRepository.getProjectStatusByPoProjectId(poProjectId);
-	    		 
-	    		Map<Long, String> result = new HashMap<>();
-
-	            for (Object[] row : poProjectStatus) {
-	                Long projectId = row[0] != null ? ((Number) row[0]).longValue() : null;
-	                String status = row[1] != null ? row[1].toString() : "Not Started";
-	                if (projectId != null) {
-	                    result.put(projectId, status);
-	                }
-	            }
-
-	            response.setServiceResponse(result);
-	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            apiLogInfo.setApiResponse("Project status fetched");
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	        } else {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No poProjectIds provided.");
-	            apiLogInfo.setApiResponse("No poProjectIds provided.");
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        }
-	    }catch (Exception e) {
-	    	e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong.");
-	        response.setServiceError(e.getMessage());
-
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setLogLevel("ERROR");
-	    }
+		try {
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),"getProjectStatusByPoProjectId", "PoPortal", null, httpRequest);
+			if (poProjectId == null || poProjectId.isEmpty()){
+				response.setServiceResponse("PoProject Id cannot be null!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("PoProject Id cannot be null!");
+				exceptionDetailsForLog = "PoProject Id cannot be null!";
+				return response;
+			}
+			
+			List<Object[]> poProjectStatusList = projectRepository.getProjectStatusByPoProjectId(poProjectId);
+			if (poProjectStatusList != null && !poProjectStatusList.isEmpty()) {
+				Map<Long, String> result = objListToPoProjectStatusMap(poProjectStatusList);
+				response.setServiceResponse(result);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("Project status fetched");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Projects found for provided poProjectIds.");
+				apiLogInfo.setApiResponse("No Projects found for provided poProjectIds.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+			finalHttpStatusCode = HttpStatus.OK.value();
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			exceptionDetailsForLog = e.toString();
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+			}
+		}
 		return response;
-    }
+	}
 	
+	private Map<Long, String> objListToPoProjectStatusMap(List<Object[]> poProjectStatusList) {
+		Map<Long, String> result = new HashMap<>();
+		try {
+			for (Object[] row : poProjectStatusList) {
+				Long projectId = row[0] != null ? ((Number) row[0]).longValue() : null;
+				String status = row[1] != null ? row[1].toString() : "Not Started";
+				if (projectId != null) {
+					result.put(projectId, status);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return result;
+	}
+
 	public ServiceResponse getDeptsByRole(Long currentUserEmpId) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
