@@ -31,6 +31,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,6 +56,7 @@ import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
+import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
@@ -125,9 +127,11 @@ import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
 import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
 import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
+import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.LogEvents;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -302,7 +306,13 @@ public class EmployeeService {
 	
 	@Autowired
 	AppreciationRepository appreciationRepository;
-//	
+	
+	@Autowired
+	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+	
+	@Autowired
+	private ApiLogUtility apiLogUtility;
+	
 //	@Value("${bd.mail}")
 //	private String businessMail;
 	
@@ -5884,42 +5894,27 @@ public class EmployeeService {
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append(employeeRepository.getAllEmployeeInfoForPoPortal());
-		
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		try {
-			List<Object[]> employeeObj = employeeRepository.getAllEmployeeInfoForPoPortal();
-			List<PoPortalDTO> dtoList = new ArrayList<PoPortalDTO>();
-			
-			if(!employeeObj.isEmpty()) {
-				employeeObj.forEach((object) -> {
-					PoPortalDTO dto = new PoPortalDTO();
-					String employeementStatus = object[3] != null ? object[3].toString() : null;
-					String status = null;
-					if(employeementStatus != null) {
-						status = !employeementStatus.equals("InActive") ? "Y" : "N";
-					}
-					Long empId = object[8] != null ? Long.parseLong(object[8].toString()): null;
-					
-					dto.setEmpId(object[0] != null ? object[0].toString() : null);
-					dto.setEmpName(object[1] != null ? object[1].toString() : null);
-					dto.setDeptId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-					dto.setIsActive(status);
-					dto.setIsHead(validationService.validateHodId(empId) != false ? "Y" : "N");
-					dto.setMailId(object[4] != null ? object[4].toString() : null);
-					dto.setMobile(object[5] != null ? object[5].toString() : null);
-					dto.setRoleId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
-					
-					dtoList.add(dto);
-				});
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllEmployeeInfo", "PoPortal", null ,httpRequest);
+			List<PoPortalDTO> poPortalDTOList  = employeeRepository.getAllEmployeeInfoForPoPortal();
+			if(!poPortalDTOList.isEmpty()) {
+				for(PoPortalDTO poPortalDTO : poPortalDTOList) {
+					poPortalDTO.setIsHead(validationService.validateHodId(poPortalDTO.getEmployeeId()) ? "Y" : "N");
+				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
+				response.setServiceResponse(poPortalDTOList);
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("List fetched of size : "+poPortalDTOList.size());
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Info not found.");
 				apiLogInfo.setApiResponse("Employee Info not found.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
+			finalHttpStatusCode = HttpStatus.OK.value();
 		}catch(Exception e){
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -5927,6 +5922,11 @@ public class EmployeeService {
 			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
+			exceptionDetailsForLog = e.toString();
+		} finally {
+			if(initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(),finalHttpStatusCode,exceptionDetailsForLog, httpRequest);
+			}
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);

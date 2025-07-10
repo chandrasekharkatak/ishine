@@ -17,6 +17,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.datetime.joda.LocalDateTimeParser;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -28,6 +29,7 @@ import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
+import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.DesignationDepartmentMap;
@@ -40,6 +42,8 @@ import com.apmosys.employeeportal.repository.EmployeeOnBoardingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
+import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -82,6 +86,12 @@ public class DepartmentService {
 	
 	@Value("${poPortal.api.deleteDepartment}")
 	private String deleteDeparmentPoPortal;
+	
+	@Autowired
+	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+
+	@Autowired
+	private ApiLogUtility apiLogUtility;
 
 	@Transactional
 	public ServiceResponse createDepartment(DepartmentDTO departmentDTO) {
@@ -773,40 +783,37 @@ public class DepartmentService {
 		apiLogInfo.setApiUrl("/api/getAllDepartmentInfo");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getAllDepartmentInfo size : "+departmentRepository.getDepartmentInfo().size());
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		try {
-			
-			List<Object[]> departmentObj = departmentRepository.getDepartmentInfo();
-			List<PoPortalDTO> dtoList = new ArrayList<PoPortalDTO>();
-			
-			if(!departmentObj.isEmpty()) {
-				departmentObj.forEach((object) -> {
-					PoPortalDTO dto = new PoPortalDTO();
-					
-					dto.setDeptId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					dto.setDeptName(object[1] != null ? object[1].toString() : null);
-					dto.setHodId(object[2] != null ? object[2].toString() : null);
-					dto.setDeptAbbreviation(object[3] != null ? object[3].toString() : null);
-					dtoList.add(dto);
-				});
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllDepartmentInfo", "PoPortal", null, httpRequest);
+			List<PoPortalDTO> poPortalDTOList = departmentRepository.getDepartmentInfo();
+			if (!poPortalDTOList.isEmpty()) {
+				logBuilder.append("getAllDepartmentInfo size : " + poPortalDTOList.size());
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("dtoList size : "+dtoList.size());
+				response.setServiceResponse(poPortalDTOList);
+				apiLogInfo.setApiResponse("dtoList size : " + poPortalDTOList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			}else {
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Department Info not found.");
 				apiLogInfo.setApiResponse("Department Info not found.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
-			
-		}catch(Exception e) {
+			finalHttpStatusCode = HttpStatus.OK.value();
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
+			exceptionDetailsForLog = e.toString();
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+			}
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);

@@ -186,12 +186,11 @@ public class ProjectService {
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 	
-	
 	@Autowired
 	private ApiLogUtility apiLogUtility;
 	
 	@Autowired
-	PoPortalAPIService poPortalAPIService;
+	private PoPortalAPIService poPortalAPIService;
 
 	public ServiceResponse getAllClients() {
 		ServiceResponse response = new ServiceResponse();

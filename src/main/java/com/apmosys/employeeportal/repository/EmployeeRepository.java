@@ -19,6 +19,7 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
+import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.model.Department;
@@ -244,8 +245,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeProfileCompletion(Long empId);
 
-	@Query(nativeQuery = true)
-	public List<Object[]> getAllEmployeeInfoForPoPortal();
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.PoPortalDTO(e.employeementId, e.name, d.deptId, e.employmentstatus, e.email, e.mobileNo, e.jobRoleId, d.hodId, e.empId) \n" +
+			"FROM Employee e  \n" +
+			"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId  \n" +
+			"INNER JOIN Department d ON d.deptId = jr.deptId")
+	public List<PoPortalDTO> getAllEmployeeInfoForPoPortal();
 
 	public List<Employee> findByEmploymentstatus(String employmentStatus);
 

@@ -365,12 +365,11 @@ public class EmployeeController {
 	/*
 	 API for PoPortal
 	 */
-	
-	@RequestMapping(value = "/getAllEmployeeInfo", method = RequestMethod.GET)
-	public ServiceResponse employeeInfo() {
 
-		ServiceResponse response = employeeService.getAllEmployeeInfo();
-		return response;
+	@GetMapping(value = "/getAllEmployeeInfo")
+	public ServiceResponse employeeInfo(HttpServletRequest httpRequest) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return employeeService.getAllEmployeeInfo();
 	}
 	
 	@RequestMapping(value = "/updateLeaveBalanceList", method = RequestMethod.POST, consumes = "application/json")	

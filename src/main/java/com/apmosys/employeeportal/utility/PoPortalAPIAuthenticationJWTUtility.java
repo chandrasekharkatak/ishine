@@ -55,4 +55,9 @@ public class PoPortalAPIAuthenticationJWTUtility {
 			throw new InvalidTokenException("Invalid token: " + e.getMessage(), e);
 		}
 	}
+	
+
+	public String extractTraceId(HttpServletRequest request) {
+		return request != null ? request.getHeader("X-Trace-Id") : null;
+	}
 }
