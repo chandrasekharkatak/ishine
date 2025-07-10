@@ -774,6 +774,11 @@ export class ReportListComponent implements OnInit {
     const isActiveBox = box === this.activeBox;
     const category = this.selectedTab[this.activeBox]; 
 
+console.log("BOx Type ",box);
+    console.log(" key ::::::::::::",key);
+    console.log("category :::::::::::::",category);
+console.log("Is Active box :::::::::::::::::::",isActiveBox);
+
     if (category === 'Project' && isActiveBox) {
       return this.projectSummary[key]?.Project?.total_projects_per_po_project || 0;
     }
