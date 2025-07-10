@@ -1,11 +1,10 @@
 package com.apmosys.employeeportal.service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import javax.annotation.Resource;
-import javax.mail.Multipart;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +23,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import com.apmosys.employeeportal.dto.FCLineItemDTO;
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
+import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
@@ -41,8 +40,11 @@ public class PoPortalAPIService {
 	@Value("${poPortal.api.getFCLineItemDetails}")
 	private String getFCLineItemDetailsURL;
 	
-	@Value("{poPortal.api.updateMilestones}")
+	@Value("${poPortal.api.updateMilestones}")
 	private String sendFileUrl;
+	
+	@Value("${poPortal.api.allProjects}")
+	private String allPoPortalProjects;
 	
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
@@ -173,6 +175,48 @@ public class PoPortalAPIService {
 			exceptionDetailsForLog = e.toString();
 		} finally {
 			if (initialLog != null && initialLog.getId() != null) {
+				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
+				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+			}
+		}
+		return serviceResponse;
+	}
+	
+	
+	public ServiceResponse getAllProjectsFromPoPortal() {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		List<ProjectPoPortalDTO> poPortalprojectList = new ArrayList<>();
+		ApiLog initialLog = null;
+		String traceId = UUID.randomUUID().toString();
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String exceptionDetailsForLog = null;
+		try {
+			initialLog = apiLogUtility.startLog(traceId, "getProjectCloneFromPoPortal", "Ishine", getCurrentUserId(), httpRequest);
+			if (initialLog == null || initialLog.getId() == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
+				return serviceResponse;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+			HttpEntity<String> entity = new HttpEntity<>(headers);
+			ResponseEntity<ProjectPoPortalDTO[]> responseEntity = restTemplate.exchange(allPoPortalProjects, HttpMethod.GET, entity, ProjectPoPortalDTO[].class);
+			if (responseEntity.getStatusCode() == HttpStatus.OK) {
+				finalHttpStatusCode = HttpStatus.OK.value();
+			}
+			ProjectPoPortalDTO[] projects = responseEntity.getBody();
+			poPortalprojectList = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
+			serviceResponse.setServiceResponse(poPortalprojectList);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Error fetching projects: " + e.getMessage());
+			exceptionDetailsForLog = e.toString();
+			return serviceResponse;
+		} finally {
+			if (initialLog != null) {
 				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
 				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
 			}

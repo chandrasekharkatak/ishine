@@ -54,7 +54,6 @@ public class ProjectController {
 	
 	@RequestMapping(value = "/getAllProjects", method = RequestMethod.GET)
 	public ServiceResponse getAllProjects() {
-		
 		ServiceResponse response = projectService.getAllProjects();
 		return response;
 	}
@@ -87,11 +86,10 @@ public class ProjectController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/syncPoProjectAndTeam", method = RequestMethod.POST)
-	public ServiceResponse syncPoProjectAndTeam(@RequestBody PoProjectSyncDTO[] poProjectSyncDto) {
-		
-		ServiceResponse response = projectService.syncPoProjectAndTeam(poProjectSyncDto);
-		return response;
+	@PostMapping(value = "/syncPoProjectAndTeam")
+	public ServiceResponse syncPoProjectAndTeam(HttpServletRequest httpRequest, @RequestBody PoProjectSyncDTO[] poProjectSyncDto) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return projectService.syncPoProjectAndTeam(poProjectSyncDto);
 	}
 	
 	@RequestMapping(value = "/getSyncableProject", method = RequestMethod.GET)
@@ -116,8 +114,9 @@ public class ProjectController {
 	}
 	
 	@GetMapping(value = "/poprojectclone")
-	public ResponseEntity<ServiceResponse> poprojectclone() {
-	    return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
+	public ResponseEntity<ServiceResponse> poprojectclone(HttpServletRequest httpRequest) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
 	}
 	
 	@PostMapping(value = "/poProjectTimesheetSync")
@@ -132,7 +131,8 @@ public class ProjectController {
 	}
 		
 	@PostMapping(value = "/handleTeamsAsPerLinkedPo")
-	public ServiceResponse handleTeamsAsPerLinkedPo(@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
+	public ServiceResponse handleTeamsAsPerLinkedPo(HttpServletRequest httpRequest ,@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return projectService.handleTeamsAsPerLinkedPo(payloadDTO);
 	}
 
