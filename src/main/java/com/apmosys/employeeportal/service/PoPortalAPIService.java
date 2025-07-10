@@ -8,7 +8,6 @@ import javax.annotation.Resource;
 import javax.mail.Multipart;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.collections4.map.MultiValueMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -22,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -41,7 +41,7 @@ public class PoPortalAPIService {
 	@Value("${poPortal.api.getFCLineItemDetails}")
 	private String getFCLineItemDetailsURL;
 	
-	@Value("{poPortal.api.sendMilestoneFile}")
+	@Value("{poPortal.api.updateMilestones}")
 	private String sendFileUrl;
 	
 	@Autowired
@@ -145,13 +145,16 @@ public class PoPortalAPIService {
 			}
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("X-Trace-Id", traceId);
-			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
-			headers.setContentDisposition(ContentDisposition.builder("attachment").filename(file.getOriginalFilename()).build());
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());	
 			headers.setContentType(MediaType.valueOf(file.getContentType()));
-			Resource fileResource = (Resource) new ByteArrayResource(file.getBytes());
-			HttpEntity<Resource> requestEntity = new HttpEntity<>(fileResource, headers);
-			String finalsendUrl = UriComponentsBuilder.fromHttpUrl(sendFileUrl).pathSegment(String.valueOf(dto.getId())).toUriString();
-			ResponseEntity<ServiceResponse> apiResponse = restTemplate.exchange(finalsendUrl, HttpMethod.PUT, requestEntity, ServiceResponse.class);
+			headers.setContentDisposition(ContentDisposition.builder("attachment").filename(file.getOriginalFilename()).build());
+			HttpEntity<FCProjectMilestoneDTO> dtoEntity = new HttpEntity<>(dto, headers);
+		    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+		    body.add("milestoneData", dtoEntity);
+		    ByteArrayResource fileResource = new ByteArrayResource(file.getBytes());
+	        body.add("File",fileResource); 
+	        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+			ResponseEntity<ServiceResponse> apiResponse = restTemplate.exchange(sendFileUrl, HttpMethod.PUT, requestEntity, ServiceResponse.class);
 
 			if (apiResponse.getStatusCode() == HttpStatus.OK && apiResponse.getBody() != null) {
 				serviceResponse.setServiceResponse(apiResponse.getBody());

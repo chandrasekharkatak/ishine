@@ -24,6 +24,7 @@ import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.service.EmployeeService;
+import com.apmosys.employeeportal.service.PoPortalAPIService;
 import com.apmosys.employeeportal.service.ProjectService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -37,6 +38,9 @@ public class ProjectController {
 	
 	@Autowired
 	EmployeeService employeeService;
+	
+	@Autowired
+	PoPortalAPIService poPortalApiService;
 	
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
@@ -141,7 +145,7 @@ public class ProjectController {
 	@RequestMapping(value = "/updateMilestoneById", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ServiceResponse> updateMilestoneById(@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
 	                                                           @RequestPart("file") MultipartFile file) {
-	    return ResponseEntity.ok(projectService.updateMilestoneById(fcProjectMilestoneDTO, file));
+	    return ResponseEntity.ok(poPortalApiService.updateMilestoneById(fcProjectMilestoneDTO, file));
 	}
 
 	
