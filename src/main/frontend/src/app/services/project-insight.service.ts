@@ -94,4 +94,24 @@ export class ProjectInsightService {
   getAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj: any){
     return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightQuestionsByProjectIdAndEmpId`, projectObj);
   }
+
+  onSaveAndAssign(payload: any){
+    return this.http.post(`${this.baseUrl}` + `api/onSaveAndAssign`, payload);
+  }
+
+  onSaveAsDraft(payload: any){
+    return this.http.post(`${this.baseUrl}` + `api/onSaveAsDraft`, payload);
+  }
+
+  getAllProjectInsight(){
+    return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`);
+  }
+
+  getProjectInsightByInsightId(projectInsightId: any){
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightByInsightId/`+ `${projectInsightId}`);
+  }
+
+  deleteProjectInsightById(projectInsightId: any){
+    return this.http.get(`${this.baseUrl}` + `api/deleteProjectInsightById/`+ `${projectInsightId}`);
+  }
 }

@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,6 +26,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -42,6 +44,7 @@ import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ModuleDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
+import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightEntityDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
@@ -56,6 +59,7 @@ import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.ProjectInsighProjectMapping;
 import com.apmosys.employeeportal.model.ProjectInsightAssignees;
 import com.apmosys.employeeportal.model.ProjectInsightFilter;
 import com.apmosys.employeeportal.model.ProjectInsightFilterOptions;
@@ -71,10 +75,13 @@ import com.apmosys.employeeportal.model.TagMaster;
 import com.apmosys.employeeportal.model.UserContributionDocument;
 import com.apmosys.employeeportal.model.UserContributionResponseRemarks;
 import com.apmosys.employeeportal.mongodb.modal.FileStorage;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.mongodb.repository.FileMongoRepository;
+import com.apmosys.employeeportal.mongodb.repository.ProjectInsightStructureRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.ProjectInsighProjectMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightAssigneesRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightFilterOptionsRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightFilterRepository;
@@ -181,6 +188,22 @@ public class ProjectInsightService {
 	
 	@Autowired
 	FileMongoRepository fileMongoRepository;
+	
+	
+	
+	
+	
+	
+	
+	@Autowired
+    ProjectInsightStructureRepository projectInsightStructureRepository;
+	
+	@Autowired
+	ProjectInsighProjectMappingRepository projectInsighProjectMappingRepository;
+	
+	
+	
+	
 	
 	@Transactional
 	public ServiceResponse createProjectInsightQuestion(ProjectInsightDTO projectInsightDTO) {
@@ -3365,6 +3388,200 @@ public class ProjectInsightService {
 			e.printStackTrace();
 			throw e;
 		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
+     * New Implimentation Project Insight : MongoDB ----------- [START] --------------------------------------
+     * */
+
+
+	public ProjectInsightStructure saveAsDraft(ProjectInsightStructure structure) {
+	    boolean isNew = (structure.getId() == null);
+
+	    if (!isNew) {
+	        Optional<ProjectInsightStructure> existingOpt = projectInsightStructureRepository.findById(structure.getId());
+
+	        if (existingOpt.isPresent()) {
+	            ProjectInsightStructure existing = existingOpt.get();
+	            structure.setCreatedBy(existing.getCreatedBy());
+	            structure.setCreatedOn(existing.getCreatedOn());
+	        } else {
+	            structure.setCreatedBy(structure.getCreatedBy());
+	            structure.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+	        }
+	    } else {
+	        structure.setCreatedBy(structure.getCreatedBy());
+	        structure.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+	    }
+
+	    structure.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+	    structure.setIsDraft("Y");
+	    return saveStructure(structure, "Y");
+	}
+
+
+	public ProjectInsightStructure saveAndAssign(ProjectInsightStructure structure) {
+	    boolean isNew = (structure.getId() == null);
+
+	    if (!isNew) {
+	        Optional<ProjectInsightStructure> existingOpt = projectInsightStructureRepository.findById(structure.getId());
+
+	        if (existingOpt.isPresent()) {
+	            ProjectInsightStructure existing = existingOpt.get();
+	            structure.setCreatedBy(existing.getCreatedBy());
+	            structure.setCreatedOn(existing.getCreatedOn());
+	        } else {
+	            structure.setCreatedBy(structure.getCreatedBy());
+	            structure.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+	        }
+	    } else {
+	        structure.setCreatedBy(structure.getCreatedBy());
+	        structure.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+	    }
+
+	    structure.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+	    structure.setIsDraft("N");
+	    return saveStructure(structure, "N");
+	}
+
+
+    private ProjectInsightStructure saveStructure(ProjectInsightStructure structure, String isDraftFlag) {
+        try {
+            structure.setCreatedBy(structure.getCreatedBy());
+            structure.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+            structure.setIsDraft(isDraftFlag);
+            ProjectInsightStructure dbResponse = projectInsightStructureRepository.save(structure);
+            
+            if(dbResponse != null) {
+            	String response = saveMappingInfo(dbResponse);
+            }else {
+            	throw new RuntimeException("Unable to save Project Insight.");
+            }
+            return dbResponse;
+        } catch (DataAccessException dae) {
+            throw new RuntimeException("Unable to save Project Insight Structure due to a database error.", dae);
+        } catch (Exception ex) {
+            throw new RuntimeException("Unexpected error occurred while saving Project Insight Structure.", ex);
+        }
+    }
+    
+    public String saveMappingInfo(ProjectInsightStructure structure) {
+        Object projectIdObj = structure.getData().getFields().get("projectname");
+
+        if (projectIdObj == null) {
+            throw new IllegalArgumentException("Project ID (projectname) is missing in the form data.");
+        }
+
+        Integer projectId;
+        try {
+            projectId = Integer.valueOf(projectIdObj.toString());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Project ID (projectname) is not a valid number.");
+        }
+
+        ProjectInsighProjectMapping mappingResponse = projectInsighProjectMappingRepository.findByProjectId(projectId);
+
+        if (mappingResponse != null) {
+            mappingResponse.setProjectInsightId(structure.getId());
+            
+            projectInsighProjectMappingRepository.save(mappingResponse);
+            return "Mapping updated successfully for projectId: " + projectId;
+        } else {
+            ProjectInsighProjectMapping newObj = new ProjectInsighProjectMapping();
+            newObj.setProjectId(projectId);
+            newObj.setProjectInsightId(structure.getId());
+            newObj.setIsDraft(structure.getIsDraft());
+            newObj.setCreatedBy(Long.parseLong(structure.getCreatedBy()));
+
+            projectInsighProjectMappingRepository.save(newObj);
+            return "New mapping created for projectId: " + projectId;
+        }
+    }
+
+
+	public List<ProjectInsighProjectMappingDTO> getAllProjectInsight() {
+		try {
+			List<ProjectInsighProjectMappingDTO> dbResponse = projectInsighProjectMappingRepository
+					.fetchAllProjectMappings();
+			
+			if(dbResponse != null) {
+				return dbResponse;
+			}else {
+				throw new RuntimeException("No Project Insight found !!.");
+			}
+		}catch(Exception ex) {
+			throw new RuntimeException("Something went wrong !!.", ex);
+		}
+	}
+
+	public ProjectInsightStructure getProjectInsightByInsightId(String id) {
+		try {
+			 return projectInsightStructureRepository.findById(id).orElseThrow(() ->
+	            new RuntimeException("Project Insight not found with id: " + id));
+		}catch(Exception e) {
+			throw new RuntimeException("Something went wrong !!", e);
+		}
+	}
+
+	public ResponseEntity<String> deleteProjectInsightById(String id) {
+		try {
+			if (!projectInsightStructureRepository.existsById(id)) {
+	            throw new RuntimeException("Cannot delete. Project Insight Structure not found with ID: " + id);
+	        }
+			ProjectInsighProjectMapping mappingDbResponse = projectInsighProjectMappingRepository.findByProjectInsightId(id);
+			
+			if(mappingDbResponse != null) {
+				projectInsighProjectMappingRepository.deleteById(mappingDbResponse.getProjectInsightProjectMappingId());
+			}
+			projectInsightStructureRepository.deleteById(id);
+	        return ResponseEntity.ok("Deleted successfully");
+		}catch(Exception e) {
+			throw new RuntimeException("Something went wrong unable to delete Project !!", e);
+		}
+	}
+
+	public ProjectInsightStructure updateProjectInsightById(String id, ProjectInsightStructure updatedData) {
+		Optional<ProjectInsightStructure> existingOpt = projectInsightStructureRepository.findById(id);
+
+        if (existingOpt.isEmpty()) {
+            throw new RuntimeException("Cannot update. Project Insight Structure not found with ID: " + id);
+        }
+
+        ProjectInsightStructure existing = existingOpt.get();
+        existing.setStructure(updatedData.getStructure());
+        existing.setData(updatedData.getData());
+        existing.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+        existing.setUpdatedBy(updatedData.getUpdatedBy());
+        existing.setIsDraft(updatedData.getIsDraft());
+        
+        ProjectInsightStructure projectDbResponse = projectInsightStructureRepository.save(existing);
+        
+        if(projectDbResponse != null) {
+        	ProjectInsighProjectMapping mappingResponse = projectInsighProjectMappingRepository.findByProjectInsightId(id);
+
+            if (mappingResponse != null) {
+                mappingResponse.setIsDraft(projectDbResponse.getIsDraft());
+                mappingResponse.setUpdatedBy(Long.parseLong(projectDbResponse.getUpdatedBy()));
+                
+                projectInsighProjectMappingRepository.save(mappingResponse);
+            }
+        }
+        return projectInsightStructureRepository.save(existing);
 	}
 	
 }

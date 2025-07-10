@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -18,10 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
+import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
+import com.apmosys.employeeportal.model.ProjectInsighProjectMapping;
 import com.apmosys.employeeportal.model.QuestionMaster;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.response.SearchResultResponse;
 import com.apmosys.employeeportal.service.ProjectInsightService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -145,4 +149,75 @@ public class ProjectInsightController {
 	public ResponseEntity<ServiceResponse> processUserContribution(@RequestBody ProjectInsightUserContributionDTO projectInsightUserContributionDTO){
 		return projectInsightService.processUserContribution(projectInsightUserContributionDTO);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
+     * New Implimentation Project Insight : MongoDB ----------- [START] --------------------------------------
+     * */
+
+    @RequestMapping(value = "/onSaveAsDraft", method = RequestMethod.POST)
+    public ResponseEntity<ServiceResponse> onSaveAsDraft(@RequestBody ProjectInsightStructure projectInsightStructure) {
+        ProjectInsightStructure saved = projectInsightService.saveAsDraft(projectInsightStructure);
+
+        ServiceResponse response = new ServiceResponse();
+        response.setServiceStatus("Success");
+        response.setServiceResponse(saved);
+        return ResponseEntity.ok(response);
+    }
+
+    @RequestMapping(value = "/onSaveAndAssign", method = RequestMethod.POST)
+    public ResponseEntity<ServiceResponse> saveAndAssign(@RequestBody ProjectInsightStructure projectInsightStructure) {
+        ProjectInsightStructure saved = projectInsightService.saveAndAssign(projectInsightStructure);
+
+        ServiceResponse response = new ServiceResponse();
+        response.setServiceStatus("Success");
+        response.setServiceResponse(saved);
+        return ResponseEntity.ok(response);
+    }
+    
+    @RequestMapping(value = "/getAllProjectInsight", method = RequestMethod.GET)
+    public ResponseEntity<List<ProjectInsighProjectMappingDTO>> getAllProjectInsight() {
+        List<ProjectInsighProjectMappingDTO> list = projectInsightService.getAllProjectInsight();
+        return ResponseEntity.ok(list);
+    }
+    
+    @RequestMapping(value = "/getProjectInsightByInsightId/{id}", method = RequestMethod.GET)
+    public ResponseEntity<ProjectInsightStructure> getProjectInsightByInsightId(@PathVariable String id) {
+        ProjectInsightStructure response = projectInsightService.getProjectInsightByInsightId(id);
+        return ResponseEntity.ok(response);
+    }
+	
+    @RequestMapping(value = "/deleteProjectInsightById/{id}", method = RequestMethod.GET)
+    public ResponseEntity<String> deleteProjectInsightById(@PathVariable String id) {
+    	return projectInsightService.deleteProjectInsightById(id);
+    }
+    
+    @RequestMapping(value = "/updateProjectInsightById/{id}", method = RequestMethod.POST)
+    public ResponseEntity<ProjectInsightStructure> updateProjectInsightById(
+            @PathVariable String id,
+            @RequestBody ProjectInsightStructure updatedData) {
+
+        ProjectInsightStructure updated = projectInsightService.updateProjectInsightById(id, updatedData);
+        return ResponseEntity.ok(updated);
+    }
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }

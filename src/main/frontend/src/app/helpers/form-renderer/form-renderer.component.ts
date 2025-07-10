@@ -35,17 +35,30 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   buildForm() {
+    console.log('Building form with fields:', this.fields);
+    console.log('Form data:', this.formData);
+    
     const controls: any = {};
     this.fields.forEach(field => {
       const validators = [];
       if (field.required) validators.push(Validators.required);
-      let defaultValue = this.formData[field.name] || field.defaultValue || '';
+      let defaultValue = 
+        this.formData[field.name] !== undefined ? this.formData[field.name] :
+        field.value !== undefined ? field.value :
+        field.defaultValue !== undefined ? field.defaultValue : '';
       if (field.type === 'select' && field.multiple) {
         defaultValue = Array.isArray(defaultValue) ? defaultValue : [];
       }
       controls[field.name] = [defaultValue, validators];
+      
+      console.log(`Created control for ${field.name}:`, controls[field.name]);
     });
+    
     this.dynamicForm = this.fb.group(controls);
+    
+    console.log('Form group created:', this.dynamicForm);
+    console.log('Form controls:', Object.keys(this.dynamicForm.controls));
+    
     this.dynamicForm.valueChanges.subscribe(val => {
       this.formValueChange.emit(val);
     });

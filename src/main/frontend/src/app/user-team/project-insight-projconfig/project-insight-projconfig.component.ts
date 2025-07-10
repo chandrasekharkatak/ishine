@@ -29,6 +29,36 @@ interface FormNode {
   layoutConfig?: any[];
   children: FormNode[];
   questionList?: ProjectQuestion[];
+  fieldDependencies?: { [key: string]: string };
+  dependentFieldsMap?: { [key: string]: string[] };
+}
+
+interface FormField {
+  id: string;
+  type: string;
+  label: string;
+  name: string;
+  required?: boolean;
+  placeholder?: string;
+  defaultValue?: any;
+  options?: any;
+  optionSource?: 'static' | 'api' | 'dependent';
+  apiUrl?: string;
+  apiLabelKey?: string;
+  apiValueKey?: string;
+  width: number;
+  rowPosition: number;
+  parentField?: string;
+  dependentApiUrl?: string;
+  dependentLabelKey?: string;
+  dependentValueKey?: string;
+  dependentParamName?: string;
+  multiple?: boolean;
+}
+
+interface FormFieldOption {
+  label: string;
+  value: any;
 }
 
 @Component({
@@ -37,9 +67,40 @@ interface FormNode {
   styleUrls: ['./project-insight-projconfig.component.css']
 })
 export class ProjectInsightProjconfigComponent implements OnInit {
+  fieldPalette = [
+    { type: 'text', label: 'Text Input' },
+    { type: 'textarea', label: 'Text Area' },
+    { type: 'select', label: 'Dropdown' },
+    { type: 'checkbox', label: 'Checkbox' },
+    { type: 'radio', label: 'Radio' },
+    { type: 'date', label: 'Date' },
+    { type: 'number', label: 'Number' },
+    { type: 'email', label: 'Email' },
+    { type: 'file', label: 'File Upload' }
+  ];
+
+
   @ViewChild(FormRendererComponent) formRenderer!: FormRendererComponent;
   @ViewChild('open_create_project_modal') openCreateProjectModal: TemplateRef<any>;
   @ViewChild('alert_message') alertMessageTemplate: TemplateRef<any>;
+  @ViewChild('delete_template') deleteTemplate: TemplateRef<any>;
+  @ViewChild('addFieldModal') addFieldModal: TemplateRef<any>;
+
+  expandedPaths: { [key: string]: boolean } = {};
+
+  //Add new Field
+  addFieldModalRef: BsModalRef;
+  newFieldType: any = null;
+  newFieldConfig: any = {};
+  addFieldTargetNode: FormNode;
+  showFieldConfig = false;
+  editingField: FormField | null = null;
+  editingIndex: number = -1;
+
+  apiList = [
+    { label: 'Countries API', url: 'https://restcountries.com/v3.1/all', labelKey: 'name.common', valueKey: 'cca2' },
+    { label: 'Users API', url: 'https://jsonplaceholder.typicode.com/users', labelKey: 'name', valueKey: 'id' }
+  ];
 
   rows = Array(8).fill({});
 
@@ -76,6 +137,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   selectedFormId: any;
   selectedFormType: any;
   alertMessage: any;
+  projectInsightId: any;
 
   //columnList
   projectColumns: any[] = ['blank', '', '', '', '', ''];
@@ -86,6 +148,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   isDomainStructure: boolean = false;
   isCurrentEmployeeRoleGreaterThanManager: boolean;
   isSelected: any
+  isEdit: boolean = true;
 
   //domain tree
   expanded: { [key: string]: boolean } = {};
@@ -105,10 +168,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   // Add new properties for enhanced form handling
   dependentFieldOptions: Map<string, Map<string, any[]>> = new Map();
   multiSelectDependentFields: Map<string, FormArray> = new Map();
-
-  // Add a property to cache the layout config
-  private _layoutConfigCache: any[][] = [];
-  private _fieldsHash: string = '';
 
   // Public property for template binding
   layoutConfig: any[][] = [];
@@ -196,11 +255,41 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
     this.projectData.project = {};
 
+    this.showTable();
   }
 
   showTable() {
     this.isTable = true;
     this.isCreateForm = false;
+
+    this.getAllProjectInsightProjectList();
+  }
+
+  openViewProjectInsight(projectInsightId: any){
+    this.cancelRequest();
+
+    this.isEdit = false;
+    this.isCreateForm = true;
+    this.isTable = false;
+
+    this.projectInsightId = projectInsightId;
+    this.getProjectInsightByInsightId(projectInsightId);
+  }
+
+  openEditProjectInsight(projectInsightId: any){
+    this.cancelRequest();
+
+    this.isEdit = true;
+    this.isCreateForm = true;
+    this.isTable = false;
+
+    this.projectInsightId = projectInsightId;
+    this.getProjectInsightByInsightId(projectInsightId);
+  }
+
+  openDeleteProjectInsight(projectInsightId: any){
+    this.modalRef = this.modalService.show(this.deleteTemplate, { class: 'modal-sm' });
+    this.projectInsightId = projectInsightId;
   }
 
   populateFormWithData(data: any): void {
@@ -270,6 +359,62 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     });
   }
 
+  deleteProjectInsightById(){
+    this.projectInsightService.deleteProjectInsightById(this.projectInsightId).pipe(first()).subscribe({
+      next: (response: any) => {
+        
+      },
+      error: (error: any) => {
+        this.alertMessage = error;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      }
+    });
+  }
+
+  getAllProjectInsightProjectList(){
+    this.projectInsightService.getAllProjectInsight().pipe(first()).subscribe({
+      next: (response: any) => {
+        this.allProjectInsightProjectList = response;
+      },
+      error: (error: any) => {
+        this.alertMessage = error;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      }
+    });
+  }
+
+  getProjectInsightByInsightId(projectInsightId: any) {
+    this.projectInsightService.getProjectInsightByInsightId(projectInsightId).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.rootNode = this.buildFormNodeTree(response.structure);
+        this.mergeFormDataIntoStructure(this.rootNode, response.data);
+        this.currentNodePath = [this.rootNode];
+        this.startProjectForm();
+      },
+      error: (error: any) => {
+        this.alertMessage = error;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      }
+    });
+  }
+  
+  mergeFormDataIntoStructure(structure: any, data: any) {
+    if (structure.fields && Array.isArray(structure.fields) && data.fields) {
+      structure.fields.forEach(field => {
+        field.value = data.fields[field.name];
+      });
+      structure.formData = data.fields;
+    }
+    if (data.questions) {
+      structure.questionList = data.questions;
+    }
+    if (structure.children && data.child) {
+      for (let i = 0; i < structure.children.length; i++) {
+        this.mergeFormDataIntoStructure(structure.children[i], data.child[i]);
+      }
+    }
+  }
+
   getLayoutConfigForNode(node: FormNode): any[][] {
     const rows = new Map<number, any[]>();
     let currentRow = 0;
@@ -321,9 +466,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   getAllDomainData(): void {
-    this.projectInsightProjconfigService.getAllDomainData()
-      .pipe(first())
-      .subscribe({
+    this.projectInsightProjconfigService.getAllDomainData().pipe(first()).subscribe({
         next: (response: any) => {
           if (response?.serviceStatus === "Success") {
             this.allDomainDataList = response.serviceResponse;
@@ -345,6 +488,16 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   isExpanded(node: any, type: string, idField: string) {
     const key = `${type}-${node[idField]}`;
     return !!this.expanded[key];
+  }
+
+  toggleByPath(path: number[]) {
+    const key = path.join('-');
+    this.expandedPaths[key] = !this.expandedPaths[key];
+  }
+
+  isExpandedByPath(path: number[]) {
+    const key = path.join('-');
+    return !!this.expandedPaths[key];
   }
 
   get projectInsightProjectTreeBreadcrumb(): any {
@@ -680,18 +833,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.populateFormWithData(this.projectInsightProjectObj);
   }
 
-  onSubmit() {
-    // Access the form group from the child
-    const formValue = this.formRenderer.dynamicForm.value;
-    if (this.formRenderer.dynamicForm.valid) {
-      // Call your API with formValue
-      // Example: this.apiService.saveProject(formValue).subscribe(...)
-    } else {
-      // Optionally mark all fields as touched to show validation errors
-      this.formRenderer.dynamicForm.markAllAsTouched();
-    }
-  }
-
   getFormValue(fieldName: string): any {
     return this.dynamicForm.get(fieldName)?.value;
   }
@@ -863,7 +1004,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     const existingGroup = this.findExistingGroup();
 
     if (existingGroup) {
-      // Pass false to NOT clone children
       newGroup = this.cloneFormNode(existingGroup, false);
     } else {
       newGroup = this.getDefaultGroupStructure();
@@ -895,18 +1035,73 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   cloneFormNode(node: FormNode, cloneChildren: boolean = true): FormNode {
+    const clonedFields = (node.fields || []).map(field => {
+      const clonedField = { ...field };
+      clonedField.value = null;
+      return clonedField;
+    });
+  
     return {
       id: this.generateUniqueId(),
       formName: node.formName || '',
-      fields: JSON.parse(JSON.stringify(node.fields)),
+      fields: clonedFields,
       formData: {},
-      layoutConfig: this.getLayoutConfig(node.fields || []),
+      layoutConfig: this.getLayoutConfig(clonedFields),
       children: cloneChildren ? node.children.map(child => this.cloneFormNode(child)) : [],
       questionList: []
     };
   }
 
+  isGroupNode(node: FormNode): boolean {
+    return this.rootNode && this.rootNode.children && this.rootNode.children.includes(node);
+  }
+
+  isSubGroupNode(node: FormNode): boolean {
+    if (!this.rootNode || !this.rootNode.children) return false;
+    for (const group of this.rootNode.children) {
+      if (group.children && group.children.includes(node)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  deleteGroup(node: FormNode) {
+    if (!this.rootNode || !this.rootNode.children) return;
+    const idx = this.rootNode.children.indexOf(node);
+    if (idx > -1) {
+      this.rootNode.children.splice(idx, 1);
+      this.currentNodePath = [this.rootNode];
+    }
+  }
+
+  deleteSubGroup(node: FormNode) {
+    if (!this.rootNode || !this.rootNode.children) return;
+    for (const group of this.rootNode.children) {
+      if (group.children) {
+        const idx = group.children.indexOf(node);
+        if (idx > -1) {
+          group.children.splice(idx, 1);
+          this.currentNodePath = [this.rootNode, group];
+          return;
+        }
+      }
+    }
+  }
+
   getNodeDisplayName(node: any): string {
+    if (node.formData) {
+      if (node.formData.grouptitle) return node.formData.grouptitle;
+      if (node.formData.subgrouptitle) return node.formData.subgrouptitle;
+      if (node.formData.projectname) {
+        const projectNameField = (node.fields || []).find(f => f.name === 'projectname');
+        if (projectNameField && projectNameField.options) {
+          const selected = projectNameField.options.find(opt => opt.value == node.formData.projectname);
+          if (selected) return selected.label;
+        }
+        return node.formData.projectname;
+      }
+    }
     if (node.fields) {
       if (node.fields.grouptitle) return node.fields.grouptitle;
       if (node.fields.subgrouptitle) return node.fields.subgrouptitle;
@@ -940,13 +1135,48 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   onSaveAndAssign() {
-    const dataToSave = this.collectFormData(this.rootNode);
-    console.log('Saving structure:', dataToSave);
+    const structure = this.rootNode;
+    const data = this.collectFormData(this.rootNode);
+
+    const payload = {
+      structure: structure,
+      data: data,
+      isDraft: "N",
+      createdBy: this.currentUser.empId,
+      id: this.projectInsightId
+    };
+
+    this.projectInsightService.onSaveAndAssign(payload).pipe(first()).subscribe(
+      (response) => {
+        this.formRenderer.dynamicForm.markAllAsTouched();
+        console.log('Saved and assigned:', response);
+      },
+      (error) => {
+        console.error('Save and assign failed:', error);
+      }
+    )
   }
 
   onSaveAsDraft() {
-    const dataToSave = this.collectFormData(this.rootNode);
-    console.log('Saving structure:', dataToSave);
+    const structure = this.rootNode;
+    const data = this.collectFormData(this.rootNode);
+  
+    const payload = {
+      structure: structure,
+      data: data,
+      isDraft: "N",
+      createdBy: this.currentUser.empId,
+      id: this.projectInsightId
+    };
+  
+    this.projectInsightService.onSaveAsDraft(payload).pipe(first()).subscribe(
+      (response) => {
+        console.log('Saved and Draft:', response);
+      },
+      (error) => {
+        console.error('Save and Draft failed:', error);
+      }
+    );
   }
 
   onFormValueChange(node: FormNode, value: any) {
@@ -1283,8 +1513,281 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
 
+  // -------------------- Add new Field -----------------------------------
+  getFieldIcon(type: string): string {
+    const icons: { [key: string]: string } = {
+      text: 'fa fa-font',
+      textarea: 'fa fa-align-left',
+      select: 'fa fa-caret-square-down',
+      checkbox: 'fa fa-check-square',
+      radio: 'fa fa-dot-circle',
+      date: 'fa fa-calendar',
+      number: 'fa fa-hashtag',
+      email: 'fa fa-envelope',
+      file: 'fa fa-file'
+    };
+    return icons[type] || 'fa fa-question';
+  }
+  
+  addNewField(node: FormNode) {
+    console.log('Adding new field to node:', node);
+    
+    this.addFieldTargetNode = node;
+    this.editingField = {
+      id: this.generateUniqueId(),
+      type: 'text',
+      label: '',
+      name: '',
+      required: false,
+      placeholder: '',
+      defaultValue: '',
+      options: [],
+      optionSource: 'static',
+      width: 100,
+      rowPosition: 0,
+      multiple: false
+    };
+    
+    this.editingIndex = -1;
+    this.showFieldConfig = true;
+    
+    console.log('addFieldTargetNode set to:', this.addFieldTargetNode);
+    this.showFieldTypePalette();
+  }
+  
+  showFieldTypePalette() {
+    this.addFieldModalRef = this.modalService.show(this.addFieldModal);
+  }
+  
+  startFieldConfig(type: any) {
+    this.editingField = {
+      id: this.generateUniqueId(),
+      type: type.type,
+      label: '',
+      name: '',
+      required: false,
+      placeholder: '',
+      defaultValue: '',
+      options: ['select', 'checkbox', 'radio'].includes(type.type) ? [] : undefined,
+      optionSource: 'static',
+      width: 100,
+      rowPosition: 0,
+      multiple: false
+    };
+    this.showFieldConfig = true;
+  }
+  
+  saveFieldConfig() {
+    if (!this.editingField) return;
+    this.editingField.width = Number(this.editingField.width);
+  
+    // If select/checkbox/radio and static, parse options if needed
+    if (['select', 'checkbox', 'radio'].includes(this.editingField.type) && this.editingField.optionSource === 'static') {
+      if (typeof this.editingField.options === 'string') {
+        this.editingField.options = this.editingField.options.split(',').map((opt: string, i: number) => ({
+          label: opt.trim(),
+          value: opt.trim() || i
+        }));
+      }
+    }
+  
+    // Add the field to the current node
+    this.addFieldTargetNode.fields.push(this.editingField);
+    this.addFieldTargetNode.layoutConfig = this.getLayoutConfig(this.addFieldTargetNode.fields);
 
+    console.log(this.addFieldTargetNode.fields, ": this.addFieldTargetNode.fields ===");
+    console.log(this.addFieldTargetNode.layoutConfig, ": this.addFieldTargetNode.layoutConfig ===");
+  
+    this.editingField = null;
+    this.showFieldConfig = false;
+  }
+  
+  removeOptionFormBuilder(i: number) {
+    if (this.editingField && this.editingField.options) {
+      this.editingField.options.splice(i, 1);
+    }
+  }
+  
+  addOptionFormBuilder() {
+    if (this.editingField) {
+      if (!this.editingField.options) this.editingField.options = [];
+      this.editingField.options.push({ label: '', value: '' });
+    }
+  }
+  
+  onOptionSourceChange() {
+    if (this.editingField) {
+      if (this.editingField.optionSource === 'static') {
+        if (!this.editingField.options) {
+          this.editingField.options = [];
+        }
+      } else if (this.editingField.optionSource === 'api') {
+        this.editingField.options = [];
+      } else if (this.editingField.optionSource === 'dependent') {
+        this.editingField.parentField = '';
+        this.editingField.dependentApiUrl = '';
+        this.editingField.dependentLabelKey = 'name';
+        this.editingField.dependentValueKey = 'id';
+        this.editingField.dependentParamName = '';
+        this.editingField.options = [];
+      }
+    }
+  }
+  
+  onApiSelect(event: any) {
+    if (this.editingField && event.target.value) {
+      const selectedApi = this.apiList.find(api => api.url === event.target.value);
+      if (selectedApi) {
+        this.editingField.apiUrl = selectedApi.url;
+        this.editingField.apiLabelKey = selectedApi.labelKey;
+        this.editingField.apiValueKey = selectedApi.valueKey;
+      }
+    }
+  }
+  
+  mapApiOptions(data: any[], labelKey: string, valueKey: string): any[] {
+    const getValue = (obj: any, path: string) =>
+      path.split('.').reduce((acc, part) => acc && acc[part], obj);
+    return data.map(item => ({
+      label: getValue(item, labelKey),
+      value: getValue(item, valueKey)
+    }));
+  }
 
+  closeAddFieldModal(){
+    this.addFieldModalRef.hide();
+  }
+
+  generateId() {
+    return Math.random().toString(36).substr(2, 9);
+  }
+
+  addFieldFromPalette(field: any) {
+    const newField: FormField = {
+      id: this.generateId(),
+      type: field.type,
+      label: field.label,
+      name: '',
+      required: false,
+      placeholder: '',
+      defaultValue: '',
+      options: field.type === 'select' || field.type === 'checkbox' || field.type === 'radio' ? [] : undefined,
+      optionSource: 'static',
+      width: 100,
+      rowPosition: 0,
+      multiple: false
+    };
+
+    this.editingField = newField;
+    this.editingIndex = -1;
+    this.showFieldConfig = true;
+    this.newFieldType = field;
+  }
+
+  addFieldToCurrentNode() {
+    if (!this.editingField) return;
+    this.editingField.width = Number(this.editingField.width);
+  
+    if (['select', 'checkbox', 'radio'].includes(this.editingField.type) && this.editingField.optionSource === 'static') {
+      if (this.editingField.options && typeof this.editingField.options === 'string') {
+        this.editingField.options = this.editingField.options.split(',').map((opt: string, i: number) => ({
+          label: opt.trim(),
+          value: opt.trim() || i
+        }));
+      }
+    }
+
+    this.currentNode.fields.push(this.editingField);
+    this.currentNode.layoutConfig = this.getLayoutConfig(this.currentNode.fields);
+    
+    console.log('Field added to current node:', this.currentNode);
+    console.log('Updated fields:', this.currentNode.fields);
+  
+    this.editingField = null;
+    this.showFieldConfig = false;
+    this.closeAddFieldModal();
+  }
+
+  loadApiOptionsFormBuilder() {
+    if (this.editingField && this.editingField.apiUrl) {
+      this.http.get<any[]>(this.editingField.apiUrl).subscribe({
+        next: (data) => {
+          this.editingField.options = this.mapApiOptions(data, this.editingField.apiLabelKey, this.editingField.apiValueKey);
+        },
+        error: (error) => {
+          console.error('Error loading API options:', error);
+        }
+      });
+    }
+  }
+
+  getAvailableParentFields(currentField: any): any[] {
+    if (!this.currentNode || !this.currentNode.fields) return [];
+    
+    return this.currentNode.fields.filter(field =>
+      field.name !== currentField.name &&
+      ['select', 'radio'].includes(field.type) &&
+      field.optionSource !== 'dependent'
+    );
+  }
+  
+  onParentFieldChange() {
+    if (this.editingField && this.editingField.parentField) {
+      const parentField = this.currentNode.fields.find(f => f.name === this.editingField.parentField);
+      
+      if (parentField) {
+        // Set default parameter name if not specified
+        if (!this.editingField.dependentParamName) {
+          this.editingField.dependentParamName = parentField.name;
+        }
+        
+        // Set default API URL template if not specified
+        if (!this.editingField.dependentApiUrl) {
+          this.editingField.dependentApiUrl = `https://api.example.com/data?${this.editingField.dependentParamName}={parentValue}`;
+        }
+        
+        // Initialize dependency tracking objects if they don't exist
+        if (!this.currentNode.fieldDependencies) {
+          this.currentNode.fieldDependencies = {};
+        }
+        if (!this.currentNode.dependentFieldsMap) {
+          this.currentNode.dependentFieldsMap = {};
+        }
+        
+        // Update dependency mappings
+        this.currentNode.fieldDependencies[this.editingField.name] = this.editingField.parentField;
+        
+        if (!this.currentNode.dependentFieldsMap[this.editingField.parentField]) {
+          this.currentNode.dependentFieldsMap[this.editingField.parentField] = [];
+        }
+        this.currentNode.dependentFieldsMap[this.editingField.parentField].push(this.editingField.name);
+      }
+    }
+  }
+
+  loadDependentOptionsFormBuilder() {
+    if (!this.editingField.parentField || !this.editingField.dependentApiUrl) {
+      return;
+    }
+  
+    // For preview, we'll use a mock value - in real implementation, 
+    // this would be called when parent field value changes
+    const mockParentValue = '1'; // This would be the actual selected value
+    const url = this.editingField.dependentApiUrl.replace('{parentValue}', mockParentValue);
+  
+    this.http.get<any[]>(url).subscribe({
+      next: (response) => {
+        this.editingField.options = response.map(item => ({
+          label: item[this.editingField.dependentLabelKey || 'name'],
+          value: item[this.editingField.dependentValueKey || 'id']
+        }));
+      },
+      error: (error) => {
+        console.error('Error loading dependent options:', error);
+        this.editingField.options = [];
+      }
+    });
+  }
 
 
 
