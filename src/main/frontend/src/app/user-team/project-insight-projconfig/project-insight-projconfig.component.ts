@@ -99,6 +99,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   showFieldConfig = false;
   editingField: FormField | null = null;
   editingIndex: number = -1;
+  editingFieldIndex: number = -1;
+  originalFieldData: any = null;
+  showExistingFieldsList: boolean = false;
 
   apiList = [];
 
@@ -287,6 +290,27 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   openDeleteProjectInsight(projectInsightId: any){
     this.modalRef = this.modalService.show(this.deleteTemplate, { class: 'modal-sm' });
     this.projectInsightId = projectInsightId;
+  }
+
+  editExsitingFields() {
+    this.showExistingFieldsList = true;
+    this.newFieldType = null;
+    this.editingField = null;
+    this.editingFieldIndex = -1;
+  }
+
+  showExistingFields() {
+    this.showExistingFieldsList = true;
+    this.newFieldType = null;
+    this.editingField = null;
+    this.editingFieldIndex = -1;
+  }
+
+  backToFieldPalette() {
+    this.showExistingFieldsList = false;
+    this.newFieldType = null;
+    this.editingField = null;
+    this.editingFieldIndex = -1;
   }
 
   populateFormWithData(data: any): void {
@@ -1548,6 +1572,64 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   showFieldTypePalette() {
     this.addFieldModalRef = this.modalService.show(this.addFieldModal);
   }
+
+  editExistingField(field: any, index: number) {
+    this.editingField = JSON.parse(JSON.stringify(field));
+    this.editingFieldIndex = index;
+    this.originalFieldData = JSON.parse(JSON.stringify(field));
+    this.newFieldType = null;
+    this.showExistingFieldsList = false;
+    
+    if (['select', 'checkbox', 'radio'].includes(this.editingField.type) && !this.editingField.options) {
+      this.editingField.options = [];
+    }
+
+    if (this.editingField.type === 'table' && !this.editingField.tableConfig) {
+      this.editingField.tableConfig = {
+        columns: [{ name: 'col1', label: 'Column 1', type: 'text' }],
+        rows: 1
+      };
+    }
+  }
+
+  saveEditedField() {
+    if (!this.editingField || this.editingFieldIndex === -1) return;
+    if (!this.editingField.label || !this.editingField.name) {
+      alert('Label and Name are required fields');
+      return;
+    }
+
+    this.currentNode.fields[this.editingFieldIndex] = { ...this.editingField };
+    
+    this.currentNode.layoutConfig = this.getLayoutConfig(this.currentNode.fields);
+    
+    this.editingField = null;
+    this.editingFieldIndex = -1;
+    this.originalFieldData = null;
+    this.showExistingFieldsList = false;
+    this.newFieldType = null;
+    
+    this.closeAddFieldModal();
+    console.log('Field updated successfully:', this.currentNode.fields[this.editingFieldIndex]);
+  }
+
+  deleteField() {
+    if (this.editingFieldIndex === -1) return;
+    
+    if (confirm('Are you sure you want to delete this field?')) {
+      this.currentNode.fields.splice(this.editingFieldIndex, 1);
+      this.currentNode.layoutConfig = this.getLayoutConfig(this.currentNode.fields);
+      this.editingField = null;
+      this.editingFieldIndex = -1;
+      this.originalFieldData = null;
+      this.showExistingFieldsList = false;
+      this.newFieldType = null;
+      
+      this.closeAddFieldModal();
+      
+      console.log('Field deleted successfully');
+    }
+  }
   
   startFieldConfig(type: any) {
     this.editingField = {
@@ -1665,7 +1747,14 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   closeAddFieldModal(){
-    this.addFieldModalRef.hide();
+    if (this.addFieldModalRef) {
+      this.addFieldModalRef.hide();
+    }
+    this.editingField = null;
+    this.editingFieldIndex = -1;
+    this.originalFieldData = null;
+    this.showExistingFieldsList = false;
+    this.newFieldType = null;
   }
 
   generateId() {
@@ -1701,6 +1790,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.editingIndex = -1;
     this.showFieldConfig = true;
     this.newFieldType = field;
+
+    this.editingFieldIndex = -1;
+    this.showExistingFieldsList = false;
   }
 
   addFieldToCurrentNode() {
@@ -1723,7 +1815,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     console.log('Updated fields:', this.currentNode.fields);
   
     this.editingField = null;
-    this.showFieldConfig = false;
+    this.editingFieldIndex = -1;
+    this.showExistingFieldsList = false;
+    this.newFieldType = null;
     this.closeAddFieldModal();
   }
 

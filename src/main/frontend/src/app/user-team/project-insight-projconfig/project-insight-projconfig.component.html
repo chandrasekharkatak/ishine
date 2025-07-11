@@ -657,19 +657,47 @@
 <!-- Add New Field Modal -->
 <ng-template #addFieldModal>
   <div class="modal-header">
-    <h5>Add New Field</h5>
+    <h5>{{ editingFieldIndex >= 0 ? 'Edit Field' : 'Add New Field' }}</h5>
     <button type="button" class="close" (click)="closeAddFieldModal()">&times;</button>
   </div>
   <div class="modal-body">
-    <div *ngIf="!newFieldType">
+    <div *ngIf="!newFieldType && editingFieldIndex === -1">
+      <div class="mb-2">
+        <button class="btn btn-outline-primary btn-block" (click)="showExistingFields()">
+          <em class="fa fa-edit"></em> Edit Existing Fields
+        </button>
+      </div>
       <div *ngFor="let type of fieldPalette" class="mb-2">
         <button class="btn btn-outline-primary btn-block" (click)="addFieldFromPalette(type)">
           <i [class]="getFieldIcon(type.type)"></i> {{type.label}}
         </button>
       </div>
     </div>
-    <div *ngIf="newFieldType">
-      <form (ngSubmit)="addFieldToCurrentNode()">
+
+    <!-- Show existing fields list -->
+    <div *ngIf="!newFieldType && editingFieldIndex === -1 && showExistingFieldsList">
+      <div class="mb-3">
+        <h6>Select a field to edit:</h6>
+      </div>
+      <div *ngFor="let field of currentNode?.fields; let i = index" class="mb-2">
+        <button class="btn btn-outline-secondary btn-block text-left" (click)="editExistingField(field, i)">
+          <i [class]="getFieldIcon(field.type)"></i> 
+          {{field.label || field.name || 'Unnamed Field'}} 
+          <span class="badge badge-info ml-2">{{field.type}}</span>
+        </button>
+      </div>
+      <div *ngIf="!currentNode?.fields?.length" class="text-muted">
+        No fields available to edit.
+      </div>
+      <div class="mt-3">
+        <button class="btn btn-outline-secondary btn-sm" (click)="backToFieldPalette()">
+          <i class="fa fa-arrow-left"></i> Back to Field Types
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="newFieldType || editingFieldIndex >= 0">
+      <form (ngSubmit)="editingFieldIndex >= 0 ? saveEditedField() : addFieldToCurrentNode()">
         <div class="form-group">
           <label>Label</label>
           <input class="form-control" [(ngModel)]="editingField.label" name="label" required />
@@ -697,8 +725,8 @@
               <label>Required</label>
               <div class="custom-control custom-checkbox">
                 <input type="checkbox" class="custom-control-input" [(ngModel)]="editingField.required" name="required"
-                  id="requiredCheck">
-                <label class="custom-control-label" for="requiredCheck">Required Field</label>
+                  [id]="editingFieldIndex >= 0 ? 'editRequiredCheck' : 'requiredCheck'">
+                <label class="custom-control-label" [for]="editingFieldIndex >= 0 ? 'editRequiredCheck' : 'requiredCheck'">Required Field</label>
               </div>
             </div>
           </div>
@@ -718,13 +746,13 @@
           <label>Table Columns</label>
           <div *ngFor="let col of editingField.tableConfig.columns; let i = index" class="row mb-1">
             <div class="col-md-4">
-              <input class="form-control" [(ngModel)]="col.label" placeholder="Column Label" name="colLabel{{i}}" />
+              <input class="form-control" [(ngModel)]="col.label" placeholder="Column Label" [name]="'colLabel' + (editingFieldIndex >= 0 ? 'Edit' : '') + i" />
             </div>
             <div class="col-md-4">
-              <input class="form-control" [(ngModel)]="col.name" placeholder="Column Name" name="colName{{i}}" />
+              <input class="form-control" [(ngModel)]="col.name" placeholder="Column Name" [name]="'colName' + (editingFieldIndex >= 0 ? 'Edit' : '') + i" />
             </div>
             <div class="col-md-3">
-              <select class="form-control" [(ngModel)]="col.type" name="colType{{i}}">
+              <select class="form-control" [(ngModel)]="col.type" [name]="'colType' + (editingFieldIndex >= 0 ? 'Edit' : '') + i">
                 <option value="text">Text</option>
                 <option value="number">Number</option>
                 <option value="date">Date</option>
@@ -743,7 +771,7 @@
           <div class="mt-2">
             <label>Number of Rows</label>
             <input type="number" class="form-control" [ngModel]="editingField.tableConfig.rows"
-              (ngModelChange)="setTableRows($event)" name="tableRows" min="1" />
+              (ngModelChange)="setTableRows($event)" [name]="'tableRows' + (editingFieldIndex >= 0 ? 'Edit' : '')" min="1" />
           </div>
         </div>
 
@@ -764,10 +792,10 @@
             <div *ngFor="let opt of editingField.options; let i = index" class="option-item">
               <div class="row">
                 <div class="col-md-5">
-                  <input class="form-control" [(ngModel)]="opt.label" placeholder="Label" name="optLabel{{i}}" />
+                  <input class="form-control" [(ngModel)]="opt.label" placeholder="Label" [name]="'optLabel' + (editingFieldIndex >= 0 ? 'Edit' : '') + i" />
                 </div>
                 <div class="col-md-5">
-                  <input class="form-control" [(ngModel)]="opt.value" placeholder="Value" name="optValue{{i}}" />
+                  <input class="form-control" [(ngModel)]="opt.value" placeholder="Value" [name]="'optValue' + (editingFieldIndex >= 0 ? 'Edit' : '') + i" />
                 </div>
                 <div class="col-md-2">
                   <button class="btn btn-danger" (click)="removeOptionFormBuilder(i)" type="button">
@@ -893,9 +921,13 @@
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-outline-primary btn-sm" type="submit">Save</button>
+          <button class="btn btn-outline-primary btn-sm" type="submit">
+            {{ editingFieldIndex >= 0 ? 'Save Changes' : 'Save' }}
+          </button>
           <button class="btn btn-outline-secondary btn-sm ml-2" type="button"
             (click)="closeAddFieldModal()">Cancel</button>
+          <button *ngIf="editingFieldIndex >= 0" class="btn btn-outline-danger btn-sm ml-2" type="button"
+            (click)="deleteField()">Delete Field</button>
         </div>
       </form>
     </div>
