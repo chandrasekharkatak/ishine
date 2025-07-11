@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -62,18 +63,17 @@ public class DepartmentController {
 		return response;
 	}
 
-	@RequestMapping(value = "/deleteDepartment", method = RequestMethod.POST)
+	@PostMapping(value = "/deleteDepartment")
 	public ServiceResponse deleteDepartment(@RequestBody DepartmentDTO departmentDTO) {
-		ServiceResponse response = departmentService.deleteDepartment(departmentDTO);
-		return response;
+		return departmentService.deleteDepartment(departmentDTO);
 	}
 	
-	@RequestMapping(value = "/changeDepartmentJobRoleMapping", method = RequestMethod.POST)
-	public ServiceResponse changeDepartmentJobRoleMapping(@RequestBody DepartmentDTO departmentDTO) {
-		ServiceResponse response = departmentService.changeDepartmentJobRoleMapping(departmentDTO);
-		return response;
+	@PostMapping(value = "/changeDepartmentJobRoleMapping")
+	public ServiceResponse changeDepartmentJobRoleMapping(HttpServletRequest httpRequest, @RequestBody DepartmentDTO departmentDTO) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return departmentService.changeDepartmentJobRoleMapping(departmentDTO);
 	}
-	
+
 	@RequestMapping(value = "/checkDepartmentName", method = RequestMethod.POST)
 	public ServiceResponse checkDepartmentName(@RequestBody DepartmentDTO departmentDTO) {
 		ServiceResponse response = departmentService.checkDepartmentName(departmentDTO);

@@ -24,11 +24,20 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.FCLineItemDTO;
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
+import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
+import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.model.ApiLog;
+import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.UserSession;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
@@ -46,6 +55,27 @@ public class PoPortalAPIService {
 	@Value("${poPortal.api.allProjects}")
 	private String allPoPortalProjects;
 	
+	@Value("${poPortal.api.getProjectById}")
+	private String poPortalProjectByIdURL;
+	
+	@Value("${poPortal.api.syncDepartment}")
+	private String syncDepartmentWithPoPortal;
+	
+	@Value("${poPortal.api.isDepartmentUsed}")
+	private String isDeparmentUsedInPoPortal;
+	
+	@Value("${poPortal.api.deleteDepartment}")
+	private String deleteDeparmentFromPoPortal;
+	
+	@Value("${poPortal.api.syncJobRole}")
+	private String syncJobRoleWithPoPortal;
+	
+	@Value("${poPortal.api.isJobRoleUsed}")
+	private String isJobRoleUsedInPoPortal;
+	
+	@Value("${poPortal.api.deleteJobRole}")
+	private String deleteJobRoleFromPoPortal;
+	
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
 	
@@ -60,6 +90,15 @@ public class PoPortalAPIService {
 
 	@Autowired
 	private UserSessionRepository userSessionRepo;
+	
+	@Autowired
+	private DepartmentRepository departmentRepository;
+
+	@Autowired
+	private JobRoleRepository jobRoleRepository;
+	
+	@Autowired
+	private EmployeeRepository employeeRepository;
 	
 	public ServiceResponse callGetFCLineItemDetails(Integer projectId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -224,6 +263,318 @@ public class PoPortalAPIService {
 		return serviceResponse;
 	}
 	
+	public ServiceResponse fetchPoPortalProjectById(Long projectId) {
+        ServiceResponse serviceResponse = new ServiceResponse();
+        ApiLog initialLog = null;
+        String traceId = UUID.randomUUID().toString();
+        int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        String exceptionDetailsForLog = null;
+        ResponseEntity<ResourceManagementDTO> apiResponse = null;
+        try {
+        	initialLog = apiLogUtility.startLog(traceId, "fetchPoPortalProjectById", "Ishine", getCurrentUserId(), httpRequest);
+	        if (initialLog == null || initialLog.getId() == null) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the API call.");
+	            return serviceResponse;
+	        }
+
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.set("X-Trace-Id", traceId);
+	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+	        HttpEntity<?> entity = new HttpEntity<>(headers);
+	        String url = poPortalProjectByIdURL + projectId;
+            apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, ResourceManagementDTO.class);
+            finalHttpStatusCode = apiResponse.getStatusCodeValue();
+
+            if (apiResponse.getStatusCode() == HttpStatus.OK) {
+                serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                serviceResponse.setServiceResponse(apiResponse.getBody());
+            } else {
+                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                serviceResponse.setServiceResponse("Error fetching project details from PO Portal. Status: " + apiResponse.getStatusCode());
+            }
+        } catch (Exception e) {
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            serviceResponse.setServiceResponse("Failed to communicate with PO Portal to fetch project details.");
+            exceptionDetailsForLog = e.toString();
+        } finally {
+        	if (initialLog != null) {
+				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
+				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+			}
+        }
+        return serviceResponse;
+    }
+	
+	public ServiceResponse syncDeleteDepartmentWithPoPortal(DepartmentDTO departmentDTO,String endPointName) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		ApiLog initialLog = null;
+		String traceId = UUID.randomUUID().toString();
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String exceptionDetailsForLog = null;
+		try {
+			initialLog = apiLogUtility.startLog(traceId, endPointName, "Ishine", getCurrentUserId(), httpRequest);
+			if (initialLog == null || initialLog.getId() == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
+				return serviceResponse;
+			}
+			// Sync Deleted Dept with PoPortal
+			Department deptObj = departmentRepository.findByDeptId(departmentDTO.getDeptId());
+			if (deptObj != null) {
+				Employee empObj = employeeRepository.findByEmpId(deptObj.getHodId());
+				DepartmentDTO syncObject = new DepartmentDTO();
+				syncObject.setDeptId(deptObj.getDeptId());
+				syncObject.setDeptName(deptObj.getName());
+				syncObject.setHodEmploymentId("A-".concat(empObj.getEmployeementId().toString()));
+				
+				final String syncUrl = syncDepartmentWithPoPortal;
+				HttpHeaders headers = new HttpHeaders();
+				headers.set("X-Trace-Id", traceId);
+				headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+				headers.setContentType(MediaType.APPLICATION_JSON);
+				HttpEntity<Object> requestEntity = new HttpEntity<>(syncObject, headers);
+				ResponseEntity<String> responseEntity = restTemplate.exchange(syncUrl,HttpMethod.POST,requestEntity,String.class,departmentDTO.getOldDeptId());
+				String syncResponse = responseEntity.getBody();
+				finalHttpStatusCode = responseEntity.getStatusCode().value();
+				if (responseEntity.getStatusCode() == HttpStatus.OK) {
+					serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					serviceResponse.setServiceResponse("Department Deleted & Synced with PoPortal");
+				}				
+			} else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Department not found.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			serviceResponse.setServiceResponse("Something Went Wrong.");
+			serviceResponse.setServiceError(e.getMessage());
+			exceptionDetailsForLog = e.toString();
+		} finally {
+			if (initialLog != null) {
+				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
+				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+			}
+		}
+		return serviceResponse;
+	}
+	
+	public ServiceResponse isDepartmentUsedInPoPortal(Long departmentId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		ApiLog initialLog = null;
+		String traceId = UUID.randomUUID().toString();
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String exceptionDetailsForLog = null;
+		initialLog = apiLogUtility.startLog(traceId, "deleteDepartment", "Ishine", getCurrentUserId(),httpRequest);
+
+		if (initialLog == null || initialLog.getId() == null) {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
+			return serviceResponse;
+		}
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("X-Trace-Id", traceId);
+		headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+		HttpEntity<?> entity = new HttpEntity<>(headers);
+		String url = isDeparmentUsedInPoPortal + departmentId;
+		try {
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			if (response.getStatusCode() == HttpStatus.OK) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(response.getBody());
+				finalHttpStatusCode = HttpStatus.OK.value();
+			} else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("An error occurred while verifying department usage in PoPortal.");
+			}
+		} catch (Exception e) {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("An error occurred while verifying department usage in PoPortal.");
+			exceptionDetailsForLog = e.toString();
+			return serviceResponse;
+		} finally {
+			String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
+			apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+		}
+		return serviceResponse;
+	}
+	
+	public void deleteDepartment(Long departmentId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		ApiLog initialLog = null;
+		String traceId = UUID.randomUUID().toString();
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String exceptionDetailsForLog = null;
+		initialLog = apiLogUtility.startLog(traceId, "deleteDepartment", "Ishine", getCurrentUserId(), httpRequest);
+
+		if (initialLog == null || initialLog.getId() == null) {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
+			return;
+		}
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("X-Trace-Id", traceId);
+		headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+		HttpEntity<?> entity = new HttpEntity<>(headers);
+		String url = deleteDeparmentFromPoPortal + departmentId;
+		try {
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
+			if (response.getStatusCode() == HttpStatus.OK) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(response.getBody());
+				finalHttpStatusCode = HttpStatus.OK.value();
+			} else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("An error occurred while deleting department from PoPortal.");
+			}
+		} catch (Exception e) {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("An error occurred while deleting department from PoPortal.");
+			exceptionDetailsForLog = e.toString();
+		} finally {
+			String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
+			apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+		}
+	}
+	
+	public ServiceResponse syncDeleteJobRoleWithPoPortal(JobRoleDTO jobRoleDTO,String endPointName) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		ApiLog initialLog = null;
+		String traceId = UUID.randomUUID().toString();
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String exceptionDetailsForLog = null;
+		try {
+			initialLog = apiLogUtility.startLog(traceId, endPointName, "Ishine", getCurrentUserId(), httpRequest);
+			if (initialLog == null || initialLog.getId() == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
+				return serviceResponse;
+			}
+			// Sync Deleted JobRole with PoPortal
+			JobRole jobRoleObject = jobRoleRepository.findByjobRoleId(jobRoleDTO.getJobRoleId());
+			if(jobRoleObject != null) {
+				JobRoleDTO syncObject = new JobRoleDTO();
+				syncObject.setRoleId(jobRoleObject.getJobRoleId());
+				syncObject.setRoleName(jobRoleObject.getName());
+				syncObject.setDeptId(jobRoleObject.getDeptId());
+				
+				final String syncUrl = syncJobRoleWithPoPortal;
+				HttpHeaders headers = new HttpHeaders();
+				headers.set("X-Trace-Id", traceId);
+				headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+				headers.setContentType(MediaType.APPLICATION_JSON);
+				HttpEntity<Object> requestEntity = new HttpEntity<>(syncObject, headers);
+				ResponseEntity<String> responseEntity = restTemplate.exchange(syncUrl,HttpMethod.POST,requestEntity,String.class,jobRoleDTO.getOldJobRoleId());
+				
+				String syncResponse = responseEntity.getBody();
+				finalHttpStatusCode = responseEntity.getStatusCode().value();
+				if (responseEntity.getStatusCode() == HttpStatus.OK) {
+					serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					serviceResponse.setServiceResponse("Job Role deleted & Synced with PoPortal.");
+				}				
+			} else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("JobRole not found.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			serviceResponse.setServiceResponse("Something Went Wrong.");
+			serviceResponse.setServiceError(e.getMessage());
+			exceptionDetailsForLog = e.toString();
+		} finally {
+			if (initialLog != null) {
+				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
+				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+			}
+		}
+		return serviceResponse;
+	}
+	
+	public ServiceResponse isJobRoleUsedInPoPortal(Long jobRoleId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		ApiLog initialLog = null;
+		String traceId = UUID.randomUUID().toString();
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String exceptionDetailsForLog = null;
+		initialLog = apiLogUtility.startLog(traceId, "deleteJobRole", "Ishine", getCurrentUserId(),httpRequest);
+
+		if (initialLog == null || initialLog.getId() == null) {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
+			return serviceResponse;
+		}
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("X-Trace-Id", traceId);
+		headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+		HttpEntity<?> entity = new HttpEntity<>(headers);
+		String url = isJobRoleUsedInPoPortal + jobRoleId;
+		try {
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			if (response.getStatusCode() == HttpStatus.OK) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(response.getBody());
+				finalHttpStatusCode = HttpStatus.OK.value();
+			} else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("An error occurred while verifying JobRole usage in PoPortal.");
+			}
+		} catch (Exception e) {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("An error occurred while verifying JobRole usage in PoPortal.");
+			exceptionDetailsForLog = e.toString();
+			return serviceResponse;
+		} finally {
+			String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
+			apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+		}
+		return serviceResponse;
+	}
+
+	public void deleteJobRole(Long jobRoleId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		ApiLog initialLog = null;
+		String traceId = UUID.randomUUID().toString();
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String exceptionDetailsForLog = null;
+		initialLog = apiLogUtility.startLog(traceId, "deleteJobRole", "Ishine", getCurrentUserId(), httpRequest);
+
+		if (initialLog == null || initialLog.getId() == null) {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
+			return;
+		}
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("X-Trace-Id", traceId);
+		headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+		HttpEntity<?> entity = new HttpEntity<>(headers);
+		String url = deleteJobRoleFromPoPortal + jobRoleId;
+		try {
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
+			if (response.getStatusCode() == HttpStatus.OK) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(response.getBody());
+				finalHttpStatusCode = HttpStatus.OK.value();
+			} else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("An error occurred while deleting JobRole from PoPortal.");
+			}
+		} catch (Exception e) {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("An error occurred while deleting JobRole from PoPortal.");
+			exceptionDetailsForLog = e.toString();
+		} finally {
+			String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
+			apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+		}
+	}
+	
+	
 	private Long getCurrentUserId() {
 		String sessionToken = httpRequest.getHeader("Authorization");
 		if (sessionToken != null) {
@@ -231,8 +582,6 @@ public class PoPortalAPIService {
 		}
 		UserSession existingUserSession = userSessionRepo.findBySessionKey(sessionToken);
 		return existingUserSession != null ? existingUserSession.getEmpId() : null;
-	}
-	
-	
+	}	
 	
 }
