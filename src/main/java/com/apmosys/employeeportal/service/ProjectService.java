@@ -2929,11 +2929,29 @@ public class ProjectService {
 	     List<ProjectPoPortalDTO> list = new ArrayList<>();
 
 	     try {
-	         ProjectPoPortalDTO[] projects = restTemplate.getForObject(allPoPortalProjects, ProjectPoPortalDTO[].class);
-	         list = Arrays.asList(projects != null ? projects : new ProjectPoPortalDTO[0]);
-	         String msg = "Total Projects Fetched = " + list.size() + "\n";
-	         logBuilder.append(msg);
-	         System.out.println(msg);
+	    	 ProjectPoPortalDTO[] projects = new ProjectPoPortalDTO[0];
+	    	 ServiceResponse response = poPortalAPIService.getAllProjectsFromPoPortal();
+	    	 if (response != null) { 
+	    		    projects = (ProjectPoPortalDTO[]) response.getServiceResponse();
+	    		    if (projects != null) {
+	    		        list = Arrays.asList(projects);
+	    		        String msg = "Total Projects Fetched = " + list.size() + "\n";
+	    		        logBuilder.append(msg);
+	    		        System.out.println(msg);
+	    		    } else {
+	    		        String msg = "Project fetch successful, but the project list was null.\n";
+	    		        logBuilder.append(msg);
+	    		        System.out.println(msg);
+	    		    }
+	    		} else {
+	    		    String errorMsg = "Failed to fetch projects from PO Portal.";
+	    		    if (response != null && response.getServiceMessage() != null) { 
+	    		        errorMsg += " Reason: " + response.getServiceMessage();
+	    		    }
+	    		    logBuilder.append(errorMsg).append("\n");
+	    		    System.err.println(errorMsg); 
+	    		}
+	    	 
 	     } catch (RestClientException e) {
 	         String msg = "Error fetching projects from PoPortal API: " + e.getMessage();
 	         logBuilder.append(msg);
