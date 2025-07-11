@@ -22,6 +22,9 @@ import { AngularEditorConfig } from '@kolkov/angular-editor';
 import { Document } from 'src/app/models/document';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ApiSourceService } from 'src/app/services/api-source.service';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+
 interface FormNode {
   id: string;
   formName: string;
@@ -175,7 +178,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   // Public property for template binding
   layoutConfig: any[][] = [];
 
-  // Dynamic form layouts (these will be loaded from your JSON configurations)
   projectFormLayout: any;
   groupFormLayout: any;
   subGroupFormLayout: any;
@@ -196,13 +198,11 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   // Dynamic form fields and layout for the group/module
   currentGroupObj: any = {};
-
-  // Updated data structure to handle nested forms
   formStructure: any = null;
   currentFormData: any = {};
-  currentFormPath: string[] = []; // Track current form path like ['project', 'group1', 'subgroup1']
+  currentFormPath: string[] = [];
 
-  rootNode: FormNode = null; // The root of the form tree
+  rootNode: FormNode = null;
   showContextMenu = false;
   contextMenuX = 0;
   contextMenuY = 0;
@@ -553,11 +553,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     const selectedValue = event.value;
     const field = this.fields.find(f => f.name === fieldName);
 
-    // Check if this field has dependent fields
     if (this.dependentFieldsMap.has(fieldName)) {
       const dependentFields = this.dependentFieldsMap.get(fieldName)!;
 
-      // Clear and reload options for all dependent fields
       dependentFields.forEach(dependentFieldName => {
         this.handleDependentFieldChange(dependentFieldName, selectedValue);
       });
@@ -567,11 +565,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   onMultiSelectChange(event: any, field: any) {
     const selectedValues = event.value;
 
-    // Check if this field has dependent fields
     if (this.dependentFieldsMap.has(field.name)) {
       const dependentFields = this.dependentFieldsMap.get(field.name)!;
 
-      // Handle multi-select dependent fields
       dependentFields.forEach(dependentFieldName => {
         this.handleMultiSelectDependentFieldChange(dependentFieldName, selectedValues);
       });
@@ -581,18 +577,15 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   onDependentSelectChange(event: any, field: any, parentValue: string) {
     const selectedValue = event.value;
 
-    // Check if this field has dependent fields
     if (this.dependentFieldsMap.has(field.name)) {
       const dependentFields = this.dependentFieldsMap.get(field.name)!;
 
-      // Clear and reload options for all dependent fields
       dependentFields.forEach(dependentFieldName => {
         this.handleDependentFieldChange(dependentFieldName, selectedValue);
       });
     }
   }
 
-  // Method to update layout when fields change
   private updateLayout(): void {
     if (this.rootNode) {
       this.rootNode.layoutConfig = this.getLayoutConfig(this.rootNode.fields);
@@ -608,21 +601,15 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   async handleDependentFieldChange(fieldName: string, parentValue: string) {
     const field = this.fields.find(f => f.name === fieldName);
     if (!field || field.optionSource !== 'dependent') return;
-
-    // Prevent infinite loops by checking if the value is actually changing
     const currentValue = this.dynamicForm.get(fieldName)?.value;
     if (currentValue === parentValue) return;
 
-    // Clear the dependent field's value
     this.dynamicForm.get(fieldName)?.setValue('');
 
-    // Clear existing options
     field.options = [];
 
-    // Load new options only if parent value is not empty
     if (parentValue) {
       await this.loadDependentOptions(field, parentValue);
-      // Update layout after options are loaded
       this.updateLayout();
     }
   }
@@ -630,14 +617,10 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   async handleMultiSelectDependentFieldChange(fieldName: string, parentValues: string[]) {
     const field = this.fields.find(f => f.name === fieldName);
     if (!field || field.optionSource !== 'dependent') return;
-
-    // Clear the dependent field's value
     this.dynamicForm.get(fieldName)?.setValue('');
 
-    // Clear existing options
     field.options = [];
 
-    // Load new options for each parent value only if there are values
     if (parentValues && parentValues.length > 0) {
       const allOptions: any[] = [];
       for (const parentValue of parentValues) {
@@ -649,8 +632,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
       // Remove duplicates
       field.options = this.removeDuplicateOptions(allOptions);
-
-      // Update layout after options are loaded
       this.updateLayout();
     }
   }
@@ -689,7 +670,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       }
     } catch (error) {
       console.error(`Error loading dependent options for ${field.name}:`, error);
-      // Return empty array on error to prevent hanging
       return [];
     }
 
@@ -717,22 +697,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
     return Array.from(rows.values());
   }
-
-  // initializeDependencies() {
-  //   this.dependentFieldsMap.clear();
-  //   this.fieldDependencies.clear();
-
-  //   this.fields.forEach(field => {
-  //     if (field.optionSource === 'dependent' && field.parentField) {
-  //       this.fieldDependencies.set(field.name, field.parentField);
-
-  //       if (!this.dependentFieldsMap.has(field.parentField)) {
-  //         this.dependentFieldsMap.set(field.parentField, []);
-  //       }
-  //       this.dependentFieldsMap.get(field.parentField)!.push(field.name);
-  //     }
-  //   });
-  // }
 
   async loadInitialOptions() {
     const promises = [];
@@ -880,20 +844,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.modalRef.hide();
   }
 
-  // loadFormLayouts() {
-  //   // Load your JSON form layouts
-  //   // This is where you'll fetch your dynamic form configurations
-  //   this.projectFormLayout = {
-  //     // Your project form layout JSON
-  //   };
-  //   this.groupFormLayout = {
-  //     // Your group form layout JSON
-  //   };
-  //   this.subGroupFormLayout = {
-  //     // Your subgroup form layout JSON
-  //   };
-  // }
-
   //Breadcrumb
   startProjectForm() {
     this.currentNodePath = [this.rootNode];
@@ -928,21 +878,16 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   // --------------------- SubGroup impl------------------
   addSubGroup() {
     let newSubGroup: FormNode;
-
-    // Try to get the template subgroup from the first group and its first child
     const templateSubGroup = this.rootNode.children?.[0]?.children?.[0] || null;
-    console.log('Template SubGroup:', templateSubGroup);
 
     if (templateSubGroup) {
       newSubGroup = this.cloneFormNode(templateSubGroup, false);
     } else {
-      // Use default for the very first subgroup
       newSubGroup = this.getDefaultSubGroupStructure();
     }
 
     const node = this.currentNode;
 
-    // If at project level, move to first group
     if (node === this.rootNode) {
       if (this.rootNode.children?.[0]) {
         this.currentNodePath.push(this.rootNode.children[0]);
@@ -953,30 +898,42 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       return;
     }
 
-    // If at group level, add to its children
     if (this.rootNode.children.includes(node)) {
       node.children.push(newSubGroup);
       this.currentNodePath.push(newSubGroup);
       return;
     }
 
-    // If at subgroup level, add sibling to parent group
     const parentGroup = this.findParentNode(node);
     if (parentGroup) {
       parentGroup.children.push(newSubGroup);
       this.currentNodePath.push(newSubGroup);
       return;
     }
-
-    // Fallback error
     console.error('Cannot find parent group for subgroup');
   }
 
-  private findExistingSubGroup(groupNode: FormNode): FormNode | null {
-    if (!groupNode.children || groupNode.children.length === 0) {
-      return null;
+  addSubSubGroup() {
+    const node = this.currentNode;
+    if (node === this.rootNode) {
+      return;
     }
-    return groupNode.children[0];
+
+    const templateSubGroup = this.rootNode.children?.[0]?.children?.[0] || null;
+    let newSubGroup: FormNode;
+    if (templateSubGroup) {
+      newSubGroup = this.cloneFormNode(templateSubGroup, false);
+    } else {
+      newSubGroup = this.getDefaultSubGroupStructure();
+    }
+  
+    if (!node.children) node.children = [];
+    node.children.push(newSubGroup);
+    this.currentNodePath.push(newSubGroup);
+  }
+
+  isSubGroupOrDeeper(node: FormNode): boolean {
+    return node !== this.rootNode && !this.rootNode.children.includes(node);
   }
 
   private findParentNode(childNode: FormNode): FormNode | null {
@@ -1294,21 +1251,17 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     if (selection && selection.toString().trim().length > 0) {
       this.selectedText = selection.toString();
 
-      // Cast event.target to HTMLElement
       const element = event.target as HTMLElement;
       const rect = element.getBoundingClientRect();
 
-      // Get click coordinates
       this.contextMenuX = event.clientX;
       this.contextMenuY = event.clientY;
 
-      // Ensure menu stays within viewport
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      const menuWidth = 200; // Approximate width of context menu
-      const menuHeight = 160; // Approximate height of context menu
+      const menuWidth = 200;
+      const menuHeight = 160;
 
-      // Adjust if menu would go outside viewport
       if (this.contextMenuX + menuWidth > viewportWidth) {
         this.contextMenuX = viewportWidth - menuWidth;
       }
@@ -1616,8 +1569,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   deleteField() {
     if (this.editingFieldIndex === -1) return;
     
-    if (confirm('Are you sure you want to delete this field?')) {
-      this.currentNode.fields.splice(this.editingFieldIndex, 1);
+    this.currentNode.fields.splice(this.editingFieldIndex, 1);
       this.currentNode.layoutConfig = this.getLayoutConfig(this.currentNode.fields);
       this.editingField = null;
       this.editingFieldIndex = -1;
@@ -1628,7 +1580,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       this.closeAddFieldModal();
       
       console.log('Field deleted successfully');
-    }
   }
   
   startFieldConfig(type: any) {
@@ -1855,17 +1806,14 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       const parentField = this.currentNode.fields.find(f => f.name === this.editingField.parentField);
       
       if (parentField) {
-        // Set default parameter name if not specified
         if (!this.editingField.dependentParamName) {
           this.editingField.dependentParamName = parentField.name;
         }
         
-        // Set default API URL template if not specified
         if (!this.editingField.dependentApiUrl) {
           this.editingField.dependentApiUrl = `https://api.example.com/data?${this.editingField.dependentParamName}={parentValue}`;
         }
         
-        // Initialize dependency tracking objects if they don't exist
         if (!this.currentNode.fieldDependencies) {
           this.currentNode.fieldDependencies = {};
         }
@@ -1873,7 +1821,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
           this.currentNode.dependentFieldsMap = {};
         }
         
-        // Update dependency mappings
         this.currentNode.fieldDependencies[this.editingField.name] = this.editingField.parentField;
         
         if (!this.currentNode.dependentFieldsMap[this.editingField.parentField]) {
@@ -1908,11 +1855,253 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     });
   }
 
+  //  Import / Export Implementation
+  getFieldColumns(fields: any[]) {
+    return fields.map(f => ({
+      header: f.label || f.name,
+      key: f.name,
+      type: f.type
+    }));
+  }
+  
+  getDataRow(columns: any[], formData: any) {
+    const row: any = {};
+    columns.forEach(col => {
+      row[col.key] = formData ? formData[col.key] || '' : '';
+    });
+    return row;
+  }
 
+  collectEntities(
+    node: any,
+    parentId: string | null,
+    entityType: string,
+    sheets: any,
+    parentType: string | null = null,
+    indexPath: number[] = [],
+    parentReadableName: string = ''
+  ) {
+    if (!sheets[entityType]) {
+      const columns = this.getFieldColumns(node.fields || []);
+      
+      columns.unshift({ header: `${entityType} Name`, key: `${entityType}Name`, type: 'string' });
+      // Add technical columns (hidden)
+      columns.unshift({ header: `${entityType}Id`, key: `${entityType}Id`, type: 'id' });
+      if (parentType) {
+        columns.unshift({ header: `parent${parentType}Id`, key: `parent${parentType}Id`, type: 'id' });
+        columns.unshift({ header: `parent${parentType}Name`, key: `parent${parentType}Name`, type: 'string' });
+      }
+      sheets[entityType] = { columns, rows: [], hiddenCols: [] };
+    }
+    const columns = sheets[entityType].columns;
+  
+    const row = this.getDataRow(columns, node.formData || {});
+    row[`${entityType}Id`] = node.id;
+    if (parentType && parentId) row[`parent${parentType}Id`] = parentId;
+    if (parentType && parentReadableName) row[`parent${parentType}Name`] = parentReadableName;
+  
+    let readableName = '';
+    if (entityType.toLowerCase().includes('group') && indexPath.length > 0) {
+      readableName = indexPath.map((idx, i) => {
+        if (i === 0) return `Group-${idx + 1}`;
+        return `SubGroup-${idx + 1}`;
+      }).join(' ');
+    } else if (entityType.toLowerCase().includes('project')) {
+      readableName = node.formName || 'Project';
+    }
+    row[`${entityType}Name`] = readableName;
+  
+    sheets[entityType].rows.push(row);
+  
+    (node.fields || []).forEach(f => {
+      if (f.type === 'table' && node.formData && node.formData[f.name]) {
+        const tableData = node.formData[f.name];
+        if (Array.isArray(tableData) && f.tableConfig && f.tableConfig.columns) {
+          const tableSheetName = `${entityType}_${f.label || f.name}_${node.id}`;
+          if (!sheets[tableSheetName]) {
+            const tableColumns = f.tableConfig.columns.map((col: any) => ({
+              header: col.label,
+              key: col.name,
+              type: col.type
+            }));
+            sheets[tableSheetName] = { columns: tableColumns, rows: [] };
+          }
+          tableData.forEach((rowData: any) => {
+            sheets[tableSheetName].rows.push(this.getDataRow(sheets[tableSheetName].columns, rowData));
+          });
+        }
+      }
+    });
+  
+    (node.children || []).forEach((child, idx) => {
+      const childType = child.formName?.replace(/\s+/g, '') || 'Child';
+      this.collectEntities(
+        child,
+        node.id,
+        childType,
+        sheets,
+        entityType,
+        [...indexPath, idx],
+        readableName
+      );
+    });
+  }
+  
+  collectRows(node: any,parentId: string | null,level: string,rows: any[],columns: any[],idField: string,parentField: string,
+                   wb: XLSX.WorkBook,entityType: string) {
+    const row = this.getDataRow(columns, node.formData || {});
+    row[idField] = node.id;
+    if (parentId) row[parentField] = parentId;
+    rows.push(row);
+  
+    (node.fields || []).forEach(f => {
+      if (f.type === 'table' && node.formData && node.formData[f.name]) {
+        const tableData = node.formData[f.name];
+        if (Array.isArray(tableData) && f.tableConfig && f.tableConfig.columns) {
+          const tableColumns = f.tableConfig.columns.map((col: any) => ({
+            header: col.label,
+            key: col.name,
+            type: col.type
+          }));
+          const tableSheetData = [
+            tableColumns.map(c => c.header),
+            tableColumns.map(c => c.key),
+            tableColumns.map(c => c.type),
+            ...tableData.map((row: any) => tableColumns.map(c => row[c.key] || ''))
+          ];
+          const wsTable = XLSX.utils.aoa_to_sheet(tableSheetData);
+          const sheetName = `${entityType}_${f.label || f.name}_${node.id}`.substring(0, 31);
+          XLSX.utils.book_append_sheet(wb, wsTable, sheetName);
+        }
+      }
+    });
+  
+    (node.children || []).forEach(child => {
+      if (level === 'project') {
+        this.collectRows(child, node.id, 'group', rows, columns, 'groupId', 'parentProjectId', wb, 'Group');
+      } else if (level === 'group') {
+        this.collectRows(child, node.id, 'subgroup', rows, columns, 'subGroupId', 'parentGroupId', wb, 'SubGroup');
+      }
+    });
+  }
 
+  exportTemplate() {
+    const node = this.rootNode;
+    if (!node) return;
+  
+    const wb = XLSX.utils.book_new();
+    const sheets: any = {};
+  
+    // Start recursion with root node
+    this.collectEntities(node, null, node.formName.replace(/\s+/g, ''), sheets);
+  
+    // Write each sheet
+    Object.keys(sheets).forEach(sheetName => {
+      const { columns, rows } = sheets[sheetName];
+      const sheetData = [
+        columns.map(c => c.header),
+        columns.map(c => c.key),
+        columns.map(c => c.type),
+        ...rows.map(row => columns.map(c => row[c.key] || ''))
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
+      ws['!cols'] = columns.map(col =>
+        (col.key.endsWith('Id') && !col.key.endsWith('Name')) ? { hidden: true } : {}
+      );
+  
+      XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31)); // Excel sheet name limit
+    });
+  
+    // Save
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    saveAs(new Blob([wbout], { type: 'application/octet-stream' }), 'form-structure.xlsx');
+  }
 
+  onFileChangeImport(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+  
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+  
+      const sheetDataMap: { [sheet: string]: any[] } = {};
+      workbook.SheetNames.forEach(sheetName => {
+        const ws = workbook.Sheets[sheetName];
+        const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        if (rows.length < 4) return;
+  
+        const keys = rows[1];
+        const dataRows = rows.slice(3);
+        sheetDataMap[sheetName] = dataRows.map(rowArr => {
+          const rowObj: any = {};
+          keys.forEach((key: string, idx: number) => {
+            rowObj[key] = rowArr[idx];
+          });
+          return rowObj;
+        });
+      });
+  
+      this.applyImportedDataToNode(this.rootNode, null, sheetDataMap);
+      this.alertMessage = 'Form data imported successfully!';
+      this.modalRef = this.modalService.show(this.alertMessageTemplate);
+    };
+    reader.readAsArrayBuffer(file);
+  }
 
+  findOptionValueByLabel(field: any, input: any): any {
+    if (!field.options || input === undefined || input === null || input === '') return input;
+    const inputStr = String(input).trim();
+    if (!inputStr) return input;
+  
+    let found = field.options.find(opt => String(opt.label).toLowerCase() === inputStr.toLowerCase());
+    if (found) return found.value;
+  
+    found = field.options.find(opt => String(opt.label).toLowerCase().includes(inputStr.toLowerCase()));
+    if (found) return found.value;
+  
+    found = field.options.find(opt => String(opt.value) == inputStr);
+    if (found) return found.value;
+    return input;
+  }
+
+  applyImportedDataToNode(node: any, parentId: string | null, sheetDataMap: any) {
+    const entityType = node.formName.replace(/\s+/g, '');
+    const sheetRows = sheetDataMap[entityType];
+    if (!sheetRows) return;
+  
+    let nodeRow;
+    if (!parentId) {
+      nodeRow = sheetRows.find((row: any) => row[`${entityType}Id`] == node.id);
+    } else {
+      nodeRow = sheetRows.find((row: any) =>
+        row[`parent${node.parentType}Id`] == parentId && row[`${entityType}Id`] == node.id
+      );
+    }
+  
+    if (nodeRow) {
+      const formData: any = {};
+      (node.fields || []).forEach(field => {
+        const val = nodeRow[field.name];
+        if (val === undefined) return;
+        if (field.type === 'select' && field.options) {
+          formData[field.name] = this.findOptionValueByLabel(field, val);
+        } else if (field.type === 'table' && field.tableConfig) {
+          formData[field.name] = val;
+        } else {
+          formData[field.name] = val;
+        }
+      });
+      node.formData = formData;
+    }
+  
+    (node.children || []).forEach(child => {
+      child.parentType = entityType;
+      this.applyImportedDataToNode(child, node.id, sheetDataMap);
+    });
+  }
 
   // Modals
   openAlertMod(template: TemplateRef<any>, message: any) {
