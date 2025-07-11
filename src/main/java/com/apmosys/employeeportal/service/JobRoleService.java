@@ -24,6 +24,7 @@ import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
+import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
@@ -787,11 +788,13 @@ public class JobRoleService {
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
+				finalHttpStatusCode = HttpStatus.OK.value();
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("JobRole Info not found.");
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
+				throw new DataNotFoundException("JobRole Details Not Found in Database.");
 			}
-			finalHttpStatusCode = HttpStatus.OK.value();
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

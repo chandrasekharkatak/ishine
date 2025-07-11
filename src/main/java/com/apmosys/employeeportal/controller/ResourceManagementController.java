@@ -96,11 +96,9 @@ public class ResourceManagementController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/bulkSyncProject", method = RequestMethod.POST)
+	@PostMapping(value = "/bulkSyncProject")
 	public ServiceResponse bulkSyncProject(@RequestBody ProjectDTO projectDTO) {
-		
-		ServiceResponse response = resourceManagementService.bulkSyncProject(projectDTO);
-		return response;
+		return resourceManagementService.bulkSyncProject(projectDTO);
 	}
 	
 	@RequestMapping(value = "/approveProject", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)

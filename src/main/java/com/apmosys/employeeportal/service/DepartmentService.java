@@ -29,6 +29,7 @@ import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
+import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.Department;
@@ -614,13 +615,15 @@ public class DepartmentService {
 				response.setServiceResponse(poPortalDTOList);
 				apiLogInfo.setApiResponse("dtoList size : " + poPortalDTOList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				finalHttpStatusCode = HttpStatus.OK.value();
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Department Info not found.");
 				apiLogInfo.setApiResponse("Department Info not found.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
+				throw new DataNotFoundException("Department Details Not Found in Database.");
 			}
-			finalHttpStatusCode = HttpStatus.OK.value();
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

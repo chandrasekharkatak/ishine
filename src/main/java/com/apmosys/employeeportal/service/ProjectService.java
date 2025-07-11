@@ -77,6 +77,7 @@ import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SyncableProjectDTO;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.exception.ConflictException;
+import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
 import com.apmosys.employeeportal.model.ApiLog;
@@ -1778,14 +1779,16 @@ public class ProjectService {
 				response.setServiceResponse("Project Info not found.");
 				apiLogInfo.setApiResponse("Project Info not Found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
+				throw new DataNotFoundException("Project Details Not Found.");
 			} else {
 				List<PoProjectTimesheetSyncDTO> poProjectTimesheetSyncDTOList = mapObjectToPoProjectTimesheetSyncDTO(poProjectTimesheetSyncDTOObjectList);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(poProjectTimesheetSyncDTOList);
 				apiLogInfo.setApiResponse("ProjectInfoList: " + poProjectTimesheetSyncDTOList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				finalHttpStatusCode = HttpStatus.OK.value();
 			}
-			finalHttpStatusCode = HttpStatus.OK.value();
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

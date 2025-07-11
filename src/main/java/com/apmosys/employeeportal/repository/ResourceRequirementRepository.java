@@ -31,4 +31,6 @@ public interface ResourceRequirementRepository extends JpaRepository<ResourceReq
 	List<String> getAllDepartmentsFromProjectIdInternal(@Param("projectId") Integer projectId);
 	
 	ResourceRequirement findByProjectIdAndResourceOverviewId(Integer projectId, Long resourceOverviewId);
+
+	void deleteByProjectId(Integer projectId);
 }

@@ -56,6 +56,7 @@ import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
+import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.CompOffLeave;
@@ -5908,13 +5909,15 @@ public class EmployeeService {
 				response.setServiceResponse(poPortalDTOList);
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiResponse("List fetched of size : "+poPortalDTOList.size());
-			}else {
+				finalHttpStatusCode = HttpStatus.OK.value();
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Info not found.");
 				apiLogInfo.setApiResponse("Employee Info not found.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
+				throw new DataNotFoundException("Employee Details Not Found in Database.");
 			}
-			finalHttpStatusCode = HttpStatus.OK.value();
 		}catch(Exception e){
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
