@@ -55,11 +55,12 @@ interface FormField {
   dependentValueKey?: string;
   dependentParamName?: string;
   multiple?: boolean;
+  tableConfig?: TableFieldConfig;
 }
 
-interface FormFieldOption {
-  label: string;
-  value: any;
+interface TableFieldConfig {
+  columns: { name: string; label: string; type: string }[];
+  rows: number;
 }
 
 @Component({
@@ -77,7 +78,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     { type: 'date', label: 'Date' },
     { type: 'number', label: 'Number' },
     { type: 'email', label: 'Email' },
-    { type: 'file', label: 'File Upload' }
+    { type: 'file', label: 'File Upload' },
+    { type: 'table', label: 'Table' }
   ];
 
 
@@ -1578,6 +1580,10 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         }));
       }
     }
+
+    if (this.editingField.type === 'table' && this.editingField.tableConfig) {
+      this.editingField.tableConfig.rows = Number(this.editingField.tableConfig.rows) || 1;
+    }
   
     // Add the field to the current node
     this.addFieldTargetNode.fields.push(this.editingField);
@@ -1679,7 +1685,16 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       optionSource: 'static',
       width: 100,
       rowPosition: 0,
-      multiple: false
+      multiple: false,
+      ...(field.type === 'table' ? {
+        tableConfig: {
+          columns: [
+            { name: 'col1', label: 'Column 1', type: 'text' },
+            { name: 'col2', label: 'Column 2', type: 'text' }
+          ],
+          rows: 2
+        }
+      } : {})
     };
 
     this.editingField = newField;
@@ -1722,6 +1737,12 @@ export class ProjectInsightProjconfigComponent implements OnInit {
           console.error('Error loading API options:', error);
         }
       });
+    }
+  }
+
+  setTableRows(val: number) {
+    if (this.editingField && this.editingField.tableConfig) {
+      this.editingField.tableConfig.rows = Number(val);
     }
   }
 

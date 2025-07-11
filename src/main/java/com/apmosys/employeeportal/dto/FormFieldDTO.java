@@ -27,4 +27,5 @@ public class FormFieldDTO {
     private String dependentValueKey;
     private String dependentParamName;
     private String apiLabelKey;
+    private TableConfigDTO tableConfig;
 }

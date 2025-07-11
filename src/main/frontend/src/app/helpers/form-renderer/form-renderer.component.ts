@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
 @Component({
@@ -16,6 +16,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   dynamicForm: FormGroup;
   dependentFieldOptions: Map<string, Map<string, any[]>> = new Map();
+  private apiCache = new Map<string, any[]>();
 
   constructor(private fb: FormBuilder, private http: HttpClient) {}
 
@@ -30,8 +31,11 @@ export class FormRendererComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes.fields || changes.formData) {
       this.buildForm();
-      this.loadInitialOptions();
     }
+  }
+
+  getTableRows(field: any): any[] {
+    return Array.from({ length: field.tableConfig.rows });
   }
 
   buildForm() {
@@ -42,13 +46,43 @@ export class FormRendererComponent implements OnInit, OnChanges {
     this.fields.forEach(field => {
       const validators = [];
       if (field.required) validators.push(Validators.required);
-      let defaultValue = 
+  
+      // --- Table Field Handling ---
+      if (field.type === 'table') {
+        if (!this.formData[field.name] || !Array.isArray(this.formData[field.name])) {
+          this.formData[field.name] = Array(field.tableConfig.rows)
+            .fill(null)
+            .map(() => {
+              const rowObj = {};
+              field.tableConfig.columns.forEach(col => rowObj[col.name] = '');
+              return rowObj;
+            });
+        }
+  
+        // Create a FormArray of FormGroups for the table
+        const rowsArray = new FormArray([]);
+        for (let i = 0; i < field.tableConfig.rows; i++) {
+          const rowGroup = {};
+          field.tableConfig.columns.forEach(col => {
+            rowGroup[col.name] = new FormControl(this.formData[field.name][i][col.name] || '');
+          });
+          rowsArray.push(new FormGroup(rowGroup));
+        }
+        controls[field.name] = rowsArray;
+        
+        console.log(`Created FormArray for ${field.name}:`, controls[field.name]);
+        return;
+      }
+  
+      let defaultValue =
         this.formData[field.name] !== undefined ? this.formData[field.name] :
         field.value !== undefined ? field.value :
         field.defaultValue !== undefined ? field.defaultValue : '';
+  
       if (field.type === 'select' && field.multiple) {
         defaultValue = Array.isArray(defaultValue) ? defaultValue : [];
       }
+  
       controls[field.name] = [defaultValue, validators];
       
       console.log(`Created control for ${field.name}:`, controls[field.name]);
@@ -56,12 +90,26 @@ export class FormRendererComponent implements OnInit, OnChanges {
     
     this.dynamicForm = this.fb.group(controls);
     
+    this.fields.forEach(field => {
+      if (field.type === 'table') {
+        const formArray = this.dynamicForm.get(field.name) as FormArray;
+        formArray.valueChanges.subscribe((rows: any[]) => {
+          this.formData[field.name] = rows;
+          console.log(`Table ${field.name} updated:`, rows);
+        });
+      }
+    });
+    
     console.log('Form group created:', this.dynamicForm);
     console.log('Form controls:', Object.keys(this.dynamicForm.controls));
     
     this.dynamicForm.valueChanges.subscribe(val => {
       this.formValueChange.emit(val);
     });
+  }
+
+  createArray(n: number): any[] {
+    return Array.from({ length: n });
   }
 
   // Load options for API-driven fields
@@ -87,13 +135,22 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   async loadApiOptions(field: any): Promise<any[]> {
+    // Check cache first
+    if (this.apiCache.has(field.apiUrl)) {
+      return this.apiCache.get(field.apiUrl);
+    }
+  
     try {
       const response = await this.http.get<any[]>(field.apiUrl).toPromise();
       if (response && Array.isArray(response)) {
-        return response.map(item => ({
+        const options = response.map(item => ({
           label: item[field.apiLabelKey || 'name'] || item['label'],
           value: item[field.apiValueKey || 'id'] || item['value']
         }));
+        
+        // Cache the result
+        this.apiCache.set(field.apiUrl, options);
+        return options;
       }
     } catch (error) {
       console.error(`Error loading API options for ${field.name}:`, error);

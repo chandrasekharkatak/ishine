@@ -714,6 +714,39 @@
           <input class="form-control" [(ngModel)]="editingField.defaultValue" name="defaultValue" />
         </div>
 
+        <div class="form-group" *ngIf="editingField?.type === 'table'">
+          <label>Table Columns</label>
+          <div *ngFor="let col of editingField.tableConfig.columns; let i = index" class="row mb-1">
+            <div class="col-md-4">
+              <input class="form-control" [(ngModel)]="col.label" placeholder="Column Label" name="colLabel{{i}}" />
+            </div>
+            <div class="col-md-4">
+              <input class="form-control" [(ngModel)]="col.name" placeholder="Column Name" name="colName{{i}}" />
+            </div>
+            <div class="col-md-3">
+              <select class="form-control" [(ngModel)]="col.type" name="colType{{i}}">
+                <option value="text">Text</option>
+                <option value="number">Number</option>
+                <option value="date">Date</option>
+              </select>
+            </div>
+            <div class="col-md-1">
+              <button class="btn btn-danger btn-sm" (click)="editingField.tableConfig.columns.splice(i,1)" type="button">
+                <i class="fa fa-times"></i>
+              </button>
+            </div>
+          </div>
+          <button class="btn btn-outline-primary btn-sm"
+            (click)="editingField.tableConfig.columns.push({name: '', label: '', type: 'text'})" type="button">
+            <i class="fa fa-plus"></i> Add Column
+          </button>
+          <div class="mt-2">
+            <label>Number of Rows</label>
+            <input type="number" class="form-control" [ngModel]="editingField.tableConfig.rows"
+              (ngModelChange)="setTableRows($event)" name="tableRows" min="1" />
+          </div>
+        </div>
+
         <div *ngIf="['select','checkbox','radio'].includes(editingField.type)">
           <label>Options</label>
           <div class="form-group">

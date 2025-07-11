@@ -73,6 +73,28 @@
                 </mat-select>
               </div>
             </ng-container>
+
+            <!-- Inside app-form-renderer template -->
+            <div *ngIf="field.type === 'table'">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th *ngFor="let col of field.tableConfig.columns">{{col.label}}</th>
+                  </tr>
+                </thead>
+                <tbody [formArrayName]="field.name">
+                  <tr *ngFor="let row of getTableRows(field); let rowIndex = index" [formGroupName]="rowIndex">
+                    <td *ngFor="let col of field.tableConfig.columns">
+                      <input
+                        [type]="col.type"
+                        class="form-control"
+                        [formControlName]="col.name"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
     
             <!-- Text Input Field -->
             <input 

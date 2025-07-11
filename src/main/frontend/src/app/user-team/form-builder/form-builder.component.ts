@@ -36,6 +36,12 @@ interface FormField {
   dependentValueKey?: string;
   dependentParamName?: string;
   multiple?: boolean;
+  tableConfig?: TableFieldConfig;
+}
+
+interface TableFieldConfig {
+  columns: { name: string; label: string; type: string }[];
+  rows: number;
 }
 
 @Component({
@@ -48,7 +54,7 @@ export class FormBuilderComponent implements OnInit {
 
   instructions = [
     ["Column", "Description", "Example"],
-    ["type", "Field type. Allowed: text, textarea, select, checkbox, radio, date, number, email, file", "text"],
+    ["type", "Field type. Allowed: text, textarea, select, checkbox, radio, date, number, email, file, table", "text"],
     ["label", "Field label (displayed to the user)", "Employee Name"],
     ["name", "Unique key for the field (no spaces or special characters)", "employeeName"],
     ["required", "Is this field mandatory? true/false", "true"],
@@ -67,6 +73,7 @@ export class FormBuilderComponent implements OnInit {
     ["dependentValueKey", "For dependent: Key for value in API response", "id"],
     ["dependentParamName", "For dependent: Query parameter name for parent value (default: parent field name)", "departmentId"],
     ["multiple", "For select: Allow multiple selection? true/false", "false"],
+    ["tableConfig", "For table: JSON object with columns and rows", `{"columns":[{"name":"col1","label":"Column 1","type":"text"}],"rows":2}`]
   ];
   
   fieldPalette = [
@@ -78,7 +85,8 @@ export class FormBuilderComponent implements OnInit {
     { type: 'date', label: 'Date' },
     { type: 'number', label: 'Number' },
     { type: 'email', label: 'Email' },
-    { type: 'file', label: 'File Upload' }
+    { type: 'file', label: 'File Upload' },
+    { type: 'table', label: 'Table' }
   ];
 
   alertMessage: any;
@@ -234,7 +242,16 @@ export class FormBuilderComponent implements OnInit {
       optionSource: 'static',
       width: 100,
       rowPosition: 0,
-      multiple: false
+      multiple: false,
+      ...(field.type === 'table' ? {
+        tableConfig: {
+          columns: [
+            { name: 'col1', label: 'Column 1', type: 'text' },
+            { name: 'col2', label: 'Column 2', type: 'text' }
+          ],
+          rows: 2
+        }
+      } : {})
     };
 
     this.editingField = newField;
@@ -253,14 +270,37 @@ export class FormBuilderComponent implements OnInit {
       'type', 'label', 'name', 'required', 'placeholder', 'defaultValue',
       'optionSource', 'options', 'apiUrl', 'apiLabelKey', 'apiValueKey',
       'width', 'rowPosition', 'parentField', 'dependentApiUrl',
-      'dependentLabelKey', 'dependentValueKey', 'dependentParamName', 'multiple'
+      'dependentLabelKey', 'dependentValueKey', 'dependentParamName', 'multiple',
+      'tableConfig'
     ];
-    const formRows = (form.fields || []).map(f => ({
-      ...f,
-      options: f.options && Array.isArray(f.options) ? JSON.stringify(f.options) : '',
-      required: f.required ? 'true' : 'false',
-      multiple: f.multiple ? 'true' : 'false'
-    }));
+    
+    const formRows = (form.fields || []).map(f => {
+      const row = {
+        ...f,
+        options: f.options && Array.isArray(f.options) ? JSON.stringify(f.options) : '',
+        required: f.required ? 'true' : 'false',
+        multiple: f.multiple ? 'true' : 'false',
+        tableConfig: ''
+      };
+  
+      if (f.type === 'table' && f.tableConfig) {
+        try {
+          row.tableConfig = JSON.stringify(f.tableConfig);
+        } catch (error) {
+          console.error('Error stringifying tableConfig:', error);
+          row.tableConfig = JSON.stringify({
+            columns: [
+              { name: 'col1', label: 'Column 1', type: 'text' },
+              { name: 'col2', label: 'Column 2', type: 'text' }
+            ],
+            rows: 2
+          });
+        }
+      }
+  
+      return row;
+    });
+    
     const wsInstructions = XLSX.utils.aoa_to_sheet(this.instructions);
     const ws = XLSX.utils.json_to_sheet(formRows, { header: headers });
     const wb = XLSX.utils.book_new();
@@ -335,6 +375,12 @@ export class FormBuilderComponent implements OnInit {
     });
   }
 
+  setTableRows(val: number) {
+    if (this.editingField && this.editingField.tableConfig) {
+      this.editingField.tableConfig.rows = Number(val);
+    }
+  }
+
   saveFieldConfig() {
     if (!this.editingField) return;
     this.editingField.width = Number(this.editingField.width);
@@ -343,6 +389,10 @@ export class FormBuilderComponent implements OnInit {
     if (this.editingField.type === 'select' && this.editingField.optionSource === 'api') {
       // For API options, we don't need to do anything special here
       // The options will be loaded when the form is built
+    }
+
+    if (this.editingField.type === 'table' && this.editingField.tableConfig) {
+      this.editingField.tableConfig.rows = Number(this.editingField.tableConfig.rows) || 1;
     }
 
     if (this.editingField.optionSource === 'dependent' && this.editingField.parentField) {
@@ -917,9 +967,10 @@ export class FormBuilderComponent implements OnInit {
       'type', 'label', 'name', 'required', 'placeholder', 'defaultValue',
       'optionSource', 'options', 'apiUrl', 'apiLabelKey', 'apiValueKey',
       'width', 'rowPosition', 'parentField', 'dependentApiUrl',
-      'dependentLabelKey', 'dependentValueKey', 'dependentParamName', 'multiple'
+      'dependentLabelKey', 'dependentValueKey', 'dependentParamName', 'multiple',
+      'tableConfig'
     ];
-
+  
     const sampleRow = {
       type: 'text',
       label: 'Employee Name',
@@ -939,11 +990,41 @@ export class FormBuilderComponent implements OnInit {
       dependentLabelKey: '',
       dependentValueKey: '',
       dependentParamName: '',
-      multiple: false
+      multiple: false,
+      tableConfig: ''
     };
-
+  
+    const sampleTableRow = {
+      type: 'table',
+      label: 'Employee Table',
+      name: 'employeeTable',
+      required: false,
+      placeholder: '',
+      defaultValue: '',
+      optionSource: '',
+      options: '',
+      apiUrl: '',
+      apiLabelKey: '',
+      apiValueKey: '',
+      width: 100,
+      rowPosition: 0,
+      parentField: '',
+      dependentApiUrl: '',
+      dependentLabelKey: '',
+      dependentValueKey: '',
+      dependentParamName: '',
+      multiple: false,
+      tableConfig: JSON.stringify({
+        columns: [
+          { name: 'col1', label: 'Column 1', type: 'text' },
+          { name: 'col2', label: 'Column 2', type: 'text' }
+        ],
+        rows: 2
+      })
+    };
+  
     const wsInstructions = XLSX.utils.aoa_to_sheet(this.instructions);
-    const ws = XLSX.utils.json_to_sheet([sampleRow], { header: headers });
+    const ws = XLSX.utils.json_to_sheet([sampleRow, sampleTableRow], { header: headers });
   
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, wsInstructions, 'Instructions');
@@ -966,19 +1047,50 @@ export class FormBuilderComponent implements OnInit {
   
       const ws: XLSX.WorkSheet = wb.Sheets[wsname];
       const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
-
-      this.fields = data.map((row: any) => ({
-        ...row,
-        required: row.required === 'true' || row.required === true,
-        multiple: row.multiple === 'true' || row.multiple === true,
-        options: row.options
-          ? (typeof row.options === 'string' && row.options.trim() !== ''
-              ? JSON.parse(row.options)
-              : [])
-          : [],
-        width: Number(row.width) || 100,
-        rowPosition: Number(row.rowPosition) || 0
-      }));
+  
+      this.fields = data.map((row: any) => {
+        const field = {
+          ...row,
+          required: row.required === 'true' || row.required === true,
+          multiple: row.multiple === 'true' || row.multiple === true,
+          options: row.options
+            ? (typeof row.options === 'string' && row.options.trim() !== ''
+                ? JSON.parse(row.options)
+                : [])
+            : [],
+          width: Number(row.width) || 100,
+          rowPosition: Number(row.rowPosition) || 0
+        };
+  
+        if (row.type === 'table' && row.tableConfig) {
+          try {
+            if (typeof row.tableConfig === 'string' && row.tableConfig.trim() !== '') {
+              field.tableConfig = JSON.parse(row.tableConfig);
+            } else if (typeof row.tableConfig === 'object') {
+              field.tableConfig = row.tableConfig;
+            } else {
+              field.tableConfig = {
+                columns: [
+                  { name: 'col1', label: 'Column 1', type: 'text' },
+                  { name: 'col2', label: 'Column 2', type: 'text' }
+                ],
+                rows: 2
+              };
+            }
+          } catch (error) {
+            console.error('Error parsing tableConfig:', error);
+            field.tableConfig = {
+              columns: [
+                { name: 'col1', label: 'Column 1', type: 'text' },
+                { name: 'col2', label: 'Column 2', type: 'text' }
+              ],
+              rows: 2
+            };
+          }
+        }
+  
+        return field;
+      });
   
       this.updateLayoutConfig();
     };
