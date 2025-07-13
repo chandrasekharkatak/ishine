@@ -1,10 +1,14 @@
 <div class="col-md-12">
-  <form [formGroup]="dynamicForm" (ngSubmit)="onSubmit()">
+  <div *ngIf="isLoading" class="text-center p-4">
+    <div class="spinner-border" role="status"></div>
+    <p>Loading form...</p>
+  </div>
+  <form *ngIf="!isLoading" [formGroup]="dynamicForm" (ngSubmit)="onSubmit()">
     <div class="row" *ngFor="let row of layoutConfig; let rowIndex = index">
       <div *ngFor="let field of row" class="col-md-{{ getBootstrapCol(field.width) }}">
         <div class="info-wrapper">
           <div class="form-group">
-            <label [for]="field.id">
+            <label [for]="field.id" *ngIf="field.optionSource != 'dependent'">
               {{ field.label }}
               <span class="text-danger" *ngIf="field.required">*</span>
             </label>
@@ -51,7 +55,7 @@
                   [multiple]="field.multiple">
                   <ng-container *ngFor="let parentValue of getParentSelectedValues(field)">
                     <mat-optgroup [label]="getParentLabel(field, parentValue)">
-                      <mat-option *ngFor="let opt of getDependentOptions(field, parentValue)" [value]="opt.value">
+                      <mat-option *ngFor="let opt of dependentOptionsMap[field.name] || []" [value]="opt.value">
                         {{opt.label}}
                       </mat-option>
                     </mat-optgroup>
@@ -67,7 +71,7 @@
                 <mat-select
                   [formControlName]="field.name"
                   [multiple]="field.multiple">
-                  <mat-option *ngFor="let opt of getDependentOptions(field, getParentSelectedValue(field))" [value]="opt.value">
+                  <mat-option *ngFor="let opt of dependentOptionsMap[field.name] || []" [value]="opt.value">
                     {{opt.label}}
                   </mat-option>
                 </mat-select>

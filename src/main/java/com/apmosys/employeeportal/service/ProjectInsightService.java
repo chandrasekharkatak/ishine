@@ -74,6 +74,7 @@ import com.apmosys.employeeportal.model.QuestionMaster;
 import com.apmosys.employeeportal.model.TagMaster;
 import com.apmosys.employeeportal.model.UserContributionDocument;
 import com.apmosys.employeeportal.model.UserContributionResponseRemarks;
+import com.apmosys.employeeportal.mongodb.dto.FormDataDTO;
 import com.apmosys.employeeportal.mongodb.modal.FileStorage;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.mongodb.repository.FileMongoRepository;
@@ -3481,7 +3482,14 @@ public class ProjectInsightService {
     }
     
     public String saveMappingInfo(ProjectInsightStructure structure) {
-        Object projectIdObj = structure.getData().getFields().get("projectname");
+        Object projectIdObj = structure.getData().getFields()
+        	    .entrySet()
+        	    .stream()
+        	    .filter(e -> e.getKey().toLowerCase().contains("project"))
+        	    .map(Map.Entry::getValue)
+        	    .findFirst()
+        	    .orElse(null);
+
 
         if (projectIdObj == null) {
             throw new IllegalArgumentException("Project ID (projectname) is missing in the form data.");
@@ -3583,5 +3591,67 @@ public class ProjectInsightService {
         }
         return projectInsightStructureRepository.save(existing);
 	}
+	
+	private boolean isEmpIdAssigned(FormDataDTO data, String empId) {
+	    if (data == null) return false;
+	    if (data.getFields() != null && data.getFields().containsKey("assignedto")) {
+	        Object assignedTo = data.getFields().get("assignedto");
+	        if (assignedTo instanceof List) {
+	            List<?> assignedList = (List<?>) assignedTo;
+	            if (assignedList.contains(empId)) {
+	                return true;
+	            }
+	        } else if (assignedTo instanceof String) {
+	            if (empId.equals(assignedTo)) {
+	                return true;
+	            }
+	        }
+	    }
+	    if (data.getChild() != null) {
+	        for (FormDataDTO child : data.getChild()) {
+	            if (isEmpIdAssigned(child, empId)) {
+	                return true;
+	            }
+	        }
+	    }
+	    return false;
+	}
+
+	public ServiceResponse getProjectInsightByAssignedToEmpId(ProjectInsightDTO projectInsightDTO) {
+	    try {
+	        ServiceResponse response = new ServiceResponse();
+	        Long empId = projectInsightDTO.getEmpId();
+
+	        List<ProjectInsightStructure> all = projectInsightStructureRepository.findAll();
+
+	        List<ProjectInsightStructure> result = new ArrayList<>();
+	        for (ProjectInsightStructure pis : all) {
+	            if (pis.getData() != null && isEmpIdAssigned(pis.getData(), empId.toString())) {
+	                result.add(pis);
+	            }
+	        }
+
+	        List<String> insightIds = result.stream()
+	            .map(ProjectInsightStructure::getId)
+	            .collect(Collectors.toList());
+
+	        List<ProjectInsighProjectMappingDTO> dbResponse = projectInsighProjectMappingRepository
+	            .fetchAllProjectMappingsByProjectInsightId(insightIds);
+
+	        Map<String, ProjectInsightStructure> insightMap = result.stream()
+	            .collect(Collectors.toMap(ProjectInsightStructure::getId, pis -> pis));
+
+	        for (ProjectInsighProjectMappingDTO dto : dbResponse) {
+	            ProjectInsightStructure structure = insightMap.get(dto.getProjectInsightId());
+	            dto.setProjectInsightStructure(structure);
+	        }
+	        response.setServiceResponse(dbResponse);
+	        return response;
+
+	    } catch (Exception e) {
+	        throw new RuntimeException("Something went wrong. Unable to fetch Projects By Employee!", e);
+	    }
+	}
+
 	
 }

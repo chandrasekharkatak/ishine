@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { ApiSourceService } from 'src/app/services/api-source.service';
 
 @Component({
   selector: 'app-form-renderer',
@@ -14,28 +14,74 @@ export class FormRendererComponent implements OnInit, OnChanges {
   @Output() formValueChange = new EventEmitter<any>();
   @Output() formSubmit = new EventEmitter<any>();
 
+  isLoading = true;
+
   dynamicForm: FormGroup;
   dependentFieldOptions: Map<string, Map<string, any[]>> = new Map();
   private apiCache = new Map<string, any[]>();
+  dependentOptionsMap: { [fieldName: string]: any[] } = {};
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {}
+  constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService) {}
 
-  ngOnInit() {
-    console.log(this.fields, " : fields ==================");
-    console.log(this.layoutConfig, " : layoutConfig ==================");
-
+  async ngOnInit() {
+    this.isLoading = true;
+    await this.prepareApiOptions();
     this.buildForm();
-    this.loadInitialOptions();
+    this.isLoading = false;
+
+    console.log(this.fields, " : fields in form renderer");
+    console.log(this.layoutConfig, " : layoutconfig in form renderer");
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.fields || changes.formData) {
+  // async ngOnChanges(changes: SimpleChanges) {
+  //   if (
+  //     (changes.fields && changes.fields.currentValue !== changes.fields.previousValue) ||
+  //     (changes.formData && changes.formData.currentValue !== changes.formData.previousValue)
+  //   ) {
+  //     this.isLoading = true;
+  //     await this.prepareApiOptions();
+  //     this.buildForm();
+  //     this.isLoading = false;
+  //   }
+  // }
+
+  async ngOnChanges(changes: SimpleChanges) {
+    if (
+      (changes.fields && changes.fields.currentValue !== changes.fields.previousValue) ||
+      (changes.formData && changes.formData.currentValue !== changes.formData.previousValue)
+    ) {
+      await this.prepareApiOptions();
       this.buildForm();
     }
   }
 
+  // async ngOnChanges(changes: SimpleChanges) {
+  //   if (changes.fields || changes.formData) {
+  //     await this.prepareApiOptions();
+  //     this.buildForm();
+  //   }
+  // }
+
   getTableRows(field: any): any[] {
     return Array.from({ length: field.tableConfig.rows });
+  }
+
+  async prepareApiOptions() {
+    const apiPromises = this.fields.map(async field => {
+      if (field.optionSource === 'api' && field.apiUrl) {
+        field.options = await this.loadApiOptions(field);
+      }
+      if (
+        field.optionSource === 'dependent' &&
+        field.parentField &&
+        this.formData &&
+        this.formData[field.parentField]
+      ) {
+        const parentValue = this.formData[field.parentField];
+        field.options = await this.getDependentOptions(field, parentValue);
+      }
+    });
+    await Promise.all(apiPromises);
   }
 
   buildForm() {
@@ -106,19 +152,32 @@ export class FormRendererComponent implements OnInit, OnChanges {
     this.dynamicForm.valueChanges.subscribe(val => {
       this.formValueChange.emit(val);
     });
+  
+    this.loadDependentOptionsForExistingData();
   }
-
-  createArray(n: number): any[] {
-    return Array.from({ length: n });
-  }
-
-  // Load options for API-driven fields
+  
   async loadInitialOptions() {
     for (const field of this.fields) {
       if (field.optionSource === 'api' && field.apiUrl) {
         field.options = await this.loadApiOptions(field);
       }
     }
+    await this.loadDependentOptionsForExistingData();
+  }
+
+  async loadDependentOptionsForExistingData() {
+    for (const field of this.fields) {
+      if (field.optionSource === 'dependent' && field.parentField) {
+        const parentValue = this.formData[field.parentField];
+        if (parentValue) {
+          await this.getDependentOptions(field, parentValue);
+        }
+      }
+    }
+  }
+
+  createArray(n: number): any[] {
+    return Array.from({ length: n });
   }
 
   getBootstrapCol(width: number): number {
@@ -141,7 +200,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
     }
   
     try {
-      const response = await this.http.get<any[]>(field.apiUrl).toPromise();
+      const response = await this.apiSourceService.loadDynamicApi(field.apiUrl).toPromise();
       if (response && Array.isArray(response)) {
         const options = response.map(item => ({
           label: item[field.apiLabelKey || 'name'] || item['label'],
@@ -187,54 +246,93 @@ export class FormRendererComponent implements OnInit, OnChanges {
     return `${field.name}_${parentValue}`;
   }
 
-  getDependentOptions(field: any, parentValue: string): any[] {
-    if (!this.dependentFieldOptions.has(field.name)) {
+  async getDependentOptions(field: any, parentValue: string): Promise<any[]> {
+    if (!field.parentField || !field.dependentApiUrl || !parentValue) {
       return [];
     }
-    const fieldOptions = this.dependentFieldOptions.get(field.name)!;
-    return fieldOptions.get(parentValue) || [];
-  }
-
-  async onSelectChange(event: any, field: any) {
-    // For dependent fields, update options
-    if (this.fields.some(f => f.parentField === field.name)) {
-      for (const depField of this.fields.filter(f => f.parentField === field.name)) {
-        if (depField.optionSource === 'dependent') {
-          if (this.isParentMultiSelect(depField)) {
-            // For each selected parent value, load options
-            const parentValues = event.value;
-            for (const parentValue of parentValues) {
-              await this.loadDependentOptions(depField, parentValue);
-            }
-          } else {
-            await this.loadDependentOptions(depField, event.value);
-          }
-        }
+  
+    if (this.dependentFieldOptions.has(field.name)) {
+      const fieldOptions = this.dependentFieldOptions.get(field.name)!;
+      if (fieldOptions.has(parentValue)) {
+        return fieldOptions.get(parentValue) || [];
       }
     }
-  }
-
-  async loadDependentOptions(field: any, parentValue: string): Promise<any[]> {
-    if (!field.parentField || !field.dependentApiUrl || !parentValue) return [];
+  
     try {
-      const url = field.dependentApiUrl.replace('{parentValue}', parentValue);
-      const response = await this.http.get<any[]>(url).toPromise();
+      const url = field.dependentApiUrl.replace(`{${field.dependentParamName}}`, parentValue);
+      const response = await this.apiSourceService.loadDynamicApi(url).toPromise();
+  
       if (response && Array.isArray(response)) {
         const options = response.map(item => ({
           label: item[field.dependentLabelKey || 'name'],
-          value: item[field.dependentValueKey || 'id']
+          value: String(item[field.dependentValueKey || 'id'])
         }));
+        field.options = options;
+  
         if (!this.dependentFieldOptions.has(field.name)) {
           this.dependentFieldOptions.set(field.name, new Map());
         }
         this.dependentFieldOptions.get(field.name)!.set(parentValue, options);
+        this.dependentOptionsMap[field.name] = options;
+  
         return options;
       }
     } catch (error) {
       console.error(`Error loading dependent options for ${field.name}:`, error);
       return [];
     }
+  
     return [];
+  }
+
+  patchDependentFieldValues() {
+    this.fields.forEach(field => {
+      if (
+        field.optionSource === 'dependent' &&
+        field.parentField &&
+        this.formData &&
+        this.formData[field.name] !== undefined &&
+        field.options &&
+        field.options.length > 0
+      ) {
+        const ctrl = this.dynamicForm.get(field.name);
+        const formValue = ctrl?.value;
+        const dataValue = String(this.formData[field.name]);
+        if (formValue !== dataValue) {
+          ctrl?.setValue(dataValue, { emitEvent: false });
+        }
+      }
+    });
+  }
+
+  async onSelectChange(event: any, field: any) {
+    if (this.fields.some(f => f.parentField === field.name)) {
+      for (const depField of this.fields.filter(f => f.parentField === field.name)) {
+        if (depField.optionSource === 'dependent') {
+          if (this.dependentFieldOptions.has(depField.name)) {
+            this.dependentFieldOptions.get(depField.name)!.clear();
+          }
+          
+          this.dynamicForm.get(depField.name)?.setValue(depField.multiple ? [] : '');
+          
+          if (this.isParentMultiSelect(depField)) {
+            const parentValues = event.value || [];
+            for (const parentValue of parentValues) {
+              if (parentValue) {
+                const options = await this.getDependentOptions(depField, parentValue);
+                this.dependentOptionsMap[depField.name] = options;
+              }
+            }
+          } else {
+            const parentValue = event.value;
+            if (parentValue) {
+              const options = await this.getDependentOptions(depField, parentValue);
+              this.dependentOptionsMap[depField.name] = options;
+            }
+          }
+        }
+      }
+    }
   }
 
   onSubmit() {

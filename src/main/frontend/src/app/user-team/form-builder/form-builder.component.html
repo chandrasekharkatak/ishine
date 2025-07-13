@@ -283,15 +283,16 @@
                         <label>Select API</label>
                         <select class="form-control" (change)="onApiSelect($event)">
                             <option value="">Choose an API...</option>
-                            <option *ngFor="let api of apiList" [value]="api.url">{{api.label}}</option>
+                            <option *ngFor="let api of getNonDependentApis()" [value]="api.url">{{api.label}}</option>
                         </select>
                     </div>
-                    
+                
                     <div class="form-group">
                         <label>API URL</label>
-                        <input class="form-control" [(ngModel)]="editingField.apiUrl" name="apiUrl" placeholder="https://api.example.com/data" />
+                        <input class="form-control" [(ngModel)]="editingField.apiUrl" name="apiUrl"
+                            placeholder="https://api.example.com/data" />
                     </div>
-                    
+                
                     <div class="row">
                         <div class="col-md-6">
                             <label>Label Key</label>
@@ -302,7 +303,7 @@
                             <input class="form-control" [(ngModel)]="editingField.apiValueKey" name="apiValueKey" placeholder="id" />
                         </div>
                     </div>
-                    
+                
                     <div class="form-group" *ngIf="editingField.options && editingField.options.length > 0">
                         <label>Preview Options</label>
                         <div class="api-preview">
@@ -316,47 +317,58 @@
                         </button>
                     </div>
                 </div>
-
+                
                 <!-- Dependent Field Options -->
                 <div *ngIf="editingField.optionSource === 'dependent'" class="dependent-config">
                     <div class="form-group">
                         <label>Parent Field</label>
-                        <select class="form-control" [(ngModel)]="editingField.parentField" name="parentField" (change)="onParentFieldChange()">
+                        <select class="form-control" [(ngModel)]="editingField.parentField" name="parentField"
+                            (change)="onParentFieldChange()">
                             <option value="">Select Parent Field...</option>
                             <option *ngFor="let field of getAvailableParentFields(editingField)" [value]="field.name">
                                 {{field.label}} ({{field.name}})
                             </option>
                         </select>
                     </div>
-                    
+                
                     <div class="form-group" *ngIf="editingField.parentField">
+                        <label>Select Dependent API</label>
+                        <select class="form-control" (change)="onDependentApiSelect($event)">
+                            <option value="">Choose a Dependent API...</option>
+                            <option *ngFor="let api of getDependentApis()" [value]="api.url">{{api.label}}</option>
+                        </select>
+                    </div>
+                
+                    <div class="form-group" *ngIf="editingField.parentField && editingField.dependentApiUrl">
                         <label>API URL Template</label>
-                        <input class="form-control" [(ngModel)]="editingField.dependentApiUrl" name="dependentApiUrl" 
-                               placeholder="https://api.example.com/subdomains?domainId={{ '{' }}parentValue{{ '}' }}" />
+                        <input class="form-control" [(ngModel)]="editingField.dependentApiUrl" name="dependentApiUrl" readonly />
                         <small class="form-text text-muted">
-                            Use {{ '{' }}parentValue{{ '}' }} to include the selected value from parent field
+                            This URL will be automatically constructed with the parent field value
                         </small>
                     </div>
-                    
-                    <div class="row" *ngIf="editingField.parentField">
+                
+                    <div class="row" *ngIf="editingField.parentField && editingField.dependentApiUrl">
                         <div class="col-md-6">
                             <label>Label Key</label>
-                            <input class="form-control" [(ngModel)]="editingField.dependentLabelKey" name="dependentLabelKey" placeholder="name" />
+                            <input class="form-control" [(ngModel)]="editingField.dependentLabelKey" name="dependentLabelKey"
+                                placeholder="name" />
                         </div>
                         <div class="col-md-6">
                             <label>Value Key</label>
-                            <input class="form-control" [(ngModel)]="editingField.dependentValueKey" name="dependentValueKey" placeholder="id" />
+                            <input class="form-control" [(ngModel)]="editingField.dependentValueKey" name="dependentValueKey"
+                                placeholder="id" />
                         </div>
                     </div>
-                    
-                    <div class="form-group" *ngIf="editingField.parentField">
+                
+                    <div class="form-group" *ngIf="editingField.parentField && editingField.dependentApiUrl">
                         <label>Parameter Name</label>
-                        <input class="form-control" [(ngModel)]="editingField.dependentParamName" name="dependentParamName" placeholder="domainId" />
+                        <input class="form-control" [(ngModel)]="editingField.dependentParamName" name="dependentParamName"
+                            placeholder="domainId" />
                         <small class="form-text text-muted">
                             The parameter name to send the parent field value (default: parent field name)
                         </small>
                     </div>
-                    
+                
                     <div class="form-group" *ngIf="editingField.options && editingField.options.length > 0">
                         <label>Preview Options (based on parent selection)</label>
                         <div class="dependent-preview">

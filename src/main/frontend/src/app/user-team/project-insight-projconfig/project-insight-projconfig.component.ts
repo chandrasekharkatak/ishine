@@ -170,6 +170,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   // Add new properties for field dependency
   dependentFieldsMap: Map<string, any[]> = new Map();
   fieldDependencies: Map<string, string> = new Map();
+  dependentOptionsMap: { [key: string]: any[] } = {};
 
   // Add new properties for enhanced form handling
   dependentFieldOptions: Map<string, Map<string, any[]>> = new Map();
@@ -239,7 +240,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   constructor(
     private projectInsightProjconfigService: ProjectInsightProjconfigService,
     private formBuilder: FormBuilder,
-    private http: HttpClient,
     private departmentService: DepartmentService,
     private modalService: BsModalService,
     private formBuilderService: FormBuilderService,
@@ -652,7 +652,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
     try {
       const url = field.dependentApiUrl.replace('{parentValue}', parentValue);
-      const response = await this.http.get<any[]>(url).toPromise();
+      const response:any = await this.apiSourceService.loadDynamicApi(url).toPromise();
 
       if (response && Array.isArray(response)) {
         const options = response.map(item => ({
@@ -674,6 +674,28 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     }
 
     return [];
+  }
+
+  extractOptionsFromResponse(response: any, field: any): any[] {
+    const options = [];
+    
+    if (Array.isArray(response)) {
+        response.forEach(item => {
+            options.push({
+                label: item[field.dependentLabelKey || 'label'],
+                value: item[field.dependentValueKey || 'value']
+            });
+        });
+    } else if (response.data && Array.isArray(response.data)) {
+        response.data.forEach((item: any) => {
+            options.push({
+                label: item[field.dependentLabelKey || 'label'],
+                value: item[field.dependentValueKey || 'value']
+            });
+        });
+    }
+    
+    return options;
   }
 
   getLayoutConfig(fields: any[]): any[][] {
@@ -713,7 +735,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     if (!field.apiUrl) return [];
 
     try {
-      const response = await this.http.get<any[]>(field.apiUrl).toPromise();
+      const response = this.apiSourceService.loadDynamicApi(field.apiUrl).toPromise();
 
       if (response && Array.isArray(response)) {
         const options = response.map(item => ({
@@ -953,17 +975,103 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   private generateUniqueId(): string {
-    return 'subgroup_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
   private getDefaultSubGroupStructure(): FormNode {
-    //  API call later ============================
+    const idTitle = this.generateUniqueId();
+    const idType = this.generateUniqueId();
+    const idObjective = this.generateUniqueId();
+    const idOutcomes = this.generateUniqueId();
+    const idRemarks = this.generateUniqueId();
+  
+    const fields = [
+      {
+        id: idTitle,
+        type: 'text',
+        label: 'Sub Group Title',
+        name: 'subgroupTitle',
+        required: true,
+        placeholder: 'Enter Sub Group Title',
+        defaultValue: '',
+        optionSource: 'static',
+        width: 50,
+        rowPosition: 0,
+        multiple: false
+      },
+      {
+        id: idType,
+        type: 'select',
+        label: 'Type',
+        name: 'subgroupType',
+        required: true,
+        placeholder: '',
+        defaultValue: '',
+        options: [
+          { label: 'Milestone', value: 'milestone' },
+          { label: 'Feature', value: 'feature' },
+          { label: 'Activity', value: 'activity' },
+          { label: 'Tasks', value: 'tasks' }
+        ],
+        optionSource: 'static',
+        width: 50,
+        rowPosition: 0,
+        multiple: false
+      },
+      {
+        id: idObjective,
+        type: 'textarea',
+        label: 'Objective',
+        name: 'subgroupObjective',
+        required: false,
+        placeholder: 'Enter Objective',
+        defaultValue: '',
+        optionSource: 'static',
+        width: 100,
+        rowPosition: 1,
+        multiple: false
+      },
+      {
+        id: idOutcomes,
+        type: 'textarea',
+        label: 'Outcome(s)',
+        name: 'subgroupoutcomes',
+        required: false,
+        placeholder: 'Enter Outcome(s)',
+        defaultValue: '',
+        optionSource: 'static',
+        width: 100,
+        rowPosition: 2,
+        multiple: false
+      },
+      {
+        id: idRemarks,
+        type: 'textarea',
+        label: 'Remarks',
+        name: 'subgroupRemarks',
+        required: false,
+        placeholder: 'Enter Remarks',
+        defaultValue: '',
+        optionSource: 'static',
+        width: 100,
+        rowPosition: 3,
+        multiple: false
+      }
+    ];
+  
+    const layoutConfig = [
+      [fields[0], fields[1]],
+      [fields[2]],
+      [fields[3]],
+      [fields[4]]
+    ];
+  
     return {
       id: this.generateUniqueId(),
       formName: '',
-      fields: [],
+      fields,
       formData: {},
-      layoutConfig: [],
+      layoutConfig,
       children: [],
       questionList: []
     };
@@ -986,12 +1094,98 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   private getDefaultGroupStructure(): FormNode {
+    const idTitle = this.generateUniqueId();
+    const idType = this.generateUniqueId();
+    const idObjective = this.generateUniqueId();
+    const idOutcomes = this.generateUniqueId();
+    const idRemarks = this.generateUniqueId();
+  
+    const fields = [
+      {
+        id: idTitle,
+        type: 'text',
+        label: 'Group Title',
+        name: 'groupTitle',
+        required: true,
+        placeholder: 'Enter Group Title',
+        defaultValue: '',
+        optionSource: 'static',
+        width: 50,
+        rowPosition: 0,
+        multiple: false
+      },
+      {
+        id: idType,
+        type: 'select',
+        label: 'Type',
+        name: 'groupType',
+        required: true,
+        placeholder: '',
+        defaultValue: '',
+        options: [
+          { label: 'Milestone', value: 'milestone' },
+          { label: 'Feature', value: 'feature' },
+          { label: 'Activity', value: 'activity' },
+          { label: 'Tasks', value: 'tasks' }
+        ],
+        optionSource: 'static',
+        width: 50,
+        rowPosition: 0,
+        multiple: false
+      },
+      {
+        id: idObjective,
+        type: 'textarea',
+        label: 'Objective',
+        name: 'groupObjective',
+        required: false,
+        placeholder: 'Enter Objective',
+        defaultValue: '',
+        optionSource: 'static',
+        width: 100,
+        rowPosition: 1,
+        multiple: false
+      },
+      {
+        id: idOutcomes,
+        type: 'textarea',
+        label: 'Outcome(s)',
+        name: 'groupoutcomes',
+        required: false,
+        placeholder: 'Enter Outcome(s)',
+        defaultValue: '',
+        optionSource: 'static',
+        width: 100,
+        rowPosition: 2,
+        multiple: false
+      },
+      {
+        id: idRemarks,
+        type: 'textarea',
+        label: 'Remarks',
+        name: 'groupRemarks',
+        required: false,
+        placeholder: 'Enter Remarks',
+        defaultValue: '',
+        optionSource: 'static',
+        width: 100,
+        rowPosition: 3,
+        multiple: false
+      }
+    ];
+    const layoutConfig = [
+      [fields[0], fields[1]],
+      [fields[2]],
+      [fields[3]],
+      [fields[4]]
+    ];
+  
     return {
       id: this.generateUniqueId(),
       formName: '',
-      fields: [],
+      fields,
       formData: {},
-      layoutConfig: [],
+      layoutConfig,
       children: [],
       questionList: []
     };
@@ -1062,22 +1256,54 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   getNodeDisplayName(node: any): string {
     if (node.formData) {
-      if (node.formData.grouptitle) return node.formData.grouptitle;
-      if (node.formData.subgrouptitle) return node.formData.subgrouptitle;
+      if (node.formData.grouptitle || node.formData.groupTitle) {
+        return node.formData.grouptitle || node.formData.groupTitle;
+      }
+      if (
+        node.formData.subgrouptitle ||
+        node.formData.subGroupTitle ||
+        node.formData.subgroupTitle
+      ) {
+        return (
+          node.formData.subgrouptitle ||
+          node.formData.subGroupTitle ||
+          node.formData.subgroupTitle
+        );
+      }
       if (node.formData.projectname) {
         const projectNameField = (node.fields || []).find(f => f.name === 'projectname');
         if (projectNameField && projectNameField.options) {
-          const selected = projectNameField.options.find(opt => opt.value == node.formData.projectname);
-          if (selected) return selected.label;
+          if (Array.isArray(node.formData.projectname)) {
+            const selectedLabels = node.formData.projectname.map(val => {
+              const opt = projectNameField.options.find(opt => opt.value == val);
+              return opt ? opt.label : val;
+            });
+            if (selectedLabels.length > 0) return selectedLabels.join(', ');
+          } else {
+            const selected = projectNameField.options.find(opt => opt.value == node.formData.projectname);
+            if (selected) return selected.label;
+          }
         }
         return node.formData.projectname;
       }
+      const tableField = (node.fields || []).find(f => f.type === 'table');
+      if (tableField && node.formData[tableField.name]) {
+        return `Table (${node.formData[tableField.name].length} rows)`;
+      }
     }
+  
     if (node.fields) {
-      if (node.fields.grouptitle) return node.fields.grouptitle;
-      if (node.fields.subgrouptitle) return node.fields.subgrouptitle;
+      if (node.fields.grouptitle || node.fields.groupTitle) return node.fields.grouptitle || node.fields.groupTitle;
+      if (node.fields.subgrouptitle || node.fields.subGroupTitle) return node.fields.subgrouptitle || node.fields.subGroupTitle;
     }
-    return node.formName || '';
+  
+    if (node.formName) {
+      if (node.formName.toLowerCase().includes('group')) return 'New Group';
+      if (node.formName.toLowerCase().includes('subgroup')) return 'New SubGroup';
+      if (node.formName.toLowerCase().includes('project')) return 'New Project';
+      return node.formName;
+    }
+    return 'New Node';
   }
 
   getProjectTitle(): string {
@@ -1106,6 +1332,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   onSaveAndAssign() {
+    this.cancelRequest();
     const structure = this.rootNode;
     const data = this.collectFormData(this.rootNode);
 
@@ -1118,9 +1345,11 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     };
 
     this.projectInsightService.onSaveAndAssign(payload).pipe(first()).subscribe(
-      (response) => {
+      (response: any) => {
         this.formRenderer.dynamicForm.markAllAsTouched();
-        console.log('Saved and assigned:', response);
+
+        this.alertMessage = response.serviceStatus;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
       },
       (error) => {
         console.error('Save and assign failed:', error);
@@ -1129,6 +1358,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   onSaveAsDraft() {
+    this.cancelRequest();
     const structure = this.rootNode;
     const data = this.collectFormData(this.rootNode);
   
@@ -1141,8 +1371,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     };
   
     this.projectInsightService.onSaveAsDraft(payload).pipe(first()).subscribe(
-      (response) => {
-        console.log('Saved and Draft:', response);
+      (response: any) => {
+        this.alertMessage = response.serviceStatus;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
       },
       (error) => {
         console.error('Save and Draft failed:', error);
@@ -1151,6 +1382,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   onFormValueChange(node: FormNode, value: any) {
+    console.log('Form value changed:', value);
     node.formData = value;
     Object.assign(node.fields, value);
   }
@@ -1604,7 +1836,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     if (!this.editingField) return;
     this.editingField.width = Number(this.editingField.width);
   
-    // If select/checkbox/radio and static, parse options if needed
     if (['select', 'checkbox', 'radio'].includes(this.editingField.type) && this.editingField.optionSource === 'static') {
       if (typeof this.editingField.options === 'string') {
         this.editingField.options = this.editingField.options.split(',').map((opt: string, i: number) => ({
@@ -1668,6 +1899,31 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         this.editingField.apiUrl = selectedApi.url;
         this.editingField.apiLabelKey = selectedApi.labelKey;
         this.editingField.apiValueKey = selectedApi.valueKey;
+      }
+    }
+  }
+
+  getNonDependentApis() {
+    return this.apiList.filter(api => api.isdependent === 'N');
+  }
+  
+  getDependentApis() {
+    return this.apiList.filter(api => api.isdependent === 'Y');
+  }
+
+  onDependentApiSelect(event: any) {
+    if (this.editingField && event.target.value) {
+      const selectedApi = this.apiList.find(api => api.url === event.target.value);
+      if (selectedApi) {
+        const parentFieldName = this.editingField.parentField;
+        
+        const parentField = this.currentNode.fields.find(f => f.name === parentFieldName);
+        const parentValueKey = parentField?.apiValueKey || parentFieldName;
+  
+        this.editingField.dependentApiUrl = `${selectedApi.url}/{${parentValueKey}}`;
+        this.editingField.dependentLabelKey = selectedApi.labelKey;
+        this.editingField.dependentValueKey = selectedApi.valueKey;
+        this.editingField.dependentParamName = parentValueKey;
       }
     }
   }
@@ -1774,9 +2030,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   loadApiOptionsFormBuilder() {
     if (this.editingField && this.editingField.apiUrl) {
-      this.http.get<any[]>(this.editingField.apiUrl).subscribe({
-        next: (data) => {
-          this.editingField.options = this.mapApiOptions(data, this.editingField.apiLabelKey, this.editingField.apiValueKey);
+      this.apiSourceService.loadDynamicApi(this.editingField.apiUrl).subscribe({
+        next: (data: any) => {
+          this.editingField!.options = this.mapApiOptions(data, this.editingField!.apiLabelKey!, this.editingField!.apiValueKey!);
         },
         error: (error) => {
           console.error('Error loading API options:', error);
@@ -1804,25 +2060,27 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   onParentFieldChange() {
     if (this.editingField && this.editingField.parentField) {
       const parentField = this.currentNode.fields.find(f => f.name === this.editingField.parentField);
-      
+      const parentValueKey = parentField?.apiValueKey || parentField?.name;
+  
       if (parentField) {
         if (!this.editingField.dependentParamName) {
-          this.editingField.dependentParamName = parentField.name;
+          this.editingField.dependentParamName = parentValueKey;
         }
-        
-        if (!this.editingField.dependentApiUrl) {
-          this.editingField.dependentApiUrl = `https://api.example.com/data?${this.editingField.dependentParamName}={parentValue}`;
+  
+        if (this.editingField.dependentApiUrl) {
+          const baseUrl = this.editingField.dependentApiUrl.split('/{')[0];
+          this.editingField.dependentApiUrl = `${baseUrl}/{${parentValueKey}}`;
         }
-        
+
         if (!this.currentNode.fieldDependencies) {
           this.currentNode.fieldDependencies = {};
         }
         if (!this.currentNode.dependentFieldsMap) {
           this.currentNode.dependentFieldsMap = {};
         }
-        
+  
         this.currentNode.fieldDependencies[this.editingField.name] = this.editingField.parentField;
-        
+  
         if (!this.currentNode.dependentFieldsMap[this.editingField.parentField]) {
           this.currentNode.dependentFieldsMap[this.editingField.parentField] = [];
         }
@@ -1831,28 +2089,30 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     }
   }
 
-  loadDependentOptionsFormBuilder() {
+  async loadDependentOptionsFormBuilder() {
     if (!this.editingField.parentField || !this.editingField.dependentApiUrl) {
       return;
     }
-  
-    // For preview, we'll use a mock value - in real implementation, 
-    // this would be called when parent field value changes
-    const mockParentValue = '1'; // This would be the actual selected value
-    const url = this.editingField.dependentApiUrl.replace('{parentValue}', mockParentValue);
-  
-    this.http.get<any[]>(url).subscribe({
-      next: (response) => {
+
+    try {
+      // For preview, we'll use a mock value - in real implementation, 
+      // this would be called when parent field value changes
+      const mockParentValue = '1'; // This would be the actual selected value
+      const url = this.editingField.dependentApiUrl.replace('{parentValue}', mockParentValue);
+      
+      // Make API call to get dependent options
+      const response:any = await this.apiSourceService.loadDynamicApi(url).toPromise();
+      
+      if (response) {
         this.editingField.options = response.map(item => ({
           label: item[this.editingField.dependentLabelKey || 'name'],
           value: item[this.editingField.dependentValueKey || 'id']
         }));
-      },
-      error: (error) => {
-        console.error('Error loading dependent options:', error);
-        this.editingField.options = [];
       }
-    });
+    } catch (error) {
+      console.error('Error loading dependent options:', error);
+      // Show error message to user
+    }
   }
 
   //  Import / Export Implementation

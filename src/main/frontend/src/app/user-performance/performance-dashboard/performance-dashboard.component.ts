@@ -356,7 +356,7 @@ export class PerformanceDashboardComponent implements OnInit {
     this.onGetEmployeeInfo();
     this.fetchGoals();
     this.loadPerformanceStats();
-    this.getAllProjectInsightContributionList();
+    this.getProjectInsightByAssignedToEmpId();
     this.getMyContributionList();
     this.getUserContributionForReview();
     this.getAllProjects();
@@ -1352,7 +1352,31 @@ export class PerformanceDashboardComponent implements OnInit {
     }
   }
 
-  getAllProjectInsightContributionList() {
+  // getAllProjectInsightContributionList() {
+  //   this.sortColumn = [];
+  //   this.sortColumnType = [];
+  //   this.sortDirection = '';
+  //   this.allProjectInsightList = [];
+
+  //   let insightObj = {
+  //     employeeRole: this.currentUser.employeeRole,
+  //     empId: this.currentUser.empId,
+  //     performanceTabName: 'Performance Dashboard'
+  //   };
+
+  //   this.projectInsightService.getAllProjectInsightContributionList(insightObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.allProjectInsightList = response.serviceResponse;
+  //       this.allProjectInsightList.forEach(project => {
+  //         project.createdOn = (project.createdOn) ? moment(project.createdOn).format(AppComponent.LOCAL_DATE_FORMAT) : null;
+  //       });
+  //     } else {
+  //       console.error(response.serviceResponse);
+  //     }
+  //   });
+  // }
+
+  getProjectInsightByAssignedToEmpId() {
     this.sortColumn = [];
     this.sortColumnType = [];
     this.sortDirection = '';
@@ -1360,20 +1384,25 @@ export class PerformanceDashboardComponent implements OnInit {
 
     let insightObj = {
       employeeRole: this.currentUser.employeeRole,
-      empId: this.currentUser.empId,
+      empId: 1,
       performanceTabName: 'Performance Dashboard'
     };
 
-    this.projectInsightService.getAllProjectInsightContributionList(insightObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allProjectInsightList = response.serviceResponse;
+    this.projectInsightService.getProjectInsightByAssignedToEmpId(insightObj).pipe(first()).subscribe(
+      (response: any) => {
+
+        this.allProjectInsightList = response?.serviceResponse1 || [];
         this.allProjectInsightList.forEach(project => {
-          project.createdOn = (project.createdOn) ? moment(project.createdOn).format(AppComponent.LOCAL_DATE_FORMAT) : null;
+          project.createdOn = (project.createdOn)
+            ? moment(project.createdOn).format(AppComponent.LOCAL_DATE_FORMAT)
+            : null;
         });
-      } else {
-        console.error(response.serviceResponse);
+
+      },
+      (error) => {
+        console.error('No ProjectInsightByAssignedToEmpId found:', error);
       }
-    });
+    );
   }
 
   openProjectInsightResponeMod(insightResponseTemplate: TemplateRef<any>) {

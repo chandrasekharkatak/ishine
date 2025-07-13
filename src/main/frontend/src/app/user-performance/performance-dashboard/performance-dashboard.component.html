@@ -279,6 +279,8 @@
 <div class="row mt-4" *ngIf="isProjectInsightList">
   <!-- project insight -->
   <div class="col-md-6">
+
+
     <div class="card border-0">
       <div class="card-header">
         <h5 class="card-title mb-0 text-center fw-bold">Project Insights Contribution</h5>
@@ -337,10 +339,9 @@
                     *ngIf="allProjectInsightList.length == 0|| (allProjectInsightList| colFilter:filters:false).length == 0">
                     <th colspan="6" class="text-center info-label">No Details to display...</th>
                   </tr>
-                  <tr *ngFor="let project of allProjectInsightList 
-          | colFilter:filters:false 
-          | sort : [sortColumn, sortColumnType, sortDirection] 
-          | paginate: { id: 'projectInsightPagination', itemsPerPage: 2, currentPage: page }">
+                  <tr *ngFor="let project of allProjectInsightList | colFilter:filters:false 
+                                                        | sort : [sortColumn, sortColumnType, sortDirection] 
+                                                        | paginate: { id: 'projectInsightPagination', itemsPerPage: 2, currentPage: page }">
                     <td>{{project.projectName}}</td>
                     <td>{{project.projectManagerName}}</td>
                     <td>{{project.createdByName}}</td>
@@ -363,6 +364,17 @@
       </div>
     </div>
   </div>
+
+
+
+
+
+
+
+
+
+
+
 
   <!-- project my contribution section -->
   <div class="col-md-6">

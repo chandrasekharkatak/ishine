@@ -14,6 +14,7 @@ public class ApiSourceDTO {
 	private String url;
 	private String labelKey;
 	private String valueKey;
+	private String isdependent;
 	
 	
 

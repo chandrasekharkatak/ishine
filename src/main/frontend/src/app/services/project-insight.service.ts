@@ -114,4 +114,10 @@ export class ProjectInsightService {
   deleteProjectInsightById(projectInsightId: any){
     return this.http.get(`${this.baseUrl}` + `api/deleteProjectInsightById/`+ `${projectInsightId}`);
   }
+
+  getProjectInsightByAssignedToEmpId(empObject: any){
+    return this.http.post(`${this.baseUrl}` + `api/getProjectInsightByAssignedToEmpId`, empObject);
+  }
+
+
 }

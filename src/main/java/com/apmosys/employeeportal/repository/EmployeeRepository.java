@@ -653,4 +653,8 @@ public String findemployeerole(@Param("empId")Long empId);
 	
 	List<Employee> findByEmpIdIn(List<Long> empIds);
 
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.empId, e.name )"
+			+ "FROM Employee e")
+	public List<EmployeeDTO> getAllEmployeeAsApiSource();
+
 }

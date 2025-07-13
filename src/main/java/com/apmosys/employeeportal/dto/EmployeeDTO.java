@@ -7,15 +7,19 @@ import javax.persistence.Column;
 
 import com.apmosys.employeeportal.model.Notification;
 
-import java.time.LocalDate;	
+import java.time.LocalDate;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @ToString
 @Setter
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class EmployeeDTO {
 
 	private Long empId;
@@ -273,5 +277,11 @@ public class EmployeeDTO {
     private String selectedProjectId;
     private String hodDepartmentName;
     private String teamIds;
+    
+    
+    public EmployeeDTO(Long empId, String name) {
+    	this.empId = empId;
+    	this.name = name;
+    }
 	
 }

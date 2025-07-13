@@ -166,7 +166,7 @@ public class ProjectInsightController {
         ProjectInsightStructure saved = projectInsightService.saveAsDraft(projectInsightStructure);
 
         ServiceResponse response = new ServiceResponse();
-        response.setServiceStatus("Success");
+        response.setServiceStatus("Successfully Saved Project in Draft");
         response.setServiceResponse(saved);
         return ResponseEntity.ok(response);
     }
@@ -176,7 +176,7 @@ public class ProjectInsightController {
         ProjectInsightStructure saved = projectInsightService.saveAndAssign(projectInsightStructure);
 
         ServiceResponse response = new ServiceResponse();
-        response.setServiceStatus("Success");
+        response.setServiceStatus("Project Saved Successfully");
         response.setServiceResponse(saved);
         return ResponseEntity.ok(response);
     }
@@ -205,6 +205,17 @@ public class ProjectInsightController {
 
         ProjectInsightStructure updated = projectInsightService.updateProjectInsightById(id, updatedData);
         return ResponseEntity.ok(updated);
+    }
+    
+    
+    /*
+     * New Implimentation Project Insight : User Contribution ----------- [START] --------------------------------------
+     * */
+    
+    @RequestMapping(value = "/getProjectInsightByAssignedToEmpId", method = RequestMethod.POST)
+    public ResponseEntity<ServiceResponse> getProjectInsightByAssignedToEmpId(@RequestBody ProjectInsightDTO projectInsightDTO) {
+    	ServiceResponse response = projectInsightService.getProjectInsightByAssignedToEmpId(projectInsightDTO);
+        return ResponseEntity.ok(response);
     }
 	
 	

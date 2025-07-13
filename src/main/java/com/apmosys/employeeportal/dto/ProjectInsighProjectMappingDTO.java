@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.dto;
 
 import java.sql.Timestamp;
 
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -26,6 +28,7 @@ public class ProjectInsighProjectMappingDTO {
 	private String projectManagerName;
 	private String client;
 	
+	private ProjectInsightStructure projectInsightStructure;
 	
 	 public ProjectInsighProjectMappingDTO(
 		        Integer projectId,

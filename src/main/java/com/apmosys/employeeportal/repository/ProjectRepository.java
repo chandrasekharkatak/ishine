@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.model.Project;
 
 @Repository
@@ -97,5 +98,11 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeesByPoProjectId(String poProjectId);
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectDTO(c.clientId, c.clientName ) \n"
+			+ "FROM Project p \n"
+			+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
+			+ "WHERE p.projectId=:projectId")
+	public List<ProjectDTO> getClientByProjectId(Integer projectId);
 	
 }

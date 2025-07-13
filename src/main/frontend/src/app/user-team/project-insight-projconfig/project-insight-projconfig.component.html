@@ -20,9 +20,6 @@
           <button class="btn btn-outline-primary btn-sm">
             <i class="fa fa-filter"></i>
           </button>
-          <button class="btn btn-outline-primary btn-sm ml-1">
-            <i class="fa fa-download"></i>
-          </button>
           <button class="btn btn-outline-primary btn-sm ml-1" (click)="openCreateProject()">
             <i class="fa fa-plus"></i> Create Project Insight
           </button>
@@ -829,102 +826,106 @@
           <!-- API Options -->
           <div *ngIf="editingField.optionSource === 'api'" class="api-config">
             <div class="form-group">
-              <label>Select API</label>
-              <select class="form-control" (change)="onApiSelect($event)">
-                <option value="">Choose an API...</option>
-                <option *ngFor="let api of apiList" [value]="api.url">{{api.label}}</option>
-              </select>
+                <label>Select API</label>
+                <select class="form-control" (change)="onApiSelect($event)">
+                    <option value="">Choose an API...</option>
+                    <option *ngFor="let api of getNonDependentApis()" [value]="api.url">{{api.label}}</option>
+                </select>
             </div>
-
+        
             <div class="form-group">
-              <label>API URL</label>
-              <input class="form-control" [(ngModel)]="editingField.apiUrl" name="apiUrl"
-                placeholder="https://api.example.com/data" />
+                <label>API URL</label>
+                <input class="form-control" [(ngModel)]="editingField.apiUrl" name="apiUrl"
+                    placeholder="https://api.example.com/data" />
             </div>
-
+        
             <div class="row">
-              <div class="col-md-6">
-                <label>Label Key</label>
-                <input class="form-control" [(ngModel)]="editingField.apiLabelKey" name="apiLabelKey"
-                  placeholder="name" />
-              </div>
-              <div class="col-md-6">
-                <label>Value Key</label>
-                <input class="form-control" [(ngModel)]="editingField.apiValueKey" name="apiValueKey"
-                  placeholder="id" />
-              </div>
-            </div>
-
-            <div class="form-group" *ngIf="editingField.options && editingField.options.length > 0">
-              <label>Preview Options</label>
-              <div class="api-preview">
-                <div *ngFor="let opt of editingField.options" class="preview-item">
-                  <span class="label">{{opt.label}}</span>
-                  <span class="value">({{opt.value}})</span>
+                <div class="col-md-6">
+                    <label>Label Key</label>
+                    <input class="form-control" [(ngModel)]="editingField.apiLabelKey" name="apiLabelKey" placeholder="name" />
                 </div>
-              </div>
-              <button class="btn btn-outline-secondary btn-sm" (click)="loadApiOptionsFormBuilder()" type="button">
-                <i class="fa fa-refresh"></i> Load Options
-              </button>
+                <div class="col-md-6">
+                    <label>Value Key</label>
+                    <input class="form-control" [(ngModel)]="editingField.apiValueKey" name="apiValueKey" placeholder="id" />
+                </div>
             </div>
-          </div>
+        
+            <div class="form-group" *ngIf="editingField.options && editingField.options.length > 0">
+                <label>Preview Options</label>
+                <div class="api-preview">
+                    <div *ngFor="let opt of editingField.options" class="preview-item">
+                        <span class="label">{{opt.label}}</span>
+                        <span class="value">({{opt.value}})</span>
+                    </div>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm" (click)="loadApiOptionsFormBuilder()" type="button">
+                    <i class="fa fa-refresh"></i> Load Options
+                </button>
+            </div>
+        </div>
 
           <!-- Dependent Field Options -->
           <div *ngIf="editingField.optionSource === 'dependent'" class="dependent-config">
             <div class="form-group">
-              <label>Parent Field</label>
-              <select class="form-control" [(ngModel)]="editingField.parentField" name="parentField"
-                (change)="onParentFieldChange()">
-                <option value="">Select Parent Field...</option>
-                <option *ngFor="let field of getAvailableParentFields(editingField)" [value]="field.name">
-                  {{field.label}} ({{field.name}})
-                </option>
-              </select>
+                <label>Parent Field</label>
+                <select class="form-control" [(ngModel)]="editingField.parentField" name="parentField"
+                    (change)="onParentFieldChange()">
+                    <option value="">Select Parent Field...</option>
+                    <option *ngFor="let field of getAvailableParentFields(editingField)" [value]="field.name">
+                        {{field.label}} ({{field.name}})
+                    </option>
+                </select>
             </div>
-
+        
             <div class="form-group" *ngIf="editingField.parentField">
-              <label>API URL Template</label>
-              <input class="form-control" [(ngModel)]="editingField.dependentApiUrl" name="dependentApiUrl"
-                placeholder="https://api.example.com/subdomains?domainId={{ '{' }}parentValue{{ '}' }}" />
-              <small class="form-text text-muted">
-                Use {{ '{' }}parentValue{{ '}' }} to include the selected value from parent field
-              </small>
+                <label>Select Dependent API</label>
+                <select class="form-control" (change)="onDependentApiSelect($event)">
+                    <option value="">Choose a Dependent API...</option>
+                    <option *ngFor="let api of getDependentApis()" [value]="api.url">{{api.label}}</option>
+                </select>
             </div>
-
-            <div class="row" *ngIf="editingField.parentField">
-              <div class="col-md-6">
-                <label>Label Key</label>
-                <input class="form-control" [(ngModel)]="editingField.dependentLabelKey" name="dependentLabelKey"
-                  placeholder="name" />
-              </div>
-              <div class="col-md-6">
-                <label>Value Key</label>
-                <input class="form-control" [(ngModel)]="editingField.dependentValueKey" name="dependentValueKey"
-                  placeholder="id" />
-              </div>
+        
+            <div class="form-group" *ngIf="editingField.parentField && editingField.dependentApiUrl">
+                <label>API URL Template</label>
+                <input class="form-control" [(ngModel)]="editingField.dependentApiUrl" name="dependentApiUrl" readonly />
+                <small class="form-text text-muted">
+                    This URL will be automatically constructed with the parent field value
+                </small>
             </div>
-
-            <div class="form-group" *ngIf="editingField.parentField">
-              <label>Parameter Name</label>
-              <input class="form-control" [(ngModel)]="editingField.dependentParamName" name="dependentParamName"
-                placeholder="domainId" />
-              <small class="form-text text-muted">
-                The parameter name to send the parent field value (default: parent field name)
-              </small>
-            </div>
-
-            <div class="form-group" *ngIf="editingField.options && editingField.options.length > 0">
-              <label>Preview Options (based on parent selection)</label>
-              <div class="dependent-preview">
-                <div *ngFor="let opt of editingField.options" class="preview-item">
-                  <span class="label">{{opt.label}}</span>
-                  <span class="value">({{opt.value}})</span>
+        
+            <div class="row" *ngIf="editingField.parentField && editingField.dependentApiUrl">
+                <div class="col-md-6">
+                    <label>Label Key</label>
+                    <input class="form-control" [(ngModel)]="editingField.dependentLabelKey" name="dependentLabelKey"
+                        placeholder="name" />
                 </div>
-              </div>
-              <button class="btn btn-outline-secondary btn-sm" (click)="loadDependentOptionsFormBuilder()"
-                type="button">
-                <i class="fa fa-refresh"></i> Load Options
-              </button>
+                <div class="col-md-6">
+                    <label>Value Key</label>
+                    <input class="form-control" [(ngModel)]="editingField.dependentValueKey" name="dependentValueKey"
+                        placeholder="id" />
+                </div>
+            </div>
+        
+            <div class="form-group" *ngIf="editingField.parentField && editingField.dependentApiUrl">
+                <label>Parameter Name</label>
+                <input class="form-control" [(ngModel)]="editingField.dependentParamName" name="dependentParamName"
+                    placeholder="domainId" />
+                <small class="form-text text-muted">
+                    The parameter name to send the parent field value (default: parent field name)
+                </small>
+            </div>
+        
+            <div class="form-group" *ngIf="editingField.options && editingField.options.length > 0">
+                <label>Preview Options (based on parent selection)</label>
+                <div class="dependent-preview">
+                    <div *ngFor="let opt of editingField.options" class="preview-item">
+                        <span class="label">{{opt.label}}</span>
+                        <span class="value">({{opt.value}})</span>
+                    </div>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm" (click)="loadDependentOptionsFormBuilder()" type="button">
+                    <i class="fa fa-refresh"></i> Load Options
+                </button>
             </div>
           </div>
         </div>
