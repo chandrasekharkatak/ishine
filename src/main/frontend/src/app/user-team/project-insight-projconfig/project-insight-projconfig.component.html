@@ -75,6 +75,7 @@
     </div>
   </div>
 
+  <!-- Import / Back / create buttons -->
   <div class="px-0 d-flex justify-content-between align-items-center" *ngIf="isCreateForm && !isTable">
     <!-- Back button -->
     <button class="btn btn-sm btn-outline-primary mb-1" (click)="showTable()">
@@ -92,6 +93,8 @@
       </button>
     </div>
   </div>  
+
+  <!-- Main form rendering sections with tree structure -->
   <div class="col-md-12 main-content" *ngIf="isCreateForm && !isTable">
     <div class="filters">
       <div class="filters-header d-flex align-items-center gap-2">
@@ -850,7 +853,7 @@
                 </div>
             </div>
         
-            <div class="form-group" *ngIf="editingField.options && editingField.options.length > 0">
+            <!-- <div class="form-group" *ngIf="editingField.options && editingField.options.length > 0">
                 <label>Preview Options</label>
                 <div class="api-preview">
                     <div *ngFor="let opt of editingField.options" class="preview-item">
@@ -858,10 +861,7 @@
                         <span class="value">({{opt.value}})</span>
                     </div>
                 </div>
-                <button class="btn btn-outline-secondary btn-sm" (click)="loadApiOptionsFormBuilder()" type="button">
-                    <i class="fa fa-refresh"></i> Load Options
-                </button>
-            </div>
+            </div> -->
         </div>
 
           <!-- Dependent Field Options -->
@@ -915,7 +915,7 @@
                 </small>
             </div>
         
-            <div class="form-group" *ngIf="editingField.options && editingField.options.length > 0">
+            <!-- <div class="form-group" *ngIf="editingField.options && editingField.options.length > 0">
                 <label>Preview Options (based on parent selection)</label>
                 <div class="dependent-preview">
                     <div *ngFor="let opt of editingField.options" class="preview-item">
@@ -926,7 +926,7 @@
                 <button class="btn btn-outline-secondary btn-sm" (click)="loadDependentOptionsFormBuilder()" type="button">
                     <i class="fa fa-refresh"></i> Load Options
                 </button>
-            </div>
+            </div> -->
           </div>
         </div>
 

@@ -55,6 +55,10 @@ export class FormRendererComponent implements OnInit, OnChanges {
     }
   }
 
+  get formControlsCount(): number {
+    return this.dynamicForm ? Object.keys(this.dynamicForm.controls).length : 0;
+  }
+
   // async ngOnChanges(changes: SimpleChanges) {
   //   if (changes.fields || changes.formData) {
   //     await this.prepareApiOptions();

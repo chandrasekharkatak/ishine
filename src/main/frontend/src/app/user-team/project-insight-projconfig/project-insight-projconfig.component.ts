@@ -1899,6 +1899,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         this.editingField.apiUrl = selectedApi.url;
         this.editingField.apiLabelKey = selectedApi.labelKey;
         this.editingField.apiValueKey = selectedApi.valueKey;
+
+        this.loadApiOptionsFormBuilder();
       }
     }
   }
@@ -2017,6 +2019,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
     this.currentNode.fields.push(this.editingField);
     this.currentNode.layoutConfig = this.getLayoutConfig(this.currentNode.fields);
+
+    this.currentNode.fields = [...this.currentNode.fields];
     
     console.log('Field added to current node:', this.currentNode);
     console.log('Updated fields:', this.currentNode.fields);
