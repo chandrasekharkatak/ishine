@@ -352,22 +352,74 @@
         <i class="fa fa-plus"></i> Add Question
       </button>
     </div>
-    <div *ngIf="entity?.questionList?.length > 0; else noQuestions">
-      <div *ngFor="let question of entity.questionList; let qIdx = index" class="mb-2 mt-2">
+
+    <!-- Question Breadcrumb -->
+    <div *ngIf="entity?.questionList?.length > 0" class="question-breadcrumb mb-3">
+      <nav aria-label="Question navigation">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item">
+            <button class="btn btn-sm btn-outline-secondary" 
+                    (click)="showQuestionOverview(entity)"
+                    [class.active]="currentQuestionIndex === null && currentQuestionList === entity.questionList">
+              <i class="fa fa-list"></i> Overview
+            </button>
+          </li>
+          <li *ngFor="let question of entity.questionList; let i = index" class="breadcrumb-item">
+            <button class="btn btn-sm btn-outline-secondary" 
+                    (click)="navigateToQuestion(entity.questionList, i)"
+                    [class.active]="currentQuestionIndex === i && currentQuestionList === entity.questionList">
+              Q{{ i + 1 }}
+            </button>
+          </li>
+        </ol>
+      </nav>
+    </div>
+
+    <!-- Question Overview (when no specific question is selected) -->
+    <div *ngIf="entity?.questionList?.length > 0 && (currentQuestionIndex === null || currentQuestionList !== entity.questionList)" class="question-overview">
+      <div class="card">
+        <div class="card-body">
+          <div class="row">
+            <div *ngFor="let question of entity.questionList; let i = index" class="col-md-6 mb-3">
+              <div class="question-preview-card p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="mb-0">Q{{ i + 1 }}</h6>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary btn-sm" (click)="navigateToQuestion(entity.questionList, i)">
+                      <i class="fa fa-edit"></i>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" (click)="deleteQuestion(entity.questionList, i)">
+                      <i class="fa fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                <p class="mb-1 text-muted small">{{ question.text || 'No question text' }}</p>
+                <span class="badge badge-info">{{ question.optionType || 'text' }}</span>
+                <span *ngIf="question.optionsList?.length" class="badge badge-secondary ml-1">
+                  {{ question.optionsList.length }} options
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Single Question View -->
+    <div *ngIf="entity?.questionList?.length > 0 && currentQuestionIndex !== null && currentQuestionList === entity.questionList; else noQuestions">
+      <ng-container *ngIf="entity.questionList[currentQuestionIndex] as question">
+        <!-- Option managment -->
         <div class="d-flex align-items-center">
-          <span class="mr-2">Q{{ qIdx + 1 }}:</span>
           <input [(ngModel)]="question.text" class="form-control mr-2" placeholder="Enter question text" />
-          <button class="btn btn-sm btn-danger" (click)="deleteQuestion(entity.questionList, qIdx)">
+          <button class="btn btn-sm btn-danger" (click)="deleteQuestion(entity.questionList, currentQuestionIndex)">
             <i class="fa fa-trash"></i>
           </button>
         </div>
 
-
-        <!-- Option management can go here if needed -->
         <div class="col-md-12 mt-2">
           <div class="option-config-section">
             <div class="row">
-              <div class="col-md-8">
+              <div class="col-md-12">
                 <div class="info-wrapper">
                   <div class="form-group">
                     <label class="info-label">Description</label>
@@ -375,10 +427,12 @@
                   </div>
                 </div>
               </div>
-              <div class="col-md-4">
+            </div>  
+            <div class="row">
+              <div class="col-md-6">
                 <div class="info-wrapper">
                   <div class="form-group">
-                    <label class="info-label">Options Type</label><span class="text-danger">*</span>
+                    <label class="info-label"><span class="text-danger">*</span>Options Type</label>
                     <select class="form-control" aria-hidden="true" [(ngModel)]="question.optionType"
                       (change)="setOption(question)">
                       <option value="checkbox">Checkbox</option>
@@ -388,6 +442,18 @@
                   </div>
                 </div>
               </div>
+              <div class="col-md-4 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Assign To</label>
+                        <mat-select class="form-control" multiple [(ngModel)]="question.toAssignEmployeeList">
+                            <mat-option selected="selected" value="" disabled>Select</mat-option>
+                            <mat-option *ngFor="let emp of allEmployeeList"
+                                [value]="emp.empId">{{emp.name}}</mat-option>
+                        </mat-select>
+                    </div>
+                </div>
+            </div>
             </div>
             <div class="row" *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio')">
               <div class="col-md-12" *ngFor="let option of question.optionsList; let i = index">
@@ -496,7 +562,7 @@
                       </div>
                     </div>
                   </div>
-
+  
                   <div *ngIf="question.optionType == 'text'" class="mt-2">
                     <div class="form-group mb-3">
                       <label>Tags</label>
@@ -639,7 +705,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </ng-container>
     </div>
     <ng-template #noQuestions>
       <div class="text-muted">No questions added yet.</div>

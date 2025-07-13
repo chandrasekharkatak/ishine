@@ -34,4 +34,8 @@ export class FormBuilderService {
     return this.http.post(`${this.baseUrl}` + `form/getAllDynamicFormByDepartmentAndType`,formObject);
   }
 
+  getAllEmployeeList(){
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployee`);
+  }
+
 }

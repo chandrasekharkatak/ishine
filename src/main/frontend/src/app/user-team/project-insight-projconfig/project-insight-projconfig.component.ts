@@ -122,6 +122,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   projectInsightObj: ProjectInsight = new ProjectInsight();
   displayedResponseUserId: any[] = [];
   rolesGreaterThanManager: any[] = ['HOD', 'SuperAdmin', 'HR', 'RMG'];
+  currentQuestionIndex: number | null = null;
+  currentQuestionList: ProjectQuestion[] | null = null;
 
   // Form
   dynamicForm: FormGroup;
@@ -134,6 +136,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   allFormListList: any[] = [];
   allProjectInsightProjectList: any[] = [];
   allDomainDataList: any[] = [];
+  allEmployeeList:any[] = [];
 
   fields: any[] = [];
   projectInsightProjectObj: any = {};
@@ -253,6 +256,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.isCurrentEmployeeRoleGreaterThanManager = this.rolesGreaterThanManager.includes(this.currentUser?.employeeRole);
     this.openTableView();
     this.getAllApiSourceList();
+    this.getAllEmployeeList();
 
     this.projectData.project = {};
     this.showTable();
@@ -362,6 +366,18 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         this.allDeptList = response.serviceResponse;
       } else {
         console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getAllEmployeeList(){
+    this.formBuilderService.getAllEmployeeList().pipe(first()).subscribe({
+      next: (response: any) => {
+        this.allEmployeeList = response;
+      },
+      error: (error: any) => {
+        this.alertMessage = error;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
       }
     });
   }
@@ -1421,12 +1437,23 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   // Question Configurations
+  navigateToQuestion(questionList: ProjectQuestion[], questionIndex: number) {
+    this.currentQuestionList = questionList;
+    this.currentQuestionIndex = questionIndex;
+  }
+
+  showQuestionOverview(entity: FormNode) {
+    this.currentQuestionList = entity.questionList;
+    this.currentQuestionIndex = null;
+  }
+
   addQuestion(entity: FormNode) {
     let question: ProjectQuestion = new ProjectQuestion();
     if (!entity.questionList) {
       entity.questionList = [];
     }
     entity.questionList.push(question);
+    this.navigateToQuestion(entity.questionList, entity.questionList.length - 1);
   }
 
   deleteQuestion(questionList: ProjectQuestion[], questionIndex: any) {
