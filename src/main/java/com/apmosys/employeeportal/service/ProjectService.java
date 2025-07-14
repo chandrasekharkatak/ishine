@@ -2053,7 +2053,7 @@ public class ProjectService {
 	    		+ "    INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
 	    		+ "    INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
 	    		+ "    INNER JOIN department d ON d.dept_id = j.dept_id \n"
-	    		+ "    INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+	    		+ "    LEFT JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
 	    		+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6 ");
 
 	    if (dto != null) {
@@ -2078,7 +2078,7 @@ public class ProjectService {
 	    		+ "    INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
 	    		+ "    INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
 	    		+ "    INNER JOIN department d ON d.dept_id = j.dept_id \n"
-	    		+ "    INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+	    		+ "    LEFT JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
 	    		+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6 ");
 
 	    if (dto != null) {

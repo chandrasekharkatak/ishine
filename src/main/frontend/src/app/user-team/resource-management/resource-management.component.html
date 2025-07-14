@@ -293,8 +293,9 @@
                     <div class="row mb-3">
                         <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                             <input id="employeeSearch" type="text" class="form-control" style="min-width: 200px;"
-                                placeholder="Search by Name or Emp ID" aria-label="Search employee"
-                                [formControl]="employeeCtrl" [matAutocomplete]="auto">
+                            placeholder="Search by Name or Emp ID" aria-label="Search employee"
+                            [formControl]="employeeCtrl" [matAutocomplete]="auto"
+                            (input)="onEmployeeInputChange()">
 
                             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
                                 [displayWith]="displayEmployee">
@@ -304,10 +305,10 @@
                             </mat-autocomplete>
                         </div>
                     </div>
-                    <div *ngIf="selectedEmpId" class="button-container">
-                        <button class="rounded-button summary-button"
+                    <div class="button-container">
+                        <button class="rounded-button summary-button" [disabled]="!selectedEmpId"
                             (click)="openSummaryModal(projectSummaryModal, selectedEmpId)">Employee Summary</button>
-                        <button class="rounded-button details-button"
+                        <button class="rounded-button details-button" [disabled]="!selectedEmpId"
                             [navigateToEmployee360]="this.selectedEmpId">Employee
                             360</button>
                     </div>
@@ -569,7 +570,9 @@
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
                                         mat-sort-header="createdOn|datetime">Created On</th>
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                        mat-sort-header="status|string">Project Status</th>
+                                        mat-sort-header="status|string">PO Project Status</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                        mat-sort-header="projectStatus|string">Ishine Project Status</th>
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 170px;"
                                         mat-sort-header="draftStatus|string">Approval
                                         Status</th>
@@ -671,6 +674,7 @@
                                         <td>{{project.state ? project.state:'NA'}}</td>
                                         <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.status ? project.status:'NA'}}</td>
+                                        <td>{{project.projectStatus ? project.projectStatus:'NA'}}</td>
                                         <td
                                             [ngStyle]="{'color': (project.draftStatus == 'Pending For Approval') ? 'orange' : (project.draftStatus == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
                                             <em>{{ project.draftStatus ? project.draftStatus : 'NA' }}</em>
@@ -1047,7 +1051,7 @@
     <ng-template #alert_message_without_reload>
         <div class="modal-body text-center">
             <p>{{alertMessage}}</p>
-            <button type="button" class="btn btn-primary" (click)="cancelRequest3()">OK</button>&nbsp;
+            <button type="button" class="btn btn-primary" (click)="cancelRequest6()">OK</button>&nbsp;
         </div>
     </ng-template>
 
@@ -1211,57 +1215,55 @@
             <span aria-hidden="true">×</span>
         </button>
     </div>
-    <div class="table-container">
-        <div class="table-responsive">
-            <table class="table table-hover project_table scrollable-table" id="projectTable">
-                <thead class="thead-light" id="projectTableHead">
+    <div class="table-container" bassHorizontalScroll [tableId]="'projectDetailsTable'" [tableTHeadId]="'projectDetailsTHead'"
+        [tableTHeadTrId]="'projectDetailsTHeadTr'">
+    
+        <table class="table" id="projectDetailsTable">
+        
+            <thead class="thead-light" id="projectDetailsTHead">
+                <tr id="projectDetailsTHeadTr">
+                    <th scope="col" class="info-label" style="min-width: 80px;">Sr.No</th>
+                    <th scope="col" class="info-label" style="min-width: 250px;">Project Name</th>
+                    <th scope="col" class="info-label" style="min-width: 200px;">Team Name</th>
+                    <th scope="col" class="info-label" style="min-width: 200px;">Client Name</th>
+                    <th scope="col" class="info-label" style="min-width: 150px;">Billable Type</th>
+                    <th scope="col" class="info-label" style="min-width: 150px;">Start Date</th>
+                    <th scope="col" class="info-label" style="min-width: 150px;">End Date</th>
+                    <th scope="col" class="info-label" style="min-width: 120px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngIf="projectDetails.length === 0">
                     <tr>
-                        <th scope="col" class="text-center" style="width: 8%;">Sr.No</th>
-                        <th scope="col" class="info-label" style="width: 18%;">Project Name</th>
-                        <th scope="col" class="info-label" style="width: 15%;">Team Name</th>
-                        <th scope="col" class="info-label" style="width: 15%;">Client Name</th>
-                        <th scope="col" class="info-label text-center" style="width: 12%;">Billable Type</th>
-                        <th scope="col" class="info-label text-center" style="width: 12%;">Start Date</th>
-                        <th scope="col" class="info-label text-center" style="width: 12%;">End Date</th>
-                        <th scope="col" class="info-label text-center" style="width: 8%;">Action</th>
+                        <th colspan="8" class="text-center info-label">No details to display...</th>
                     </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let userInfo of projectDetails; let i = index">
-                        <td class="text-center align-middle">{{ i + 1 }}</td>
-                        <td class="align-middle">{{ userInfo.projectName || 'No Project Name' }}</td>
-                        <td class="align-middle">{{ userInfo.teamName || '-' }}</td>
-                        <td class="align-middle">{{ userInfo.clientName || '-' }}</td>
-                        <td class="text-center align-middle">{{ userInfo.billableType || '-' }}</td>
-                        <td class="text-center align-middle">{{ userInfo.startDate || '-' }}</td>
-                        <td class="text-center align-middle">{{ userInfo.updatedOn || '-' }}</td>
-                        <td class="text-center align-middle">
-                            <button class="btn btn-danger btn-sm" 
-                                    (click)="deleteResourceModal(delete_modal_template,userInfo)"
-                                    title="Delete Project">
-                                <em class="fa fa-trash"></em>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr *ngIf="projectDetails.length === 0">
-                        <td colspan="8" class="text-center text-muted py-2"> 
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="row col-md-12 mt-3">
-            <div class="my-buttons">
-                <pagination-controls id="projectEmployeeDetailsId" 
-                                   class="my-pagination"
-                                   [hidden]="projectDetails.length == 0"
-                                   (pageChange)="handlePageChanges($event)">
-                </pagination-controls>
-            </div>
-             <div class="modalC ml-auto">
-                    <!-- <button class="btn btn-sm btn-outline-primary" (click)="closeProjectModal()">Close</button> -->
-            </div>
+                </ng-container>
+            
+                <tr *ngFor="let userInfo of projectDetails | paginate: { id: 'projectEmployeeDetailsId', itemsPerPage: 10, currentPage: page }; let i = index">
+                    <td class="text-center">{{ (page - 1) * 10 + i + 1 }}</td>
+                    <td class="text-center">{{ userInfo.projectName || '-' }}</td>
+                    <td class="text-center">{{ userInfo.teamName || '-' }}</td>
+                    <td class="text-center">{{ userInfo.clientName || '-' }}</td>
+                    <td class="text-center">{{ userInfo.billableType || '-' }}</td>
+                    <td class="text-center">{{ userInfo.startDate ? (userInfo.startDate | date: 'dd-MM-yyyy') : '-' }}</td>
+                    <td class="text-center">{{ userInfo.updatedOn ? (userInfo.updatedOn | date: 'dd-MM-yyyy') : '-' }}</td>
+                    <td class="text-center">
+                        <button class="btn btn-danger btn-sm"
+                                (click)="deleteResourceModal(delete_modal_template, userInfo)"
+                                title="Delete Project">
+                            <em class="fa fa-trash"></em>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    
+        <div class="row col-md-12">
+            <pagination-controls id="projectEmployeeDetailsId" 
+                               class="my-pagination"
+                               [hidden]="projectDetails.length === 0"
+                               (pageChange)="handlePageChanges($event)">
+            </pagination-controls>
         </div>
     </div>
 </ng-template>
@@ -1701,7 +1703,7 @@
                         </div> -->
 
 
-                        <div class="form-field">
+                        <!-- <div class="form-field">
                             <label>Team Lead</label>
                             <input type="text" style="min-width:240px" class="form-select name-field" placeholder="Search by Emp ID or Name"
                                 aria-label="Search employee" [formControl]="teamLeadCtrl"
@@ -1712,7 +1714,7 @@
                                     {{ employee.name }}
                                 </mat-option>
                             </mat-autocomplete>
-                        </div>
+                        </div> -->
 
                         <div class="button-group">
 
@@ -2642,7 +2644,7 @@
                         <label>Project Type</label>
                         <mat-select class="form-control" [(ngModel)]="bulkProjectType" disableOptionCentering>
                             <mat-option [value]="null" disabled>Select</mat-option>
-                            <mat-option [value]="'bench'">Bench  mat option</mat-option>
+                            <mat-option [value]="'bench'">Bench</mat-option>
                             <mat-option [value]="'other'">Other</mat-option>
                         </mat-select>
                     </div>
@@ -2835,18 +2837,16 @@
                                     </div>
                                 </td>
                                 <td>
-                                   <div class="form-group" style="display: flex; align-items: center;">
-                                        <mat-select [(ngModel)]="emp.teamId" disableOptionCentering
-                                            (selectionChange)="getTeamListForSelectedProject()" >
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <mat-select [(ngModel)]="emp.teamId" disableOptionCentering>
                                             <mat-option disabled>
                                                 <input class="form-control" style="display: flex; width: 100%; padding: 5px;"
                                                     placeholder="Search Team..." type="text" [(ngModel)]="searchTermTeam"
                                                     (ngModelChange)="filterTeamsForDefaultBulk()" />
                                             </mat-option>
-                                           <mat-option *ngFor="let team of filteredTeamsForDefaultBulk"
-                                            [value]="team.teamId">
-                                            {{ team.teamName }}
-                                        </mat-option>
+                                            <mat-option *ngFor="let team of filteredTeamsForDefaultBulk" [value]="team.teamId">
+                                                {{ team.teamName }}
+                                            </mat-option>
                                         </mat-select>
                                     </div>
                                 </td>
@@ -2857,14 +2857,14 @@
                                             }}</mat-option>
                                     </mat-select>
                                 </td>
-                                <td>
+                                <!-- <td>
                                 <div class="form-group" style="display: flex; align-items: center;">
                                     <mat-select [(ngModel)]="emp.resourceOverViewId" disableOptionCentering (selectionChange)="getTeamListForSelectedProject()">
                                         <mat-option disabled>
                                             <input class="form-control" style="display: flex; width: 100%; padding: 5px;" placeholder="Search Requirement..."
-                                                type="text" [(ngModel)]="searchTermTeam" (ngModelChange)="filterResourceRequirementForDefaultBulk()" />
+                                                type="text" [(ngModel)]="searchTermRequirement" (ngModelChange)="filterResourceRequirementForDefaultBulk()" />
                                         </mat-option>
-                                         <mat-option *ngFor="let req of resourceRequirementListBulk"
+                                         <mat-option *ngFor="let req of filteredResourceRequirementListBulk"
                                             [value]="req.resourceOverviewId">
                                             Role - {{ req.role }} || Dept - {{ req.department }} || Exp - {{
                                             req.experience }} y
@@ -2872,6 +2872,20 @@
                                     </mat-select>
                                 </div>
  
+                                </td> -->
+                                <td>
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <mat-select [(ngModel)]="emp.resourceOverViewId" disableOptionCentering>
+                                            <mat-option disabled>
+                                                <input class="form-control" style="display: flex; width: 100%; padding: 5px;"
+                                                    placeholder="Search Requirement..." type="text" [(ngModel)]="searchTermRequirement"
+                                                    (ngModelChange)="filterResourceRequirementForDefaultBulk()" />
+                                            </mat-option>
+                                            <mat-option *ngFor="let req of filteredResourceRequirementListBulk" [value]="req.resourceOverviewId">
+                                                Role - {{ req.role }} || Dept - {{ req.department }} || Exp - {{ req.experience }} y
+                                            </mat-option>
+                                        </mat-select>
+                                    </div>
                                 </td>
 
                                 <td>

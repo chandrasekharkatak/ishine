@@ -758,13 +758,14 @@ public class ResourceManagementService {
 					// teamLead
 					Long teamLeadId = null;
 					String teamLeadName = null;
+					if(!teamObj.getTeamMemberList().isEmpty()) {
 					for (TeamMemberDTO teamMember : teamObj.getTeamMemberList()) {
 						if ((teamMember.getIsTeamLead() != null) && (teamMember.getIsTeamLead().equals("true"))) {
 							teamLeadId = teamMember.getEmpId();
 							teamLeadName = teamMember.getName();
 						}
 					}
-
+					}
 					if (teamPresent != null) {
 						allTeam.add(teamPresent.getTeamId());
 
@@ -6826,7 +6827,7 @@ public class ResourceManagementService {
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(deptIdsAccToRole);
 					rejectedCount = projectRepository
 							.getAllActiveProjecCountstList("Rejected", null, false);
-					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
+					totalCount = pendingForApprovalCount + approvedCount + rejectedCount;
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 				map.put("approvedCount",approvedCount);
 				map.put("completedCount",
@@ -6910,7 +6911,7 @@ public class ResourceManagementService {
 					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(selectedDeptList);
-					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
+					totalCount = pendingForApprovalCount + approvedCount + rejectedCount;
 					
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 					map.put("approvedCount",approvedCount);
@@ -6929,7 +6930,7 @@ public class ResourceManagementService {
 					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(deptIdList);
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(deptIdList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
-					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
+					totalCount = pendingForApprovalCount + approvedCount + rejectedCount;
 					
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 					map.put("approvedCount",approvedCount);
@@ -6996,7 +6997,7 @@ public class ResourceManagementService {
 					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(selectedDeptList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
-					totalCount = pendingForApprovalCount + approvedCount + notStartedCount + rejectedCount;
+					totalCount = pendingForApprovalCount + approvedCount  + rejectedCount;
 					
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 					map.put("approvedCount",approvedCount);
@@ -8830,29 +8831,29 @@ public class ResourceManagementService {
 	    return serviceResponse;
 	}
 	
-	public static String convertIsoToDate(String dateString) {
-		StringBuilder logBuilder = new StringBuilder();
-	    try {
-	        OffsetDateTime offsetDateTime = OffsetDateTime.parse(dateString);
-	        return offsetDateTime.toLocalDate().toString();
-	    } catch (DateTimeParseException isoEx) {
-	        try {
-	            long epochMillis = Long.parseLong(dateString);
-	            Instant instant = Instant.ofEpochMilli(epochMillis);
-	            return instant.atZone(ZoneId.systemDefault()).toLocalDate().toString();
-	        } catch (NumberFormatException | DateTimeException epochEx) {
-	            logBuilder.append("Failed to parse date: ").append(dateString)
-	                      .append(" | Exception: ").append(epochEx.getClass().getSimpleName())
-	                      .append(" - ").append(epochEx.getMessage());
-	            System.err.println(logBuilder.toString());
-	            return null;
-	        }
-	    } catch (NullPointerException npe) {
-	        logBuilder.append("Date string is null");
-	        System.err.println(logBuilder.toString());
-	        return null;
-	    }
-    }
+	// public static String convertIsoToDate(String dateString) {
+	// 	StringBuilder logBuilder = new StringBuilder();
+	//     try {
+	//         OffsetDateTime offsetDateTime = OffsetDateTime.parse(dateString);
+	//         return offsetDateTime.toLocalDate().toString();
+	//     } catch (DateTimeParseException isoEx) {
+	//         try {
+	//             long epochMillis = Long.parseLong(dateString);
+	//             Instant instant = Instant.ofEpochMilli(epochMillis);
+	//             return instant.atZone(ZoneId.systemDefault()).toLocalDate().toString();
+	//         } catch (NumberFormatException | DateTimeException epochEx) {
+	//             logBuilder.append("Failed to parse date: ").append(dateString)
+	//                       .append(" | Exception: ").append(epochEx.getClass().getSimpleName())
+	//                       .append(" - ").append(epochEx.getMessage());
+	//             System.err.println(logBuilder.toString());
+	//             return null;
+	//         }
+	//     } catch (NullPointerException npe) {
+	//         logBuilder.append("Date string is null");
+	//         System.err.println(logBuilder.toString());
+	//         return null;
+	//     }
+    // }
 	
 	private ServiceResponse updateClient(Project project, ResourceManagementDTO dto) {
 	    Integer clientId = project.getClientId();
@@ -9371,5 +9372,39 @@ public class ResourceManagementService {
 	}
 
 	
+	public static String convertIsoToDate(String isoDateString) {
+		StringBuilder logInfo = new StringBuilder();
+        try {
+            OffsetDateTime offsetDateTime = OffsetDateTime.parse(isoDateString);
+            return offsetDateTime.toLocalDate().toString();
+        } catch (DateTimeParseException | NullPointerException e) {
+        	
+        	logInfo.append("Failed to parse date: ").append(isoDateString)
+            .append(" | Exception: ").append(e.getClass().getSimpleName())
+            .append(" - ").append(e.getMessage());
+     
+        	System.err.println(logInfo.toString());
+        	return null;
+        }
+        
+    }
 
+	@Transactional(rollbackOn = Exception.class)
+	public ServiceResponse deleteProjectTemp() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+		projectTempRepo.deleteAll();
+		dumpPODataInIshine();
+		projectRepository.callSyncProjectsSP();
+		fillDepartmentforAllProjectsInIshine();
+		response.setServiceStatus(response.STATUS_SUCCESS);
+		}
+		catch(Exception e) {
+			response.setServiceStatus(response.STATUS_FAIL);
+			response.setServiceResponse(e.getMessage());
+		}
+		return response;
+	}
+	
+	
 }
