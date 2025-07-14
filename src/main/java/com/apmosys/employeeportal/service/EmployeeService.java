@@ -7757,7 +7757,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		            List<EmployeeDTO> cachedEmployees = employeeCache.get(cacheKey);
 		            for (EmployeeDTO emp : cachedEmployees) {
 		                if (emp.getEmpId().equals(employeeDto.getEmpId())) {
-		                    emp.setEmploymentstatus("Confirmed");
+		                    emp.setEmploymentstatus("Probation");
 		                    emp.setIsConfirmedClicked(1L);
 		                    emp.setUpdatedOn(LocalDateTime.now().toString());
 		                    emp.setUpdatedBy(employeeDto.getHodId());
