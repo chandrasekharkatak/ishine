@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,6 +30,7 @@ import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.FCLineItemDTO;
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
+import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.model.ApiLog;
@@ -75,6 +78,9 @@ public class PoPortalAPIService {
 	
 	@Value("${poPortal.api.deleteJobRole}")
 	private String deleteJobRoleFromPoPortal;
+	
+	@Value("${poPortal.api.syncProject}")
+	private String reversesyncurl;
 	
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
@@ -574,6 +580,60 @@ public class PoPortalAPIService {
 		}
 	}
 	
+	public ServiceResponse syncProjectData(List<PoProjectSyncDTO> projectInfo) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    ApiLog initialLog = null;
+	    String traceId = UUID.randomUUID().toString();
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+	    String exceptionDetailsForLog = null;
+
+	    try {
+	        initialLog = apiLogUtility.startLog(traceId, "syncProjectData", "PoPortal", getCurrentUserId(), httpRequest);
+	        if (initialLog == null || initialLog.getId() == null) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the sync process.");
+	            return serviceResponse;
+	        }
+
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.set("X-Trace-Id", traceId);
+	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+	        headers.setContentType(MediaType.APPLICATION_JSON); 
+
+	        HttpEntity<List<PoProjectSyncDTO>> entity = new HttpEntity<>(projectInfo, headers);
+
+	        
+	        final String syncUrl = reversesyncurl; 
+	        RestTemplate restTemplate = new RestTemplate();
+
+	        
+	        ResponseEntity<String> responseEntity = restTemplate.postForEntity(syncUrl, entity, String.class);
+
+	        finalHttpStatusCode = responseEntity.getStatusCodeValue();
+	        
+	        if (responseEntity.getStatusCode() == HttpStatus.OK) {
+	            JSONObject json = new JSONObject(responseEntity.getBody());
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(json.get("message"));
+	        } else {
+	            // Handle other non-error success codes if necessary
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceResponse("Received non-OK status: " + responseEntity.getStatusCode());
+	        }
+
+	    } catch (Exception e) {
+	        exceptionDetailsForLog = e.toString();
+	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        serviceResponse.setServiceResponse("An unexpected error occurred during sync.");
+	        serviceResponse.setServiceError(e.getMessage());
+	    } finally {
+	        if (initialLog != null) {
+	            apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+	        }
+	    }
+	    return serviceResponse;
+	}
+
 	
 	private Long getCurrentUserId() {
 		String sessionToken = httpRequest.getHeader("Authorization");
