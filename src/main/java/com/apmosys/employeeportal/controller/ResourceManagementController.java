@@ -361,7 +361,7 @@ public class ResourceManagementController {
 	
 	@PostMapping("/getAllResourceRequirementForProject")
 	public ServiceResponse getAllResourceRequirementForProject(@RequestBody ProjectFetchDTO projectFetchDTO) {
-		return resourceManagementService.getAllResourceRequirementForProject(projectFetchDTO);
+		return resourceManagementService.getResourceRequirementByPoProjectId(projectFetchDTO.getPoProjectId());
 	}
 	
 	@PostMapping("/getBenchEmployeeMoreThan30Days")

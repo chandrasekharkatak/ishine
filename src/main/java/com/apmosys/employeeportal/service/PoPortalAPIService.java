@@ -43,6 +43,7 @@ import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
+import com.apmosys.employeeportal.response.ResourceRequirementResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -279,8 +280,9 @@ public class PoPortalAPIService {
         String traceId = UUID.randomUUID().toString();
         int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
         String exceptionDetailsForLog = null;
-        ResponseEntity<ResourceManagementDTO> apiResponse = null;
+        ResponseEntity<ResourceRequirementResponse> apiResponse = null;
         try {
+        	
         	initialLog = apiLogUtility.startLog(traceId, "fetchPoPortalProjectById", "Ishine", getCurrentUserId(), httpRequest);
 	        if (initialLog == null || initialLog.getId() == null) {
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -294,7 +296,7 @@ public class PoPortalAPIService {
 	        HttpEntity<?> entity = new HttpEntity<>(headers);
 	        String url = poPortalProjectByIdURL + projectId;
 
-			apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, ResourceManagementDTO.class);
+			apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity,  ResourceRequirementResponse.class);
             finalHttpStatusCode = apiResponse.getStatusCodeValue();
 
             if (apiResponse.getStatusCode() == HttpStatus.OK) {
@@ -324,7 +326,7 @@ public class PoPortalAPIService {
         String traceId = UUID.randomUUID().toString();
         int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
         String exceptionDetailsForLog = null;
-        ResponseEntity<ResourceRequirementDTO> apiResponse = null;
+        ResponseEntity<Long> apiResponse = null;
         try {
         	initialLog = apiLogUtility.startLog(traceId, "getResourceRequirementCountByProjectId", "Ishine", getCurrentUserId(), httpRequest);
 	        if (initialLog == null || initialLog.getId() == null) {
@@ -338,7 +340,7 @@ public class PoPortalAPIService {
 	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
 	        HttpEntity<?> entity = new HttpEntity<>(headers);
 	        String url = poPortalCountById + projectId;
-            apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, ResourceRequirementDTO.class);
+            apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, Long.class);
             finalHttpStatusCode = apiResponse.getStatusCodeValue();
 
             if (apiResponse.getStatusCode() == HttpStatus.OK) {

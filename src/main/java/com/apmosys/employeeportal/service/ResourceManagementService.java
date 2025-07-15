@@ -139,6 +139,7 @@ import com.apmosys.employeeportal.repository.ProjectTempRepo;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementTempRepo;
 import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.response.ResourceRequirementResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -5961,23 +5962,14 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getResourceRequirementByPoProjectId");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		
-		logBuilder.append(
-				"\n getResourceRequirementByPoProjectId " + projectRepository.getAssignedEmployeesCountInProject(id));
-		
-		System.out.println(projectRepository.getAssignedEmployeesCountInProject(id));
+
 
 		try {
-//			List<ResourceManagementDTO> poPortalProjects = fetchPoPortalProjects();
 			ServiceResponse projectApiResponse = poPortalAPIService.fetchPoPortalProjectById(id);
 			if (projectApiResponse.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
 		         return projectApiResponse;
 			}
-			ResourceManagementDTO project = (ResourceManagementDTO) projectApiResponse.getServiceResponse();
-//			Optional<ResourceManagementDTO> projectDTO = poPortalProjects.stream()
-//					.filter(dto -> dto.getId() != null && dto.getId().equals(id)).findFirst();
-			
-//			System.out.println(projectDTO.isPresent());
+			ResourceRequirementResponse project = (ResourceRequirementResponse) projectApiResponse.getServiceResponse();
 
 
 			if (project == null) {
@@ -5992,17 +5984,15 @@ public class ResourceManagementService {
 				
 				ServiceResponse countApiResponse = poPortalAPIService.getCountByProjectId(id);
 				if(countApiResponse.getServiceResponse()!= null){
-				ResourceRequirementDTO requirementCountDto = (ResourceRequirementDTO) countApiResponse.getServiceResponse();
-
-				
-
+	
 				if (ServiceResponse.STATUS_FAIL.equals(countApiResponse.getServiceStatus())) {
 		            throw new RuntimeException("Failed to fetch count from PO Portal." );      
 		        }
+				ResourceRequirementDTO requirementCountDto = new ResourceRequirementDTO();
+				requirementCountDto.setCount(Integer.parseInt(countApiResponse.getServiceResponse().toString()));
 				if (requirementCountDto == null) {
 		             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		             response.setServiceResponse("Received success status from PO Portal, but requirement data was null.");
-		            //  logBuilder.append("\nError: PO Portal returned success but the response body was empty.");
 		             return response;
 		        }
 				
