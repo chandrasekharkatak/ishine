@@ -97,6 +97,9 @@ import com.apmosys.employeeportal.dto.TeamInfoTeamDTO;
 import com.apmosys.employeeportal.dto.TeamInfoTeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamSpocDTO;
+import com.apmosys.employeeportal.exception.BadRequestException;
+import com.apmosys.employeeportal.exception.ConflictException;
+import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
 import com.apmosys.employeeportal.model.ApiLog;
@@ -8142,7 +8145,8 @@ public class ResourceManagementService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				apiLogInfo.setApiResponse("PoProject Id cannot be null!");
 				exceptionDetailsForLog = "PoProject Id cannot be null!";
-				return response;
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				throw new BadRequestException("PoProject Id cannot be null!");
 			}
 			
 			List<Object[]> poProjectStatusList = projectRepository.getProjectStatusByPoProjectId(poProjectId);
@@ -8152,13 +8156,15 @@ public class ResourceManagementService {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiResponse("Project status fetched");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				finalHttpStatusCode = HttpStatus.OK.value();
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Projects found for provided poProjectIds.");
 				apiLogInfo.setApiResponse("No Projects found for provided poProjectIds.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
+				throw new DataNotFoundException("No Projects found for provided poProjectIds.");
 			}
-			finalHttpStatusCode = HttpStatus.OK.value();
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -9406,5 +9412,359 @@ public class ResourceManagementService {
 		return response;
 	}
 	
+//	@Transactional
+//	public ServiceResponse poCrudOperationsInIshine(ResourceManagementDTO poData) {
+//		ServiceResponse serviceResponse = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setApiUrl("/api/poCrudOperationsInIshine");
+//		apiLogInfo.setLogLevel("INFO");
+//		ApiLog initialLog = null;
+//		String exceptionDetailsForLog = null;
+//		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+//		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllEmployeeInfo", "PoPortal", null ,httpRequest);
+//
+//		if (poData == null) {
+//			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+//			throw new BadRequestException("No data received from PoPortal");
+//		}
+//
+//		try {
+//			String requestType = poData.getRequestType();
+//			if ("create".equalsIgnoreCase(requestType)) {
+//				return handleCreate(poData);
+//			} else if ("update".equalsIgnoreCase(requestType)) {
+//				return handleUpdate(poData);
+//			} else if ("delete".equalsIgnoreCase(requestType)) {
+//				return handleDelete(poData);
+//			} else {
+//				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+//				throw new BadRequestException("Invalid request type: " + requestType);
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			exceptionDetailsForLog = e.toString();
+//			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			serviceResponse.setServiceResponse("Something went wrong.");
+//			return serviceResponse;
+//		} finally {
+//			if (initialLog != null) {
+//				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+//			}
+//		}
+//	}
+
+	private ServiceResponse handleCreate(ResourceManagementDTO poData) {
+		ServiceResponse response = new ServiceResponse();
+
+		if (projectRepository.findByPoProjectId(poData.getId()) != null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Project is already created in ishine!");
+			response.setStatusCode(HttpStatus.CONFLICT.value());
+			throw new ConflictException("Project is already created in Ishine!");
+		}
+
+		Project project = createProjectEntity(poData);
+		Integer clientId = createOrUpdateClient(poData, response);
+		if (clientId == null)
+			return response;
+
+		project.setClientId(clientId);
+		project.setClientLocation(String.join(", ", Optional.ofNullable(poData.getClientLocation()).orElse(new String[] {})));
+		Project savedProject = projectRepository.save(project);
+		if (savedProject == null) {
+			throw new RuntimeException("Failed to create project.");
+		}
+
+		if ("TNM".equalsIgnoreCase(savedProject.getPoProjectType())) {
+			syncResourceRequirementsTNM(savedProject, poData);
+		}
+
+		syncDepartments(savedProject, poData);
+		
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse("Project created successfully!");
+		return response;
+	}
+
+	private Project createProjectEntity(ResourceManagementDTO poData) {
+		Project project = new Project();
+		project.setPoProjectId(poData.getId());
+		project.setPoNo(poData.getPoNo());
+		project.setApmosysRM(poData.getApmosysRM());
+		project.setApmosysRmEmail(poData.getApmosysRmEmail());
+		project.setActive("Pending".equals(poData.getStatus()) ? "false" : "Completed".equals(poData.getStatus()) ? null : "true");
+		project.setClientRM(poData.getClientRM());
+		project.setPoEndDate(convertIsoToDate(poData.getEndDate()));
+		project.setPoStartDate(convertIsoToDate(poData.getStartDate()));
+		project.setPoProjectType(poData.getProjectType());
+		project.setProjectName(poData.getName());
+		project.setState(poData.getClientState());
+		project.setStatus(poData.getStatus());
+		project.setIsRenewable(poData.getIsRenewable());
+		project.setIsDraftProject(null);
+		project.setCreatedBy(6l);
+		if (poData.getCreatedOn() != null) {
+			try {
+				long epochMillis = Long.parseLong(poData.getCreatedOn());
+				LocalDateTime createdOn = Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()).toLocalDateTime();
+				project.setCreatedOn(Timestamp.valueOf(createdOn));
+			} catch (NumberFormatException | DateTimeException e) {
+				project.setCreatedOn(null);
+			}
+		}
+		return project;
+	}
+
+	private Integer createOrUpdateClient(ResourceManagementDTO poData, ServiceResponse response) {
+		Optional<Client> existing = clientsRepository.findByClientName(poData.getClientName());
+		if (existing.isPresent()) {
+			return existing.get().getClientId();
+		}
+
+		Client newClient = new Client();
+		newClient.setClientName(poData.getClientName());
+		Client savedClient = clientsRepository.save(newClient);
+		if (savedClient == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Failed to add client");
+			throw new RuntimeException("Failed to add client.");
+		}
+
+		List<ClientLocation> locations = new ArrayList<>();
+		if (poData.getClientLocation() != null) {
+			for (String loc : poData.getClientLocation()) {
+				locations.add(new ClientLocation(savedClient.getClientId(), loc));
+			}
+		}
+		locations.add(new ClientLocation(savedClient.getClientId(), "WFH")); // Always ensure WFH
+
+		List<ClientLocation> savedLocations = clientLocationRepository.saveAll(locations);
+		if (savedLocations == null || savedLocations.isEmpty()) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Failed to add client Location.");
+			throw new RuntimeException("Failed to add client Location.");
+		}
+		return savedClient.getClientId();
+	}
+
+	private ServiceResponse syncResourceRequirementsTNM(Project project, ResourceManagementDTO poData) {
+		ServiceResponse response = new ServiceResponse();
+		List<ResourceRequirementDTO> requirementDTOs = poData.getResourceRequirements();
+		if (requirementDTOs != null && !requirementDTOs.isEmpty()) {
+
+			for (ResourceRequirementDTO dto : requirementDTOs) {
+				ResourceRequirement req = new ResourceRequirement();
+				req.setProjectId(project.getProjectId());
+				req.setCount(dto.getCount());
+				req.setDepartment(dto.getDepartment());
+				req.setExperience(dto.getExperience());
+				req.setRole(dto.getRole());
+				req.setResourceOverviewId(dto.getResourceOverviewId() != null ? Long.parseLong(dto.getResourceOverviewId().toString()): null);
+				ResourceRequirement saved = resourceRequirementRepository.save(req);
+				if (saved == null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Create operation failed at saving resource requirement!");
+					throw new RuntimeException("Create operation failed at saving resource requirement!");
+				}
+			}
+		}
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse("Resource requirements synced.");
+		return response;
+	}
+
+	private ServiceResponse syncDepartments(Project project, ResourceManagementDTO poData) {
+		ServiceResponse response = new ServiceResponse();
+		if (poData.getDepartment() != null) {
+
+			for (String deptName : poData.getDepartment()) {
+				Department dept = departmentRepository.findByName(deptName);
+				if (dept == null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Create operation failed at saving departments!");
+					throw new RuntimeException("Create operation failed at saving departments!");
+				}
+
+				ProjectDepartmentMap pdm = new ProjectDepartmentMap();
+				pdm.setProjectId(project.getProjectId());
+				pdm.setDeptId(dept.getDeptId());
+				ProjectDepartmentMap saved = projectDepartmentMapRepository.save(pdm);
+				if (saved == null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Failed to map department: " + deptName);
+					throw new RuntimeException("Failed to map department: " + deptName);
+				}
+			}
+		}
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse("Departments mapped successfully.");
+		return response;
+	}
+	
+	public ServiceResponse handleUpdate(ResourceManagementDTO poData) {
+		ServiceResponse response = new ServiceResponse();
+		boolean isModified = false;
+		Project existingProject = projectRepository.findByPoProjectId(poData.getId());
+
+		if (existingProject == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("No project found with PoProjectId: " + poData.getId());
+			throw new RuntimeException("No project found with PoProjectId: " + poData.getId());
+		}
+
+		isModified = checkIfExistingProjectUpdated(existingProject, poData);
+
+		if (isModified) {
+			existingProject.setUpdatedBy(6L);
+			existingProject.setUpdatedOn(LocalDateTime.now());
+			projectRepository.save(existingProject);
+		}
+
+		// Sync child entities (departments, resource requirements)
+		ServiceResponse deptResp = syncProjectDepartments(existingProject, poData);
+		if (ServiceResponse.STATUS_FAIL.equals(deptResp.getServiceStatus())) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			throw new RuntimeException("Failed to Sync Department while updating project.");
+		}
+
+		ServiceResponse reqResp = syncResourceRequirements(existingProject, poData);
+		if (ServiceResponse.STATUS_FAIL.equals(reqResp.getServiceStatus())) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			throw new RuntimeException("Failed to Sync Resource Requirement while updating project.");
+		}
+
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse("Project updated successfully.");
+		return response;
+	}
+
+	private boolean checkIfExistingProjectUpdated(Project existingProject, ResourceManagementDTO poPortalProjects) {
+		boolean isModified = false;
+
+		if (!Objects.equals(existingProject.getPoNo(), poPortalProjects.getPoNo())) {
+			existingProject.setPoNo(poPortalProjects.getPoNo());
+			isModified = true;
+		}
+
+		if (!Objects.equals(existingProject.getApmosysRM(), poPortalProjects.getApmosysRM())) {
+			existingProject.setApmosysRM(poPortalProjects.getApmosysRM());
+			isModified = true;
+		}
+
+		if (!Objects.equals(existingProject.getApmosysRmEmail(), poPortalProjects.getApmosysRmEmail())) {
+			existingProject.setApmosysRmEmail(poPortalProjects.getApmosysRmEmail());
+			isModified = true;
+		}
+
+		if (!Objects.equals(existingProject.getClientRM(), poPortalProjects.getClientRM())) {
+			existingProject.setClientRM(poPortalProjects.getClientRM());
+			isModified = true;
+		}
+
+		if (!Objects.equals(existingProject.getPoProjectType(), poPortalProjects.getPoProjectType())) {
+			existingProject.setPoProjectType(poPortalProjects.getPoProjectType());
+			isModified = true;
+		}
+
+		if (!Objects.equals(existingProject.getProjectName(), poPortalProjects.getProjectName())) {
+			existingProject.setProjectName(poPortalProjects.getProjectName());
+			isModified = true;
+		}
+
+		if (!Objects.equals(existingProject.getState(), poPortalProjects.getState())) {
+			existingProject.setState(poPortalProjects.getState());
+			isModified = true;
+		}
+
+		if (!Objects.equals(existingProject.getStatus(), poPortalProjects.getStatus())) {
+			existingProject.setStatus(poPortalProjects.getStatus());
+			isModified = true;
+		}
+
+		String newActive = (poPortalProjects.getStatus() != null && !poPortalProjects.getStatus().equals("Pending")) ? "true" : (poPortalProjects.getStatus().equals("Completed") ? "false" : null);
+		if (!Objects.equals(existingProject.getActive(), newActive)) {
+			existingProject.setActive(newActive);
+			isModified = true;
+		}
+
+		String startDate = convertIsoToDate(poPortalProjects.getStartDate());
+		if (!Objects.equals(existingProject.getPoStartDate(), startDate)) {
+			existingProject.setPoStartDate(startDate);
+			isModified = true;
+		}
+
+		String endDate = convertIsoToDate(poPortalProjects.getEndDate());
+		if (!Objects.equals(existingProject.getPoEndDate(), endDate)) {
+			existingProject.setPoEndDate(endDate);
+			isModified = true;
+		}
+
+		String joinedLocations = poPortalProjects.getClientLocation() != null
+				? String.join(", ", poPortalProjects.getClientLocation())
+				: null;
+		if (!Objects.equals(existingProject.getClientLocation(), joinedLocations)) {
+			existingProject.setClientLocation(joinedLocations);
+			isModified = true;
+		}
+
+		String createdInput = poPortalProjects.getCreatedOn();
+		if (createdInput != null) {
+			ZonedDateTime zdt = ZonedDateTime.parse(createdInput);
+			Timestamp parsedCreatedOn = Timestamp.valueOf(zdt.toLocalDateTime());
+			if (!Objects.equals(existingProject.getCreatedOn(), parsedCreatedOn)) {
+				existingProject.setCreatedOn(parsedCreatedOn);
+				isModified = true;
+			}
+		}
+
+		ServiceResponse clientUpdateResponse = updateClient(existingProject, poPortalProjects);
+		if (ServiceResponse.STATUS_FAIL.equals(clientUpdateResponse.getServiceStatus())) {
+			throw new RuntimeException(clientUpdateResponse.getServiceResponse().toString());
+		} else if (ServiceResponse.STATUS_SUCCESS.equals(clientUpdateResponse.getServiceStatus())
+				&& clientUpdateResponse.getServiceResponse().equals("Client updated successfully!")) {
+			isModified = true;
+		}
+		return isModified;
+	}
+	
+	
+	public ServiceResponse handleDelete(ResourceManagementDTO poData) {
+		ServiceResponse response = new ServiceResponse();
+		Project existingProject = projectRepository.findByPoProjectId(poData.getId());
+
+		if (existingProject == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Project not found in Ishine Portal for PoProjectID: " + poData.getId());
+			throw new RuntimeException("Project not found in Ishine Portal for PoProjectID: " + poData.getId());
+		}
+
+		existingProject.setActive("false");
+		existingProject.setUpdatedBy(6L);
+		existingProject.setUpdatedOn(LocalDateTime.now());
+		projectRepository.save(existingProject);
+
+		// Deactivate ProjectManagerMappings
+		List<ProjectManagerMapping> activePMs = projectManagerMappingRepository.findByProjectIdAndActive(poData.getId(), 1);
+		for (ProjectManagerMapping pm : activePMs) {
+			pm.setActive(0);
+			pm.setUpdatedBy(6L);
+			pm.setUpdatedOn(LocalDateTime.now());
+		}
+		projectManagerMappingRepository.saveAll(activePMs);
+
+		// Deactivate ProjectOverheadMappings
+		List<ProjectOverheadMapping> overheads = projectOverheadMappingRepository.findByProjectIdAndActive(poData.getId(), 1);
+		for (ProjectOverheadMapping oh : overheads) {
+			oh.setActive(0);
+			oh.setUpdatedBy(6L);
+			oh.setUpdatedOn(LocalDateTime.now());
+		}
+		projectOverheadMappingRepository.saveAll(overheads);
+
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse("Project deactivated successfully.");
+		return response;
+	}
+
 	
 }

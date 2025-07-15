@@ -576,21 +576,27 @@ public class EmployeeController {
 	}
 	
 	 @PostMapping("/getEmployeeAndTimesheetDetails")
-	 public ResponseEntity<List<EmployeeTimesheetProjectResponse>> getEmployeeAndTimesheetDetails(HttpServletRequest request,@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
+	 public ServiceResponse getEmployeeAndTimesheetDetails(HttpServletRequest request,@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
-		return ResponseEntity.ok(employeeService.getEmployeeAndTimesheetDetails(employeeTimesheetRequest));
+		ServiceResponse resposne = new ServiceResponse();
+		resposne.setServiceResponse(ResponseEntity.ok(employeeService.getEmployeeAndTimesheetDetails(employeeTimesheetRequest)));
+		return resposne;
 	 }
 
 	 @GetMapping("/getTeamAndTimeSheetDetails/{poProjectId}")
-	 public ResponseEntity<List<TeamTimesheetDetailsResponse>> getTeamAndTimeSheetDetails(HttpServletRequest request,@PathVariable("poProjectId") Long poProjectId) {
-		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
-		return ResponseEntity.ok(employeeService.getTeamAndTimeSheetDetails(poProjectId));
+	 public ServiceResponse getTeamAndTimeSheetDetails(HttpServletRequest request,@PathVariable("poProjectId") Long poProjectId) {
+		 ServiceResponse response = new ServiceResponse();
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
+		 response.setServiceResponse(ResponseEntity.ok(employeeService.getTeamAndTimeSheetDetails(poProjectId)));
+		return response;
 	 }
 	 
 	 @PostMapping("/getProjectDetailsByEmpIdAndDateRange")
-	 public ResponseEntity<List<TeamTimesheetDetailsResponse>> getProjectDetailsByEmpIdAndDateRange(HttpServletRequest request,@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
+	 public ServiceResponse getProjectDetailsByEmpIdAndDateRange(HttpServletRequest request,@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
-		return ResponseEntity.ok(employeeService.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest));
+		 ServiceResponse response = new ServiceResponse();
+		 response.setServiceResponse(ResponseEntity.ok(employeeService.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest)));
+		 return response;
 	 }
 	 
 }
