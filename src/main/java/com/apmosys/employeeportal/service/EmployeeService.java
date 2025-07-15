@@ -7522,6 +7522,9 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		    apiLogInfo.setLogLevel("INFO");
 
 		    try {
+		    	
+		    	if(employeeDTO.getTabName().equals("Employee")) {
+		    	
 		        List<Object[]> optionalEmployeeList = employeeRepository.fetchInactivePOCounts(employeeDTO.getPoProjectType());
 				List<InActivePoDTO> countOfInActive = new ArrayList<InActivePoDTO>();
 		        if (!optionalEmployeeList.isEmpty()) {
@@ -7548,6 +7551,34 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		            response.setServiceResponse("countOfInActive  is empty.");
 		            apiLogInfo.setApiResponse("countOfInActive is empty.");
 		        }
+		    	}else {
+		    		  List<Object[]> optionalEmployeeListForProjects = employeeRepository.fetchInactivePOCountsForProject(employeeDTO.getPoProjectType());
+						List<InActivePoDTO> countOfInActive = new ArrayList<InActivePoDTO>();
+				        if (!optionalEmployeeListForProjects.isEmpty()) {
+				        	for(Object[] object : optionalEmployeeListForProjects) {
+				        		if ("TNM".equals(object[1])) {
+
+				                	InActivePoDTO inActivePoDTO = new InActivePoDTO();
+				                	inActivePoDTO.setTotalEmpPerProjectTypeLast7days(object[4] != null ? object[4].toString() : null);
+				                	inActivePoDTO.setTotalEmpPerProjectTypeLast30days(object[5] != null ? object[5].toString() : null);
+				                	inActivePoDTO.setTotalEmpPerProjectTypeLast90days(object[6] != null ? object[6].toString() : null);
+				                	inActivePoDTO.setTotalEmpPerProjectTypeLast180days(object[7] != null ? object[7].toString() : null);
+				                	inActivePoDTO.setTotalEmpPerProjectTypeLast1Year(object[8] != null ? object[8].toString() : null);
+				                	inActivePoDTO.setTotalEmpPerProjectTypeTotal(object[3] != null ? object[3].toString() : null);
+				                	
+				                	countOfInActive.add(inActivePoDTO);
+				                	}		                   
+				                };
+
+				            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				            response.setServiceResponse(countOfInActive);
+				            apiLogInfo.setApiResponse(" fetched of size: " + countOfInActive.size());
+				        } else {
+				            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				            response.setServiceResponse("countOfInActive  is empty.");
+				            apiLogInfo.setApiResponse("countOfInActive is empty.");
+				        }
+		    	}
 		    } catch (Exception e) {
 		        e.printStackTrace();
 		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

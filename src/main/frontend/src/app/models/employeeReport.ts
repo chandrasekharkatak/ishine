@@ -5,4 +5,5 @@ export class employeeReport{
     flag:any;
     billableType:any;
     report:any;
+    tabName:any;
 }

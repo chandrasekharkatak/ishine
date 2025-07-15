@@ -724,10 +724,10 @@ td {
   justify-content: center;
 }
 
-.info-tooltip {
+.info-tooltip1 {
   position: absolute;
-  top: 28px; /* just below the button */
-  left: 0;
+  top: -84px;
+  left: 45px;
   background: #fff;
   color: #333;
   border: 1px solid #ccc;

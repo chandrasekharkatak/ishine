@@ -409,8 +409,8 @@ updateDefaultProject(newemployeeObj : any){
   return this.http.post(`${this.baseUrl}`+`api/getAllPieGraphListSummary`, params)
 }
 
-getInactivePoList(employeeReport:any){
-  return this.http.post(`${this.baseUrl}` + `api/getInactivePoList`,employeeReport);
+fetchInactivePOCounts(employeeReport:any){
+  return this.http.post(`${this.baseUrl}` + `api/fetchInactivePOCounts`,employeeReport);
 
  }
 }

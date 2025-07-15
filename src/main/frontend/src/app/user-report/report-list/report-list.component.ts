@@ -225,6 +225,13 @@ export class ReportListComponent implements OnInit {
   private allDepartments: any[] = [];
   showBillableOnly: boolean = false;
   totalEmployeeInActivePoCount: any;
+  total7Days: string = '';
+  total90Days: string = '';
+  total180Days: string = '';
+  total1Year: string = '';
+  totalAll: string = '';
+  total30Days: string = '';
+  InActivePoCounts: { type: string; count: string; }[];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -2588,14 +2595,14 @@ export class ReportListComponent implements OnInit {
     });
   }
 
-  InActivePoCounts: { type: string; count: number }[] = [
-    { type: '07 Days', count: 1 },
-    { type: '30 Days', count: 1 },
-    { type: '90 Days', count: 1 },
-    { type: '180 Days', count: 1 },
-    { type: '365 Days', count: 1 },
-    { type: 'Overall', count: 1 },
-  ];
+  // InActivePoCounts: { type: string; count: String }[] = [
+  //   { type: '07 Days', count: this.total7Days },
+  //   { type: '30 Days', count: this.total30Days },
+  //   { type: '90 Days', count: this.total90Days },
+  //   { type: '180 Days', count: this.total180Days },
+  //   { type: '365 Days', count: this.total1Year },
+  //   { type: 'Overall', count: this.totalAll },
+  // ];
 
   onInfoClickModel(template: TemplateRef<any>, details:any): void {
      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
@@ -2603,36 +2610,113 @@ export class ReportListComponent implements OnInit {
   }
 
   toggleInfo1(box: any) {
-    this.visibleInfo = true;
+    this.visibleInfo =  !this.visibleInfo ;
     this.inActiveBoxinfo = box;
+
   }
+
+  // getInActivePoCount(box: any): void {
+  //   const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
+  //   const key = `${box}.${selectedMainFlag}`;
+  //   const isActiveBox = box === this.activeBox;
+  //   const category = this.selectedTab[this.activeBox];
+  
+  //   console.log("Box Type:", box);
+  //   console.log("Key:", key);
+  //   console.log("Category:", category);
+  //   console.log("Is Active Box:", isActiveBox);
+  
+  //   this.employeeService.fetchInactivePOCounts(this.employeeReportObj)
+  //     .pipe(first())
+  //     .subscribe((response: any) => {
+  //       if (response.serviceStatus === "Success" && response.serviceResponse) {
+  //         const res = response.serviceResponse;
+  
+  //         this.totalEmployeeInActivePoCount = res;
+  
+  //         this.total7Days = res.totalEmpPerProjectTypeLast7days || '0';
+  //         this.total30Days = res.totalEmpPerProjectTypeLast30days || '0';
+  //         this.total90Days = res.totalEmpPerProjectTypeLast90days || '0';
+  //         this.total180Days = res.totalEmpPerProjectTypeLast180days || '0';
+  //         this.total1Year = res.totalEmpPerProjectTypeLast1Year || '0';
+  //         this.totalAll = res.totalEmpPerProjectTypeTotal || '0';
+  
+  //         console.log("Inactive PO Count:", this.totalEmployeeInActivePoCount);
+  //       } else {
+  //         console.error("API Error:", response.serviceError || "Unknown error");
+  
+          
+  //         this.totalEmployeeInActivePoCount = {};
+  //         this.total7Days = '0';
+  //         this.total30Days = '0';
+  //         this.total90Days = '0';
+  //         this.total180Days = '0';
+  //         this.total1Year = '0';
+  //         this.totalAll = '0';
+  //       }
+  //     });
+  // }
 
   getInActivePoCount(box: any): void {
     const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
     const key = `${box}.${selectedMainFlag}`;
     const isActiveBox = box === this.activeBox;
     const category = this.selectedTab[this.activeBox];
+    const tabName = this.employeeReportObj.category;
   
     console.log("Box Type:", box);
     console.log("Key:", key);
     console.log("Category:", category);
     console.log("Is Active Box:", isActiveBox);
+    this.employeeReportObj.tabName = tabName ;
   
-    this.employeeService.getInactivePoList(this.employeeReportObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success" && response.serviceResponse) {
-        // this.totalEmployeeInActivePoCount = {
-        //   last7days: response.serviceResponse.Last7days || 0,
-        //   last30days: response.serviceResponse.Last30days || 0,
-        //   last90days: response.serviceResponse.last90days || 0,
-        // };
-        this.totalEmployeeInActivePoCount = response.serviceResponse ;
-        console.log("Inactive PO Count:", this.totalEmployeeInActivePoCount);
-      } else {
-        console.error("API Error:", response.serviceError || "Unknown error");
-        this.totalEmployeeInActivePoCount = { last7days: 0, last30days: 0 }; // fallback
-      }
-    });
+    this.employeeService.fetchInactivePOCounts(this.employeeReportObj)
+      .pipe(first())
+      .subscribe((response: any) => {
+        if (response.serviceStatus === "Success" && response.serviceResponse) {
+          const res = response.serviceResponse;
+  
+          this.totalEmployeeInActivePoCount = res;
+
+          console.log("COunt  :::::::::",this.totalEmployeeInActivePoCount);
+  
+          const counts = this.totalEmployeeInActivePoCount[0];
+
+          this.InActivePoCounts = [
+            { type: 'Expired in last 7 Days', count: counts.totalEmpPerProjectTypeLast7days ?? '0' },
+            { type: 'Expired in last 30 Days', count: counts.totalEmpPerProjectTypeLast30days ?? '0' },
+            { type: 'Expired in last 90 Days', count: counts.totalEmpPerProjectTypeLast90days ?? '0' },
+            { type: 'Expired in last 180 Days', count: counts.totalEmpPerProjectTypeLast180days ?? '0' },
+            { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0' },
+            { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0' }
+          ];
+
+          
+  
+          console.log("Inactive PO Count:", counts.totalEmpPerProjectTypeTotal);
+        } else {
+          console.error("API Error:", response.serviceError || "Unknown error");
+  
+          this.totalEmployeeInActivePoCount = {};
+          this.total7Days = '0';
+          this.total30Days = '0';
+          this.total90Days = '0';
+          this.total180Days = '0';
+          this.total1Year = '0';
+          this.totalAll = '0';
+  
+          this.InActivePoCounts = [
+            { type: 'Expired in last 7 Days', count: '0' },
+            { type: 'Expired in last 30 Days', count: '0' },
+            { type: 'Expired in last 90 Days', count: '0' },
+            { type: 'Expired in last 180 Days', count: '0' },
+            { type: 'Expired in last 1 Year', count: '0' },
+            { type: 'Overall Expired', count: '0' },
+          ];
+        }
+      });
   }
+  
   
 
 }
