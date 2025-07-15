@@ -61,6 +61,7 @@ import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
 import com.apmosys.employeeportal.dto.GetAllEmployeesWorkAnniversaryTodayDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
+import com.apmosys.employeeportal.dto.InActivePoDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
@@ -7511,6 +7512,53 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+
+	public ServiceResponse fetchInactivePOCounts(EmployeeDTO employeeDTO) {
+		
+		 ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/fetchInactivePOCounts");
+		    apiLogInfo.setLogLevel("INFO");
+
+		    try {
+		        List<Object[]> optionalEmployeeList = employeeRepository.fetchInactivePOCounts(employeeDTO.getPoProjectType());
+				List<InActivePoDTO> countOfInActive = new ArrayList<InActivePoDTO>();
+		        if (!optionalEmployeeList.isEmpty()) {
+		        	for(Object[] object : optionalEmployeeList) {
+		        		if ("TNM".equals(object[1])) {
+
+		                	InActivePoDTO inActivePoDTO = new InActivePoDTO();
+		                	inActivePoDTO.setTotalEmpPerProjectTypeLast7days(object[4] != null ? object[4].toString() : null);
+		                	inActivePoDTO.setTotalEmpPerProjectTypeLast30days(object[5] != null ? object[5].toString() : null);
+		                	inActivePoDTO.setTotalEmpPerProjectTypeLast90days(object[6] != null ? object[6].toString() : null);
+		                	inActivePoDTO.setTotalEmpPerProjectTypeLast180days(object[7] != null ? object[7].toString() : null);
+		                	inActivePoDTO.setTotalEmpPerProjectTypeLast1Year(object[8] != null ? object[8].toString() : null);
+		                	inActivePoDTO.setTotalEmpPerProjectTypeTotal(object[3] != null ? object[3].toString() : null);
+		                	
+		                	countOfInActive.add(inActivePoDTO);
+		                	}		                   
+		                };
+
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(countOfInActive);
+		            apiLogInfo.setApiResponse(" fetched of size: " + countOfInActive.size());
+		        } else {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("countOfInActive  is empty.");
+		            apiLogInfo.setApiResponse("countOfInActive is empty.");
+		        }
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("An error occurred while processing the request.");
+		        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        apiLogInfo.setLogLevel("ERROR");
+		        response.setServiceError(e.getMessage());
+		    }
+
+		    logService.logMyInfo(httpRequest, apiLogInfo);
+		    return response;
 	}
 }
 	

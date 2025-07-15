@@ -572,4 +572,10 @@ public class EmployeeController {
 	    return employeeService.getAllEmployeesBasedOnUserLogined(department);
 	}
 	
+	
+	@RequestMapping(value="/fetchInactivePOCounts",method=RequestMethod.POST)
+	public ServiceResponse fetchInactivePOCounts(@RequestBody EmployeeDTO employeeDTO) {
+	    return employeeService.fetchInactivePOCounts(employeeDTO);
+	}
+	
 }
