@@ -2929,15 +2929,19 @@ public class ProjectService {
 	     logBuilder.append("API to update existing resource requirement table\n");
 	     System.out.println("API to update existing resource requirement table");
 
-	     List<ProjectPoPortalDTO> list = new ArrayList<>();
+	     List<ProjectPoPortalDTO> list = null ;
 
 	     try {
 	    	 ProjectPoPortalDTO[] projects = new ProjectPoPortalDTO[0];
 	    	 ServiceResponse response = poPortalAPIService.getAllProjectsFromPoPortal();
 	    	 if (response != null) { 
-	    		    projects = (ProjectPoPortalDTO[]) response.getServiceResponse();
+
+				  List<ProjectPoPortalDTO> projectList = (List<ProjectPoPortalDTO>) response.getServiceResponse();
+				   projects = projectList.toArray(new ProjectPoPortalDTO[0]);
+	    		    // projects = (ProjectPoPortalDTO[]) response.getServiceResponse();
+					list = projectList;
 	    		    if (projects != null) {
-	    		        list = Arrays.asList(projects);
+	    		        list = projectList;
 	    		        String msg = "Total Projects Fetched = " + list.size() + "\n";
 	    		        logBuilder.append(msg);
 	    		        System.out.println(msg);
