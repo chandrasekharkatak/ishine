@@ -393,8 +393,9 @@ public class ResourceManagementController {
 	}
 	
 	@PostMapping("/poCrudOperationsInIshine")
-	public ServiceResponse poCrudOperationsInIshine(@RequestBody ResourceManagementDTO poPortalProjects) {
-	    return resourceManagementService.poCrudOperationsInIshine(poPortalProjects);
+	public ServiceResponse poCrudOperationsInIshine(HttpServletRequest httpRequest,@RequestBody ResourceManagementDTO poPortalProjects) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return resourceManagementService.poCrudOperationsInIshine(poPortalProjects);
 	}
 	@GetMapping("/deleteTempProjects")
 	@Scheduled(cron = "0 0 * * * *")
