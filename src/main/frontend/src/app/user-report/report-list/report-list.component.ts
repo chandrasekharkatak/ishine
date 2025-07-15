@@ -224,6 +224,7 @@ export class ReportListComponent implements OnInit {
 
   private allDepartments: any[] = [];
   showBillableOnly: boolean = false;
+  totalEmployeeInActivePoCount: any;
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -2593,6 +2594,7 @@ export class ReportListComponent implements OnInit {
     { type: '90 Days', count: 1 },
     { type: '180 Days', count: 1 },
     { type: '365 Days', count: 1 },
+    { type: 'Overall', count: 1 },
   ];
 
   onInfoClickModel(template: TemplateRef<any>, details:any): void {
@@ -2605,9 +2607,33 @@ export class ReportListComponent implements OnInit {
     this.inActiveBoxinfo = box;
   }
 
-  getInActivePoCount(employeeObj:any){
-    //  for InActivePoCountDateWise
+  getInActivePoCount(box: any): void {
+    const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
+    const key = `${box}.${selectedMainFlag}`;
+    const isActiveBox = box === this.activeBox;
+    const category = this.selectedTab[this.activeBox];
+  
+    console.log("Box Type:", box);
+    console.log("Key:", key);
+    console.log("Category:", category);
+    console.log("Is Active Box:", isActiveBox);
+  
+    this.employeeService.getInactivePoList(this.employeeReportObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success" && response.serviceResponse) {
+        // this.totalEmployeeInActivePoCount = {
+        //   last7days: response.serviceResponse.Last7days || 0,
+        //   last30days: response.serviceResponse.Last30days || 0,
+        //   last90days: response.serviceResponse.last90days || 0,
+        // };
+        this.totalEmployeeInActivePoCount = response.serviceResponse ;
+        console.log("Inactive PO Count:", this.totalEmployeeInActivePoCount);
+      } else {
+        console.error("API Error:", response.serviceError || "Unknown error");
+        this.totalEmployeeInActivePoCount = { last7days: 0, last30days: 0 }; // fallback
+      }
+    });
   }
+  
 
 }
 
