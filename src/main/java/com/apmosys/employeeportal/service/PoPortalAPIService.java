@@ -33,6 +33,7 @@ import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
+import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
@@ -60,6 +61,9 @@ public class PoPortalAPIService {
 	
 	@Value("${poPortal.api.getProjectById}")
 	private String poPortalProjectByIdURL;
+	
+	@Value("${poPortal.api.getcount}")
+	private String poPortalCountById;
 	
 	@Value("${poPortal.api.syncDepartment}")
 	private String syncDepartmentWithPoPortal;
@@ -289,7 +293,8 @@ public class PoPortalAPIService {
 	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
 	        HttpEntity<?> entity = new HttpEntity<>(headers);
 	        String url = poPortalProjectByIdURL + projectId;
-            apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, ResourceManagementDTO.class);
+
+			apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, ResourceManagementDTO.class);
             finalHttpStatusCode = apiResponse.getStatusCodeValue();
 
             if (apiResponse.getStatusCode() == HttpStatus.OK) {
@@ -303,6 +308,7 @@ public class PoPortalAPIService {
             serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
             serviceResponse.setServiceResponse("Failed to communicate with PO Portal to fetch project details.");
             exceptionDetailsForLog = e.toString();
+            e.printStackTrace();
         } finally {
         	if (initialLog != null) {
 				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
@@ -311,6 +317,53 @@ public class PoPortalAPIService {
         }
         return serviceResponse;
     }
+	
+	public ServiceResponse getCountByProjectId(Long projectId) {
+        ServiceResponse serviceResponse = new ServiceResponse();
+        ApiLog initialLog = null;
+        String traceId = UUID.randomUUID().toString();
+        int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        String exceptionDetailsForLog = null;
+        ResponseEntity<ResourceRequirementDTO> apiResponse = null;
+        try {
+        	initialLog = apiLogUtility.startLog(traceId, "getResourceRequirementCountByProjectId", "Ishine", getCurrentUserId(), httpRequest);
+	        if (initialLog == null || initialLog.getId() == null) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the API call.");
+	            return serviceResponse;
+	        }
+
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.set("X-Trace-Id", traceId);
+	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+	        HttpEntity<?> entity = new HttpEntity<>(headers);
+	        String url = poPortalCountById + projectId;
+            apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, ResourceRequirementDTO.class);
+            finalHttpStatusCode = apiResponse.getStatusCodeValue();
+
+            if (apiResponse.getStatusCode() == HttpStatus.OK) {
+                serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                serviceResponse.setServiceResponse(apiResponse.getBody());
+            } else {
+                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                serviceResponse.setServiceResponse("Error fetching project count details from PO Portal. Status: " + apiResponse.getStatusCode());
+            }
+        } catch (Exception e) {
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            serviceResponse.setServiceResponse("Failed to communicate with PO Portal to fetch project count details.");
+            exceptionDetailsForLog = e.toString();
+        } finally {
+        	if (initialLog != null) {
+				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
+				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+			}
+        }
+        return serviceResponse;
+    }
+	
+	
+	
+	
 	
 	public ServiceResponse syncDeleteDepartmentWithPoPortal(DepartmentDTO departmentDTO,String endPointName) {
 		ServiceResponse serviceResponse = new ServiceResponse();

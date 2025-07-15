@@ -5961,6 +5961,7 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getResourceRequirementByPoProjectId");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
+		
 		logBuilder.append(
 				"\n getResourceRequirementByPoProjectId " + projectRepository.getAssignedEmployeesCountInProject(id));
 		
@@ -5978,6 +5979,7 @@ public class ResourceManagementService {
 			
 //			System.out.println(projectDTO.isPresent());
 
+
 			if (project == null) {
 
 				response.setServiceResponse("Unable to fetched project requirement details correctly!");
@@ -5987,8 +5989,24 @@ public class ResourceManagementService {
 				return response;
 
 			} else {	
-				int totalRequirements = project.getResourceRequirements().stream()
-						.mapToInt(ResourceRequirementDTO::getCount).sum();
+				
+				ServiceResponse countApiResponse = poPortalAPIService.getCountByProjectId(id);
+				if(countApiResponse.getServiceResponse()!= null){
+				ResourceRequirementDTO requirementCountDto = (ResourceRequirementDTO) countApiResponse.getServiceResponse();
+
+				
+
+				if (ServiceResponse.STATUS_FAIL.equals(countApiResponse.getServiceStatus())) {
+		            throw new RuntimeException("Failed to fetch count from PO Portal." );      
+		        }
+				if (requirementCountDto == null) {
+		             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		             response.setServiceResponse("Received success status from PO Portal, but requirement data was null.");
+		            //  logBuilder.append("\nError: PO Portal returned success but the response body was empty.");
+		             return response;
+		        }
+				
+				int totalRequirements = requirementCountDto.getCount();
 				int assigned = projectRepository.getAssignedEmployeesCountInProject(id);
 				int difference = totalRequirements - assigned;
 
@@ -6003,6 +6021,7 @@ public class ResourceManagementService {
 
 				return response;
 			}
+		}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
