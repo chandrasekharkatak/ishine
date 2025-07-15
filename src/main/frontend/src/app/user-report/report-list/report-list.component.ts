@@ -1,8 +1,10 @@
 import { CdkDragDrop, CdkDragRelease, moveItemInArray } from "@angular/cdk/drag-drop";
-import { formatDate, LocationStrategy } from '@angular/common';
+import { formatDate, Location, LocationStrategy } from '@angular/common';
 import { Component, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
+import { FormControl } from "@angular/forms";
 import { Sort } from '@angular/material/sort';
 import { Router } from "@angular/router";
+import * as Highcharts from "highcharts";
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
@@ -15,20 +17,17 @@ import { JobRole } from 'src/app/models/jobRole';
 import { Query } from 'src/app/models/query';
 import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
-import { Location } from '@angular/common';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { JobRoleService } from 'src/app/services/job-role.service';
 import { LeaveService } from 'src/app/services/leave.service';
+import { ResourceManagementService } from "src/app/services/resource-management.service";
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
-import { FormControl } from "@angular/forms";
-import * as Highcharts from "highcharts";
-import { ResourceManagementService } from "src/app/services/resource-management.service";
 
 class FilterData {
   title: any;
@@ -218,12 +217,14 @@ export class ReportListComponent implements OnInit {
   summaryModalRef: BsModalRef;
   projectSummaryData: any[] = [];
   searchText: string = '';
+  visibleInfo: boolean = false;
+  inActiveBoxinfo: any;
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
   private allDepartments: any[] = [];
   showBillableOnly: boolean = false;
-  
+
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -272,7 +273,7 @@ export class ReportListComponent implements OnInit {
       { deptId: 28, name: 'Training', isBillable: false },
       { deptId: 29, name: 'Floor Automation', isBillable: true }
     ];
-    
+
     this.setDepartmentView(true);
 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -327,12 +328,12 @@ export class ReportListComponent implements OnInit {
     } else {
       this.departments = [...this.allDepartments];
     }
-    
+
     this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
 
     this.filterDepartments();
     this.updateSelectAllState();
-    
+
     this.refreshReportData();
   }
 
@@ -340,30 +341,30 @@ export class ReportListComponent implements OnInit {
     const selectedCount = this.employeeReportObj.deptId?.length - 1 || 0;
     const totalCount = this.departments.length;
 
- 
+
     this.isAllSelected = totalCount > 0 && selectedCount === totalCount;
   }
-  
+
 
   isAllSelected = true;
   showSearchInput = true;
 
 
-  
+
   toggleSelectAll(): void {
     //  event.stopPropagation();
-     if (this.isAllSelected) {
-      this.employeeReportObj.deptId = []; 
+    if (this.isAllSelected) {
+      this.employeeReportObj.deptId = [];
       this.clearSelection();
       console.log("All departments deselected 0", this.employeeReportObj.deptId);
-      
+
     } else {
       this.isAllSelected = true;
       console.log("All departments deselected 1", this.employeeReportObj.deptId);
-      this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId); 
-      
+      this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
+
     }
-     this.refreshReportData();
+    this.refreshReportData();
     // this.isAllSelected = !this.isAllSelected;
     // this.updateSelectAllState();
     // this.refreshReportData();
@@ -378,7 +379,7 @@ export class ReportListComponent implements OnInit {
   }
 
   clearSelection() {
-    
+
     this.employeeReportObj.deptId = [];
     this.isAllSelected = false;
     this.searchText = '';
@@ -391,7 +392,7 @@ export class ReportListComponent implements OnInit {
     this.updateSelectAllState();
     this.refreshReportData();
   }
-  
+
   getSlicedProjects(projectList: Project[], count: number): Project[] {
     return projectList.slice(0, count);
   }
@@ -632,6 +633,7 @@ export class ReportListComponent implements OnInit {
     this.employeeReportObj.billableType = null;
 
     this.getEmployeeReportData();
+    this.getInActivePoCount(this.employeeReportObj);
   }
 
   selectBillable(box: string, type: string, template: TemplateRef<any>) {
@@ -772,12 +774,12 @@ export class ReportListComponent implements OnInit {
     const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
     const key = `${box}.${selectedMainFlag}`;
     const isActiveBox = box === this.activeBox;
-    const category = this.selectedTab[this.activeBox]; 
+    const category = this.selectedTab[this.activeBox];
 
-console.log("BOx Type ",box);
-    console.log(" key ::::::::::::",key);
-    console.log("category :::::::::::::",category);
-console.log("Is Active box :::::::::::::::::::",isActiveBox);
+    console.log("BOx Type ", box);
+    console.log(" key ::::::::::::", key);
+    console.log("category :::::::::::::", category);
+    console.log("Is Active box :::::::::::::::::::", isActiveBox);
 
     if (category === 'Project' && isActiveBox) {
       return this.projectSummary[key]?.Project?.total_projects_per_po_project || 0;
@@ -1046,7 +1048,7 @@ console.log("Is Active box :::::::::::::::::::",isActiveBox);
       }
     });
   }
-  
+
   onBoxClickDataChange(boxName) {
     this.filteredEmployees = [];
     this.activeBox = boxName;
@@ -1079,7 +1081,7 @@ console.log("Is Active box :::::::::::::::::::",isActiveBox);
     console.log('Selected Department:', this.selectedDepartment);
     this.deptWiseCount();
   }
-  
+
   getAllDepartmentsFromId(): Promise<any> {
     return new Promise((resolve, reject) => {
       this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
@@ -2040,7 +2042,7 @@ console.log("Is Active box :::::::::::::::::::",isActiveBox);
       }
     });
   }
-	
+
   page = 1;
   itemsPerPage = 5;
   handlePageChange(event) {
@@ -2583,6 +2585,28 @@ console.log("Is Active box :::::::::::::::::::",isActiveBox);
       },
       series: chartData
     });
+  }
+
+  InActivePoCounts: { type: string; count: number }[] = [
+    { type: '07 Days', count: 1 },
+    { type: '30 Days', count: 1 },
+    { type: '90 Days', count: 1 },
+    { type: '180 Days', count: 1 },
+    { type: '365 Days', count: 1 },
+  ];
+
+  onInfoClickModel(template: TemplateRef<any>, details:any): void {
+     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    console.log('TNM stands for Time and Materials billing model.');
+  }
+
+  toggleInfo1(box: any) {
+    this.visibleInfo = true;
+    this.inActiveBoxinfo = box;
+  }
+
+  getInActivePoCount(employeeObj:any){
+    //  for InActivePoCountDateWise
   }
 
 }

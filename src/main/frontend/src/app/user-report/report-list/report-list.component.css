@@ -657,3 +657,89 @@ td {
     opacity: 1;
   }
 }
+
+.info-button {
+  background-color: #0d9b4e;     
+  color: white;                  
+  border: none;               
+  border-radius: 50%;          
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+  margin-left: 6px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 2px rgba(0,0,0,0.2);
+}
+
+
+.info-tooltip {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+
+
+
+
+
+
+
+.info-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.info-button {
+  background-color: #0d9b4e;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  cursor: pointer;
+  margin-left: 6px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-tooltip {
+  position: absolute;
+  top: 28px; /* just below the button */
+  left: 0;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 120px;
+}
+
+.tooltip-label-mapped {
+  margin: 2px 0;
+}
+

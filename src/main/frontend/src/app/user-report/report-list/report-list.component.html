@@ -364,8 +364,7 @@
         <h1 class="table-header-title">Employee Report</h1>
       </div>
       <div class="">
-        <button *ngIf="returnUrl" type="button" class="backButton btn-sm text-white" 
-          (click)="goBack()">
+        <button *ngIf="returnUrl" type="button" class="backButton btn-sm text-white" (click)="goBack()">
           Back to ProjectView
         </button>
       </div>
@@ -384,7 +383,7 @@
         </button>
       </div>
     </div> -->
-    
+
 
 
     <div class="col-md-3 col-sm-6 custom-control custom-switch">
@@ -428,42 +427,41 @@
       <div *ngIf="showDetails" style="min-width: 300px;">
         <div class="form-group">
           <div class="custom-control custom-switch">
-      <input type="checkbox" class="custom-control-input" id="billableToggle" 
-             [checked]="showBillableOnly" (change)="setDepartmentView(!showBillableOnly)">
-      <label class="custom-control-label" for="billableToggle">
-        <span class="text-danger">*</span>
-        {{ showBillableOnly ? 'Billable Departments' : 'All Departments' }}
-      </label>
-    </div>
+            <input type="checkbox" class="custom-control-input" id="billableToggle" [checked]="showBillableOnly"
+              (change)="setDepartmentView(!showBillableOnly)">
+            <label class="custom-control-label" for="billableToggle">
+              <span class="text-danger">*</span>
+              {{ showBillableOnly ? 'Billable Departments' : 'All Departments' }}
+            </label>
+          </div>
 
 
           <mat-select class="form-control" multiple [(ngModel)]="employeeReportObj.deptId"
-                (selectionChange)="onDepartmentSelectionChange()">
+            (selectionChange)="onDepartmentSelectionChange()">
 
-      <!-- Search Input -->
-      <mat-option class="non-selectable" disabled>
-        <div style="display: flex; align-items: center;">
-          <input type="text" placeholder="Search Department" [(ngModel)]="searchText"
-                 (ngModelChange)="filterDepartments()" (click)="$event.stopPropagation()" 
-                 class="form-control" style="width: 100%; padding: 5px;" />
-          <button *ngIf="employeeReportObj.deptId?.length > 0" (click)="clearSelection()"
-                  style="margin-left: 5px; background: none; border: none; cursor: pointer;" 
-                  title="Clear Selection">
-            Clear
-          </button>
-        </div>
-      </mat-option>
+            <!-- Search Input -->
+            <mat-option class="non-selectable" disabled>
+              <div style="display: flex; align-items: center;">
+                <input type="text" placeholder="Search Department" [(ngModel)]="searchText"
+                  (ngModelChange)="filterDepartments()" (click)="$event.stopPropagation()" class="form-control"
+                  style="width: 100%; padding: 5px;" />
+                <button *ngIf="employeeReportObj.deptId?.length > 0" (click)="clearSelection()"
+                  style="margin-left: 5px; background: none; border: none; cursor: pointer;" title="Clear Selection">
+                  Clear
+                </button>
+              </div>
+            </mat-option>
 
-      <!-- Select All / Deselect All -->
-      <mat-option (click)="toggleSelectAll()" [disabled]="filteredDepartments.length === 0">
-        {{ isAllSelected ? 'Deselect All' : 'Select All' }}
-      </mat-option>
+            <!-- Select All / Deselect All -->
+            <mat-option (click)="toggleSelectAll()" [disabled]="filteredDepartments.length === 0">
+              {{ isAllSelected ? 'Deselect All' : 'Select All' }}
+            </mat-option>
 
-      <!-- Department Options -->
-      <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
-        {{ dept.name }}
-      </mat-option>
-    </mat-select>
+            <!-- Department Options -->
+            <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
+              {{ dept.name }}
+            </mat-option>
+          </mat-select>
         </div>
       </div>
     </div>
@@ -504,12 +502,24 @@
           <!-- Billable Type -->
           <div class="count-boxes">
             <div class="count-box" *ngFor="let type of ['Bench', 'Fixed Cost', 'Shadow', 'TNM', 'InternalRNDProducts']"
-              [ngClass]="{ 'active-btn': selectedBillable[box] === type,'full-width': type === 'InternalRNDProducts' }"
-              (click)="selectBillable(box, type,alert_message)">
-              <span>{{ type }}</span>
+              [ngClass]="{'active-btn': selectedBillable[box] === type,'full-width': type === 'InternalRNDProducts'}" (click)="selectBillable(box, type, alert_message)">
+              <span>
+                {{ type }}
+                <span class="info-wrapper" *ngIf="type === 'TNM' && box !== 'Internal' && selectedFlag[box] === 'Inactive'" >
+                  <button class="info-button" (click)="toggleInfo1(box)" title="InActive PO By Days">
+                   <i class="fa-solid fa-circle-info"></i>
+                  </button>
+                  <div class="info-tooltip" *ngIf="visibleInfo && box === inActiveBoxinfo">
+                    <div *ngFor="let item of InActivePoCounts" class="tooltip-label-mapped" (click)="onInfoClickModel(In_active_po_model,item)">
+                      {{ item.type }}: {{ item.count }}
+                    </div>
+                  </div>
+                </span>
+              </span>
               <div class="count">{{ getCount(box, type) }}</div>
             </div>
           </div>
+
         </div>
         <!-- Employee Summary Column -->
         <div class="employee-summary">
@@ -1843,5 +1853,47 @@
   <div class="modal-body text-center">
     <p>{{alertMessage}}</p>
     <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+  </div>
+</ng-template>
+
+
+
+
+<ng-template #In_active_po_model>
+  <div class="modal-header">
+    <h5 class="modal-title">Confirm Billable Type Update</h5>
+  </div>
+  <div class="modal-body">
+    <p>
+      Are you sure you want to update <b>Billable Type</b> for the below employee to
+      <b>{{ selectedBillableTypeForSingle }}</b>?
+    </p>
+
+    <table class="table table-bordered table-striped table-sm text-center mt-3">
+      <thead>
+        <tr>
+          <th>Employee Id</th>
+          <th>Employee Name</th>
+          <th>Billable Type</th>
+          <th>Department</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="selectedSingleEmployee">
+          <td>A-{{ selectedSingleEmployee.employeementId }}</td>
+          <td>{{ selectedSingleEmployee.name }}</td>
+          <td>{{ selectedSingleEmployee.oldBillableType }} → {{ selectedBillableTypeForSingle }}</td>
+          <td>{{ selectedSingleEmployee.departmentName }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="text-center mt-3">
+      <button type="button" class="btn btn-success" (click)="onConfirmSingleBillableUpdate();cancelRequest()">
+        Yes, Proceed
+      </button>
+      &nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>
+    </div>
   </div>
 </ng-template>
