@@ -14,7 +14,9 @@ import com.apmosys.employeeportal.dto.ActivityTemplateDTO;
 import com.apmosys.employeeportal.dto.ApiSourceDTO;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.HierarchyOptionDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightDomainDTO;
 import com.apmosys.employeeportal.service.ActivityTemplateService;
 import com.apmosys.employeeportal.service.ApiSourceService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -53,6 +55,18 @@ public class ApiSourceController {
 	@RequestMapping( value = "/getAllEmployee", method = RequestMethod.GET)
     public ResponseEntity<List<EmployeeDTO>> getAllEmployee() {
         List<EmployeeDTO> response = apiSourceService.getAllEmployee();
+        return ResponseEntity.ok(response);
+    }
+	
+	@RequestMapping( value = "/getAllProjectInsightDomain", method = RequestMethod.GET)
+    public ResponseEntity<List<HierarchyOptionDTO>> getAllDomain() {
+        List<HierarchyOptionDTO> response = apiSourceService.getAllDomain();
+        return ResponseEntity.ok(response);
+    }
+	
+	@RequestMapping( value = "/getAllNextFieldAndOption/{type}/{id}", method = RequestMethod.GET)
+    public ResponseEntity<List<HierarchyOptionDTO>> getAllNextFieldAndOption(@PathVariable String id,@PathVariable String type ) {
+        List<HierarchyOptionDTO> response = apiSourceService.getAllNextFieldAndOption(id, type);
         return ResponseEntity.ok(response);
     }
 

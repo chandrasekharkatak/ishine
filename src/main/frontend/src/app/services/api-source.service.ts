@@ -19,5 +19,9 @@ export class ApiSourceService {
     return this.http.get(`${this.baseUrl}` + apiurl);
   }
 
+  getAllNextFieldAndOption(id: any, type: string) {
+    return this.http.get<any[]>(`${this.baseUrl}` + `api/getAllNextFieldAndOption/${type}/${id}`);
+  }
+
 
 }

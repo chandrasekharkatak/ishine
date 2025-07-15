@@ -9,12 +9,12 @@
         <div class="info-wrapper">
           <div class="form-group">
             <label [for]="field.id" *ngIf="field.optionSource != 'dependent'">
-              {{ field.label }}
+              {{ getPascalCaseLabel(field.label) }}
               <span class="text-danger" *ngIf="field.required">*</span>
             </label>
     
             <!-- Select Field (non-dependent) -->
-            <div class="w-100" *ngIf="field.type === 'select' && field.optionSource !== 'dependent'">
+            <div class="w-100" *ngIf="field.type === 'select' && field.optionSource !== 'dependent' && field.label !== 'Domain' && !field.dynamicDomainChild">
               <mat-select
                 class="form-control"
                 [formControlName]="field.name"
@@ -25,34 +25,35 @@
                 </mat-option>
               </mat-select>
             </div>
-    
+
+            <!-- Domain -->
+            <div class="w-100" *ngIf="field.type === 'select' && field.optionSource !== 'dependent' && field.label === 'Domain'">
+              <mat-select class="form-control" [formControlName]="field.name" [multiple]="field.multiple"
+                (selectionChange)="onDomainSelectChange($event.value, field)">
+                <mat-option *ngFor="let option of field.options" [value]="option.value">
+                  {{ option.label }}
+                </mat-option>
+              </mat-select>
+            </div>
+
+            <!-- Dynamic Domain Child -->
+            <div class="w-100" *ngIf="field.type === 'select' && field.dynamicDomainChild">
+              <mat-select class="form-control" [formControlName]="field.name" [multiple]="field.multiple"
+                (selectionChange)="onDomainChildSelectChange($event.value, field)">
+                <mat-option *ngFor="let option of field.options" [value]="option.value">
+                  {{ option.label }}
+                </mat-option>
+              </mat-select>
+            </div>
+                
             <!-- Dependent Select Field with Multi-Select Parent -->
-            <!-- <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field)">
-              <div class="form-multiselect-parent d-flex flex-wrap" style="gap: 20px;">
-                <div *ngFor="let parentValue of getParentSelectedValues(field)"
-                     class="dependent-field-container"
-                     [style.flex]="'0 0 ' + (field.width || 33) + '%'"
-                     style="min-width: 220px;">
-                     <div class="w-100">
-                      <label>{{field.label}} for {{getParentLabel(field, parentValue)}}</label>
-                      <mat-select
-                        class="form-control"
-                        [formControlName]="getDependentControlName(field, parentValue)"
-                        [multiple]="field.multiple">
-                        <mat-option *ngFor="let opt of getDependentOptions(field, parentValue)" [value]="opt.value">
-                          {{opt.label}}
-                        </mat-option>
-                      </mat-select>
-                    </div>
-                </div>
-              </div>
-            </ng-container> -->
-            <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field)">
+            <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field) && !field.dynamicDomainChild">
               <mat-form-field class="w-100">
                 <mat-select
                   class="form-control"
                   [formControlName]="field.name"
-                  [multiple]="field.multiple">
+                  [multiple]="field.multiple"
+                  (selectionChange)="onSelectChange($event, field)">
                   <ng-container *ngFor="let parentValue of getParentSelectedValues(field)">
                     <mat-optgroup [label]="getParentLabel(field, parentValue)">
                       <mat-option *ngFor="let opt of dependentOptionsMap[field.name] || []" [value]="opt.value">
@@ -65,12 +66,13 @@
             </ng-container>
     
             <!-- Dependent Select Field with Single Parent -->
-            <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && !isParentMultiSelect(field)">
+            <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && !isParentMultiSelect(field) && !field.dynamicDomainChild">
               <div appearance="fill" class="w-100">
                 <mat-label>{{ field.label }}</mat-label>
                 <mat-select
                   [formControlName]="field.name"
-                  [multiple]="field.multiple">
+                  [multiple]="field.multiple"
+                  (selectionChange)="onSelectChange($event, field)">
                   <mat-option *ngFor="let opt of dependentOptionsMap[field.name] || []" [value]="opt.value">
                     {{opt.label}}
                   </mat-option>

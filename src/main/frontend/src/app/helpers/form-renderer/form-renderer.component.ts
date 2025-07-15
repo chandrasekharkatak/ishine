@@ -33,18 +33,6 @@ export class FormRendererComponent implements OnInit, OnChanges {
     console.log(this.layoutConfig, " : layoutconfig in form renderer");
   }
 
-  // async ngOnChanges(changes: SimpleChanges) {
-  //   if (
-  //     (changes.fields && changes.fields.currentValue !== changes.fields.previousValue) ||
-  //     (changes.formData && changes.formData.currentValue !== changes.formData.previousValue)
-  //   ) {
-  //     this.isLoading = true;
-  //     await this.prepareApiOptions();
-  //     this.buildForm();
-  //     this.isLoading = false;
-  //   }
-  // }
-
   async ngOnChanges(changes: SimpleChanges) {
     if (
       (changes.fields && changes.fields.currentValue !== changes.fields.previousValue) ||
@@ -58,13 +46,6 @@ export class FormRendererComponent implements OnInit, OnChanges {
   get formControlsCount(): number {
     return this.dynamicForm ? Object.keys(this.dynamicForm.controls).length : 0;
   }
-
-  // async ngOnChanges(changes: SimpleChanges) {
-  //   if (changes.fields || changes.formData) {
-  //     await this.prepareApiOptions();
-  //     this.buildForm();
-  //   }
-  // }
 
   getTableRows(field: any): any[] {
     return Array.from({ length: field.tableConfig.rows });
@@ -309,7 +290,138 @@ export class FormRendererComponent implements OnInit, OnChanges {
     });
   }
 
+  private generateUniqueId(): string {
+    return Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }async onDomainSelectChange(selectedDomainIds: any[], field: any) {
+    this.fields = this.fields.filter(f => !f.dynamicDomainChild);
+    this.layoutConfig[0] = this.layoutConfig[0].filter(f => !f.dynamicDomainChild);
+  
+    const type = this.getTypeForField(field); // Should be 'DOMAIN'
+    for (const domainId of selectedDomainIds) {
+      const children: any = await this.apiSourceService.getAllNextFieldAndOption(domainId, type).toPromise();
+      if (children && children.length > 0) {
+        const domainFieldTemplate = { ...field };
+        const newField = {
+          ...domainFieldTemplate,
+          id: this.generateUniqueId(),
+          name: `child_${domainId}`,
+          label: children[0].hierarchyType,
+          hierarchyType: children[0].hierarchyType,
+          options: children.map(child => ({
+            label: child.name,
+            value: child.id,
+            isChildAvailable: child.isChildAvailable,
+            hierarchyType: child.hierarchyType
+          })),
+          multiple: true,
+          dynamicDomainChild: true,
+          parentDomainId: domainId,
+          apiUrl: null,
+          apiLabelKey: null,
+          apiValueKey: null,
+          dependentApiUrl: "api/getAllNextFieldAndOption/{type}/{id}",
+          dependentLabelKey: "name",
+          dependentValueKey: "id",
+          dependentParamName: "id"
+        };
+  
+        this.fields.push(newField);
+        this.layoutConfig[0].push(newField);
+      }
+    }
+    this.fields = [...this.fields];
+    this.layoutConfig = [...this.layoutConfig];
+    this.buildForm();
+  }
+
+  private getTypeForField(field: any): string {
+    return (field.hierarchyType || field.label || '').toUpperCase();
+  }
+  
+  
+  
+  async onDomainChildSelectChange(selectedChildIds: any[], field: any) {
+    const currentValues = this.dynamicForm?.value || {};
+  
+    // 1. Remove dynamic children that are no longer selected
+    const selectedNames = (selectedChildIds || []).map(childId => {
+      // Use the same naming convention as when you create the field
+      const selectedOption = field.options.find((opt: any) => opt.value === childId);
+      const type = (selectedOption?.hierarchyType || '').toUpperCase();
+      return `${type}${childId}`;
+    });
+  
+    this.fields = this.fields.filter(
+      f => !f.dynamicDomainChild || f.parentDomainId === field.parentDomainId || selectedNames.includes(f.name)
+    );
+    this.layoutConfig[0] = this.layoutConfig[0].filter(
+      f => !f.dynamicDomainChild || f.parentDomainId === field.parentDomainId || selectedNames.includes(f.name)
+    );
+  
+    // 2. Add new fields for newly selected children
+    for (const childId of selectedChildIds) {
+      if (!childId) continue;
+      const selectedOption = field.options.find((opt: any) => opt.value === childId);
+      if (selectedOption && selectedOption.isChildAvailable) {
+        const type = (selectedOption.hierarchyType || '').toUpperCase();
+        const fieldName = `${type}${childId}`;
+        // Only add if not already present
+        if (!this.fields.some(f => f.name === fieldName)) {
+          const children: any = await this.apiSourceService.getAllNextFieldAndOption(childId, type).toPromise();
+          if (children && children.length > 0) {
+            const domainFieldTemplate = { ...field };
+            const newLabel = children[0].hierarchyType;
+            const newField = {
+              ...domainFieldTemplate,
+              id: this.generateUniqueId(),
+              name: fieldName,
+              label: newLabel,
+              hierarchyType: newLabel,
+              options: children.map(child => ({
+                label: child.name,
+                value: child.id,
+                isChildAvailable: child.isChildAvailable,
+                hierarchyType: child.hierarchyType
+              })),
+              multiple: true,
+              dynamicDomainChild: true,
+              parentDomainId: childId,
+              apiUrl: null,
+              apiLabelKey: null,
+              apiValueKey: null,
+              dependentApiUrl: "api/getAllNextFieldAndOption/{type}/{id}",
+              dependentLabelKey: "name",
+              dependentValueKey: "id",
+              dependentParamName: "id"
+            };
+  
+            this.fields.push(newField);
+            this.layoutConfig[0].push(newField);
+          }
+        }
+      }
+    }
+  
+    this.fields = [...this.fields];
+    this.layoutConfig = [...this.layoutConfig];
+    this.buildForm();
+  
+    if (this.dynamicForm && currentValues) {
+      this.dynamicForm.patchValue(currentValues, { emitEvent: false });
+    }
+  }
+
+  getPascalCaseLabel(label: string): string {
+    if (!label) return '';
+    return label
+      .split(/[\s_-]+/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join('');
+  }
+  
+
   async onSelectChange(event: any, field: any) {
+    console.log("onSelectChange called");
     if (this.fields.some(f => f.parentField === field.name)) {
       for (const depField of this.fields.filter(f => f.parentField === field.name)) {
         if (depField.optionSource === 'dependent') {

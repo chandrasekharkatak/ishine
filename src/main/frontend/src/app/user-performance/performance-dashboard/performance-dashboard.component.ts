@@ -1384,14 +1384,14 @@ export class PerformanceDashboardComponent implements OnInit {
 
     let insightObj = {
       employeeRole: this.currentUser.employeeRole,
-      empId: 1,
+      empId: this.currentUser.empId,
       performanceTabName: 'Performance Dashboard'
     };
 
     this.projectInsightService.getProjectInsightByAssignedToEmpId(insightObj).pipe(first()).subscribe(
       (response: any) => {
 
-        this.allProjectInsightList = response?.serviceResponse1 || [];
+        this.allProjectInsightList = response?.serviceResponse || [];
         this.allProjectInsightList.forEach(project => {
           project.createdOn = (project.createdOn)
             ? moment(project.createdOn).format(AppComponent.LOCAL_DATE_FORMAT)

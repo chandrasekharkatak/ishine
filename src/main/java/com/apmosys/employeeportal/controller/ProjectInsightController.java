@@ -207,6 +207,13 @@ public class ProjectInsightController {
         return ResponseEntity.ok(updated);
     }
     
+    @RequestMapping(value = "/searchProjectInsight", method = RequestMethod.GET)
+    public ResponseEntity<List<ProjectInsightStructure>> search(
+            @RequestParam("q") String keyword) {
+        List<ProjectInsightStructure> results = projectInsightService.searchProjectInsightStructures(keyword);
+        return ResponseEntity.ok(results);
+    }
+    
     
     /*
      * New Implimentation Project Insight : User Contribution ----------- [START] --------------------------------------

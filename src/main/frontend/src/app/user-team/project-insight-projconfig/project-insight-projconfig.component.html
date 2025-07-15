@@ -444,14 +444,16 @@
               </div>
               <div class="col-md-4 mb-0">
                 <div class="info-wrapper">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Assign To</label>
-                        <mat-select class="form-control" multiple [(ngModel)]="question.toAssignEmployeeList">
-                            <mat-option selected="selected" value="" disabled>Select</mat-option>
-                            <mat-option *ngFor="let emp of allEmployeeList"
-                                [value]="emp.empId">{{emp.name}}</mat-option>
-                        </mat-select>
-                    </div>
+                  <div class="form-group">
+                    <label class="info-label"><span class="text-danger">*</span>Assign To</label>
+                    <mat-select ngxMatSelect class="form-control" #employeeSelect="ngxMatSelect" [displayMember]="'name'"
+                      [valueMember]="'empId'" [source]="allEmployeeList" [useInfiniteScroll]="true" [multiple]="true"
+                      [(ngModel)]="question.toAssignEmployeeList">
+                      <mat-option [value]="emp.empId" *ngFor="let emp of employeeSelect.filteredSource">
+                        {{emp.name}}
+                      </mat-option>
+                    </mat-select>
+                  </div>
                 </div>
             </div>
             </div>

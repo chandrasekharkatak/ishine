@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.persistence.Column;
@@ -27,6 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -75,6 +78,8 @@ import com.apmosys.employeeportal.model.TagMaster;
 import com.apmosys.employeeportal.model.UserContributionDocument;
 import com.apmosys.employeeportal.model.UserContributionResponseRemarks;
 import com.apmosys.employeeportal.mongodb.dto.FormDataDTO;
+import com.apmosys.employeeportal.mongodb.dto.OptionValueDTO;
+import com.apmosys.employeeportal.mongodb.dto.ProjectInsightQuestionDTO;
 import com.apmosys.employeeportal.mongodb.modal.FileStorage;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.mongodb.repository.FileMongoRepository;
@@ -3592,21 +3597,112 @@ public class ProjectInsightService {
         return projectInsightStructureRepository.save(existing);
 	}
 	
+	public List<ProjectInsightStructure> searchProjectInsightStructures(String keyword) {
+        List<ProjectInsightStructure> all = projectInsightStructureRepository.findAll();
+        List<ProjectInsightStructure> result = new ArrayList<>();
+        for (ProjectInsightStructure pis : all) {
+            if (pis.getData() != null && containsKeyword(pis.getData(), keyword)) {
+                result.add(pis);
+            }
+        }
+        return result;
+    }
+
+    private boolean containsKeyword(FormDataDTO data, String keyword) {
+        if (data == null) return false;
+        String lowerKeyword = keyword.toLowerCase();
+
+        // 1. Search in fields
+        if (data.getFields() != null) {
+            for (Object value : data.getFields().values()) {
+                if (value instanceof String && ((String) value).toLowerCase().contains(lowerKeyword)) {
+                    return true;
+                }
+                if (value instanceof List) {
+                    for (Object item : (List<?>) value) {
+                        if (item instanceof String && ((String) item).toLowerCase().contains(lowerKeyword)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Search in questions
+        if (data.getQuestions() != null) {
+            for (ProjectInsightQuestionDTO question : data.getQuestions()) {
+                if (question.getText() != null && question.getText().toLowerCase().contains(lowerKeyword)) {
+                    return true;
+                }
+                if (question.getDescription() != null && question.getDescription().toLowerCase().contains(lowerKeyword)) {
+                    return true;
+                }
+                if (question.getOptionsList() != null) {
+                    for (OptionValueDTO option : question.getOptionsList()) {
+                        if (option.getOptionValue() != null && option.getOptionValue().toLowerCase().contains(lowerKeyword)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Recursively search in children
+        if (data.getChild() != null) {
+            for (FormDataDTO child : data.getChild()) {
+                if (containsKeyword(child, keyword)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+	
 	private boolean isEmpIdAssigned(FormDataDTO data, String empId) {
 	    if (data == null) return false;
-	    if (data.getFields() != null && data.getFields().containsKey("assignedto")) {
-	        Object assignedTo = data.getFields().get("assignedto");
-	        if (assignedTo instanceof List) {
-	            List<?> assignedList = (List<?>) assignedTo;
-	            if (assignedList.contains(empId)) {
-	                return true;
-	            }
-	        } else if (assignedTo instanceof String) {
-	            if (empId.equals(assignedTo)) {
-	                return true;
+
+	    // 1. Check all fields for keys containing "assignedto" or "assignto"
+	    if (data.getFields() != null) {
+	        for (Map.Entry<String, Object> entry : data.getFields().entrySet()) {
+	            String key = entry.getKey().toLowerCase();
+	            if (key.contains("assignedto") || key.contains("assignto")) {
+	                Object assignedTo = entry.getValue();
+	                if (assignedTo instanceof List) {
+	                    List<?> assignedList = (List<?>) assignedTo;
+	                    for (Object assigned : assignedList) {
+	                        if (empId.equals(String.valueOf(assigned))) {
+	                            return true;
+	                        }
+	                    }
+	                } else if (assignedTo instanceof String) {
+	                    if (empId.equals(assignedTo)) {
+	                        return true;
+	                    }
+	                } else if (assignedTo != null) {
+	                    if (empId.equals(String.valueOf(assignedTo))) {
+	                        return true;
+	                    }
+	                }
 	            }
 	        }
 	    }
+
+	    // 2. Check all questions' toAssignEmployeeList
+	    if (data.getQuestions() != null) {
+	        for (ProjectInsightQuestionDTO question : data.getQuestions()) {
+	            List<?> toAssignList = question.getToAssignEmployeeList();
+	            if (toAssignList != null) {
+	                for (Object assigned : toAssignList) {
+	                    if (empId.equals(String.valueOf(assigned))) {
+	                        return true;
+	                    }
+	                }
+	            }
+	        }
+	    }
+
+	    // 3. Recursively check all children
 	    if (data.getChild() != null) {
 	        for (FormDataDTO child : data.getChild()) {
 	            if (isEmpIdAssigned(child, empId)) {
@@ -3614,6 +3710,7 @@ public class ProjectInsightService {
 	            }
 	        }
 	    }
+
 	    return false;
 	}
 
