@@ -56,6 +56,7 @@ import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
+import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Asset;
@@ -7510,7 +7511,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 					employeeTimesheetRequest.getEndDate().toLocalDate(), employeeTimesheetRequest.getListType());
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw e;
+			throw new BadRequestException("Something went wrong..");
 		}
 		return employeeTimesheetProjectResponseList;
 	}

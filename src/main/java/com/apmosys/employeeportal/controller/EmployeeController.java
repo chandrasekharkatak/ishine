@@ -580,6 +580,7 @@ public class EmployeeController {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
 		ServiceResponse resposne = new ServiceResponse();
 		resposne.setServiceResponse(ResponseEntity.ok(employeeService.getEmployeeAndTimesheetDetails(employeeTimesheetRequest)));
+		resposne.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
 		return resposne;
 	 }
 
@@ -587,7 +588,8 @@ public class EmployeeController {
 	 public ServiceResponse getTeamAndTimeSheetDetails(HttpServletRequest request,@PathVariable("poProjectId") Long poProjectId) {
 		 ServiceResponse response = new ServiceResponse();
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
-		 response.setServiceResponse(ResponseEntity.ok(employeeService.getTeamAndTimeSheetDetails(poProjectId)));
+		 response.setServiceResponse(employeeService.getTeamAndTimeSheetDetails(poProjectId));
+		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
 		return response;
 	 }
 	 
