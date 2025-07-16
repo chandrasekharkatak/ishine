@@ -5969,8 +5969,8 @@ public class ResourceManagementService {
 			if (projectApiResponse.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
 		         return projectApiResponse;
 			}
-			ResourceRequirementResponse project = (ResourceRequirementResponse) projectApiResponse.getServiceResponse();
-
+			List<ResourceRequirementResponse> project = (List<ResourceRequirementResponse>) projectApiResponse.getServiceResponse();
+			System.out.println("======================"+project);
 
 			if (project == null) {
 
@@ -7336,6 +7336,7 @@ public class ResourceManagementService {
 			}
 			if(!finalDataList.isEmpty() && finalDataList != null) {List<Long> projectIds = finalDataList.stream()
 				    .peek(data -> data.setActive(null))
+				    
 				    .map(ProjectFetchDTO::getProjectId)
 				    .filter(Objects::nonNull)
 				    .map(Integer::longValue)

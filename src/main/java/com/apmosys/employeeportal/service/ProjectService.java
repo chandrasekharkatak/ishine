@@ -2628,22 +2628,21 @@ public class ProjectService {
 			apiLogInfo.setApiUrl("/api/getAllProjectFCLineItemListByProjectId");
 			apiLogInfo.setLogLevel("INFO");
 			try {
-				if (projectDto == null || projectDto.getProjectId() == null) {
+				if (projectDto == null || projectDto.getPoProjectId() == null) {
 					serviceResponse.setServiceResponse("Project Id cannot be null!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					apiLogInfo.setApiResponse("Project Id cannot be null!");
 					return serviceResponse;
 				} else {
-					Project project = projectRepository.findByProjectId(projectDto.getProjectId());
-					if (project == null) {
+					Project project = projectRepository.findByPoProjectId(projectDto.getPoProjectId());					if (project == null) {
 						apiLogInfo.setApiResponse("Project not found!");
 						serviceResponse.setServiceResponse("Project not found!");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						return serviceResponse;
 					} else {
-						ServiceResponse serviceResponseTemp = poPortalAPIService.callGetFCLineItemDetails(projectDto.getProjectId());    
+						ServiceResponse serviceResponseTemp = poPortalAPIService.callGetFCLineItemDetails(projectDto.getPoProjectId());    
 						if(!serviceResponseTemp.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
 							apiLogInfo.setApiResponse(serviceResponseTemp.getServiceResponse().toString());
 							serviceResponse.setServiceResponse(serviceResponseTemp.getServiceResponse());
@@ -3053,10 +3052,9 @@ public class ProjectService {
 			List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = new ArrayList<>();
 			if (fCLineItemDTO != null && !fCLineItemDTO.isEmpty()) {
 				for (FCLineItemDTO fcLineItemDTO : fCLineItemDTO) {
-					if (fcLineItemDTO.getFcProjectMilestoneDTOList() != null
-							&& !fcLineItemDTO.getFcProjectMilestoneDTOList().isEmpty()) {
+					if (fcLineItemDTO.getMilestones() != null) {
 						for (FCProjectMilestoneDTO fcProjectMilestoneDTOTemp : fcLineItemDTO
-								.getFcProjectMilestoneDTOList()) {
+								.getMilestones()) {
 							FCProjectMilestoneDTO fcProjectMilestoneDTO = new FCProjectMilestoneDTO();
 							fcProjectMilestoneDTO.setId(fcProjectMilestoneDTOTemp.getId());
 							fcProjectMilestoneDTO.setPoId(fcProjectMilestoneDTOTemp.getPoId());

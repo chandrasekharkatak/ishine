@@ -2806,6 +2806,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
           return project;
           this.createDepartmentArray();
         });
+        console.log("this.allProject_Po_Internal", this.allProject_Po_Internal);
         // this.tabCounts = response.serviceResponse.counts;
         // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
       } else {
@@ -4878,7 +4879,9 @@ filteredProjects: any[] = [];
   showProjectMilestones(projectObj: any) {
     this.fcProjectMilestoneList = [];
     let projectObjTemp = new Project();
-    projectObjTemp.projectId = projectObj?.projectId;
+    projectObjTemp.poProjectId = projectObj?.poProjectId;
+
+    console.log("projectObjTemp", projectObjTemp);
     this.projectService.getAllProjectFCLineItemListByProjectId(projectObjTemp).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         console.log("response.serviceStatus "+JSON.stringify(response.serviceResponse));

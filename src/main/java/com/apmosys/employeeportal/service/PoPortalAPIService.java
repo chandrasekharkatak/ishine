@@ -111,7 +111,7 @@ public class PoPortalAPIService {
 	@Autowired
 	private EmployeeRepository employeeRepository;
 	
-	public ServiceResponse callGetFCLineItemDetails(Integer projectId) {
+	public ServiceResponse callGetFCLineItemDetails(Long poProjectId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		ApiLog initialLog = null;
 		String traceId = UUID.randomUUID().toString();
@@ -129,10 +129,10 @@ public class PoPortalAPIService {
 		headers.set("X-Trace-Id", traceId);
 		headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
 		HttpEntity<?> entity = new HttpEntity<>(headers);
-		String url = getFCLineItemDetailsURL + projectId;
+		String url = getFCLineItemDetailsURL + poProjectId;
 		ResponseEntity<List<FCLineItemDTO>> apiResponse = null;
 		try {
-			apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity,new ParameterizedTypeReference<List<FCLineItemDTO>>() {});
+ 	        apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity,new ParameterizedTypeReference<List<FCLineItemDTO>>() {});
 			if (apiResponse.getStatusCode() == HttpStatus.OK) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				serviceResponse.setServiceResponse(apiResponse.getBody());
@@ -195,19 +195,50 @@ public class PoPortalAPIService {
 				serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the update process.");
 				return serviceResponse;
 			}
+//			HttpHeaders headers = new HttpHeaders();
+//			headers.set("X-Trace-Id", traceId);
+//			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());	
+//			headers.setContentType(MediaType.valueOf(file.getContentType()));
+//			headers.setContentDisposition(ContentDisposition.builder("attachment").filename(file.getOriginalFilename()).build());
+//			HttpEntity<FCProjectMilestoneDTO> dtoEntity = new HttpEntity<>(dto, headers);
+//		    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+//		    body.add("milestoneData", dtoEntity);
+//		    ByteArrayResource fileResource = new ByteArrayResource(file.getBytes());
+//	        body.add("File",fileResource); 
+//	        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+//			ResponseEntity<String> apiResponse = restTemplate.exchange(sendFileUrl, HttpMethod.PUT, requestEntity, String.class);
+
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("X-Trace-Id", traceId);
-			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());	
-			headers.setContentType(MediaType.valueOf(file.getContentType()));
-			headers.setContentDisposition(ContentDisposition.builder("attachment").filename(file.getOriginalFilename()).build());
-			HttpEntity<FCProjectMilestoneDTO> dtoEntity = new HttpEntity<>(dto, headers);
-		    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-		    body.add("milestoneData", dtoEntity);
-		    ByteArrayResource fileResource = new ByteArrayResource(file.getBytes());
-	        body.add("File",fileResource); 
-	        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-			ResponseEntity<ServiceResponse> apiResponse = restTemplate.exchange(sendFileUrl, HttpMethod.PUT, requestEntity, ServiceResponse.class);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+			headers.setContentType(MediaType.MULTIPART_FORM_DATA); 
 
+			HttpHeaders jsonHeaders = new HttpHeaders();
+			jsonHeaders.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity<FCProjectMilestoneDTO> jsonPart = new HttpEntity<>(dto, jsonHeaders);
+
+			
+			ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
+			    @Override
+			    public String getFilename() {
+			        return file.getOriginalFilename();
+			    }
+			};
+
+			
+			MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+			body.add("dto", jsonPart);
+			body.add("file", fileResource);
+
+			HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+			RestTemplate restTemplate = new RestTemplate();
+			ResponseEntity<ServiceResponse> apiResponse = restTemplate.exchange(
+			    sendFileUrl, 
+			    HttpMethod.PUT, 
+			    requestEntity, 
+			    ServiceResponse.class
+			);
 			if (apiResponse.getStatusCode() == HttpStatus.OK && apiResponse.getBody() != null) {
 				serviceResponse.setServiceResponse(apiResponse.getBody());
 				finalHttpStatusCode = HttpStatus.OK.value();
@@ -223,6 +254,7 @@ public class PoPortalAPIService {
 			serviceResponse.setServiceResponse(errorMsg);
 			serviceResponse.setServiceError(e.getMessage());
 			exceptionDetailsForLog = e.toString();
+			e.printStackTrace();
 		} finally {
 			if (initialLog != null && initialLog.getId() != null) {
 				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
@@ -280,7 +312,7 @@ public class PoPortalAPIService {
         String traceId = UUID.randomUUID().toString();
         int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
         String exceptionDetailsForLog = null;
-        ResponseEntity<ResourceRequirementResponse> apiResponse = null;
+        ResponseEntity<List<ResourceRequirementResponse>> apiResponse = null;
         try {
         	
         	initialLog = apiLogUtility.startLog(traceId, "fetchPoPortalProjectById", "Ishine", getCurrentUserId(), httpRequest);
@@ -296,7 +328,7 @@ public class PoPortalAPIService {
 	        HttpEntity<?> entity = new HttpEntity<>(headers);
 	        String url = poPortalProjectByIdURL + projectId;
 
-			apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity,  ResourceRequirementResponse.class);
+			apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<List<ResourceRequirementResponse>>() {});
             finalHttpStatusCode = apiResponse.getStatusCodeValue();
 
             if (apiResponse.getStatusCode() == HttpStatus.OK) {
