@@ -579,8 +579,9 @@ public class EmployeeController {
 	 public ServiceResponse getEmployeeAndTimesheetDetails(HttpServletRequest request,@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
 		ServiceResponse resposne = new ServiceResponse();
-		resposne.setServiceResponse(ResponseEntity.ok(employeeService.getEmployeeAndTimesheetDetails(employeeTimesheetRequest)));
+		resposne.setServiceResponse(employeeService.getEmployeeAndTimesheetDetails(employeeTimesheetRequest));
 		resposne.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
+		System.out.println(resposne);
 		return resposne;
 	 }
 
@@ -597,7 +598,8 @@ public class EmployeeController {
 	 public ServiceResponse getProjectDetailsByEmpIdAndDateRange(HttpServletRequest request,@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
 		 ServiceResponse response = new ServiceResponse();
-		 response.setServiceResponse(ResponseEntity.ok(employeeService.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest)));
+		 response.setServiceResponse(employeeService.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest));
+		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
 		 return response;
 	 }
 	 
