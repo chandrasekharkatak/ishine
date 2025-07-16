@@ -1665,24 +1665,7 @@ public class ProjectService {
 				logBuilder.append("Sync completed successfully with 0 projects.");
 			} else {
 				for (ProjectPoPortalDTO dto : list) {
-					try {
-						Project project = projectRepository.findByPoProjectId(dto.getId());
-
-						if (project == null) {
-							logBuilder.append("Project not found for PoProjectId: ").append(dto.getId()).append("\n");
-							continue;
-						}
-						
-						updateProjectBasicDetails(project, dto);
-						updateProjectDepartments(project, dto.getDepartment(), logBuilder); // Department Mapping
-						updateProjectClient(project, dto, logBuilder); // Client Mapping
-						projectRepository.save(project);
-						
-						logBuilder.append("Updated Project: ID=").append(dto.getId()).append(", PoNo=").append(dto.getPoNo()).append("\n");
-					} catch (Exception ex) {
-						ex.printStackTrace();
-						logBuilder.append("Error updating project ID: ").append(dto.getId()).append(" - ").append(ex.getMessage()).append("\n");
-					}
+					updateProject(dto,logBuilder);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Successfully synced project details from PoPortal.");
@@ -1691,12 +1674,34 @@ public class ProjectService {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Failed to sync project details from PoPortal.");
+			apiLogInfo.setApiResponse("Failed to sync project details from PoPortal.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
+	private void updateProject(ProjectPoPortalDTO dto, StringBuilder logBuilder) {
+		try {
+			Project project = projectRepository.findByPoProjectId(dto.getId());
+			if (project == null) {
+				logBuilder.append("Project not found for PoProjectId: ").append(dto.getId()).append("\n");
+				return;
+			}
+			updateProjectBasicDetails(project, dto);
+			updateProjectDepartments(project, dto.getDepartment(), logBuilder); // Department Mapping
+			updateProjectClient(project, dto, logBuilder); // Client Mapping
+			projectRepository.save(project);
+			logBuilder.append("Updated Project: ID=").append(dto.getId()).append(", PoNo=").append(dto.getPoNo()).append("\n");
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			logBuilder.append("Error updating project ID: ").append(dto.getId()).append(" - ").append(ex.getMessage()).append("\n");
+		}
+	}
+
 	private void updateProjectBasicDetails(Project project, ProjectPoPortalDTO dto) {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		project.setProjectName(dto.getName());

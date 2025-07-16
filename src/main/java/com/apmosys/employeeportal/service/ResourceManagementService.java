@@ -9435,7 +9435,7 @@ public class ResourceManagementService {
 		ApiLog initialLog = null;
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllEmployeeInfo", "PoPortal", null ,httpRequest);
+		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "poCrudOperationsInIshine", "PoPortal", null ,httpRequest);
 
 		if (poData == null) {
 			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();

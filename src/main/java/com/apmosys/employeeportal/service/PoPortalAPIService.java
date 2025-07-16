@@ -315,7 +315,7 @@ public class PoPortalAPIService {
         ResponseEntity<List<ResourceRequirementResponse>> apiResponse = null;
         try {
         	
-        	initialLog = apiLogUtility.startLog(traceId, "fetchPoPortalProjectById", "Ishine", getCurrentUserId(), httpRequest);
+        	initialLog = apiLogUtility.startLog(traceId, "getAllResourceRequirementForProject", "Ishine", getCurrentUserId(), httpRequest);
 	        if (initialLog == null || initialLog.getId() == null) {
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the API call.");
@@ -686,14 +686,8 @@ public class PoPortalAPIService {
 	        headers.set("X-Trace-Id", traceId);
 	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
 	        headers.setContentType(MediaType.APPLICATION_JSON); 
-
 	        HttpEntity<List<PoProjectSyncDTO>> entity = new HttpEntity<>(projectInfo, headers);
-
-	        
 	        final String syncUrl = reversesyncurl; 
-	        RestTemplate restTemplate = new RestTemplate();
-
-	        
 	        ResponseEntity<String> responseEntity = restTemplate.postForEntity(syncUrl, entity, String.class);
 
 	        finalHttpStatusCode = responseEntity.getStatusCodeValue();
@@ -702,6 +696,7 @@ public class PoPortalAPIService {
 	            JSONObject json = new JSONObject(responseEntity.getBody());
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            serviceResponse.setServiceResponse(json.get("message"));
+				finalHttpStatusCode = HttpStatus.OK.value();
 	        } else {
 	            // Handle other non-error success codes if necessary
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
