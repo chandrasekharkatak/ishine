@@ -35,6 +35,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import javax.xml.bind.DataBindingException;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -5969,7 +5970,7 @@ public class ResourceManagementService {
 			if (projectApiResponse.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
 		         return projectApiResponse;
 			}
-			ResourceRequirementResponse project = (ResourceRequirementResponse) projectApiResponse.getServiceResponse();
+			List<ResourceRequirementResponse> project =  (List<ResourceRequirementResponse>) projectApiResponse.getServiceResponse();
 
 
 			if (project == null) {
@@ -9028,7 +9029,7 @@ public class ResourceManagementService {
 	    response.setServiceResponse("Line items and milestones synced.");
 	    return response;
 	}
-	
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO dto) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO log = initializeLog(dto);
@@ -9193,12 +9194,14 @@ public class ResourceManagementService {
 	    if (!"Success".equals(managerResp.getServiceStatus())) {
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceResponse(managerResp.getServiceResponse());
+	        throw new DataNotFoundException("Unable to set Project Manager");
 	    }
 
 	    ServiceResponse overheadResp = this.setProjectOverheads(dto, project);
 	    if (!"Success".equals(overheadResp.getServiceStatus())) {
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceResponse(overheadResp.getServiceResponse());
+	        throw new DataNotFoundException("Unable to set Project Over Head");
 	    }
 	}
 

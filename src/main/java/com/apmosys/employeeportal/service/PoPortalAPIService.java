@@ -280,7 +280,7 @@ public class PoPortalAPIService {
         String traceId = UUID.randomUUID().toString();
         int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
         String exceptionDetailsForLog = null;
-        ResponseEntity<ResourceRequirementResponse> apiResponse = null;
+        ResponseEntity<List<ResourceRequirementResponse>> apiResponse = null;
         try {
         	
         	initialLog = apiLogUtility.startLog(traceId, "fetchPoPortalProjectById", "Ishine", getCurrentUserId(), httpRequest);
@@ -296,7 +296,7 @@ public class PoPortalAPIService {
 	        HttpEntity<?> entity = new HttpEntity<>(headers);
 	        String url = poPortalProjectByIdURL + projectId;
 
-			apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity,  ResourceRequirementResponse.class);
+			apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity,  new ParameterizedTypeReference<List<ResourceRequirementResponse>>() {});
             finalHttpStatusCode = apiResponse.getStatusCodeValue();
 
             if (apiResponse.getStatusCode() == HttpStatus.OK) {
