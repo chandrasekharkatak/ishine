@@ -1665,24 +1665,7 @@ public class ProjectService {
 				logBuilder.append("Sync completed successfully with 0 projects.");
 			} else {
 				for (ProjectPoPortalDTO dto : list) {
-					try {
-						Project project = projectRepository.findByPoProjectId(dto.getId());
-
-						if (project == null) {
-							logBuilder.append("Project not found for PoProjectId: ").append(dto.getId()).append("\n");
-							continue;
-						}
-						
-						updateProjectBasicDetails(project, dto);
-						updateProjectDepartments(project, dto.getDepartment(), logBuilder); // Department Mapping
-						updateProjectClient(project, dto, logBuilder); // Client Mapping
-						projectRepository.save(project);
-						
-						logBuilder.append("Updated Project: ID=").append(dto.getId()).append(", PoNo=").append(dto.getPoNo()).append("\n");
-					} catch (Exception ex) {
-						ex.printStackTrace();
-						logBuilder.append("Error updating project ID: ").append(dto.getId()).append(" - ").append(ex.getMessage()).append("\n");
-					}
+					updateProject(dto,logBuilder);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Successfully synced project details from PoPortal.");
@@ -1691,12 +1674,34 @@ public class ProjectService {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Failed to sync project details from PoPortal.");
+			apiLogInfo.setApiResponse("Failed to sync project details from PoPortal.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
+	private void updateProject(ProjectPoPortalDTO dto, StringBuilder logBuilder) {
+		try {
+			Project project = projectRepository.findByPoProjectId(dto.getId());
+			if (project == null) {
+				logBuilder.append("Project not found for PoProjectId: ").append(dto.getId()).append("\n");
+				return;
+			}
+			updateProjectBasicDetails(project, dto);
+			updateProjectDepartments(project, dto.getDepartment(), logBuilder); // Department Mapping
+			updateProjectClient(project, dto, logBuilder); // Client Mapping
+			projectRepository.save(project);
+			logBuilder.append("Updated Project: ID=").append(dto.getId()).append(", PoNo=").append(dto.getPoNo()).append("\n");
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			logBuilder.append("Error updating project ID: ").append(dto.getId()).append(" - ").append(ex.getMessage()).append("\n");
+		}
+	}
+
 	private void updateProjectBasicDetails(Project project, ProjectPoPortalDTO dto) {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		project.setProjectName(dto.getName());
@@ -2628,22 +2633,21 @@ public class ProjectService {
 			apiLogInfo.setApiUrl("/api/getAllProjectFCLineItemListByProjectId");
 			apiLogInfo.setLogLevel("INFO");
 			try {
-				if (projectDto == null || projectDto.getProjectId() == null) {
+				if (projectDto == null || projectDto.getPoProjectId() == null) {
 					serviceResponse.setServiceResponse("Project Id cannot be null!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					apiLogInfo.setApiResponse("Project Id cannot be null!");
 					return serviceResponse;
 				} else {
-					Project project = projectRepository.findByProjectId(projectDto.getProjectId());
-					if (project == null) {
+					Project project = projectRepository.findByPoProjectId(projectDto.getPoProjectId());					if (project == null) {
 						apiLogInfo.setApiResponse("Project not found!");
 						serviceResponse.setServiceResponse("Project not found!");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						return serviceResponse;
 					} else {
-						ServiceResponse serviceResponseTemp = poPortalAPIService.callGetFCLineItemDetails(projectDto.getProjectId());    
+						ServiceResponse serviceResponseTemp = poPortalAPIService.callGetFCLineItemDetails(projectDto.getPoProjectId());    
 						if(!serviceResponseTemp.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
 							apiLogInfo.setApiResponse(serviceResponseTemp.getServiceResponse().toString());
 							serviceResponse.setServiceResponse(serviceResponseTemp.getServiceResponse());
@@ -3053,10 +3057,9 @@ public class ProjectService {
 			List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = new ArrayList<>();
 			if (fCLineItemDTO != null && !fCLineItemDTO.isEmpty()) {
 				for (FCLineItemDTO fcLineItemDTO : fCLineItemDTO) {
-					if (fcLineItemDTO.getFcProjectMilestoneDTOList() != null
-							&& !fcLineItemDTO.getFcProjectMilestoneDTOList().isEmpty()) {
+					if (fcLineItemDTO.getMilestones() != null) {
 						for (FCProjectMilestoneDTO fcProjectMilestoneDTOTemp : fcLineItemDTO
-								.getFcProjectMilestoneDTOList()) {
+								.getMilestones()) {
 							FCProjectMilestoneDTO fcProjectMilestoneDTO = new FCProjectMilestoneDTO();
 							fcProjectMilestoneDTO.setId(fcProjectMilestoneDTOTemp.getId());
 							fcProjectMilestoneDTO.setPoId(fcProjectMilestoneDTOTemp.getPoId());

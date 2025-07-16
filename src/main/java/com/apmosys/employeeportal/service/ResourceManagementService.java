@@ -5970,8 +5970,8 @@ public class ResourceManagementService {
 			if (projectApiResponse.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
 		         return projectApiResponse;
 			}
-			List<ResourceRequirementResponse> project =  (List<ResourceRequirementResponse>) projectApiResponse.getServiceResponse();
-
+			List<ResourceRequirementResponse> project = (List<ResourceRequirementResponse>) projectApiResponse.getServiceResponse();
+			System.out.println("======================"+project);
 
 			if (project == null) {
 
@@ -7337,6 +7337,7 @@ public class ResourceManagementService {
 			}
 			if(!finalDataList.isEmpty() && finalDataList != null) {List<Long> projectIds = finalDataList.stream()
 				    .peek(data -> data.setActive(null))
+				    
 				    .map(ProjectFetchDTO::getProjectId)
 				    .filter(Objects::nonNull)
 				    .map(Integer::longValue)
@@ -9437,7 +9438,7 @@ public class ResourceManagementService {
 		ApiLog initialLog = null;
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllEmployeeInfo", "PoPortal", null ,httpRequest);
+		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "poCrudOperationsInIshine", "PoPortal", null ,httpRequest);
 
 		if (poData == null) {
 			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();

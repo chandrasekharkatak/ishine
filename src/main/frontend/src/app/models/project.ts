@@ -37,6 +37,7 @@ export class Project{
 	clientState:any;
 	department:any;
 	projectManager:any;
+	poProjectId:any;
 
 	//Team
 	teamName:any;

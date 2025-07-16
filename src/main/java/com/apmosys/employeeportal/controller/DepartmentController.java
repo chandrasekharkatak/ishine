@@ -70,7 +70,6 @@ public class DepartmentController {
 	
 	@PostMapping(value = "/changeDepartmentJobRoleMapping")
 	public ServiceResponse changeDepartmentJobRoleMapping(HttpServletRequest httpRequest, @RequestBody DepartmentDTO departmentDTO) {
-		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return departmentService.changeDepartmentJobRoleMapping(departmentDTO);
 	}
 
