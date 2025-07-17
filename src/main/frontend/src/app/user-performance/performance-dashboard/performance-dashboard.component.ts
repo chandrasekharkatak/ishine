@@ -32,6 +32,17 @@ import { HttpEvent, HttpResponse } from '@angular/common/http';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectInsightImportExportService } from 'src/app/services/project-insight-import-export.service';
 
+interface FormNode {
+  id: string;
+  formName: string;
+  fields: any[];
+  formData: any;
+  layoutConfig?: any[];
+  children: FormNode[];
+  questionList?: ProjectQuestion[];
+  fieldDependencies?: { [key: string]: string };
+  dependentFieldsMap?: { [key: string]: string[] };
+}
 interface Goal {
   goalStatus: string;
   goalProgress: any;
@@ -180,6 +191,10 @@ export class PerformanceDashboardComponent implements OnInit {
   isLoading = false;
   error: string | null = null;
   chart:any = [] ;
+
+  // New Response objects
+  rootNode: FormNode = null;
+  currentNodePath: FormNode[] = [];
 
   showContextMenu = false;
   contextMenuX = 0;
@@ -1435,6 +1450,74 @@ export class PerformanceDashboardComponent implements OnInit {
     this.modalRef = this.modalService.show(contributionModal, { class: 'modal-xl' });
   }
 
+  openAnswerEditModalProjectInsightByProjectId(projectObj: any, alertTemplate: TemplateRef<any>, insightResponseTemplate: TemplateRef<any>, isPreview: any){
+    // let resp = this.filterAssignedTree(projectObj, this.currentUser.empId);
+
+    // console.log(resp, " : resprespresp");
+    
+
+    this.rootNode = this.buildFormNodeTree(projectObj.structure);
+    this.mergeFormDataIntoStructure(this.rootNode, projectObj.data);
+    this.currentNodePath = [this.rootNode];
+    this.startProjectForm();
+  }
+
+  startProjectForm() {
+    this.currentNodePath = [this.rootNode];
+  }
+
+  mergeFormDataIntoStructure(structure: any, data: any) {
+    if (structure.fields && Array.isArray(structure.fields) && data.fields) {
+      structure.fields.forEach(field => {
+        field.value = data.fields[field.name];
+      });
+      structure.formData = data.fields;
+    }
+    if (data.questions) {
+      structure.questionList = data.questions;
+    }
+    if (structure.children && data.child) {
+      for (let i = 0; i < structure.children.length; i++) {
+        this.mergeFormDataIntoStructure(structure.children[i], data.child[i]);
+      }
+    }
+  }
+
+  buildFormNodeTree(formDef: any): FormNode {
+    const node: FormNode = {
+      id: formDef.id,
+      formName: formDef.formName,
+      fields: formDef.fields || [],
+      formData: {},
+      layoutConfig: this.getLayoutConfig(formDef.fields || []),
+      children: []
+    };
+    node.children = (formDef.children || []).map(child => this.buildFormNodeTree(child));
+    return node;
+  }
+
+  getLayoutConfig(fields: any[]): any[][] {
+    const rows = new Map<number, any[]>();
+    let currentRow = 0;
+    let currentRowWidth = 0;
+
+    (fields || []).forEach(field => {
+      const fieldWidth = Number(field.width) || 100;
+      if (currentRowWidth + fieldWidth > 100) {
+        currentRow++;
+        currentRowWidth = fieldWidth;
+      } else {
+        currentRowWidth += fieldWidth;
+      }
+      if (!rows.has(currentRow)) {
+        rows.set(currentRow, []);
+      }
+      rows.get(currentRow)?.push(field);
+    });
+
+    return Array.from(rows.values());
+  }
+
   getAllProjectInsightResponsesByProjectId(projectObj: any, alertTemplate: TemplateRef<any>, insightResponseTemplate: TemplateRef<any>, isPreview: any) {
     this.projectInsightExcelObj = null;
     this.isExcelUploaded = false;
@@ -1442,6 +1525,8 @@ export class PerformanceDashboardComponent implements OnInit {
     this.subActionType = 'Submit/View Response';
     this.responseByEmpId = this.currentUser.empId;
     this.openProjectInsightResponeMod(insightResponseTemplate);
+    // let resp = this.findAssignments(projectObj, this.currentUser.empId);
+    // console.log(resp, " : resp");
   }
 
   closeProjectInsightResponseModal() {

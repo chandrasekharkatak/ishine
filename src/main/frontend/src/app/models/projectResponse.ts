@@ -22,4 +22,5 @@ export class ProjectResponse {
     approvedForKnowledgeHub: any;
     tags: any[] = [];
     newTag: any;
+    assignedOn: any;
 }

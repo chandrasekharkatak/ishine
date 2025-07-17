@@ -347,8 +347,8 @@
                     <td>{{project.createdByName}}</td>
                     <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
                     <td>
-                      <button class="fa-solid fas fa-tasks btn btn-sm btn-outline-primary" type="submit" title="Add / View Response"
-                        (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)">
+                      <button class="fas fa-edit btn btn-sm btn-outline-primary" type="submit" title="Add / View Response"
+                        (click)="openAnswerEditModalProjectInsightByProjectId(project,alert_message,insight_response_template,false)">
                       </button>&nbsp;
                       <button class="fa-solid fa-file-excel btn btn-sm btn-outline-primary" type="submit" title="Download Questions Excel"
                         (click)="getAllProjectInsightQuestionsByProjectIdAndEmpId(project)">

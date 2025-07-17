@@ -156,6 +156,7 @@ import { ProjectInsightsTabComponent } from './project-insights/project-insights
 import { ProjectInsightProjconfigComponent } from './user-team/project-insight-projconfig/project-insight-projconfig.component';
 import { FormBuilderComponent } from './user-team/form-builder/form-builder.component';
 import { FormRendererComponent } from './helpers/form-renderer/form-renderer.component';
+import { QuestionRendererComponent } from './helpers/question-renderer/question-renderer.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -291,7 +292,8 @@ registerLocaleData(localeGb);
      ProjectInsightsTabComponent,
      ProjectInsightProjconfigComponent,
      FormBuilderComponent,
-     FormRendererComponent
+     FormRendererComponent,
+     QuestionRendererComponent
 
     //TestComponent
   ],

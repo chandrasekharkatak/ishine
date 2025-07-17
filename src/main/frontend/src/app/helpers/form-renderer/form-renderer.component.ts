@@ -13,6 +13,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   @Input() formData: any = {};
   @Output() formValueChange = new EventEmitter<any>();
   @Output() formSubmit = new EventEmitter<any>();
+  @Output() fieldsUpdated = new EventEmitter<{fields: any[], layoutConfig: any[][]}>();
 
   isLoading = true;
 
@@ -292,11 +293,16 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   private generateUniqueId(): string {
     return Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-  }async onDomainSelectChange(selectedDomainIds: any[], field: any) {
+  }
+
+  async onDomainSelectChange(selectedDomainIds: any[], field: any) {
+    // Remove all dynamic fields from all rows
     this.fields = this.fields.filter(f => !f.dynamicDomainChild);
-    this.layoutConfig[0] = this.layoutConfig[0].filter(f => !f.dynamicDomainChild);
-  
-    const type = this.getTypeForField(field); // Should be 'DOMAIN'
+    this.layoutConfig = this.layoutConfig.map(row =>
+      row.filter(f => !f.dynamicDomainChild)
+    );
+
+    const type = this.getTypeForField(field);
     for (const domainId of selectedDomainIds) {
       const children: any = await this.apiSourceService.getAllNextFieldAndOption(domainId, type).toPromise();
       if (children && children.length > 0) {
@@ -309,7 +315,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
           hierarchyType: children[0].hierarchyType,
           options: children.map(child => ({
             label: child.name,
-            value: child.id,
+            value: Number(child.id), // Convert to number
             isChildAvailable: child.isChildAvailable,
             hierarchyType: child.hierarchyType
           })),
@@ -324,48 +330,66 @@ export class FormRendererComponent implements OnInit, OnChanges {
           dependentValueKey: "id",
           dependentParamName: "id"
         };
-  
+
         this.fields.push(newField);
-        this.layoutConfig[0].push(newField);
+
+        // Find the row where the domain field is located and add the new field there
+        const domainFieldRowIndex = this.layoutConfig.findIndex(row =>
+          row.some(f => f.name === field.name)
+        );
+
+        if (domainFieldRowIndex >= 0) {
+          this.layoutConfig[domainFieldRowIndex].push(newField);
+        } else {
+          // If domain field not found, add to first row
+          if (!this.layoutConfig[0]) {
+            this.layoutConfig[0] = [];
+          }
+          this.layoutConfig[0].push(newField);
+        }
       }
     }
     this.fields = [...this.fields];
     this.layoutConfig = [...this.layoutConfig];
     this.buildForm();
+
+    // Emit updated fields to parent
+    this.fieldsUpdated.emit({
+      fields: [...this.fields],
+      layoutConfig: [...this.layoutConfig]
+    });
   }
 
   private getTypeForField(field: any): string {
     return (field.hierarchyType || field.label || '').toUpperCase();
   }
-  
-  
-  
+
+
+
   async onDomainChildSelectChange(selectedChildIds: any[], field: any) {
     const currentValues = this.dynamicForm?.value || {};
-  
+
     // 1. Remove dynamic children that are no longer selected
     const selectedNames = (selectedChildIds || []).map(childId => {
-      // Use the same naming convention as when you create the field
       const selectedOption = field.options.find((opt: any) => opt.value === childId);
       const type = (selectedOption?.hierarchyType || '').toUpperCase();
-      return `${type}${childId}`;
+      return `${type.toLowerCase()}_${childId}`;
     });
-  
+
     this.fields = this.fields.filter(
       f => !f.dynamicDomainChild || f.parentDomainId === field.parentDomainId || selectedNames.includes(f.name)
     );
-    this.layoutConfig[0] = this.layoutConfig[0].filter(
-      f => !f.dynamicDomainChild || f.parentDomainId === field.parentDomainId || selectedNames.includes(f.name)
+    this.layoutConfig = this.layoutConfig.map(row =>
+      row.filter(f => !f.dynamicDomainChild || f.parentDomainId === field.parentDomainId || selectedNames.includes(f.name))
     );
-  
+
     // 2. Add new fields for newly selected children
     for (const childId of selectedChildIds) {
       if (!childId) continue;
       const selectedOption = field.options.find((opt: any) => opt.value === childId);
       if (selectedOption && selectedOption.isChildAvailable) {
         const type = (selectedOption.hierarchyType || '').toUpperCase();
-        const fieldName = `${type}${childId}`;
-        // Only add if not already present
+        const fieldName = `${type.toLowerCase()}_${childId}`;
         if (!this.fields.some(f => f.name === fieldName)) {
           const children: any = await this.apiSourceService.getAllNextFieldAndOption(childId, type).toPromise();
           if (children && children.length > 0) {
@@ -379,7 +403,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
               hierarchyType: newLabel,
               options: children.map(child => ({
                 label: child.name,
-                value: child.id,
+                value: Number(child.id), // Convert to number
                 isChildAvailable: child.isChildAvailable,
                 hierarchyType: child.hierarchyType
               })),
@@ -394,21 +418,41 @@ export class FormRendererComponent implements OnInit, OnChanges {
               dependentValueKey: "id",
               dependentParamName: "id"
             };
-  
+
             this.fields.push(newField);
-            this.layoutConfig[0].push(newField);
+
+            // Find the row where the parent field is located and add the new field there
+            const parentFieldRowIndex = this.layoutConfig.findIndex(row =>
+              row.some(f => f.name === field.name)
+            );
+
+            if (parentFieldRowIndex >= 0) {
+              this.layoutConfig[parentFieldRowIndex].push(newField);
+            } else {
+              // If parent field not found, add to first row
+              if (!this.layoutConfig[0]) {
+                this.layoutConfig[0] = [];
+              }
+              this.layoutConfig[0].push(newField);
+            }
           }
         }
       }
     }
-  
+
     this.fields = [...this.fields];
     this.layoutConfig = [...this.layoutConfig];
     this.buildForm();
-  
+
     if (this.dynamicForm && currentValues) {
       this.dynamicForm.patchValue(currentValues, { emitEvent: false });
     }
+
+    // Emit updated fields to parent
+    this.fieldsUpdated.emit({
+      fields: [...this.fields],
+      layoutConfig: [...this.layoutConfig]
+    });
   }
 
   getPascalCaseLabel(label: string): string {

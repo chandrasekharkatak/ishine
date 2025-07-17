@@ -1347,6 +1347,16 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     };
   }
 
+  onFieldsUpdated(event: {fields: any[], layoutConfig: any[][]}) {
+    this.currentNode.fields = event.fields;
+    this.currentNode.layoutConfig = event.layoutConfig;
+    this.currentNode.fields = [...this.currentNode.fields];
+    this.currentNode.layoutConfig = [...this.currentNode.layoutConfig];
+    
+    console.log('Fields updated in parent:', this.currentNode.fields);
+    console.log('Layout config updated in parent:', this.currentNode.layoutConfig);
+  }
+
   onSaveAndAssign() {
     this.cancelRequest();
     const structure = this.rootNode;
@@ -1830,6 +1840,10 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     
     this.currentNode.fields.splice(this.editingFieldIndex, 1);
       this.currentNode.layoutConfig = this.getLayoutConfig(this.currentNode.fields);
+
+      this.currentNode.fields = [...this.currentNode.fields];
+      this.currentNode.layoutConfig = [...this.currentNode.layoutConfig];
+
       this.editingField = null;
       this.editingFieldIndex = -1;
       this.originalFieldData = null;
@@ -1838,7 +1852,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       
       this.closeAddFieldModal();
       
-      console.log('Field deleted successfully');
+      console.log('Field deleted successfully : ', this.currentNode.fields);
+      console.log('Field deleted Layout config : ', this.currentNode.layoutConfig);
   }
   
   startFieldConfig(type: any) {
