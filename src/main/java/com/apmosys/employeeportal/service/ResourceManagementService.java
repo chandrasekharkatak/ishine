@@ -9554,7 +9554,7 @@ public class ResourceManagementService {
 		if(poData.getIsRenewable() == null)throw new DataNotFoundException("Po Project Renewable Type Is Not Provided");
 		project.setIsRenewable(poData.getIsRenewable());
 		project.setIsDraftProject(null);
-		project.setCreatedBy(6l);
+		project.setCreatedBy(6l); 
 		if (poData.getCreatedOn() != null) {
 			try {
 				long epochMillis = Long.parseLong(poData.getCreatedOn());
@@ -9733,7 +9733,11 @@ public class ResourceManagementService {
 			existingProject.setStatus(poPortalProjects.getStatus());
 			isModified = true;
 		}
-
+		
+		if (!Objects.equals(existingProject.getClientName(),poPortalProjects.getClientName())) {
+			existingProject.setClientName(poPortalProjects.getClientName());
+					isModified = true;
+		}
 		String newActive = (poPortalProjects.getStatus() != null && poPortalProjects.getStatus().equals("Completed") ? null : "true");
 		if (!Objects.equals(existingProject.getActive(), newActive)) {
 			existingProject.setActive(newActive);
