@@ -131,14 +131,7 @@ public class DepartmentService {
 			newDepartment.setHodId(departmentDTO.getHodId());
 			newDepartment.setCreatedBy(departmentDTO.getCreatedBy());
 			newDepartment.setDeptAbbreviation(departmentDTO.getDeptAbbreviation());
-			newDepartment.setIsBillable(false);
-			newDepartment.setIsTnm(false);
-            if("Yes".equals(departmentDTO.getIsBillable())) {
-            	newDepartment.setIsBillable(true); 	
-            }
-            if("Yes".equals(departmentDTO.getIsTnm())) {
-            	newDepartment.setIsTnm(true); 	
-            }
+
 			Department newDepartmentCreated = departmentRepository.save(newDepartment);
 
 			if (newDepartmentCreated != null) {
@@ -332,14 +325,7 @@ public class DepartmentService {
 				departmentToBeUpdated.setHodId(departmentDTO.getHodId());
 				departmentToBeUpdated.setDeptAbbreviation(departmentDTO.getDeptAbbreviation());
 				departmentToBeUpdated.setUpdatedBy(departmentDTO.getUpdatedBy());
-				departmentToBeUpdated.setIsBillable(false);
-				departmentToBeUpdated.setIsTnm(false);
-	            if("Yes".equals(departmentDTO.getIsBillable())) {
-	            	departmentToBeUpdated.setIsBillable(true); 	
-	            }
-	            if("Yes".equals(departmentDTO.getIsTnm())) {
-	            	departmentToBeUpdated.setIsTnm(true); 	
-	            }
+
 				Department dbResponse = departmentRepository.save(departmentToBeUpdated);
 
 				if (dbResponse != null) {
@@ -801,8 +787,6 @@ public class DepartmentService {
 					dto.setDeptName(object[1] != null ? object[1].toString() : null);
 					dto.setHodId(object[2] != null ? object[2].toString() : null);
 					dto.setDeptAbbreviation(object[3] != null ? object[3].toString() : null);
-					dto.setIsBillable(object[4] != null ? (Boolean) object[4] : null);
-					dto.setIsTnm(object[5] != null ? (Boolean) object[5] : null);
 					dtoList.add(dto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

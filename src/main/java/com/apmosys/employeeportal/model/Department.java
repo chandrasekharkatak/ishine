@@ -49,8 +49,7 @@ public class Department{
 	@Column(length = 8) // Specify length for the abbreviation
     private String deptAbbreviation; // New field
 	
-    private Boolean isBillable;
-    private Boolean isTnm;
+
 	public Long getDeptId() {
 		return deptId;
 	}
@@ -114,23 +113,9 @@ public class Department{
 	        this.deptAbbreviation = deptAbbreviation;
 	    }
 
-	    public Boolean getIsBillable() {
-	        return isBillable;
-	    }
 
-	    public void setIsBillable(Boolean isBillable) {
-	        this.isBillable = isBillable;
-	    }
 
-	    public Boolean getIsTnm() {
-	        return isTnm;
-	    }
-
-	    public void setIsTnm(Boolean isTnm) {
-	        this.isTnm = isTnm;
-	    }
-
-	 
+	
 	
 
 }

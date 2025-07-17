@@ -21,6 +21,4 @@ public class PoPortalDTO {
 	private String hodId;
 	private String roleName;
 	private String deptAbbreviation;
-	private Boolean isBillable;
-	private Boolean isTnm;
 }

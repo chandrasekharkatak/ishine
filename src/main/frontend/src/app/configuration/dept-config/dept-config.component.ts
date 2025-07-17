@@ -1,21 +1,24 @@
-import { LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef } from '@angular/core';
-import { Sort } from '@angular/material/sort';
-import * as moment from 'moment';
+import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
-import { AppComponent } from 'src/app/app.component';
 import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
+import { Holiday } from 'src/app/models/holiday';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { HolidayService } from 'src/app/services/holiday.service';
-import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { Sort } from '@angular/material/sort';
+import { LocationStrategy } from '@angular/common';
+import { AppComponent } from 'src/app/app.component';
+import * as moment from 'moment';
+import { ColFilterPipe } from 'src/app/col-filter.pipe';
+import { UtilityService } from 'src/app/services/utility.service';
 
 
 @Component({
@@ -200,16 +203,6 @@ export class DeptConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
   }
-   if (!this.deptObj.isBillable) {
-      this.alertMessage = "Please select IsBillable !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-     if (!this.deptObj.isTnm) {
-      this.alertMessage = "Please select IsTNM !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
     return true;
   }
 

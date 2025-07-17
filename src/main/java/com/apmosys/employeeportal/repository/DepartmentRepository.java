@@ -18,9 +18,7 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	
 	@Query(value="SELECT new com.apmosys.employeeportal.dto.DepartmentDTO(dept.deptId,dept.createdBy,dept.createdOn , \n"+
 			"dept.name,emp1.name,emp2.name,dept.hodId, dept.updatedOn, \n"+
-			"u.name, dept.deptAbbreviation , dept.updatedBy, \n"+
-			"CASE WHEN dept.isBillable = true THEN 'Yes' ELSE 'No' END, " +
-		    "CASE WHEN dept.isTnm = true THEN 'Yes' ELSE 'No' END) " +
+			"u.name, dept.deptAbbreviation , dept.updatedBy) \n"+
 			"FROM Department dept \n"+
 			"LEFT JOIN Employee u on dept.updatedBy = u.empId \n"+
 			"INNER JOIN Employee emp1 ON dept.createdBy = emp1.empId \n"+
