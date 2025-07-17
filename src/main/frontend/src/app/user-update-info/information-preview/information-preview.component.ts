@@ -50,12 +50,8 @@ export class InformationPreviewComponent implements OnInit {
       this.alertMessage = "Please enter About me !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } else if (!this.validationService.validateViewsOnOrganisation(employeeObj.aboutMe)){
-      this.alertMessage = "Please enter valid in  About me !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
     }
-
+    
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.gender)){
       this.alertMessage = "Please select gender !!"
       this.openAlertMod(template, this.alertMessage);

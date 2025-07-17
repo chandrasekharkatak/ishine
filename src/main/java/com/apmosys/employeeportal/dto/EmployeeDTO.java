@@ -333,7 +333,8 @@ this.name = name;
     private Long timesheetId;
     private Long totalTimesheetsFilled;
     private String deptName;
-    
+    private List<Long> deptId;
+    private Integer days;
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
     public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
             Long mobileNo, Long managerId, String managerName, String jobRoleName,
