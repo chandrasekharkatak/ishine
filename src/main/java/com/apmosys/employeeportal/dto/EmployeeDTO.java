@@ -304,6 +304,7 @@ this.name = name;
 	
 	//by priyadarshini
 	private String isApprenticeship;
+	private List<Long> deptId;
 	
     private String isRetain;
 	private String dateOfRetain;

@@ -7525,7 +7525,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		    	
 		    	if(employeeDTO.getTabName().equals("Employee")) {
 		    	
-		        List<Object[]> optionalEmployeeList = employeeRepository.fetchInactivePOCounts(employeeDTO.getPoProjectType());
+		        List<Object[]> optionalEmployeeList = employeeRepository.fetchInactivePOCounts(employeeDTO.getPoProjectType(),employeeDTO.getDeptId());
 				List<InActivePoDTO> countOfInActive = new ArrayList<InActivePoDTO>();
 		        if (!optionalEmployeeList.isEmpty()) {
 		        	for(Object[] object : optionalEmployeeList) {
@@ -7551,8 +7551,9 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		            response.setServiceResponse("countOfInActive  is empty.");
 		            apiLogInfo.setApiResponse("countOfInActive is empty.");
 		        }
-		    	}else {
-		    		  List<Object[]> optionalEmployeeListForProjects = employeeRepository.fetchInactivePOCountsForProject(employeeDTO.getPoProjectType());
+		    	}
+		    	else {
+		    		  List<Object[]> optionalEmployeeListForProjects = employeeRepository.fetchInactivePOCountsForProject(employeeDTO.getPoProjectType(),employeeDTO.getDeptId());
 						List<InActivePoDTO> countOfInActive = new ArrayList<InActivePoDTO>();
 				        if (!optionalEmployeeListForProjects.isEmpty()) {
 				        	for(Object[] object : optionalEmployeeListForProjects) {
