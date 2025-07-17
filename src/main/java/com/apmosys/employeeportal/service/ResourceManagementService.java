@@ -730,7 +730,7 @@ public class ResourceManagementService {
 
 			ServiceResponse response1 = this.updateExistingProject(projectObj, resourceManagementDTO);
 			System.err.print("jbsjhg" + response1.getServiceStatus());
-			if (response1.getServiceStatus() != "Success") {
+			if (!"Success".equals(response1.getServiceStatus())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse(response1.getServiceResponse());
 				apiLogInfo.setApiResponse("Project not updated successfully");
@@ -851,7 +851,7 @@ public class ResourceManagementService {
 							ServiceResponse response2 = this.processNewTeamMembers(newTeamMember, teamDbResponse,
 									resourceManagementDTO, rmgMail, adminMail);
 
-							if (response2.getServiceStatus() != "Success") {
+							if (!response2.getServiceStatus().equals("Success")) {
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 								response.setServiceResponse(response2.getServiceResponse());
 								apiLogInfo.setApiResponse("Team not updated successfully");
@@ -1309,7 +1309,7 @@ public class ResourceManagementService {
 
 			ServiceResponse responseProjectManager = this.setProjectManager(dto, dbResponse);
 
-			if (responseProjectManager.getServiceStatus() != "Success") {
+			if (!responseProjectManager.getServiceStatus().equals("Success")) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(responseProjectManager.getServiceResponse());
 			} else {
@@ -1319,7 +1319,7 @@ public class ResourceManagementService {
 			
 			ServiceResponse responseProjectOverhead = this.setProjectOverheads(dto,dbResponse);
 			
-			if (responseProjectOverhead.getServiceStatus() != "Success") {
+			if (!responseProjectOverhead.getServiceStatus().equals("Success")) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(responseProjectOverhead.getServiceResponse());
 			} else {
@@ -4127,7 +4127,10 @@ public class ResourceManagementService {
 	        // Fetch projects and team-created projects
 	        ServiceResponse apiResponse = poPortalAPIService.getAllProjectsFromPoPortal();
 			List<ResourceManagementDTO> poPortalProjects;
-	        if(apiResponse.getServiceStatus()== ServiceResponse.STATUS_SUCCESS) {
+			if(apiResponse == null) {
+				throw new DataNotFoundException("Data not found");
+			}
+	        if(ServiceResponse.STATUS_SUCCESS.equals(apiResponse.getServiceStatus())) {
 	        	 poPortalProjects = (List<ResourceManagementDTO>) apiResponse.getServiceResponse();
 	        }
 	        else
@@ -5991,8 +5994,10 @@ public class ResourceManagementService {
 				if (ServiceResponse.STATUS_FAIL.equals(countApiResponse.getServiceStatus())) {
 		            throw new RuntimeException("Failed to fetch count from PO Portal." );      
 		        }
+				
 				ResourceRequirementDTO requirementCountDto = new ResourceRequirementDTO();
-				requirementCountDto.setCount(Integer.parseInt(countApiResponse.getServiceResponse().toString()));
+				if(countApiResponse.getServiceResponse() != null) {
+				requirementCountDto.setCount(Integer.parseInt(countApiResponse.getServiceResponse().toString()));}
 				if (requirementCountDto == null) {
 		             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		             response.setServiceResponse("Received success status from PO Portal, but requirement data was null.");
@@ -6159,13 +6164,18 @@ public class ResourceManagementService {
 		    LogDTO apiLogInfo = new LogDTO();
 		    apiLogInfo.setLogLevel("INFO");
 		ServiceResponse teamCreatedProjectsResponse = alreadyCreatedTeam();
-        if (!ServiceResponse.STATUS_SUCCESS.equals(teamCreatedProjectsResponse.getServiceStatus())) {
+		
+		if(teamCreatedProjectsResponse == null) {
+			throw new DataNotFoundException("Data not found");
+		}
+		
+		if (!ServiceResponse.STATUS_SUCCESS.equals(teamCreatedProjectsResponse.getServiceStatus())) {
             return failResponse(serviceResponse, apiLogInfo, "Failed to fetch already created team projects.");
         }
 		List<ResourceManagementDTO> teamCreatedProjects = castList(teamCreatedProjectsResponse.getServiceResponse());
 		ServiceResponse apiResponse = poPortalAPIService.getAllProjectsFromPoPortal();
 		List<ResourceManagementDTO> poPortalProjects;
-        if(apiResponse.getServiceStatus()== ServiceResponse.STATUS_SUCCESS) {
+        if(apiResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS) ) {
         	 poPortalProjects = (List<ResourceManagementDTO>) apiResponse.getServiceResponse();
         }
         else
@@ -6364,7 +6374,11 @@ public class ResourceManagementService {
 	    try {
 	    	ServiceResponse apiResponse = poPortalAPIService.getAllProjectsFromPoPortal();
 			List<ResourceManagementDTO> poPortalProjects;
-	        if(apiResponse.getServiceStatus()== ServiceResponse.STATUS_SUCCESS) {
+			
+			if(apiResponse == null) {
+				throw new DataNotFoundException("Data not found");
+			}
+	        if(apiResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
 	        	 poPortalProjects = (List<ResourceManagementDTO>) apiResponse.getServiceResponse();
 	        }
 	        else
@@ -9032,6 +9046,7 @@ public class ResourceManagementService {
 	    response.setServiceResponse("Line items and milestones synced.");
 	    return response;
 	}
+	
 	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO dto) {
 	    ServiceResponse response = new ServiceResponse();
@@ -9045,7 +9060,11 @@ public class ResourceManagementService {
 	                  .append(", Department: ").append(dto.getDeptName())
 	                  .append(", State: ").append(dto.getClientState());
 
-	        Project existingProject = fetchExistingProject(dto);
+	        
+	        
+	        Project existingProject = new Project();
+	        if(dto.getProjectId() != null && dto.getProjectType() != null && dto.getId() != null) {
+	        existingProject = fetchExistingProject(dto);}
 
 	        if (existingProject != null) {
 	            return handleExistingProject(existingProject, dto, log);
@@ -9255,6 +9274,7 @@ public class ResourceManagementService {
 	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	                response.setServiceResponse("Team created, but default activities failed");
 	                log.setApiResponse("Team created, but default activities failed");
+	                throw new RuntimeException("Team created, but default activities failed");
 	            } else {
 	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	                response.setServiceResponse("Team created successfully");
@@ -9264,6 +9284,7 @@ public class ResourceManagementService {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("Unable to map any team member");
 	            log.setApiResponse("Unable to map any team member");
+	            throw new RuntimeException("Unable to map any team member");
 	        }
 	    }
 	}

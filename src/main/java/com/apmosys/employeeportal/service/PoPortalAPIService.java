@@ -233,11 +233,11 @@ public class PoPortalAPIService {
 			HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
 			RestTemplate restTemplate = new RestTemplate();
-			ResponseEntity<ServiceResponse> apiResponse = restTemplate.exchange(
+			ResponseEntity<String> apiResponse = restTemplate.exchange(
 			    sendFileUrl, 
 			    HttpMethod.PUT, 
 			    requestEntity, 
-			    ServiceResponse.class
+			    String.class
 			);
 			if (apiResponse.getStatusCode() == HttpStatus.OK && apiResponse.getBody() != null) {
 				serviceResponse.setServiceResponse(apiResponse.getBody());
