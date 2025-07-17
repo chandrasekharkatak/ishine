@@ -41,7 +41,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -9446,6 +9448,10 @@ public class ResourceManagementService {
 		}
 
 		try {
+			if(poData.getId() == null) {
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+			throw new BadRequestException("No Po Project ID received from PoPortal");
+			}
 			String requestType = poData.getRequestType();
 			if ("create".equalsIgnoreCase(requestType)) {
 				return handleCreate(poData);
@@ -9461,7 +9467,8 @@ public class ResourceManagementService {
 			e.printStackTrace();
 			exceptionDetailsForLog = e.toString();
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			serviceResponse.setServiceResponse("Something went wrong.");
+			serviceResponse.setServiceResponse(e.getMessage());
+//			serviceResponse.setServiceMessage(e.getMessage());
 			return serviceResponse;
 		} finally {
 			if (initialLog != null) {
@@ -9505,18 +9512,25 @@ public class ResourceManagementService {
 
 	private Project createProjectEntity(ResourceManagementDTO poData) {
 		Project project = new Project();
+		if(poData.getId() == null)throw new DataNotFoundException("Po Project Id Is Not Provided");
 		project.setPoProjectId(poData.getId());
+		if(poData.getPoNo() == null)throw new DataNotFoundException("Po No. Is Not Provided");
 		project.setPoNo(poData.getPoNo());
 		project.setApmosysRM(poData.getApmosysRM());
 		project.setApmosysRmEmail(poData.getApmosysRmEmail());
+		if(poData.getStatus() == null)throw new DataNotFoundException("Status Is Not Provided");
 		project.setActive( "Completed".equals(poData.getStatus()) ? null : "true");
 		project.setClientRM(poData.getClientRM());
+		if(poData.getEndDate() == null)throw new DataNotFoundException("End Date Is Not Provided");
 		project.setPoEndDate(convertIsoToDate(poData.getEndDate()));
+		if(poData.getStartDate() == null)throw new DataNotFoundException("Start Date Is Not Provided");
 		project.setPoStartDate(convertIsoToDate(poData.getStartDate()));
+		if(poData.getProjectType() == null)throw new DataNotFoundException("Po Project Type Is Not Provided");
 		project.setPoProjectType(poData.getProjectType());
 		project.setProjectName(poData.getName());
 		project.setState(poData.getClientState());
 		project.setStatus(poData.getStatus());
+		if(poData.getIsRenewable() == null)throw new DataNotFoundException("Po Project Renewable Type Is Not Provided");
 		project.setIsRenewable(poData.getIsRenewable());
 		project.setIsDraftProject(null);
 		project.setCreatedBy(6l);
@@ -9568,8 +9582,8 @@ public class ResourceManagementService {
 		ServiceResponse response = new ServiceResponse();
 		List<ResourceRequirementDTO> requirementDTOs = poData.getResourceRequirements();
 		if (requirementDTOs != null && !requirementDTOs.isEmpty()) {
-
 			for (ResourceRequirementDTO dto : requirementDTOs) {
+				if(resourceRequirementRepository.existsByResourceOverviewId(Long.parseLong(dto.getResourceOverviewId().toString()))) throw new BadCredentialsException("Resource Overview Id Already Exists.");
 				ResourceRequirement req = new ResourceRequirement();
 				req.setProjectId(project.getProjectId());
 				req.setCount(dto.getCount());
@@ -9621,6 +9635,7 @@ public class ResourceManagementService {
 	public ServiceResponse handleUpdate(ResourceManagementDTO poData) {
 		ServiceResponse response = new ServiceResponse();
 		boolean isModified = false;
+		if(poData.getId() == null)throw new DataNotFoundException("Po Project ID cannot be null");
 		Project existingProject = projectRepository.findByPoProjectId(poData.getId());
 
 		if (existingProject == null) {
@@ -9678,7 +9693,7 @@ public class ResourceManagementService {
 			isModified = true;
 		}
 
-		if (!Objects.equals(existingProject.getPoProjectType(), poPortalProjects.getPoProjectType())) {
+		if (!Objects.equals(existingProject.getPoProjectType(), poPortalProjects.getProjectType())) {
 			existingProject.setPoProjectType(poPortalProjects.getPoProjectType());
 			isModified = true;
 		}
@@ -9688,7 +9703,7 @@ public class ResourceManagementService {
 			isModified = true;
 		}
 
-		if (!Objects.equals(existingProject.getState(), poPortalProjects.getState())) {
+		if (!Objects.equals(existingProject.getState(), poPortalProjects.getClientState())) {
 			existingProject.setState(poPortalProjects.getState());
 			isModified = true;
 		}

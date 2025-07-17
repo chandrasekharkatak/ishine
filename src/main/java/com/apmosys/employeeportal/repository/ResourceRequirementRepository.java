@@ -33,4 +33,6 @@ public interface ResourceRequirementRepository extends JpaRepository<ResourceReq
 	ResourceRequirement findByProjectIdAndResourceOverviewId(Integer projectId, Long resourceOverviewId);
 
 	void deleteByProjectId(Integer projectId);
+	
+	Boolean existsByResourceOverviewId(Long resourceOverviewId);
 }
