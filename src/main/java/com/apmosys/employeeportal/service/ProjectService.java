@@ -2919,6 +2919,77 @@ public class ProjectService {
     	}
 
 
+     
+     public void saveResourceRequirement(List<ProjectPoPortalDTO> list) {
+
+    	 
+    	 StringBuilder logBuilder = new StringBuilder();
+         for (ProjectPoPortalDTO dto : list) {
+             try {
+                 if (!"TNM".equalsIgnoreCase(dto.getProjectType())) {
+                     String msg = "Skipping projectId = " + dto.getId() + " as it is not TNM\n";
+                     logBuilder.append(msg);
+                     System.out.println(msg);
+                     continue;
+                 }
+
+                 Project project = projectRepository.findByPoProjectId(dto.getId());
+
+                 if (project != null) {
+                     Integer projectId = project.getProjectId();
+                     List<ResourceRequirementDTO> requirements = dto.getResourceRequirements();
+
+                     if (requirements != null && !requirements.isEmpty()) {
+                         int saveCount = 0;
+
+                         for (ResourceRequirementDTO rrDto : requirements) {
+                             if (rrDto.getResourceOverviewId() == null) continue;
+
+                             ResourceRequirement existing = resourceRequirementRepository
+                                     .findByProjectIdAndResourceOverviewId(projectId, rrDto.getResourceOverviewId());
+
+                             boolean isChanged = false;
+
+                             if (existing == null) {
+                                 isChanged = true;
+                             } else {
+                                 isChanged = !Objects.equals(existing.getRole(), rrDto.getRole()) ||
+                                         !Objects.equals(existing.getCount(), rrDto.getCount()) ||
+                                         !Objects.equals(existing.getExperience(), rrDto.getExperience()) ||
+                                         !Objects.equals(existing.getDepartment(), rrDto.getDepartment());
+                             }
+
+                             if (isChanged) {
+                                 ResourceRequirement rr = existing != null ? existing : new ResourceRequirement();
+                                 rr.setProjectId(projectId);
+                                 rr.setResourceOverviewId(rrDto.getResourceOverviewId());
+                                 rr.setRole(rrDto.getRole());
+                                 rr.setCount(rrDto.getCount());
+                                 rr.setExperience(rrDto.getExperience());
+                                 rr.setDepartment(rrDto.getDepartment());
+                                 resourceRequirementRepository.save(rr);
+                                 saveCount++;
+                             }
+                         }
+
+                         String msg = "Updated/Inserted " + saveCount + " Resource Requirements for Project ID = " + dto.getId() + "\n";
+                         logBuilder.append(msg);
+                         System.out.println(msg);
+                     }
+
+                 } else {
+                     String msg = "Project not found for PoProjectId = " + dto.getId() + "\n";
+                     logBuilder.append(msg);
+                     System.out.println(msg);
+                 }
+             } catch (Exception ex) {
+                 ex.printStackTrace();
+                 String msg = "Error updating project ID: " + dto.getId() + " - " + ex.getMessage() + "\n";
+                 logBuilder.append(msg);
+                 System.out.println(msg);
+             }
+         }
+     }
     
 	 
 	 @Transactional
@@ -2931,8 +3002,7 @@ public class ProjectService {
 
 	     StringBuilder logBuilder = new StringBuilder();
 	     logBuilder.append("API to update existing resource requirement table\n");
-	     System.out.println("API to update existing resource requirement table");
-
+	    
 	     List<ProjectPoPortalDTO> list = null ;
 
 	     try {
@@ -2948,11 +3018,9 @@ public class ProjectService {
 	    		        list = projectList;
 	    		        String msg = "Total Projects Fetched = " + list.size() + "\n";
 	    		        logBuilder.append(msg);
-	    		        System.out.println(msg);
 	    		    } else {
 	    		        String msg = "Project fetch successful, but the project list was null.\n";
 	    		        logBuilder.append(msg);
-	    		        System.out.println(msg);
 	    		    }
 	    		} else {
 	    		    String errorMsg = "Failed to fetch projects from PO Portal.";
@@ -2960,13 +3028,11 @@ public class ProjectService {
 	    		        errorMsg += " Reason: " + response.getServiceMessage();
 	    		    }
 	    		    logBuilder.append(errorMsg).append("\n");
-	    		    System.err.println(errorMsg); 
 	    		}
 	    	 
 	     } catch (RestClientException e) {
 	         String msg = "Error fetching projects from PoPortal API: " + e.getMessage();
 	         logBuilder.append(msg);
-	         System.out.println(msg);
 	         serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	         serviceResponse.setServiceResponse(msg);
 	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -2975,75 +3041,10 @@ public class ProjectService {
 	     }
 
 	     if (!list.isEmpty()) {
-	         for (ProjectPoPortalDTO dto : list) {
-	             try {
-	                 if (!"TNM".equalsIgnoreCase(dto.getProjectType())) {
-	                     String msg = "Skipping projectId = " + dto.getId() + " as it is not TNM\n";
-	                     logBuilder.append(msg);
-	                     System.out.println(msg);
-	                     continue;
-	                 }
-
-	                 Project project = projectRepository.findByPoProjectId(dto.getId());
-
-	                 if (project != null) {
-	                     Integer projectId = project.getProjectId();
-	                     List<ResourceRequirementDTO> requirements = dto.getResourceRequirements();
-
-	                     if (requirements != null && !requirements.isEmpty()) {
-	                         int saveCount = 0;
-
-	                         for (ResourceRequirementDTO rrDto : requirements) {
-	                             if (rrDto.getResourceOverviewId() == null) continue;
-
-	                             ResourceRequirement existing = resourceRequirementRepository
-	                                     .findByProjectIdAndResourceOverviewId(projectId, rrDto.getResourceOverviewId());
-
-	                             boolean isChanged = false;
-
-	                             if (existing == null) {
-	                                 isChanged = true;
-	                             } else {
-	                                 isChanged = !Objects.equals(existing.getRole(), rrDto.getRole()) ||
-	                                         !Objects.equals(existing.getCount(), rrDto.getCount()) ||
-	                                         !Objects.equals(existing.getExperience(), rrDto.getExperience()) ||
-	                                         !Objects.equals(existing.getDepartment(), rrDto.getDepartment());
-	                             }
-
-	                             if (isChanged) {
-	                                 ResourceRequirement rr = existing != null ? existing : new ResourceRequirement();
-	                                 rr.setProjectId(projectId);
-	                                 rr.setResourceOverviewId(rrDto.getResourceOverviewId());
-	                                 rr.setRole(rrDto.getRole());
-	                                 rr.setCount(rrDto.getCount());
-	                                 rr.setExperience(rrDto.getExperience());
-	                                 rr.setDepartment(rrDto.getDepartment());
-	                                 resourceRequirementRepository.save(rr);
-	                                 saveCount++;
-	                             }
-	                         }
-
-	                         String msg = "Updated/Inserted " + saveCount + " Resource Requirements for Project ID = " + dto.getId() + "\n";
-	                         logBuilder.append(msg);
-	                         System.out.println(msg);
-	                     }
-
-	                 } else {
-	                     String msg = "Project not found for PoProjectId = " + dto.getId() + "\n";
-	                     logBuilder.append(msg);
-	                     System.out.println(msg);
-	                 }
-	             } catch (Exception ex) {
-	                 ex.printStackTrace();
-	                 String msg = "Error updating project ID: " + dto.getId() + " - " + ex.getMessage() + "\n";
-	                 logBuilder.append(msg);
-	                 System.out.println(msg);
-	             }
-	         }
+	    	 saveResourceRequirement(list);
 	     } else {
 	         String msg = "No projects found from PoPortal API.\n";
 	         logBuilder.append(msg);
-	         System.out.println(msg);
 	     }
 
 	     apiLogInfo.setApiResponse(logBuilder.toString());

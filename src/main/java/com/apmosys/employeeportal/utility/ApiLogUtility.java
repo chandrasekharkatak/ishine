@@ -25,7 +25,7 @@ public class ApiLogUtility {
 		ApiLog log = new ApiLog();
 		try {
 			log.setTraceId(traceId);
-			log.setApiEndpointName(endPoint);
+			log.setApiEndpointName(request.getRequestURI());
 			log.setPortal(portal);
 			log.setInitiatedFromApi(request.getRequestURI());
 			log.setApiMethodType(request.getMethod());
