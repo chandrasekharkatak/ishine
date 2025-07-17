@@ -851,7 +851,7 @@ public class ResourceManagementService {
 							ServiceResponse response2 = this.processNewTeamMembers(newTeamMember, teamDbResponse,
 									resourceManagementDTO, rmgMail, adminMail);
 
-							if (!response2.getServiceStatus().equals("Success")) {
+							if (!(("Success").equals(response2.getServiceStatus()))) {
 								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 								response.setServiceResponse(response2.getServiceResponse());
 								apiLogInfo.setApiResponse("Team not updated successfully");
@@ -5980,9 +5980,9 @@ public class ResourceManagementService {
 
 			if (project == null) {
 
-				response.setServiceResponse("Unable to fetched project requirement details correctly!");
+				response.setServiceResponse("No Resource Requirement Found!");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				logBuilder.append("\n Unable to fetched project requirement details correctly!");
+				logBuilder.append("\n No Resource Requirement Found!");
 
 				return response;
 

@@ -330,7 +330,7 @@ public class PoPortalAPIService {
 
 			apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<List<ResourceRequirementResponse>>() {});
             finalHttpStatusCode = apiResponse.getStatusCodeValue();
-
+            
             if (apiResponse.getStatusCode() == HttpStatus.OK) {
                 serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                 serviceResponse.setServiceResponse(apiResponse.getBody());
@@ -693,9 +693,9 @@ public class PoPortalAPIService {
 	        finalHttpStatusCode = responseEntity.getStatusCodeValue();
 	        
 	        if (responseEntity.getStatusCode() == HttpStatus.OK) {
-	            JSONObject json = new JSONObject(responseEntity.getBody());
+//	            JSONObject json = new JSONObject(responseEntity.getBody());
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            serviceResponse.setServiceResponse(json.get("message"));
+	            serviceResponse.setServiceResponse(responseEntity.getBody());
 				finalHttpStatusCode = HttpStatus.OK.value();
 	        } else {
 	            // Handle other non-error success codes if necessary
