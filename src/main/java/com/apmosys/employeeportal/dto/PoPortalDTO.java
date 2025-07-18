@@ -1,12 +1,14 @@
 package com.apmosys.employeeportal.dto;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 public class PoPortalDTO {
 
 	private Long deptId;
@@ -21,4 +23,24 @@ public class PoPortalDTO {
 	private String hodId;
 	private String roleName;
 	private String deptAbbreviation;
+	private Long employeeId;
+
+	public PoPortalDTO(Long empId, String empName, Long deptId, String employeementStatus, String mailId, Long mobile, Long roleId, Long hodId, Long employeeId) {
+		this.empId = empId != null ? empId.toString() : null;
+		this.empName = empName;
+		this.deptId = deptId;
+		this.isActive = employeementStatus != null ? !employeementStatus.equals("InActive") ? "Y" : "N" : null;
+		this.mailId = mailId;
+		this.mobile = mobile != null ? mobile.toString() : null;
+		this.roleId = roleId;
+		this.hodId = hodId != null ? hodId.toString() : null;
+		this.employeeId = employeeId;
+	}
+
+	public PoPortalDTO(Long deptId, String deptName, Long hodId, String deptAbbreviation) {
+		this.deptName = deptName;
+		this.deptId = deptId;
+		this.hodId = hodId != null ? hodId.toString() : null;
+		this.deptAbbreviation = deptAbbreviation;
+	}
 }

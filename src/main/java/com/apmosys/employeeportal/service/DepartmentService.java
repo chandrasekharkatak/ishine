@@ -17,6 +17,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.datetime.joda.LocalDateTimeParser;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -28,6 +29,8 @@ import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
+import com.apmosys.employeeportal.exception.DataNotFoundException;
+import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.DesignationDepartmentMap;
@@ -40,6 +43,8 @@ import com.apmosys.employeeportal.repository.EmployeeOnBoardingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
+import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -82,6 +87,15 @@ public class DepartmentService {
 	
 	@Value("${poPortal.api.deleteDepartment}")
 	private String deleteDeparmentPoPortal;
+	
+	@Autowired
+	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+
+	@Autowired
+	private ApiLogUtility apiLogUtility;
+	
+	@Autowired
+	private PoPortalAPIService poPortalAPIService;
 
 	@Transactional
 	public ServiceResponse createDepartment(DepartmentDTO departmentDTO) {
@@ -366,7 +380,7 @@ public class DepartmentService {
 		return response;
 	}
 
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse deleteDepartment(DepartmentDTO departmentDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -375,98 +389,46 @@ public class DepartmentService {
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("deptId : " + departmentDTO.getDeptId());
-		
-		boolean isDeptUsedInPoPortal = false;
 		try {
+			boolean isDeptUsedInPoPortal = false;
 			Optional<Department> departmentObject = departmentRepository.findById(departmentDTO.getDeptId());
-			if (departmentObject.isPresent()) {
-				Department departmentToBeDeleted = departmentObject.get();
-
-				Long count = jobRoleRepository.countByDeptId(departmentToBeDeleted.getDeptId());
-				
-				//check Dept in PoPortal
-				try {
-					
-					final String syncUrl = isDeparmentUsedPoPortal;
-					RestTemplate restTemplate = new RestTemplate();
-					String syncResponse = restTemplate.getForObject(syncUrl, String.class, departmentToBeDeleted.getDeptId());
-					
-					JSONObject json = new JSONObject(syncResponse);
-					
-					if(json.getInt("httpStatusCode") == 200) {
-						
-						//0=Not Present
-						//1=Present but not used
-						//2=Used
-						
-						if(json.get("message").equals("0")) {
-							isDeptUsedInPoPortal = false;
-						}
-						
-						if(json.get("message").equals("1")) {
-							//Delete dept from poPortal http://192.168.21.175:8080/PoPortal/ishine/deleteDepartment/{id}
-							
-							final String deleteUrl = deleteDeparmentPoPortal;
-							RestTemplate deleteRestTemplate = new RestTemplate();
-							restTemplate.delete(deleteUrl, departmentToBeDeleted.getDeptId());
-						}
-						
-						if(json.get("message").equals("2")) {
-							isDeptUsedInPoPortal = true;
-						}
-					}
-					
-				}catch(InternalServerError e) {
-					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-					JSONObject json = new JSONObject(e.getResponseBodyAsString());
-					
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse(json.get("message"));
-					
-				}catch(HttpClientErrorException e) {
-					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-					
-                    JSONObject json = new JSONObject(e.getResponseBodyAsString());
-					
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse(json.get("message"));
-				}
-				
-				if (count == 0 && isDeptUsedInPoPortal == false) {
-
-					departmentRepository.deleteById(departmentToBeDeleted.getDeptId());
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Department deleted.");
-					
-					apiLogInfo.setApiResponse("Department deleted.");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				} else {
-					
-					DepartmentDTO dtoObject = new DepartmentDTO();
-					
-					if(count != 0) {
-						dtoObject.setIsDeptUsedInIshine("true");
-					}else {
-						dtoObject.setIsDeptUsedInIshine("false");
-					}
-					if(isDeptUsedInPoPortal == true) {
-						dtoObject.setIsDeptUsedInPoPortal("true");
-					}else {
-						dtoObject.setIsDeptUsedInPoPortal("false");
-					}
-					
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse(dtoObject);
-					
-					apiLogInfo.setApiResponse(dtoObject + "Department cannot be deleted as it is mapped to job role(s).");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-
-			} else {
+			if (departmentObject.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Department Not Found.");
-				
-				apiLogInfo.setApiResponse("Department Not Found.");			
+				apiLogInfo.setApiResponse("Department Not Found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				return response;
+			}
+			Department departmentToBeDeleted = departmentObject.get();
+			Long count = jobRoleRepository.countByDeptId(departmentToBeDeleted.getDeptId());
+
+			ServiceResponse syncResponse = poPortalAPIService.isDepartmentUsedInPoPortal(departmentToBeDeleted.getDeptId());
+			if (syncResponse != null && syncResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+				String deptarmentUsedFlag = syncResponse.getServiceResponse().toString(); // 0=Not Present, 1=Present but not used, 2=Used
+				if (deptarmentUsedFlag.equals("0")) {
+					isDeptUsedInPoPortal = false;
+				}
+				if (deptarmentUsedFlag.equals("1")) { // Delete dept from poPortal
+					poPortalAPIService.deleteDepartment(departmentToBeDeleted.getDeptId());
+				}
+				if (deptarmentUsedFlag.equals("2")) {
+					isDeptUsedInPoPortal = true;
+				}
+			}
+
+			if (count == 0 && !isDeptUsedInPoPortal) {
+				departmentRepository.deleteById(departmentToBeDeleted.getDeptId());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Department deleted.");
+				apiLogInfo.setApiResponse("Department deleted.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				DepartmentDTO dtoObject = new DepartmentDTO();
+				dtoObject.setIsDeptUsedInIshine(count != 0 ? "true" : "false");
+				dtoObject.setIsDeptUsedInPoPortal(isDeptUsedInPoPortal ? "true" : "false");
+				response.setServiceResponse(dtoObject);
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse(dtoObject + "Department cannot be deleted as it is mapped to job role(s).");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		} catch (Exception e) {
@@ -474,260 +436,128 @@ public class DepartmentService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-			
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-			
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 	
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse changeDepartmentJobRoleMapping(DepartmentDTO departmentDTO) {
 		ServiceResponse response = new ServiceResponse();
-		
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setApiUrl("/api/changeDepartmentJobRoleMapping");
 		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("deptId : " + departmentDTO.getDeptId());
+		StringBuilder logBuilder = new StringBuilder("deptId: ").append(departmentDTO.getDeptId());
 		try {
-			List<JobRole> jobRoleDepartment = jobRoleRepository.findByDeptId(departmentDTO.getOldDeptId());
-			
-			if(!jobRoleDepartment.isEmpty()) {
-				for(JobRole jobrole: jobRoleDepartment) {
-					
-					JobRole dbResponse = null;
-					if(departmentDTO.getIsDeptUsedInIshine().equals("true")) {
-						
-						jobrole.setDeptId(departmentDTO.getDeptId());
-						dbResponse = jobRoleRepository.save(jobrole);
-					}else {
-						dbResponse.setName("Not used in Ishine");
-					}
-
-					if (dbResponse != null) {
-						//Change Designation Department Mapping
-						List<DesignationDepartmentMap> designationDepartmentMapList = designationDepartmentMapRepository.findByDeptId(departmentDTO.getOldDeptId());
-						
-						if(!designationDepartmentMapList.isEmpty()) {
-							List<DesignationDepartmentMap> updatedDept = new ArrayList<DesignationDepartmentMap>();
-							
-							designationDepartmentMapList.forEach((object) -> {
-								object.setDeptId(departmentDTO.getDeptId());
-								updatedDept.add(object);
-							});
-							
-							List<DesignationDepartmentMap> designationDepResponse = designationDepartmentMapRepository.saveAll(updatedDept);
-							
-							if(!designationDepResponse.isEmpty()) {
-								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								response.setServiceResponse("Designation Department Mapping Changed successfully.");
-								
-								apiLogInfo.setApiResponse("Designation Department Mapping Changed successfully.");			
-								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-							}else {
-								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse("Unable to change Designation Department Mapping.");
-								
-								apiLogInfo.setApiResponse("Unable to change Designation Department Mapping.");			
-								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-							}
-						}
-						
-						//Change Project Department Mapping
-						List<ProjectDepartmentMap> projectDepartmentMapping = projectDepartmentMapRepository.findByDeptId(departmentDTO.getOldDeptId());
-						
-						if(!projectDepartmentMapping.isEmpty()) {
-							List<ProjectDepartmentMap> updatedMapping = new ArrayList<ProjectDepartmentMap>();
-							
-							projectDepartmentMapping.forEach((object) -> {
-								object.setDeptId(departmentDTO.getDeptId());
-								updatedMapping.add(object);
-							});
-							List<ProjectDepartmentMap> projectDepartmentMapResponse =  projectDepartmentMapRepository.saveAll(updatedMapping);
-							
-							if(!projectDepartmentMapResponse.isEmpty()) {
-								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								response.setServiceResponse("Project Department Mapping Changed successfully.");
-								
-								apiLogInfo.setApiResponse("Project Department Mapping Changed successfully.");			
-								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-							}else {
-								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse("Unable to change Project Department Mapping.");
-								
-								apiLogInfo.setApiResponse("Unable to change Project Department Mapping.");			
-								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-							}
-						}
-						
-						//Change Asset Department Mapping
-						List<Asset> assetDeptList = employeeOnBoardingRepository.findByDeptId(departmentDTO.getOldDeptId());
-						
-						if(!assetDeptList.isEmpty()) {
-							List<Asset> updatedMappingList = new ArrayList<Asset>();
-							
-							assetDeptList.forEach((object) -> {
-								object.setDeptId(departmentDTO.getDeptId());
-								updatedMappingList.add(object);
-							});
-							List<Asset> assetDeptResponse = employeeOnBoardingRepository.saveAll(updatedMappingList);
-							
-							if(!assetDeptResponse.isEmpty()) {
-								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								response.setServiceResponse("Asset Department Mapping Changed successfully.");
-								
-								apiLogInfo.setApiResponse("Asset Department Mapping Changed successfully.");			
-								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-							}else {
-								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse("Unable to change Asset Department Mapping.");
-								
-								apiLogInfo.setApiResponse("Unable to change Asset Department Mapping.");			
-								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-							}
-						}
-						
-						if(departmentDTO.getIsDeptUsedInPoPortal().equals("true")) {
-							
-							ServiceResponse syncDeleteResponse = syncDeleteDepartmentWithPoPortal(departmentDTO);
-							
-							if(syncDeleteResponse.getServiceStatus().equals("Success")) {
-								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								response.setServiceResponse(syncDeleteResponse.getServiceResponse());
-							}else {
-                                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-								
-								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse(syncDeleteResponse.getServiceResponse());
-							}
-						}else {
-							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							response.setServiceResponse("Department Deleted successfully.");
-							
-							apiLogInfo.setApiResponse("Department Deleted successfully.");			
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-						}
-					} else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Job Role Updation Failed.");
-						
-						apiLogInfo.setApiResponse("Job Role Updation Failed");			
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					}
-				}
-			}else {
-				
-				if(departmentDTO.getIsDeptUsedInPoPortal().equals("true")) {
-					ServiceResponse syncDeleteResponse = syncDeleteDepartmentWithPoPortal(departmentDTO);
-					
-					if(syncDeleteResponse.getServiceStatus().equals("Success")) {
-						
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse(syncDeleteResponse.getServiceResponse());
-					}else {
-                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-						
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse(syncDeleteResponse.getServiceResponse());
-					}
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("No job role Found");
-					
-					apiLogInfo.setApiResponse("No job role Found");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);	
-				}
+			List<JobRole> jobRoles = jobRoleRepository.findByDeptId(departmentDTO.getOldDeptId());
+			if (!jobRoles.isEmpty()) {
+				processJobRoles(jobRoles, departmentDTO, response, apiLogInfo);
+			} else {
+				handleNoJobRolesFound(departmentDTO, response, apiLogInfo);
 			}
-			
-		}catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
-	public ServiceResponse syncDeleteDepartmentWithPoPortal(DepartmentDTO departmentDTO) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setApiUrl("/api/syncDeleteDepartmentWithPoPortal");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("deptId : " + departmentDTO.getDeptId()+", departmentName : "+departmentDTO.getName()+", isDeptUsedInPoPortal : "+departmentDTO.getIsDeptUsedInPoPortal());
-		
-		try {
-			
-			//Sync Deleted Dept with PoPortal
-			Department deptObj = departmentRepository.findByDeptId(departmentDTO.getDeptId());
-			
-			if(deptObj != null) {
-				Employee empObj = employeeRepository.findByEmpId(deptObj.getHodId());
-				
-				DepartmentDTO syncObject = new DepartmentDTO();
-				syncObject.setDeptId(deptObj.getDeptId());
-				syncObject.setDeptName(deptObj.getName());
-				syncObject.setHodEmploymentId("A-".concat(empObj.getEmployeementId().toString()));
-				
-				try {
-					
-					final String syncUrl = syncDepartmentApi;
-					RestTemplate restTemplate = new RestTemplate();
-					String syncResponse = restTemplate.postForObject(syncUrl, syncObject, String.class, departmentDTO.getOldDeptId());
-					
-					JSONObject json = new JSONObject(syncResponse);
-					
-					if(json.getInt("httpStatusCode") == 200) {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Department Deleted & Synced with PoPortal");
-						apiLogInfo.setApiResponse("Department Deleted & Synced with PoPortal");
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-					}
-					
-				}catch(InternalServerError e) {
-					JSONObject json = new JSONObject(e.getResponseBodyAsString());
-					
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse(json.get("message"));
-					apiLogInfo.setApiResponse("message");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					
-				}catch(HttpClientErrorException e) {
-                    JSONObject json = new JSONObject(e.getResponseBodyAsString());
-					
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse(json.get("message"));
-					apiLogInfo.setApiResponse("message");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-			}else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Department not found.");
-				apiLogInfo.setApiResponse("Department not found.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+	private void processJobRoles(List<JobRole> jobRoles, DepartmentDTO departmentDTO, ServiceResponse response, LogDTO apiLogInfo) {
+		boolean isUsedInIshine = Boolean.parseBoolean(departmentDTO.getIsDeptUsedInIshine());
+		for (JobRole jobRole : jobRoles) {
+			if (isUsedInIshine) {
+				jobRole.setDeptId(departmentDTO.getDeptId());
+				jobRoleRepository.save(jobRole);
+			} else {
+				jobRole.setName("Not used in Ishine");
 			}
-			
-		}catch(Exception e){
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			apiLogInfo.setLogLevel("ERROR");
-			response.setServiceError(e.getMessage());
+
+			updateDesignationDepartmentMapping(departmentDTO, response, apiLogInfo);
+			updateProjectDepartmentMapping(departmentDTO, response, apiLogInfo);
+			updateAssetDepartmentMapping(departmentDTO, response, apiLogInfo);
+
+			if (Boolean.parseBoolean(departmentDTO.getIsDeptUsedInPoPortal())) {
+				handlePoPortalSync(departmentDTO, response);
+			} else {
+				response.setServiceResponse("Department Deleted successfully.");
+				apiLogInfo.setApiRequest("Department Deleted successfully.");
+			}
 		}
-		return response;
 	}
-	
+
+	private void updateDesignationDepartmentMapping(DepartmentDTO dto, ServiceResponse response, LogDTO apiLogInfo) {
+		List<DesignationDepartmentMap> list = designationDepartmentMapRepository.findByDeptId(dto.getOldDeptId());
+		if (!list.isEmpty()) {
+			list.forEach(d -> d.setDeptId(dto.getDeptId()));
+			List<DesignationDepartmentMap> updated = designationDepartmentMapRepository.saveAll(list);
+
+			if (!updated.isEmpty()) {
+				response.setServiceResponse("Designation Department Mapping Changed successfully.");
+				apiLogInfo.setApiRequest("Designation Department Mapping Changed successfully.");
+			} else {
+				response.setServiceResponse("Unable to change Designation Department Mapping.");
+				apiLogInfo.setApiResponse("Unable to change Designation Department Mapping.");
+			}
+		}
+	}
+
+	private void updateProjectDepartmentMapping(DepartmentDTO dto, ServiceResponse response, LogDTO apiLogInfo) {
+		List<ProjectDepartmentMap> list = projectDepartmentMapRepository.findByDeptId(dto.getOldDeptId());
+		if (!list.isEmpty()) {
+			list.forEach(p -> p.setDeptId(dto.getDeptId()));
+			List<ProjectDepartmentMap> updated = projectDepartmentMapRepository.saveAll(list);
+
+			if (!updated.isEmpty()) {
+				response.setServiceResponse("Project Department Mapping Changed successfully.");
+				apiLogInfo.setApiRequest("Project Department Mapping Changed successfully.");
+			} else {
+				response.setServiceResponse("Unable to change Project Department Mapping.");
+				apiLogInfo.setApiResponse("Unable to change Project Department Mapping.");
+			}
+		}
+	}
+
+	private void updateAssetDepartmentMapping(DepartmentDTO dto, ServiceResponse response, LogDTO apiLogInfo) {
+		List<Asset> list = employeeOnBoardingRepository.findByDeptId(dto.getOldDeptId());
+		if (!list.isEmpty()) {
+			list.forEach(a -> a.setDeptId(dto.getDeptId()));
+			List<Asset> updated = employeeOnBoardingRepository.saveAll(list);
+
+			if (!updated.isEmpty()) {
+				response.setServiceResponse("Asset Department Mapping Changed successfully.");
+				apiLogInfo.setApiRequest("Asset Department Mapping Changed successfully.");
+			} else {
+				response.setServiceResponse("Unable to change Asset Department Mapping.");
+				apiLogInfo.setApiResponse("Unable to change Asset Department Mapping.");
+			}
+		}
+	}
+
+	private void handlePoPortalSync(DepartmentDTO dto, ServiceResponse response) {
+		ServiceResponse syncResponse = poPortalAPIService.syncDeleteDepartmentWithPoPortal(dto, "changeDepartmentJobRoleMapping");
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		if (!syncResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		}
+		response.setServiceResponse(syncResponse.getServiceResponse());
+	}
+
+	private void handleNoJobRolesFound(DepartmentDTO dto, ServiceResponse response, LogDTO apiLogInfo) {
+		if (Boolean.parseBoolean(dto.getIsDeptUsedInPoPortal())) {
+			handlePoPortalSync(dto, response);
+		} else {
+			response.setServiceResponse("No job role Found");
+			apiLogInfo.setApiResponse("No job role Found");
+		}
+	}
+
 	public ServiceResponse checkDepartmentName(DepartmentDTO departmentDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -773,40 +603,39 @@ public class DepartmentService {
 		apiLogInfo.setApiUrl("/api/getAllDepartmentInfo");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getAllDepartmentInfo size : "+departmentRepository.getDepartmentInfo().size());
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		try {
-			
-			List<Object[]> departmentObj = departmentRepository.getDepartmentInfo();
-			List<PoPortalDTO> dtoList = new ArrayList<PoPortalDTO>();
-			
-			if(!departmentObj.isEmpty()) {
-				departmentObj.forEach((object) -> {
-					PoPortalDTO dto = new PoPortalDTO();
-					
-					dto.setDeptId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					dto.setDeptName(object[1] != null ? object[1].toString() : null);
-					dto.setHodId(object[2] != null ? object[2].toString() : null);
-					dto.setDeptAbbreviation(object[3] != null ? object[3].toString() : null);
-					dtoList.add(dto);
-				});
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllDepartmentInfo", "PoPortal", null, httpRequest);
+			List<PoPortalDTO> poPortalDTOList = departmentRepository.getDepartmentInfo();
+			if (!poPortalDTOList.isEmpty()) {
+				logBuilder.append("getAllDepartmentInfo size : " + poPortalDTOList.size());
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("dtoList size : "+dtoList.size());
+				response.setServiceResponse(poPortalDTOList);
+				apiLogInfo.setApiResponse("dtoList size : " + poPortalDTOList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			}else {
+				finalHttpStatusCode = HttpStatus.OK.value();
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Department Info not found.");
 				apiLogInfo.setApiResponse("Department Info not found.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
+				throw new DataNotFoundException("Department Details Not Found in Database.");
 			}
-			
-		}catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
+			exceptionDetailsForLog = e.toString();
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+			}
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);

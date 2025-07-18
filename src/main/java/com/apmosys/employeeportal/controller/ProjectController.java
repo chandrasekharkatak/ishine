@@ -1,26 +1,32 @@
 package com.apmosys.employeeportal.controller;
 
-import java.util.List;
+
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
-import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
-import com.apmosys.employeeportal.dto.PoProjectIdRequestDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
-import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.service.EmployeeService;
+import com.apmosys.employeeportal.service.PoPortalAPIService;
 import com.apmosys.employeeportal.service.ProjectService;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
@@ -33,6 +39,12 @@ public class ProjectController {
 	@Autowired
 	EmployeeService employeeService;
 	
+	@Autowired
+	PoPortalAPIService poPortalApiService;
+	
+	@Autowired
+	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+	
 	@RequestMapping(value = "/getAllClients", method = RequestMethod.GET)
 	public ServiceResponse getAllClients() {
 		
@@ -42,7 +54,6 @@ public class ProjectController {
 	
 	@RequestMapping(value = "/getAllProjects", method = RequestMethod.GET)
 	public ServiceResponse getAllProjects() {
-		
 		ServiceResponse response = projectService.getAllProjects();
 		return response;
 	}
@@ -75,11 +86,10 @@ public class ProjectController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/syncPoProjectAndTeam", method = RequestMethod.POST)
-	public ServiceResponse syncPoProjectAndTeam(@RequestBody PoProjectSyncDTO[] poProjectSyncDto) {
-		
-		ServiceResponse response = projectService.syncPoProjectAndTeam(poProjectSyncDto);
-		return response;
+	@PostMapping(value = "/syncPoProjectAndTeam")
+	public ServiceResponse syncPoProjectAndTeam(HttpServletRequest httpRequest, @RequestBody PoProjectSyncDTO[] poProjectSyncDto) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return projectService.syncPoProjectAndTeam(poProjectSyncDto);
 	}
 	
 	@RequestMapping(value = "/getSyncableProject", method = RequestMethod.GET)
@@ -104,12 +114,13 @@ public class ProjectController {
 	}
 	
 	@GetMapping(value = "/poprojectclone")
-	public ResponseEntity<ServiceResponse> poprojectclone() {
-	    return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
+	public ResponseEntity<ServiceResponse> poprojectclone(HttpServletRequest httpRequest) {
+		return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
 	}
 	
 	@PostMapping(value = "/poProjectTimesheetSync")
-	public ServiceResponse poProjectTimesheetSync(@RequestBody Set<Long> projectIdList) {
+	public ServiceResponse poProjectTimesheetSync(HttpServletRequest httpRequest,@RequestBody Set<Long> projectIdList) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return projectService.poProjectTimesheetSync(projectIdList);
 	}
 	
@@ -119,10 +130,29 @@ public class ProjectController {
 	}
 		
 	@PostMapping(value = "/handleTeamsAsPerLinkedPo")
-	public ServiceResponse handleTeamsAsPerLinkedPo(@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
+	public ServiceResponse handleTeamsAsPerLinkedPo(HttpServletRequest httpRequest ,@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return projectService.handleTeamsAsPerLinkedPo(payloadDTO);
 	}
+
+
+	@RequestMapping(value = "/getAllProjectFCLineItemListByProjectId", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> getAllProjectFCLineItemListByProjectId(@RequestBody ProjectDTO projectDto) {
+		return ResponseEntity.ok(projectService.getAllProjectFCLineItemListByProjectId(projectDto));
+	}
 	
+	@RequestMapping(value = "/updateMilestoneById", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ServiceResponse> updateMilestoneById(@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
+	                                                           @RequestPart("file") MultipartFile file) {
+	    return ResponseEntity.ok(poPortalApiService.updateMilestoneById(fcProjectMilestoneDTO, file));
+	}
+
+	
+	@RequestMapping(value = "/getMilestoneById", method = RequestMethod.GET)
+	public ResponseEntity<ServiceResponse> getMilestoneById(@RequestParam Long milestoneId) {
+		return ResponseEntity.ok(projectService.getMilestoneById(milestoneId));
+	}
+
 	@GetMapping(value = "/getResourceRequirementFromPoPortal")
 	public ServiceResponse getResourceRequirementFromPoPortal() {
 		return projectService.getResourceRequirementFromPoPortal();

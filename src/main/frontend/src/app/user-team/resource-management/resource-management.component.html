@@ -293,8 +293,9 @@
                     <div class="row mb-3">
                         <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                             <input id="employeeSearch" type="text" class="form-control" style="min-width: 200px;"
-                                placeholder="Search by Name or Emp ID" aria-label="Search employee"
-                                [formControl]="employeeCtrl" [matAutocomplete]="auto">
+                            placeholder="Search by Name or Emp ID" aria-label="Search employee"
+                            [formControl]="employeeCtrl" [matAutocomplete]="auto"
+                            (input)="onEmployeeInputChange()">
 
                             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
                                 [displayWith]="displayEmployee">
@@ -304,10 +305,10 @@
                             </mat-autocomplete>
                         </div>
                     </div>
-                    <div *ngIf="selectedEmpId" class="button-container">
-                        <button class="rounded-button summary-button"
+                    <div class="button-container">
+                        <button class="rounded-button summary-button" [disabled]="!selectedEmpId"
                             (click)="openSummaryModal(projectSummaryModal, selectedEmpId)">Employee Summary</button>
-                        <button class="rounded-button details-button"
+                        <button class="rounded-button details-button" [disabled]="!selectedEmpId"
                             [navigateToEmployee360]="this.selectedEmpId">Employee
                             360</button>
                     </div>
@@ -569,7 +570,9 @@
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
                                         mat-sort-header="createdOn|datetime">Created On</th>
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                        mat-sort-header="status|string">Project Status</th>
+                                        mat-sort-header="status|string">PO Project Status</th>
+                                    <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                        mat-sort-header="projectStatus|string">Ishine Project Status</th>
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 170px;"
                                         mat-sort-header="draftStatus|string">Approval
                                         Status</th>
@@ -671,6 +674,7 @@
                                         <td>{{project.state ? project.state:'NA'}}</td>
                                         <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.status ? project.status:'NA'}}</td>
+                                        <td>{{getDisplayProjectStatus(project)}}</td>
                                         <td
                                             [ngStyle]="{'color': (project.draftStatus == 'Pending For Approval') ? 'orange' : (project.draftStatus == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
                                             <em>{{ project.draftStatus ? project.draftStatus : 'NA' }}</em>
@@ -784,6 +788,7 @@
                                                                 </div>
                                                             </div>
                                                         </div>
+
                                                         <!-- As per RMG request -->
 
                                                         <!-- <div class="row">
@@ -1590,6 +1595,11 @@
                         <input type="text" disabled [(ngModel)]="projectObj.state" />
                     </div>
                 </div>
+                <div class="row" *ngIf="projectObj?.poProjectType == 'Fixed Cost'">
+                    <div class="col-12 d-flex justify-content-end">
+                        <h3 (click)="showProjectMilestones(projectObj)" class="milestone-link">Show All Milestone</h3>
+                    </div>
+                </div>
 
                 <div class="teams-section">
                     <h3>Teams
@@ -1642,7 +1652,7 @@
                                     <div style="display: flex; align-items: center;">
                                         <input type="text" [(ngModel)]="searchTextDeptTeam"
                                             (ngModelChange)="filterDepartmentsTeamForm()" class="form-control"
-                                            style="width: 100%; padding: 5px;" />
+                                            style="padding: 5px;" />
 
                                         <button *ngIf="teamObj.departmentList?.length > 0"
                                             (click)="clearSelectionDept($event)"
@@ -1693,7 +1703,7 @@
                         </div> -->
 
 
-                        <div class="form-field">
+                        <!-- <div class="form-field">
                             <label>Team Lead</label>
                             <input type="text" style="min-width:240px" class="form-select name-field" placeholder="Search by Emp ID or Name"
                                 aria-label="Search employee" [formControl]="teamLeadCtrl"
@@ -1704,7 +1714,7 @@
                                     {{ employee.name }}
                                 </mat-option>
                             </mat-autocomplete>
-                        </div>
+                        </div> -->
 
                         <div class="button-group">
 
@@ -2634,7 +2644,7 @@
                         <label>Project Type</label>
                         <mat-select class="form-control" [(ngModel)]="bulkProjectType" disableOptionCentering>
                             <mat-option [value]="null" disabled>Select</mat-option>
-                            <mat-option [value]="'bench'">Bench  mat option</mat-option>
+                            <mat-option [value]="'bench'">Bench</mat-option>
                             <mat-option [value]="'other'">Other</mat-option>
                         </mat-select>
                     </div>
@@ -2827,18 +2837,16 @@
                                     </div>
                                 </td>
                                 <td>
-                                   <div class="form-group" style="display: flex; align-items: center;">
-                                        <mat-select [(ngModel)]="emp.teamId" disableOptionCentering
-                                            (selectionChange)="getTeamListForSelectedProject()" >
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <mat-select [(ngModel)]="emp.teamId" disableOptionCentering>
                                             <mat-option disabled>
                                                 <input class="form-control" style="display: flex; width: 100%; padding: 5px;"
                                                     placeholder="Search Team..." type="text" [(ngModel)]="searchTermTeam"
                                                     (ngModelChange)="filterTeamsForDefaultBulk()" />
                                             </mat-option>
-                                           <mat-option *ngFor="let team of filteredTeamsForDefaultBulk"
-                                            [value]="team.teamId">
-                                            {{ team.teamName }}
-                                        </mat-option>
+                                            <mat-option *ngFor="let team of filteredTeamsForDefaultBulk" [value]="team.teamId">
+                                                {{ team.teamName }}
+                                            </mat-option>
                                         </mat-select>
                                     </div>
                                 </td>
@@ -2849,14 +2857,14 @@
                                             }}</mat-option>
                                     </mat-select>
                                 </td>
-                                <td>
+                                <!-- <td>
                                 <div class="form-group" style="display: flex; align-items: center;">
                                     <mat-select [(ngModel)]="emp.resourceOverViewId" disableOptionCentering (selectionChange)="getTeamListForSelectedProject()">
                                         <mat-option disabled>
                                             <input class="form-control" style="display: flex; width: 100%; padding: 5px;" placeholder="Search Requirement..."
-                                                type="text" [(ngModel)]="searchTermTeam" (ngModelChange)="filterResourceRequirementForDefaultBulk()" />
+                                                type="text" [(ngModel)]="searchTermRequirement" (ngModelChange)="filterResourceRequirementForDefaultBulk()" />
                                         </mat-option>
-                                         <mat-option *ngFor="let req of resourceRequirementListBulk"
+                                         <mat-option *ngFor="let req of filteredResourceRequirementListBulk"
                                             [value]="req.resourceOverviewId">
                                             Role - {{ req.role }} || Dept - {{ req.department }} || Exp - {{
                                             req.experience }} y
@@ -2864,6 +2872,20 @@
                                     </mat-select>
                                 </div>
  
+                                </td> -->
+                                <td>
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <mat-select [(ngModel)]="emp.resourceOverViewId" disableOptionCentering>
+                                            <mat-option disabled>
+                                                <input class="form-control" style="display: flex; width: 100%; padding: 5px;"
+                                                    placeholder="Search Requirement..." type="text" [(ngModel)]="searchTermRequirement"
+                                                    (ngModelChange)="filterResourceRequirementForDefaultBulk()" />
+                                            </mat-option>
+                                            <mat-option *ngFor="let req of filteredResourceRequirementListBulk" [value]="req.resourceOverviewId">
+                                                Role - {{ req.role }} || Dept - {{ req.department }} || Exp - {{ req.experience }} y
+                                            </mat-option>
+                                        </mat-select>
+                                    </div>
                                 </td>
 
                                 <td>
@@ -2921,3 +2943,214 @@
     <!-- <iframe [src]="reportListUrlSafe" width="100%" height="850px" frameborder="0"></iframe> -->
 
 </ng-container>
+
+<ng-template #project_line_item_list_modal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Project Milestone List</h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="closeProjectLineItemListModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="table-container" bassHorizontalScroll [tableId]="'projectMilestone'"
+            [tableTHeadId]="'projectMilestoneTHead'" [tableTHeadTrId]="'projectMilestoneTHeadTr'">
+            <table class="table" id="project-milestone" matSort (matSortChange)="sortProjectMilestoneData($event)">
+                <thead class="thead-light">
+                    <tr id="projectMilestoneTHeadTr">
+                        <th scope="col" class="info-label">Sr.No</th>
+                        <th scope="col" class="info-label" mat-sort-header="lineItemName|string">Line Item</th>
+                        <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>
+                        <th scope="col" class="info-label">Description</th>
+                        <th scope="col" class="info-label" mat-sort-header="startDate|string">Start Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="endDate|string">End Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                        <th scope="col" class="info-label">Remarks</th>
+                        <th scope="col" class="info-label">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngIf="fcProjectMilestoneList.length == 0">
+                        <tr>
+                            <td colspan="7" class="text-center info-label">No details to display...</td>
+                        </tr>
+                    </ng-container>
+                    <ng-container
+                        *ngFor="let milestone of fcProjectMilestoneList | sort : [projectMilestoneSortColumn, projectMilestoneSortColumnType, projectMilestoneSortDirection]| paginate: { itemsPerPage: 10, currentPage: projectMilestonepage }; let j = index">
+                        <tr>
+                            <td>{{j+1}}</td>
+                            <td>{{milestone.lineItemName}}</td>
+                            <td>{{milestone.name}}</td>
+                            <td>{{milestone.description}}</td>
+                            <td>{{milestone.startDate | date:'dd/MM/yyyy'}}</td>
+                            <td>{{milestone.endDate | date:'dd/MM/yyyy'}}</td>
+                            <td>{{milestone.status}}</td>
+                            <td>{{milestone.remarks}}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" [disabled]="milestone.status === 'Completed'"
+                                    [title]="milestone.status === 'Completed' ? 'Cannot edit completed milestone during In Progress phase' : ''"
+                                    (click)="openUpdateProjectMilestoneModal(milestone)">
+                                    <i class="fas fa-edit"></i>
+                                </button>&nbsp;&nbsp;
+
+
+                                
+                                <button *ngIf="milestone.status === 'Completed'" class="btn btn-sm btn-info" title="View Document"
+                                    (click)="viewMilestoneFile(milestone.id)">
+                                    <i class="fas fa-file-alt"></i> 
+                                </button>
+
+
+
+
+
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+            <div class="row col-md-12">
+                <pagination-controls class="my-pagination" [hidden]="fcProjectMilestoneList.length == 0"
+                    (pageChange)="handleProjectMilestonePageChange($event)"></pagination-controls>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeProjectLineItemListModal()">Close</button>
+    </div>
+</ng-template>
+
+<ng-template #update_project_milestone_modal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Update Project Milestone</h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="closeUpdateProjectMilestoneModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="form-group">
+            <div class="form-field">
+                <label>List Item Name</label>
+                <input type="text" disabled [(ngModel)]="projectMilestone.lineItemName" />
+            </div>
+            <div class="form-field">
+                <label>Name</label>
+                <input type="text" disabled [(ngModel)]="projectMilestone.name" />
+            </div>
+
+
+
+            <div class="form-field">
+                <label><span class="text-danger">*</span>Start Date</label>
+                <input id="startDate" class="form-control static-input" autocomplete="off"
+                    [(ngModel)]="projectMilestone.startDate" [owlDateTimeTrigger]="startDatePicker"
+                    [owlDateTime]="startDatePicker" placeholder="Select Start Date" [disabled]="true">
+                <owl-date-time #startDatePicker></owl-date-time>
+               
+            </div>
+
+
+            <div class="form-field">
+                <label><span class="text-danger">*</span>End Date</label>
+                <input id="endDate" class="form-control static-input" autocomplete="off"
+                    [(ngModel)]="projectMilestone.endDate" [owlDateTimeTrigger]="endDatePicker"
+                    [owlDateTime]="endDatePicker" placeholder="Select End Date" [disabled]="true">
+                <owl-date-time #endDatePicker></owl-date-time>
+               
+            </div>
+
+
+            <div class="form-field">
+                <label>Description</label>
+                <input type="text" disabled [(ngModel)]="projectMilestone.description" />
+            </div>
+
+
+            <div class="form-field">
+
+                <label>Status</label>
+                <mat-select [(ngModel)]="projectMilestone.status" (ngModelChange)="calculatePoStatus()">
+                    <mat-option [value]="projectMilestone.status">{{projectMilestone.status}}</mat-option>
+                    <ng-container *ngFor="let status of statusList; let i=index;">
+                        <mat-option *ngIf="status!=projectMilestone.status" [value]="status">
+                            {{status}}
+                        </mat-option>
+                    </ng-container>
+                </mat-select>
+            </div>
+
+            <div class="form-field full-width">
+                <label>Remarks</label>
+                <textarea class="form-control" [(ngModel)]="projectMilestone.remarks" rows="3"></textarea>
+            </div>
+
+
+            <div class="form-field full-width">
+                <label>Upload Document</label>
+                <input type="file" class="plain-file-input" (change)="onFileSelected($event)" accept=".pdf,.jpg,.jpeg,.png" />
+            </div>
+
+            
+           
+
+
+
+
+
+
+
+
+
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeUpdateProjectMilestoneModal()">Close</button>
+        <button type="button" class="btn btn-primary" (click)="updateMilestoneChanges()">Update</button>
+    </div>
+</ng-template>
+
+
+<ng-template #update_project_milestone_success_modal>
+    <div class="modal-header">
+        <h5 class="modal-title">Milestone Updated</h5>
+    </div>
+    <div class="modal-body">
+        <p>Milestone Updated successfully.</p>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" (click)="CancelUpdateMilestonePopup()">OK</button>
+    </div>
+</ng-template>
+
+
+
+<ng-template #milestoneDocumentModal>
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Milestone Document Preview</h5>
+                    <button type="button" class="close" aria-label="Close" (click)="closeModalViewDocument()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div *ngIf="milestoneDocumentUrl">
+                        <iframe [src]="milestoneDocumentUrl" width="100%" height="600px"></iframe>
+                    </div>
+                    <div *ngIf="!milestoneDocumentUrl">
+                        <p>No document available for this milestone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+
+<ng-template #alertTemplate>
+  <div class="modal-body text-center">
+    <p>{{ alertMessage }}</p>
+    <button type="button" class="btn btn-primary" (click)="modalRef.hide()">OK</button>
+  </div>
+</ng-template>

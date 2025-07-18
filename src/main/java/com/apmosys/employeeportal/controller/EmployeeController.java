@@ -18,17 +18,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.AppreciationAndRewardsCountDto;
 import com.apmosys.employeeportal.dto.AppreciationDetails;
-import com.apmosys.employeeportal.dto.AppreciationRequest;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.DefaultProjectEmployeeConfig;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
-import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
-import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
+import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
+import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
 import com.apmosys.employeeportal.service.EmployeeService;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
@@ -37,6 +38,9 @@ public class EmployeeController {
 
 	@Autowired
 	EmployeeService employeeService;
+
+	@Autowired
+	PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 
 	@RequestMapping(value = "/createEmployee", method = RequestMethod.POST)
 	public ServiceResponse createEmployee(@RequestBody EmployeeDTO employeedto) {
@@ -361,12 +365,11 @@ public class EmployeeController {
 	/*
 	 API for PoPortal
 	 */
-	
-	@RequestMapping(value = "/getAllEmployeeInfo", method = RequestMethod.GET)
-	public ServiceResponse employeeInfo() {
 
-		ServiceResponse response = employeeService.getAllEmployeeInfo();
-		return response;
+	@GetMapping(value = "/getAllEmployeeInfo")
+	public ServiceResponse employeeInfo(HttpServletRequest httpRequest) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return employeeService.getAllEmployeeInfo();
 	}
 	
 	@RequestMapping(value = "/updateLeaveBalanceList", method = RequestMethod.POST, consumes = "application/json")	
@@ -593,4 +596,32 @@ public class EmployeeController {
 		return employeeService.reduceEmployeeProbation(employee);
 	}
 	
+	 @PostMapping("/getEmployeeAndTimesheetDetails")
+	 public ServiceResponse getEmployeeAndTimesheetDetails(HttpServletRequest request,@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
+		ServiceResponse resposne = new ServiceResponse();
+		resposne.setServiceResponse(employeeService.getEmployeeAndTimesheetDetails(employeeTimesheetRequest));
+		resposne.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
+		System.out.println(resposne);
+		return resposne;
+	 }
+
+	 @GetMapping("/getTeamAndTimeSheetDetails/{poProjectId}")
+	 public ServiceResponse getTeamAndTimeSheetDetails(HttpServletRequest request,@PathVariable("poProjectId") Long poProjectId) {
+		 ServiceResponse response = new ServiceResponse();
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
+		 response.setServiceResponse(employeeService.getTeamAndTimeSheetDetails(poProjectId));
+		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
+		return response;
+	 }
+	 
+	 @PostMapping("/getProjectDetailsByEmpIdAndDateRange")
+	 public ServiceResponse getProjectDetailsByEmpIdAndDateRange(HttpServletRequest request,@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
+		 ServiceResponse response = new ServiceResponse();
+		 response.setServiceResponse(employeeService.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest));
+		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
+		 return response;
+	 }
+	 
 }

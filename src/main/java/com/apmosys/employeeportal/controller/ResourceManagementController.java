@@ -3,8 +3,12 @@ package com.apmosys.employeeportal.controller;
 import java.util.List;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,20 +19,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
-
-import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
-
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
+import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
-import com.apmosys.employeeportal.dto.TeamMemberDTO;
-import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.service.ResourceManagementService;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
@@ -37,6 +38,9 @@ public class ResourceManagementController {
 	
 	@Autowired
 	ResourceManagementService resourceManagementService;
+	
+	@Autowired
+	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 
 	@RequestMapping(value = "/createDraftProjectInfo", method = RequestMethod.POST)
 	public ServiceResponse createDraftProjectInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
@@ -94,11 +98,9 @@ public class ResourceManagementController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/bulkSyncProject", method = RequestMethod.POST)
+	@PostMapping(value = "/bulkSyncProject")
 	public ServiceResponse bulkSyncProject(@RequestBody ProjectDTO projectDTO) {
-		
-		ServiceResponse response = resourceManagementService.bulkSyncProject(projectDTO);
-		return response;
+		return resourceManagementService.bulkSyncProject(projectDTO);
 	}
 	
 	@RequestMapping(value = "/approveProject", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
@@ -317,13 +319,6 @@ public class ResourceManagementController {
 	    return resourceManagementService.getEmployeeInformation(empId);
 	}
 	
-	
-
-	@PostMapping("/poCrudOperationsInIshine")
-	public ServiceResponse importAllNotStartedProjects(@RequestBody ResourceManagementDTO resourceManagementDTO) {
-		return resourceManagementService.crudOnAllNotstartedProjs(resourceManagementDTO);
-	}
-	
 	@GetMapping("/poDump")
 	public ServiceResponse getAllPOPortalDumpInIshineTemp() {
 		return resourceManagementService.dumpPODataInIshine();
@@ -382,7 +377,8 @@ public class ResourceManagementController {
 	}
 	
 	@PostMapping("/getProjectStatusByPoProjectId")
-	public ServiceResponse getProjectStatusByPoProjectId(@RequestBody Set<Long> projectIds) {
+	public ServiceResponse getProjectStatusByPoProjectId(HttpServletRequest httpRequest,@RequestBody Set<Long> projectIds) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	    return resourceManagementService.getProjectStatusByPoProjectId(projectIds);
 	}
 	
@@ -394,6 +390,17 @@ public class ResourceManagementController {
 	@PostMapping("/getDeptsByUser")
 	public ServiceResponse getDeptsByUser(@RequestBody Long currentUserEmpId) {
 	    return resourceManagementService.getDeptsByUser(currentUserEmpId);
+	}
+	
+	@PostMapping("/poCrudOperationsInIshine")
+	public ServiceResponse poCrudOperationsInIshine(HttpServletRequest httpRequest,@RequestBody ResourceManagementDTO poPortalProjects) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return resourceManagementService.poCrudOperationsInIshine(poPortalProjects);
+	}
+	@GetMapping("/deleteTempProjects")
+	@Scheduled(cron = "0 0 * * * *")
+	public ServiceResponse deleteProjectTemp() {
+	    return resourceManagementService.deleteProjectTemp();
 	}
 
 }

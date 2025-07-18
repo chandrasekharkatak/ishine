@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
@@ -36,14 +37,14 @@ public class RMGProjectToEmployeeFlatDTO {
 	    private String email;
 	    private String billable;
 	    private String billableType;
-	    private Date effectiveStartDate;
+	    private LocalDateTime effectiveStartDate;
 	    private String clientName;
 	    
 		public RMGProjectToEmployeeFlatDTO(Integer projectId, String projectName, String apmosysRM, String clientRM,
 				String poStartDate, String poEndDate,String poNo, String poProjectType,String clientName , 
 				Long pmEmpId, String pmName, Long teamId, String teamName, Long empId, String name, String jobRoleName,
 				String department,Long mobileNo, String email, String billable, String billableType,
-				Date effectiveStartDate,Long employeementId) {
+				LocalDateTime effectiveStartDate,Long employeementId) {
 //			super(); 
 			this.projectId = projectId;
 			this.projectName = projectName;

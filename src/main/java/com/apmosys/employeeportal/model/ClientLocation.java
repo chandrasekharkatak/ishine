@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -17,6 +18,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 @Table(name="client_locations")
 public class ClientLocation {
 
@@ -31,4 +33,8 @@ public class ClientLocation {
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
 	
+	public ClientLocation(Integer clientId,String clientLocation){
+		this.clientId = clientId;
+		this.clientLocation = clientLocation;
+	}
 }

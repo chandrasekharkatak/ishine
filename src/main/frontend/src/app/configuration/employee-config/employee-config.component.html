@@ -1617,10 +1617,17 @@
                                 <!-- <td
                                     *ngIf="isDraftTable && employee.employmentStatus == 'InActive' && !isActiveTable">
                                     {{employee.employmentReleaseStatus}}</td> -->
-                                <td
+                                <!-- <td
                                     *ngIf="isDraftTable == true && (employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' ) && !isActiveTable">
-                                    {{employee.employmentReleaseStatus}}</td>
-
+                                    {{employee.employmentReleaseStatus}}
+                                </td> -->
+                                <ng-container *ngIf="!isActiveTable">
+                                <td>
+                                  <ng-container *ngIf="employee.employmentStatus != 'InActive'">
+                                    {{ employee.employmentReleaseStatus  }}
+                                  </ng-container>
+                                </td>
+                                </ng-container>
                                 <td id="clickablefor360" *ngIf="userMapping.employee_360"
                                     [navigateToEmployee360]="employee.managerId" style="cursor: pointer;"
                                     title="Click to view Employee 360">{{employee.managerName}}</td>
