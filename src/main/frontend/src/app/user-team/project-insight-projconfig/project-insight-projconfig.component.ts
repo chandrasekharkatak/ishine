@@ -398,9 +398,13 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   deleteProjectInsightById(){
+    this.cancelRequest();
     this.projectInsightService.deleteProjectInsightById(this.projectInsightId).pipe(first()).subscribe({
       next: (response: any) => {
-        
+        this.alertMessage = response.serviceMessage;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+
+        this.getAllProjectInsightProjectList();
       },
       error: (error: any) => {
         this.alertMessage = error;
@@ -1375,6 +1379,17 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     const structure = this.rootNode;
     const data = this.collectFormData(this.rootNode);
 
+    const projectFieldKey = Object.keys(data.fields || {}).find(
+      key => key.toLowerCase().includes('project')
+    );
+    const projectId = projectFieldKey ? data.fields[projectFieldKey] : null;
+  
+    if (!projectId) {
+      this.alertMessage = "Project Name/ Field is required to save and Assign.";
+      this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      return;
+    }
+
     const payload = {
       structure: structure,
       data: data,
@@ -1400,6 +1415,17 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.cancelRequest();
     const structure = this.rootNode;
     const data = this.collectFormData(this.rootNode);
+
+    const projectFieldKey = Object.keys(data.fields || {}).find(
+      key => key.toLowerCase().includes('project')
+    );
+    const projectId = projectFieldKey ? data.fields[projectFieldKey] : null;
+  
+    if (!projectId) {
+      this.alertMessage = "Project Name/ Field is required to save as draft.";
+      this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      return;
+    }
   
     const payload = {
       structure: structure,

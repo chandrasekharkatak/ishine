@@ -3552,7 +3552,8 @@ public class ProjectInsightService {
 		}
 	}
 
-	public ResponseEntity<String> deleteProjectInsightById(String id) {
+	public ResponseEntity<ServiceResponse> deleteProjectInsightById(String id) {
+		ServiceResponse response = new ServiceResponse();
 		try {
 			if (!projectInsightStructureRepository.existsById(id)) {
 	            throw new RuntimeException("Cannot delete. Project Insight Structure not found with ID: " + id);
@@ -3563,7 +3564,8 @@ public class ProjectInsightService {
 				projectInsighProjectMappingRepository.deleteById(mappingDbResponse.getProjectInsightProjectMappingId());
 			}
 			projectInsightStructureRepository.deleteById(id);
-	        return ResponseEntity.ok("Deleted successfully");
+			response.setServiceMessage("Deleted successfully");
+	        return ResponseEntity.ok(response);
 		}catch(Exception e) {
 			throw new RuntimeException("Something went wrong unable to delete Project !!", e);
 		}

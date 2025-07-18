@@ -9,7 +9,7 @@
         <div class="info-wrapper">
           <div class="form-group">
             <label [for]="field.id" *ngIf="field.optionSource != 'dependent'">
-              {{ getPascalCaseLabel(field.label) }}
+              {{ getTitleCaseLabel(field.label) }}
               <span class="text-danger" *ngIf="field.required">*</span>
             </label>
     

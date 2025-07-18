@@ -194,7 +194,7 @@ public class ProjectInsightController {
     }
 	
     @RequestMapping(value = "/deleteProjectInsightById/{id}", method = RequestMethod.GET)
-    public ResponseEntity<String> deleteProjectInsightById(@PathVariable String id) {
+    public ResponseEntity<ServiceResponse> deleteProjectInsightById(@PathVariable String id) {
     	return projectInsightService.deleteProjectInsightById(id);
     }
     
