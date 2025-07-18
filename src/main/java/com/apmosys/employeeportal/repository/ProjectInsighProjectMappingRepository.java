@@ -27,7 +27,7 @@ public interface ProjectInsighProjectMappingRepository extends JpaRepository<Pro
 		       "JOIN Project p ON p.id = pm.projectId " +
 		       "JOIN Employee e ON e.id = pm.createdBy " +
 		       "JOIN Client c ON c.id = p.clientId " +
-		       "JOIN Employee manager ON manager.id = p.projectManagerId")
+		       "LEFT JOIN Employee manager ON manager.id = p.projectManagerId")
 		List<ProjectInsighProjectMappingDTO> fetchAllProjectMappings();
 
 	ProjectInsighProjectMapping findByProjectInsightId(String id);

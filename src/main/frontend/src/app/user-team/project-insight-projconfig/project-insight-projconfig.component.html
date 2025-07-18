@@ -1,12 +1,12 @@
 <div class="dashboard-container">
   <!-- Top Summary Cards -->
-  <!-- <div class="summary-cards">
+  <div class="summary-cards">
       <div class="card insurance">
         <div class="circle"></div>
         <div class="count">05</div>
         <div class="label">INSURANCE</div>
       </div>
-    </div> -->
+    </div>
 
   <!-- Table view and filters  -->
   <div class="main-content">
@@ -268,10 +268,13 @@
               <i class="fa fa-plus"></i>
             </button>
             <button *ngIf="isGroupNode(currentNode)" class="btn btn-danger btn-sm mr-2" (click)="deleteGroup(currentNode)">
-              <i class="fa fa-trash"></i>
+              <i class="fa fa-trash">i</i>
             </button>
             <button *ngIf="isSubGroupNode(currentNode)" class="btn btn-danger btn-sm" (click)="deleteSubGroup(currentNode)">
-              <i class="fa fa-trash"></i>
+              <i class="fa fa-trash">j</i>
+            </button>
+            <button *ngIf="isSubSubGroupOrDeeper(currentNode) && !isSubGroupNode(currentNode)" class="btn btn-danger btn-sm" (click)="deleteSubSubGroupOrDeeper(currentNode)">
+              <i class="fa fa-trash">k</i>
             </button>
           </div>
         </div>
@@ -285,10 +288,6 @@
             <app-question-renderer [entity]="currentNode" [entityType]="currentNode?.formName || 'Project'"
               [renderType]="'edit'">
             </app-question-renderer>
-        
-            <!-- <ng-container [ngTemplateOutlet]="questions_card_template"
-                      [ngTemplateOutletContext]="{ entity: currentNode, entityType: currentNode?.formName || 'Project' }">
-                    </ng-container> -->
           </div>
         </div>
 

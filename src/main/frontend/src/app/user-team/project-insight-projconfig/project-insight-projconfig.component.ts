@@ -1264,6 +1264,38 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     return false;
   }
 
+  isSubSubGroupOrDeeper(node: FormNode): boolean {
+    if (!this.rootNode || node === this.rootNode) return false;
+    if (this.rootNode.children && this.rootNode.children.includes(node)) return false;
+    return this.isDescendant(this.rootNode, node);
+  }
+
+  private isDescendant(parent: FormNode, target: FormNode): boolean {
+    if (!parent.children) return false;
+    for (const child of parent.children) {
+      if (child === target) return true;
+      if (this.isDescendant(child, target)) return true;
+    }
+    return false;
+  }
+
+  deleteSubSubGroupOrDeeper(node: FormNode) {
+    this.deleteNodeRecursive(this.rootNode, node);
+  }
+
+  private deleteNodeRecursive(parent: FormNode, target: FormNode): boolean {
+    if (!parent.children) return false;
+    const idx = parent.children.indexOf(target);
+    if (idx > -1) {
+      parent.children.splice(idx, 1);
+      return true;
+    }
+    for (const child of parent.children) {
+      if (this.deleteNodeRecursive(child, target)) return true;
+    }
+    return false;
+  }
+
   deleteGroup(node: FormNode) {
     if (!this.rootNode || !this.rootNode.children) return;
     const idx = this.rootNode.children.indexOf(node);
