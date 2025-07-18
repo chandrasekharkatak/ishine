@@ -413,4 +413,9 @@ fetchInactivePOCounts(employeeReport:any){
   return this.http.post(`${this.baseUrl}` + `api/fetchInactivePOCounts`,employeeReport);
 
  }
+
+ fetchInactivePOListOfEmployee(employeeReport:any){
+  return this.http.post(`${this.baseUrl}` + `api/fetchInactivePOListOfEmployee`,employeeReport);
+
+ }
 }

@@ -111,6 +111,7 @@ export class ReportListComponent implements OnInit {
   selectedProjectId: any;
   employeeRole: any;
   selectedColumnToShow: any;
+  noOfDays: number | null = null;
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
@@ -177,6 +178,7 @@ export class ReportListComponent implements OnInit {
   employeesFor360: any[] = [];
   departments: any[] = [];
   allEmployee: any[] = [];
+  allInactivePOListOfEmployee: any[] = [];
   filteredEmployees: any[] = [];
   filteredEmployees2: any[] = [];
   allProjectPOInternal: any[] = [];
@@ -231,7 +233,8 @@ export class ReportListComponent implements OnInit {
   total1Year: string = '';
   totalAll: string = '';
   total30Days: string = '';
-  InActivePoCounts: { type: string; count: string; }[];
+  //InActivePoCounts: { type: string; count: string; }[];
+  InActivePoCounts: { type: string; count: string; noOfDays: number | null }[];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -2604,10 +2607,67 @@ export class ReportListComponent implements OnInit {
   //   { type: 'Overall', count: this.totalAll },
   // ];
 
-  onInfoClickModel(template: TemplateRef<any>, details:any): void {
-     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-    console.log('TNM stands for Time and Materials billing model.');
+  // onInfoClickModel(template: TemplateRef<any>, details:any): void {
+  //    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  //   console.log('TNM stands for Time and Materials billing model.');
+  // }
+
+//   onInfoClickModel(box: any,template: TemplateRef<any>, noOfDays: number | null): void {
+//     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+//     const tabName = this.employeeReportObj.category;
+//     const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
+//     const key = `${box}.${selectedMainFlag}`;
+//     const isActiveBox = box === this.activeBox;
+//     const category = this.selectedTab[this.activeBox];
+//     this.employeeReportObj.billableType = null;
+//     this.employeeReportObj.days = noOfDays;
+//     this.employeeReportObj.tabName = tabName ;
+    
+    
+//     console.log("Fetching with noOfDays:", this.employeeReportObj);
+  
+//     this.employeeService.fetchInactivePOListOfEmployee(this.employeeReportObj)
+//         .pipe(first())
+//         .subscribe((response: any) => {
+//           this.allInactivePOListOfEmployee = response.serviceResponse;
+//           console.log("Service Response ", this.allInactivePOListOfEmployee);
+
+//         if (response.serviceStatus == "Success") {
+//           this.allInactivePOListOfEmployee = response.serviceResponse;
+//           console.log("Response for", noOfDays, "days:", response);
+//         } else {
+  
+//         }
+  
+    
+//   })
+// }
+onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, noOfDays: number | null, projectTemplate: TemplateRef<any>): void {
+  const category = this.selectedTab[this.activeBox];
+
+  if (category === 'Project') {
+    this.modalRef = this.modalService.show(projectTemplate, { class: 'modal-xl' });
+  } else {
+    this.modalRef = this.modalService.show(defaultTemplate, { class: 'modal-xl' });
   }
+
+  this.employeeReportObj.billableType = null;
+  this.employeeReportObj.days = noOfDays;
+  this.employeeReportObj.tabName = this.employeeReportObj.category;
+
+  this.employeeService.fetchInactivePOListOfEmployee(this.employeeReportObj)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.allInactivePOListOfEmployee = response.serviceResponse;
+      } else {
+        this.allInactivePOListOfEmployee = [];
+      }
+    });
+}
+
+
+  
 
   toggleInfo1(box: any) {
     this.visibleInfo =  !this.visibleInfo ;
@@ -2682,14 +2742,24 @@ export class ReportListComponent implements OnInit {
   
           const counts = this.totalEmployeeInActivePoCount[0];
 
+          // this.InActivePoCounts = [
+          //   { type: 'Expired in last 7 Days', count: counts.totalEmpPerProjectTypeLast7days ?? '0' },
+          //   { type: 'Expired in last 30 Days', count: counts.totalEmpPerProjectTypeLast30days ?? '0' },
+          //   { type: 'Expired in last 90 Days', count: counts.totalEmpPerProjectTypeLast90days ?? '0' },
+          //   { type: 'Expired in last 180 Days', count: counts.totalEmpPerProjectTypeLast180days ?? '0' },
+          //   { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0' },
+          //   { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0' }
+          // ];
+
           this.InActivePoCounts = [
-            { type: 'Expired in last 7 Days', count: counts.totalEmpPerProjectTypeLast7days ?? '0' },
-            { type: 'Expired in last 30 Days', count: counts.totalEmpPerProjectTypeLast30days ?? '0' },
-            { type: 'Expired in last 90 Days', count: counts.totalEmpPerProjectTypeLast90days ?? '0' },
-            { type: 'Expired in last 180 Days', count: counts.totalEmpPerProjectTypeLast180days ?? '0' },
-            { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0' },
-            { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0' }
-          ];
+            { type: 'Expired in last 7 Days', count: counts.totalEmpPerProjectTypeLast7days ?? '0', noOfDays: 7 },
+            { type: 'Expired in last 30 Days', count: counts.totalEmpPerProjectTypeLast30days ?? '0', noOfDays: 30 },
+            { type: 'Expired in last 90 Days', count: counts.totalEmpPerProjectTypeLast90days ?? '0', noOfDays: 90 },
+            { type: 'Expired in last 180 Days', count: counts.totalEmpPerProjectTypeLast180days ?? '0', noOfDays: 180 },
+            { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0', noOfDays: 365 },
+            { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0', noOfDays: null }
+          ] as { type: string; count: string; noOfDays: number | null }[];
+          
 
           
   
@@ -2705,16 +2775,89 @@ export class ReportListComponent implements OnInit {
           this.total1Year = '0';
           this.totalAll = '0';
   
-          this.InActivePoCounts = [
-            { type: 'Expired in last 7 Days', count: '0' },
-            { type: 'Expired in last 30 Days', count: '0' },
-            { type: 'Expired in last 90 Days', count: '0' },
-            { type: 'Expired in last 180 Days', count: '0' },
-            { type: 'Expired in last 1 Year', count: '0' },
-            { type: 'Overall Expired', count: '0' },
-          ];
+          // this.InActivePoCounts = [
+          //   { type: 'Expired in last 7 Days', count: '0' },
+          //   { type: 'Expired in last 30 Days', count: '0' },
+          //   { type: 'Expired in last 90 Days', count: '0' },
+          //   { type: 'Expired in last 180 Days', count: '0' },
+          //   { type: 'Expired in last 1 Year', count: '0' },
+          //   { type: 'Overall Expired', count: '0' },
+          // ];
         }
       });
+  }
+
+  exportToExcelInactivePoDetails(): void {
+    if (!this.allInactivePOListOfEmployee || this.allInactivePOListOfEmployee.length === 0) {
+      return;
+    }
+    // if (this.isLeaveReportTable == true) {
+      this.excelName = 'Inactive_PO_List.xlsx';
+
+      const onlySpecificDataArr = this.allInactivePOListOfEmployee.map(
+        x => ({
+      'Employee ID': `A-${x.employeementId}`,
+      'Name' : x.name,
+      'Project Name': x.projectName || 'N/A',
+      'PO No': x.poNo || 'N/A',
+      'PO Type': x.poProjectType || 'N/A',
+      'PO Start': x.poStartDate || 'N/A',
+      'PO End': x.poEndDate || 'N/A',
+      'Client': x.clientName || 'N/A',
+      'Location': x.clientLocation || 'N/A',
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    
+
+
+
+    // const exportData = this.allInactivePOListOfEmployee.map(emp => ({
+    //   'Employee ID': `A-${emp.employeementId}`,
+    //   'Name': emp.name,
+    //   'Project Name': emp.projectName || 'N/A',
+    //   'PO No': emp.poNo || 'N/A',
+    //   'PO Type': emp.poProjectType || 'N/A',
+    //   'PO Start': emp.poStartDate || 'N/A',
+    //   'PO End': emp.poEndDate || 'N/A',
+    //   'Client': emp.clientName || 'N/A',
+    //   'Location': emp.clientLocation || 'N/A',
+    // }));
+
+    // const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
+    // const workbook: XLSX.WorkBook = {
+    //   Sheets: { 'Inactive PO List': worksheet },
+    //   SheetNames: ['Inactive PO List'],
+    // };
+    // const excelBuffer: any = XLSX.write(workbook, {
+    //   bookType: 'xlsx',
+    //   type: 'array',
+    // });
+
+    // const blobData = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    // saveAs(blobData, 'Inactive_PO_List.xlsx');
+  }
+
+  exportToExcelInactivePoDetailsProject(): void {
+    if (!this.allInactivePOListOfEmployee || this.allInactivePOListOfEmployee.length === 0) {
+      return;
+    }
+    // if (this.isLeaveReportTable == true) {
+      this.excelName = 'Inactive_PO_List_ProjectList.xlsx';
+
+      const onlySpecificDataArr = this.allInactivePOListOfEmployee.map(
+        x => ({
+      'Project Name': x.projectName || 'N/A',
+      'PO No': x.poNo || 'N/A',
+      'PO Type': x.poProjectType || 'N/A',
+      'PO Start': x.poStartDate || 'N/A',
+      'PO End': x.poEndDate || 'N/A',
+      'Client': x.clientName || 'N/A',
+      'Location': x.clientLocation || 'N/A',
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    
   }
   
   
@@ -2723,4 +2866,8 @@ export class ReportListComponent implements OnInit {
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+}
+
+function saveAs(blobData: Blob, arg1: string) {
+  throw new Error("Function not implemented.");
 }

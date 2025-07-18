@@ -6,4 +6,5 @@ export class employeeReport{
     billableType:any;
     report:any;
     tabName:any;
+    days:any ;
 }

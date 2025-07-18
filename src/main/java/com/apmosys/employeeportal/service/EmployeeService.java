@@ -7619,7 +7619,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		        		employeeDetails.setPoEndDate(object[6] != null ? object[6].toString() : null);
 		        		employeeDetails.setClientName(object[8] != null ? object[8].toString() : null);
 		        		employeeDetails.setClientLocation(object[9] != null ? object[9].toString() : null);	
-		        		employeeDetails.setPoProjectType(object[10] != null ? object[10].toString() : null);        		
+		        		employeeDetails.setDepartmentName(object[10] != null ? object[10].toString() : null);	
+		        		employeeDetails.setPoProjectType(object[11] != null ? object[11].toString() : null);        		
 		                countOfInActivePoEmployeeWise.add(employeeDetails);
 		                			                   
 		                };
