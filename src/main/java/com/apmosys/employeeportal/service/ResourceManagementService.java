@@ -4107,7 +4107,7 @@ public class ResourceManagementService {
 		return response;
 	}
 
-	@Transactional
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse combinedPOINTERNALList(ProjectFilterDTO projectFilterDTO) {
 	    ServiceResponse response = new ServiceResponse();
 	    StringBuilder logBuilder = new StringBuilder();
@@ -4665,7 +4665,7 @@ public class ResourceManagementService {
 		return response;
 	}
 
-	@Transactional
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse completionDateOfProject(ResourceManagementDTO resourceManagementDTO) {
 
 		ServiceResponse response = new ServiceResponse();
@@ -6028,7 +6028,7 @@ public class ResourceManagementService {
 		return response;
 	}
 
-	@Transactional
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse setProjectManager(ResourceManagementDTO resourceManagementDTO, Project projectDbResponse) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -6496,7 +6496,7 @@ public class ResourceManagementService {
 	    return response;
 	}
 
-	@Transactional
+	@Transactional(rollbackOn = Exception.class)
 	private ServiceResponse setProjectOverheads(ResourceManagementDTO resourceManagementDTO, Project projectDbResponse) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -7716,7 +7716,7 @@ public class ResourceManagementService {
 	    return response;
 	}
 	
-	@Transactional
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse setProjectMappingAndDefaultProject(SetProjectMappingAndDefaultProjectDTO dto) {
 		ServiceResponse response = new ServiceResponse();
 		StringBuilder logBuilder = new StringBuilder();
@@ -9452,7 +9452,7 @@ public class ResourceManagementService {
 		return response;
 	}
 	
-	@Transactional
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse poCrudOperationsInIshine(ResourceManagementDTO poData) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -9497,10 +9497,10 @@ public class ResourceManagementService {
 			}
 		}
 	}
-
+	@Transactional(rollbackOn = Exception.class)
 	private ServiceResponse handleCreate(ResourceManagementDTO poData) {
 		ServiceResponse response = new ServiceResponse();
-
+		try {
 		if (projectRepository.findByPoProjectId(poData.getId()) != null) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Project is already created in ishine!");
@@ -9515,6 +9515,14 @@ public class ResourceManagementService {
 
 		project.setClientId(clientId);
 		project.setClientLocation(String.join(", ", Optional.ofNullable(poData.getClientLocation()).orElse(new String[] {})));
+		for (String deptName : poData.getDepartment()) {
+		Department dept = departmentRepository.findByName(deptName);
+		if (dept == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Create operation failed at saving departments!");
+			throw new RuntimeException("Create operation failed at saving departments!");
+		}
+		}
 		Project savedProject = projectRepository.save(project);
 		if (savedProject == null) {
 			throw new RuntimeException("Failed to create project.");
@@ -9524,11 +9532,27 @@ public class ResourceManagementService {
 			syncResourceRequirementsTNM(savedProject, poData);
 		}
 
-		syncDepartments(savedProject, poData);
-		
+		ServiceResponse syncResponse = syncDepartments(savedProject, poData);
+		if(ServiceResponse.SOMETHING_WENT_WRONG.equals(syncResponse.getServiceStatus())) {
+			throw new DataNotFoundException("Department Data Not Found");
+		}
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		response.setServiceResponse("Project created successfully!");
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse(e.getMessage());
+//			throw new RuntimeException(e.getMessage());
+//			}
 		return response;
+		}
+		catch (Exception e){
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse(e.getMessage());
+			return response;
+			
+		}
 	}
 
 	private Project createProjectEntity(ResourceManagementDTO poData) {
@@ -9625,10 +9649,10 @@ public class ResourceManagementService {
 		return response;
 	}
 
+	@Transactional(rollbackOn = Exception.class)
 	private ServiceResponse syncDepartments(Project project, ResourceManagementDTO poData) {
 		ServiceResponse response = new ServiceResponse();
-		if (poData.getDepartment() != null) {
-
+		try {
 			for (String deptName : poData.getDepartment()) {
 				Department dept = departmentRepository.findByName(deptName);
 				if (dept == null) {
@@ -9647,9 +9671,16 @@ public class ResourceManagementService {
 					throw new RuntimeException("Failed to map department: " + deptName);
 				}
 			}
-		}
+		
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		response.setServiceResponse("Departments mapped successfully.");
+		}
+		catch(Exception e) {
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Departments mapped successfully.");
+			e.printStackTrace();
+			throw new RuntimeException(e.getMessage());
+		}
 		return response;
 	}
 	
