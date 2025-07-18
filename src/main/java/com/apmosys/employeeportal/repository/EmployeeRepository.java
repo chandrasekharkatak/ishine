@@ -851,7 +851,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id \n"
     		+ "INNER JOIN department d ON jr.dept_id = d.dept_id \n"
     		+ "INNER JOIN employee hod ON d.hod_id = hod.emp_id \n"
-    		+ "WHERE e.employmentstatus NOT LIKE 'InActive' AND DATEDIFF(CURDATE(), e.date_of_joining) < e.probation_period and e.is_confirmed_clicked = 1")
+    		+ "WHERE e.employmentstatus NOT LIKE 'InActive' AND DATEDIFF(CURDATE(), e.date_of_joining) = e.probation_period and e.is_confirmed_clicked = 1 and e.employmentstatus = 'Probation'")
     public List<Employee> getEmployeeProbationAndIsClicked();
     
     

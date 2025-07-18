@@ -1918,16 +1918,16 @@ public class CronJobService {
 			if(employeeList != null) {
 				for(Employee employee :employeeList) {
 
-		            LocalDate probationEndDate = employee.getDateOfJoining().plusDays(employee.getProbationPeriod());
+//		            LocalDate probationEndDate = employee.getDateOfJoining().plusDays(employee.getProbationPeriod());
 //		            )
-		            if (employee.getIsConfirmedClicked() == 1 && employee.getEmploymentstatus().equals("Probation") && today.isEqual(probationEndDate))
-		            {
+//		            if (employee.getIsConfirmedClicked() == 1 && employee.getEmploymentstatus().equals("Probation") && today.isEqual(probationEndDate))
+//		            {
 		            	Long hodId = employeeRepository.getDepartmentHod(employee.getEmpId());
 		            	employee.setEmploymentstatus("Confirmed");
 		            	employee.setUpdatedOn(LocalDateTime.now());
 		                employee.setUpdatedBy(Integer.parseInt(hodId.toString()));
 		                employeeRepository.save(employee);
-		            }
+//		            }
 				}
 				
 				System.out.print("++++++++++++ =========== Running"+ today);
