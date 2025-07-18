@@ -8025,6 +8025,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	}
 
 	public List<EmployeeTimesheetProjectResponse> getEmployeeAndTimesheetDetails(EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
+		List<EmployeeTimesheetProjectResponse> employeeTimesheetProjectResponseList = new ArrayList<>();
 		try {
 			employeeTimesheetProjectResponseList = employeeRepository.findEmployeeAndTimesheetDetailsWithoutPagination(
 					employeeTimesheetRequest.getStartDate().toLocalDate(),
