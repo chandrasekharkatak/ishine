@@ -9490,6 +9490,7 @@ public class ResourceManagementService {
 			exceptionDetailsForLog = e.toString();
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceResponse(e.getMessage());
+			throw e;
 //			serviceResponse.setServiceMessage(e.getMessage());
 			
 		} finally {
