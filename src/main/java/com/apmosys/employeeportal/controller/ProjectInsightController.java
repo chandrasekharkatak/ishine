@@ -208,9 +208,9 @@ public class ProjectInsightController {
     }
     
     @RequestMapping(value = "/searchProjectInsight", method = RequestMethod.GET)
-    public ResponseEntity<List<ProjectInsightStructure>> search(
+    public ResponseEntity<List<ProjectInsighProjectMappingDTO>> search(
             @RequestParam("q") String keyword) {
-        List<ProjectInsightStructure> results = projectInsightService.searchProjectInsightStructures(keyword);
+    	List<ProjectInsighProjectMappingDTO> results = projectInsightService.searchProjectInsightStructures(keyword);
         return ResponseEntity.ok(results);
     }
     

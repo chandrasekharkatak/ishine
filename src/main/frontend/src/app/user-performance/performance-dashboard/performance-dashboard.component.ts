@@ -1450,17 +1450,149 @@ export class PerformanceDashboardComponent implements OnInit {
     this.modalRef = this.modalService.show(contributionModal, { class: 'modal-xl' });
   }
 
-  openAnswerEditModalProjectInsightByProjectId(projectObj: any, alertTemplate: TemplateRef<any>, insightResponseTemplate: TemplateRef<any>, isPreview: any){
-    // let resp = this.filterAssignedTree(projectObj, this.currentUser.empId);
+  get currentNode(): FormNode {
+    return this.currentNodePath[this.currentNodePath.length - 1];
+  }
 
-    // console.log(resp, " : resprespresp");
+  onFormValueChange(node: FormNode, value: any) {
+    console.log('Form value changed:', value);
+    node.formData = value;
+    Object.assign(node.fields, value);
+  }
+
+  navigateToNode(index: number) {
+    this.currentNodePath = this.currentNodePath.slice(0, index + 1);
+  }
+
+  navigateToTreeNode(path: number[]) {
+    let node = this.rootNode;
+    const newPath = [node];
+    for (const idx of path) {
+      if (!node.children || !node.children[idx]) break;
+      node = node.children[idx];
+      newPath.push(node);
+    }
+    this.currentNodePath = newPath;
+  }
+
+  getNodeDisplayName(node: any): string {
+    if (node.formData) {
+      if (node.formData.grouptitle || node.formData.groupTitle) {
+        return node.formData.grouptitle || node.formData.groupTitle;
+      }
+      if (
+        node.formData.subgrouptitle ||
+        node.formData.subGroupTitle ||
+        node.formData.subgroupTitle
+      ) {
+        return (
+          node.formData.subgrouptitle ||
+          node.formData.subGroupTitle ||
+          node.formData.subgroupTitle
+        );
+      }
+      if (node.formData.projectname) {
+        const projectNameField = (node.fields || []).find(f => f.name === 'projectname');
+        if (projectNameField && projectNameField.options) {
+          if (Array.isArray(node.formData.projectname)) {
+            const selectedLabels = node.formData.projectname.map(val => {
+              const opt = projectNameField.options.find(opt => opt.value == val);
+              return opt ? opt.label : val;
+            });
+            if (selectedLabels.length > 0) return selectedLabels.join(', ');
+          } else {
+            const selected = projectNameField.options.find(opt => opt.value == node.formData.projectname);
+            if (selected) return selected.label;
+          }
+        }
+        return node.formData.projectname;
+      }
+      const tableField = (node.fields || []).find(f => f.type === 'table');
+      if (tableField && node.formData[tableField.name]) {
+        return `Table (${node.formData[tableField.name].length} rows)`;
+      }
+    }
+  
+    if (node.fields) {
+      if (node.fields.grouptitle || node.fields.groupTitle) return node.fields.grouptitle || node.fields.groupTitle;
+      if (node.fields.subgrouptitle || node.fields.subGroupTitle) return node.fields.subgrouptitle || node.fields.subGroupTitle;
+    }
+  
+    if (node.formName) {
+      if (node.formName.toLowerCase().includes('group')) return 'New Group';
+      if (node.formName.toLowerCase().includes('subgroup')) return 'New SubGroup';
+      if (node.formName.toLowerCase().includes('project')) return 'New Project';
+      return node.formName;
+    }
+    return 'New Node';
+  }
+
+  openAnswerEditModalProjectInsightByProjectId(projectObj: any, alertTemplate: TemplateRef<any>, insightResponseTemplate: TemplateRef<any>, isPreview: any){
+    let objectToBeShown: any = this.extractRequiredObject(projectObj, this.currentUser.empId);
+    
+    console.log("structure", objectToBeShown.projectInsightStructure.structure);
+    console.log("data", objectToBeShown.projectInsightStructure.data);
+    
     
 
-    this.rootNode = this.buildFormNodeTree(projectObj.structure);
-    this.mergeFormDataIntoStructure(this.rootNode, projectObj.data);
+    this.rootNode = this.buildFormNodeTree(objectToBeShown.projectInsightStructure.structure);
+    this.mergeFormDataIntoStructure(this.rootNode, objectToBeShown.projectInsightStructure.data);
     this.currentNodePath = [this.rootNode];
     this.startProjectForm();
+    this.openProjectInsightResponeMod(insightResponseTemplate);
   }
+  
+  extractRequiredObject(projectObj: any, empid: any): any {
+    const result: any = {
+      ...projectObj,
+      data: {
+        fields: {},
+        questions: [],
+        child: []
+      }
+    };
+
+    let matchedByFieldAssignment = false;
+
+    // 1. Check in "fields" for matching responseBy in projectInsightResponseList
+    if (projectObj.data?.questions) {
+      for (const question of projectObj.data.questions) {
+        if (question.projectResponseList && Array.isArray(question.projectResponseList)) {
+          for (const response of question.projectResponseList) {
+            if (response.responseBy === empid) {
+              matchedByFieldAssignment = true;
+              break;
+            }
+          }
+        }
+        if (matchedByFieldAssignment) break;
+      }
+    }
+
+    // If matched by field assignment, return full object but with children = []
+    if (matchedByFieldAssignment) {
+      return {
+        ...projectObj,
+        data: {
+          ...projectObj.data,
+          child: []
+        }
+      };
+    }
+
+    // 2. Otherwise, check in questions[].toAssignEmployeeList
+    if (projectObj.data?.questions) {
+      for (const question of projectObj.data.questions) {
+        if (Array.isArray(question.toAssignEmployeeList) && question.toAssignEmployeeList.includes(empid)) {
+          result.data.questions.push(question);
+        }
+      }
+    }
+
+    // Only include questions; leave fields and child empty
+    return result;
+  }
+
 
   startProjectForm() {
     this.currentNodePath = [this.rootNode];

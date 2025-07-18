@@ -956,9 +956,32 @@
 
 <ng-template #insight_response_template>
   <div class="col-md-12">
-    <app-project-insights [actionType]="actionType" [subActionType]="subActionType" [projectId]="projectId"
+    <!-- <app-project-insights [actionType]="actionType" [subActionType]="subActionType" [projectId]="projectId"
       [responseByEmpId]="responseByEmpId" [projectInsightExcelObj]="projectInsightExcelObj" [isExcelUploaded]="isExcelUploaded"
-      (closeProjectInsightResponseModalEvent)="closeProjectInsightResponseModal()"></app-project-insights>
+      (closeProjectInsightResponseModalEvent)="closeProjectInsightResponseModal()"></app-project-insights> -->
+
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li *ngFor="let node of currentNodePath; let i = index" class="breadcrumb-item"
+          [class.active]="i === currentNodePath.length - 1"
+          [attr.aria-current]="i === currentNodePath.length - 1 ? 'page' : null" style="cursor:pointer"
+          (click)="navigateToNode(i)">
+          {{ getNodeDisplayName(node) }}
+        </li>
+      </ol>
+    </nav>
+
+    <app-form-renderer [fields]="currentNode.fields" [layoutConfig]="currentNode.layoutConfig"
+      [formData]="currentNode.formData" (formValueChange)="onFormValueChange(currentNode, $event)">
+    </app-form-renderer>
+
+    <div class="row m-1 mb-2">
+      <div class="col-md-12">
+        <app-question-renderer [entity]="currentNode" [entityType]="currentNode?.formName || 'Project'"
+          [renderType]="'answer'">
+        </app-question-renderer>
+      </div>
+    </div>
   </div>
 </ng-template>
 

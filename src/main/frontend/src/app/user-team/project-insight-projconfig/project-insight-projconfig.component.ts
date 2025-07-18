@@ -105,6 +105,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   editingFieldIndex: number = -1;
   originalFieldData: any = null;
   showExistingFieldsList: boolean = false;
+  searchKeyword: any;
 
   apiList = [];
 
@@ -400,6 +401,18 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.projectInsightService.deleteProjectInsightById(this.projectInsightId).pipe(first()).subscribe({
       next: (response: any) => {
         
+      },
+      error: (error: any) => {
+        this.alertMessage = error;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      }
+    });
+  }
+
+  onGlobalSearch(){
+    this.projectInsightService.searchProjectInsight(this.searchKeyword).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.allProjectInsightProjectList = response;
       },
       error: (error: any) => {
         this.alertMessage = error;

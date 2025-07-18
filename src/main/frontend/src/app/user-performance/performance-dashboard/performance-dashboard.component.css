@@ -655,3 +655,8 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: 5px;
   font-size: 12px;
 }
+
+.breadcrumb {
+  background: transparent;
+  font-size: 0.95rem;
+}

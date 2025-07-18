@@ -13,8 +13,17 @@
     <!-- Table Section -->
     <div class="table-section" *ngIf="!isCreateForm && isTable">
       <div class="row align-items-center mb-3">
-        <div class="col-md-8">
-          <input type="text" class="form-control table-search" placeholder="Search" />
+        <div class="col-md-8 input-group">
+          <input
+            type="text"
+            class="form-control table-search"
+            placeholder="Search"
+            [(ngModel)]="searchKeyword"
+            (keyup.enter)="onGlobalSearch()"
+          />
+          <button class="btn btn-primary" type="button" (click)="onGlobalSearch()">
+            Search
+          </button>
         </div>
         <div class="col-md-4">
           <button class="btn btn-outline-primary btn-sm">

@@ -399,7 +399,7 @@
         </ng-container>
     </div>
     <ng-template #noQuestions>
-        <div class="text-muted">No questions added yet.</div>
+        <div *ngIf="entity?.questionList?.length == 0" class="text-muted">No questions added yet.</div>
     </ng-template>
 </div>
 

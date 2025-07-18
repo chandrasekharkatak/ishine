@@ -119,5 +119,9 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/getProjectInsightByAssignedToEmpId`, empObject);
   }
 
+  searchProjectInsight(keyword: string) {
+    return this.http.get(`${this.baseUrl}` + `api/searchProjectInsight?q=${encodeURIComponent(keyword)}`);
+  }
+
 
 }

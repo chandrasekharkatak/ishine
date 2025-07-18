@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.Column;
 import javax.servlet.http.HttpServletRequest;
@@ -3596,21 +3597,42 @@ public class ProjectInsightService {
         }
         return projectInsightStructureRepository.save(existing);
 	}
-	
-	public List<ProjectInsightStructure> searchProjectInsightStructures(String keyword) {
-        List<ProjectInsightStructure> all = projectInsightStructureRepository.findAll();
-        List<ProjectInsightStructure> result = new ArrayList<>();
-        for (ProjectInsightStructure pis : all) {
-            if (pis.getData() != null && containsKeyword(pis.getData(), keyword)) {
-                result.add(pis);
-            }
-        }
-        return result;
-    }
 
-    private boolean containsKeyword(FormDataDTO data, String keyword) {
+	public List<ProjectInsighProjectMappingDTO> searchProjectInsightStructures(String keyword) {
+	    String lowerKeyword = keyword.toLowerCase();
+	    List<ProjectInsightStructure> allStructures = projectInsightStructureRepository.findAll();
+	    List<ProjectInsighProjectMappingDTO> allMappings = projectInsighProjectMappingRepository.fetchAllProjectMappings();
+
+	    // Map projectInsightId -> mapping DTO
+	    Map<String, ProjectInsighProjectMappingDTO> mappingByInsightId = allMappings.stream()
+	        .filter(m -> m.getProjectInsightId() != null)
+	        .collect(Collectors.toMap(ProjectInsighProjectMappingDTO::getProjectInsightId, m -> m, (a, b) -> a));
+
+	    Set<String> addedIds = new HashSet<>();
+	    List<ProjectInsighProjectMappingDTO> result = new ArrayList<>();
+
+	    // 1. Search in MongoDB structures (FormDataDTO)
+	    for (ProjectInsightStructure structure : allStructures) {
+	        if (structure.getData() != null && containsKeyword(structure.getData(), lowerKeyword)) {
+	            ProjectInsighProjectMappingDTO mapping = mappingByInsightId.get(structure.getId());
+	            if (mapping != null && addedIds.add(mapping.getProjectInsightId())) {
+	                result.add(mapping);
+	            }
+	        } else {
+	            // 2. If not matched in data, check mapped MySQL fields
+	            ProjectInsighProjectMappingDTO mapping = mappingByInsightId.get(structure.getId());
+	            if (mapping != null && mappingContainsKeyword(mapping, lowerKeyword)) {
+	                if (addedIds.add(mapping.getProjectInsightId())) {
+	                    result.add(mapping);
+	                }
+	            }
+	        }
+	    }
+	    return result;
+	}
+
+    private boolean containsKeyword(FormDataDTO data, String lowerKeyword) {
         if (data == null) return false;
-        String lowerKeyword = keyword.toLowerCase();
 
         // 1. Search in fields
         if (data.getFields() != null) {
@@ -3637,26 +3659,32 @@ public class ProjectInsightService {
                 if (question.getDescription() != null && question.getDescription().toLowerCase().contains(lowerKeyword)) {
                     return true;
                 }
-                if (question.getOptionsList() != null) {
-                    for (OptionValueDTO option : question.getOptionsList()) {
-                        if (option.getOptionValue() != null && option.getOptionValue().toLowerCase().contains(lowerKeyword)) {
-                            return true;
-                        }
-                    }
-                }
             }
         }
 
         // 3. Recursively search in children
         if (data.getChild() != null) {
             for (FormDataDTO child : data.getChild()) {
-                if (containsKeyword(child, keyword)) {
+                if (containsKeyword(child, lowerKeyword)) {
                     return true;
                 }
             }
         }
 
         return false;
+    }
+
+    private boolean mappingContainsKeyword(ProjectInsighProjectMappingDTO mapping, String lowerKeyword) {
+        return Stream.of(
+                mapping.getProjectName(),
+                mapping.getCreatedByName(),
+                mapping.getProjectManagerName(),
+                mapping.getClient(),
+                mapping.getProjectInsightId()
+            )
+            .filter(Objects::nonNull)
+            .map(String::toLowerCase)
+            .anyMatch(s -> s.contains(lowerKeyword));
     }
 	
 	private boolean isEmpIdAssigned(FormDataDTO data, String empId) {
