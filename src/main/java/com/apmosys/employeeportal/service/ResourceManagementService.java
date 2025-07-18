@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
+import javax.management.RuntimeErrorException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
@@ -9453,6 +9454,7 @@ public class ResourceManagementService {
 	}
 	
 	@Transactional(rollbackOn = Exception.class)
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse poCrudOperationsInIshine(ResourceManagementDTO poData) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -9502,6 +9504,9 @@ public class ResourceManagementService {
 	private ServiceResponse handleCreate(ResourceManagementDTO poData) {
 		ServiceResponse response = new ServiceResponse();
 		try {
+			
+			
+		boolean is_dept = true;
 		if (projectRepository.findByPoProjectId(poData.getId()) != null) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Project is already created in ishine!");
@@ -9516,44 +9521,43 @@ public class ResourceManagementService {
 
 		project.setClientId(clientId);
 		project.setClientLocation(String.join(", ", Optional.ofNullable(poData.getClientLocation()).orElse(new String[] {})));
+		
+	
+		
+		if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
+			syncResourceRequirementsTNM(project, poData);
+		}
+		
 		for (String deptName : poData.getDepartment()) {
-		Department dept = departmentRepository.findByName(deptName);
-		if (dept == null) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Create operation failed at saving departments!");
-			throw new RuntimeException("Create operation failed at saving departments!");
+			Department dept = departmentRepository.findByName(deptName);
+			if (dept == null) {
+				is_dept = false;
+			}
+			else {
+			is_dept = true;}
 		}
-		}
-		Project savedProject = projectRepository.save(project);
-		if (savedProject == null) {
-			throw new RuntimeException("Failed to create project.");
-		}
-
-		if ("TNM".equalsIgnoreCase(savedProject.getPoProjectType())) {
-			syncResourceRequirementsTNM(savedProject, poData);
-		}
-
-		ServiceResponse syncResponse = syncDepartments(savedProject, poData);
-		if(ServiceResponse.SOMETHING_WENT_WRONG.equals(syncResponse.getServiceStatus())) {
-			throw new DataNotFoundException("Department Data Not Found");
-		}
-		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		response.setServiceResponse("Project created successfully!");
-//		}catch(Exception e) {
-//			e.printStackTrace();
-//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-//			response.setServiceResponse(e.getMessage());
-//			throw new RuntimeException(e.getMessage());
-//			}
-		return response;
-		}
-		catch (Exception e){
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse(e.getMessage());
-			return response;
+		if(is_dept) {
+			Project savedProject = projectRepository.save(project);
+			syncDepartments(savedProject, poData);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Project created successfully!");
 			
 		}
+		if(!is_dept) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Project can not be created!");
+			throw new BadRequestException("Invalid Department Name");
+		}
+		return response;
+		}
+		catch(Exception e)
+			{
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Project can not be created!");
+			return response;
+			
+			}
 	}
 
 	private Project createProjectEntity(ResourceManagementDTO poData) {
@@ -9831,9 +9835,16 @@ public class ResourceManagementService {
 		if (existingProject == null) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Project not found in Ishine Portal for PoProjectID: " + poData.getId());
-			throw new RuntimeException("Project not found in Ishine Portal for PoProjectID: " + poData.getId());
+			return response;
 		}
-
+		
+		List<Team> team = teamRepository.findTeamandIsActive(poData.getId());
+		if(!team.isEmpty())
+		{
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Team is active in Ishine Portal for PoProjectID: " + poData.getId());
+			throw new RuntimeException("Team is active in Ishine Portal for PoProjectID: " + poData.getId());
+		}
 		existingProject.setActive("false");
 		existingProject.setUpdatedBy(6L);
 		existingProject.setUpdatedOn(LocalDateTime.now());
