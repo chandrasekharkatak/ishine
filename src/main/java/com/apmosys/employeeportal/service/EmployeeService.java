@@ -572,7 +572,7 @@ public class EmployeeService {
 				employeeTeamMap.setEmpId(newEmployee.getEmpId());
 				employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
 				employeeTeamMap.setActive(2l);
-				employeeTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
+				employeeTeamMap.setStartDate(LocalDateTime.now());
 				employeeTeamMap.setEmployeeRole(employeeRole.toString());
 				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
 				employeeTeamMap.setResourceOverviewId(resrcOverviewId);	

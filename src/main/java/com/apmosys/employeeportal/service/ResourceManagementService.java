@@ -954,7 +954,7 @@ public class ResourceManagementService {
 									newEmpTeamMap.setActive(1l);
 									newEmpTeamMap.setEmployeeRole("TeamLead");
 									newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
-									newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis())); 
+									newEmpTeamMap.setStartDate(LocalDateTime.now()); 
 									newEmpTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
 									newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId() != null
 											? Long.parseLong(teamMember.getResourceOverviewId().toString())
@@ -978,7 +978,7 @@ public class ResourceManagementService {
 									newEmpTeamMap.setActive(2l); // Set active value as 2 for newly added team members
 									newEmpTeamMap.setEmployeeRole(employeeRole.toString());
 									newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
-									newEmpTeamMap.setStartDate(new Timestamp(System.currentTimeMillis())); 
+									newEmpTeamMap.setStartDate(LocalDateTime.now()); 
 									newEmpTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
 									newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId() != null
 											? Long.parseLong(teamMember.getResourceOverviewId().toString())
@@ -1105,7 +1105,7 @@ public class ResourceManagementService {
 						empTeamMap.setEmpId(newMember.getEmpId());
 						empTeamMap.setEmployeeRole("TeamLead");
 						empTeamMap.setTeamId(teamDbResponse.getTeamId());
-						empTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
+						empTeamMap.setStartDate(LocalDateTime.now());
 						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow(): null);
 						empTeamMap.setResourceOverviewId(newMember.getResourceOverviewId() != null
 								? Long.parseLong(newMember.getResourceOverviewId().toString())
@@ -1129,7 +1129,7 @@ public class ResourceManagementService {
 						empTeamMap.setEmpId(newMember.getEmpId());
 						empTeamMap.setEmployeeRole(employeeRole.toString());
 						empTeamMap.setTeamId(teamDbResponse.getTeamId());
-						empTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
+						empTeamMap.setStartDate(LocalDateTime.now());
 						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
 						empTeamMap.setResourceOverviewId(newMember.getResourceOverviewId() != null
 								? Long.parseLong(newMember.getResourceOverviewId().toString())
@@ -4638,7 +4638,7 @@ public class ResourceManagementService {
 								LocalTime.now().getSecond());
 					}
 
-					findResource.setStartDate(Timestamp.valueOf(startDateTime));
+					findResource.setStartDate(LocalDateTime.now());
 					// String str = resourceManagementDTO.getStartDate();
 					// LocalDate date = LocalDate.parse(str, formatter);
 					// LocalDateTime startDateTime = date.atStartOfDay();
@@ -7753,7 +7753,7 @@ public class ResourceManagementService {
 						empTeamMap.setEmpId(newMember.getEmpId());
 						empTeamMap.setEmployeeRole(employeeRole.toString());
 						empTeamMap.setTeamId(dto.getTeamId());
-						empTeamMap.setStartDate(new Timestamp(System.currentTimeMillis()));
+						empTeamMap.setStartDate(LocalDateTime.now());
 						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
 						empTeamMap.setResourceOverviewId(newMember.getResourceOverviewId() != null
 								? Long.parseLong(newMember.getResourceOverviewId().toString())
@@ -9312,7 +9312,7 @@ public class ResourceManagementService {
 	        EmployeeTeamMap map = new EmployeeTeamMap();
 	        map.setTeamId(team.getTeamId());
 	        map.setEmpId(member.getEmpId());
-	        map.setStartDate(new Timestamp(System.currentTimeMillis()));
+	        map.setStartDate(LocalDateTime.now());
 	        map.setCreatedBy(member.getCreatedBy() != null ? member.getCreatedBy() : createdBy);
 	        map.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 	        map.setIsShadow(member.getIsShadow());
@@ -9475,11 +9475,11 @@ public class ResourceManagementService {
 			}
 			String requestType = poData.getRequestType();
 			if ("create".equalsIgnoreCase(requestType)) {
-				return handleCreate(poData);
+				serviceResponse =  handleCreate(poData);
 			} else if ("update".equalsIgnoreCase(requestType)) {
-				return handleUpdate(poData);
+				serviceResponse =  handleUpdate(poData);
 			} else if ("delete".equalsIgnoreCase(requestType)) {
-				return handleDelete(poData);
+				serviceResponse =  handleDelete(poData);
 			} else {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 				throw new BadRequestException("Invalid request type: " + requestType);
@@ -9490,12 +9490,13 @@ public class ResourceManagementService {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceResponse(e.getMessage());
 //			serviceResponse.setServiceMessage(e.getMessage());
-			return serviceResponse;
+			
 		} finally {
 			if (initialLog != null) {
 				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
 			}
 		}
+		return serviceResponse;
 	}
 	@Transactional(rollbackOn = Exception.class)
 	private ServiceResponse handleCreate(ResourceManagementDTO poData) {

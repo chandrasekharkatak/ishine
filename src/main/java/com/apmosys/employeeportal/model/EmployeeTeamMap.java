@@ -36,7 +36,7 @@ public class EmployeeTeamMap {
 	private Long jobRoleId;
 	private Long active;
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = true ,updatable = true)
-	private Timestamp startDate;
+	private LocalDateTime startDate;
 	
 	private String employeeRole;
 	
