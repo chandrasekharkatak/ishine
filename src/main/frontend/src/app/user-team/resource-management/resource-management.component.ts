@@ -2271,6 +2271,13 @@ isAddButtonDisabled(): boolean {
     this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
   }
 
+  public getDisplayProjectStatus(project: any): string {
+  if (project.draftStatus === 'Approved' && project.status != 'NA'  ) {
+    return 'In Progress';
+  }
+  return project.projectStatus ? project.projectStatus : 'NA';
+}
+
   openRejectModal(template: TemplateRef<any>, projectObj: any) {
     this.selectedProjToReject = projectObj;
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
@@ -3154,8 +3161,8 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
     this.getTeamListByProjectName(project);
     this.getEmployeeByNameAndEmpld();
 
-    this.modalRef1 = this.modalService.show(template, { class: 'custom-modal' });
-    // this.modalRef1 = this.modalService.show(template, { class: 'modal-lg' });
+    // this.modalRef1 = this.modalService.show(template, { class: 'custom-modal'});
+    this.modalRef1 = this.modalService.show(template, { class: 'modal-xl' });
   }
 
   openTeamMembersModal(template: any, projectObj, currentTeam) {
