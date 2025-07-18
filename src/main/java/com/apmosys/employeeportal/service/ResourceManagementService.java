@@ -9454,7 +9454,6 @@ public class ResourceManagementService {
 	}
 	
 	@Transactional(rollbackOn = Exception.class)
-	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse poCrudOperationsInIshine(ResourceManagementDTO poData) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
