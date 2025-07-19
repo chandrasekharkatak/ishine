@@ -97,8 +97,9 @@ public class TimesheetDTO {
 	private List<EmployeeTimesheetDto> timeSheet;
 	
 	private String TeamLeadName;
-	
-	
-	
+
 	private Long currentUser;
+
+	private String isApmosysProduct;
+	
 }

@@ -25,6 +25,9 @@ export class UtilityService {
     if(isConsultant == "true"){
       return "A-".concat(emp);
     }
+    // else if(isApmosysProduct){
+    //   return emp;
+    // }
     else 
       return "A-".concat(emp);
   }
