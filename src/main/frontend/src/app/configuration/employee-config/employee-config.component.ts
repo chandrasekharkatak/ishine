@@ -180,8 +180,8 @@ export class EmployeeConfigComponent implements OnInit {
   filters: any = {};
   filterOnhistory = {};
   isSearchEnabled: boolean = false;
-  employeeActiveColumns: any[] = ['employeementId', 'employeeType', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
-  employeeInActiveColumns: any[] = ['employeementId', 'employeeType', 'name', 'email', 'employmentstatus', 'employmentReleaseStatus', 'managerName', 'departmentName', 'dateOfJoining', 'dateOfRelieving', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName'];
+  employeeActiveColumns: any[] = ['employmentIdAcToET', 'employeeType', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
+  employeeInActiveColumns: any[] = ['employmentIdAcToET', 'employeeType', 'name', 'email', 'employmentstatus', 'employmentReleaseStatus', 'managerName', 'departmentName', 'dateOfJoining', 'dateOfRelieving', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName'];
   draftEmployeeColumns: any[] = ['employeementId', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'updateApplicationStatus']
   domainColumns: any[] = ['blank', 'domainName', 'createdByName', 'createdOn']
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
@@ -2096,6 +2096,8 @@ export class EmployeeConfigComponent implements OnInit {
             employeeObj.employeeType = 'Consultant';
           else if (employeeObj.isApprenticeship == 'true')
             employeeObj.employeeType = 'Apprentice';
+          else if(employeeObj.isApmosysProduct == 'true')
+             employeeObj.employeeType = 'Apmosys Product';
           else
             employeeObj.employeeType = 'Regular';
         });

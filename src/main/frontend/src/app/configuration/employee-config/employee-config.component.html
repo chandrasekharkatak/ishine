@@ -1558,7 +1558,7 @@
                             <tr id="employeeInfoTHeadTr">
                                 <!-- <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
                             <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>	 -->
-                                <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id
+                                <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="employeeType|string">Type</th>
                                 <th scope="col" class="info-label" mat-sort-header="name|string">Full Name</th>
@@ -1605,7 +1605,7 @@
                                 *ngFor="let employee of allEmployeeList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: items, currentPage: page }, let i = index">
                                 <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
                             <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
-                                <td>{{employee.employeementId}}</td>
+                                <td>{{employee.employmentIdAcToET}}</td>
                                 <td>{{employee.employeeType}}</td>
                                 <td id="clickablefor360" *ngIf="userMapping.employee_360"
                                     [navigateToEmployee360]="employee.empId" style="cursor: pointer;"

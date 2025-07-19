@@ -3346,8 +3346,24 @@ public class EmployeeService {
 					empDTO.setHodId(object[84] != null ? Long.parseLong(object[84].toString()) : null );
 				    empDTO.setHodName(object[85] != null ? object[85].toString() : null);
 				    empDTO.setHodDepartmentName(object[86] != null ? object[86].toString() : null);
+				    
+				    
+				    empDTO.setIsApmosysProduct(object[89] != null ? object[89].toString() : null);			
 					
-					
+				    
+				    String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
+				    String isConsultant = empDTO.getIsConsultant();
+				    String isApmosysProduct = empDTO.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isConsultant)) {
+				            empDTO.setEmploymentIdAcToET("CS-" + employmentId);
+				        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				            empDTO.setEmploymentIdAcToET("AP-" + employmentId);
+				        } else {
+				            empDTO.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
 					
 					if (object[87] != null && object[72] != null) {
 		                String projectIdStr = object[87].toString().trim();

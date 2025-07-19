@@ -338,6 +338,7 @@ this.name = name;
     
     //added
     private String isApmosysProduct;
+    private String employmentIdAcToET;
     
     
     
