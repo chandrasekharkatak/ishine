@@ -149,8 +149,8 @@ public class ProjectController {
 
 	
 	@RequestMapping(value = "/getMilestoneById", method = RequestMethod.GET)
-	public ResponseEntity<ServiceResponse> getMilestoneById(@RequestParam Long milestoneId) {
-		return ResponseEntity.ok(projectService.getMilestoneById(milestoneId));
+	public ResponseEntity<FCProjectMilestoneDTO> getMilestoneById(@RequestParam Long milestoneId) {
+		return ResponseEntity.ok(projectService.getMilestoneDocument(milestoneId));
 	}
 
 	@GetMapping(value = "/getResourceRequirementFromPoPortal")

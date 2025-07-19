@@ -1595,7 +1595,7 @@
                         <input type="text" disabled [(ngModel)]="projectObj.state" />
                     </div>
                 </div>
-                <div class="row" *ngIf="projectObj?.poProjectType == 'Fixed Cost'">
+                <div class="row" *ngIf="projectObj?.poProjectType?.toLowerCase() == 'fixed cost'">
                     <div class="col-12 d-flex justify-content-end">
                         <h3 (click)="showProjectMilestones(projectObj)" class="milestone-link">Show All Milestone</h3>
                     </div>
@@ -2995,10 +2995,10 @@
 
                                 
                                 <button *ngIf="milestone.status === 'Completed'" class="btn btn-sm btn-info" title="View Document"
-                                    (click)="viewMilestoneFile(milestone.id)">
+                                    (click)="viewFiles(milestone.id)">
                                     <i class="fas fa-file-alt"></i> 
                                 </button>
-
+                                
 
 
 

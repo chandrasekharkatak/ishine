@@ -8164,8 +8164,10 @@ public class ResourceManagementService {
 		ApiLog initialLog = null;
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = httpRequest.getRequestURI().toString();
 
 		try {
+			
 			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),"getProjectStatusByPoProjectId", "PoPortal", null, httpRequest);
 			if (poProjectId == null || poProjectId.isEmpty()){
 				response.setServiceResponse("PoProject Id cannot be null!");
@@ -8204,7 +8206,7 @@ public class ResourceManagementService {
 			exceptionDetailsForLog = e.toString();
 		} finally {
 			if (initialLog != null) {
-				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+				apiLogUtility.endLog(initialLog.getId(),sourceSystem ,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
 			}
 		}
 		return response;
@@ -9464,6 +9466,8 @@ public class ResourceManagementService {
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "poCrudOperationsInIshine", "PoPortal", null ,httpRequest);
 
+		String sourceSystem = httpRequest.getRequestURI().toString();
+		
 		if (poData == null) {
 			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 			throw new BadRequestException("No data received from PoPortal");
@@ -9485,6 +9489,7 @@ public class ResourceManagementService {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 				throw new BadRequestException("Invalid request type: " + requestType);
 			}
+			finalHttpStatusCode = HttpStatus.OK.value();
 		} catch (Exception e) {
 			e.printStackTrace();
 			exceptionDetailsForLog = e.toString();
@@ -9495,7 +9500,7 @@ public class ResourceManagementService {
 			
 		} finally {
 			if (initialLog != null) {
-				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
 			}
 		}
 		return serviceResponse;

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -87,6 +88,9 @@ public class PoPortalAPIService {
 	@Value("${poPortal.api.syncProject}")
 	private String reversesyncurl;
 	
+	@Value("${poPortal.api.getMilestoneDoc}")
+	private String getDocumentUrl;
+	
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
 	
@@ -148,7 +152,7 @@ public class PoPortalAPIService {
 			return serviceResponse;
 		} finally {
 			String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-			apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+			apiLogUtility.endLog(initialLog.getId(),url ,finalHttpStatusCode, finalLogDetails, httpRequest);
 		}
 		return serviceResponse;
 	}
@@ -258,7 +262,7 @@ public class PoPortalAPIService {
 		} finally {
 			if (initialLog != null && initialLog.getId() != null) {
 				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+				apiLogUtility.endLog(initialLog.getId(),sendFileUrl ,finalHttpStatusCode, finalLogDetails, httpRequest);
 			}
 		}
 		return serviceResponse;
@@ -300,7 +304,7 @@ public class PoPortalAPIService {
 		} finally {
 			if (initialLog != null) {
 				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+				apiLogUtility.endLog(initialLog.getId(), allPoPortalProjects,finalHttpStatusCode, finalLogDetails, httpRequest);
 			}
 		}
 		return serviceResponse;
@@ -315,6 +319,7 @@ public class PoPortalAPIService {
         ResponseEntity<List<ResourceRequirementResponse>> apiResponse = null;
         try {
         	
+        	String url;
         	initialLog = apiLogUtility.startLog(traceId, "getAllResourceRequirementForProject", "Ishine", getCurrentUserId(), httpRequest);
 	        if (initialLog == null || initialLog.getId() == null) {
 	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -326,7 +331,7 @@ public class PoPortalAPIService {
 	        headers.set("X-Trace-Id", traceId);
 	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
 	        HttpEntity<?> entity = new HttpEntity<>(headers);
-	        String url = poPortalProjectByIdURL + projectId;
+	        url = poPortalProjectByIdURL + projectId;
 
 			apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<List<ResourceRequirementResponse>>() {});
             finalHttpStatusCode = apiResponse.getStatusCodeValue();
@@ -346,7 +351,7 @@ public class PoPortalAPIService {
         } finally {
         	if (initialLog != null) {
 				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+				apiLogUtility.endLog(initialLog.getId(),poPortalProjectByIdURL,finalHttpStatusCode, finalLogDetails, httpRequest);
 			}
         }
         return serviceResponse;
@@ -389,7 +394,7 @@ public class PoPortalAPIService {
         } finally {
         	if (initialLog != null) {
 				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+				apiLogUtility.endLog(initialLog.getId(),poPortalCountById ,finalHttpStatusCode, finalLogDetails, httpRequest);
 			}
         }
         return serviceResponse;
@@ -447,7 +452,7 @@ public class PoPortalAPIService {
 		} finally {
 			if (initialLog != null) {
 				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+				apiLogUtility.endLog(initialLog.getId(),syncDepartmentWithPoPortal, finalHttpStatusCode, finalLogDetails, httpRequest);
 			}
 		}
 		return serviceResponse;
@@ -489,7 +494,7 @@ public class PoPortalAPIService {
 			return serviceResponse;
 		} finally {
 			String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-			apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+			apiLogUtility.endLog(initialLog.getId(), isDeparmentUsedInPoPortal,finalHttpStatusCode, finalLogDetails, httpRequest);
 		}
 		return serviceResponse;
 	}
@@ -529,7 +534,7 @@ public class PoPortalAPIService {
 			exceptionDetailsForLog = e.toString();
 		} finally {
 			String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-			apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+			apiLogUtility.endLog(initialLog.getId(), deleteDeparmentFromPoPortal,finalHttpStatusCode, finalLogDetails, httpRequest);
 		}
 	}
 	
@@ -581,7 +586,7 @@ public class PoPortalAPIService {
 		} finally {
 			if (initialLog != null) {
 				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+				apiLogUtility.endLog(initialLog.getId(), syncJobRoleWithPoPortal,finalHttpStatusCode, finalLogDetails, httpRequest);
 			}
 		}
 		return serviceResponse;
@@ -623,7 +628,7 @@ public class PoPortalAPIService {
 			return serviceResponse;
 		} finally {
 			String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-			apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+			apiLogUtility.endLog(initialLog.getId(),isJobRoleUsedInPoPortal ,finalHttpStatusCode, finalLogDetails, httpRequest);
 		}
 		return serviceResponse;
 	}
@@ -663,7 +668,7 @@ public class PoPortalAPIService {
 			exceptionDetailsForLog = e.toString();
 		} finally {
 			String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
-			apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, finalLogDetails, httpRequest);
+			apiLogUtility.endLog(initialLog.getId(),deleteJobRoleFromPoPortal ,finalHttpStatusCode, finalLogDetails, httpRequest);
 		}
 	}
 	
@@ -710,7 +715,7 @@ public class PoPortalAPIService {
 	        serviceResponse.setServiceError(e.getMessage());
 	    } finally {
 	        if (initialLog != null) {
-	            apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+	            apiLogUtility.endLog(initialLog.getId(),reversesyncurl ,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
 	        }
 	    }
 	    return serviceResponse;
@@ -725,5 +730,55 @@ public class PoPortalAPIService {
 		UserSession existingUserSession = userSessionRepo.findBySessionKey(sessionToken);
 		return existingUserSession != null ? existingUserSession.getEmpId() : null;
 	}	
+	
+	public FCProjectMilestoneDTO getMilestoneDocumentFromExternalApi(Long milestoneId) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    ApiLog initialLog = null;
+	    String traceId = UUID.randomUUID().toString();
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+	    String exceptionDetailsForLog = null;
+
+	    try {
+	        if (milestoneId == null) {
+	            throw new IllegalArgumentException("Milestone ID cannot be null.");
+	        }
+
+	        initialLog = apiLogUtility.startLog(traceId, "getMilestoneDocument", "Ishine", getCurrentUserId(), httpRequest);
+	
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.set("X-Trace-Id", traceId);
+	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+	        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+	       
+	        String fullUrl = getDocumentUrl + milestoneId; 
+	        
+	        RestTemplate restTemplate = new RestTemplate();
+	        ResponseEntity<FCProjectMilestoneDTO> apiResponse = restTemplate.exchange(
+	            fullUrl,
+	            HttpMethod.GET,
+	            requestEntity,
+	            FCProjectMilestoneDTO.class 
+	        );
+
+	        if (apiResponse.getStatusCode() == HttpStatus.OK && apiResponse.getBody() != null) {
+	            finalHttpStatusCode = HttpStatus.OK.value();
+	            return apiResponse.getBody();
+	        } else {
+	            exceptionDetailsForLog = "External API returned non-OK status: " + apiResponse.getStatusCode();
+	            finalHttpStatusCode = apiResponse.getStatusCodeValue();
+	            throw new HttpClientErrorException(apiResponse.getStatusCode(), "Failed to retrieve document from external service.");
+	        }
+
+	    } catch (Exception e) {
+	        exceptionDetailsForLog = e.toString();
+	        e.printStackTrace();
+	        throw new RuntimeException("An unexpected error occurred.", e);
+	    } finally {
+	        if (initialLog != null && initialLog.getId() != null) {
+	            apiLogUtility.endLog(initialLog.getId(),getDocumentUrl ,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+	        }
+	    }
+	}
 	
 }
