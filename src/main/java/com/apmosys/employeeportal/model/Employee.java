@@ -200,7 +200,7 @@ public class Employee {
 	@Column(name = "is_apprenticeship")
 	private String isApprenticeship;
 	
-	@Column(name = "is_apmosys_product")
+	@Column(name = "is_apmosys_product", length = 10)
 	private String isApmosysProduct;
 	
 	
