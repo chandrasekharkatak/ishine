@@ -137,4 +137,7 @@ public class DraftEmployee {
 	private String isConsultant;
 	private String isApprenticeship;
 	
+	//added 
+	private String isApmosysProduct;
+	
 }

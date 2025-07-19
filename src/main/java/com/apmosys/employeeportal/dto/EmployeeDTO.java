@@ -335,6 +335,12 @@ this.name = name;
     private String deptName;
     private List<Long> deptId;
     private Integer days;
+    
+    //added
+    private String isApmosysProduct;
+    
+    
+    
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
     public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
             Long mobileNo, Long managerId, String managerName, String jobRoleName,
