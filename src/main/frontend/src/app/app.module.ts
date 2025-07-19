@@ -142,6 +142,7 @@ import { EmployeeUpdateListComponent } from './user-update-info/employee-update-
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 import{TimesheetCreateSelfComponent} from './timesheet-create-self/timesheet-create-self.component';
+import { MatDialogModule } from '@angular/material/dialog';
 registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 // 
@@ -156,6 +157,8 @@ import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequ
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
+import { ViewImageComponent } from './user-team/view-image/view-image.component';
+import { MatIconModule } from '@angular/material/icon';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -281,8 +284,8 @@ import { ReimbursmentConfigComponent } from './configuration/reimbursment-config
      SafePipe,
      TravelConfigComponent,
      ReimbursmentConfigComponent,
-     TimesheetCreateSelfComponent
-  
+     TimesheetCreateSelfComponent,
+      ViewImageComponent
 
     //TestComponent
   ],
@@ -310,6 +313,8 @@ import { ReimbursmentConfigComponent } from './configuration/reimbursment-config
     MatTableModule,
     MatExpansionModule,
     DragDropModule,
+    MatIconModule,
+    MatDialogModule,
     NgxMatSelectModule.forRoot({
       maxWidthForMobileView: 600,
       inFirstLoadCallSearcher: true,

@@ -41,7 +41,8 @@ import { TeamService } from 'src/app/services/team.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { environment } from 'src/environments/environment';
-
+import { ViewImageComponent } from '../view-image/view-image.component';
+import { MatDialog } from '@angular/material/dialog';
 
 
 
@@ -493,6 +494,8 @@ export class ResourceManagementComponent implements OnInit {
   isApproved:boolean = false;
   advanceFilter: any;
   skipSelectionChange: boolean = false;
+  ;
+  notificationService: any;
 
 
   constructor(
@@ -513,6 +516,7 @@ export class ResourceManagementComponent implements OnInit {
     private breadcrumbService: BreadcrumbService,
     private employee360Service: Employee360Service,
     private sanitizer: DomSanitizer,
+    private dialog:MatDialog
   ) {
 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -5036,7 +5040,6 @@ filteredProjects: any[] = [];
       errors = 'Status is required for milestone';
     }
 
-    // Document/file validation
     else if (!this.selectedFile) {
       isValid = false;
       errors = 'Please upload a document for the milestone';
@@ -5067,7 +5070,6 @@ filteredProjects: any[] = [];
         setTimeout(() => {
           this.updateMilestone();
         }, 2000);
-        // this.openProjectLineItemListModal();
         this.closeUpdateProjectMilestoneModal();
 
       } else {
@@ -5079,31 +5081,70 @@ filteredProjects: any[] = [];
 
 
 
-  viewMilestoneFile(milestoneId: number): void {
-    this.projectService.getMilestoneById(milestoneId).subscribe({
-      next: (res) => {
-        if (res.serviceStatus === 'Success') {
-          const milestone = res.serviceResponse;
-          if (milestone.documentBase64) {
-            const mimeType = this.getMimeType(milestone.documentName);
-            const base64Data = `data:${mimeType};base64,${milestone.documentBase64}`;
-            this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(base64Data);
-            setTimeout(() => {
-              this.viewDocument();
-            }, 2000);
+  // viewMilestoneFile(milestoneId: number): void {
+  //   this.projectService.getMilestoneById(milestoneId).subscribe({
+  //     next: (res) => {
+  //       if (res.serviceStatus === 'Success') {
+  //         const milestone = res.serviceResponse;
+  //         if (milestone.documentBase64) {
+  //           const mimeType = this.getMimeType(milestone.documentName);
+  //           const base64Data = `data:${mimeType};base64,${milestone.documentContent}`;
+  //           this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(base64Data);
+  //           setTimeout(() => {
+  //             this.viewDocument();
+  //           }, 2000);
 
-          } else {
-            alert('No document available for this milestone.');
-          }
-        } else {
-          console.error(res.serviceResponse);
-        }
-      },
-      error: (err) => {
-        console.error('Failed to retrieve milestone:', err);
+  //         } else {
+  //           alert('No document available for this milestone.');
+  //         }
+  //       } else {
+  //         console.error(res.serviceResponse);
+  //       }
+  //     },
+  //     error: (err) => {
+  //       console.error('Failed to retrieve milestone:', err);
+  //     }
+  //   });
+  // }
+
+
+  getFileType(filename: string): string {
+  const extension = filename.split('.').pop()?.toLowerCase();
+  switch (extension) {
+    case 'png': return 'image/png';
+    case 'jpg':
+    case 'jpeg': return 'image/jpeg';
+    case 'pdf': return 'application/pdf';
+    default: return 'application/octet-stream';
+  }
+}
+
+ viewFiles(mileStoneId:any){
+ this.projectService.getMilestoneById(mileStoneId).subscribe((res:any)=>{
+  if (res.documentContent && res.documentName) {
+    const fileType = this.getFileType(res.documentName);
+    const imageDataUrl = `data:${fileType};base64,${res .documentContent}`;
+    console.log("image url"+imageDataUrl)
+    this.dialog.open(ViewImageComponent, {
+      width: '80%',
+      data: {
+        imageUrl: imageDataUrl,
+        fileName: res.documentName
       }
     });
+  }else{
+    this.notificationService.showErrorMessage("image is not available")
   }
+
+ },
+  (error) => {
+              this.notificationService.showErrorMessage(error.error.message);
+            }
+          )
+
+
+}
+
 
 
   getMimeType(fileName: string): string {
