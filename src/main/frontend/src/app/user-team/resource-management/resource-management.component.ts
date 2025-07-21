@@ -2258,7 +2258,7 @@ isAddButtonDisabled(): boolean {
     }
     //console.log(this.previewTeamList, " : this.previewTeamList");
 
-    this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   openProjectPreviewModal(template: TemplateRef<any>, project: any) {
@@ -2272,7 +2272,7 @@ isAddButtonDisabled(): boolean {
     this.setManagerName(project);
     this.getTeamListByProjectName(project);
 
-    this.modalRef = this.modalService.show(template, { class: 'custom-modal' });
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   public getDisplayProjectStatus(project: any): string {
