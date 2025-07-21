@@ -791,6 +791,24 @@ public class DraftEmployeeService {
 					empDTO.setDepartmentName(object[9] != null ? object[9].toString() : null);
 					empDTO.setIsConsultant(object[10] != null ? object[10].toString() : null);
 					empDTO.setIsApprenticeship(object[11] != null ? object[11].toString() : null);
+					empDTO.setIsApmosysProduct(object[12] != null ? object[12].toString() : null);
+					
+					String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
+				    String isConsultant = empDTO.getIsConsultant();
+				    String isApmosysProduct = empDTO.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isConsultant)) {
+				            empDTO.setEmploymentIdAcToET("CS-" + employmentId);
+				        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				            empDTO.setEmploymentIdAcToET("AP-" + employmentId);
+				        } else {
+				            empDTO.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
+					
+					
+					
 					
 					dtoList.add(empDTO);
 				});

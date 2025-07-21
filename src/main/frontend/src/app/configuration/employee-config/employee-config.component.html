@@ -55,11 +55,12 @@
                                                     <option value="Regular">On Roll</option>
                                                     <option value="Consultant">Consultant</option>
                                                     <option value="Apprentice">Apprentice</option>
+                                                    <option value="Apmosys Product">Apmosys Product</option>
                                                 </select>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0">
+                                    <!-- <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Emp
@@ -69,14 +70,36 @@
                                                     class="form-control" maxlength="8" autocomplete="none"
                                                     [(ngModel)]="employeeObj.employeementId"
                                                     (blur)="checkEmployeementId(alert_message)" [disabled]="isUpdation">
-                                                <!-- <input *ngIf="!isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> -->
-                                                <!-- <input *ngIf="!isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> -->
-                                                <!-- <input *ngIf="isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly> -->
-                                                <!-- <input *ngIf="isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly>  -->
+                                                <input *ngIf="!isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> 
+                                                <input *ngIf="!isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
+                                                <input *ngIf="isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" readonly>
+                                                 <input *ngIf="isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" readonly> 
+                                            </div>
+                                        </div>
+                                    </div> -->
+
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">
+                                                    <span class="text-danger">*</span>Emp Id
+                                                </label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">
+                                                            {{ getEmpIdPrefix(employeeObj.employeeType) }}
+                                                        </span>
+                                                    </div>
+                                                    <input type="text" (keypress)="fieldRestictCharacter($event)"
+                                                        class="form-control" maxlength="8" autocomplete="none"
+                                                        [(ngModel)]="employeeObj.employeementId"
+                                                        (blur)="checkEmployeementIdWithDifferentPrefix(alert_message)"
+                                                        [disabled]="isUpdation">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1204,7 +1227,7 @@
                                         </div>
                                     </div>
 
-                                   
+
                                     <!-- Resource Requirement Dropdown -->
                                     <div class="col-md-4 mb-0" *ngIf="showResourceRequirementDropdown && !isUpdation">
                                         <div class="info-wrapper">
@@ -1558,7 +1581,8 @@
                             <tr id="employeeInfoTHeadTr">
                                 <!-- <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
                             <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>	 -->
-                                <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id
+                                <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee
+                                    Id
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="employeeType|string">Type</th>
                                 <th scope="col" class="info-label" mat-sort-header="name|string">Full Name</th>
@@ -1621,11 +1645,11 @@
                                     {{employee.employmentReleaseStatus}}
                                 </td> -->
                                 <ng-container *ngIf="!isActiveTable">
-                                <td>
-                                  <ng-container *ngIf="employee.employmentStatus != 'InActive'">
-                                    {{ employee.employmentReleaseStatus  }}
-                                  </ng-container>
-                                </td>
+                                    <td>
+                                        <ng-container *ngIf="employee.employmentStatus != 'InActive'">
+                                            {{ employee.employmentReleaseStatus }}
+                                        </ng-container>
+                                    </td>
                                 </ng-container>
                                 <td id="clickablefor360" *ngIf="userMapping.employee_360"
                                     [navigateToEmployee360]="employee.managerId" style="cursor: pointer;"

@@ -212,4 +212,5 @@ export class Employee{
 	isShadowResource:any;
 	defaultTeamEmployeeRole:any;
 	selectedResourceOverviewId:any;
+	isApmosysProduct:any;
 }

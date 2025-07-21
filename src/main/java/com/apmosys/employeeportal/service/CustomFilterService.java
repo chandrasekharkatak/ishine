@@ -966,14 +966,13 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 						+ "    e.experience, e.billable, e.child1, e.child2, e.child3, e.mothers_name, e.spouse, \n"
 						+ "    e.total_experience, emp_proj_client.project_name, emp_proj_client.client_name, emp_proj_client.project_id, e.updated_on, \n"
 						+ "    e4.name AS createdByName, e3.name AS updatedByName, e.designation_id, de.designation_name, \n"
-						+ "    e.updated_by, e.billable_type, emp_proj_client.team_name, \n"  // Added comma here
+						+ "    e.updated_by, e.billable_type, emp_proj_client.team_name,e.is_consultant, e.is_apprenticeship \n"  // Added comma here
 						+ "    emp_proj_client.po_no, \n"
 						+ "    emp_proj_client.po_start_date, emp_proj_client.po_end_date, emp_proj_client.po_project_type, \n"
 						+ " \n"
-						+"  e.is_consultant, e.is_apprenticeship,\n" 
 						+ "    (SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) \n"
 						+ "     FROM employee e_profile \n"
-						+ "     WHERE e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n"
+						+ "     WHERE e_profile.emp_id = e.emp_id) AS profile_completion_percentage,e.is_apmosys_product \n"
 						+ "\n"
 						+ "FROM employee e\n"
 						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
@@ -1023,7 +1022,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 								+ "\n"
 								+ "    (SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) \n"
 								+ "     FROM employee e_profile \n"
-								+ "     WHERE e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n"
+								+ "     WHERE e_profile.emp_id = e.emp_id) AS profile_completion_percentage ,e.is_apmosys_product\n"
 								+ "\n"
 								+ "FROM employee e\n"
 								+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
@@ -1436,6 +1435,21 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
                     empDTO.setPoStartDate(object[74] != null ? object[74].toString() : null);
 					empDTO.setPoEndDate(object[75] != null ? object[75].toString() : null);
 					empDTO.setPoProjectType(object[76] != null ? object[76].toString() : null);
+					empDTO.setIsApmosysProduct(object[78] != null ? object[78].toString() : null);	
+					
+					String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
+				    String isConsultant = empDTO.getIsConsultant();
+				    String isApmosysProduct = empDTO.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isConsultant)) {
+				            empDTO.setEmploymentIdAcToET("CS-" + employmentId);
+				        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				            empDTO.setEmploymentIdAcToET("AP-" + employmentId);
+				        } else {
+				            empDTO.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
 
 
 

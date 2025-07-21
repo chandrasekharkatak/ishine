@@ -541,6 +541,8 @@ public class EmployeeService {
 			employee.setDesignationId(employeedto.getDesignationId());
 			employee.setIsConsultant(employeedto.getIsConsultant());
 			employee.setIsApprenticeship(employeedto.getIsApprenticeship());
+			employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());	
+			
 			
 			if ("No".equals(employeedto.getOnbenchDate())) {
 			    // Keep the existing value (no need to set it again)
@@ -1214,8 +1216,8 @@ public class EmployeeService {
 					empDTO.setReferedType(object[73] != null ? object[73].toString() : null);
 					empDTO.setReferedName(object[74] != null ? object[74].toString() : null);
 
-					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);			
-					
+					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);		
+					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);			
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -2292,7 +2294,8 @@ public class EmployeeService {
 				employee.setWorkLocation(employeedto.getWorkLocation());
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
 				employee.setIsConsultant(employeedto.getIsConsultant());
-				employee.setIsApprenticeship(employeedto.getIsApprenticeship());			
+				employee.setIsApprenticeship(employeedto.getIsApprenticeship());
+				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());		
 				if ("No".equals(employeedto.getOnbenchDate())) {
 				    // Keep the existing value (no need to set it again)
 				} else {
