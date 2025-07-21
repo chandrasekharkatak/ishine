@@ -2559,7 +2559,7 @@ public class ProjectService {
 
 				for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
 					updateDeletedProjectTeamsByProjectId(deletedProject, primaryProjectDTO.getProjectId(), primaryTeamNames);
-					Project deletedProjEntity = updateProjectByPoProjectId(deletedProject.getProjectId(), deletedProject, true);
+					Project deletedProjEntity = updateProjectByPoProjectId(deletedProject.getProjectId(), deletedProject, false);
 					if (deletedProjEntity == null) {
 						apiLogInfo.setApiResponse("No project found for poProjectId: " + deletedProject.getProjectId());
 					}
@@ -2621,7 +2621,6 @@ public class ProjectService {
 				project.setUpdatedOn(LocalDateTime.now());
 				projectRepository.save(project);
 				if (isPrimary) {
-					project.setIsDraftProject("true");
 					project.setActive("false");
 					} else {
 					project.setActive("false");
