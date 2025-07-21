@@ -117,7 +117,7 @@ export class ReportListComponent implements OnInit {
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
   timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
   filteredTimesheetReportColumns: any[] = [
-    'employeementId',
+    'employmentIdAcToET',
     'employeeType',
     'employeeName',
     'departmentName',
@@ -1511,8 +1511,14 @@ export class ReportListComponent implements OnInit {
             this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
           }
           this.allTimesheetApplicationsList.forEach(timesheet => {
-            timesheet.employeementId = "A-".concat(timesheet.employeementId);
-            timesheet.employeeType = ((timesheet.isApprenticeship === 'true') ? 'Apprentice' : ((timesheet.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+            timesheet.employeementId = (timesheet.employmentIdAcToET);
+           timesheet.employeeType = (timesheet.isApmosysProduct === 'true') 
+  ? 'Apmosys Product' 
+  : ((timesheet.isApprenticeship === 'true') 
+    ? 'Apprentice' 
+    : ((timesheet.isConsultant === 'true') 
+      ? 'Consultant' 
+      : 'Regular')),
               timesheet.description = timesheet.description?.replaceAll('<br>', '')
             timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
             timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;

@@ -211,7 +211,7 @@
           <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
               <tr>
-                <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Emp Id</th>
+                <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Emp Id</th>
                 <th scope="col" class="info-label" mat-sort-header="employeeType|empId">Employee Type</th>
                 <th scope="col" class="info-label" mat-sort-header="employeeName|string">Full Name</th>
                 <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department Name</th>
@@ -243,7 +243,7 @@
               </tr>
               <tr
                 *ngFor="let filterTimesheet of filteredTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                <td>{{filterTimesheet.employeementId}}</td>
+                <td>{{filterTimesheet.employmentIdAcToET}}</td>
                 <td>{{filterTimesheet.employeeType}}</td>
                 <td>{{filterTimesheet.employeeName}}</td>
                 <td>{{filterTimesheet.departmentName}}</td>

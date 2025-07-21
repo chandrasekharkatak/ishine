@@ -1619,7 +1619,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			try {
 				String q = "SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, \n"
 						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, \n"
-						+ "et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type, e1.is_consultant, e1.is_apprenticeship, et.timesheet_status_updated_by,et.emp_id \n"
+						+ "et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type, e1.is_consultant, e1.is_apprenticeship, et.timesheet_status_updated_by,et.emp_id , e1.is_apmosys_product \n"
 						+ "FROM employee_timesheets et \n" + "INNER JOIN employee e1 on et.emp_id = e1.emp_id \n"
 						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id \n"
 						+ "LEFT JOIN job_role jr on e1.job_role_id=jr.job_role_id \n"
@@ -1685,6 +1685,22 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					timesheetDto.setIsApprenticeship(object[18] != null? object[18].toString() : null);
 					timesheetDto.setTimesheetStatusUpdatedBy(object[19] != null ? Long.parseLong(object[19].toString()) : null);
 					timesheetDto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
+					timesheetDto.setIsApmosysProduct(object[21] != null ? object[21].toString() : null);
+					
+					String employmentId = timesheetDto.getEmployeementId() != null ? timesheetDto.getEmployeementId().toString() : null;
+//				    String isConsultant = timesheetDto.getIsConsultant();
+				    String isApmosysProduct = timesheetDto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	timesheetDto.setEmploymentIdAcToET("AP-" + employmentId);
+				        }else {
+				        	timesheetDto.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
+
+					
+					
 					dtoList.add(timesheetDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
