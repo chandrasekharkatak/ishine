@@ -2577,7 +2577,7 @@ public class ProjectService {
 			} catch (Exception e) {
 				e.printStackTrace();
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Something Went Wrong.");
+				response.setServiceResponse(e.getMessage());
 				response.setServiceError(e.getMessage());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				apiLogInfo.setLogLevel("ERROR");
@@ -2622,7 +2622,8 @@ public class ProjectService {
 				projectRepository.save(project);
 				if (isPrimary) {
 					project.setIsDraftProject("true");
-				} else {
+					project.setActive("false");
+					} else {
 					project.setActive("false");
 				}
 				projectRepository.save(project);
