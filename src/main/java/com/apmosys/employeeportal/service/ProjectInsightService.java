@@ -4135,4 +4135,76 @@ public class ProjectInsightService {
 		}
 	}
 
+	public ServiceResponse getReviewersForQuestion(ProjectInsightDTO projectInsightDTO) {
+	    ServiceResponse response = new ServiceResponse();
+	    Long reviewerId = null;
+	    Long employeeId = projectInsightDTO.getEmpId();
+	    try {
+	        List<EmployeeTeamMap> employeeTeamList = employeeTeamMapRepository.findByTeamIdAndIsActive(
+	            employeeId, 1L, projectInsightDTO.getProjectId().intValue()
+	        );
+
+	        if (employeeTeamList == null || employeeTeamList.isEmpty()) {
+	        	Long empId = getEmployeesRMorManagerId(employeeId);
+	        	
+	        	response.setServiceStatus("Success");
+		        response.setServiceMessage("Reviewer found.");
+		        Map<String, Object> reviewerInfo = new HashMap<>();
+		        reviewerInfo.put("reviewerid", empId);
+		        response.setServiceResponse(reviewerInfo);
+		        return response;
+	        }
+
+	        Map<Long, String> employeeTeamMapObj = getEmpIdToHighestRoleMap(employeeTeamList);
+	        String employeeRole = employeeTeamMapObj.getOrDefault(employeeId, null);
+
+	        if (employeeRole == null) {
+	            Long empId = getEmployeesRMorManagerId(employeeId);
+	        	
+	        	response.setServiceStatus("Success");
+		        response.setServiceMessage("Reviewer found.");
+		        Map<String, Object> reviewerInfo = new HashMap<>();
+		        reviewerInfo.put("reviewerid", empId);
+		        response.setServiceResponse(reviewerInfo);
+		        return response;
+	        } 
+	        
+	        else if (employeeRole.equalsIgnoreCase("SUPERADMIN") || employeeRole.equalsIgnoreCase("RMG") 
+	                || employeeRole.equalsIgnoreCase("HR") || employeeRole.equalsIgnoreCase("HOD")) {
+	            response.setServiceStatus("Fail");
+	            response.setServiceMessage("No reviewer for top-level roles.");
+	            response.setServiceResponse(null);
+	            return response;
+	        }
+
+	        int roleIndex = ROLE_HIERARCHY.indexOf(employeeRole);
+	        reviewerId = getNextReviewerId(roleIndex, employeeTeamMapObj);
+
+	        if (reviewerId == null) {
+	        	Long empId = getEmployeesRMorManagerId(employeeId);
+	        	
+	        	response.setServiceStatus("Success");
+		        response.setServiceMessage("Reviewer found.");
+		        Map<String, Object> reviewerInfo = new HashMap<>();
+		        reviewerInfo.put("reviewerid", empId);
+		        response.setServiceResponse(reviewerInfo);
+		        return response;
+	        }
+	        
+	        response.setServiceStatus("Success");
+	        response.setServiceMessage("Reviewer found.");
+	        Map<String, Object> reviewerInfo = new HashMap<>();
+	        reviewerInfo.put("reviewerid", reviewerId);
+	        response.setServiceResponse(reviewerInfo);
+	        return response;
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus("Fail");
+	        response.setServiceMessage("Error occurred: " + e.getMessage());
+	        response.setServiceResponse(null);
+	        return response;
+	    }
+	}
+
 }

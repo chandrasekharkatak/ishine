@@ -228,5 +228,11 @@ public class ProjectInsightController {
 		ServiceResponse response = projectInsightService.getProjectInsightByAssignedToEmpId(projectInsightDTO);
 		return ResponseEntity.ok(response);
 	}
+	
+	@RequestMapping(value = "/getReviewersForQuestion", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> getReviewersForQuestion(@RequestBody ProjectInsightDTO projectInsightDTO) {
+		ServiceResponse response = projectInsightService.getReviewersForQuestion(projectInsightDTO);
+		return ResponseEntity.ok(response);
+	}
 
 }

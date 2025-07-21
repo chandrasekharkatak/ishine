@@ -40,6 +40,8 @@ export class QuestionRendererComponent implements OnInit {
   @Input() entity: any;
   @Input() entityType: string;
   @Input() renderType: 'edit' | 'view' | 'answer' | 'approval' = 'edit';
+  @Input() projectId: any;
+  // @Output() responseChanged = new EventEmitter<{ path: string[], value: any }>();
 
   currentUser: User;
   alertMessage: any;
@@ -357,6 +359,40 @@ export class QuestionRendererComponent implements OnInit {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       }
+    }
+  }
+
+  onResponseChange(response: any) {
+    if (response.response) {
+      let payload = {
+        empId: this.currentUser.empId,
+        projectId: this.projectId
+      };
+
+      this.projectInsightService.getReviewersForQuestion(payload).pipe(first()).subscribe(
+        (dbResponse: any) => {
+          if (!Array.isArray(response.reviewerInfo)) {
+            response.reviewerInfo = [];
+          }
+          const exists = response.reviewerInfo.some(
+            (r: any) => r.reviewerid === dbResponse?.serviceResponse?.reviewerid
+          );
+          if (!exists) {
+            response.reviewerInfo.push({
+              reviewerid: dbResponse?.serviceResponse?.reviewerid,
+              reviewedOn: null,
+              isApproved: null,
+              marks: null,
+              remarks: null,
+              reviewAssignedOn: new Date()
+            });
+          }
+          // this.responseChanged.emit({ path, value: response });
+        },
+        (error) => {
+          console.error('Failed to fetch reviewers:', error);
+        }
+      );
     }
   }
 

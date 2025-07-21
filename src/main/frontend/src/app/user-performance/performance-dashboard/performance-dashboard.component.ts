@@ -1535,7 +1535,7 @@ export class PerformanceDashboardComponent implements OnInit {
     console.log("data", objectToBeShown.projectInsightStructure.data);
     
     
-
+    this.projectId = projectObj.projectId;
     this.rootNode = this.buildFormNodeTree(objectToBeShown.projectInsightStructure.structure);
     this.mergeFormDataIntoStructure(this.rootNode, objectToBeShown.projectInsightStructure.data);
     this.currentNodePath = [this.rootNode];
@@ -1622,7 +1622,38 @@ export class PerformanceDashboardComponent implements OnInit {
     }
   }
 
-  onSaveResponseAsDraft(){}
+  collectFormData(node: FormNode): any {
+    return {
+      fields: node.formData,
+      questions: node.questionList || [],
+      child: node.children.map(child => this.collectFormData(child))
+    };
+  }
+
+  onSaveResponseAsDraft() {
+    const structure = this.rootNode;
+    const data = this.collectFormData(this.rootNode);
+  
+    const payload = {
+      structure: structure,
+      data: data
+    };
+
+    console.log(payload, " : payload ====");
+    
+
+    this.projectInsightService.onSaveResponseAsDraft(payload).pipe(first()).subscribe(
+      (response: any) => {
+        this.alertMessage = response.serviceStatus;
+        this.modalRef = this.modalService.show(this.alertModal);
+      },
+      (error) => {
+        console.error('Save as draft failed:', error);
+        this.alertMessage = "Failed to save as draft.";
+        this.modalRef = this.modalService.show(this.alertModal);
+      }
+    );
+  }
 
   onSaveResponse(){}
 

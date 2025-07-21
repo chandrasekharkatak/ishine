@@ -946,7 +946,6 @@
 <ng-template #insight_response_template>
   <div class="col-md-12">
 
-    <!-- Enhanced Breadcrumb Navigation -->
     <nav aria-label="breadcrumb" class="mb-3">
       <ol class="breadcrumb bg-light rounded shadow-sm px-3 py-2 align-items-center">
         <li class="breadcrumb-item" style="cursor:pointer" (click)="navigateToNode(0)">
@@ -968,7 +967,6 @@
       </ol>
     </nav>
 
-    <!-- Enhanced Child Navigation -->
     <div class="row mb-3" *ngIf="currentNode?.children?.length">
       <div class="col-md-12">
         <div class="card border-0 shadow-sm">
@@ -1017,7 +1015,6 @@
       </div>
     </div>
 
-    <!-- Form Renderer -->
     <app-form-renderer
       [fields]="currentNode.fields"
       [layoutConfig]="currentNode.layoutConfig"
@@ -1025,13 +1022,13 @@
       (formValueChange)="onFormValueChange(currentNode, $event)">
     </app-form-renderer>
 
-    <!-- Question Renderer -->
     <div class="row m-1 mb-2">
       <div class="col-md-12">
         <app-question-renderer
           [entity]="currentNode"
           [entityType]="currentNode?.formName || 'Project'"
-          [renderType]="'answer'">
+          [renderType]="'answer'"
+          [projectId]="projectId">
         </app-question-renderer>
       </div>
     </div>

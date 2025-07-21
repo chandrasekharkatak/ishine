@@ -231,8 +231,9 @@
                                 <div class="form-group mb-3">
                                     <label><span class="text-danger">*</span>Enter Response Here</label>
                                     <div (contextmenu)="handleContextMenu($event)">
-                                        <angular-editor id="myEditor" [(ngModel)]="response.response" [config]="editorConfig"> 
-                                            <!-- [readonly]="!canEditResponse(response)" -->
+                                        <angular-editor
+                                            id="myEditor" [(ngModel)]="response.response"
+                                            [config]="editorConfig" (blur)="onResponseChange(response)">
                                         </angular-editor>
                                     </div>
                                     <div *ngIf="showContextMenu" class="context-menu" [style.left.px]="contextMenuX" [style.top.px]="contextMenuY">

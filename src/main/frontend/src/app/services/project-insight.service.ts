@@ -130,5 +130,13 @@ export class ProjectInsightService {
     return this.http.get(`${this.baseUrl}` + `api/searchProjectInsight?q=${encodeURIComponent(keyword)}`);
   }
 
+  getReviewersForQuestion(object: any){
+    return this.http.post(`${this.baseUrl}` + `api/getReviewersForQuestion`, object);
+  }
+
+  onSaveResponseAsDraft(object: any){
+    return this.http.post(`${this.baseUrl}` + `api/onSaveResponseAsDraft`, object);
+  }
+
 
 }
