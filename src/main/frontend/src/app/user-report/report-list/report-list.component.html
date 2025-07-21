@@ -62,7 +62,7 @@
           <table class="table " matSort (matSortChange)="sortData($event)" id="leaveReportInfo">
             <thead class="thead-light" id="leaveReportInfoTHead">
               <tr id="leaveReportInfoTHeadTr">
-                <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">Emp Id</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="employmentIdAcToET|string">Emp Id</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Employee Type</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|string">Full Name</th>
                 <th scope="col" class="info-label wide-col" mat-sort-header="leaveType|string">Leave Type</th>
@@ -91,7 +91,7 @@
               </tr>
               <tr
                 *ngFor="let leave of allLeaveApplicationsList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                <td>{{leave.employeementId}}</td>
+                <td>{{leave.employmentIdAcToET}}</td>
                 <td>{{leave.employeeType}}</td>
                 <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360"
                   [navigateToEmployee360]="leave.emp360" style="cursor: pointer;" title="Click to view Employee 360">

@@ -164,7 +164,7 @@ export class ReportListComponent implements OnInit {
 
   employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
   employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
-  leaveReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
+  leaveReportColumns: any[] = ['employmentIdAcToET', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
   leaveTimesheetReportColumn: any[] = ['employmentIdAcToET', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
@@ -1442,8 +1442,16 @@ export class ReportListComponent implements OnInit {
             this.openAlertMod(this.alertModal, "No Leave Application Report found ")
           }
           this.allLeaveApplicationsList.forEach(leave => {
-            leave.employeementId = "A-".concat(leave.employeementId);
-            leave.employeeType = ((leave.isApprenticeship === 'true') ? 'Apprentice' : ((leave.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+            leave.employmentIdAcToET = (leave.employmentIdAcToET);
+            // leave.employeeType = ((leave.isApprenticeship === 'true') ? 'Apprentice' : ((leave.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+             leave.employeeType = (leave.isApmosysProduct === 'true') 
+  ? 'Apmosys Product' 
+  : ((leave.isApprenticeship === 'true') 
+    ? 'Apprentice' 
+    : ((leave.isConsultant === 'true') 
+      ? 'Consultant' 
+      : 'Regular')),
+
               leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
             leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
             leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -2006,7 +2014,15 @@ export class ReportListComponent implements OnInit {
 
         for (let x of this.allLeaveTimesheets) {
           x.employeementId = "A-".concat(x.employeementId);
-          x.employeeType = ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+          // x.employeeType = ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+          x.employeeType = (x.isApmosysProduct === 'true') 
+  ? 'Apmosys Product' 
+  : ((x.isApprenticeship === 'true') 
+    ? 'Apprentice' 
+    : ((x.isConsultant === 'true') 
+      ? 'Consultant' 
+      : 'Regular')),
+
             x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
           x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           x.updatedOn = (x.updatedOn) ? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;

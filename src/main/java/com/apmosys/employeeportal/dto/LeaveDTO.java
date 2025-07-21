@@ -174,5 +174,6 @@ public class LeaveDTO {
 	private String clientName;
 	
 	private String isApmosysProduct;
+	private String employmentIdAcToET;
 	
 }
