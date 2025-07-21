@@ -111,6 +111,8 @@ public class EmployeeOnBoardingService {
 						empDto.setEmail(empObj.getEmail());
 						empDto.setEmployeementId(empObj.getEmployeementId());
 						empDto.setIsConsultant(empObj.getIsConsultant());
+						empDto.setIsApprenticeship(empObj.getIsApprenticeship());
+						empDto.setIsApmosysProduct(empObj.getIsApmosysProduct()	);					
 						empDto.setEmpId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
 						empDto.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 						
