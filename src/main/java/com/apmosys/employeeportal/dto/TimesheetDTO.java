@@ -101,5 +101,6 @@ public class TimesheetDTO {
 	private Long currentUser;
 
 	private String isApmosysProduct;
+	 private String employmentIdAcToET;
 	
 }

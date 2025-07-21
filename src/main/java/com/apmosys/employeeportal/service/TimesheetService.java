@@ -1779,6 +1779,21 @@ public class TimesheetService {
 						timesheetDto.setManagerId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
 						timesheetDto.setTimesheetStatusUpdatedBy(object[15] != null ? Long.parseLong(object[15].toString()) : null);
 						timesheetDto.setEmpId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
+						timesheetDto.setIsApmosysProduct(object[17] != null ? object[17].toString() : null);
+						
+						String employmentId = timesheetDto.getEmployeementId() != null ? timesheetDto.getEmployeementId().toString() : null;
+					    String isConsultant = timesheetDto.getIsConsultant();
+					    String isApmosysProduct = timesheetDto.getIsApmosysProduct();
+
+					    if (employmentId != null) {
+					        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+					        	timesheetDto.setEmploymentIdAcToET("AP-" + employmentId);
+					        }else {
+					        	timesheetDto.setEmploymentIdAcToET("A-" + employmentId);
+					        }
+					    }
+
+						
 						dtoList.add(timesheetDto);
 					});
 
