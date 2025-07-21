@@ -5,8 +5,10 @@
 <div class="container-fluid">
     <div class="row justify-content-between mb-3">
         <h3 class="profile__greetings">Welcome, {{currentEmployeeInfo.name}}</h3>
-        <button *ngIf="!isUpdateProfile && userMapping.update_profile" type="submit" class="btn btn-primary btn-sm" (click)="showUpdateProfile()">Update Profile</button>
-        <button *ngIf="isUpdateProfile && userMapping.view_profile" type="submit" class="btn btn-primary btn-sm" (click)="showViewProfile()">View Profile</button>
+        <button *ngIf="!isUpdateProfile && userMapping.update_profile" type="submit" class="btn btn-primary btn-sm"
+            (click)="showUpdateProfile()">Update Profile</button>
+        <button *ngIf="isUpdateProfile && userMapping.view_profile" type="submit" class="btn btn-primary btn-sm"
+            (click)="showViewProfile()">View Profile</button>
     </div>
     <div *ngIf="userMapping.view_profile" class="row">
         <div class="card user-card">
@@ -14,14 +16,18 @@
                 <div class="col-md-12">
                     <div class="row justify-content-between">
                         <div class="col-xs-12 col-sm-12 col-md-4 d-flex flex-column user-card__profile-avatar">
-                            <img src="assets/Images/default-user-image.jpeg"
-                                id="user-avatar" class="user-card__profile-avatar__img" alt="Avatar" />
-                            
+                            <img src="assets/Images/default-user-image.jpeg" id="user-avatar"
+                                class="user-card__profile-avatar__img" alt="Avatar" />
+
                             <!-- IMAGE UPLOAD -->
-                            <div *ngIf="isUpdateProfile && userMapping.upload_profile_image" class="user-card__profile-avatar-upload mt-3">
-                                <input type="file" name="file" accept="image/jpeg,image/jpg" id="profileImg" class="profileImgFile" (change)="onProfileImageSelect($event,alert_message)" />
+                            <div *ngIf="isUpdateProfile && userMapping.upload_profile_image"
+                                class="user-card__profile-avatar-upload mt-3">
+                                <input type="file" name="file" accept="image/jpeg,image/jpg" id="profileImg"
+                                    class="profileImgFile" (change)="onProfileImageSelect($event,alert_message)" />
                                 <label id="profileImgLabel" for="profileImg">Select Image</label>
-                                <button type="submit" class="btn btn-primary ml-2 profileImgFile__upload__btn" title="Upload Image" (click)="onUploadImage(alert_message)"><i class="fa-solid fa-upload"></i></button>
+                                <button type="submit" class="btn btn-primary ml-2 profileImgFile__upload__btn"
+                                    title="Upload Image" (click)="onUploadImage(alert_message)"><i
+                                        class="fa-solid fa-upload"></i></button>
                             </div>
                         </div>
                         <!-- <div class="vertical-rule"></div> -->
@@ -29,27 +35,37 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <h2 class="user-card__profile-info__name mb-0">{{currentEmployeeInfo.name}}</h2>
-                                    <span class="user-card__profile-info__role">{{currentEmployeeInfo.designationName}}</span>
+                                    <span
+                                        class="user-card__profile-info__role">{{currentEmployeeInfo.designationName}}</span>
                                 </div>
                             </div>
                             <div class="row user-card__profile-info__container mt-4 mr-0">
                                 <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Employee ID</p>
-                                    <p class="user-card__profile-info__text" ngif>A-{{currentEmployeeInfo.employeementId}}</p>
+                                    <p class="user-card__profile-info__text" ngif> {{
+                                        currentEmployeeInfo.isApmosysProduct ? ('AP-' +
+                                        currentEmployeeInfo.employeementId) :
+                                        currentEmployeeInfo.isConsultant ? ('CS-' + currentEmployeeInfo.employeementId)
+                                        :
+                                        'A-' + currentEmployeeInfo.employeementId
+                                        }}</p>
                                     <!-- <p class="user-card__profile-info__text" *ngIf="currentEmployeeInfo.isConsultant === 'true'">A-CS-{{currentEmployeeInfo.employeementId}}</p> -->
-                                      <!-- <p class="user-card__profile-info__text" *ngIf="currentEmployeeInfo.isConsultant !== 'true'"> A-{{currentEmployeeInfo.employeementId}}</p> -->
+                                    <!-- <p class="user-card__profile-info__text" *ngIf="currentEmployeeInfo.isConsultant !== 'true'"> A-{{currentEmployeeInfo.employeementId}}</p> -->
                                 </div>
                                 <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Email ID</p>
-                                    <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.email}}</p>
+                                    <p class="user-card__profile-info__text info-highlight">
+                                        {{currentEmployeeInfo.email}}</p>
                                 </div>
                                 <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Contact No.</p>
-                                    <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.mobileNo}}</p>
+                                    <p class="user-card__profile-info__text info-highlight">
+                                        {{currentEmployeeInfo.mobileNo}}</p>
                                 </div>
                                 <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Employee Status</p>
-                                    <p class="user-card__profile-info__text">{{currentEmployeeInfo.employmentstatus}}</p>
+                                    <p class="user-card__profile-info__text">{{currentEmployeeInfo.employmentstatus}}
+                                    </p>
                                 </div>
                                 <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Department</p>
@@ -57,7 +73,8 @@
                                 </div>
                                 <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Reports To</p>
-                                    <p class="user-card__profile-info__text info-highlight">{{currentEmployeeInfo.managerName}}</p>
+                                    <p class="user-card__profile-info__text info-highlight">
+                                        {{currentEmployeeInfo.managerName}}</p>
                                 </div>
                             </div>
                             <div class="row">
@@ -65,21 +82,25 @@
                                     <div class="d-flex">
                                         <p class="user-card__profile-info__label">Domain : &nbsp;</p>
                                         <div *ngFor="let cat of domainSpecializationList">
-                                            <h6 class="badge badge-pill" [ngStyle]="{'background-color': cat.colorCode}">{{ cat.domainName }}</h6> &nbsp;
+                                            <h6 class="badge badge-pill"
+                                                [ngStyle]="{'background-color': cat.colorCode}">{{ cat.domainName }}
+                                            </h6> &nbsp;
                                         </div>
                                     </div>
                                 </div>
-                            </div> 
+                            </div>
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="d-flex">
                                         <p class="user-card__profile-info__label">Specialization : &nbsp;</p>
                                         <h6 *ngFor="let cat of domainSpecializationList; let i=index">
-                                            <span class="badge badge-pill" *ngFor="let sub of cat.allSpecializationList" [ngStyle]="{'background-color': cat.colorCode}">{{ sub.specializationName}} &nbsp;</span>  &nbsp;
+                                            <span class="badge badge-pill" *ngFor="let sub of cat.allSpecializationList"
+                                                [ngStyle]="{'background-color': cat.colorCode}">{{
+                                                sub.specializationName}} &nbsp;</span> &nbsp;
                                         </h6>
                                     </div>
                                 </div>
-                            </div>                                                    
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -136,7 +157,8 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date of birth</p>
-                                            <p class="info-text">{{currentEmployeeInfo.dateOfBirth | date:'dd-MM-yyyy'}}</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfBirth | date:'dd-MM-yyyy'}}
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -148,7 +170,14 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Employee Id</p>
-                                            <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p>
+                                            <p class="info-text info-highlight">{{
+                                                currentEmployeeInfo.isApmosysProduct ? 'AP-' +
+                                                currentEmployeeInfo.employeementId :
+                                                currentEmployeeInfo.isConsultant ? 'CS-' +
+                                                currentEmployeeInfo.employeementId :
+                                                'A-' + currentEmployeeInfo.employeementId
+                                                }}
+                                            </p>
                                             <!-- <p class="info-text info-highlight">{{ currentEmployeeInfo.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{currentEmployeeInfo.employeementId}}</p>                                               -->
                                         </div>
                                     </div>
@@ -229,7 +258,8 @@
                             </div>
                         </app-accordion-item>
 
-                        <app-accordion-item *ngIf="currentEmployeeInfo.maritalStatus == 'married'" class="acc-content" title="Family Information">
+                        <app-accordion-item *ngIf="currentEmployeeInfo.maritalStatus == 'married'" class="acc-content"
+                            title="Family Information">
 
                             <div class="container-fluid">
                                 <div class="row">
@@ -253,7 +283,7 @@
                                             <p class="info-text">{{currentEmployeeInfo.child2}}</p>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.child3 != null">
                                         <div class="info-wrapper">
                                             <p class="info-label">Child3</p>
@@ -264,7 +294,7 @@
                                 </div>
                             </div>
                         </app-accordion-item>
-                       
+
                         <app-accordion-item class="acc-content" title="Contact Information">
                             <div class="container-fluid">
                                 <div class="row">
@@ -277,7 +307,8 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Landline No.</p>
-                                            <p class="info-text" *ngIf="currentEmployeeInfo.landline != null">022-{{currentEmployeeInfo.landline}}</p>
+                                            <p class="info-text" *ngIf="currentEmployeeInfo.landline != null">
+                                                022-{{currentEmployeeInfo.landline}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -325,7 +356,8 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label ">Emergency Contact Person</p>
-                                            <p class="info-text info-highlight">{{currentEmployeeInfo.emergencyContactPerson}}</p>
+                                            <p class="info-text info-highlight">
+                                                {{currentEmployeeInfo.emergencyContactPerson}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -350,7 +382,8 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Graduation</p>
-                                            <p class="info-text info-highlight">{{currentEmployeeInfo.graduationType}}</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.graduationType}}
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -362,7 +395,8 @@
                                     <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.pursuing == 'No'">
                                         <div class="info-wrapper">
                                             <p class="info-label">Year of Passing</p>
-                                            <p class="info-text info-highlight">{{currentEmployeeInfo.yearOfPassing}}</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.yearOfPassing}}
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -373,8 +407,11 @@
                                     </div>
                                 </div>
                                 <hr>
-                                <h4 class="info-label" *ngIf="currentEmployeeInfo.certifications && currentEmployeeInfo.certifications.length != null" >Certifications</h4>
-                                <div *ngFor="let certification of currentEmployeeInfo.certifications;let i = index" class="row">
+                                <h4 class="info-label"
+                                    *ngIf="currentEmployeeInfo.certifications && currentEmployeeInfo.certifications.length != null">
+                                    Certifications</h4>
+                                <div *ngFor="let certification of currentEmployeeInfo.certifications;let i = index"
+                                    class="row">
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Certification Name - {{i+1}}</p>
@@ -396,13 +433,15 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date of completion</p>
-                                            <p class="info-text info-highlight">{{certification.dateOfCompletion | date:'dd-MM-yyyy'}}</p>
+                                            <p class="info-text info-highlight">{{certification.dateOfCompletion |
+                                                date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Certification Number</p>
-                                            <p class="info-text info-highlight">{{certification.certificationNumber}}</p>
+                                            <p class="info-text info-highlight">{{certification.certificationNumber}}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -415,7 +454,8 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date Of Joining</p>
-                                            <p class="info-text">{{currentEmployeeInfo.dateOfJoining | date:'dd-MM-yyyy'}}</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfJoining |
+                                                date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -425,22 +465,27 @@
                                             </p>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.employmentstatus != 'Probation'">
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="currentEmployeeInfo.employmentstatus != 'Probation'">
                                         <div class="info-wrapper">
                                             <p class="info-label">Notice Period</p>
                                             <p class="info-text">{{currentEmployeeInfo.noticePeriod}} Days</p>
                                         </div>
                                     </div>
-                                    <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'" class="col-md-4 mb-0">
+                                    <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'"
+                                        class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date Of Resign</p>
-                                            <p class="info-text">{{currentEmployeeInfo.dateOfResign | date:'dd-MM-yyyy'}}</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfResign |
+                                                date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
-                                    <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'" class="col-md-4 mb-0">
+                                    <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'"
+                                        class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date Of Relieving</p>
-                                            <p class="info-text">{{currentEmployeeInfo.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
+                                            <p class="info-text">{{currentEmployeeInfo.dateOfRelieving |
+                                                date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -452,11 +497,13 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Reporting Manager</p>
-                                            <p class="info-text info-highlight">{{currentEmployeeInfo.reportingManagerName}}
+                                            <p class="info-text info-highlight">
+                                                {{currentEmployeeInfo.reportingManagerName}}
                                             </p>
                                         </div>
                                     </div>
-                                    <div *ngIf="currentEmployeeInfo.reportingManagerName != null && currentEmployeeInfo.reportingManagerName != ''" class="col-md-4 mb-0">
+                                    <div *ngIf="currentEmployeeInfo.reportingManagerName != null && currentEmployeeInfo.reportingManagerName != ''"
+                                        class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label">Approvals To</label>
@@ -491,7 +538,8 @@
                                     <div *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Total Experience</p>
-                                            <p class="info-text info-highlight">{{currentEmployeeInfo.totalExperience}}</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.totalExperience}}
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -518,9 +566,12 @@
                         </app-accordion-item>
 
                         <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
-                        <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced' && currentEmployeeInfo.previousEmploymentList && currentEmployeeInfo.previousEmploymentList !==0" class="acc-content" title="Previous Employment Information">
+                        <app-accordion-item
+                            *ngIf="currentEmployeeInfo.experience == 'Experienced' && currentEmployeeInfo.previousEmploymentList && currentEmployeeInfo.previousEmploymentList !==0"
+                            class="acc-content" title="Previous Employment Information">
                             <div class="container-fluid">
-                                <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
+                                <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index"
+                                    class="row">
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Employer Name</p>
@@ -530,20 +581,23 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date Of Joining</p>
-                                            <p class="info-text info-highlight">{{previousEmployer.dateOfJoining | date:'dd-MM-yyyy'}}
+                                            <p class="info-text info-highlight">{{previousEmployer.dateOfJoining |
+                                                date:'dd-MM-yyyy'}}
                                             </p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Date of Relieving</p>
-                                            <p class="info-text info-highlight">{{previousEmployer.dateOfRelieving | date:'dd-MM-yyyy'}}</p>
+                                            <p class="info-text info-highlight">{{previousEmployer.dateOfRelieving |
+                                                date:'dd-MM-yyyy'}}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Years of Experience</p>
-                                            <p class="info-text info-highlight">{{previousEmployer.yearsOfExperience}}</p>
+                                            <p class="info-text info-highlight">{{previousEmployer.yearsOfExperience}}
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -628,15 +682,18 @@
                                 </div>
                             </div>
                         </app-accordion-item>
-                        <app-accordion-item class="acc-content" *ngIf="currentEmployeeInfo.documentList && currentEmployeeInfo.documentList.length !==0" title="Employee Documents">
-                                <div class="container-fluid">
-                                    <div class="row flex-column px-4" *ngFor="let document of currentEmployeeInfo.documentList;let i = index">
-                                        <div class="info-wrapper">
-                                            <p class="info-label">{{document.documentType}}</p>
-                                        </div>
-                                        <img class="d-block" id="docPreview{{i+1}}" alt="Document Preview"/>
+                        <app-accordion-item class="acc-content"
+                            *ngIf="currentEmployeeInfo.documentList && currentEmployeeInfo.documentList.length !==0"
+                            title="Employee Documents">
+                            <div class="container-fluid">
+                                <div class="row flex-column px-4"
+                                    *ngFor="let document of currentEmployeeInfo.documentList;let i = index">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">{{document.documentType}}</p>
                                     </div>
+                                    <img class="d-block" id="docPreview{{i+1}}" alt="Document Preview" />
                                 </div>
+                            </div>
                         </app-accordion-item>
 
                         <app-accordion-item class="acc-content" title="My Asset(s)">
@@ -644,7 +701,9 @@
                                 <div class="row flex-column px-4" *ngFor="let asset of allAssetList;let i = index">
                                     <div class="info-wrapper">
                                         <p class="info-label">{{asset.assestName}}</p>
-                                        <p *ngIf="asset.isAssigned == 'true'" class="info-text">Assigned - <span *ngIf="asset.assetDetail">{{asset.assetDetail}}</span><span *ngIf="!asset.assetDetail">Details not available</span></p>
+                                        <p *ngIf="asset.isAssigned == 'true'" class="info-text">Assigned - <span
+                                                *ngIf="asset.assetDetail">{{asset.assetDetail}}</span><span
+                                                *ngIf="!asset.assetDetail">Details not available</span></p>
                                         <p *ngIf="asset.isAssigned == 'false'" class="info-text">Not Assigned</p>
                                     </div>
                                 </div>
@@ -656,7 +715,7 @@
                 </div>
             </div>
         </div>
-    </div>    
+    </div>
 </div>
 
 <!-- Modal templates -->
