@@ -1035,22 +1035,67 @@ export class LeaveConfigComponent implements OnInit {
     return true; // Allow the character if it's not restricted
 }
 
+
+fieldRestictCharacterForLeaveAccToDifferntEmployeeType(event) {
+  const inputField = event.target;
+  const value = inputField.value;
+  const k = event.charCode;
+
+  
+  if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+    return true;
+  }
+
+  
+  const prefixMatch = value.match(/^(A-|CS-|AP-)/);
+  const digitsPart = prefixMatch ? value.replace(prefixMatch[0], '') : value;
+
+  
+  if (digitsPart.length >= 6 && /\d/.test(String.fromCharCode(k))) {
+    event.preventDefault();
+    return false;
+  }
+
+  return true;
+}
+
+
   // Manage Leave Balance
   onGetEmpLeaveBalance(template: TemplateRef<any>) {
     this.leaveBalanceList = [];
     this.employeeData = [];
     let leaveObj: Leave = new Leave();
-    if (this.leaveBalanceObj.employeementId.startsWith('A-')) {
-      if (!this.validationService.validateNullUndefinedEmptyString(this.leaveBalanceObj.employeementId)) {
-        this.alertMessage = "Please enter Employee ID !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-      leaveObj.employeementId = this.leaveBalanceObj.employeementId.substring(2);
-      //console.log("Employee :", this.leaveBalanceObj);
-    } else {
-      leaveObj.employeementId = this.leaveBalanceObj.employeementId
-    }
+
+     let empIdInput = this.leaveBalanceObj.employeementId;
+    // if (this.leaveBalanceObj.employeementId.startsWith('A-')) {
+    //   if (!this.validationService.validateNullUndefinedEmptyString(this.leaveBalanceObj.employeementId)) {
+    //     this.alertMessage = "Please enter Employee ID !!"
+    //     this.openAlertMod(template, this.alertMessage);
+    //     return false;
+    //   }
+    //   leaveObj.employeementId = this.leaveBalanceObj.employeementId.substring(2);
+    //   //console.log("Employee :", this.leaveBalanceObj);
+    // } else {
+    //   leaveObj.employeementId = this.leaveBalanceObj.employeementId
+    // }
+
+     if (!this.validationService.validateNullUndefinedEmptyString(empIdInput)) {
+    this.alertMessage = "Please enter Employee ID !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+
+ 
+  if (empIdInput.startsWith('A-')) {
+    empIdInput = empIdInput.substring(2);
+  } else if (empIdInput.startsWith('CS-')) {
+    empIdInput = empIdInput.substring(3);
+  } else if (empIdInput.startsWith('AP-')) {
+    empIdInput = empIdInput.substring(3);
+  }
+
+  leaveObj.employeementId = empIdInput;
+
 
     if (!this.validationService.validateEmployeementId(leaveObj.employeementId)) {
       this.alertMessage = "Please enter valid Employee ID !!";
@@ -1072,6 +1117,9 @@ export class LeaveConfigComponent implements OnInit {
     });
 
   }
+
+
+
 
   leaveBalanceInputValidation(balance: any, template: TemplateRef<any>) {
     if (!this.validationService.validateNullUndefinedEmptyString(balance)) {
