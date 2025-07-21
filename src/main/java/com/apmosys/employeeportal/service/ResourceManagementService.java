@@ -1077,7 +1077,7 @@ public class ResourceManagementService {
 		} catch (Exception e) {
 
 			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -9552,7 +9552,7 @@ public class ResourceManagementService {
 		}
 		if(!is_dept) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Project can not be created!");
+			response.setServiceResponse("Project can not be created!  Invalid Department ");
 			throw new BadRequestException("Invalid Department Name");
 		}
 		return response;
@@ -9561,7 +9561,7 @@ public class ResourceManagementService {
 			{
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Project can not be created!");
+			response.setServiceResponse(e.getMessage());
 			return response;
 			
 			}
@@ -9688,7 +9688,7 @@ public class ResourceManagementService {
 		response.setServiceResponse("Departments mapped successfully.");
 		}
 		catch(Exception e) {
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Departments mapped successfully.");
 			e.printStackTrace();
 			throw new RuntimeException(e.getMessage());
