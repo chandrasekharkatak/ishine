@@ -9640,7 +9640,7 @@ public class ResourceManagementService {
 		List<ResourceRequirementDTO> requirementDTOs = poData.getResourceRequirements();
 		if (requirementDTOs != null && !requirementDTOs.isEmpty()) {
 			for (ResourceRequirementDTO dto : requirementDTOs) {
-				if(resourceRequirementRepository.existsByResourceOverviewId(Long.parseLong(dto.getResourceOverviewId().toString()))) throw new BadCredentialsException("Resource Overview Id Already Exists.");
+				if(resourceRequirementRepository.existsByResourceOverviewId(Long.parseLong(dto.getResourceOverviewId().toString()))) throw new BadCredentialsException("Resource Overview Id Already Exists:" + dto.getResourceOverviewId());
 				ResourceRequirement req = new ResourceRequirement();
 				req.setProjectId(project.getProjectId());
 				req.setCount(dto.getCount());
