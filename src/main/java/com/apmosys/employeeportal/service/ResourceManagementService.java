@@ -9850,7 +9850,7 @@ public class ResourceManagementService {
 		{
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Team is active in Ishine Portal for PoProjectID: " + poData.getId());
-			throw new RuntimeException("Team is active in Ishine Portal for PoProjectID: " + poData.getId());
+			throw new BadRequestException("Team is active in Ishine Portal for PoProjectID: " + poData.getId());
 		}
 		existingProject.setActive("false");
 		existingProject.setUpdatedBy(6L);

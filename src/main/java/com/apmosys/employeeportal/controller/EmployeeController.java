@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.controller;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -606,11 +607,11 @@ public class EmployeeController {
 		return resposne;
 	 }
 
-	 @GetMapping("/getTeamAndTimeSheetDetails/{poProjectId}")
-	 public ServiceResponse getTeamAndTimeSheetDetails(HttpServletRequest request,@PathVariable("poProjectId") Long poProjectId) {
+	 @PostMapping("/getTeamAndTimeSheetDetails")
+	 public ServiceResponse getTeamAndTimeSheetDetails(HttpServletRequest request,@RequestBody Long id) {
 		 ServiceResponse response = new ServiceResponse();
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
-		 response.setServiceResponse(employeeService.getTeamAndTimeSheetDetails(poProjectId));
+		 response.setServiceResponse(employeeService.getTeamAndTimeSheetDetails(id));
 		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
 		return response;
 	 }

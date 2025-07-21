@@ -2576,7 +2576,7 @@ public class ProjectService {
 				finalHttpStatusCode = HttpStatus.OK.value();
 			} catch (Exception e) {
 				e.printStackTrace();
-				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Something Went Wrong.");
 				response.setServiceError(e.getMessage());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
