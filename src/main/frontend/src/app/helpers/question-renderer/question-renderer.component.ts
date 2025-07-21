@@ -442,6 +442,44 @@ export class QuestionRendererComponent implements OnInit {
     });
   }
 
+  getVisibleResponses(question: any): any[] {
+    const currentUserId = this.currentUser.empId;
+
+    // Future : make changes for the reviewer logic
+    const isReviewer = this.currentUser.employeeRole === 'Reviewer';
+  
+    if (isReviewer) {
+      // Reviewer: show all responses if all are submitted (isDraft == "N")
+      if (question.projectResponseList.every(r => r.isDraft === "N")) {
+        return question.projectResponseList;
+      } else {
+        // Optionally, show nothing or a message
+        return [];
+      }
+    } else {
+      // Normal user
+      const myResponse = question.projectResponseList.find(r => r.responseBy == currentUserId);
+      if (!myResponse) {
+        // User hasn't answered yet, show nothing or prompt
+        return [];
+      }
+      if (myResponse.isDraft === "Y") {
+        // User can only see/edit their own draft response
+        return [myResponse];
+      } else {
+        // User has submitted, show all responses (read-only)
+        return question.projectResponseList;
+      }
+    }
+  }
+  
+  canEditResponse(response: any): boolean {
+    const currentUserId = this.currentUser.empId;
+    const isReviewer = this.currentUser.employeeRole === 'Reviewer'; // adjust as per your logic
+    if (isReviewer) return false;
+    return response.responseBy == currentUserId && response.isDraft === "Y";
+  }
+
   //Models
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.alertMessage = message;

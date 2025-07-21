@@ -268,13 +268,13 @@
               <i class="fa fa-plus"></i>
             </button>
             <button *ngIf="isGroupNode(currentNode)" class="btn btn-danger btn-sm mr-2" (click)="deleteGroup(currentNode)">
-              <i class="fa fa-trash">i</i>
+              <i class="fa fa-trash"></i>
             </button>
             <button *ngIf="isSubGroupNode(currentNode)" class="btn btn-danger btn-sm" (click)="deleteSubGroup(currentNode)">
-              <i class="fa fa-trash">j</i>
+              <i class="fa fa-trash"></i>
             </button>
             <button *ngIf="isSubSubGroupOrDeeper(currentNode) && !isSubGroupNode(currentNode)" class="btn btn-danger btn-sm" (click)="deleteSubSubGroupOrDeeper(currentNode)">
-              <i class="fa fa-trash">k</i>
+              <i class="fa fa-trash"></i>
             </button>
           </div>
         </div>

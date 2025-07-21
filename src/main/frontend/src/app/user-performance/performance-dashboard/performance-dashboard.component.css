@@ -656,7 +656,22 @@ input[type="range"]::-webkit-slider-thumb {
   font-size: 12px;
 }
 
+/* ---------------  User response modal ------------------ */
+.child-tile:hover {
+  box-shadow: 0 0 0.5rem #007bff55 !important;
+  background: #f0f8ff !important;
+  transition: box-shadow 0.2s, background 0.2s;
+}
 .breadcrumb {
-  background: transparent;
-  font-size: 0.95rem;
+  background: #f8f9fa !important;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+.breadcrumb-item.active {
+  font-weight: bold;
+  color: #007bff !important;
+}
+.card-header.bg-white {
+  background: #fff !important;
+  border-bottom: none !important;
 }

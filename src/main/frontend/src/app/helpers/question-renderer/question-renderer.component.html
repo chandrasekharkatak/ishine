@@ -66,7 +66,7 @@
         <ng-container *ngIf="entity.questionList[currentQuestionIndex] as question">
             <!-- Option managment -->
             <div class="d-flex align-items-center">
-                <input [(ngModel)]="question.text" class="form-control mr-2" placeholder="Enter question text" />
+                <input [disabled]="renderType != 'edit'" [(ngModel)]="question.text" class="form-control mr-2" placeholder="Enter question text" />
                 <button *ngIf="renderType == 'edit'" class="btn btn-sm btn-danger"
                     (click)="deleteQuestion(entity.questionList, currentQuestionIndex)">
                     <i class="fa fa-trash"></i>
@@ -80,7 +80,7 @@
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <label class="info-label">Description</label>
-                                    <input [(ngModel)]="question.description" [disabled]="renderType !== 'edit'" class="form-control mr-2"
+                                    <input [(ngModel)]="question.description" [disabled]="renderType != 'edit'" class="form-control mr-2"
                                         placeholder="Enter Question Description" />
                                 </div>
                             </div>
@@ -153,9 +153,10 @@
                     </div>
                 </div>
 
-                <div class="responses-section" *ngIf="renderType !== 'edit'">
-                    <div *ngFor="let response of question.projectResponseList; let responseIndex = index">
+                <div class="responses-section" *ngIf="renderType != 'edit'">
+                    <div *ngFor="let response of getVisibleResponses(question); let responseIndex = index">
                         <div class="response-container p-2 mt-2">
+                            <!-- Review Section -->
                             <!-- <div class="user-info d-flex align-items-center flex-wrap gap-3">
                                 <div class="d-flex align-items-center mr-3">
                                     <svg class="user-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -208,79 +209,39 @@
                             </div> -->
 
                             <!-- TEXT -->
-                            <div class="mt-2" *ngIf="question.optionType == 'text' && renderType == 'answer'">
+                            <div class="mt-2" *ngIf="question.optionType == 'text'">
                                 <div class="form-group mb-3">
                                     <label>Tags</label>
                                     <div class="tags-container">
                                         <div class="d-flex flex-wrap gap-2 mb-2">
-                                            <span *ngFor="let tag of response.tags; let i = index"
-                                                class="badge active mr-1">
+                                            <span *ngFor="let tag of response.tags; let i = index" class="badge active mr-1">
                                                 {{tag}}&nbsp;&nbsp;
                                                 <span class="btn-close btn-close-white ms-2"
-                                                    *ngIf="projectInsightObj.isFinalSubmitted == 'N'"
-                                                    style="cursor: pointer;" aria-label="Close"
-                                                    (click)="removeTag(response,i)">
+                                                    *ngIf="canEditResponse(response) && projectInsightObj.isFinalSubmitted == 'N'"
+                                                    style="cursor: pointer;" aria-label="Close" (click)="removeTag(response,i)">
                                                     <i class="fa-solid fa-xmark"></i>
                                                 </span>
                                             </span>
                                         </div>
                                         <input type="text" class="form-control" [(ngModel)]="response.newTag"
-                                            [disabled]="projectInsightObj.isFinalSubmitted == 'Y'"
-                                            placeholder="Type and press Enter to add tag"
-                                            (keyup.enter)="addManualTag(response)" />
+                                            [disabled]="!canEditResponse(response) || projectInsightObj.isFinalSubmitted == 'Y'"
+                                            placeholder="Type and press Enter to add tag" (keyup.enter)="addManualTag(response)" />
                                     </div>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label><span class="text-danger">*</span>Enter Response Here</label>
                                     <div (contextmenu)="handleContextMenu($event)">
-                                        <angular-editor id="myEditor" [(ngModel)]="response.response"
-                                            [config]="editorConfig">
+                                        <angular-editor id="myEditor" [(ngModel)]="response.response" [config]="editorConfig"> 
+                                            <!-- [readonly]="!canEditResponse(response)" -->
                                         </angular-editor>
                                     </div>
-                                    <div *ngIf="showContextMenu" class="context-menu" [style.left.px]="contextMenuX"
-                                        [style.top.px]="contextMenuY">
+                                    <div *ngIf="showContextMenu" class="context-menu" [style.left.px]="contextMenuX" [style.top.px]="contextMenuY">
                                         <div class="list-group">
-                                            <button class="list-group-item" (click)="addTag(response)">Add
-                                                tag</button>
+                                            <button class="list-group-item" (click)="addTag(response)">Add tag</button>
                                         </div>
                                     </div>
-                                    <div *ngIf="showContextMenu" class="context-menu-backdrop"
-                                        (click)="closeContextMenu()">
+                                    <div *ngIf="showContextMenu" class="context-menu-backdrop" (click)="closeContextMenu()">
                                     </div>
-                                </div>
-                            </div>
-                            <div *ngIf="entity.optionType == 'text' && renderType == 'view'" class="mt-2">
-                                <div class="form-group mb-3">
-                                  <label>Tags</label>
-                                  <div class="tags-container">
-                                    <div class="d-flex flex-wrap gap-2 mb-2">
-                                      <span *ngFor="let tag of response.tags; let i = index" class="badge active mr-1">
-                                        {{tag}}&nbsp;&nbsp;
-                                        <span class="btn-close btn-close-white ms-2" *ngIf="projectInsightObj.isFinalSubmitted == 'N'"
-                                          style="cursor: pointer;" aria-label="Close" (click)="removeTag(response,i)">
-                                          <i class="fa-solid fa-xmark"></i>
-                                        </span>
-                                      </span>
-                                    </div>
-                                    <input type="text" class="form-control" [(ngModel)]="response.newTag"
-                                      [disabled]="projectInsightObj.isFinalSubmitted == 'Y'" placeholder="Type and press Enter to add tag"
-                                      (keyup.enter)="addManualTag(response)" />
-                                  </div>
-                                </div>
-                                <div class="form-group mb-3">
-                                  <label><span class="text-danger">*</span>Enter Response Here</label>
-                                  <div (contextmenu)="handleContextMenu($event)">
-                                    <angular-editor id="myEditor" [config]="editorConfig">
-                                    </angular-editor>
-                                  </div>
-                                  <div *ngIf="showContextMenu" class="context-menu" [style.left.px]="contextMenuX"
-                                    [style.top.px]="contextMenuY">
-                                    <div class="list-group">
-                                      <button class="list-group-item" (click)="addTag(response)">Add tag</button>
-                                    </div>
-                                  </div>
-                                  <div *ngIf="showContextMenu" class="context-menu-backdrop" (click)="closeContextMenu()">
-                                  </div>
                                 </div>
                             </div>
 
@@ -301,7 +262,7 @@
                                     </label>
                                 </div>
                             </div>
-                            <div *ngIf="question.optionType == 'checkbox' && renderType == 'view'" class="mt-2">
+                            <div *ngIf="question.optionType == 'checkbox' && (renderType == 'view' || renderType == 'approval')" class="mt-2">
                                 <div *ngFor="let option of question.optionsList; let optionIndex = index"
                                     class="custom-control custom-checkbox">
                                     <input type="checkbox" class="custom-control-input"
@@ -330,7 +291,7 @@
                                     </label>
                                 </div>
                             </div>
-                            <div *ngIf="question.optionType == 'radio' && renderType == 'view'" class="mt-2">
+                            <div *ngIf="question.optionType == 'radio' && (renderType == 'view' || renderType == 'approval')" class="mt-2">
                                 <div *ngFor="let option of question.optionsList; let optIndex = index"
                                     class="custom-control custom-radio">
                                     <input type="radio" class="custom-control-input"
@@ -372,7 +333,7 @@
                                   </button>
                                 </div>
                             </div>
-                            <div *ngIf="!response.showDocDiv && renderType == 'view'" class="mt-3">
+                            <div *ngIf="!response.showDocDiv && (renderType == 'view' || renderType == 'approval')" class="mt-3">
                                 <div class="d-flex align-items-center">
                                   <label *ngIf="!response.documentFileName" class="btn btn-sm btn-outline-secondary mr-2 mb-0"
                                     for="file-{{entity.questionId}}">

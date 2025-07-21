@@ -191,6 +191,7 @@ export class PerformanceDashboardComponent implements OnInit {
   isLoading = false;
   error: string | null = null;
   chart:any = [] ;
+  hoveredChild: number | null = null;
 
   // New Response objects
   rootNode: FormNode = null;
@@ -1541,57 +1542,89 @@ export class PerformanceDashboardComponent implements OnInit {
     this.startProjectForm();
     this.openProjectInsightResponeMod(insightResponseTemplate);
   }
+
+  navigateToChild(childIndex: number) {
+    const nextNode = this.currentNode.children[childIndex];
+    this.currentNodePath = [...this.currentNodePath, nextNode];
+  }
   
   extractRequiredObject(projectObj: any, empid: any): any {
-    const result: any = {
-      ...projectObj,
-      data: {
-        fields: {},
-        questions: [],
-        child: []
-      }
-    };
-
-    let matchedByFieldAssignment = false;
-
-    // 1. Check in "fields" for matching responseBy in projectInsightResponseList
-    if (projectObj.data?.questions) {
-      for (const question of projectObj.data.questions) {
-        if (question.projectResponseList && Array.isArray(question.projectResponseList)) {
-          for (const response of question.projectResponseList) {
-            if (response.responseBy === empid) {
-              matchedByFieldAssignment = true;
-              break;
-            }
-          }
-        }
-        if (matchedByFieldAssignment) break;
-      }
+    // Helper to check if empid is assigned in a question
+    function isAssignedToQuestion(question, empid) {
+      return Array.isArray(question.toAssignEmployeeList) && question.toAssignEmployeeList.includes(empid);
     }
-
-    // If matched by field assignment, return full object but with children = []
-    if (matchedByFieldAssignment) {
+  
+    // Helper to check if empid is assigned in any projectResponseList
+    // function isAssignedByResponseList(question, empid) {
+    //   if (question.projectResponseList && Array.isArray(question.projectResponseList)) {
+    //     return question.projectResponseList.some(response => response.responseBy === empid);
+    //   }
+    //   return false;
+    // }
+  
+    // Recursive function
+    function extract(data) {
+      if (!data) return null; // <-- Add this line
+    
+      // 1. If assigned by responseList at this level, return the whole node (with empty children)
+      // if (data.questions && data.questions.some(q => isAssignedByResponseList(q, empid))) {
+      //   return { ...data, child: [] };
+      // }
+    
+      // 2. If assigned in any question at this level, return only those questions (no children)
+      const assignedQuestions = (data.questions || []).filter(q => isAssignedToQuestion(q, empid));
+      if (assignedQuestions.length > 0) {
+        return {
+          ...data,
+          fields: {}, // or keep fields if you want
+          questions: assignedQuestions,
+          child: []
+        };
+      }
+    
+      // 3. Otherwise, check children recursively
+      if (Array.isArray(data.child) && data.child.length > 0) {
+        const filteredChildren = data.child
+          .map(child => extract(child))
+          .filter(child => child !== null);
+    
+        if (filteredChildren.length > 0) {
+          return {
+            ...data,
+            questions: [],
+            child: filteredChildren
+          };
+        }
+      }
+    
+      // 4. Not assigned anywhere in this subtree
+      return null;
+    }
+  
+    // Start from projectObj.data
+    const filteredData = extract(projectObj.data);
+  
+    if (filteredData) {
+      return {
+        ...projectObj,
+        data: filteredData
+      };
+    } else {
+      // Not assigned anywhere, return empty structure
       return {
         ...projectObj,
         data: {
-          ...projectObj.data,
+          fields: {},
+          questions: [],
           child: []
         }
       };
     }
-
-    // 2. Otherwise, check in questions[].toAssignEmployeeList
-    if (projectObj.data?.questions) {
-      for (const question of projectObj.data.questions) {
-        if (Array.isArray(question.toAssignEmployeeList) && question.toAssignEmployeeList.includes(empid)) {
-          result.data.questions.push(question);
-        }
-      }
-    }
-
-    // Only include questions; leave fields and child empty
-    return result;
   }
+
+  onSaveResponseAsDraft(){}
+
+  onSaveResponse(){}
 
 
   startProjectForm() {

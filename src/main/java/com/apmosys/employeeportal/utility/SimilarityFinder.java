@@ -42,19 +42,19 @@ public class SimilarityFinder {
 
     @PostConstruct
     public void init() throws IOException, ModelException {
-        Criteria<String, float[]> criteria = Criteria.builder()
-                .setTypes(String.class, float[].class)
-                .optApplication(Application.NLP.TEXT_EMBEDDING)
-                .optEngine("PyTorch")
-                .optModelUrls("djl://ai.djl.huggingface.pytorch/sentence-transformers/all-mpnet-base-v2")
-                .optTranslatorFactory(new TextEmbeddingTranslatorFactory())
-                .build();
-
-        this.model = criteria.loadModel();
-        this.predictor = model.newPredictor();
-        this.executorService = Executors.newFixedThreadPool(MAX_THREADS);
-
-        refreshCache();
+//        Criteria<String, float[]> criteria = Criteria.builder()
+//                .setTypes(String.class, float[].class)
+//                .optApplication(Application.NLP.TEXT_EMBEDDING)
+//                .optEngine("PyTorch")
+//                .optModelUrls("djl://ai.djl.huggingface.pytorch/sentence-transformers/all-mpnet-base-v2")
+//                .optTranslatorFactory(new TextEmbeddingTranslatorFactory())
+//                .build();
+//
+//        this.model = criteria.loadModel();
+//        this.predictor = model.newPredictor();
+//        this.executorService = Executors.newFixedThreadPool(MAX_THREADS);
+//
+//        refreshCache();
     }
 
     @PreDestroy

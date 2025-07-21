@@ -3689,60 +3689,66 @@ public class ProjectInsightService {
             .anyMatch(s -> s.contains(lowerKeyword));
     }
 	
-	private boolean isEmpIdAssigned(FormDataDTO data, String empId) {
-	    if (data == null) return false;
+    private boolean isEmpIdAssigned(FormDataDTO data, String empId) {
+        if (data == null) return false;
 
-	    // 1. Check all fields for keys containing "assignedto" or "assignto"
-	    if (data.getFields() != null) {
-	        for (Map.Entry<String, Object> entry : data.getFields().entrySet()) {
-	            String key = entry.getKey().toLowerCase();
-	            if (key.contains("assignedto") || key.contains("assignto")) {
-	                Object assignedTo = entry.getValue();
-	                if (assignedTo instanceof List) {
-	                    List<?> assignedList = (List<?>) assignedTo;
-	                    for (Object assigned : assignedList) {
-	                        if (empId.equals(String.valueOf(assigned))) {
-	                            return true;
-	                        }
-	                    }
-	                } else if (assignedTo instanceof String) {
-	                    if (empId.equals(assignedTo)) {
-	                        return true;
-	                    }
-	                } else if (assignedTo != null) {
-	                    if (empId.equals(String.valueOf(assignedTo))) {
-	                        return true;
-	                    }
-	                }
-	            }
-	        }
-	    }
+        // Debug print
+        System.out.println("Checking FormDataDTO: " + data);
 
-	    // 2. Check all questions' toAssignEmployeeList
-	    if (data.getQuestions() != null) {
-	        for (ProjectInsightQuestionDTO question : data.getQuestions()) {
-	            List<?> toAssignList = question.getToAssignEmployeeList();
-	            if (toAssignList != null) {
-	                for (Object assigned : toAssignList) {
-	                    if (empId.equals(String.valueOf(assigned))) {
-	                        return true;
-	                    }
-	                }
-	            }
-	        }
-	    }
+        // 1. Check all fields for keys containing "assignedto" or "assignto"
+        if (data.getFields() != null) {
+            for (Map.Entry<String, Object> entry : data.getFields().entrySet()) {
+                String key = entry.getKey().toLowerCase();
+                if (key.contains("assignedto") || key.contains("assignto")) {
+                    Object assignedTo = entry.getValue();
+                    if (assignedTo instanceof List) {
+                        List<?> assignedList = (List<?>) assignedTo;
+                        for (Object assigned : assignedList) {
+                            System.out.println("Comparing field assigned: " + assigned + " with empId: " + empId);
+                            if (empId.toString().equals(String.valueOf(assigned))) {
+                                return true;
+                            }
+                        }
+                    } else if (assignedTo instanceof String) {
+                        if (empId.toString().equals(assignedTo)) {
+                            return true;
+                        }
+                    } else if (assignedTo != null) {
+                        if (empId.toString().equals(String.valueOf(assignedTo))) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
 
-	    // 3. Recursively check all children
-	    if (data.getChild() != null) {
-	        for (FormDataDTO child : data.getChild()) {
-	            if (isEmpIdAssigned(child, empId)) {
-	                return true;
-	            }
-	        }
-	    }
+        // 2. Check all questions' toAssignEmployeeList
+        if (data.getQuestions() != null) {
+            for (ProjectInsightQuestionDTO question : data.getQuestions()) {
+                List<?> toAssignList = question.getToAssignEmployeeList();
+                if (toAssignList != null) {
+                    for (Object assigned : toAssignList) {
+                        System.out.println("Comparing question assigned: " + assigned + " with empId: " + empId);
+                        if (empId.toString().equals(String.valueOf(assigned))) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
 
-	    return false;
-	}
+        // 3. Recursively check all children
+        if (data.getChild() != null) {
+            for (FormDataDTO child : data.getChild()) {
+                System.out.println("Recursing into child: " + child);
+                if (isEmpIdAssigned(child, empId)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
 	public ServiceResponse getProjectInsightByAssignedToEmpId(ProjectInsightDTO projectInsightDTO) {
 	    try {
