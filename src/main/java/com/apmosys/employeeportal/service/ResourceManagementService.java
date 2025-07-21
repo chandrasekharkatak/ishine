@@ -2434,7 +2434,7 @@ public class ResourceManagementService {
 			apiLogInfo.setLogLevel("ERROR");
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
+//		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
