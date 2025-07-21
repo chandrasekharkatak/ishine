@@ -43,7 +43,7 @@ export class TeamMemberComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  teamMemberColumns:any[] = ['blank','employeementId','name','email','jobRoleName','mobileNo'];
+  teamMemberColumns:any[] = ['blank','employmentIdAcToET','name','email','jobRoleName','mobileNo'];
 
   filteredEmployeeAuditHistory:any[] = [];
   employeeAuditHistory:any[] = [];

@@ -1221,6 +1221,22 @@ public class TeamsService {
 					dto.setPipId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
 					dto.setIsConsultant(object[13] != null ? object[13].toString() : null);
 					dto.setIsApprenticeship(object[14] != null ? object[14].toString() : null);
+					dto.setIsApmosysProduct(object[15] != null ? object[15].toString() : null);
+					
+					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+//				    String isConsultant = timesheetDto.getIsConsultant();
+				    String isApmosysProduct = dto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+				        }else {
+				        	dto.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
+
+					
+					
 					dto.setFailedAttempt(failedAttempt);
 					if(dateOfRelieving != null && dateOfRelieving.isEqual(LocalDate.now())) {
 						dto.setIsDateOfRelievingToday("true");
@@ -1315,6 +1331,19 @@ public class TeamsService {
 					dto.setProbationPeriod(object[20] != null ? Short.parseShort(object[20].toString()) : null);
 					dto.setIsConsultant(object[21] != null ? object[21].toString() : null);
 					dto.setIsApprenticeship(object[22] != null ? object[22].toString() : null);
+					dto.setIsApmosysProduct(object[23] != null ? object[23].toString() : null);
+					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+//				    String isConsultant = timesheetDto.getIsConsultant();
+				    String isApmosysProduct = dto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+				        }else {
+				        	dto.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
+
 					
 					Long empId = object[0] != null ? Long.parseLong(object[0].toString()): null;
 					List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMember(empId,date);

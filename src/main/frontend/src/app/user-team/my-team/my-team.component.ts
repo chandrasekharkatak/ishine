@@ -101,7 +101,7 @@ export class MyTeamComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   isSearchLeaveHistoryEnabled : boolean = false;
-  teamViewColumns:any[] = ['blank','employeementId','name','email','jobRoleName','mobileNo','managerName', 'timesheetStatus'];
+  teamViewColumns:any[] = ['blank','employmentIdAcToET','name','email','jobRoleName','mobileNo','managerName', 'timesheetStatus'];
   teamLeaveHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason','leaveType',,'currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark'];
   teamCompOffHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason'];
   teamLeaveAppColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus'];
@@ -486,7 +486,7 @@ export class MyTeamComponent implements OnInit {
         //   }
 
         for(let y of this.teamViewList){
-          y.employeementId = "A-".concat(y.employeementId);      
+          y.employmentIdAcToET = (y.employmentIdAcToET);      
           y.isHierarchy = false;
           let temp = this.managerList.find(manager => manager.managerId == y.empId);
           if(temp != undefined) y.isHierarchy = true;  
