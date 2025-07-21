@@ -46,7 +46,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/employeeportal/api/poProjectTimesheetSync",
 			"/employeeportal/api/getEmployeeAndTimesheetDetails",
 			"/employeeportal/api/getProjectDetailsByEmpIdAndDateRange",
-			"/employeeportal/api/getTeamAndTimeSheetDetails",
+			"/employeeportal/api/getTeamAndTimeSheetDetails/*",
 			"/employeeportal/api/getAllEmployeeInfo",
 			"/employeeportal/api/getAllDepartmentInfo",
 			"/employeeportal/api/getAllJobRoleInfo",

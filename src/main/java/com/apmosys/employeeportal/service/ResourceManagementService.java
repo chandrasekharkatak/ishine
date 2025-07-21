@@ -42,6 +42,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -9485,6 +9486,7 @@ public class ResourceManagementService {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 				throw new BadRequestException("Invalid request type: " + requestType);
 			}
+				
 		} catch (Exception e) {
 			e.printStackTrace();
 			exceptionDetailsForLog = e.toString();
