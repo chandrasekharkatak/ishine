@@ -103,8 +103,15 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/onSaveAsDraft`, payload);
   }
 
-  getAllProjectInsight(){
-    return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`);
+  getAllProjectInsight(domain?: string) {
+    if(!domain){
+      return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`);
+    }
+    return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`, {
+      params: {
+        domain
+      }
+    });
   }
 
   getProjectInsightByInsightId(projectInsightId: any){

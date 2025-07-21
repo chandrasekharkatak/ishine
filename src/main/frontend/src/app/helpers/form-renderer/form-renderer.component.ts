@@ -14,6 +14,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   @Output() formValueChange = new EventEmitter<any>();
   @Output() formSubmit = new EventEmitter<any>();
   @Output() fieldsUpdated = new EventEmitter<{fields: any[], layoutConfig: any[][]}>();
+  @Output() selectedDomainIds = new EventEmitter<any[]>();
 
   isLoading = true;
 
@@ -42,6 +43,24 @@ export class FormRendererComponent implements OnInit, OnChanges {
       await this.prepareApiOptions();
       this.buildForm();
     }
+
+    this.apiSourceService.idToRemove$.subscribe(id => {
+      if(id){
+        if(this.formData["domain"] && this.formData["domain"].includes(id)){
+          this.formData["domain"].splice(this.formData["domain"].indexOf(id), 1);
+
+          this.layoutConfig.forEach(element => {
+            element.forEach(field => {
+              if(field.label.toLowerCase() === 'Domain'.toLowerCase()){
+                this.onDomainSelectChange(this.formData["domain"], field, false);
+              }
+            })
+          });
+
+          this.apiSourceService.setIdToRemove(null);
+        }
+      }
+    })
   }
 
   get formControlsCount(): number {
@@ -142,10 +161,18 @@ export class FormRendererComponent implements OnInit, OnChanges {
     this.loadDependentOptionsForExistingData();
   }
   
-  async loadInitialOptions() {
+  async loadInitialOptions(changed:boolean = false) {
+    // console.log("loadInitialOptions");
+    
     for (const field of this.fields) {
       if (field.optionSource === 'api' && field.apiUrl) {
-        field.options = await this.loadApiOptions(field);
+        if(!changed){
+          field.options = await this.loadApiOptions(field);
+        }else {
+          if(field.label.toLowerCase() === 'Domain'.toLowerCase()){
+            field.options = await this.loadApiOptions(field);
+          }
+        }
       }
     }
     await this.loadDependentOptionsForExistingData();
@@ -153,6 +180,8 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   async loadDependentOptionsForExistingData() {
     for (const field of this.fields) {
+      console.log("field", field);
+      
       if (field.optionSource === 'dependent' && field.parentField) {
         const parentValue = this.formData[field.parentField];
         if (parentValue) {
@@ -295,16 +324,23 @@ export class FormRendererComponent implements OnInit, OnChanges {
     return Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
-  async onDomainSelectChange(selectedDomainIds: any[], field: any) {
+  async onDomainSelectChange(selectedDomainIds: any[], field: any, changed: boolean=true) {
     // Remove all dynamic fields from all rows
+
+    if(!Array.isArray(selectedDomainIds)) selectedDomainIds = [selectedDomainIds];
+
     this.fields = this.fields.filter(f => !f.dynamicDomainChild);
     this.layoutConfig = this.layoutConfig.map(row =>
       row.filter(f => !f.dynamicDomainChild)
-    );
+    );    
 
     const type = this.getTypeForField(field);
+
+    changed && this.selectedDomainIds.emit(selectedDomainIds);
+    
     for (const domainId of selectedDomainIds) {
       const children: any = await this.apiSourceService.getAllNextFieldAndOption(domainId, type).toPromise();
+      
       if (children && children.length > 0) {
         const domainFieldTemplate = { ...field };
         const newField = {
@@ -368,6 +404,9 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   async onDomainChildSelectChange(selectedChildIds: any[], field: any) {
     const currentValues = this.dynamicForm?.value || {};
+
+    console.log("selectedChildIds: ", selectedChildIds);
+    
 
     // 1. Remove dynamic children that are no longer selected
     const selectedNames = (selectedChildIds || []).map(childId => {

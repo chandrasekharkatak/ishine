@@ -24,6 +24,10 @@ import { ProjectInsightService } from 'src/app/services/project-insight.service'
 import { ApiSourceService } from 'src/app/services/api-source.service';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { environment } from 'src/environments/environment';
+import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsightDomainService.service';
+import { Domain, SubDomain, SubService } from './Type';
+import { AddDataModalComponent } from './AddDataModal/AddDataModal.component';
 
 interface FormNode {
   id: string;
@@ -69,7 +73,7 @@ interface TableFieldConfig {
 @Component({
   selector: 'app-project-insight-projconfig',
   templateUrl: './project-insight-projconfig.component.html',
-  styleUrls: ['./project-insight-projconfig.component.css']
+  styleUrls: ['./project-insight-projconfig.component.scss','./project-insight-projconfig.component.css']
 })
 export class ProjectInsightProjconfigComponent implements OnInit {
   fieldPalette = [
@@ -128,6 +132,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   // Form
   dynamicForm: FormGroup;
+  isVisible: boolean = false;
 
   //breadcrumb
   currentNodePath: FormNode[] = [];
@@ -250,8 +255,10 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
     private projectInsightService: ProjectInsightService,
-    private apiSourceService: ApiSourceService
+    private apiSourceService: ApiSourceService,
+    private projectInsightDomainService: ProjectInsightDomainServiceService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x);  }
+  
 
   ngOnInit(): void {
     this.isCurrentEmployeeRoleGreaterThanManager = this.rolesGreaterThanManager.includes(this.currentUser?.employeeRole);
@@ -261,6 +268,261 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
     this.projectData.project = {};
     this.showTable();
+    this.loadInitialOptions();
+    this.getAllProjectWithDomain();
+    // this.loadAllProjectInsightDomain();
+  }
+
+  loadAllProjectInsightDomain(ids:any[]) {
+
+    this.allDomainDataList = [];
+    if(ids.length === 0){
+      return;
+    }
+    this.projectInsightDomainService.getAllProjectInsightDomain(ids).subscribe({
+      next: (res: Domain[]) => {
+        this.allDomainDataList = res.filter(domain => domain.isActive).map(domain => ({
+          ...domain,
+          isOpen: false,
+          subDomains: this.addIsOpenToSubDomains(domain.subDomains), // Handle subDomains and their children
+          services: domain.services.filter(service => service.isActive).map(service => ({
+            ...service,
+            isOpen: false,
+            subServices: this.addIsOpenToSubServices(service.subServices)
+          }))
+        }));
+
+        // this.allDomainDataList = res;
+      }, error: (error: any) => {
+        throw error;
+      }
+    });
+  }
+
+  toggle(item: any) {
+    item.isOpen = !item.isOpen;
+  }
+
+  createDomainModal:boolean = false;
+
+  openCreateDomainModal(){
+    this.createDomainModal = true;
+  }
+
+  closeCreateDomainModal(){
+    this.createDomainModal = false;
+    // this.loadAllProjectInsightDomain();
+  }
+
+  currentItem: any = null;
+  childType: string = '';
+  parentItem: string = null;
+  modalTitleMap = {
+    'domain': 'Add Sub-Domain',
+    'subDomain': 'Add Sub-Domain',
+    'service': 'Add Service',
+    'subService': 'Add Sub-Service'
+  };
+
+  addedDomainId = -1;
+  title=  ""
+
+  openModal(item: any, type: string,parent: string) {
+    this.currentItem = item;
+    this.childType = type;
+    this.parentItem = parent;
+    this.isVisible = true;
+    if(item.domain){
+      this.title = "Add new Item in "+item.domain;
+    } else if(item.subDomain){
+      this.title = "Add new Item in "+item.subDomain;
+    } else if(item.service){
+      this.title = "Add new Item in "+item.service;
+    } else{
+      this.title = "Add new Item in "+item.subService;
+    }
+  }
+
+  closeModal() {
+    this.isVisible = false;
+    this.currentItem = null;
+    this.childType = '';
+  }
+
+  changeChildType(childType: string) {
+    this.childType = childType;
+  }
+
+  saveModal(value: string) {
+
+    if(!value || value.trim() === '') {
+      this.alertMessage= "Please enter a valid value"
+      return;
+    }
+
+    this.addData(this.currentItem, this.childType, this.parentItem, value);    
+    this.closeModal();
+  }
+
+  allDomainList:string[] = []
+  allDomainWithProject : any = {}
+  domainColors: any = {}
+
+  getAllProjectWithDomain() {
+    this.apiSourceService.getAllPRojectWithDomain().subscribe({
+      next: (res: any[]) => {
+        console.log("res", res);
+        this.allDomainList = Object.keys(res);
+        this.allDomainList.forEach((domain, index) => {
+          this.domainColors[domain] = this.getRandomColor();
+        });
+        this.allDomainWithProject = res
+      }, error: (error: any) => {
+        throw error;
+      }
+    });
+  }
+
+  getRandomColor(): string {
+    const colors = [
+  '#1e3a8a', '#4338ca', '#5b21b6', '#7c3aed', '#9333ea',
+  '#a21caf', '#be123c', '#b91c1c', '#dc2626', '#c2410c',
+  '#b45309', '#92400e', '#0f766e', '#065f46', '#047857',
+  '#064e3b', '#0c4a6e', '#1e40af', '#1d4ed8', '#2563eb',
+  '#3b82f6', '#312e81', '#422006', '#78350f', '#3f6212',
+  '#365314', '#14532d', '#166534', '#115e59', '#134e4a'
+];
+
+
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  selectedDomain:string = null;
+  alreadySelected:boolean = false;
+
+  selectDomain(domain:string){
+    if(!this.alreadySelected || !(domain == this.selectedDomain)){
+      this.selectedDomain = domain
+      this.alreadySelected = true
+      this.getAllProjectInsightProjectList(domain);
+    }else{
+      this.selectedDomain = null
+      this.alreadySelected = false
+      this.getAllProjectInsightProjectList();
+    }
+  }
+
+  addData(item: any, child: string, parent: string, value?: string) {
+
+    if (!value || value.trim() === '') {
+      this.alertMessage = "Please enter a valid value";
+      return;
+    }
+
+    const regex = /^[a-zA-Z0-9 ]+$/
+
+    if (!regex.test(value)) {
+      this.alertMessage = "Please enter a valid value";
+      return;
+    }
+
+    if (parent == "domain") {
+
+      this.projectInsightDomainService.editDomain({
+        "parent_id": item.domainId,
+        "parent_id_name": "domain",
+        "name": value,
+        "children_name": child
+      }).subscribe({
+        next: (res: any) => {
+          if(child == 'subDomain'){
+            item.subDomains.push({ subDomain: value, subDomainId: res, isOpen: false, children: [], services: [] });
+          } if(child == 'service') {
+            item.services.push({ service: value, serviceId: res, isOpen: false, subServices: [] });
+          }
+        }, error: (error: any) => {
+          throw error;
+        }
+      })
+
+    } else if (child === 'subDomain') {
+      this.projectInsightDomainService.editDomain({
+        "parent_id": item.subDomainId,
+        "parent_id_name": "subDomain",
+        "name": value,
+        "children_name": child
+      }).subscribe({
+        next: (res: any) => {
+          item.children.push({ subDomain: value, subDomainId: res, isOpen: false, children: [], services: [] });
+        }, error: (error: any) => {
+          throw error;
+        }
+      })
+
+    } else if (child === 'service') {
+      this.projectInsightDomainService.editDomain({
+        "parent_id": item.subDomainId,
+        "parent_id_name": parent,
+        "name": value,
+        "children_name": child
+      }).subscribe({
+        next: (res: any) => {
+          item.services.push({ service: value, serviceId: res, isOpen: false, subServices: [] });
+        }, error: (error: any) => {
+          throw error;
+        }
+      })
+
+    } else if (child === 'subService') {
+      this.projectInsightDomainService.editDomain({
+        "parent_id": item.serviceId || item.id,
+        "parent_id_name": parent,
+        "name": value,
+        "children_name": child
+      }).subscribe({
+        next: (res: any) => {
+          if(item.subServices){
+          item.subServices.push({ subService: value, id: res,  isOpen: false, children: [] });
+        } else{
+          item.children.push({ subService: value, id: res, isOpen: false, children: [] });
+        }
+        }, error: (error: any) => {
+          throw error;
+        }
+      })
+    }
+    
+    this.apiSourceService.setIdToRemove(this.addedDomainId);
+    this.title =  ""
+
+  }
+
+  getName(name:string){
+    if(name.length > 10){
+      return name.substring(0, 9) + '...';
+    }
+    return name;
+  }
+
+  addIsOpenToSubDomains(subDomains: SubDomain[]): SubDomain[] {
+    return subDomains.filter(subDomain => subDomain.isActive).map(subDomain => ({
+      ...subDomain,
+      isOpen: false,
+      children: this.addIsOpenToSubDomains(subDomain.children), // Recursively handle children
+      services: subDomain.services.filter(service => service.isActive).map(service => ({
+        ...service,
+        isOpen: false,
+        subServices: this.addIsOpenToSubServices(service.subServices) // Handle subServices
+      }))
+    }));
+  }
+
+  addIsOpenToSubServices(subServices: SubService[]): SubService[] {
+    return subServices.filter(subService => subService.isActive).map(subService => ({
+      ...subService,
+      isOpen: false,
+      children: this.addIsOpenToSubServices(subService.children) // Recursively handle children
+    }));
   }
 
   showTable() {
@@ -316,6 +578,33 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.newFieldType = null;
     this.editingField = null;
     this.editingFieldIndex = -1;
+
+  }
+  syncFormToProjectObj(formValues: any): void {
+    Object.keys(formValues).forEach(key => {
+      this.projectInsightProjectObj[key] = formValues[key];
+    });
+
+  }
+
+  buildDynamicForm(): void {
+    const formControls: any = {};
+
+    this.fields.forEach(field => {
+      if (!field.name || field.name.trim() === '') {
+        console.warn('Field without name found:', field.label);
+        return;
+      }
+
+      const validators = [];
+      if (field.required) {
+        validators.push(Validators.required);
+      }
+      const defaultValue = this.projectInsightProjectObj[field.name] || field.defaultValue || '';
+      formControls[field.name] = [defaultValue, validators];
+    });
+
+    this.dynamicForm = this.formBuilder.group(formControls);
   }
 
   populateFormWithData(data: any): void {
@@ -328,13 +617,16 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   loadProjectData(projectId: string): void {
-    console.log('Loading project data for ID:', projectId);
 
     // For now, using the existing projectInsightProjectObj
     // In real implementation, you would make an API call here
     setTimeout(() => {
       this.populateFormWithData(this.projectInsightProjectObj);
     }, 100);
+  }
+
+  onProjectSelect(projectId: string): void {
+    this.loadProjectData(projectId);
   }
 
   openTableView() {
@@ -425,9 +717,11 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     });
   }
 
-  getAllProjectInsightProjectList(){
-    this.projectInsightService.getAllProjectInsight().pipe(first()).subscribe({
+  getAllProjectInsightProjectList(domain?: string) {
+    this.projectInsightService.getAllProjectInsight(domain).pipe(first()).subscribe({
       next: (response: any) => {
+        console.log("response", response);
+        
         this.allProjectInsightProjectList = response;
       },
       error: (error: any) => {
@@ -534,16 +828,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       });
   }
 
-  toggle(node: any, type: string, idField: string) {
-    const key = `${type}-${node[idField]}`;
-    this.expanded[key] = !this.expanded[key];
-  }
-
-  isExpanded(node: any, type: string, idField: string) {
-    const key = `${type}-${node[idField]}`;
-    return !!this.expanded[key];
-  }
-
   toggleByPath(path: number[]) {
     const key = path.join('-');
     this.expandedPaths[key] = !this.expandedPaths[key];
@@ -577,7 +861,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     // Open dialog, show inline input, or emit event
     // type: 'domain' | 'subdomain' | 'service' | 'business_feature' | 'feature' | 'subfeature'
     // parent: the parent object at this level, or null for top-level domain
-    console.log('Add', type, 'under', parent);
   }
 
   toggleDomainProjectView(event: any) { }
@@ -588,12 +871,17 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
     if (this.dependentFieldsMap.has(fieldName)) {
       const dependentFields = this.dependentFieldsMap.get(fieldName)!;
-
+  // }
       dependentFields.forEach(dependentFieldName => {
         this.handleDependentFieldChange(dependentFieldName, selectedValue);
       });
     }
   }
+
+  isExpanded(node: any) {
+    return node.isOpen;
+  }
+      
 
   onMultiSelectChange(event: any, field: any) {
     const selectedValues = event.value;
@@ -757,7 +1045,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     const promises = [];
     for (const field of this.fields) {
       if (field.optionSource === 'api') {
-        promises.push(this.loadApiOptions(field));
+          promises.push(this.loadApiOptions(field));
+        
       }
     }
     await Promise.all(promises);
@@ -772,9 +1061,11 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
       if (response && Array.isArray(response)) {
         const options = response.map(item => ({
-          label: item[field.apiLabelKey || 'name'],
+          label: item[field.apiLabelKey || 'projectName'],
           value: item[field.apiValueKey || 'id']
         }));
+
+        // Cache the options
         field.options = options;
         return options;
       }
@@ -1123,7 +1414,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.rootNode.children.push(newGroup);
     this.currentNodePath.push(newGroup);
 
-    console.log(this.currentNodePath, " : this.currentNodePath");
+    // console.log(this.currentNodePath, " : this.currentNodePath");
   }
 
   private getDefaultGroupStructure(): FormNode {
@@ -1402,8 +1693,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.currentNode.fields = [...this.currentNode.fields];
     this.currentNode.layoutConfig = [...this.currentNode.layoutConfig];
     
-    console.log('Fields updated in parent:', this.currentNode.fields);
-    console.log('Layout config updated in parent:', this.currentNode.layoutConfig);
+    // console.log('Fields updated in parent:', this.currentNode.fields);
+    // console.log('Layout config updated in parent:', this.currentNode.layoutConfig);
   }
 
   onSaveAndAssign() {
@@ -1479,7 +1770,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   onFormValueChange(node: FormNode, value: any) {
-    console.log('Form value changed:', value);
+    // console.log('Form value changed:', value);
     node.formData = value;
     Object.assign(node.fields, value);
   }
@@ -1837,7 +2128,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
   
   addNewField(node: FormNode) {
-    console.log('Adding new field to node:', node);
+    // console.log('Adding new field to node:', node);
     
     this.addFieldTargetNode = node;
     this.editingField = {
@@ -1858,7 +2149,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.editingIndex = -1;
     this.showFieldConfig = true;
     
-    console.log('addFieldTargetNode set to:', this.addFieldTargetNode);
+    // console.log('addFieldTargetNode set to:', this.addFieldTargetNode);
     this.showFieldTypePalette();
   }
   
@@ -1903,7 +2194,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.newFieldType = null;
     
     this.closeAddFieldModal();
-    console.log('Field updated successfully:', this.currentNode.fields[this.editingFieldIndex]);
+    // console.log('Field updated successfully:', this.currentNode.fields[this.editingFieldIndex]);
   }
 
   deleteField() {
@@ -1923,8 +2214,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       
       this.closeAddFieldModal();
       
-      console.log('Field deleted successfully : ', this.currentNode.fields);
-      console.log('Field deleted Layout config : ', this.currentNode.layoutConfig);
+      // console.log('Field deleted successfully : ', this.currentNode.fields);
+      // console.log('Field deleted Layout config : ', this.currentNode.layoutConfig);
   }
   
   startFieldConfig(type: any) {
@@ -1966,8 +2257,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.addFieldTargetNode.fields.push(this.editingField);
     this.addFieldTargetNode.layoutConfig = this.getLayoutConfig(this.addFieldTargetNode.fields);
 
-    console.log(this.addFieldTargetNode.fields, ": this.addFieldTargetNode.fields ===");
-    console.log(this.addFieldTargetNode.layoutConfig, ": this.addFieldTargetNode.layoutConfig ===");
+    // console.log(this.addFieldTargetNode.fields, ": this.addFieldTargetNode.fields ===");
+    // console.log(this.addFieldTargetNode.layoutConfig, ": this.addFieldTargetNode.layoutConfig ===");
   
     this.editingField = null;
     this.showFieldConfig = false;
@@ -2135,8 +2426,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
     this.currentNode.fields = [...this.currentNode.fields];
     
-    console.log('Field added to current node:', this.currentNode);
-    console.log('Updated fields:', this.currentNode.fields);
+    // console.log('Field added to current node:', this.currentNode);
+    // console.log('Updated fields:', this.currentNode.fields);
   
     this.editingField = null;
     this.editingFieldIndex = -1;

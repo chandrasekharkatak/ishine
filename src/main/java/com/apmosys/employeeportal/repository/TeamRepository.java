@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO;
 import com.apmosys.employeeportal.model.Team;
 
 @Repository
@@ -64,4 +65,8 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	@Modifying
 	@Query(nativeQuery = true)
 	public void updateTeamName(Long teamId, String newTeamName);
+
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO(e.empId , e.name) from Employee e, Team t where e.empId = t.teamLeadId and t.projectId = :projectId")
+	List<ProjectManagerIdAndNameDTO> findAllTeamLeadByProjectId(@Param("projectId") Integer projectId);
 }

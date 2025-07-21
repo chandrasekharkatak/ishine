@@ -1,0 +1,245 @@
+/* Variables */
+$color-primary: #6366f1;
+$color-success: #10b981;
+$color-danger: #ef4444;
+$color-text: #374151;
+$color-border: #e5e7eb;
+$color-bg: #f9fafb;
+$transition-speed: 0.15s;
+$spacing-unit: 1rem;
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$color-sub-service: #8b5cf6;
+
+/* Base Styles */
+.tree-container {
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: $color-text;
+  line-height: 1.5;
+  margin-top: 5px;
+  width: 100%;
+  overflow-x: scroll;
+  overflow: visible;
+}
+
+/* Domain Tree */
+.domain-tree {
+  list-style: none;
+}
+
+/* Node Structure */
+.domain-node {
+  margin-bottom: 0.5rem; /* Reduced bottom margin */
+  // padding-left: 1rem;  /* Reduced padding for hierarchy */
+  transition: padding-left $transition-speed ease;
+}
+
+/* Node Wrapper */
+.node-wrapper {
+  position: relative;
+  padding: 0;  /* Removed unnecessary padding */
+}
+
+/* Node Header */
+.node-header {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Reduced gap for header elements */
+  min-height: 30px;  /* Reduced min-height */
+}
+
+/* Node Content */
+.node-content {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;  /* Reduced gap */
+  padding: 0.25rem 0.5rem;  /* Reduced padding */
+  border-radius: 6px;
+  background: white;
+  border-left: 4px solid;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all $transition-speed ease;
+  
+  &:hover {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  &.subdomain {
+    border-left-color: $color-primary;
+    background-color: rgba($color-primary, 0.03);
+  }
+
+  &.service {
+    border-left-color: $color-success;
+    background-color: rgba($color-success, 0.03);
+    
+  }
+}
+
+/* Node Input */
+.node-input {
+  flex: 1;
+  min-width: 100px;  /* Reduced width */
+  padding: 6px 8px;  /* Adjusted padding */
+  border: 1px solid $color-border;
+  border-radius: 4px;
+  font-size: 0.85rem;  /* Reduced font size */
+  transition: all $transition-speed;
+  
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 2px rgba($color-primary, 0.1);
+  }
+}
+
+/* Toggle Button */
+.toggle-btn {
+  background: none;
+  border: none;
+  width: 20px;  /* Reduced size */
+  height: 20px;  /* Reduced size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all $transition-speed;
+  
+  &:hover {
+    background: $color-bg;
+    color: $color-text;
+  }
+
+  i {
+    font-size: 0.7rem;  /* Reduced font size */
+    transition: transform $transition-speed;
+  }
+}
+
+/* Node Actions */
+.node-actions {
+  display: flex;
+  gap: 4px;  /* Reduced gap between action buttons */
+}
+
+/* Nested Content */
+.nested-content {
+  margin-left: 1.5rem;  /* Reduced left margin */
+  padding-left: 0.5rem;  /* Reduced padding */
+  border-left: 1px dashed $color-border;
+  max-height: 0;
+  overflow: visible;
+  transition: max-height $transition-speed ease;
+
+  &.is-open {
+    max-height: 5000px; /* Adjust based on your content */
+  }
+}
+
+.service-list,
+.subservice-list {
+  margin-top: 0.25rem;  /* Reduced top margin */
+  
+}
+
+.children-subdomains {
+  margin-top: 0.75rem;  /* Reduced top margin */
+}
+
+/* Responsive Design */
+
+/* Small Screens (Mobile) */
+@media (max-width: $breakpoint-sm) {
+  .node-content {
+    padding: 0.25rem 0.5rem;  /* Reduced padding */
+    font-size: 1rem;  /* Slightly smaller font size */
+  }
+
+  .node-actions {
+    gap: 4px;  /* Reduced gap */
+  }
+
+  .nested-content {
+    margin-left: 1rem;
+    padding-left: 0.5rem;
+  }
+
+  /* Toggle button icons should be larger on mobile */
+  .toggle-btn i {
+    font-size: 1rem;
+  }
+}
+
+/* Medium Screens (Tablet) */
+@media (min-width: $breakpoint-sm) and (max-width: $breakpoint-md) {
+  .node-content {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+
+  .nested-content {
+    margin-left: 1.5rem;
+    padding-left: 1rem;
+  }
+
+  .node-actions {
+    gap: 6px;
+  }
+}
+
+/* Large Screens (Desktop) */
+@media (min-width: $breakpoint-md) and (max-width: $breakpoint-lg) {
+  .node-content {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .nested-content {
+    margin-left: 2rem;
+    padding-left: 1.5rem;
+  }
+}
+
+/* Extra Large Screens (Larger Desktop) */
+@media (min-width: $breakpoint-lg) {
+  .node-content {
+    padding: 1rem 1.5rem;
+    font-size: 1.05rem;
+  }
+
+  .nested-content {
+    margin-left: 2.5rem;
+    padding-left: 2rem;
+  }
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.domain-node {
+  animation: fadeIn 0.15s ease-in-out;
+}
+
+.service-node{
+  animation: fadeIn 0.15s ease-in-out;
+}
+
+/* Focus states */
+button:focus,
+input:focus {
+  outline: 2px solid rgba($color-primary, 0.3);
+  outline-offset: 2px;
+}

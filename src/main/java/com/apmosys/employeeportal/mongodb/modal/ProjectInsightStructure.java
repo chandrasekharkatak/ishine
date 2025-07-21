@@ -12,14 +12,14 @@ import lombok.Data;
 @Data
 public class ProjectInsightStructure {
 
-	    @Id
-	    private String id;
-	    private FormStructureDTO structure;
-	    private FormDataDTO data;
-	    private String createdBy;
-	    private String createdOn;
-	    private String updatedOn;
-	    private String updatedBy;
-	    private String isDraft;
-	
+	@Id
+	private String id;
+	private FormStructureDTO structure;
+	private FormDataDTO data;
+	private String createdBy;
+	private String createdOn;
+	private String updatedOn;
+	private String updatedBy;
+	private String isDraft;
+
 }

@@ -30,6 +30,25 @@ public interface ProjectInsighProjectMappingRepository extends JpaRepository<Pro
 		       "LEFT JOIN Employee manager ON manager.id = p.projectManagerId")
 		List<ProjectInsighProjectMappingDTO> fetchAllProjectMappings();
 
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO( " +
+       "   pm.projectId, " +
+       "   pm.projectInsightId, " +
+       "   pm.isDraft, " +
+       "   pm.createdBy, " +
+       "   p.projectName, " +
+       "   e.name, " +
+       "   c.clientName, " +
+       "   manager.name " +
+       ") " +
+       "FROM ProjectInsighProjectMapping pm " +
+       "JOIN Project p ON p.id = pm.projectId " +
+       "JOIN Employee e ON e.id = pm.createdBy " +
+       "JOIN Client c ON c.id = p.clientId " +
+       "LEFT JOIN Employee manager ON manager.id = p.projectManagerId " +
+       "WHERE pm.projectId IN :ids")
+List<ProjectInsighProjectMappingDTO> fetchAllProjectMappingsByInsightIds(@Param("ids") List<Integer> ids);
+
+
 	ProjectInsighProjectMapping findByProjectInsightId(String id);
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO( " +

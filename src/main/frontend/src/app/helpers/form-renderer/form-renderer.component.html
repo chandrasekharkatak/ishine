@@ -9,12 +9,12 @@
         <div class="info-wrapper">
           <div class="form-group">
             <label [for]="field.id" *ngIf="field.optionSource != 'dependent'">
-              {{ getTitleCaseLabel(field.label) }}
+              {{field.parentField}} {{ getTitleCaseLabel(field.label) }}
               <span class="text-danger" *ngIf="field.required">*</span>
             </label>
     
             <!-- Select Field (non-dependent) -->
-            <div class="w-100" *ngIf="field.type === 'select' && field.optionSource !== 'dependent' && field.label !== 'Domain' && !field.dynamicDomainChild">
+            <div class="w-100" *ngIf="field.type === 'select' && field.optionSource.toLowerCase() !== 'dependent'.toLowerCase() && field.label.toLowerCase() !== 'Domain'.toLowerCase() && !field.dynamicDomainChild">
               <mat-select
                 class="form-control"
                 [formControlName]="field.name"
@@ -27,7 +27,7 @@
             </div>
 
             <!-- Domain -->
-            <div class="w-100" *ngIf="field.type === 'select' && field.optionSource !== 'dependent' && field.label === 'Domain'">
+            <div class="w-100" *ngIf="field.type === 'select' && field.optionSource !== 'dependent' && field.label.toLowerCase() === 'Domain'.toLowerCase()">
               <mat-select class="form-control" [formControlName]="field.name" [multiple]="field.multiple"
                 (selectionChange)="onDomainSelectChange($event.value, field)">
                 <mat-option *ngFor="let option of field.options" [value]="option.value">
@@ -47,7 +47,7 @@
             </div>
                 
             <!-- Dependent Select Field with Multi-Select Parent -->
-            <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && isParentMultiSelect(field) && !field.dynamicDomainChild">
+            <ng-container *ngIf="field.type === 'select' && field.optionSource.toLowerCase() === 'dependent'.toLowerCase() && isParentMultiSelect(field) && !field.dynamicDomainChild">
               <mat-form-field class="w-100">
                 <mat-select
                   class="form-control"
@@ -66,7 +66,7 @@
             </ng-container>
     
             <!-- Dependent Select Field with Single Parent -->
-            <ng-container *ngIf="field.type === 'select' && field.optionSource === 'dependent' && !isParentMultiSelect(field) && !field.dynamicDomainChild">
+            <ng-container *ngIf="field.type === 'select' && field.optionSource.toLowerCase() === 'dependent'.toLowerCase() && !isParentMultiSelect(field) && !field.dynamicDomainChild">
               <div appearance="fill" class="w-100">
                 <mat-label>{{ field.label }}</mat-label>
                 <mat-select
@@ -81,7 +81,7 @@
             </ng-container>
 
             <!-- Inside app-form-renderer template -->
-            <div *ngIf="field.type === 'table'">
+            <div *ngIf="field.type.toLowerCase() === 'table'.toLowerCase()">
               <table class="table table-bordered">
                 <thead>
                   <tr>
@@ -104,7 +104,7 @@
     
             <!-- Text Input Field -->
             <input 
-              *ngIf="field.type === 'text'"
+              *ngIf="field.type.toLowerCase() === 'text'"
               [id]="field.id"
               [formControlName]="field.name"
               type="text"
@@ -114,7 +114,7 @@
     
             <!-- Number Input Field -->
             <input 
-              *ngIf="field.type === 'number'"
+              *ngIf="field.type.toLowerCase() === 'number'"
               [id]="field.id"
               [formControlName]="field.name"
               type="number"
@@ -124,7 +124,7 @@
     
             <!-- Email Input Field -->
             <input 
-              *ngIf="field.type === 'email'"
+              *ngIf="field.type.toLowerCase() === 'email'"
               [id]="field.id"
               [formControlName]="field.name"
               type="email"
@@ -134,7 +134,7 @@
     
             <!-- Textarea Field -->
             <textarea 
-              *ngIf="field.type === 'textarea'"
+              *ngIf="field.type.toLowerCase() === 'textarea'"
               [id]="field.id"
               [formControlName]="field.name"
               class="form-control"
@@ -143,7 +143,7 @@
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched"></textarea>
     
             <!-- Checkbox Field -->
-            <div *ngIf="field.type === 'checkbox'" class="form-check">
+            <div *ngIf="field.type.toLowerCase() === 'checkbox'" class="form-check">
               <div *ngFor="let option of field.options" class="form-check">
                 <input 
                   [id]="field.id + '_' + option.value"
@@ -151,7 +151,7 @@
                   type="checkbox"
                   class="form-check-input"
                   [value]="option.value"
-                  [checked]="getFormValue(field.name) === option.value"
+                  [checked]="getFormValue(field.name).toLowerCase() === option.value.toLowerCase()"
                   (change)="dynamicForm.get(field.name)?.setValue(option.value)"
                   [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
                 <label [for]="field.id + '_' + option.value" class="form-check-label">
@@ -169,7 +169,7 @@
                   type="radio"
                   class="form-check-input"
                   [value]="option.value"
-                  [checked]="getFormValue(field.name) === option.value"
+                  [checked]="getFormValue(field.name).toLowerCase() === option.value"
                   (change)="dynamicForm.get(field.name)?.setValue(option.value)"
                   [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
                 <label [for]="field.id + '_' + option.value" class="form-check-label">

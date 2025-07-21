@@ -157,6 +157,13 @@ import { ProjectInsightProjconfigComponent } from './user-team/project-insight-p
 import { FormBuilderComponent } from './user-team/form-builder/form-builder.component';
 import { FormRendererComponent } from './helpers/form-renderer/form-renderer.component';
 import { QuestionRendererComponent } from './helpers/question-renderer/question-renderer.component';
+import { DomainComponent } from './user-team/Domain/Domain.component';
+import { SubDomainComponent } from './user-team/Domain/SubDomain/SubDomain.component';
+import { SubServiceComponent } from './user-team/Domain/SubService/SubService.component';
+import { AddDataModalComponent } from './user-team/project-insight-projconfig/AddDataModal/AddDataModal.component';
+import { DomainTablesComponent } from './user-team/Domain/DomainTables/DomainTables.component';
+import { DomainModalComponent } from './user-team/Domain/DomainModal/DomainModal.component';
+import { ViewDomainComponent } from './user-team/Domain/ViewDomain/ViewDomain.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -200,14 +207,17 @@ registerLocaleData(localeGb);
     UserTeamComponent,
     UserTimesheetComponent,
     TeamConfigComponent,
+    ViewDomainComponent,
     MyTimesheetComponent,
     TeamTimesheetComponent,
     MyTeamComponent,
     TeamMemberComponent,
     HomeConfigComponent,
+    DomainTablesComponent,
     CalendarComponent,
     UserUpdateInfoComponent,
     EmployeeInfoComponent,
+    DomainModalComponent,
     DocumentUploadComponent,
     InformationPreviewComponent,
     EmployeeUpdateListComponent,
@@ -255,13 +265,15 @@ registerLocaleData(localeGb);
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
-
+    DomainComponent,
     BreadcrumbComponent,
-
+    SubDomainComponent,
+    SubServiceComponent,
     Employee360BiomaxComponent,
      AppreciationComponent,
     PerformanceDashboardComponent,
     TeamDashboardComponent,
+    AddDataModalComponent,
     TemplatesComponent,
     QuarterCycleComponent,
     ViewPerformanceComponent,

@@ -10,12 +10,16 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectIdAndNameDTO;
 import com.apmosys.employeeportal.model.Project;
 
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	public List<Project> findAllByProjectManagerId(Long projectManagerId);
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectIdAndNameDTO(p.projectId, p.projectName) FROM Project p")
+	public List<ProjectIdAndNameDTO> findAllProjectIdAndName();
 	
 	public List<Project> findByEmpId(Long empId);
 	

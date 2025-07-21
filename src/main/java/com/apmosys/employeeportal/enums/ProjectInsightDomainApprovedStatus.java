@@ -1,5 +1,5 @@
 package com.apmosys.employeeportal.enums;
 
 public enum ProjectInsightDomainApprovedStatus {
-	pending, approved, rejected
+    pending, approved, rejected
 }

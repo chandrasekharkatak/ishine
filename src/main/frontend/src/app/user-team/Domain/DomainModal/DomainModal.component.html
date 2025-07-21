@@ -1,0 +1,100 @@
+<!-- Modal Container -->
+<div class="modal-overlay">
+  <div class="modal-domain-wrapper ">
+    <div class="modal-header">
+      <h3>Create New Domain</h3>
+      <button class="close-btn" (click)="onCloseModal()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="domain-container">
+        <!-- Main Domain Input -->
+        <div class="domain-input-group">
+            <input 
+              id="domainInput"
+              type="text"
+              placeholder="Enter domain name..." 
+              [(ngModel)]="domain.domain"
+              class="domain-input-field"
+              aria-label="Domain name">
+            <button 
+              (click)="addSubDomainList()" 
+              class="btn btn-info btn-sm"
+              title="Add Sub-Domain">
+              <i class="fa-solid fa-plus"></i>
+              <span>Add SubDomain</span>
+            </button>
+            <button 
+              (click)="addServiceList()" 
+              class="btn btn-warning btn-sm ml-2"
+              title="Add Service">
+              <i class="fa-solid fa-plus"></i>
+              <span>Add Service</span>
+            </button>
+        </div>
+
+        <!-- Sub-Domains Section -->
+        <div class="sub-domains-section" *ngIf="domain.subDomainList?.length">
+          <app-SubDomain [subDomainList]="domain.subDomainList"></app-SubDomain>
+        </div>
+
+        <!-- Services Section -->
+        <div class="sub-domains-section" *ngIf="domain.serviceList?.length">
+          <div *ngIf="domain.serviceList.length > 0" class="service-list">
+            <div *ngFor="let service of domain.serviceList; let j = index" class="service-node">
+              <div class="node-header">
+                <button *ngIf="service.subServiceList.length > 0" class="toggle-btn" (click)="toggleService(j)"
+                  aria-label="Toggle service">
+                  <i class="fa-solid"
+                    [ngClass]="{'fa-chevron-down': service.isOpen, 'fa-chevron-right': !service.isOpen}"></i>
+                </button>
+
+                <div class="node-content service">
+                  <input type="text" placeholder="Service Name" [(ngModel)]="service.service" class="node-input"
+                    aria-label="Service name">
+
+                  <div class="node-actions">
+                    <button (click)="addSubServices(j)" class="btn btn-success btn-sm"
+                      title="Add Sub-Service">
+                      <i class="fa-solid fa-plus"></i>
+                      <span class="btn-label">Sub-Service</span>
+                    </button>
+                    <button (click)="removeServices(j)" class="btn btn-danger btn-sm" title="Delete">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sub-Services Level -->
+              <div class="nested-content" [class.is-open]="service.isOpen">
+                <ul *ngIf="service.subServiceList.length > 0 && service.isOpen" class="subservice-list">
+                  <app-SubService [subServiceList]="service.subServiceList"></app-SubService>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="onCloseModal()">
+        Cancel
+      </button>
+      <button 
+        class="btn btn-primary" 
+        (click)="createDomain()"
+        [disabled]="!domain.domain || !loading ">
+        {{ loading ? 'Creating...' : 'Create Domain' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<ng-template #domainCreatedModal>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+  </div>
+</ng-template>

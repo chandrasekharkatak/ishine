@@ -1,11 +1,15 @@
-<div class="dashboard-container">
+<div class="dashboard-container" style="width: 100%;">
   <!-- Top Summary Cards -->
-  <div class="summary-cards">
-      <div class="card insurance">
-        <div class="circle"></div>
-        <div class="count">05</div>
-        <div class="label">INSURANCE</div>
+  <div class="summary-cards" style="display: flex; flex-wrap: wrap;" >
+    <div *ngFor="let domain of allDomainList" >
+
+      <div class="card insurance" style="cursor: pointer;" [ngClass]="{'active': selectedDomain == domain && alreadySelected}" (click)="selectDomain(domain)" >
+        <div [style.background]="domainColors[domain]" class="circle"></div>
+        <div class="count">{{allDomainWithProject[domain].length}}</div>
+        <div class="label"> {{domain}} </div>
       </div>
+    </div>
+      
     </div>
 
   <!-- Table view and filters  -->
@@ -118,97 +122,130 @@
         <label class="mb-0">Domain</label>
       </div>
 
-      <div class="filter-list">
+      <div class="filter-list" >
         <!-- DOMAIN STRUCTURE TREE -->
-        <ul class="filter-tree" *ngIf="isDomainStructure">
-          <ng-container *ngFor="let domain of allDomainDataList">
+        <div *ngIf="isDomainStructure"   >
+          <ul class="filter-tree"  >
+          <!-- Root level - domains -->
+          <div *ngFor="let data of allDomainDataList">
             <li>
-              <div class="tree-label" (click)="toggle(domain, 'domain', 'domain_id')">
-                {{ domain.domain }}
-                <button class="add-btn" (click)="addItem('domain', domain, $event)">
+              <div class="tree-label" [title]="data.domain+' (Domain)'" (click)="addedDomainId = data.domainId" >
+                <span class="arrow" (click)="toggle(data)" *ngIf="data.subDomains?.length || data.services?.length">
+                  {{ data.isOpen ? '▼' : '▶' }}
+                </span>
+                {{ getName(data.domain) }}
+                <button class="add-btn" title="Add Sub-Domain" (click)="openModal(data, 'subDomain', 'domain' )">
                   <i class="fa fa-plus"></i>
                 </button>
               </div>
-              <ul *ngIf="isExpanded(domain, 'domain', 'domain_id')">
-                <ng-container *ngFor="let sub of domain.subDomainList">
+
+              <!-- Recursive subdomains -->
+              <ul *ngIf="data.isOpen && data.subDomains?.length">
+                <ng-container
+                  *ngTemplateOutlet="subDomainTemplate; context: { $implicit: data.subDomains }"></ng-container>
+              </ul>
+
+              <ul *ngIf="data.isOpen && data.services?.length">
+                <ng-container *ngFor="let service of data.services">
                   <li>
-                    <div class="tree-label" (click)="toggle(sub, 'subdomain', 'subdomain_id')">
-                      <span class="arrow" *ngIf="sub.serviceList?.length">
-                        {{ isExpanded(sub, 'subdomain', 'subdomain_id') ? '▼' : '▶' }}
+                    <div class="tree-label" [title]="service.service + ' (Service)' " >
+                      <span class="arrow" (click)="toggle(service)" *ngIf="service.subServices?.length">
+                        {{ service.isOpen ? '▼' : '▶' }}
                       </span>
-                      {{ sub.subdomain }}
-                      <button class="add-btn" (click)="addItem('subdomain', sub, $event)">
+                      {{ getName(service.service) }}
+                      <button class="add-btn" title="Add Sub-Service" (click)="openModal(service, 'subService','service')">
                         <i class="fa fa-plus"></i>
                       </button>
                     </div>
-                    <ul *ngIf="isExpanded(sub, 'subdomain', 'subdomain_id')">
-                      <ng-container *ngFor="let service of sub.serviceList">
-                        <li>
-                          <div class="tree-label" (click)="toggle(service, 'service', 'service_id')">
-                            <span class="arrow" *ngIf="service.businessFeatureList?.length">
-                              {{ isExpanded(service, 'service', 'service_id') ? '▼' : '▶' }}
-                            </span>
-                            {{ service.service }}
-                            <button class="add-btn" (click)="addItem('service', service, $event)">
-                              <i class="fa fa-plus"></i>
-                            </button>
-                          </div>
-                          <ul *ngIf="isExpanded(service, 'service', 'service_id')">
-                            <ng-container *ngFor="let bf of service.businessFeatureList">
-                              <li>
-                                <div class="tree-label" (click)="toggle(bf, 'business_feature', 'business_feature_id')">
-                                  <span class="arrow" *ngIf="bf.featureList?.length">
-                                    {{ isExpanded(bf, 'business_feature', 'business_feature_id') ? '▼' : '▶' }}
-                                  </span>
-                                  {{ bf.business_feature }}
-                                  <button class="add-btn" (click)="addItem('business_feature', bf, $event)">
-                                    <i class="fa fa-plus"></i>
-                                  </button>
-                                </div>
-                                <ul *ngIf="isExpanded(bf, 'business_feature', 'business_feature_id')">
-                                  <ng-container *ngFor="let feature of bf.featureList">
-                                    <li>
-                                      <div class="tree-label" (click)="toggle(feature, 'feature', 'feature_id')">
-                                        <span class="arrow" *ngIf="feature.featureList?.length">
-                                          {{ isExpanded(feature, 'feature', 'feature_id') ? '▼' : '▶' }}
-                                        </span>
-                                        {{ feature.feature_name }}
-                                        <button class="add-btn" (click)="addItem('feature', feature, $event)">
-                                          <i class="fa fa-plus"></i>
-                                        </button>
-                                      </div>
-                                      <ul *ngIf="isExpanded(feature, 'feature', 'feature_id')">
-                                        <ng-container *ngFor="let subFeature of feature.featureList">
-                                          <li>
-                                            <div class="tree-label">
-                                              {{ subFeature.feature_name }}
-                                              <button class="add-btn"
-                                                (click)="addItem('subfeature', subFeature, $event)">
-                                                <i class="fa fa-plus"></i>
-                                              </button>
-                                            </div>
-                                          </li>
-                                        </ng-container>
-                                      </ul>
-                                    </li>
-                                  </ng-container>
-                                </ul>
-                              </li>
-                            </ng-container>
-                          </ul>
-                        </li>
-                      </ng-container>
+
+                    <!-- Subservices -->
+                    <ul *ngIf="service.isOpen && service.subServices?.length">
+                      <ng-container
+                        *ngTemplateOutlet="subServiceTemplate; context: { $implicit: service.subServices }"></ng-container>
+                    </ul>
+                  </li>
+                </ng-container>
+              </ul>
+            </li>
+          </div>
+        </ul>
+
+        <!-- Recursive template for subdomains -->
+        <ng-template #subDomainTemplate let-subDomains>
+          <ng-container *ngFor="let subDomain of subDomains">
+            <li>
+              <div class="tree-label" [title]="subDomain.subDomain+'(Sub-Domain)'" >
+                <span class="arrow" (click)="toggle(subDomain)" *ngIf="subDomain.children?.length || subDomain.services?.length">
+                  {{ subDomain.isOpen ? '▼' : '▶' }}
+                </span>
+                {{ getName(subDomain.subDomain) }}
+                <button class="add-btn" title="Add Sub-Domain" (click)="openModal(subDomain,'subDomain','subDomain')">
+                  <i class="fa fa-plus"></i>
+                </button>
+              </div>
+
+              <!-- Children recursion -->
+              <ul *ngIf="subDomain.isOpen && subDomain.children?.length">
+                <ng-container
+                  *ngTemplateOutlet="subDomainTemplate; context: { $implicit: subDomain.children }"></ng-container>
+              </ul>
+
+              <!-- Services if they exist -->
+              <ul *ngIf="subDomain.isOpen && subDomain.services?.length">
+                <ng-container *ngFor="let service of subDomain.services">
+                  <li>
+                    <div class="tree-label" [title]="service.service+' (Service)'" >
+                      <span class="arrow" (click)="toggle(service)" *ngIf="service.subServices?.length">
+                        {{ service.isOpen ? '▼' : '▶' }}
+                      </span>
+                      {{ getName(service.service) }}
+                      <button class="add-btn" title="Add Sub-Service" (click)="openModal(service, 'subService','service')">
+                        <i class="fa fa-plus"></i>
+                      </button>
+                    </div>
+
+                    <!-- Subservices -->
+                    <ul *ngIf="service.isOpen && service.subServices?.length">
+                      <ng-container
+                        *ngTemplateOutlet="subServiceTemplate; context: { $implicit: service.subServices }"></ng-container>
                     </ul>
                   </li>
                 </ng-container>
               </ul>
             </li>
           </ng-container>
-          <button class="btn btn-outline-primary btn-sm" style="width: 11.5rem"
-            (click)="addItem('domain', null, $event)">
-            <i class="fa fa-plus"></i> Add domain
-          </button>
-        </ul>
+        </ng-template>
+
+        <!-- Template for subservices -->
+        <ng-template #subServiceTemplate let-subServices>
+          <ng-container *ngFor="let subService of subServices">
+            <li>
+              <div class="tree-label" [title]="subService.subService+' (Sub-Service)'" >
+                <span class="arrow" (click)="toggle(subService)" *ngIf="subService.children?.length">
+                  {{ subService.isOpen ? '▼' : '▶' }}
+                </span>
+                {{ getName(subService.subService) }}
+                <button class="add-btn" title="Add Sub-Service" (click)="openModal( subService,'subService','subService' )">
+                  <i class="fa fa-plus"></i>
+                </button>
+              </div>
+
+              <!-- Subservice children recursion -->
+              <ul *ngIf="subService.isOpen && subService.children?.length">
+                <ng-container
+                  *ngTemplateOutlet="subServiceTemplate; context: { $implicit: subService.children }"></ng-container>
+              </ul>
+            </li>
+          </ng-container>
+        </ng-template> 
+
+        <button style="width: 100%;" class="btn-sm btn btn-outline-primary" (click)="openCreateDomainModal()" >+ Add Domain</button>
+
+        <div *ngIf="createDomainModal" >
+            <app-DomainModal (onClose)="closeCreateDomainModal()"></app-DomainModal>
+        </div>
+
+        </div>
 
         <!-- PROJECT INSIGHT TREE (NO ADD BUTTONS) -->
         <ul class="filter-tree" *ngIf="!isDomainStructure">
@@ -279,7 +316,7 @@
           </div>
         </div>
         <app-form-renderer [fields]="currentNode.fields" [layoutConfig]="currentNode.layoutConfig"
-          [formData]="currentNode.formData" (formValueChange)="onFormValueChange(currentNode, $event)"  (fieldsUpdated)="onFieldsUpdated($event)">
+          [formData]="currentNode.formData" (formValueChange)="onFormValueChange(currentNode, $event)"  (fieldsUpdated)="onFieldsUpdated($event)" (selectedDomainIds)="loadAllProjectInsightDomain($event)">
         </app-form-renderer>
 
         <!-- Questions -->
@@ -660,3 +697,6 @@
     </div>
   </div>
 </ng-template>
+
+
+<app-add-data-modal [isVisible]="isVisible" [parentType]="parentItem" (onSave)="saveModal($event)" (changeChildType)="changeChildType($event)" (onClose)="closeModal()" [title]="title" ></app-add-data-modal>

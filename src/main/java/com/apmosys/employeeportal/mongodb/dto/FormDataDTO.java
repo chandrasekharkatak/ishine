@@ -9,8 +9,8 @@ import lombok.Data;
 
 @Data
 public class FormDataDTO {
-	
-	private Map<String, Object> fields;
+
+    private Map<String, Object> fields;
     private List<ProjectInsightQuestionDTO> questions;
     private List<FormDataDTO> child;
 }
