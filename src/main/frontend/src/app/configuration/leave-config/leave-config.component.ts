@@ -1145,8 +1145,12 @@ fieldRestictCharacterForLeaveAccToDifferntEmployeeType(event) {
     };
 
     this.leaveBalanceObj.employeeLeaveList = this.leaveBalanceList;
-    this.leaveBalanceObj.employeementId = this.leaveBalanceObj.employeementId?.substring(2)
+    // this.leaveBalanceObj.employeementId = this.leaveBalanceObj.employeementId?.substring(2)
     //console.log("manage Leave Balance :", this.leaveBalanceObj);
+
+    // let empIdInput = this.leaveBalanceObj.employeementId;
+ this.leaveBalanceObj.employeementId = this.leaveBalanceObj.employeementId?.replace(/^(A-|CS-|AP-)/, '');
+  // this.leaveBalanceObj.employeementId = empIdInput;
     this.leaveService.updateLeavesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
