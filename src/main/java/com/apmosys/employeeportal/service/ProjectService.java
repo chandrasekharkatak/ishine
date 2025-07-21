@@ -49,6 +49,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -1776,6 +1777,7 @@ public class ProjectService {
 		ApiLog initialLog = null;
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = httpRequest.getRequestURL().toString();
 		try {
 			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "poProjectTimesheetSync", "PoPortal", null, httpRequest);
 			List<Object[]> poProjectTimesheetSyncDTOObjectList = projectRepository.poProjectTimesheetSync(poProjectIdList);
@@ -1804,7 +1806,7 @@ public class ProjectService {
 			exceptionDetailsForLog = e.toString();
 		} finally {
 			if (initialLog != null) {
-				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem ,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
 			}
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
@@ -2524,6 +2526,7 @@ public class ProjectService {
 			ApiLog initialLog = null;
 			String exceptionDetailsForLog = null;
 			int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+			String sourceSystem = httpRequest.getRequestURL().toString();
 			try {
 				initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "handleTeamsAsPerLinkedPo", "PoPortal", null, httpRequest);
 				if (payloadDTO == null) {
@@ -2581,7 +2584,7 @@ public class ProjectService {
 				exceptionDetailsForLog = e.toString();
 			} finally {
 				if (initialLog != null) {
-					apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+					apiLogUtility.endLog(initialLog.getId(), sourceSystem ,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
 				}
 			}
 			apiLogInfo.setApiRequest(logBuilder.toString());
@@ -2850,73 +2853,42 @@ public class ProjectService {
 //     
 //     
 //     
-     public ServiceResponse getMilestoneById(Long milestoneId) {
-    	    ServiceResponse response = new ServiceResponse();
-
-    	    try {
-    	        Optional<FCProjectMilestone> optionalMilestone = fcProjectMilestoneRepository.findById(milestoneId);
-    	        if (optionalMilestone.isEmpty()) {
-    	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-    	            response.setServiceResponse("Milestone not found.");
-    	            return response;
-    	        }
-
-    	        FCProjectMilestone milestone = optionalMilestone.get();
-
-    	        FCLineItem lineItem = milestone.getLineItemId() != null
-    	                ? fcLineItemRepository.findById(milestone.getLineItemId()).orElse(null)
-    	                : null;
-
-    	        FCProjectMilestoneDTO dto = new FCProjectMilestoneDTO();
-    	        dto.setId(milestone.getId());
-    	        dto.setPoId(milestone.getPoId());
-    	        dto.setProjectId(milestone.getProjectId());
-    	        dto.setName(milestone.getName());
-    	        dto.setDescription(milestone.getDescription());
-    	        dto.setStartDate(milestone.getStartDate());
-    	        dto.setEndDate(milestone.getEndDate());
-    	        dto.setStatus(milestone.getStatus());
-    	        dto.setRemarks(milestone.getRemarks());
-    	        dto.setLineItemId(milestone.getLineItemId());
-
-    	        if (lineItem != null) {
-    	            dto.setLineItemName(lineItem.getName());
-    	            dto.setLineItemStatus(lineItem.getStatus());
-    	        }
-
-    	        dto.setDocumentName(milestone.getDocumentName());
-    	        dto.setDocumentPath(milestone.getDocumentPath());
-    	        dto.setUpdatedBy(milestone.getUpdatedBy());
-    	        dto.setUpdatedOn(milestone.getUpdatedOn());
-
-    	    
-    	        if (milestone.getDocumentPath() != null) {
-    	            try {
-    	                Path filePath = Paths.get(milestone.getDocumentPath());
-    	                if (Files.exists(filePath)) {
-    	                    byte[] fileBytes = Files.readAllBytes(filePath);
-    	                    String base64File = Base64.getEncoder().encodeToString(fileBytes);
-    	                    dto.setDocumentBase64(base64File); 
-    	                } else {
-    	                    System.err.println("File not found: " + milestone.getDocumentPath());
-    	                }
-    	            } catch (IOException e) {
-    	                e.printStackTrace(); 
-    	            }
-    	        }
-
-    	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-    	        response.setServiceMessage(ServiceResponse.STATUS_SUCCESS);   	        
-    	        response.setServiceResponse(dto);
-    	        return response;
-
-    	    } catch (Exception e) {
-    	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-    	        response.setServiceResponse("Error retrieving milestone: " + e.getMessage());
-    	        response.setServiceError(e.getMessage());
-    	        return response;
-    	    }
-    	}
+		public FCProjectMilestoneDTO getMilestoneDocument(Long milestoneId) {
+			   ApiLog initialLog = null;
+			   String traceId = UUID.randomUUID().toString();
+			   int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+			   String exceptionDetailsForLog = null;
+			   String requestUrl = httpRequest.getRequestURI();
+			   
+			   try {
+			       initialLog = apiLogUtility.startLog(traceId, "getMilestoneDocument", "Ishine", getCurrentUserId(), httpRequest);
+			       
+			       if (milestoneId == null) {
+			           finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+			           exceptionDetailsForLog = "Milestone ID cannot be null.";
+			           throw new IllegalArgumentException(exceptionDetailsForLog);
+			       }
+			       
+			       FCProjectMilestoneDTO documentBytes = poPortalAPIService.getMilestoneDocumentFromExternalApi(milestoneId);
+			       
+			       finalHttpStatusCode = HttpStatus.OK.value();
+			       return documentBytes;
+			       
+			   } catch (Exception e) {
+			       if (e instanceof HttpClientErrorException) {
+			           finalHttpStatusCode = ((HttpClientErrorException) e).getStatusCode().value();
+			       }
+			       exceptionDetailsForLog = "Error retrieving document for milestone ID " + milestoneId + ": " + e.toString();
+			       e.printStackTrace();
+			       
+			       throw new RuntimeException("Failed to retrieve milestone document.", e);
+			       
+			   } finally {
+			       if (initialLog != null && initialLog.getId() != null) {
+			           apiLogUtility.endLog(initialLog.getId(), requestUrl, finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+			       }
+			   }
+			}
 
 
      

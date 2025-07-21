@@ -6,7 +6,10 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.repository.ApiLogRepository;
@@ -21,13 +24,12 @@ public class ApiLogUtility {
 	public static final String STATUS_FAILURE = "FAILURE";
 	public static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public ApiLog startLog(String traceId, String endPoint, String portal, Long userId, HttpServletRequest request) {
 		ApiLog log = new ApiLog();
 		try {
 			log.setTraceId(traceId);
-			log.setApiEndpointName(request.getRequestURI());
 			log.setPortal(portal);
-			log.setInitiatedFromApi(request.getRequestURI());
 			log.setApiMethodType(request.getMethod());
 			log.setRequestTimestamp(LocalDateTime.now());
 			log.setRequestedByUserId(userId);
@@ -39,7 +41,8 @@ public class ApiLogUtility {
 		}
 	}
 
-	public ApiLog endLog(Long id, int httpStatusCode, String exceptionDetails, HttpServletRequest request) {
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public ApiLog endLog(Long id,String initApi ,int httpStatusCode, String exceptionDetails, HttpServletRequest request) {
 		try {
 			Optional<ApiLog> optionalLog = apilogrepository.findById(id);
 
@@ -49,6 +52,7 @@ public class ApiLogUtility {
 				log.setApiStatusCode(httpStatusCode);
 				log.setEndpointUrl(request.getRequestURL().toString());
 				log.setResponseTimestamp(LocalDateTime.now());
+				log.setInitiatedFromApi(initApi);
 
 				if (exceptionDetails != null) {
 					String details = exceptionDetails.length() > 2000 ? exceptionDetails.substring(0, 1997) + "..."

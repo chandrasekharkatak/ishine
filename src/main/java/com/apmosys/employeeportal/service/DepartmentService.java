@@ -606,6 +606,7 @@ public class DepartmentService {
 		ApiLog initialLog = null;
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = httpRequest.getRequestURL().toString();
 		try {
 			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllDepartmentInfo", "PoPortal", null, httpRequest);
 			List<PoPortalDTO> poPortalDTOList = departmentRepository.getDepartmentInfo();
@@ -634,7 +635,7 @@ public class DepartmentService {
 			exceptionDetailsForLog = e.toString();
 		} finally {
 			if (initialLog != null) {
-				apiLogUtility.endLog(initialLog.getId(), finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+				apiLogUtility.endLog(initialLog.getId(),sourceSystem, finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
 			}
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());

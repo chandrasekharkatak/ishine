@@ -370,10 +370,11 @@ confirmAndExecuteConfirmation(employee: any, alert_message: TemplateRef<any>) {
             
             if (response.serviceStatus === "Success") {
                 const message = "Employee has been confirmed for Full Time Employment";
-                this.openAlertMod(alert_message, message);
+                this.openAlertMod7(alert_message, message);
             } else {
-                this.openAlertMod(alert_message, response.serviceResponse);
+                this.openAlertMod7(alert_message, response.serviceResponse);
             }
+            
             
             this.resetAllForms();
         },
@@ -381,6 +382,7 @@ confirmAndExecuteConfirmation(employee: any, alert_message: TemplateRef<any>) {
             console.error("Error confirming employee", error);
             this.closeAllModals();
             this.resetAllForms();
+            
         }
     });
 }
@@ -388,7 +390,7 @@ confirmAndExecuteConfirmation(employee: any, alert_message: TemplateRef<any>) {
 openEmployeeConfimationModal(template: TemplateRef<any>, template2: TemplateRef<any>) {
     if (!this.selectedEmployee || !this.selectedEmployee.empId) {
         const message = 'Please select an employee to confirm.';
-        this.openAlertMod(template2, message);
+        this.openAlertMod7(template2, message);
         return;
     }
     
@@ -3806,6 +3808,10 @@ resetExtensionForm() {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
+    openAlertMod7(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
   
 
   openApplicationRejectionMod(template: TemplateRef<any>, employee: any) {
@@ -3829,6 +3835,7 @@ resetExtensionForm() {
 
   cancelRequest() {
     this.modalRef.hide();
+    window.location.reload();
   }
 
   cancelDraftRequest() {
