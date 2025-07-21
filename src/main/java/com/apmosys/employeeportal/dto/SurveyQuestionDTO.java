@@ -21,5 +21,9 @@ public class SurveyQuestionDTO {
 	private String name;
 	private Long employeementId;
 	private Long responseId;
+	 private String isApprentice;
+	    private String isConsultant;
+	    private String isApmosysProduct;
+	    private String employmentIdAccToET;
 
 }

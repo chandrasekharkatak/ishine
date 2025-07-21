@@ -10,6 +10,7 @@ export class SurveyQuestion{
 
     name:any;
 	employeementId:any;
+    employmentIdAccToET:any;
 
     optionsList:any[]= [];
 }

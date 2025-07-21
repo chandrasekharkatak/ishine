@@ -592,6 +592,26 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setQuestion(object[4] != null ? object[4].toString() : null);
 						dto.setOptions(object[5] != null ? object[5].toString() : null);
 						dto.setResponse(object[6] != null ? object[6].toString() : null);
+						dto.setIsConsultant(object[7] != null ? object[7].toString() : null);
+						dto.setIsApprentice(object[8] != null ? object[8].toString() : null);
+						dto.setIsApmosysProduct(object[9] != null ? object[9].toString() : null);
+						
+						
+						 
+					    String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+					    String isConsultant = dto.getIsConsultant();
+					    String isApmosysProduct = dto.getIsApmosysProduct();
+
+					    if (employmentId != null) {
+					        if ("true".equalsIgnoreCase(isConsultant)) {
+					            dto.setEmploymentIdAccToET("CS-" + employmentId);
+					        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
+					            dto.setEmploymentIdAccToET("AP-" + employmentId);
+					        } else {
+					            dto.setEmploymentIdAccToET("A-" + employmentId);
+					        }
+					    }
+						
 						dtoList.add(dto);
 
 					});
