@@ -907,8 +907,8 @@ public class DraftEmployeeService {
                     empDTO.setDateOfRelieving(object[66] != null ? format.format(format.parse(object[66].toString())) : null);
                     empDTO.setIsConsultant(object[67] != null ? object[67].toString() : null);
                     empDTO.setIsApprenticeship(object[68] != null ? object[68].toString() : null);
-                    empDTO.setReferedType(object[69] != null ? object[68].toString() : null);
-                    empDTO.setReferedName(object[70] != null ? object[68].toString() : null);
+                    empDTO.setReferedType(object[69] != null ? object[69].toString() : null);
+                    empDTO.setReferedName(object[70] != null ? object[70].toString() : null);
                     
 //					if (object[42] != null) {
 //
