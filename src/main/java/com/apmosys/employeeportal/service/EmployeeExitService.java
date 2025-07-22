@@ -645,6 +645,20 @@ public class EmployeeExitService {
 					dto.setEmployeeResignationId(object[8] != null ? Long.parseLong(object[8].toString()) : null);
 					dto.setStatusUpdatedOn(object[9] != null ? object[9].toString() : null);
 					dto.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					dto.setIsApmosysProduct(object[11] != null ? object[11].toString() : null);
+					
+					String employmentId = dto.getEmploymentId() != null ? dto.getEmploymentId().toString() : null;
+//				    String isConsultant = timesheetDto.getIsConsultant();
+				    String isApmosysProduct = dto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+				        }else {
+				        	dto.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
+
 					
 					dtoList.add(dto);
 				});
