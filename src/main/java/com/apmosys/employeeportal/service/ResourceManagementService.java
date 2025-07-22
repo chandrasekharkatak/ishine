@@ -4829,6 +4829,23 @@ public class ResourceManagementService {
 					newDto.setDepartment(row.getDepartment())	;
 					newDto.setBillable(row.getBillable());
 					newDto.setBillableType(row.getBillableType());
+					newDto.setIsConsultant(row.getIsConsultant());
+					newDto.setIsApprenticeship(row.getIsApprenticeship());
+					newDto.setIsApmosysProduct(row.getIsApmosysProduct());	
+					
+					
+					 
+				    String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
+				    String isConsultant = newDto.getIsConsultant();
+				    String isApmosysProduct = newDto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
+				        } else {
+				        	newDto.setEmployeementIdAccToET("A-" + employmentId);
+				        }
+				    }
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
 				});
@@ -4999,6 +5016,24 @@ public class ResourceManagementService {
 					newDto.setDepartment(row.getDepartment())	;
 					newDto.setBillable(row.getBillable());
 					newDto.setBillableType(row.getBillableType());
+					newDto.setIsConsultant(row.getIsConsultant());
+					newDto.setIsApprenticeship(row.getIsApprenticeship());
+					newDto.setIsApmosysProduct(row.getIsApmosysProduct());	
+					
+					
+					 
+				    String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
+				    String isConsultant = newDto.getIsConsultant();
+				    String isApmosysProduct = newDto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
+				        } else {
+				        	newDto.setEmployeementIdAccToET("A-" + employmentId);
+				        }
+				    }
+					
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
 				});
@@ -5326,6 +5361,24 @@ public class ResourceManagementService {
 					newDto.setDepartment(row.getDepartment() )	;
 					newDto.setBillable(row.getBillable() );
 					newDto.setBillableType(row.getBillableType() );
+					
+					newDto.setIsConsultant(row.getIsConsultant());
+					newDto.setIsApprenticeship(row.getIsApprenticeship());
+					newDto.setIsApmosysProduct(row.getIsApmosysProduct());	
+					
+					
+					 
+				    String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
+				    String isConsultant = newDto.getIsConsultant();
+				    String isApmosysProduct = newDto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
+				        } else {
+				        	newDto.setEmployeementIdAccToET("A-" + employmentId);
+				        }
+				    }
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
 				});
@@ -5604,6 +5657,23 @@ public class ResourceManagementService {
 					newDto.setDepartment(row.getDepartment() )	;
 					newDto.setBillable(row.getBillable() );
 					newDto.setBillableType(row.getBillableType() );
+					newDto.setIsConsultant(row.getIsConsultant());
+					newDto.setIsApprenticeship(row.getIsApprenticeship());
+					newDto.setIsApmosysProduct(row.getIsApmosysProduct());	
+					
+					
+					 
+				    String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
+				    String isConsultant = newDto.getIsConsultant();
+				    String isApmosysProduct = newDto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
+				        } else {
+				        	newDto.setEmployeementIdAccToET("A-" + employmentId);
+				        }
+				    }
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
 				});
@@ -5693,6 +5763,23 @@ public class ResourceManagementService {
 				Long deptId = departmentRepository.findDepartmentIdOfSpoc(employeee.getJobRoleId());
 				employeesWithoutProjects = employeeRepository.findAllEmployeesWithoutProjectInDeptId(deptId);
 			}
+			 
+			 
+			 for (EmployeeDTO newDto : employeesWithoutProjects) {
+		            String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
+		            String isConsultant = newDto.getIsConsultant();
+		            String isApmosysProduct = newDto.getIsApmosysProduct();
+
+		            if (employmentId != null) {
+		                  if ("true".equalsIgnoreCase(isApmosysProduct)) {
+		                	  newDto.setEmploymentIdAcToET("AP-" + employmentId);                	  
+//		                    newDto.setEmployeementIdAccToET("AP-" + employmentId);
+		                } else {
+		                	  newDto.setEmploymentIdAcToET("A-" + employmentId); 
+//		                    newDto.setEmployeementIdAccToET("A-" + employmentId);
+		                }
+		            }
+		        }
 			
 			
 //			 List<EmployeeDTO> employeeDTOList = new ArrayList<>();
@@ -5754,6 +5841,22 @@ public class ResourceManagementService {
 				Long deptId = departmentRepository.findDepartmentIdOfSpoc(employeee.getJobRoleId());
 				employeesWithoutBillable = employeeRepository.findAllEmployeesWithoutBillableInDeptId(deptId);
 			}
+			 
+			 for (EmployeeDTO newDto : employeesWithoutBillable) {
+		            String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
+		            String isConsultant = newDto.getIsConsultant();
+		            String isApmosysProduct = newDto.getIsApmosysProduct();
+
+		            if (employmentId != null) {
+		                  if ("true".equalsIgnoreCase(isApmosysProduct)) {
+		                	  newDto.setEmploymentIdAcToET("AP-" + employmentId);                	  
+//		                    newDto.setEmployeementIdAccToET("AP-" + employmentId);
+		                } else {
+		                	  newDto.setEmploymentIdAcToET("A-" + employmentId); 
+//		                    newDto.setEmployeementIdAccToET("A-" + employmentId);
+		                }
+		            }
+		        }
 			
 			
 //			 List<EmployeeDTO> employeeDTOList = new ArrayList<>();

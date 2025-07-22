@@ -646,7 +646,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findByEmpIdIn(@Param("empIds") List<Long> empIds);
     
     
-    @Query(value ="select new com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name,d.name ,e.name) from Employee e  \n"
+    @Query(value ="select new com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name,d.name ,e.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) from Employee e  \n"
     		+ "inner join JobRole jr on jr.jobRoleId = e.jobRoleId \n"
     		+ "inner join Department d on d.deptId = jr.deptId \n"
     		+ "LEFT JOIN Employee em ON em.empId = e.managerId \n"
@@ -658,7 +658,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<EmployeeDTO> findAllEmployeesWithoutAnyProject();
     
     
-    @Query("SELECT NEW com.apmosys.employeeportal.dto.EmployeeDTO(e.empId, e.employeementId, e.email, e.employmentstatus, e.mobileNo, e.managerId, em.name, jr.name, d.name, e.name, e.billableType) " +
+    @Query("SELECT NEW com.apmosys.employeeportal.dto.EmployeeDTO(e.empId, e.employeementId, e.email, e.employmentstatus, e.mobileNo, e.managerId, em.name, jr.name, d.name, e.name, e.billableType,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) " +
     	       "FROM Employee e, JobRole jr, Department d " +
     	       "LEFT JOIN Employee em ON e.managerId = em.empId " +
     	       "WHERE e.jobRoleId = jr.jobRoleId AND jr.deptId = d.deptId " + 
@@ -668,7 +668,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     	List<EmployeeDTO> findAllEmployeesWithoutAnyBillable();
     
     
-    @Query("SELECT NEW com.apmosys.employeeportal.dto.EmployeeDTO( e.empId, e.employeementId, e.email, e.employmentstatus, e.mobileNo, e.managerId, em.name, jr.name, d.name, e.name, e.billableType) " +
+    @Query("SELECT NEW com.apmosys.employeeportal.dto.EmployeeDTO( e.empId, e.employeementId, e.email, e.employmentstatus, e.mobileNo, e.managerId, em.name, jr.name, d.name, e.name, e.billableType,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) " +
             "FROM Employee e, JobRole jr, Department d " +
             "LEFT JOIN Employee em ON e.managerId = em.empId " + 
             "WHERE e.jobRoleId = jr.jobRoleId AND jr.deptId = d.deptId " + 
@@ -678,7 +678,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             "AND d.deptId IN :deptIds")
      List<EmployeeDTO> findAllEmployeesWithoutAnyBillableInDeptIds(@Param("deptIds") List<Long> deptIds);
 
-     @Query("SELECT NEW com.apmosys.employeeportal.dto.EmployeeDTO(e.empId, e.employeementId, e.email, e.employmentstatus, e.mobileNo, e.managerId, em.name, jr.name, d.name, e.name, e.billableType) " +
+     @Query("SELECT NEW com.apmosys.employeeportal.dto.EmployeeDTO(e.empId, e.employeementId, e.email, e.employmentstatus, e.mobileNo, e.managerId, em.name, jr.name, d.name, e.name, e.billableType,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) " +
             "FROM Employee e, JobRole jr, Department d " +
             "LEFT JOIN Employee em ON e.managerId = em.empId " + 
             "WHERE e.jobRoleId = jr.jobRoleId AND jr.deptId = d.deptId " + 
@@ -703,7 +703,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive' and d.dept_id IN :departmentIds AND e.emp_id NOT BETWEEN 1 AND 6",nativeQuery = true)
     List<Object[]> findAllEmployeesWithoutAnyProjectDepartmentWise(@Param("departmentIds") List<Long> departmentIds);
     
-    @Query(value ="select new com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name ,d.name,e.name) from Employee e  \n"
+    @Query(value ="select new com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name ,d.name,e.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) from Employee e  \n"
     		+ "inner join JobRole jr on jr.jobRoleId = e.jobRoleId \n"
     		+ "inner join Department d on d.deptId = jr.deptId \n"
     		+ "LEFT JOIN Employee em ON em.empId = e.managerId \n"
@@ -715,7 +715,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<EmployeeDTO> findAllEmployeesWithoutProjectInDeptIds(@Param("deptIds") List<Long> deptIds);
     
     
-    @Query(value ="select new com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name ,d.name,e.name) from Employee e  \n"
+    @Query(value ="select new com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name ,d.name,e.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) from Employee e  \n"
     		+ "inner join JobRole jr on jr.jobRoleId = e.jobRoleId \n"
     		+ "inner join Department d on d.deptId = jr.deptId \n"
     		+ "LEFT JOIN Employee em ON em.empId = e.managerId \n"

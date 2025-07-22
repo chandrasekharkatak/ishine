@@ -161,7 +161,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	        + "e.empId,e.employeementId,e.billable,e.billableType,e.name,d.name \n" 
 	        + ",p.projectId,p.projectName,p.poProjectId,p.poStartDate,p.poEndDate,p.apmosysRM,p.clientRM,p.poProjectType,p.poNo \n"
 	        + ",c.clientName,t.teamId,t.teamName,t.isActive \n"
-	        + ",etm.employeeRole,etm.active,pm.empId,pm.name ) \n"
+	        + ",etm.employeeRole,etm.active,pm.empId,pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) \n"
 			+ "FROM EmployeeTeamMap etm\n"
 			+ "RIGHT JOIN Employee e ON e.empId = etm.empId \n"
 			+ "RIGHT JOIN Team t ON t.teamId = etm.teamId \n"
@@ -273,7 +273,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	       "p.projectId, p.projectName, p.poProjectId, p.poStartDate, p.poEndDate, " +
 	       "p.apmosysRM, p.clientRM, p.poProjectType, p.poNo, c.clientName, " +
 	       "t.teamId, t.teamName, t.isActive, etm.employeeRole, etm.active, " +
-	       "pm.empId, pm.name) " +
+	       "pm.empId, pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) " +
 	       
 	       "FROM EmployeeTeamMap etm " +
 	       "RIGHT JOIN Employee e ON e.empId = etm.empId " +
