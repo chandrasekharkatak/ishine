@@ -130,9 +130,16 @@ export class FormRendererComponent implements OnInit, OnChanges {
         field.value !== undefined ? field.value :
         field.defaultValue !== undefined ? field.defaultValue : '';
   
-      if (field.type === 'select' && field.multiple) {
-        defaultValue = Array.isArray(defaultValue) ? defaultValue : [];
-      }
+        if (field.type === 'select' && field.multiple) {
+          if (Array.isArray(field.options) && field.options.length > 0) {
+            const optionType = typeof field.options[0].value;
+            defaultValue = Array.isArray(defaultValue) ? defaultValue.map(v => 
+              optionType === 'string' ? String(v) : Number(v)
+            ) : [];
+          } else {
+            defaultValue = Array.isArray(defaultValue) ? defaultValue : [];
+          }
+        }
   
       controls[field.name] = [defaultValue, validators];
       
@@ -324,60 +331,66 @@ export class FormRendererComponent implements OnInit, OnChanges {
     return Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
-  async onDomainSelectChange(selectedDomainIds: any[], field: any, changed: boolean=true) {
-    // Remove all dynamic fields from all rows
-
-    if(!Array.isArray(selectedDomainIds)) selectedDomainIds = [selectedDomainIds];
-
-    this.fields = this.fields.filter(f => !f.dynamicDomainChild);
+  async onDomainSelectChange(selectedDomainIds: any[], field: any, changed: boolean = true) {
+    if (!Array.isArray(selectedDomainIds)) selectedDomainIds = [selectedDomainIds];
+  
+    // Remove all dynamic children
+    this.fields = this.fields.filter(f => f.isDynamicallyCreated == "false" || f.isDynamicallyCreated == false);
     this.layoutConfig = this.layoutConfig.map(row =>
-      row.filter(f => !f.dynamicDomainChild)
-    );    
-
+      row.filter(f => f.isDynamicallyCreated == "false" || f.isDynamicallyCreated == false)
+    );
+  
     const type = this.getTypeForField(field);
-
-    changed && this.selectedDomainIds.emit(selectedDomainIds);
-    
+  
+    if (changed) this.selectedDomainIds.emit(selectedDomainIds);
+  
     for (const domainId of selectedDomainIds) {
       const children: any = await this.apiSourceService.getAllNextFieldAndOption(domainId, type).toPromise();
-      
+  
       if (children && children.length > 0) {
         const domainFieldTemplate = { ...field };
+        const hierarchyType = children[0].hierarchyType;
+        const uniqueId = this.generateUniqueId();
+        const uniqueName = `${hierarchyType}_${domainId}_${uniqueId}`;
+        const uniqueLabel = `${hierarchyType} (${domainId})`;
+  
+        this.fields = this.fields.filter(f => f.name !== uniqueName);
+  
         const newField = {
           ...domainFieldTemplate,
-          id: this.generateUniqueId(),
-          name: `child_${domainId}`,
-          label: children[0].hierarchyType,
-          hierarchyType: children[0].hierarchyType,
+          id: uniqueId,
+          name: uniqueName,
+          label: uniqueLabel,
+          hierarchyType: hierarchyType,
           options: children.map(child => ({
             label: child.name,
-            value: Number(child.id), // Convert to number
+            value: child.id,
             isChildAvailable: child.isChildAvailable,
             hierarchyType: child.hierarchyType
           })),
           multiple: true,
           dynamicDomainChild: true,
           parentDomainId: domainId,
+          isDynamicallyCreated: true,
           apiUrl: null,
           apiLabelKey: null,
           apiValueKey: null,
           dependentApiUrl: "api/getAllNextFieldAndOption/{type}/{id}",
           dependentLabelKey: "name",
           dependentValueKey: "id",
-          dependentParamName: "id"
+          dependentParamName: "id",
+          value: null
         };
-
+  
         this.fields.push(newField);
-
-        // Find the row where the domain field is located and add the new field there
+  
         const domainFieldRowIndex = this.layoutConfig.findIndex(row =>
           row.some(f => f.name === field.name)
         );
-
+  
         if (domainFieldRowIndex >= 0) {
           this.layoutConfig[domainFieldRowIndex].push(newField);
         } else {
-          // If domain field not found, add to first row
           if (!this.layoutConfig[0]) {
             this.layoutConfig[0] = [];
           }
@@ -388,8 +401,6 @@ export class FormRendererComponent implements OnInit, OnChanges {
     this.fields = [...this.fields];
     this.layoutConfig = [...this.layoutConfig];
     this.buildForm();
-
-    // Emit updated fields to parent
     this.fieldsUpdated.emit({
       fields: [...this.fields],
       layoutConfig: [...this.layoutConfig]
@@ -404,31 +415,15 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   async onDomainChildSelectChange(selectedChildIds: any[], field: any) {
     const currentValues = this.dynamicForm?.value || {};
-
-    console.log("selectedChildIds: ", selectedChildIds);
-    
-
-    // 1. Remove dynamic children that are no longer selected
-    const selectedNames = (selectedChildIds || []).map(childId => {
-      const selectedOption = field.options.find((opt: any) => opt.value === childId);
-      const type = (selectedOption?.hierarchyType || '').toUpperCase();
-      return `${type.toLowerCase()}_${childId}`;
-    });
-
-    this.fields = this.fields.filter(
-      f => !f.dynamicDomainChild || f.parentDomainId === field.parentDomainId || selectedNames.includes(f.name)
-    );
-    this.layoutConfig = this.layoutConfig.map(row =>
-      row.filter(f => !f.dynamicDomainChild || f.parentDomainId === field.parentDomainId || selectedNames.includes(f.name))
-    );
-
+  
     // 2. Add new fields for newly selected children
-    for (const childId of selectedChildIds) {
+    for (const childId of selectedChildIds || []) {
       if (!childId) continue;
       const selectedOption = field.options.find((opt: any) => opt.value === childId);
       if (selectedOption && selectedOption.isChildAvailable) {
         const type = (selectedOption.hierarchyType || '').toUpperCase();
-        const fieldName = `${type.toLowerCase()}_${childId}`;
+        const uniqueId = this.generateUniqueId();
+        const fieldName = `${type.toLowerCase()}_${childId}_${uniqueId}`;
         if (!this.fields.some(f => f.name === fieldName)) {
           const children: any = await this.apiSourceService.getAllNextFieldAndOption(childId, type).toPromise();
           if (children && children.length > 0) {
@@ -436,19 +431,20 @@ export class FormRendererComponent implements OnInit, OnChanges {
             const newLabel = children[0].hierarchyType;
             const newField = {
               ...domainFieldTemplate,
-              id: this.generateUniqueId(),
+              id: uniqueId,
               name: fieldName,
-              label: newLabel,
+              label: `${newLabel} (${childId})`,
               hierarchyType: newLabel,
               options: children.map(child => ({
                 label: child.name,
-                value: Number(child.id), // Convert to number
+                value: child.id,
                 isChildAvailable: child.isChildAvailable,
                 hierarchyType: child.hierarchyType
               })),
               multiple: true,
               dynamicDomainChild: true,
               parentDomainId: childId,
+              isDynamicallyCreated: true, // <--- Mark as dynamic
               apiUrl: null,
               apiLabelKey: null,
               apiValueKey: null,
@@ -457,14 +453,14 @@ export class FormRendererComponent implements OnInit, OnChanges {
               dependentValueKey: "id",
               dependentParamName: "id"
             };
-
+  
             this.fields.push(newField);
-
+  
             // Find the row where the parent field is located and add the new field there
             const parentFieldRowIndex = this.layoutConfig.findIndex(row =>
               row.some(f => f.name === field.name)
             );
-
+  
             if (parentFieldRowIndex >= 0) {
               this.layoutConfig[parentFieldRowIndex].push(newField);
             } else {
@@ -478,15 +474,15 @@ export class FormRendererComponent implements OnInit, OnChanges {
         }
       }
     }
-
+  
     this.fields = [...this.fields];
     this.layoutConfig = [...this.layoutConfig];
     this.buildForm();
-
+  
     if (this.dynamicForm && currentValues) {
       this.dynamicForm.patchValue(currentValues, { emitEvent: false });
     }
-
+  
     // Emit updated fields to parent
     this.fieldsUpdated.emit({
       fields: [...this.fields],

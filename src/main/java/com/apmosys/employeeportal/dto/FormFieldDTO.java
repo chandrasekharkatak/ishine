@@ -28,4 +28,5 @@ public class FormFieldDTO {
     private String dependentParamName;
     private String apiLabelKey;
     private TableConfigDTO tableConfig;
+    private String isDynamicallyCreated;
 }
