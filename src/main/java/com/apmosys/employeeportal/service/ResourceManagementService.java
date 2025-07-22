@@ -3842,7 +3842,24 @@ public class ResourceManagementService {
 			empDTO.setTeamName(object[4] != null ? object[4].toString() : null);
 			empDTO.setEmail(object[3] != null ? object[3].toString() : null);
 			empDTO.setTeamLeadId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+			empDTO.setIsConsultant(object[7] != null ? object[7].toString() : null)	;
+			empDTO.setIsApprenticeship(object[8] != null ? object[8].toString() : null);
+			empDTO.setIsApmosysProduct(object[9] != null ? object[9].toString() : null);	
+			
+			  String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
+	            String isConsultant = empDTO.getIsConsultant();
+	            String isApmosysProduct = empDTO.getIsApmosysProduct();
 
+	            if (employmentId != null) {
+	                  if ("true".equalsIgnoreCase(isApmosysProduct)) {
+	                	  empDTO.setEmploymentIdAcToET("AP-" + employmentId);                	  
+//	                    newDto.setEmployeementIdAccToET("AP-" + employmentId);
+	                } else {
+	                	empDTO.setEmploymentIdAcToET("A-" + employmentId); 
+//	                    newDto.setEmployeementIdAccToET("A-" + employmentId);
+	                }
+	            }
+			
 			dtoList.add(empDTO);
 		});
 

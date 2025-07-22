@@ -65,6 +65,7 @@ export class Employee360ProjectComponent implements OnInit {
   isSearchEnabled: boolean = false;
   projectColumns: any[] = ['blank', 'projectName', 'teamName', 'clientName', 'billableType', 'startDate', 'updatedOn', 'poStartDate', 'poEndDate', 'status'];
   employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
+  teamColumns: any[] = ['blank','employmentIdAcToET','name','teamName','teamLeadName']
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   newteamMember: TeamMember = new TeamMember();
