@@ -1819,7 +1819,11 @@ public class ProjectService {
             query.append("SELECT p.project_id, p.po_project_id, p.project_name, p.project_manager_id, ep.name as projManager, ")
                  .append("p.po_no, p.po_project_type, p.po_start_date, p.po_end_date, p.clientrm, p.apmosysrm, ")
                  .append("t.team_id, team_name, etm.emp_id, e.name, etm.start_date, j.name as jobRole, d.name as deptName, e.billable_type, ")
-                 .append("e.billable, e.mobile_no, e.email ")
+                 .append("e.billable, e.mobile_no, e.email, CASE \n"
+                 		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+                 		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
+                 		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
+                 		+ "  END AS prefixed_employeementId ")
                  .append("FROM projects p ")
                  .append("INNER JOIN teams t ON t.project_id = p.project_id ")
                  .append("INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id ")
@@ -1840,7 +1844,11 @@ public class ProjectService {
                  .append("emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location, e.work_location, ")
                  .append("e.total_experience, d.dept_id, d.name as departmentName, emp_proj_client.po_project_type, j.name as jobrole, ")
                  .append("emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id, emp_proj_client.clientrm, ")
-                 .append("emp_proj_client.apmosysrm, emp_proj_client.effective_start_date, emp_proj_client.effective_end_date FROM employee e ")
+                 .append("emp_proj_client.apmosysrm, emp_proj_client.effective_start_date, emp_proj_client.effective_end_date, CASE \n"
+                 		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+                 		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
+                 		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
+                 		+ "  END AS prefixed_employeementId FROM employee e ")
                  .append("INNER JOIN job_role j ON j.job_role_id = e.job_role_id ")
                  .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
                  .append("INNER JOIN employee m ON e.manager_id = m.emp_id ")
@@ -1882,7 +1890,11 @@ public class ProjectService {
 	             .append("p.po_no, c.client_name, cl.client_location, e.work_location, ")
 	             .append("e.total_experience, d.dept_id, d.name as departmentName, p.po_project_type, j.name as jobrole, ")
 	             .append("p.po_project_id, eppm.primary_project_name, eppm.primary_project_id, p.clientrm, ")
-	             .append("p.apmosysrm, etm.start_date as effective_start_date, etm.end_date as effective_end_date FROM employee e ")
+	             .append("p.apmosysrm, etm.start_date as effective_start_date, etm.end_date as effective_end_date, CASE \n"
+	             		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+	             		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
+	             		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
+	             		+ "  END AS prefixed_employeementId FROM employee e ")
                  .append("INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id ")
                  .append("LEFT JOIN teams t ON t.team_id = etm.team_id ")
                  .append("LEFT JOIN projects p ON p.project_id = t.project_id ")
@@ -2368,6 +2380,7 @@ public class ProjectService {
 	            dtoObj.setApmosysRM(record[29] != null ? record[29].toString() : null);
 	            dtoObj.setEffectiveStartDate(record[30] != null ? record[30].toString() : null);
 	            dtoObj.setEffectiveEndDate(record[31] != null ? record[31].toString() : null);
+	            dtoObj.setEmployeementIdAccToET(record[32] != null ? record[32].toString() : null);
 
 	            return dtoObj;
 	        }).collect(Collectors.toList());
@@ -2433,6 +2446,7 @@ public class ProjectService {
 		            empDTO.setBillable(record[19] != null ? record[19].toString() : null);
 		            empDTO.setMobileNo(record[20] != null ? Long.parseLong(record[20].toString()) : null);
 		            empDTO.setEmail(record[21] != null ? record[21].toString() : null);
+		            empDTO.setEmployeementIdAccToET(record[22] != null ? record[22].toString() : null);
 
 		            teamMap.get(teamKey).getMappedEmployeeDetails().add(empDTO);
 		        }

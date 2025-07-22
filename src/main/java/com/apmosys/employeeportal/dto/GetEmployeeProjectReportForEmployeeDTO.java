@@ -46,5 +46,6 @@ public class GetEmployeeProjectReportForEmployeeDTO {
     private String apmosysRM;
     private String effectiveStartDate;
     private String effectiveEndDate;
+    private String employeementIdAccToET;
 
 }
