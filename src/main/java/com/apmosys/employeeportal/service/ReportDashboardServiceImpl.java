@@ -126,9 +126,24 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setToDateDayType(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
 					dto.setIsConsultant(object[9] != null ? object[9].toString() : null);
 					dto.setIsApprenticeship(object[10] != null ? object[10].toString() : null);
-					dto.setIsApmosysProduct(object[11] != null ? object[11].toString() : null);
-					dto.setEmpId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
-					dto.setManagerId(object[13] != null ? Integer.parseInt(object[13].toString()) : null);
+					
+					dto.setEmpId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+					dto.setManagerId(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
+					dto.setIsApmosysProduct(object[13] != null ? object[13].toString() : null);
+					
+					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+//				    String isConsultant = timesheetDto.getIsConsultant();
+				    String isApmosysProduct = dto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+				        }else {
+				        	dto.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
+
+					
 					dtoList.add(dto);
 				});
 
@@ -191,6 +206,23 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setEmploymentstatus(employee[17] != null ? employee[17].toString() : null);
 					dto.setIsConsultant(employee[76] != null? employee[76].toString() : null);
 					dto.setManagerId(employee[25] != null ? Long.parseLong(employee[25].toString()) : null);
+					dto.setIsApmosysProduct(employee[89] != null ? employee[89].toString() : null);
+					
+					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+//				    String isConsultant = timesheetDto.getIsConsultant();
+				    String isApmosysProduct = dto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+				        }else {
+				        	dto.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
+
+		
+					
+					
 					timesheetList.forEach((timesheet) -> {
 
 						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
@@ -224,6 +256,19 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 						dto.setTotalWorkingHours(filledTimesheet[7] != null ? Float.parseFloat(filledTimesheet[7].toString()) : null);
 						dto.setDayType(filledTimesheet[8] != null ? filledTimesheet[8].toString() : null);
 						dto.setManagerName(filledTimesheet[9] != null ? filledTimesheet[9].toString() : null);
+						dto.setIsApmosysProduct(filledTimesheet[10] != null ? filledTimesheet[10].toString() : null);
+						
+						String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+//					    String isConsultant = timesheetDto.getIsConsultant();
+					    String isApmosysProduct = dto.getIsApmosysProduct();
+
+					    if (employmentId != null) {
+					        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+					        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+					        }else {
+					        	dto.setEmploymentIdAcToET("A-" + employmentId);
+					        }
+					    }
 						dtoList.add(dto);
 					});
 				}
@@ -1708,7 +1753,7 @@ try {
 //		            dto.setAge(object[18] != null ? Integer.parseInt(object[18].toString()) : null);
 //		            dto.setProfileKycStatus(object[19] != null ? object[19].toString() : null);
 		            dto.setManagerId(object[13] != null ? Long.parseLong(object[13].toString())  : null);
-			        dto.setEmpId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
+			        dto.setEmpId(object[14] != null ? Long.parseLong(object[14].toString()) : null);		        
 		            dtoList.add(dto);
 		        });
 

@@ -633,7 +633,7 @@
               <th
                 scope="col"
                 class="info-label wide-col"
-                mat-sort-header="employeementId|number"
+                mat-sort-header="employmentIdAcToET|string"
               >
                 Emp ID
               </th>
@@ -736,7 +736,7 @@
               "
             >
               <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
-              <td>{{ leave.employeementId }}</td>
+              <td>{{ leave.employmentIdAcToET }}</td>
               <td>{{ leave.employeeType }}</td>
               <td *ngIf="!userMapping.reports_employee_360">
                 {{ leave.employeeName }}
@@ -837,7 +837,7 @@
               <th
                 scope="col"
                 class="info-label wide-col"
-                mat-sort-header="employeementId|number"
+                mat-sort-header="employmentIdAcToET|string"
               >
                 Emp ID
               </th>
@@ -939,7 +939,7 @@
             >
               <th class="info-label">{{ 20 * (page - 1) + i + 1 }}</th>
               <!-- <td>{{ leave.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{ leave.employeementId }}</td> -->
-              <td>A-{{ leave.employeementId }}</td>
+              <td>{{ leave.employmentIdAcToET }}</td>
               <td>{{ leave.employeeType }}</td>
               <td
                 class="text-capitalize"
@@ -1050,7 +1050,7 @@
               <th
                 scope="col"
                 class="info-label wide-col wide-col"
-                mat-sort-header="employeementId|number"
+                mat-sort-header="employmentIdAcToET|string"
               >
                 Emp ID
               </th>
@@ -1146,7 +1146,7 @@
               "
             >
               <th class="info-label">{{ 20 * (page - 1) + i + 1 }}</th>
-              <td>A-{{ leave.employeementId }}</td>
+              <td>{{ leave.employmentIdAcToET }}</td>
               <td>{{ leave.employeType }}</td>
               <td
                 class="text-capitalize"

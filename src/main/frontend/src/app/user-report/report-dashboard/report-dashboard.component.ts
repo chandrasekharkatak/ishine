@@ -221,9 +221,9 @@ export class ReportDashboardComponent implements OnInit {
   employeeSummaryColumns: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'experience', 'departmentName', 'email', 'managerName', 'billable', 'billableType', 'projectName', 'clientName', 'dateOfJoining', 'mobileNo', 'employmentstatus', 'totalExperience', 'gender', 'workLocation', 'age', 'profileKycStatus'];
   workLocationSummaryColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'projectName', 'clientName', 'workLocation', 'clientLocation', 'departmentName','managerName','billable','billableType','totalExperience'];
   LeaveTrendAnalysisGraphColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'status'];
-  leaveSummaryTableColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName','managerName', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'status','typeOfLeave'];
-  timesheetSummaryTableColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName', 'email', 'managerName', 'mobileNo', 'pendingEodCount', 'legend'];
-  eodSegregationTableColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName', 'email', 'managerName', 'mobileNo', 'date', 'dayType', 'totalWorkingHours'];
+  leaveSummaryTableColumns: any[] = ['blank', 'employmentIdAcToET', 'employeeType', 'employeeName', 'departmentName','managerName', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'status','typeOfLeave'];
+  timesheetSummaryTableColumns: any[] = ['blank', 'employmentIdAcToET', 'employeeType', 'employeeName', 'departmentName', 'email', 'managerName', 'mobileNo', 'pendingEodCount', 'legend'];
+  eodSegregationTableColumns: any[] = ['blank', 'employmentIdAcToET', 'employeeType', 'employeeName', 'departmentName', 'email', 'managerName', 'mobileNo', 'date', 'dayType', 'totalWorkingHours'];
 
   billableChartByDepartmentColumns: any[] = ['Department'];
 
@@ -2427,9 +2427,9 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
     this.modalSummaryList = modalTableList.filter(x => x.legend == legendName);
     console.log(this.modalSummaryList, "this.modalSummaryListttttttttttttt")
     this.modalSummaryList.forEach(x => {
-      if (!this.countByLegend.find(employee => employee.employeementId == x.employeementId)) {
+      if (!this.countByLegend.find(employee => employee.employmentIdAcToET == x.employmentIdAcToET)) {
         this.countByLegend.push({
-          employeementId: x.employeementId,
+          employmentIdAcToET: x.employmentIdAcToET,
           employeeType: ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
           employeeName: x.employeeName,
           departmentName: x.departmentName,
@@ -2439,7 +2439,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
           pendingEodCount: x.pendingEodCount,
           legend: x.legend,
           isConsultant: x.isConsultant,
-          count: this.modalSummaryList.filter(y => y.employeementId == x.employeementId).length
+          count: this.modalSummaryList.filter(y => y.employmentIdAcToET == x.employmentIdAcToET).length
         });
       }
     });
