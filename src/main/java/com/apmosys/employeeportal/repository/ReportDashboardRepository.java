@@ -175,7 +175,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
          		+ "END AS EMP_ID,\n"
          		+ "\n"
          		+ "    CASE \n"
-         		+ "        WHEN e.is_apmosys_product = 'true' THEN 'ApmosysProduct'\n"
+         		+ "        WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n"
          		+ "        WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
          		+ "        WHEN (\n"
          		+ "            (e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR \n"
@@ -570,7 +570,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
     	 		+ "    END AS EMPLOYEEMENT_ID,\n"
     	 		+ "    \n"
     	 		+ "    CASE \n"
-    	 		+ "    WHEN e.is_apmosys_product = 'true' THEN 'ApmosysProduct'\n"
+    	 		+ "    WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n"
     	 		+ "    WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
     	 		+ "    WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR \n"
     	 		+ "          (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
@@ -686,7 +686,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 					+ " END AS EMP_ID,\n"
 					+ " \n"
 					+ " CASE \n"
-					+ " WHEN e.is_apmosys_product = 'true' THEN 'ApmosysProduct'\n"
+					+ " WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n"
 					+ " WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
 					+ " WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR \n"
 					+ " (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
@@ -1013,7 +1013,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         					+ "  ELSE CONCAT('A-', e.employeement_id)\n"
         					+ " END as EMP_ID,\n"
         					+ " CASE \n"
-        					+ "  WHEN e.is_apmosys_product = 'true' THEN 'ApmosysProduct'\n"
+        					+ "  WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n"
         					+ "  WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
         					+ "  WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
         					+ "  WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
@@ -1118,7 +1118,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         							"   ELSE CONCAT('A-', e.employeement_id) " +
         							"END AS EMP_ID, " +
         							"CASE " +
-        							"   WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'ApmosysProduct' " +
+        							"   WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'Apmosys Product' " +
         							"   WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
         							"   WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') " +
         							"      OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular' " +
@@ -1204,7 +1204,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         	    	
         	    	
         	    	@Query(nativeQuery = true,value = "SELECT emp_id, department, employee_name, from_date, to_date, status, from_date_day_type, to_date_day_type,\n"
-        	    			+ "	   employment_type, manager_id, type_of_leave, ld.leave_date \n"
+        	    			+ "employment_type, manager_id, type_of_leave, ld.leave_date \n"
         	    			+ "FROM (\n"
         	    			+ "    SELECT CONCAT('A-', e.employeement_id) as emp_id, d.name department, e.name employee_name, el.from_date from_date, el.to_date to_date, \n"
         	    			+ "    ls.status status,el.from_date_day_type from_date_day_type, el.to_date_day_type to_date_day_type, \n"
@@ -1332,7 +1332,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
             	    			+ "	CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', REPLACE(e.employeement_id, '-', ''))\n"
             	    			+ "		 ELSE CONCAT('A-', REPLACE(e.employeement_id, '-', ''))\n"
             	    			+ "	END as EMP_ID,\n"
-            	    			+ "    CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'ApmosysProduct'\n"
+            	    			+ "    CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'Apmosys Product'\n"
             	    			+ "		 WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
             	    			+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
             	    			+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
