@@ -451,7 +451,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				"LEFT JOIN Project p ON te.projectId = p.projectId " +
 				"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId " +
 				"LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
-				"WHERE p.poProjectId =:id ")
+				"WHERE p.poProjectId =:id and tm.active != 0 ")
 		List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long id);
 
 		@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
