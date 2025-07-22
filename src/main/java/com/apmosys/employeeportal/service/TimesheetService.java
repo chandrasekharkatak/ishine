@@ -907,6 +907,21 @@ public class TimesheetService {
 						dto.setIsConsultant(object[17] != null ? object[17].toString() : null);
 						dto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
 						dto.setEmpId(object[19] != null ? Long.parseLong(object[19].toString()) : null);
+						dto.setIsApmosysProduct(object[20] != null ? object[20].toString() : null);		
+						
+						String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+//					    String isConsultant = timesheetDto.getIsConsultant();
+					    String isApmosysProduct = dto.getIsApmosysProduct();
+
+					    if (employmentId != null) {
+					        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+					        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+					        }else {
+					        	dto.setEmploymentIdAcToET("A-" + employmentId);
+					        }
+					    }
+
+						
 						dtoList.add(dto);
 					});
 
@@ -1347,6 +1362,20 @@ public class TimesheetService {
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
 						dto.setEmpId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
+						dto.setIsApmosysProduct(object[17] != null ? object[17].toString() : null);
+						
+						String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+//					    String isConsultant = timesheetDto.getIsConsultant();
+					    String isApmosysProduct = dto.getIsApmosysProduct();
+
+					    if (employmentId != null) {
+					        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+					        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+					        }else {
+					        	dto.setEmploymentIdAcToET("A-" + employmentId);
+					        }
+					    }
+
 						dtoList.add(dto);
 					});
 

@@ -55,7 +55,7 @@
             <thead class="thead-light" id="allTimesheetInfoTHead">	
               <tr id="allTimesheetInfoTHeadTr">	
                 <th scope="col" class="info-label">Sr No.</th>	
-                <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>	
+                <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id</th>	
                 <th scope="col" class="info-label" mat-sort-header="employeeName|string">Employee Name</th>
                 <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>	
                 <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>	
@@ -78,7 +78,7 @@
                   </tr>
                   <tr *ngFor="let timesheet of allTeamTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                     <td>{{20*(page-1)+i+1}}</td>
-                    <td>{{timesheet.employeementId}}</td>
+                    <td>{{timesheet.employmentIdAcToET}}</td>
                     <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
                     <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
                     <td>{{timesheet.date}}</td>
@@ -163,7 +163,7 @@
               <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)"
                   [(ngModel)]="isSelectAll"></th>
               <th scope="col" class="info-label">Sr No.</th>
-              <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+              <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id</th>
               <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
               <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
               <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
@@ -188,7 +188,7 @@
               <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox" [(ngModel)]="timesheet.isSelected"filters
                   (change)="select(timesheet,$event)"></td>
               <td>{{items*(page-1)+i+1}}</td>
-              <td>{{timesheet.employeementId}}</td>
+              <td>{{timesheet.employmentIdAcToET}}</td>
               <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
               <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
               <td>{{timesheet.date}}</td>

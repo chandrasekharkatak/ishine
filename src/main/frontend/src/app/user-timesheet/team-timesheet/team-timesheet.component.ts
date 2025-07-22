@@ -63,8 +63,8 @@ export class TeamTimesheetComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  allTimesheetColumns:any[] = ['blank','employeementId','employeeName','date','dayType','description','totalTime','officeInTime','officeOutTime','totalWorkingOfficeHours','status','isNightShift','leaveType','remarks'];
-  allTimesheetReqColumns:any[] = ['blank','employeementId','employeeName','date','dayType','description','createdByName','totalTime','officeInTime','officeOutTime','totalWorkingOfficeHours','isNightShift','status'];
+  allTimesheetColumns:any[] = ['blank','employmentIdAcToET','employeeName','date','dayType','description','totalTime','officeInTime','officeOutTime','totalWorkingOfficeHours','status','isNightShift','leaveType','remarks'];
+  allTimesheetReqColumns:any[] = ['blank','employmentIdAcToET','employeeName','date','dayType','description','createdByName','totalTime','officeInTime','officeOutTime','totalWorkingOfficeHours','isNightShift','status'];
 
   constructor(
     public validationService: ValidationService,
@@ -164,7 +164,7 @@ export class TeamTimesheetComponent implements OnInit {
         this.allTeamTimesheets = response.serviceResponse;
 
         for (let x of this.allTeamTimesheets) {
-          x.employeementId = "A-".concat(x.employeementId);
+          x.employmentIdAcToET = (x.employmentIdAcToET);
           x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
           x.officeInTime = (x.officeInTime) ? moment(x.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           x.officeOutTime = (x.officeOutTime) ? moment(x.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -194,7 +194,7 @@ export class TeamTimesheetComponent implements OnInit {
         this.allTeamTimesheetRequests = response.serviceResponse;
         this.allTeamTimesheetRequests.forEach((timesheet, index) => {
           timesheet.checkId = "timesheet"+index;
-          timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          timesheet.employmentIdAcToET = (timesheet.employmentIdAcToET);
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
