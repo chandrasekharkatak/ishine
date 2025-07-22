@@ -3487,6 +3487,22 @@ public class EmployeeService {
 					empDTO.setHodId(object[21] != null ? Long.parseLong(object[21].toString()) : null );
 				    empDTO.setHodName(object[22] != null ? object[22].toString() : null);
 				    empDTO.setHodDepartmentName(object[23] != null ? object[23].toString() : null);
+				    empDTO.setIsApmosysProduct(object[24] != null ? object[24].toString() : null);
+				    
+				    String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
+//				    String isConsultant = timesheetDto.getIsConsultant();
+				    String isApmosysProduct = empDTO.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	empDTO.setEmploymentIdAcToET("AP-" + employmentId);
+				        }else {
+				        	empDTO.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
+
+				    
+				    
 					 int totalEnabledQuarters = quarterCycleRepository.countByIsEnableAndIsActive();
 					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn(empDTO.getEmpId(), quarterCycleRepository.findAllEnabledQuarterIds());
 					 

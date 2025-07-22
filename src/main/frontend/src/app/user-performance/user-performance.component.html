@@ -134,7 +134,7 @@
                   id="performanceID">
                   <thead class="thead-light" id="performanceIDTHead">
                     <tr id="performanceIDHeadTr">
-                      <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|string">Emp Id</th>
+                      <th scope="col" class="info-label wide-col" mat-sort-header="employmentIdAcToET|string">Emp Id</th>
                       <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Full Name</th>
                       <th scope="col" class="info-label wide-col" mat-sort-header="designationName|string">Position</th>
                       <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department
@@ -162,7 +162,7 @@
                     </tr>
                     <tr
                       *ngFor="let eligiemployee of eligibleEmployees | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-                      <td>{{ eligiemployee.employeementId }}</td>
+                      <td>{{ eligiemployee.employmentIdAcToET }}</td>
                       <!-- <td id="clickablefor360" *ngIf="userMapping.performance_employee_360"
                         [navigateToEmployee360]="eligiemployee.emp360" style="cursor: pointer;"
                         title="Click to view Employee 360">{{ eligiemployee.name }}</td> -->

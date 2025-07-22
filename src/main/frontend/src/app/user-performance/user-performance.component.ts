@@ -82,7 +82,7 @@ export class UserPerformanceComponent implements OnInit {
     'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status',
     'Bank Name', 'Created By', 'State', 'Created On'];
 
-  eligibleEmployeesColumns: any[] = ['employeementId', 'name', 'designationName', 'departmentName','totalExperience', 'employmentstatus', 'dateOfJoining','completionStatus'];
+  eligibleEmployeesColumns: any[] = ['employmentIdAcToET', 'name', 'designationName', 'departmentName','totalExperience', 'employmentstatus', 'dateOfJoining','completionStatus'];
   finalRating: number;
   hodRemarks: any;
   quarterId: any;
