@@ -304,6 +304,7 @@ this.name = name;
 	
 	//by priyadarshini
 	private String isApprenticeship;
+//	private List<Long> deptId;
 	
     private String isRetain;
 	private String dateOfRetain;
@@ -339,8 +340,8 @@ this.name = name;
 	private Long daysToReduce;
 //	private String reasonForReduction;	
 	private Long isExtensionClicked;
-	
-	
+    private List<Long> deptId;
+    private Integer days;
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
     public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
             Long mobileNo, Long managerId, String managerName, String jobRoleName,

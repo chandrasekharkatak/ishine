@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,6 +36,7 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 @RestController
 @RequestMapping("/api")
 public class ResourceManagementController {
+	
 	
 	@Autowired
 	ResourceManagementService resourceManagementService;
@@ -398,7 +400,7 @@ public class ResourceManagementController {
 		return resourceManagementService.poCrudOperationsInIshine(poPortalProjects);
 	}
 	@GetMapping("/deleteTempProjects")
-	@Scheduled(cron = "0 0 * * * *")
+	@Scheduled(cron = "${project.temp.logs}")
 	public ServiceResponse deleteProjectTemp() {
 	    return resourceManagementService.deleteProjectTemp();
 	}

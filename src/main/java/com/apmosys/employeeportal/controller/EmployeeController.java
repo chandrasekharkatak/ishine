@@ -625,4 +625,15 @@ public class EmployeeController {
 		 return response;
 	 }
 	 
+	
+	@RequestMapping(value="/fetchInactivePOCounts",method=RequestMethod.POST)
+	public ServiceResponse fetchInactivePOCounts(@RequestBody EmployeeDTO employeeDTO) {
+	    return employeeService.fetchInactivePOCounts(employeeDTO);
+	}
+	
+	@RequestMapping(value="/fetchInactivePOListOfEmployee",method=RequestMethod.POST)  
+	public ServiceResponse fetchInactivePOListOfEmployee(@RequestBody EmployeeDTO employeeDTO) {
+	    return employeeService.fetchInactivePOListOfEmployee(employeeDTO);
+	}
+	
 }

@@ -24,6 +24,8 @@ public class PoPortalDTO {
 	private String roleName;
 	private String deptAbbreviation;
 	private Long employeeId;
+	private Boolean isBillable;
+	private Boolean isTnm;
 
 	public PoPortalDTO(Long empId, String empName, Long deptId, String employeementStatus, String mailId, Long mobile, Long roleId, Long hodId, Long employeeId) {
 		this.empId = empId != null ? empId.toString() : null;

@@ -2470,7 +2470,7 @@ public class ResourceManagementService {
 			apiLogInfo.setLogLevel("ERROR");
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
+//		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -6428,9 +6428,22 @@ public class ResourceManagementService {
 
 	                List<ProjectDepartmentMap> existingMaps = projectDepartmentMapRepository.findByProjectId(projectId);
 	                Map<Long, ProjectDepartmentMap> deptIdToMap = existingMaps.stream()
-	                        .filter(Objects::nonNull)
-	                        .filter(m -> m.getDeptId() != null)
-	                        .collect(Collectors.toMap(ProjectDepartmentMap::getDeptId, map -> map));
+	                	    .filter(Objects::nonNull)
+	                	    .filter(m -> {
+	                	        boolean hasDept = m.getDeptId() != null;
+	                	        if (!hasDept) {
+	                	            System.out.println("Skipping map with null deptId: " + m);
+	                	        }
+	                	        return hasDept;
+	                	    })
+	                	    .peek(m -> System.out.println("Processing map with deptId: " + m.getDeptId()))
+	                	    .collect(Collectors.toMap(
+	                	        ProjectDepartmentMap::getDeptId,
+	                	        map -> {
+	                	            System.out.println("Putting in map: deptId = " + map.getDeptId() + ", map = " + map);
+	                	            return map;
+	                	        }
+	                	    ));
 
 	                Set<Long> newDeptIdSet = new HashSet<>(newDeptIds);
 
@@ -9444,15 +9457,35 @@ public class ResourceManagementService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 		projectTempRepo.deleteAll();
-		dumpPODataInIshine();
-		projectRepository.callSyncProjectsSP();
-		fillDepartmentforAllProjectsInIshine();
+		try {
+			dumpPODataInIshine();
+//			Thread.sleep(5000);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			projectRepository.callSyncProjectsSP();
+//			Thread.sleep(5000);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			fillDepartmentforAllProjectsInIshine();
+//			Thread.sleep(5000);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
 		response.setServiceStatus(response.STATUS_SUCCESS);
+		System.out.println(response);
 		}
 		catch(Exception e) {
 			response.setServiceStatus(response.STATUS_FAIL);
 			response.setServiceResponse(e.getMessage());
-		}
+			e.printStackTrace();
+			}
 		return response;
 	}
 	

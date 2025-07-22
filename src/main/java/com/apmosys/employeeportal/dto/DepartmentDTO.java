@@ -35,10 +35,11 @@ public class DepartmentDTO {
 	private String deptName;
 	private String hodEmploymentId;
 	private String deptAbbreviation; // New field
-	
+	private String isBillable;
+    private String isTnm;
 	public DepartmentDTO(Long deptId, Integer createdBy, Date createdOn
 			, String name, String createdByName, String hodName, Long hodId, LocalDateTime updatedOn
-			, String updatedByName, String deptAbbreviation,Integer updatedBy) {
+			, String updatedByName, String deptAbbreviation,Integer updatedBy,String isBillable, String isTnm) {
 				this.deptId = deptId;
 				this.createdBy = createdBy;
 				this.createdOn = createdOn != null ? createdOn.toString() : null;
@@ -50,6 +51,8 @@ public class DepartmentDTO {
 				this.updatedByName = updatedByName;
 				this.deptAbbreviation = deptAbbreviation;
 				this.updatedBy = updatedBy;
+				this.isBillable =isBillable;
+				this.isTnm =isTnm;
 			}
 	
 	

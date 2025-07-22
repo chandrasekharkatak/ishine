@@ -2361,6 +2361,9 @@ public class ProjectService {
 	    try {
 	        String reportType = dto.getReport();
 	        GetEmployeeProjectReportDTO reportDTO;
+	        if (reportType == null) {
+	            reportType = "E";
+	        }
 
 	        switch (reportType) {
 	            case "E":
@@ -2373,6 +2376,7 @@ public class ProjectService {
 	            default:
 	                throw new IllegalArgumentException("Invalid report type: " + reportType);
 	        }
+	        
 	        
 	        Map<String, Map<String, Map<String, Object>>> summary = getProjectSummary(dto);
 	        reportDTO.setProjectSummary(summary);

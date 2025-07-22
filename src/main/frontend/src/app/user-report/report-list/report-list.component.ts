@@ -1,8 +1,10 @@
 import { CdkDragDrop, CdkDragRelease, moveItemInArray } from "@angular/cdk/drag-drop";
-import { formatDate, LocationStrategy } from '@angular/common';
+import { formatDate, Location, LocationStrategy } from '@angular/common';
 import { Component, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
+import { FormControl } from "@angular/forms";
 import { Sort } from '@angular/material/sort';
 import { Router } from "@angular/router";
+import * as Highcharts from "highcharts";
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
@@ -15,20 +17,17 @@ import { JobRole } from 'src/app/models/jobRole';
 import { Query } from 'src/app/models/query';
 import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
-import { Location } from '@angular/common';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { JobRoleService } from 'src/app/services/job-role.service';
 import { LeaveService } from 'src/app/services/leave.service';
+import { ResourceManagementService } from "src/app/services/resource-management.service";
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
-import { FormControl } from "@angular/forms";
-import * as Highcharts from "highcharts";
-import { ResourceManagementService } from "src/app/services/resource-management.service";
 
 class FilterData {
   title: any;
@@ -112,6 +111,7 @@ export class ReportListComponent implements OnInit {
   selectedProjectId: any;
   employeeRole: any;
   selectedColumnToShow: any;
+  noOfDays: number | null = null;
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
@@ -178,6 +178,7 @@ export class ReportListComponent implements OnInit {
   employeesFor360: any[] = [];
   departments: any[] = [];
   allEmployee: any[] = [];
+  allInactivePOListOfEmployee: any[] = [];
   filteredEmployees: any[] = [];
   filteredEmployees2: any[] = [];
   allProjectPOInternal: any[] = [];
@@ -218,12 +219,23 @@ export class ReportListComponent implements OnInit {
   summaryModalRef: BsModalRef;
   projectSummaryData: any[] = [];
   searchText: string = '';
+  visibleInfo: boolean = false;
+  inActiveBoxinfo: any;
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
   private allDepartments: any[] = [];
   showBillableOnly: boolean = false;
-  
+  totalEmployeeInActivePoCount: any;
+  total7Days: string = '';
+  total90Days: string = '';
+  total180Days: string = '';
+  total1Year: string = '';
+  totalAll: string = '';
+  total30Days: string = '';
+  //InActivePoCounts: { type: string; count: string; }[];
+  InActivePoCounts: { type: string; count: string; noOfDays: number | null }[];
+
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -272,7 +284,7 @@ export class ReportListComponent implements OnInit {
       { deptId: 28, name: 'Training', isBillable: false },
       { deptId: 29, name: 'Floor Automation', isBillable: true }
     ];
-    
+
     this.setDepartmentView(true);
 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -327,12 +339,12 @@ export class ReportListComponent implements OnInit {
     } else {
       this.departments = [...this.allDepartments];
     }
-    
+
     this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
 
     this.filterDepartments();
     this.updateSelectAllState();
-    
+
     this.refreshReportData();
   }
 
@@ -340,30 +352,30 @@ export class ReportListComponent implements OnInit {
     const selectedCount = this.employeeReportObj.deptId?.length - 1 || 0;
     const totalCount = this.departments.length;
 
- 
+
     this.isAllSelected = totalCount > 0 && selectedCount === totalCount;
   }
-  
+
 
   isAllSelected = true;
   showSearchInput = true;
 
 
-  
+
   toggleSelectAll(): void {
     //  event.stopPropagation();
-     if (this.isAllSelected) {
-      this.employeeReportObj.deptId = []; 
+    if (this.isAllSelected) {
+      this.employeeReportObj.deptId = [];
       this.clearSelection();
       console.log("All departments deselected 0", this.employeeReportObj.deptId);
-      
+
     } else {
       this.isAllSelected = true;
       console.log("All departments deselected 1", this.employeeReportObj.deptId);
-      this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId); 
-      
+      this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
+
     }
-     this.refreshReportData();
+    this.refreshReportData();
     // this.isAllSelected = !this.isAllSelected;
     // this.updateSelectAllState();
     // this.refreshReportData();
@@ -378,7 +390,7 @@ export class ReportListComponent implements OnInit {
   }
 
   clearSelection() {
-    
+
     this.employeeReportObj.deptId = [];
     this.isAllSelected = false;
     this.searchText = '';
@@ -391,7 +403,7 @@ export class ReportListComponent implements OnInit {
     this.updateSelectAllState();
     this.refreshReportData();
   }
-  
+
   getSlicedProjects(projectList: Project[], count: number): Project[] {
     return projectList.slice(0, count);
   }
@@ -632,6 +644,7 @@ export class ReportListComponent implements OnInit {
     this.employeeReportObj.billableType = null;
 
     this.getEmployeeReportData();
+    this.getInActivePoCount(this.employeeReportObj);
   }
 
   selectBillable(box: string, type: string, template: TemplateRef<any>) {
@@ -772,12 +785,12 @@ export class ReportListComponent implements OnInit {
     const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
     const key = `${box}.${selectedMainFlag}`;
     const isActiveBox = box === this.activeBox;
-    const category = this.selectedTab[this.activeBox]; 
+    const category = this.selectedTab[this.activeBox];
 
-console.log("BOx Type ",box);
-    console.log(" key ::::::::::::",key);
-    console.log("category :::::::::::::",category);
-console.log("Is Active box :::::::::::::::::::",isActiveBox);
+    console.log("BOx Type ", box);
+    console.log(" key ::::::::::::", key);
+    console.log("category :::::::::::::", category);
+    console.log("Is Active box :::::::::::::::::::", isActiveBox);
 
     if (category === 'Project' && isActiveBox) {
       return this.projectSummary[key]?.Project?.total_projects_per_po_project || 0;
@@ -1046,7 +1059,7 @@ console.log("Is Active box :::::::::::::::::::",isActiveBox);
       }
     });
   }
-  
+
   onBoxClickDataChange(boxName) {
     this.filteredEmployees = [];
     this.activeBox = boxName;
@@ -1079,7 +1092,7 @@ console.log("Is Active box :::::::::::::::::::",isActiveBox);
     console.log('Selected Department:', this.selectedDepartment);
     this.deptWiseCount();
   }
-  
+
   getAllDepartmentsFromId(): Promise<any> {
     return new Promise((resolve, reject) => {
       this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
@@ -2040,7 +2053,7 @@ console.log("Is Active box :::::::::::::::::::",isActiveBox);
       }
     });
   }
-	
+
   page = 1;
   itemsPerPage = 5;
   handlePageChange(event) {
@@ -2585,8 +2598,276 @@ console.log("Is Active box :::::::::::::::::::",isActiveBox);
     });
   }
 
+  // InActivePoCounts: { type: string; count: String }[] = [
+  //   { type: '07 Days', count: this.total7Days },
+  //   { type: '30 Days', count: this.total30Days },
+  //   { type: '90 Days', count: this.total90Days },
+  //   { type: '180 Days', count: this.total180Days },
+  //   { type: '365 Days', count: this.total1Year },
+  //   { type: 'Overall', count: this.totalAll },
+  // ];
+
+  // onInfoClickModel(template: TemplateRef<any>, details:any): void {
+  //    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  //   console.log('TNM stands for Time and Materials billing model.');
+  // }
+
+//   onInfoClickModel(box: any,template: TemplateRef<any>, noOfDays: number | null): void {
+//     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+//     const tabName = this.employeeReportObj.category;
+//     const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
+//     const key = `${box}.${selectedMainFlag}`;
+//     const isActiveBox = box === this.activeBox;
+//     const category = this.selectedTab[this.activeBox];
+//     this.employeeReportObj.billableType = null;
+//     this.employeeReportObj.days = noOfDays;
+//     this.employeeReportObj.tabName = tabName ;
+    
+    
+//     console.log("Fetching with noOfDays:", this.employeeReportObj);
+  
+//     this.employeeService.fetchInactivePOListOfEmployee(this.employeeReportObj)
+//         .pipe(first())
+//         .subscribe((response: any) => {
+//           this.allInactivePOListOfEmployee = response.serviceResponse;
+//           console.log("Service Response ", this.allInactivePOListOfEmployee);
+
+//         if (response.serviceStatus == "Success") {
+//           this.allInactivePOListOfEmployee = response.serviceResponse;
+//           console.log("Response for", noOfDays, "days:", response);
+//         } else {
+  
+//         }
+  
+    
+//   })
+// }
+onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, noOfDays: number | null, projectTemplate: TemplateRef<any>): void {
+  const category = this.selectedTab[this.activeBox];
+
+  if (category === 'Project') {
+    this.modalRef = this.modalService.show(projectTemplate, { class: 'modal-xl' });
+  } else {
+    this.modalRef = this.modalService.show(defaultTemplate, { class: 'modal-xl' });
+  }
+
+  this.employeeReportObj.billableType = null;
+  this.employeeReportObj.days = noOfDays;
+  this.employeeReportObj.tabName = this.employeeReportObj.category;
+
+  this.employeeService.fetchInactivePOListOfEmployee(this.employeeReportObj)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.allInactivePOListOfEmployee = response.serviceResponse;
+      } else {
+        this.allInactivePOListOfEmployee = [];
+      }
+    });
+}
+
+
+  
+
+  toggleInfo1(box: any) {
+    this.visibleInfo =  !this.visibleInfo ;
+    this.inActiveBoxinfo = box;
+
+  }
+
+  // getInActivePoCount(box: any): void {
+  //   const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
+  //   const key = `${box}.${selectedMainFlag}`;
+  //   const isActiveBox = box === this.activeBox;
+  //   const category = this.selectedTab[this.activeBox];
+  
+  //   console.log("Box Type:", box);
+  //   console.log("Key:", key);
+  //   console.log("Category:", category);
+  //   console.log("Is Active Box:", isActiveBox);
+  
+  //   this.employeeService.fetchInactivePOCounts(this.employeeReportObj)
+  //     .pipe(first())
+  //     .subscribe((response: any) => {
+  //       if (response.serviceStatus === "Success" && response.serviceResponse) {
+  //         const res = response.serviceResponse;
+  
+  //         this.totalEmployeeInActivePoCount = res;
+  
+  //         this.total7Days = res.totalEmpPerProjectTypeLast7days || '0';
+  //         this.total30Days = res.totalEmpPerProjectTypeLast30days || '0';
+  //         this.total90Days = res.totalEmpPerProjectTypeLast90days || '0';
+  //         this.total180Days = res.totalEmpPerProjectTypeLast180days || '0';
+  //         this.total1Year = res.totalEmpPerProjectTypeLast1Year || '0';
+  //         this.totalAll = res.totalEmpPerProjectTypeTotal || '0';
+  
+  //         console.log("Inactive PO Count:", this.totalEmployeeInActivePoCount);
+  //       } else {
+  //         console.error("API Error:", response.serviceError || "Unknown error");
+  
+          
+  //         this.totalEmployeeInActivePoCount = {};
+  //         this.total7Days = '0';
+  //         this.total30Days = '0';
+  //         this.total90Days = '0';
+  //         this.total180Days = '0';
+  //         this.total1Year = '0';
+  //         this.totalAll = '0';
+  //       }
+  //     });
+  // }
+
+  getInActivePoCount(box: any): void {
+    const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
+    const key = `${box}.${selectedMainFlag}`;
+    const isActiveBox = box === this.activeBox;
+    const category = this.selectedTab[this.activeBox];
+    const tabName = this.employeeReportObj.category;
+  
+    console.log("Box Type:", box);
+    console.log("Key:", key);
+    console.log("Category:", category);
+    console.log("Is Active Box:", isActiveBox);
+    this.employeeReportObj.tabName = tabName ;
+  
+    this.employeeService.fetchInactivePOCounts(this.employeeReportObj)
+      .pipe(first())
+      .subscribe((response: any) => {
+        if (response.serviceStatus === "Success" && response.serviceResponse) {
+          const res = response.serviceResponse;
+  
+          this.totalEmployeeInActivePoCount = res;
+
+          console.log("COunt  :::::::::",this.totalEmployeeInActivePoCount);
+  
+          const counts = this.totalEmployeeInActivePoCount[0];
+
+          // this.InActivePoCounts = [
+          //   { type: 'Expired in last 7 Days', count: counts.totalEmpPerProjectTypeLast7days ?? '0' },
+          //   { type: 'Expired in last 30 Days', count: counts.totalEmpPerProjectTypeLast30days ?? '0' },
+          //   { type: 'Expired in last 90 Days', count: counts.totalEmpPerProjectTypeLast90days ?? '0' },
+          //   { type: 'Expired in last 180 Days', count: counts.totalEmpPerProjectTypeLast180days ?? '0' },
+          //   { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0' },
+          //   { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0' }
+          // ];
+
+          this.InActivePoCounts = [
+            { type: 'Expired in last 7 Days', count: counts.totalEmpPerProjectTypeLast7days ?? '0', noOfDays: 7 },
+            { type: 'Expired in last 30 Days', count: counts.totalEmpPerProjectTypeLast30days ?? '0', noOfDays: 30 },
+            { type: 'Expired in last 90 Days', count: counts.totalEmpPerProjectTypeLast90days ?? '0', noOfDays: 90 },
+            { type: 'Expired in last 180 Days', count: counts.totalEmpPerProjectTypeLast180days ?? '0', noOfDays: 180 },
+            { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0', noOfDays: 365 },
+            { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0', noOfDays: null }
+          ] as { type: string; count: string; noOfDays: number | null }[];
+          
+
+          
+  
+          console.log("Inactive PO Count:", counts.totalEmpPerProjectTypeTotal);
+        } else {
+          console.error("API Error:", response.serviceError || "Unknown error");
+  
+          this.totalEmployeeInActivePoCount = {};
+          this.total7Days = '0';
+          this.total30Days = '0';
+          this.total90Days = '0';
+          this.total180Days = '0';
+          this.total1Year = '0';
+          this.totalAll = '0';
+  
+          // this.InActivePoCounts = [
+          //   { type: 'Expired in last 7 Days', count: '0' },
+          //   { type: 'Expired in last 30 Days', count: '0' },
+          //   { type: 'Expired in last 90 Days', count: '0' },
+          //   { type: 'Expired in last 180 Days', count: '0' },
+          //   { type: 'Expired in last 1 Year', count: '0' },
+          //   { type: 'Overall Expired', count: '0' },
+          // ];
+        }
+      });
+  }
+
+  exportToExcelInactivePoDetails(): void {
+    if (!this.allInactivePOListOfEmployee || this.allInactivePOListOfEmployee.length === 0) {
+      return;
+    }
+    // if (this.isLeaveReportTable == true) {
+      this.excelName = 'Inactive_PO_List.xlsx';
+
+      const onlySpecificDataArr = this.allInactivePOListOfEmployee.map(
+        x => ({
+      'Employee ID': `A-${x.employeementId}`,
+      'Name' : x.name,
+      'Project Name': x.projectName || 'N/A',
+      'PO No': x.poNo || 'N/A',
+      'PO Type': x.poProjectType || 'N/A',
+      'PO Start': x.poStartDate || 'N/A',
+      'PO End': x.poEndDate || 'N/A',
+      'Client': x.clientName || 'N/A',
+      'Location': x.clientLocation || 'N/A',
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    
+
+
+
+    // const exportData = this.allInactivePOListOfEmployee.map(emp => ({
+    //   'Employee ID': `A-${emp.employeementId}`,
+    //   'Name': emp.name,
+    //   'Project Name': emp.projectName || 'N/A',
+    //   'PO No': emp.poNo || 'N/A',
+    //   'PO Type': emp.poProjectType || 'N/A',
+    //   'PO Start': emp.poStartDate || 'N/A',
+    //   'PO End': emp.poEndDate || 'N/A',
+    //   'Client': emp.clientName || 'N/A',
+    //   'Location': emp.clientLocation || 'N/A',
+    // }));
+
+    // const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
+    // const workbook: XLSX.WorkBook = {
+    //   Sheets: { 'Inactive PO List': worksheet },
+    //   SheetNames: ['Inactive PO List'],
+    // };
+    // const excelBuffer: any = XLSX.write(workbook, {
+    //   bookType: 'xlsx',
+    //   type: 'array',
+    // });
+
+    // const blobData = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    // saveAs(blobData, 'Inactive_PO_List.xlsx');
+  }
+
+  exportToExcelInactivePoDetailsProject(): void {
+    if (!this.allInactivePOListOfEmployee || this.allInactivePOListOfEmployee.length === 0) {
+      return;
+    }
+    // if (this.isLeaveReportTable == true) {
+      this.excelName = 'Inactive_PO_List_ProjectList.xlsx';
+
+      const onlySpecificDataArr = this.allInactivePOListOfEmployee.map(
+        x => ({
+      'Project Name': x.projectName || 'N/A',
+      'PO No': x.poNo || 'N/A',
+      'PO Type': x.poProjectType || 'N/A',
+      'PO Start': x.poStartDate || 'N/A',
+      'PO End': x.poEndDate || 'N/A',
+      'Client': x.clientName || 'N/A',
+      'Location': x.clientLocation || 'N/A',
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    
+  }
+  
+  
+
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+}
+
+function saveAs(blobData: Blob, arg1: string) {
+  throw new Error("Function not implemented.");
 }

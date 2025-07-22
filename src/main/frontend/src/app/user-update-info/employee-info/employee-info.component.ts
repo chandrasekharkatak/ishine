@@ -1,5 +1,4 @@
-import { AfterContentInit, Component, EventEmitter, OnInit, Output, TemplateRef } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, EventEmitter, OnInit, Output, TemplateRef } from '@angular/core';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -353,10 +352,6 @@ export class EmployeeInfoComponent implements OnInit{
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.aboutMe)){
       this.alertMessage = "Please enter About me !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validateViewsOnOrganisation(employeeObj.aboutMe)){
-      this.alertMessage = `Please enter valid in  About me. Alphabets, Numbers and allowed Special Character are +-()'"?,&.!`;
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -868,12 +863,12 @@ export class EmployeeInfoComponent implements OnInit{
     }
 
 
-  const regexaboutMe = /^[a-zA-Z\s,!.]+$/;
-if (!regexaboutMe.test(this.employeeObj.aboutMe )) { 
-    this.alertMessage = "About Me field should only contain alphabets and spaces!";
-    this.openAlertMod(template, this.alertMessage);
-    return false;
-}
+//   const regexaboutMe = /^[a-zA-Z\s,!.]+$/;
+// if (!regexaboutMe.test(this.employeeObj.aboutMe )) { 
+//     this.alertMessage = "About Me field should only contain alphabets and spaces!";
+//     this.openAlertMod(template, this.alertMessage);
+//     return false;
+// }
 
     const regexbloodG = /^(A|B|AB|O)[+-]$/; 
     if (!regexbloodG.test(this.employeeObj.bloodGroup)) { 
@@ -1199,9 +1194,6 @@ if(this.errorMsg == ""){
     this.employeeObj.aboutMe = this.employeeObj.aboutMe?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
       this.errorMsg = "Please enter About me !!"
-    }
-    else  if (!this.validationService.validateViewsOnOrganisation(data)) {
-      this.errorMsg = `Please enter valid About me. Alphabets, Number and allowed Special Character are +-()'"?,&.!`
     }
     else{
     this.errorMsg = ""
