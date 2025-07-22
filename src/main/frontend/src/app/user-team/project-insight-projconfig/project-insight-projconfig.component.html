@@ -3,7 +3,7 @@
   <div class="summary-cards" style="display: flex; flex-wrap: wrap;" >
     <div *ngFor="let domain of allDomainList" >
 
-      <div class="card insurance" style="cursor: pointer;" [ngClass]="{'active': selectedDomain == domain && alreadySelected}" (click)="selectDomain(domain)" >
+      <div *ngIf="!(isCreateForm && rootNode)" class="card insurance" style="cursor: pointer;" [ngClass]="{'active': selectedDomain == domain && alreadySelected}" (click)="selectDomain(domain)" >
         <div [style.background]="domainColors[domain]" class="circle"></div>
         <div class="count">{{allDomainWithProject[domain].length}}</div>
         <div class="label"> {{domain}} </div>
