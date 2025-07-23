@@ -334,11 +334,15 @@ export class FormRendererComponent implements OnInit, OnChanges {
   async onDomainSelectChange(selectedDomainIds: any[], field: any, changed: boolean = true) {
     if (!Array.isArray(selectedDomainIds)) selectedDomainIds = [selectedDomainIds];
   
-    // Remove all dynamic children
-    this.fields = this.fields.filter(f => f.isDynamicallyCreated == "false" || f.isDynamicallyCreated == false);
-    this.layoutConfig = this.layoutConfig.map(row =>
-      row.filter(f => f.isDynamicallyCreated == "false" || f.isDynamicallyCreated == false)
+    this.fields = this.fields.filter(f =>
+      f.isDynamicallyCreated !== 'true' && f.isDynamicallyCreated !== true
     );
+    this.layoutConfig = this.layoutConfig.map(row =>
+      row.filter(f =>
+        f.isDynamicallyCreated !== 'true' && f.isDynamicallyCreated !== true
+      )
+    );
+
   
     const type = this.getTypeForField(field);
   
@@ -350,9 +354,13 @@ export class FormRendererComponent implements OnInit, OnChanges {
       if (children && children.length > 0) {
         const domainFieldTemplate = { ...field };
         const hierarchyType = children[0].hierarchyType;
+
+        const parentOption = field.options.find(opt => opt.value === domainId);
+        const parentLabel = parentOption ? parentOption.label : domainId;
+        const uniqueLabel = `${hierarchyType} (${parentLabel})`;
+
         const uniqueId = this.generateUniqueId();
         const uniqueName = `${hierarchyType}_${domainId}_${uniqueId}`;
-        const uniqueLabel = `${hierarchyType} (${domainId})`;
   
         this.fields = this.fields.filter(f => f.name !== uniqueName);
   
@@ -411,8 +419,6 @@ export class FormRendererComponent implements OnInit, OnChanges {
     return (field.hierarchyType || field.label || '').toUpperCase();
   }
 
-
-
   async onDomainChildSelectChange(selectedChildIds: any[], field: any) {
     const currentValues = this.dynamicForm?.value || {};
   
@@ -429,11 +435,14 @@ export class FormRendererComponent implements OnInit, OnChanges {
           if (children && children.length > 0) {
             const domainFieldTemplate = { ...field };
             const newLabel = children[0].hierarchyType;
+            const parentOption = field.options.find(opt => opt.value === childId);
+            const parentLabel = parentOption ? parentOption.label : childId;
+
             const newField = {
               ...domainFieldTemplate,
               id: uniqueId,
               name: fieldName,
-              label: `${newLabel} (${childId})`,
+              label: `${newLabel} (${parentLabel})`,
               hierarchyType: newLabel,
               options: children.map(child => ({
                 label: child.name,

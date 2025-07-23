@@ -14,7 +14,7 @@
             </label>
     
             <!-- Select Field (non-dependent) -->
-            <div class="w-100" *ngIf="field.type === 'select' && field.optionSource?.toLowerCase() !== 'dependent'.toLowerCase() && field.label.toLowerCase() !== 'Domain'.toLowerCase() && !field.dynamicDomainChild">
+            <div class="w-100" *ngIf="field.type === 'select' && field.optionSource?.toLowerCase() !== 'dependent'.toLowerCase() && field.label.toLowerCase() !== 'Domain'.toLowerCase() && !field.dynamicDomainChild && (field.isDynamicallyCreated == 'false' || !field.isDynamicallyCreated)">
               1
               <mat-select
                 class="form-control"
@@ -39,7 +39,7 @@
             </div>
 
             <!-- Dynamic Domain Child -->
-            <div class="w-100" *ngIf="field.type === 'select' && field.dynamicDomainChild">
+            <div class="w-100" *ngIf="field.type === 'select' && (field.isDynamicallyCreated === true || field.isDynamicallyCreated === 'true')">
               3
               <mat-select class="form-control" [formControlName]="field.name" [multiple]="field.multiple"
                 (selectionChange)="onDomainChildSelectChange($event.value, field)">
