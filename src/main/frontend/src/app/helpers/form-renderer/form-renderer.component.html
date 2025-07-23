@@ -15,7 +15,6 @@
     
             <!-- Select Field (non-dependent) -->
             <div class="w-100" *ngIf="field.type === 'select' && field.optionSource?.toLowerCase() !== 'dependent'.toLowerCase() && field.label.toLowerCase() !== 'Domain'.toLowerCase() && !field.dynamicDomainChild && (field.isDynamicallyCreated == 'false' || !field.isDynamicallyCreated)">
-              1
               <mat-select
                 class="form-control"
                 [formControlName]="field.name"
@@ -29,7 +28,6 @@
 
             <!-- Domain -->
             <div class="w-100" *ngIf="field.type === 'select' && field.optionSource !== 'dependent' && field.label.toLowerCase() === 'Domain'.toLowerCase()">
-              2
               <mat-select class="form-control" [formControlName]="field.name" [multiple]="field.multiple"
                 (selectionChange)="onDomainSelectChange($event.value, field)">
                 <mat-option *ngFor="let option of field.options" [value]="option.value">
@@ -40,7 +38,6 @@
 
             <!-- Dynamic Domain Child -->
             <div class="w-100" *ngIf="field.type === 'select' && (field.isDynamicallyCreated === true || field.isDynamicallyCreated === 'true')">
-              3
               <mat-select class="form-control" [formControlName]="field.name" [multiple]="field.multiple"
                 (selectionChange)="onDomainChildSelectChange($event.value, field)">
                 <mat-option *ngFor="let option of field.options" [value]="option.value">
@@ -51,7 +48,6 @@
                 
             <!-- Dependent Select Field with Multi-Select Parent -->
             <ng-container *ngIf="field?.type === 'select' && field.optionSource?.toLowerCase() === 'dependent'.toLowerCase() && isParentMultiSelect(field) && !field.dynamicDomainChild">
-              4
               <mat-form-field class="w-100">
                 <mat-select
                   class="form-control"

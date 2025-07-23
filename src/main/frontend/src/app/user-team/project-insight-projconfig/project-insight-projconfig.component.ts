@@ -110,6 +110,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   originalFieldData: any = null;
   showExistingFieldsList: boolean = false;
   searchKeyword: any;
+  currentVersion: any;
 
   apiList = [];
 
@@ -549,7 +550,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.isEdit = true;
     this.isCreateForm = true;
     this.isTable = false;
-
+    
     this.projectInsightId = projectInsightId;
     this.getProjectInsightByInsightId(projectInsightId);
   }
@@ -725,7 +726,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         this.allProjectInsightProjectList = response;
       },
       error: (error: any) => {
-        this.alertMessage = error;
+        this.alertMessage =
+          error?.error?.serviceResponse || 'An unexpected error occurred.';
         this.modalRef = this.modalService.show(this.alertMessageTemplate);
       }
     });
@@ -734,6 +736,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   getProjectInsightByInsightId(projectInsightId: any) {
     this.projectInsightService.getProjectInsightByInsightId(projectInsightId).pipe(first()).subscribe({
       next: (response: any) => {
+        this.currentVersion = response.version;
+
         this.rootNode = this.buildFormNodeTree(response.structure);
         this.mergeFormDataIntoStructure(this.rootNode, response.data);
         this.currentNodePath = [this.rootNode];
@@ -1718,7 +1722,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       data: data,
       isDraft: "N",
       createdBy: this.currentUser.empId,
-      id: this.projectInsightId
+      id: this.projectInsightId,
+      version: this.currentVersion
     };
 
     this.projectInsightService.onSaveAndAssign(payload).pipe(first()).subscribe(
@@ -1729,7 +1734,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         this.modalRef = this.modalService.show(this.alertMessageTemplate);
       },
       (error) => {
-        console.error('Save and assign failed:', error);
+        this.alertMessage =
+          error?.error?.serviceResponse || 'An unexpected error occurred.';
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
       }
     )
   }
@@ -1755,7 +1762,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       data: data,
       isDraft: "N",
       createdBy: this.currentUser.empId,
-      id: this.projectInsightId
+      id: this.projectInsightId,
+      version: this.currentVersion
     };
   
     this.projectInsightService.onSaveAsDraft(payload).pipe(first()).subscribe(
@@ -1764,7 +1772,11 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         this.modalRef = this.modalService.show(this.alertMessageTemplate);
       },
       (error) => {
-        console.error('Save and Draft failed:', error);
+        this.alertMessage =
+          error?.error?.serviceResponse || 'An unexpected error occurred.';
+          console.log(error, " : error");
+          
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
       }
     );
   }

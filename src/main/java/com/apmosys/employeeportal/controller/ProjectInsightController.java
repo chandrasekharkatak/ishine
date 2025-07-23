@@ -4,8 +4,11 @@ import java.util.List;
 import java.util.Set;
 
 import javax.persistence.Entity;
+import javax.persistence.OptimisticLockException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -166,23 +169,52 @@ public class ProjectInsightController {
 
 	@RequestMapping(value = "/onSaveAsDraft", method = RequestMethod.POST)
 	public ResponseEntity<ServiceResponse> onSaveAsDraft(@RequestBody ProjectInsightStructure projectInsightStructure) {
-		ProjectInsightStructure saved = projectInsightService.saveAsDraft(projectInsightStructure);
+	    try {
+	        ProjectInsightStructure saved = projectInsightService.saveAsDraft(projectInsightStructure);
 
-		ServiceResponse response = new ServiceResponse();
-		response.setServiceStatus("Successfully Saved Project in Draft");
-		response.setServiceResponse(saved);
-		return ResponseEntity.ok(response);
+	        ServiceResponse response = new ServiceResponse();
+	        response.setServiceStatus("Successfully Saved Project in Draft");
+	        response.setServiceResponse(saved);
+	        return ResponseEntity.ok(response);
+	    } catch (
+	             OptimisticLockingFailureException | 
+	             OptimisticLockException e) {
+	        ServiceResponse response = new ServiceResponse();
+	        response.setServiceStatus("CONFLICT");
+	        response.setServiceResponse("Version conflict: someone else has modified the project. Please reload and try again.");
+	        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+	    } catch (Exception e) {
+	        // Optionally, log the exception for debugging
+	        e.printStackTrace();
+	        ServiceResponse response = new ServiceResponse();
+	        response.setServiceStatus("ERROR");
+	        response.setServiceResponse("An unexpected error occurred while saving draft: " + e.getMessage());
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+	    }
 	}
 
 	@RequestMapping(value = "/onSaveAndAssign", method = RequestMethod.POST)
 	public ResponseEntity<ServiceResponse> saveAndAssign(@RequestBody ProjectInsightStructure projectInsightStructure) {
-		ProjectInsightStructure saved = projectInsightService.saveAndAssign(projectInsightStructure);
+	    try {
+	        ProjectInsightStructure saved = projectInsightService.saveAndAssign(projectInsightStructure);
 
-		ServiceResponse response = new ServiceResponse();
-		response.setServiceStatus("Project Saved Successfully");
-		response.setServiceResponse(saved);
-		return ResponseEntity.ok(response);
+	        ServiceResponse response = new ServiceResponse();
+	        response.setServiceStatus("Project Saved Successfully");
+	        response.setServiceResponse(saved);
+	        return ResponseEntity.ok(response);
+	    } catch (OptimisticLockingFailureException | OptimisticLockException e) {
+	        ServiceResponse response = new ServiceResponse();
+	        response.setServiceStatus("Version conflict: someone else has modified the project. Please reload and try again.");
+	        response.setServiceResponse(null);
+	        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+	    } catch (Exception e) {
+	        ServiceResponse response = new ServiceResponse();
+	        response.setServiceStatus("An unexpected error occurred while saving the project.");
+	        response.setServiceResponse(null);
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+	    }
 	}
+
 
 	@RequestMapping(value = "/getAllProjectInsight", method = RequestMethod.GET)
 	public ResponseEntity<List<ProjectInsighProjectMappingDTO>> getAllProjectInsight(@RequestParam(required=false) String domain) {

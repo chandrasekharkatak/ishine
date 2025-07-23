@@ -203,6 +203,9 @@ public class ProjectInsightService {
 
 	@Autowired
 	ProjectInsighProjectMappingRepository projectInsighProjectMappingRepository;
+	
+	@Autowired
+	private ProjectInsightDomainRepository projectInsightDomainRepository;
 
 	@Transactional
 	public ServiceResponse createProjectInsightQuestion(ProjectInsightDTO projectInsightDTO) {
@@ -3819,9 +3822,6 @@ public class ProjectInsightService {
 			return "New mapping created for projectId: " + projectId;
 		}
 	}
-
-	@Autowired
-	private ProjectInsightDomainRepository projectInsightDomainRepository;
 
 	private Long convertToLong(Object obj) {
 		if (obj instanceof Number) {
