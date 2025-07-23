@@ -151,8 +151,8 @@
                   type="checkbox"
                   class="form-check-input"
                   [value]="option.value"
-                  [checked]="getFormValue(field?.name)?.toLowerCase() === option?.value?.toLowerCase()"
-                  (change)="dynamicForm.get(field.name)?.setValue(option.value)"
+                  [checked]="getFormValue(field?.name)?.includes(option.value)"
+                  (change)="onCheckboxChange($event, field.name, option.value)"
                   [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
                 <label [for]="field.id + '_' + option.value" class="form-check-label">
                   {{ option.label }}

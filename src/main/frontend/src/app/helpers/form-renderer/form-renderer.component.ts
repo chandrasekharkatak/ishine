@@ -129,6 +129,10 @@ export class FormRendererComponent implements OnInit, OnChanges {
         this.formData[field.name] !== undefined ? this.formData[field.name] :
         field.value !== undefined ? field.value :
         field.defaultValue !== undefined ? field.defaultValue : '';
+
+        if (field.type === 'checkbox') {
+          controls[field.name] = [Array.isArray(defaultValue) ? defaultValue : [], validators];
+        }
   
         if (field.type === 'select' && field.multiple) {
           if (Array.isArray(field.options) && field.options.length > 0) {
@@ -198,6 +202,21 @@ export class FormRendererComponent implements OnInit, OnChanges {
     }
   }
 
+  onCheckboxChange(event: any, fieldName: string, value: string) {
+    const control = this.dynamicForm.get(fieldName);
+    if (control) {
+      let current = control.value || [];
+      if (!Array.isArray(current)) current = [];
+      if (event.target.checked) {
+        if (!current.includes(value)) {
+          control.setValue([...current, value]);
+        }
+      } else {
+        control.setValue(current.filter((v: string) => v !== value));
+      }
+    }
+  }
+  
   createArray(n: number): any[] {
     return Array.from({ length: n });
   }

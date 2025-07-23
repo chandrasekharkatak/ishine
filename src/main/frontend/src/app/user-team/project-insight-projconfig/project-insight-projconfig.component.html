@@ -555,10 +555,10 @@
             <div *ngFor="let opt of editingField.options; let i = index" class="option-item">
               <div class="row">
                 <div class="col-md-5">
-                  <input class="form-control" [(ngModel)]="opt.label" placeholder="Label" [name]="'optLabel' + (editingFieldIndex >= 0 ? 'Edit' : '') + i" />
+                  <input class="form-control" [(ngModel)]="opt.label" placeholder="Label" name="optLabel{{i}}" />
                 </div>
                 <div class="col-md-5">
-                  <input class="form-control" [(ngModel)]="opt.value" placeholder="Value" [name]="'optValue' + (editingFieldIndex >= 0 ? 'Edit' : '') + i" />
+                  <input class="form-control" [(ngModel)]="opt.value" placeholder="Value" name="optValue{{i}}" />
                 </div>
                 <div class="col-md-2">
                   <button class="btn btn-danger" (click)="removeOptionFormBuilder(i)" type="button">
