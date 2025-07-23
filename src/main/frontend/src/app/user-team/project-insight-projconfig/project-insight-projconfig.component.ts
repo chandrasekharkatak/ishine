@@ -1707,7 +1707,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     const data = this.collectFormData(this.rootNode);
 
     const projectFieldKey = Object.keys(data.fields || {}).find(
-      key => key.toLowerCase().includes('project')
+      key => key.toLowerCase().includes('projectname')
     );
     const projectId = projectFieldKey ? data.fields[projectFieldKey] : null;
   
@@ -1747,7 +1747,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     const data = this.collectFormData(this.rootNode);
 
     const projectFieldKey = Object.keys(data.fields || {}).find(
-      key => key.toLowerCase().includes('project')
+      key => key.toLowerCase().includes('projectname')
     );
     const projectId = projectFieldKey ? data.fields[projectFieldKey] : null;
   
