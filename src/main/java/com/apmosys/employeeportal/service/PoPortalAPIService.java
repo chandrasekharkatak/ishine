@@ -143,11 +143,11 @@ public class PoPortalAPIService {
 				finalHttpStatusCode = HttpStatus.OK.value();
 			} else {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				serviceResponse.setServiceResponse("Error fetching Milestones for Project.");
+				serviceResponse.setServiceResponse("Milestone could not be fetched.");
 			}
 		} catch (Exception e) {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			serviceResponse.setServiceResponse("Error fetching Milestones for Project.");
+			serviceResponse.setServiceResponse("Milestone could not be fetched.");
 			exceptionDetailsForLog = e.toString();
 			return serviceResponse;
 		} finally {
@@ -559,7 +559,7 @@ public class PoPortalAPIService {
 				syncObject.setRoleName(jobRoleObject.getName());
 				syncObject.setDeptId(jobRoleObject.getDeptId());
 				
-				final String syncUrl = syncJobRoleWithPoPortal;
+				final String syncUrl = syncJobRoleWithPoPortal + jobRoleDTO.getJobRoleId();
 				HttpHeaders headers = new HttpHeaders();
 				headers.set("X-Trace-Id", traceId);
 				headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());

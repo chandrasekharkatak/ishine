@@ -345,12 +345,12 @@ export class RoleConfigComponent implements OnInit {
     //console.log(this.jobRoleObj, " : this.jobRoleObj");
 
     this.jobRoleService.changeEmployeeJobRoleMapping(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
+      if (response.serviceResponse.serviceStatus == "Success") {
 
         this.jobRoleObj.jobRoleId = this.oldJobRole;
         this.jobRoleService.deleteJobRole(this.jobRoleObj).pipe(first()).subscribe((response: any) => {
           if (response.serviceStatus == "Success") {
-            this.openAlertMod(template, response.serviceResponse);
+            this.openAlertMod(template, response.serviceResponse.serviceResponse);
             this.showTable();
           } else {
             this.openAlertMod(template, response.serviceResponse);
