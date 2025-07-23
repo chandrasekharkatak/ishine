@@ -7,6 +7,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,10 +23,16 @@ public class EmployeeClientSideIdMapping {
 	private String clientSideId;
 	private Long projectId;
 	private Long empId;
-	private Long createdBy;
-	private LocalDateTime createdOn;
-	private Long updatedBy;
-	private LocalDateTime updatedOn;
 	private Boolean active;
+	
+	private Long createdBy;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime createdOn;
+	
+	private Long updatedBy;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime updatedOn;
 
 }

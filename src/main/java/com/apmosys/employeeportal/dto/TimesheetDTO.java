@@ -1,7 +1,10 @@
 package com.apmosys.employeeportal.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -98,7 +101,23 @@ public class TimesheetDTO {
 	
 	private String TeamLeadName;
 	
-	
-	
 	private Long currentUser;
+	
+	private String clientSideId;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime clientInTime;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime clientOutTime;
+	
+	private Boolean isShadowTimesheet;
+	
+	private Boolean escalationFlag;
+	
+	private Integer currentEscalationLevel;
+	
+	private String totalClientWorkingHours;
+	
+	private String clientApprovalStatus;
 }

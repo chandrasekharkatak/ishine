@@ -233,7 +233,16 @@ export class TimesheetCreateSelfComponent implements OnInit {
       isSelected: false,
       bulkApprovedList: [],
       bulkRejectList: [],
-      queryList: []
+      queryList: [],
+
+      clientInTime: data?.clientInTime ?? null,
+      clientOutTime: data?.clientOutTime ?? null,
+      clientSideId: data?.clientSideId ?? null,
+      isShadowTimesheet: data?.isShadowTimesheet ?? null,
+      escalationFlag: data?.escalationFlag ?? null,
+      currentEscalationLevel: data?.currentEscalationLevel ?? null,
+      totalClientWorkingHours: data?.totalClientWorkingHours ?? null,
+      clientApprovalStatus: data?.clientApprovalStatus ?? null,
     };
 
     console.log("clientLocationId" + activity.clientLocationId);

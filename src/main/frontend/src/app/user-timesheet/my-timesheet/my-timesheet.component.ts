@@ -108,8 +108,7 @@ AllWeekOfList:any[]=[];
   teamTimesheetColumns:any[] = ['blank','employeeName','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdOn','isNightShiftDisplay','leaveType','remarks'];
   tableName: string;
   activeProjectList: Project[];
-  selectedProject:any;
-  clientSideId:any;
+  selectedProjectId:any;
 
   constructor(
     private validationService: ValidationService,
@@ -769,6 +768,34 @@ getFilteredDates(dayType: string): Date[] {
   
     this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
   };
+
+  resetTotalWorkingClientHours(template: TemplateRef<any>) {
+    
+    if (this.timesheetObj.clientInTime) {
+     
+      const systemCurrentTime = moment(); 
+      const userOfficeInTime = moment(this.timesheetObj.clientInTime); 
+
+      console.log("data==",userOfficeInTime);
+    
+      if (systemCurrentTime.isSame(userOfficeInTime, 'minute')) {
+        const updatedInTime = userOfficeInTime.subtract(2, 'minutes').toDate();
+        this.timesheetObj.clientInTime = updatedInTime;
+      } 
+      else if (userOfficeInTime.isAfter(systemCurrentTime, 'minute') && userOfficeInTime.isSame(systemCurrentTime, 'day')) {
+        const updatedInTime = userOfficeInTime.subtract(2, 'minutes').toDate();
+        this.timesheetObj.clientInTime = updatedInTime;
+      }
+      
+
+
+    }
+
+    this.timesheetObj.clientOutTime = '';
+    this.timesheetObj.totalClientWorkingHours = '';
+  
+    this.maxOutTimeDate = new Date(moment(this.timesheetObj.clientInTime).add(1, 'd').toString());
+  };
   
 
   resetTimeonDayTypeChange(){
@@ -776,6 +803,9 @@ getFilteredDates(dayType: string): Date[] {
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
+      this.timesheetObj.clientInTime = '';
+      this.timesheetObj.clientOutTime = '';
+      this.timesheetObj.totalClientWorkingHours = '';
     }
   }
 
@@ -817,13 +847,43 @@ getFilteredDates(dayType: string): Date[] {
     }
   }
 
+setTotalWorkingClientHours() {
+    const dateFormat = 'YYYY-MM-DD';
+  const systemCurrentTime = moment();
+  const userOfficeOutTime = moment(this.timesheetObj.clientOutTime);
+
+  console.log('systemCurrentTime', systemCurrentTime);
+  console.log('userOfficeOutTime', userOfficeOutTime);
+
+  if (
+    (userOfficeOutTime.isAfter(systemCurrentTime, 'minute') || userOfficeOutTime.isSame(systemCurrentTime, 'minute')) &&
+    userOfficeOutTime.isSame(systemCurrentTime, 'day')
+  ){
+    const updatedInTime = systemCurrentTime.subtract(1, 'minute').toDate();
+    this.timesheetObj.clientOutTime = updatedInTime;
+
+    console.log('Updated Office In Time:', updatedInTime);
+  }
 
 
+    if (this.timesheetObj.clientInTime && this.timesheetObj.clientOutTime) {
 
+      let start = moment(this.timesheetObj.clientInTime).format('DD-MM-YYYY HH:mm');
+      let end = moment(this.timesheetObj.clientOutTime).format('DD-MM-YYYY HH:mm');
+      let ms = moment(end, "DD-MM-YYYY HH:mm").diff(moment(start, "DD-MM-YYYY HH:mm"));
+      let d = moment.duration(ms);
+     
 
-  
+      let duration = Math.floor(d.asHours()) + moment.utc(ms).format(":mm");
 
+      this.timesheetObj.totalClientWorkingHours = duration;
+      this.timesheetObj.date = moment(this.timesheetObj.clientInTime).format(dateFormat);
 
+    
+    } else {
+      this.timesheetObj.totalClientWorkingHours = '';
+    }
+  }
 
   /* Timesheet */
   validateTimesheetObj(timesheetObj: Timesheet, template: TemplateRef<any>) {
@@ -973,10 +1033,18 @@ getFilteredDates(dayType: string): Date[] {
       this.timesheetObj.allTimesheetActivities = null;
     }
 
+    if(this.timesheetObj.timesheetAppliedFor == 'asShadow'){
+      this.timesheetObj.isShadowTimesheet = true;
+    }else{
+      this.timesheetObj.isShadowTimesheet = false;
+    }
+
     if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
+      this.timesheetObj.clientInTime = moment(this.timesheetObj.clientInTime).format(dateTimeFormat);
+      this.timesheetObj.clientOutTime = moment(this.timesheetObj.clientOutTime).format(dateTimeFormat);
     } else {
       this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
     }
@@ -1003,7 +1071,7 @@ getFilteredDates(dayType: string): Date[] {
           this.startDate = this.endDate = this.timesheetObj.date;
           this.getMyTeamTimesheets();
         }
-
+        this.clearPreviousSelections();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -1021,6 +1089,8 @@ getFilteredDates(dayType: string): Date[] {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
+      this.timesheetObj.clientInTime = moment(this.timesheetObj.clientInTime).format(dateTimeFormat);
+      this.timesheetObj.clientOutTime = moment(this.timesheetObj.clientOutTime).format(dateTimeFormat);
       this.timesheetObj.createdOn = moment(this.timesheetObj.createdOn).format(dateTimeFormat);
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
 
@@ -1051,7 +1121,10 @@ getFilteredDates(dayType: string): Date[] {
       this.timesheetObj.createdOn = moment(this.timesheetObj.createdOn).format(dateTimeFormat);
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
+      this.timesheetObj.clientInTime = '';
+      this.timesheetObj.clientOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
+      this.timesheetObj.totalClientWorkingHours = '';
     }
     this.timesheetObj.createdBy = this.currentUser.empId;
     this.timesheetObj.currentManagerId = this.currentUser.managerId;
@@ -1452,6 +1525,8 @@ getFilteredDates(dayType: string): Date[] {
             timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
             timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             timesheet.isNightShiftDisplay = (timesheet.isNightShift == 'true') ? 'Night Shift' : 'Regular Shift';
+            timesheet.clientInTime = (timesheet.clientInTime) ? moment(timesheet.clientInTime).format(AppComponent.DATETIME_FORMAT) : null;
+            timesheet.clientOutTime = (timesheet.clientOutTime) ? moment(timesheet.clientOutTime).format(AppComponent.DATETIME_FORMAT) : null;
           });
           //console.log("allMyTimesheets :", this.allMyTimesheets);
         } else {
@@ -1887,11 +1962,15 @@ getFilteredDates(dayType: string): Date[] {
   getClientSideIdByProjectId(projectId){
     this.timesheetService.getClientSideIdByProjectId(projectId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.clientSideId = response.serviceResponse;
+        this.timesheetObj.clientSideId = response.serviceResponse;
       } else {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+  clearPreviousSelections(){
+    this.selectedProjectId = null;
   }
 
 }

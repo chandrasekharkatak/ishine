@@ -360,6 +360,10 @@ public class TimesheetService {
 			newTimesheet.setEmpId(timesheetDTO.getEmpId());
 			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
 			newTimesheet.setDayType(timesheetDTO.getDayType());
+			newTimesheet.setProjectId(timesheetDTO.getProjectId());
+			newTimesheet.setClientSideId(timesheetDTO.getClientSideId() != null ? timesheetDTO.getClientSideId() : null);
+			newTimesheet.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus() != null ? timesheetDTO.getClientApprovalStatus() : null);
+			
 			System.out.println("timesheetDTO.getCurrentmanagerId() ==> "+timesheetDTO.getCurrentManagerId());
 
 			newTimesheet.setCurrentManagerId(timesheetDTO.getCurrentManagerId());	
@@ -371,10 +375,14 @@ public class TimesheetService {
 			} else {
 				
 				// LocalDateTime dateTime = LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter);
-
+				
 				newTimesheet.setOfficeInTime(LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter));
 				newTimesheet.setOfficeOutTime(LocalDateTime.parse(timesheetDTO.getOfficeOutTime(), formatter));
 				newTimesheet.setTotalWorkingHours(timesheetDTO.getTotalWorkingOfficeHours());
+
+				newTimesheet.setClientInTime(timesheetDTO.getClientInTime());
+				newTimesheet.setClientOutTime(timesheetDTO.getClientOutTime());
+				newTimesheet.setTotalClientWorkingHours(timesheetDTO.getTotalClientWorkingHours());
 				
 				String description = "";
 				if (allTimesheetActivities.isEmpty()) {
@@ -547,6 +555,11 @@ public class TimesheetService {
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
+						dto.setClientInTime(object[16] != null ? ((Timestamp) object[16]).toLocalDateTime() : null);
+						dto.setClientOutTime(object[17] != null ? ((Timestamp) object[17]).toLocalDateTime() : null);
+						dto.setClientSideId(object[18] != null ? object[18].toString() : null);
+						dto.setTotalClientWorkingHours(object[19] != null ? object[19].toString() : null);
+						dto.setProjectId(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
 						
 						// Get InActive Activities In Timesheet
 						if(dto.getStatus().equals("Pending")) {

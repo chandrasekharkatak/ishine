@@ -62,5 +62,22 @@ public class Timesheet {
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 	
+	private String clientSideId;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime clientInTime;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime clientOutTime;
+	
+	private Boolean isShadowTimesheet;
+	
+	private Boolean escalationFlag;
+	
+	private Integer currentEscalationLevel;
 
+	private String totalClientWorkingHours;
+
+	private String clientApprovalStatus;
+	private Integer projectId;
 }

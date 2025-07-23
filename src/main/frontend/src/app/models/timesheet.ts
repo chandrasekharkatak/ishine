@@ -87,4 +87,13 @@ export class Timesheet{
     nightShift: any;
     remarks: any;
     currentUser:any;
+
+    clientSideId:any;
+    clientInTime:any;
+    clientOutTime:any;
+    isShadowTimesheet:any;
+    escalationFlag:any;
+    currentEscalationLevel:any;
+    totalClientWorkingHours:any;
+    clientApprovalStatus:any=null;
 }
