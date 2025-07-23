@@ -19,6 +19,7 @@ import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
+import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
@@ -833,4 +834,39 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	@Modifying
     @Query(value = "CALL sp_SyncProjectsFromTemp", nativeQuery = true)
     void callSyncProjectsSP();
+	
+	
+	
+	
+	
+	
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.RmAndHodEmailDto(p.apmosysRmEmail, e.email) " +
+		       "FROM Project p " +
+		       "JOIN Department d ON d.deptId = p.deptId " +
+		       "JOIN Employee e ON e.empId = d.hodId " +
+		       "WHERE p.poProjectId = :projectId")
+		Optional<RmAndHodEmailDto> findRmAndHodEmailsByProjectId(@Param("projectId") Long projectId);
+	
+	
+	
+	
+	@Query("SELECT p.poProjectId FROM Project p WHERE LOWER(p.apmosysRmEmail) = LOWER(:rmEmail)")
+	List<Long> findProjectIdsByRmEmail(@Param("rmEmail") String rmEmail);
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
 }

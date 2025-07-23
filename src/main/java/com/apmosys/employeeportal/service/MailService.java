@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.File;
+import java.util.List;
 import java.util.Properties;
 import javax.mail.Authenticator;
 import javax.mail.Message;
@@ -418,6 +419,38 @@ public class MailService {
 
 		}
 	}
+	
+	
+	
+	public boolean sendMailWithMultipleCC(String receiver, List<String> ccList, String subject, String text)
+	        throws AddressException, MessagingException {
+
+	    try {
+	        Session session = mailProperties();
+
+	        MimeMessage msg = new MimeMessage(session);
+	        msg.setSubject(subject);
+	        msg.setContent(text, "text/html");
+	        msg.setFrom(new InternetAddress(sender));
+
+	        msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(receiver, true));
+
+	        if (ccList != null && !ccList.isEmpty()) {
+	            String ccString = String.join(",", ccList);
+	            msg.setRecipients(Message.RecipientType.CC, InternetAddress.parse(ccString, true));
+	        }
+
+	    	javax.mail.Transport.send(msg);
+	        return true;
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return false;
+	    }
+	}
+
+	
+	
 
 
 

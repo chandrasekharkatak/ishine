@@ -23,6 +23,7 @@ import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.service.PoPortalAPIService;
 import com.apmosys.employeeportal.service.ProjectService;
@@ -157,4 +158,10 @@ public class ProjectController {
 	public ServiceResponse getResourceRequirementFromPoPortal() {
 		return projectService.getResourceRequirementFromPoPortal();
 	}
+	
+	@PostMapping(value="/getAllMilestoneToBeExpired")
+	public ServiceResponse getAllMilestoneToBeExpired(@RequestBody RmAndHodEmailDto rmAndHodEmailDto){
+		return poPortalApiService.getAllMilestoneToBeExpired(rmAndHodEmailDto.getRmEmail());
+	}
+	
 }

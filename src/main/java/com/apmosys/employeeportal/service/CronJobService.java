@@ -69,6 +69,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -84,9 +88,11 @@ import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.MilestoneExpireDto;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
+import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.BiomaxDefaulter;
 import com.apmosys.employeeportal.model.BiomaxRequest;
@@ -290,6 +296,8 @@ public class CronJobService {
 	
 	@Value("${admin.mail}")
 	private String adminMail;
+	
+ 
 	
 	 @PersistenceContext
 	 EntityManager entityManager;
@@ -6711,5 +6719,15 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		        }
 		    }
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+	
+				
 		
 }	
