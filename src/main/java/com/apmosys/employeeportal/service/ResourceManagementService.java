@@ -5499,6 +5499,7 @@ public class ResourceManagementService {
 				Integer active = row[20] != null ? Integer.parseInt(row[20].toString()) : null;
 				Long projectManagerId = row[21] != null ? Long.parseLong(row[21].toString()) : null;
 				String projectManagerName = row[22] != null ? row[22].toString() : null;
+				String isApmosysProductt = row[23] != null ? row[23].toString() : null;
 
 
 				RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(empId, k -> {
@@ -5509,6 +5510,20 @@ public class ResourceManagementService {
 					newDto.setDepartment(deptName)	;
 					newDto.setBillable(billable);
 					newDto.setBillableType(billableType);
+					newDto.setIsApmosysProduct(isApmosysProductt);
+					   String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
+					    String isConsultant = newDto.getIsConsultant();
+					    String isApmosysProduct = newDto.getIsApmosysProduct();
+
+					    if (employmentId != null) {
+					         if ("true".equalsIgnoreCase(isApmosysProduct)) {
+					        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
+					        } else {
+					        	newDto.setEmployeementIdAccToET("A-" + employmentId);
+					        }
+					    }
+					
+					
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
 				});
@@ -5926,7 +5941,25 @@ public class ResourceManagementService {
 		            employeeDTO.setJobRoleName(row[7] != null ? row[7].toString() : null);
 		            employeeDTO.setDepartmentName(row[8] != null ? row[8].toString() : null); 
 		            employeeDTO.setName(row[9] != null ? row[9].toString() : null); 
-		            employeeDTO.setBillableType(row[10] != null ? row[10].toString() : null);            
+		            employeeDTO.setBillableType(row[10] != null ? row[10].toString() : null); 
+		            employeeDTO.setIsApmosysProduct(row[11] != null ? row[11].toString() : null); 
+		            
+		            
+		            String employmentId = employeeDTO.getEmployeementId() != null ? employeeDTO.getEmployeementId().toString() : null;
+		          
+		            String isApmosysProduct = employeeDTO.getIsApmosysProduct();
+
+		            if (employmentId != null) {
+		                  if ("true".equalsIgnoreCase(isApmosysProduct)) {
+		                	  employeeDTO.setEmploymentIdAcToET("AP-" + employmentId);                	  
+//		                	  employeeDTO.setEmployeementIdAccToET("AP-" + employmentId);
+		                } else {
+		                	employeeDTO.setEmploymentIdAcToET("A-" + employmentId); 
+//		                	employeeDTO.setEmployeementIdAccToET("A-" + employmentId);
+		                }
+		            }
+		            
+		            
 		            employeeDTOList.add(employeeDTO);
 		        }
 

@@ -688,7 +688,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             "AND d.deptId = :deptId")
      List<EmployeeDTO> findAllEmployeesWithoutBillableInDeptId(@Param("deptId") Long deptId);
     
-    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type from employee e \n"
+    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type,e.is_apmosys_product from employee e \n"
     		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
     		+ "inner join department d on d.dept_id = jr.dept_id\n"
     		+ "LEFT JOIN \n"
