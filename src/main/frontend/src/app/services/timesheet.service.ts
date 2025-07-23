@@ -121,4 +121,12 @@ export class TimesheetService {
   return this.http.post<any>(`${this.baseUrl}`+`api/getLastFilledTimesheetByEmpId`, payload);
 }
 
+  getActiveProjectsByEmpId(empId: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getActiveProjectsByEmpId?empId=${empId}`, null);
+  }
+
+  getClientSideIdByProjectId(projectId: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getClientSideIdByProjectId?projectId=${projectId}`, null);
+  }
+
 }

@@ -183,5 +183,15 @@ public class TimesheetController {
 //            System.err.println("--cron ended----");
 //            
 //    }
-	
+	 
+	 @PostMapping("/getActiveProjectsByEmpId")
+	 public ServiceResponse getActiveProjectsByEmpId(@RequestParam Long empId) {
+	     return timesheetService.getActiveProjectsByEmpId(empId);
+	 }
+	 
+	 @PostMapping("/getClientSideIdByProjectId")
+	 public ServiceResponse getClientSideIdByProjectId(@RequestParam Long projectId) {
+	     return timesheetService.getClientSideIdByProjectId(projectId);
+	 }
+	 
 }

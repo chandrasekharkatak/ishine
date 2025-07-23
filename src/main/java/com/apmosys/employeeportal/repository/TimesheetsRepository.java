@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -13,6 +14,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.model.Timesheet;
 
 @Repository
@@ -306,7 +309,11 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 //	    		Optional<Timesheet> findByEmpIdAndDate(Long empId, Date date);
 	      
 	      
-
-
+		@Query(value ="select new com.apmosys.employeeportal.dto.ProjectDTO(p.projectId, p.projectName )  \n"+
+				"from Project p  \n"+
+				"inner join Team t on t.projectId = p.projectId \n"+
+				"inner join EmployeeTeamMap etm on etm.teamId = t.teamId \n"+
+				"where etm.empId = :empId and etm.active = 1")
+		public List<ProjectDTO> getActiveProjectsByEmpId(Long empId);
 	
 }

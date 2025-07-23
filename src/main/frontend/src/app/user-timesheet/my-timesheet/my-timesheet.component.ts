@@ -11,6 +11,7 @@ import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
 import { Holiday } from 'src/app/models/holiday';
 import { Leave } from 'src/app/models/leave';
+import { Project } from 'src/app/models/project';
 import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -106,7 +107,9 @@ AllWeekOfList:any[]=[];
   selfTimesheetColumns:any[] = ['blank','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdByName','createdOn','isNightShiftDisplay','leaveType','remarks'];
   teamTimesheetColumns:any[] = ['blank','employeeName','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdOn','isNightShiftDisplay','leaveType','remarks'];
   tableName: string;
-
+  activeProjectList: Project[];
+  selectedProject:any;
+  clientSideId:any;
 
   constructor(
     private validationService: ValidationService,
@@ -146,6 +149,7 @@ AllWeekOfList:any[]=[];
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.sectionViewInit();
     this.preventBackButton();
+    this.getActiveProjectsByEmpId();
 
     
     // this.setStartDateMinMax();
@@ -1868,6 +1872,26 @@ getFilteredDates(dayType: string): Date[] {
   onSearch(searchData){
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
+  }
+
+  getActiveProjectsByEmpId(){
+    this.timesheetService.getActiveProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.activeProjectList = response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getClientSideIdByProjectId(projectId){
+    this.timesheetService.getClientSideIdByProjectId(projectId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.clientSideId = response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
   }
 
 }

@@ -5,11 +5,17 @@ import java.util.List;
 
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
 public class ProjectDTO {
 
 	private Integer projectId;
@@ -43,5 +49,12 @@ public class ProjectDTO {
     private List<ResourceRequirementDTO> resourceRequirement;
     
     private List<ResourceManagementDTO> bulkSyncList;
+    
+    public ProjectDTO(Integer projectId , String projectName) {
+ 
+		this.projectId = projectId;
+		this.projectName = projectName;
+		
+	}
 
 }

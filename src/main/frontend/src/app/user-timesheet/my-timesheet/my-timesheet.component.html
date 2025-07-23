@@ -30,6 +30,12 @@
                                 <label class="form-check-label" for="forSelf">Self</label>
                             </div>
                             <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="leaveFor" id="forSelfAsShadow" value="shadow"
+                                    [(ngModel)]="timesheetObj.timesheetAppliedFor" [disabled]="isUpdation"
+                                    (change)="getAllTeamMemberList();getTimesheetMetadata()">
+                                <label class="form-check-label" for="forShadow">As Shadow</label>
+                            </div>
+                            <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="leaveFor" id="forTeamMember"
                                     value="team" [(ngModel)]="timesheetObj.timesheetAppliedFor" [disabled]="isUpdation"
                                     (change)="getAllTeamMemberList()">
@@ -50,6 +56,39 @@
                                 <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}">
                                     {{teamMember.name}}</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Project</label>
+                            <mat-select ngxMatSelect class="form-control"
+                                  #createTeamProjects="ngxMatSelect"
+                                  [displayMember]="'projectName'"
+                                  [valueMember]="'projectId'"
+                                  [source]="activeProjectList"
+                                  [useInfiniteScroll]="true"
+                                  (selectionChange)="getClientSideIdByProjectId(selectedProject)"
+                                  [multiple]="false"
+                                  [(ngModel)]="selectedProject"
+                                  >
+                                  <mat-option [value]="project.projectId" *ngFor="let project of activeProjectList">
+                                    {{project.projectName}}
+                                  </mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Client Side Id</label>
+                            <input class="form-control" autocomplete="none" disabled [(ngModel)]="clientSideId">
                         </div>
                     </div>
                 </div>

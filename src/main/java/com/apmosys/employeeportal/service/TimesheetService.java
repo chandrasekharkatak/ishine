@@ -38,6 +38,7 @@ import com.apmosys.employeeportal.model.TimesheetActivityMap;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -96,6 +97,9 @@ public class TimesheetService {
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
+	
+	@Autowired
+	private EmployeeClientSideIdMappingRepository employeeClientSideIdMappingRepository;
 
 //	public ServiceResponse getAllProjectsByEmpId(TimesheetDTO timesheetDTO) {
 //		ServiceResponse response = new ServiceResponse();
@@ -2137,6 +2141,88 @@ public class TimesheetService {
 	    return response;
 	}
 
+	public ServiceResponse getActiveProjectsByEmpId(Long empId) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getActiveProjectsByEmpId");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+	    try {
+	        List<ProjectDTO> activeProjectList = timesheetsRepository.getActiveProjectsByEmpId(empId);
+	        
+	        if (activeProjectList.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Please contact to the RMG team to provide you active project mapping!");
+	            response.setServiceMessage("Employee has no active project mapping ! For EmpId: " + empId);
+	            
+	            apiLogInfo.setApiResponse("Employee has no active project mapping ! For EmpId: " + empId);
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+	        
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(activeProjectList);
+            response.setServiceMessage("Project List fetched successfully!");
+
+            apiLogInfo.setApiResponse("Project list where employee has active = 1 in Employee Team Mapping table fetched successfully!");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage()); 
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
 	
+	public ServiceResponse getClientSideIdByProjectId(Long projectId) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getClientSideIdByProjectId");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+	    try {
+	        String clientSideId = employeeClientSideIdMappingRepository.findClientSideIdByProjectId(projectId);
+	        
+	        if (clientSideId.isEmpty() || clientSideId.equals("")) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No Client Side Id fetched for the selected Project!");
+	            response.setServiceMessage("No Client Side Id fetched for the selected Project! For ProjectId: " + projectId);
+	            
+	            apiLogInfo.setApiResponse("No Client Side Id fetched for the selected Project! For ProjectId: " + projectId);
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+	        
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(clientSideId);
+            response.setServiceMessage("Client Side Id fetched successfully!");
+
+            apiLogInfo.setApiResponse("Client Side Id fetched successfully!");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage()); 
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
 	
 }
