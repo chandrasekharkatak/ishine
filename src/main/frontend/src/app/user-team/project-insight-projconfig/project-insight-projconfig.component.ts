@@ -1,7 +1,7 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { BehaviorSubject } from 'rxjs';
-import { first } from 'rxjs/operators';
+import { first, take } from 'rxjs/operators';
 import { ProjectInsightProjconfigService } from 'src/app/services/project-insight-projconfig.service';
 import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -1766,7 +1766,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       version: this.currentVersion
     };
   
-    this.projectInsightService.onSaveAsDraft(payload).pipe(first()).subscribe(
+    this.projectInsightService.onSaveAsDraft(payload).pipe(take(1)).subscribe(
       (response: any) => {
         this.alertMessage = response.serviceStatus;
         this.modalRef = this.modalService.show(this.alertMessageTemplate);
@@ -2229,6 +2229,16 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       // console.log('Field deleted successfully : ', this.currentNode.fields);
       // console.log('Field deleted Layout config : ', this.currentNode.layoutConfig);
   }
+  
+  deleteFieldFromList(index: number) {
+    if (index == null || index < 0) return;
+  
+    this.currentNode.fields.splice(index, 1);
+    this.currentNode.layoutConfig = this.getLayoutConfig(this.currentNode.fields);
+    this.currentNode.fields = [...this.currentNode.fields];
+    this.currentNode.layoutConfig = [...this.currentNode.layoutConfig];
+  }
+
   
   startFieldConfig(type: any) {
     this.editingField = {

@@ -45,6 +45,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
+import com.apmosys.employeeportal.dto.FormFieldDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ModuleDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
@@ -53,6 +54,7 @@ import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightEntityDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightMilestoneDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightResponseDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightResponsePointsDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionDTO;
@@ -79,6 +81,7 @@ import com.apmosys.employeeportal.model.TagMaster;
 import com.apmosys.employeeportal.model.UserContributionDocument;
 import com.apmosys.employeeportal.model.UserContributionResponseRemarks;
 import com.apmosys.employeeportal.mongodb.dto.FormDataDTO;
+import com.apmosys.employeeportal.mongodb.dto.FormStructureDTO;
 import com.apmosys.employeeportal.mongodb.dto.OptionValueDTO;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightQuestionDTO;
 import com.apmosys.employeeportal.mongodb.modal.FileStorage;
@@ -3778,7 +3781,7 @@ public class ProjectInsightService {
 			}
 			return dbResponse;
 		} catch (DataAccessException dae) {
-			throw new RuntimeException("Unable to save Project Insight Structure due to a database error.", dae);
+			throw dae;
 		} catch (Exception ex) {
 			throw new RuntimeException("Unexpected error occurred while saving Project Insight Structure.", ex);
 		}
@@ -4206,5 +4209,36 @@ public class ProjectInsightService {
 	        return response;
 	    }
 	}
+
+	public ServiceResponse onSaveResponseAsDraft(ProjectInsightStructure userDraft, String empId) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			Optional<ProjectInsightStructure> fullOptional = projectInsightStructureRepository.findById(userDraft.getId());
+
+		    if (fullOptional.isEmpty()) {
+		        throw new RuntimeException("Structure not found.");
+		    }
+
+		    ProjectInsightStructure full = fullOptional.get();
+
+		    // 2. Merge user-specific updates into full structure
+//		    ProjectInsightStructure merged = mergeDraftChanges(full, userDraft, empId);
+
+		    // 3. Save merged object
+//		    projectInsightStructureRepository.save(merged);
+		    
+		    response.setServiceStatus(response.STATUS_SUCCESS);
+		    response.setServiceMessage("Draft Response saved successfully");
+		    return response;
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus("Fail");
+	        response.setServiceMessage("Error occurred: " + e.getMessage());
+	        response.setServiceResponse(null);
+	        return response;
+		}
+	}
+
+
 
 }

@@ -176,15 +176,12 @@ public class ProjectInsightController {
 	        response.setServiceStatus("Successfully Saved Project in Draft");
 	        response.setServiceResponse(saved);
 	        return ResponseEntity.ok(response);
-	    } catch (
-	             OptimisticLockingFailureException | 
-	             OptimisticLockException e) {
+	    } catch (OptimisticLockingFailureException | OptimisticLockException e) {
 	        ServiceResponse response = new ServiceResponse();
 	        response.setServiceStatus("CONFLICT");
 	        response.setServiceResponse("Version conflict: someone else has modified the project. Please reload and try again.");
 	        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
 	    } catch (Exception e) {
-	        // Optionally, log the exception for debugging
 	        e.printStackTrace();
 	        ServiceResponse response = new ServiceResponse();
 	        response.setServiceStatus("ERROR");
@@ -266,5 +263,13 @@ public class ProjectInsightController {
 		ServiceResponse response = projectInsightService.getReviewersForQuestion(projectInsightDTO);
 		return ResponseEntity.ok(response);
 	}
+	
+	@RequestMapping(value = "/onSaveResponseAsDraft", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> onSaveResponseAsDraft(@RequestBody ProjectInsightStructure userDraft,
+	                                   @RequestParam String empId) {
+		ServiceResponse response = projectInsightService.onSaveResponseAsDraft(userDraft, empId);
+		return ResponseEntity.ok(response);
+	}
+
 
 }

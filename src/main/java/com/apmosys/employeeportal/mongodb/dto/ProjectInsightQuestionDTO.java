@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.mongodb.dto;
 
 import java.util.List;
 
+import com.apmosys.employeeportal.dto.ProjectInsightResponseDTO;
+
 import lombok.Data;
 
 @Data
@@ -11,7 +13,7 @@ public class ProjectInsightQuestionDTO {
     private List<Object> responseList;
     private boolean documentUpload;
     private List<OptionValueDTO> optionsList;
-    private List<Object> projectResponseList;
+    private List<ProjectInsightResponseDTO> projectResponseList;
     private List<Object> taggedToUserId;
     private List<Object> toTagEmployeeList;
     private List<Object> toAssignEmployeeList;

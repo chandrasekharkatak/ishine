@@ -1529,6 +1529,8 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
   openAnswerEditModalProjectInsightByProjectId(projectObj: any, alertTemplate: TemplateRef<any>, insightResponseTemplate: TemplateRef<any>, isPreview: any){
+    console.log("init" , projectObj);
+    
     let objectToBeShown: any = this.extractRequiredObject(projectObj, this.currentUser.empId);
     
     console.log("structure", objectToBeShown.projectInsightStructure.structure);
@@ -1549,78 +1551,113 @@ export class PerformanceDashboardComponent implements OnInit {
   }
   
   extractRequiredObject(projectObj: any, empid: any): any {
-    // Helper to check if empid is assigned in a question
-    function isAssignedToQuestion(question, empid) {
+    // check if question is assigned to current user : toAssignEmployeeList will be in question[]
+    const isAssignedToQuestion = (question: any, empid: any): boolean => {
       return Array.isArray(question.toAssignEmployeeList) && question.toAssignEmployeeList.includes(empid);
     }
-  
-    // Helper to check if empid is assigned in any projectResponseList
-    // function isAssignedByResponseList(question, empid) {
-    //   if (question.projectResponseList && Array.isArray(question.projectResponseList)) {
-    //     return question.projectResponseList.some(response => response.responseBy === empid);
-    //   }
-    //   return false;
-    // }
-  
-    // Recursive function
-    function extract(data) {
-      if (!data) return null; // <-- Add this line
-    
-      // 1. If assigned by responseList at this level, return the whole node (with empty children)
-      // if (data.questions && data.questions.some(q => isAssignedByResponseList(q, empid))) {
-      //   return { ...data, child: [] };
-      // }
-    
-      // 2. If assigned in any question at this level, return only those questions (no children)
-      const assignedQuestions = (data.questions || []).filter(q => isAssignedToQuestion(q, empid));
-      if (assignedQuestions.length > 0) {
+
+    // check if fields have assignedTo === empid : assignedTo will be in form i.e field name
+    const isFieldAssignedTo = (fields: any, empid: any): boolean => {
+      if (!fields) return false;
+      return fields.assignedTo === empid;
+    }
+
+    const extractBoth = (structureNode: any, dataNode: any): { structure: any, data: any } | null => {
+      if (!structureNode || !dataNode) return null;
+
+      const questions = dataNode.questions || [];
+      const assignedQuestions = questions.filter(q => isAssignedToQuestion(q, empid));
+
+      const isFieldLevelAssigned = isFieldAssignedTo(dataNode.fields, empid);
+
+      // If field is directly assigned, return full node with children
+      if (isFieldLevelAssigned) {
+        const childResults = (structureNode.children || []).map((childStruct, i) => {
+          const childData = dataNode.child?.[i];
+          return extractBoth(childStruct, childData);
+        }).filter(Boolean);
+
         return {
-          ...data,
-          fields: {}, // or keep fields if you want
-          questions: assignedQuestions,
-          child: []
+          structure: {
+            ...structureNode,
+            children: childResults.map(r => r!.structure)
+          },
+          data: {
+            ...dataNode,
+            child: childResults.map(r => r!.data)
+          }
         };
       }
-    
-      // 3. Otherwise, check children recursively
-      if (Array.isArray(data.child) && data.child.length > 0) {
-        const filteredChildren = data.child
-          .map(child => extract(child))
-          .filter(child => child !== null);
-    
-        if (filteredChildren.length > 0) {
-          return {
-            ...data,
-            questions: [],
-            child: filteredChildren
-          };
-        }
+
+      // If only some questions are assigned, return this node with those questions
+      if (assignedQuestions.length > 0) {
+        return {
+          structure: {
+            ...structureNode,
+            children: []
+          },
+          data: {
+            ...dataNode,
+            questions: assignedQuestions,
+            child: []
+          }
+        };
       }
-    
-      // 4. Not assigned anywhere in this subtree
+
+      // Otherwise, recurse into children
+      const childResults = (structureNode.children || []).map((childStruct, i) => {
+        const childData = dataNode.child?.[i];
+        return extractBoth(childStruct, childData);
+      }).filter(Boolean);
+
+      if (childResults.length > 0) {
+        return {
+          structure: {
+            ...structureNode,
+            children: childResults.map(r => r!.structure)
+          },
+          data: {
+            ...dataNode,
+            questions: [],
+            child: childResults.map(r => r!.data)
+          }
+        };
+      }
+
+      // Nothing relevant in this node
       return null;
     }
-  
-    // Start from projectObj.data
-    const filteredData = extract(projectObj.data);
-  
-    if (filteredData) {
+
+    const result = extractBoth(projectObj.projectInsightStructure.structure, projectObj.projectInsightStructure.data);
+
+    if (result) {
       return {
         ...projectObj,
-        data: filteredData
+        projectInsightStructure: {
+          ...projectObj.projectInsightStructure,
+          structure: result.structure,
+          data: result.data
+        }
       };
     } else {
-      // Not assigned anywhere, return empty structure
       return {
         ...projectObj,
-        data: {
-          fields: {},
-          questions: [],
-          child: []
+        projectInsightStructure: {
+          ...projectObj.projectInsightStructure,
+          structure: {
+            ...projectObj.projectInsightStructure.structure,
+            children: []
+          },
+          data: {
+            fields: {},
+            questions: [],
+            child: []
+          }
         }
       };
     }
   }
+  
 
   collectFormData(node: FormNode): any {
     return {
@@ -1638,9 +1675,6 @@ export class PerformanceDashboardComponent implements OnInit {
       structure: structure,
       data: data
     };
-
-    console.log(payload, " : payload ====");
-    
 
     this.projectInsightService.onSaveResponseAsDraft(payload).pipe(first()).subscribe(
       (response: any) => {

@@ -271,6 +271,9 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/saveReviewPoints`,
     `${this.baseUrl}` + `api/getAllProjectInsightQuestionsByProjectIdAndEmpId`,
 
+    //Project insight
+    `${this.baseUrl}` + `form/getAllDynamicForm`
+
   ]
 
   constructor(private loaderService: LoaderService) { }

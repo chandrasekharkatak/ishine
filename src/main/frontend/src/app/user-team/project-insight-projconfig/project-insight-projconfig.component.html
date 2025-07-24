@@ -447,6 +447,9 @@
           <i [class]="getFieldIcon(field.type)"></i> 
           {{field.label || field.name || 'Unnamed Field'}} 
           <span class="badge badge-info ml-2">{{field.type}}</span>
+          <button class="btn btn-outline-danger btn-sm ml-2" (click)="deleteFieldFromList(i)">
+            <i class="fa fa-trash"></i>
+          </button>
         </button>
       </div>
       <div *ngIf="!currentNode?.fields?.length" class="text-muted">
