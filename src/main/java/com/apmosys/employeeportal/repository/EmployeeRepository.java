@@ -1081,5 +1081,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	        @Param("poProjectType") String poProjectType,
 	        @Param("days") Integer days,
 	        @Param("deptId") List<Long> deptId);
+	
+	@Query("SELECT CASE " +
+	       " WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId) " +
+	       " WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId) " +
+	       " ELSE CONCAT('A-', e.employeementId) " +
+	       "END " +
+	       "FROM Employee e WHERE e.empId = :empId")
+	public String fetchEmploymentIdByEmpId(Long empId);
 
 }

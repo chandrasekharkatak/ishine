@@ -194,4 +194,9 @@ public class TimesheetController {
 	     return timesheetService.getClientSideIdByProjectId(projectId);
 	 }
 	 
+	 @PostMapping("/fetchEmploymentIdByEmpId")
+	 public ServiceResponse fetchEmploymentIdByEmpId(@RequestParam Long empId) {
+	     return timesheetService.fetchEmploymentIdByEmpId(empId);
+	 }
+	 
 }

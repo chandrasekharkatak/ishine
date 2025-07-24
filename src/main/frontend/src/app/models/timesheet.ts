@@ -96,4 +96,6 @@ export class Timesheet{
     currentEscalationLevel:any;
     totalClientWorkingHours:any;
     clientApprovalStatus:any=null;
+    employmentId:any;
+    hasClientSideId:Boolean=false;
 }

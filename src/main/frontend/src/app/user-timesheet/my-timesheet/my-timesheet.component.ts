@@ -109,6 +109,10 @@ AllWeekOfList:any[]=[];
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId:any;
+  selfClientIdModalRef: BsModalRef = new BsModalRef();
+  selfClientIdUpdateModalRef: BsModalRef = new BsModalRef();
+  updateClientIdModalRef: BsModalRef = new BsModalRef();
+  noClientSideId: Boolean = false;
 
   constructor(
     private validationService: ValidationService,
@@ -140,7 +144,8 @@ AllWeekOfList:any[]=[];
       this.serverDate = response;
     });
 
-    this.timesheetObj.timesheetAppliedFor = "self";
+    this.noClientSideId = false;
+
     this.timesheetObj.empId = this.currentUser.empId;
     this.timesheetObj.totalWorkingOfficeHours = '';
     this.getAllHolidays();
@@ -314,7 +319,6 @@ AllWeekOfList:any[]=[];
   reset() {
     this.timesheetObj = new Timesheet();
     this.timesheetObj.dayType = '';
-    this.timesheetObj.timesheetAppliedFor = "self";
     this.timesheetObj.empId = this.currentUser.empId;
     this.timesheetObj.totalWorkingOfficeHours = '';
     this.allTimesheetActivities = [];
@@ -1971,6 +1975,47 @@ setTotalWorkingClientHours() {
 
   clearPreviousSelections(){
     this.selectedProjectId = null;
+  }
+
+  openSelfModal1(template: TemplateRef<any>) {
+    this.selfClientIdModalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  hideSelfModal1(): void {
+    if (this.selfClientIdModalRef) {
+      this.selfClientIdModalRef.hide();
+    }
+  }
+
+  openSelfModal2(template: TemplateRef<any>) {
+    this.selfClientIdUpdateModalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  hideSelfModal2(): void {
+    if (this.selfClientIdUpdateModalRef) {
+      this.selfClientIdUpdateModalRef.hide();
+    }
+  }
+
+  openSelfModal3(template: TemplateRef<any>) {
+    this.updateClientIdModalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  hideSelfModal3(): void {
+    if (this.updateClientIdModalRef) {
+      this.updateClientIdModalRef.hide();
+    }
+  }
+
+  fetchEmploymentIdByEmpId(){
+    this.timesheetObj.hasClientSideId = this.noClientSideId;
+    this.timesheetService.fetchEmploymentIdByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetObj.employmentId = response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
   }
 
 }

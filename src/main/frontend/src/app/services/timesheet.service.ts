@@ -129,4 +129,8 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}api/getClientSideIdByProjectId?projectId=${projectId}`, null);
   }
 
+  fetchEmploymentIdByEmpId(empId: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/fetchEmploymentIdByEmpId?empId=${empId}`, null);
+  }
+
 }

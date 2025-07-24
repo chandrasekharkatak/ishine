@@ -243,6 +243,8 @@ export class TimesheetCreateSelfComponent implements OnInit {
       currentEscalationLevel: data?.currentEscalationLevel ?? null,
       totalClientWorkingHours: data?.totalClientWorkingHours ?? null,
       clientApprovalStatus: data?.clientApprovalStatus ?? null,
+      employmentId: data?.employmentId ?? null,
+      hasClientSideId: data?.hasClientSideId ?? null,
     };
 
     console.log("clientLocationId" + activity.clientLocationId);

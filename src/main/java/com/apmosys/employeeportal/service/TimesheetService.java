@@ -363,6 +363,7 @@ public class TimesheetService {
 			newTimesheet.setProjectId(timesheetDTO.getProjectId());
 			newTimesheet.setClientSideId(timesheetDTO.getClientSideId() != null ? timesheetDTO.getClientSideId() : null);
 			newTimesheet.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus() != null ? timesheetDTO.getClientApprovalStatus() : null);
+			newTimesheet.setHasClientSideId(timesheetDTO.getClientSideId() != null ? timesheetDTO.getHasClientSideId() : null);
 			
 			System.out.println("timesheetDTO.getCurrentmanagerId() ==> "+timesheetDTO.getCurrentManagerId());
 
@@ -2221,6 +2222,48 @@ public class TimesheetService {
             response.setServiceMessage("Client Side Id fetched successfully!");
 
             apiLogInfo.setApiResponse("Client Side Id fetched successfully!");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage()); 
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+	
+	public ServiceResponse fetchEmploymentIdByEmpId(Long empId) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/fetchEmploymentIdByEmpId");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+	    try {
+	        String clientSideId = employeeRepository.fetchEmploymentIdByEmpId(empId);
+	        
+	        if (clientSideId.isEmpty() || clientSideId.equals("")) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No Emp Id fetched!");
+	            response.setServiceMessage("No Emp Id fetched for the employee with EmpId: " + empId);
+	            
+	            apiLogInfo.setApiResponse("No Emp Id fetched for the employee with EmpId: " + empId);
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+	        
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(clientSideId);
+            response.setServiceMessage("Emp Id fetched successfully!");
+
+            apiLogInfo.setApiResponse("Emp Id fetched successfully!");
             apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        
 	    } catch (Exception e) {
