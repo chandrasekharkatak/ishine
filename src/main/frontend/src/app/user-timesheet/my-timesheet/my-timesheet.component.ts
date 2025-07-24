@@ -1,6 +1,7 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { ClipboardService } from 'ngx-clipboard';
@@ -32,6 +33,9 @@ export class MyTimesheetComponent implements OnInit {
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+
+  @ViewChild("previewTemplate")
+  previewModal : TemplateRef<any>;
 
   data: string;
   feature = "My Timesheets";
@@ -114,6 +118,9 @@ AllWeekOfList:any[]=[];
   updateClientIdModalRef: BsModalRef = new BsModalRef();
   noClientSideId: Boolean = false;
 
+  previewUrl: SafeResourceUrl | null = null;
+  fileError: string = '';
+  fileType: 'pdf' | 'image' | null = null;
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -127,6 +134,7 @@ AllWeekOfList:any[]=[];
     private locationStrategy: LocationStrategy,
     private employeeService : EmployeeService,
     private holidayService: HolidayService,
+    private sanitizer: DomSanitizer
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -1971,6 +1979,35 @@ setTotalWorkingClientHours() {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+  openPreviewModal(){
+    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+  }
+  onFileSelected(event: any): void {
+    const file: File = event.target.files[0];
+    this.fileError = '';
+    this.previewUrl = null;
+    this.fileType = null;
+
+    if (!file) return;
+
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    const maxSize = 1 * 1024 * 1024; // 1MB
+
+    if (!allowedTypes.includes(file.type)) {
+      this.fileError = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
+      return;
+    }
+
+    if (file.size > maxSize) {
+      this.fileError = 'File size must be 1MB or less.';
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    this.fileType = file.type === 'application/pdf' ? 'pdf' : 'image';
   }
 
   clearPreviousSelections(){
