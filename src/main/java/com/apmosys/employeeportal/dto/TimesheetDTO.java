@@ -122,4 +122,6 @@ public class TimesheetDTO {
 	private String clientApprovalStatus;
 
 	private Boolean hasClientSideId;
+	
+	private String employementId;
 }
