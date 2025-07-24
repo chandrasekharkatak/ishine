@@ -2654,17 +2654,18 @@ public class ResourceManagementService {
 										.findByProjectIdAndActive(projectObj.getProjectId(), 2L);
 
 								if (!teamMembersToActivate.isEmpty()) {
-									teamMembersToActivate.forEach(teamMember -> teamMember.setActive(1L)
-
-											);
-									
-									List<Project> isDraftProject = employeeTeamMapRepository
-											.findByProjectIdAndActiveForDraftProject(projectObj.getProjectId(), 2L);
-									
-									if(!isDraftProject.isEmpty()) {
-										isDraftProject.forEach(draftProject -> draftProject.setIsDraftProject("true"));
-										
-									}
+									teamMembersToActivate.forEach(teamMember -> teamMember.setActive(1L));
+								}
+								
+								List<Project> isDraftProject = employeeTeamMapRepository
+										.findByProjectIdAndActiveForDraftProject(projectObj.getProjectId(), 2L);
+								
+								if(!isDraftProject.isEmpty()) {
+									isDraftProject.forEach(draftProject -> {draftProject.setIsDraftProject("false");
+									if("true".equalsIgnoreCase(draftProject.getIsDraftProject())) {
+										draftProject.setProjectStatus("In Progress");}
+					
+									});
 									
 									projectRepository.saveAll(isDraftProject);
 
@@ -2991,23 +2992,30 @@ public class ResourceManagementService {
 					projectDTO.setPoProjectId(projectObj.getPoProjectId());
 					projectDTO.setProjectName(projectObj.getProjectName());
 					
+					
+					Project project = projectRepository.findByProjectId(Integer.parseInt(projectObj.getPoProjectId().toString()));
 					if (projectObj.getIsDraftProject() == null) {
 					    projectDTO.setIshineProjectStatus("Not Started");
-					} else {
-					    String status = String.valueOf(projectObj.getIsDraftProject());
-
-					    if ("true".equals(status)) {
-					        projectDTO.setIshineProjectStatus("Pending For Approval");
-					    } else if ("false".equals(status)) {
-					        projectDTO.setIshineProjectStatus("Approved");
-					    } else if ("Rejected".equals(status)) {
-					        projectDTO.setIshineProjectStatus("Rejected");
-					    } else if ("Completed".equals(status)) {
-					        projectDTO.setIshineProjectStatus("Completed");
-					    } else {
-					        projectDTO.setIshineProjectStatus("Not Started");
-					    }
+					} else if(projectObj.getIsDraftProject().equalsIgnoreCase("true")){
+						projectDTO.setIshineProjectStatus("In Progress");
+//					    String status = String.valueOf(projectObj.getIsDraftProject());
+//
+//					    if ("true".equals(status)) {
+//					        projectDTO.setIshineProjectStatus("Pending For Approval");
+//					    } else if ("false".equals(status)) {
+//					        projectDTO.setIshineProjectStatus("Approved");
+//					    } else if ("Rejected".equals(status)) {
+//					        projectDTO.setIshineProjectStatus("Rejected");
+//					    } else if ("Completed".equals(status)) {
+//					        projectDTO.setIshineProjectStatus("Completed");
+//					    } else {
+//					        projectDTO.setIshineProjectStatus("Not Started");
+//					    }
 					}
+					else {
+						projectDTO.setIshineProjectStatus("In Progress");
+					}
+					
 				
 					List<Object[]> result = projectManagerMappingRepository
 							.findProjectManagersPerProject(Long.parseLong(projectObj.getProjectId().toString()));
@@ -9620,6 +9628,9 @@ public class ResourceManagementService {
 		project.setProjectName(poData.getName());
 		project.setState(poData.getClientState());
 		project.setStatus(poData.getStatus());
+		
+		project.setProjectStatus("Not Started");
+		
 		if(poData.getIsRenewable() == null)throw new DataNotFoundException("Po Project Renewable Type Is Not Provided");
 		project.setIsRenewable(poData.getIsRenewable());
 		project.setIsDraftProject(null);
@@ -9774,6 +9785,7 @@ public class ResourceManagementService {
 			existingProject.setPoNo(poPortalProjects.getPoNo());
 			isModified = true;
 		}
+	
 
 		if (!Objects.equals(existingProject.getApmosysRM(), poPortalProjects.getApmosysRM())) {
 			existingProject.setApmosysRM(poPortalProjects.getApmosysRM());
@@ -9819,7 +9831,7 @@ public class ResourceManagementService {
 			existingProject.setActive(newActive);
 			isModified = true;
 		}
-
+		
 		String startDate = convertIsoToDate(poPortalProjects.getStartDate());
 		if (!Objects.equals(existingProject.getPoStartDate(), startDate)) {
 			existingProject.setPoStartDate(startDate);
@@ -9839,6 +9851,8 @@ public class ResourceManagementService {
 			existingProject.setClientLocation(joinedLocations);
 			isModified = true;
 		}
+		
+		
 
 		String createdInput = poPortalProjects.getCreatedOn();
 

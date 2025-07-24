@@ -932,6 +932,7 @@ export class ResourceManagementComponent implements OnInit {
   //     }
   // }
 
+  
   toggleSelectAllDept() {
     console.log(this.skipSelectionChange,"this.skipSelectionChange")
     // this.skipSelectionChange = true
@@ -2276,9 +2277,12 @@ isAddButtonDisabled(): boolean {
   }
 
   public getDisplayProjectStatus(project: any): string {
-  if (project.draftStatus === 'Approved' && project.status != 'NA'  ) {
+  if (project.draftStatus === 'Approved' && project.status != 'NA' && project.status != 'Pending') {
     return 'In Progress';
   }
+  else if (project.status === 'Pending') {
+    return 'Not Started';
+  } 
   return project.projectStatus ? project.projectStatus : 'NA';
 }
 
@@ -3166,7 +3170,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
     this.getEmployeeByNameAndEmpld();
 
     // this.modalRef1 = this.modalService.show(template, { class: 'custom-modal'});
-    this.modalRef1 = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef1 = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   openTeamMembersModal(template: any, projectObj, currentTeam) {
@@ -5067,15 +5071,14 @@ filteredProjects: any[] = [];
     this.projectService.updateMilestoneById(formData).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.fcProjectMilestoneList = response.serviceResponse;
-        setTimeout(() => {
-          this.updateMilestone();
-        }, 2000);
+        this.updateMilestone();
         this.closeUpdateProjectMilestoneModal();
 
       } else {
         this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
     });
+    this.closeUpdateProjectMilestoneModal();
   }
 
 

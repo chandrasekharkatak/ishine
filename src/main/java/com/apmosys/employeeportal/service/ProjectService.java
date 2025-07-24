@@ -2625,7 +2625,7 @@ public class ProjectService {
 				project.setUpdatedOn(LocalDateTime.now());
 				projectRepository.save(project);
 				if (isPrimary) {
-					project.setActive("false");
+					project.setIsDraftProject("True");
 					} else {
 					project.setActive("false");
 				}

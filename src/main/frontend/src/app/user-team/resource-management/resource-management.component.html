@@ -674,7 +674,7 @@
                                         <td>{{project.state ? project.state:'NA'}}</td>
                                         <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.status ? project.status:'NA'}}</td>
-                                        <td>{{getDisplayProjectStatus(project)}}</td>
+                                        <td>{{project.projectStatus}}</td>
                                         <td
                                             [ngStyle]="{'color': (project.draftStatus == 'Pending For Approval') ? 'orange' : (project.draftStatus == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
                                             <em>{{ project.draftStatus ? project.draftStatus : 'NA' }}</em>
@@ -1663,7 +1663,7 @@
                                     </div>
                                 </mat-option>
 
-                                <mat-option (click)="toggleSelectAllTeams()"
+                                <mat-option (click)="toggleSelectAllDept()"
                                     [disabled]="filteredDepartmentsTeam.length === 0">
                                     {{ isAllDeptSelected ? 'Deselect All' : 'Select All' }}
                                 </mat-option>
@@ -3079,26 +3079,15 @@
             </div>
 
             <div class="form-field full-width">
-                <label>Remarks</label>
-                <textarea class="form-control" [(ngModel)]="projectMilestone.remarks" rows="3"></textarea>
-            </div>
+    <label>Remarks <span style="color: red;">*</span></label>
+    <textarea class="form-control" [(ngModel)]="projectMilestone.remarks" rows="3" required></textarea>
+</div>
 
 
             <div class="form-field full-width">
                 <label>Upload Document</label>
                 <input type="file" class="plain-file-input" (change)="onFileSelected($event)" accept=".pdf,.jpg,.jpeg,.png" />
             </div>
-
-            
-           
-
-
-
-
-
-
-
-
 
         </div>
     </div>
