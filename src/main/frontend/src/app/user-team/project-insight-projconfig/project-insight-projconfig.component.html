@@ -97,7 +97,10 @@
   
     <!-- Import / Export buttons -->
     <div class="d-flex gap-2">
-      <button class="btn btn-sm btn-outline-info mb-1" (click)="exportTemplate()">
+      <button class="btn btn-sm btn-outline-primary mb-1" (click)="opencloneProjectModal()">
+        Clone From Other Project
+      </button>
+      <button class="btn btn-sm btn-outline-info mb-1 ml-2" (click)="exportTemplate()">
         <i class="fa fa-download"></i> Export Template
       </button>
       <input type="file" accept=".xlsx, .xls" (change)="onFileChangeImport($event)" style="display:none" #fileInput>
@@ -414,6 +417,38 @@
       <p>Are you sure you want to delete the Project Insight?</p>
       <button type="button" class="btn btn-success" (click)="deleteProjectInsightById()">Yes, proceed</button>&nbsp;
       <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+  </div>
+</ng-template>
+
+<ng-template #clone_modal>
+  <div class="modal-body text-center p-4">
+    <h5 class="mb-3">Clone Project Insight</h5>
+    <p class="text-muted mb-4">Select a project to proceed with cloning.</p>
+
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="form-group text-left">
+          <label class="font-weight-bold">
+            <span class="text-danger">*</span> Select Project
+          </label>
+          <select class="form-control" [(ngModel)]="cloneProjectInsightId">
+            <option value="" disabled selected>Select</option>
+            <option *ngFor="let project of allProjectInsightProjectList" [value]="project.projectInsightId">
+              {{ project.projectName }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <button type="button" class="btn btn-success px-4 mr-2" (click)="getCloneProjectInsight()">
+        <i class="fa fa-check mr-1"></i> Yes, Proceed
+      </button>
+      <button type="button" class="btn btn-danger px-4" (click)="cancelRequest()">
+        <i class="fa fa-times mr-1"></i> No, Cancel
+      </button>
+    </div>
   </div>
 </ng-template>
 

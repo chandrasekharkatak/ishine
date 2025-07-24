@@ -95,6 +95,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   @ViewChild('alert_message') alertMessageTemplate: TemplateRef<any>;
   @ViewChild('delete_template') deleteTemplate: TemplateRef<any>;
   @ViewChild('addFieldModal') addFieldModal: TemplateRef<any>;
+  @ViewChild('clone_modal') cloneModal: TemplateRef<any>;
 
   expandedPaths: { [key: string]: boolean } = {};
 
@@ -111,6 +112,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   showExistingFieldsList: boolean = false;
   searchKeyword: any;
   currentVersion: any;
+  cloneProjectInsightId: any;
 
   apiList = [];
 
@@ -271,6 +273,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.showTable();
     this.loadInitialOptions();
     this.getAllProjectWithDomain();
+    this.getAllProjectInsightProjectList();
     // this.loadAllProjectInsightDomain();
   }
 
@@ -529,8 +532,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   showTable() {
     this.isTable = true;
     this.isCreateForm = false;
-
-    this.getAllProjectInsightProjectList();
   }
 
   openViewProjectInsight(projectInsightId: any){
@@ -637,6 +638,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   openCreateProject() {
     this.getAllDepartmentList();
+    this.selectedDepartment = null;
+    this.selectedFormId = null;
     this.modalRef = this.modalService.show(this.openCreateProjectModal);
   }
 
@@ -803,6 +806,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   getAllDynamicFormByDepartmentAndType() {
+    this.selectedFormId = null;
     let formObject = {
       departmentId: this.selectedDepartment
     }
@@ -1789,6 +1793,29 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   navigateToProject() {
     this.currentNodePath = [this.rootNode];
+  }
+
+  opencloneProjectModal(){
+    this.modalRef = this.modalService.show(this.cloneModal);
+  }
+
+  getCloneProjectInsight(){
+    this.cancelRequest();
+    this.projectInsightService.getProjectInsightByInsightId(this.cloneProjectInsightId).pipe(first()).subscribe({
+      next: (response: any) => {
+        response.version = null;
+        response.id = null;
+
+        this.rootNode = this.buildFormNodeTree(response.structure);
+        this.mergeFormDataIntoStructure(this.rootNode, response.data);
+        this.currentNodePath = [this.rootNode];
+        this.startProjectForm();
+      },
+      error: (error: any) => {
+        this.alertMessage = error;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      }
+    });
   }
 
 
