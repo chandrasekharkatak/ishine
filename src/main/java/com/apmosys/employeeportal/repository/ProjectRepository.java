@@ -843,10 +843,11 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	
 	@Query("SELECT new com.apmosys.employeeportal.dto.RmAndHodEmailDto(p.apmosysRmEmail, e.email) " +
 		       "FROM Project p " +
-		       "JOIN Department d ON d.deptId = p.deptId " +
-		       "JOIN Employee e ON e.empId = d.hodId " +
+		       "LEFT JOIN Department d ON d.deptId = p.deptId " +
+		       "LEFT JOIN Employee e ON e.empId = d.hodId " +
 		       "WHERE p.poProjectId = :projectId")
 		Optional<RmAndHodEmailDto> findRmAndHodEmailsByProjectId(@Param("projectId") Long projectId);
+
 	
 	
 	

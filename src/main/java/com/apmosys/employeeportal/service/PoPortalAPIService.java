@@ -1,13 +1,17 @@
 package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +41,7 @@ import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MilestoneExpireDto;
+import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
@@ -46,10 +51,13 @@ import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.MilestoneUpdatedLog;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.MilestoneExtensionReasonRepository;
+import com.apmosys.employeeportal.repository.MilestoneUpdatedLogRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
@@ -103,8 +111,10 @@ public class PoPortalAPIService {
 	 private String getExpiryMilestoneUrl;
     
     
-    @Value("${poPortal.api.getMilestoneToBeExpiredUrl}")
-	private String getMilestoneToBeExpiredUrl;
+ 
+    
+    @Value("${poPortal.api.updateMilestoneExtendedDate}")
+    private String updateMilestoneEndDateExternalUrl;
 	
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
@@ -136,6 +146,12 @@ public class PoPortalAPIService {
 	@Autowired
 	ProjectRepository projectRepository;
 	
+	@Autowired
+	private MilestoneUpdatedLogRepository milestoneUpdatedLogRepository;
+
+	@Autowired
+	private MilestoneExtensionReasonRepository milestoneExtensionReasonRepository;
+	
 	
 	public ServiceResponse callGetFCLineItemDetails(Long poProjectId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -165,11 +181,11 @@ public class PoPortalAPIService {
 				finalHttpStatusCode = HttpStatus.OK.value();
 			} else {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				serviceResponse.setServiceResponse("Milestone could not be fetched.");
+				serviceResponse.setServiceResponse("Error fetching Milestones for Project.");
 			}
 		} catch (Exception e) {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			serviceResponse.setServiceResponse("Milestone could not be fetched.");
+			serviceResponse.setServiceResponse("Error fetching Milestones for Project.");
 			exceptionDetailsForLog = e.toString();
 			return serviceResponse;
 		} finally {
@@ -581,7 +597,7 @@ public class PoPortalAPIService {
 				syncObject.setRoleName(jobRoleObject.getName());
 				syncObject.setDeptId(jobRoleObject.getDeptId());
 				
-				final String syncUrl = syncJobRoleWithPoPortal + jobRoleDTO.getJobRoleId();
+				final String syncUrl = syncJobRoleWithPoPortal;
 				HttpHeaders headers = new HttpHeaders();
 				headers.set("X-Trace-Id", traceId);
 				headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
@@ -811,125 +827,133 @@ public class PoPortalAPIService {
 	
 	
 	
-	@Async
-	@Scheduled(cron = "${milestoneExpiryNotifier.time}")
-	public void milestoneExpiryNotifierMail() {
-	    System.out.println("======= Project Expiry Job Started =======");
-
-	    String traceId = UUID.randomUUID().toString();
-	    HttpHeaders headers = new HttpHeaders();
-	    headers.setContentType(MediaType.APPLICATION_JSON);
-	    headers.set("X-Trace-Id", traceId);
-	    headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
-
-	    HttpEntity<?> requestEntity = new HttpEntity<>(null, headers);
-
-	    ApiLog initialLog = null;
-	    int httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-	    String exceptionDetails = null;
-
-	    try {
-	        
-	        initialLog = apiLogUtility.startLog(traceId, "/api/milestoneExpiryNotifierMail", "EmployeePortal", 0L, null);
-
-	        MilestoneExpireDto[] milestoneArray = restTemplate.exchange(
-	            getExpiryMilestoneUrl,
-	            HttpMethod.POST,
-	            requestEntity,
-	            MilestoneExpireDto[].class
-	        ).getBody();
-
-	        List<MilestoneExpireDto> milestones = Arrays.asList(
-	            milestoneArray != null ? milestoneArray : new MilestoneExpireDto[0]
-	        );
-
-	        System.out.println("Fetched " + milestones.size() + " expiring milestones.");
-
-	        for (MilestoneExpireDto milestone : milestones) {
-	            String poNumber = milestone.getPoNumber();
-	            String projectName = milestone.getProjectName();
-	            String milestoneName = milestone.getMilestoneName();
-	            String lineItemName = milestone.getLineItemName();
-	            Long projectId = milestone.getProjectId();
-	            String milestoneStartDate = milestone.getMilestoneStartDate();
-	            String milestoneEndDate = milestone.getMilestoneEndDate();
-	            String milestoneStatus = milestone.getMilestoneStatus();
-	            
-	            
-	            System.out.println("projectId"+" "+projectId);
-	            
-	            
-	            
-
-	            Optional<RmAndHodEmailDto> optionalEmails = projectRepository.findRmAndHodEmailsByProjectId(projectId);
-	            
-
-	            if (!optionalEmails.isPresent()) {
-	                System.out.println("Skipping milestone due to missing RM/HOD data: " + milestoneName);
-	                continue;
-	            }
-
-	            RmAndHodEmailDto emailDto = optionalEmails.get();
-	            String rmEmail = emailDto.getRmEmail();
-	            String hodEmail = emailDto.getHodEmail();
-	            String directorEmail = "dibyaranjan.das@apmosys.com";
-
-	            if (Stream.of(hodEmail, rmEmail, directorEmail).allMatch(email -> email == null || email.isEmpty())) {
-	                System.out.println("Skipping milestone due to all emails being empty: " + milestoneName);
-	                continue;
-	            }
-
-	            String subject = "Project Milestone Expiry Notification: " + projectName;
-	            String body = "<html><body>"
-	                + "<p>Dear Team,</p>"
-	                + "<p>The following project milestone is nearing expiry or has expired:</p>"
-	                + "<table border='1' style='border-collapse: collapse;'>"
-	                + "<tr><th>PO Number</th><td>" + poNumber + "</td></tr>"
-	                + "<tr><th>Project Name</th><td>" + projectName + "</td></tr>"
-	                + "<tr><th>Milestone Name</th><td>" + milestoneName + "</td></tr>"
-	                + "<tr><th>Line Item</th><td>" + lineItemName + "</td></tr>"
-	                + "<tr><th>Milestone Start Date</th><td>" + milestoneStartDate + "</td></tr>"
-	                + "<tr><th>Milestone End Date</th><td>" + milestoneEndDate + "</td></tr>"
-	                + "<tr><th>Status</th><td>" + milestoneStatus + "</td></tr>"
-	                + "</table>"
-	                + "<p>Please take the necessary actions.</p>"
-	                + "<p>Regards,<br>ApMoSys Technologies</p>"
-	                + "</body></html>";
-
-	            try {
-	                mailService.sendMailWithMultipleCC(
-	                    rmEmail,
-	                    Arrays.asList(hodEmail, directorEmail),
-	                    subject,
-	                    body
-	                );
-	                System.out.println("Mail sent for project: " + projectName);
-	            } catch (Exception e) {
-	                System.err.println("Error sending mail for project: " + projectName);
-	                e.printStackTrace();
-	                exceptionDetails = "Mail Error: " + e.getMessage();
-	            }
-	        }
-
-	        httpStatusCode = HttpStatus.OK.value();
-	    } catch (Exception e) {
-	        System.err.println("Exception occurred in milestoneExpiryNotifierMail");
-	        e.printStackTrace();
-	        exceptionDetails = "Job Failed: " + e.toString();
-	    } finally {
-	        if (initialLog != null && initialLog.getId() != null) {
-	            apiLogUtility.endLog(
-	                initialLog.getId(),
-	                getExpiryMilestoneUrl,
-	                httpStatusCode,
-	                exceptionDetails,
-	                null
-	            );
-	        }
-	    }
-
-	    System.out.println("======= Project Expiry Job Completed =======");
-	}
+		@Async
+		@Scheduled(cron = "${milestoneExpiryNotifier.time}")
+		public void milestoneExpiryNotifierMail() {
+		    System.out.println("======= Project Expiry Job Started =======");
+	
+		    String traceId = UUID.randomUUID().toString();
+		    HttpHeaders headers = new HttpHeaders();
+		    headers.setContentType(MediaType.APPLICATION_JSON);
+		    headers.set("X-Trace-Id", traceId);
+		    headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+	
+		    HttpEntity<?> requestEntity = new HttpEntity<>(null, headers);
+	
+		    ApiLog initialLog = null;
+		    int httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		    String exceptionDetails = null;
+	
+		    try {
+		        
+		        initialLog = apiLogUtility.startLog(traceId, "/api/milestoneExpiryNotifierMail", "EmployeePortal", 0L, null);
+	
+		        MilestoneExpireDto[] milestoneArray = restTemplate.exchange(
+		            getExpiryMilestoneUrl,
+		            HttpMethod.POST,
+		            requestEntity,
+		            MilestoneExpireDto[].class
+		        ).getBody();
+	
+		        List<MilestoneExpireDto> milestones = Arrays.asList(
+		            milestoneArray != null ? milestoneArray : new MilestoneExpireDto[0]
+		        );
+	
+		        System.out.println("Fetched " + milestones.size() + " expiring milestones.");
+		        
+		        SimpleDateFormat sdf = new SimpleDateFormat("d/MM/yyyy");
+	
+		        for (MilestoneExpireDto milestone : milestones) {
+		            String poNumber = milestone.getPoNo();
+		            String projectName = milestone.getProjectName();
+		            String milestoneName = milestone.getName();
+		            String lineItemName = milestone.getLineItemName();
+		            Long projectId = milestone.getProjectId();
+		            Date milestoneStartDate = milestone.getStartDate();
+		            Date milestoneEndDate = milestone.getEndDate();
+		            String milestoneStatus = milestone.getStatus();
+		            
+		            String formattedStartDate = sdf.format(milestoneStartDate);
+		            String formattedEndDate = sdf.format(milestoneEndDate);
+		            
+		            
+		    
+		            
+		            
+		            
+		            
+	
+		            Optional<RmAndHodEmailDto> optionalEmails = projectRepository.findRmAndHodEmailsByProjectId(projectId);
+		            
+	
+		            if (!optionalEmails.isPresent()) {
+		                System.out.println("Skipping milestone due to missing RM/HOD data: " + milestoneName);
+		                continue;
+		            }
+	
+		            RmAndHodEmailDto emailDto = optionalEmails.get();
+		            String rmEmail = emailDto.getRmEmail();
+		            String hodEmail = emailDto.getHodEmail();
+		            String directorEmail = "bibhu@apmosysuat1.com";
+		            
+		            System.out.println("rmEmail"+"  "+rmEmail+" "+"hodEmail"+" "+hodEmail);
+	
+		            if (Stream.of(hodEmail, rmEmail, directorEmail).allMatch(email -> email == null || email.isEmpty())) {
+		                System.out.println("Skipping milestone due to all emails being empty: " + milestoneName);
+		                continue;
+		            }
+	
+		            String subject = "Project Milestone Expiry Notification: " + projectName;
+		            String body = "<html><body>"
+		                + "<p>Dear Team,</p>"
+		                + "<p>The following project milestone is nearing expiry or has expired:</p>"
+		                + "<table border='1' style='border-collapse: collapse;'>"
+		                + "<tr><th>PO Number</th><td>" + poNumber + "</td></tr>"
+		                + "<tr><th>Project Name</th><td>" + projectName + "</td></tr>"
+		                + "<tr><th>Milestone Name</th><td>" + milestoneName + "</td></tr>"
+		                + "<tr><th>Line Item</th><td>" + lineItemName + "</td></tr>"
+		                + "<tr><th>Milestone Start Date</th><td>" + formattedStartDate + "</td></tr>"
+		                + "<tr><th>Milestone End Date</th><td>" + formattedEndDate + "</td></tr>"
+		                + "<tr><th>Status</th><td>" + milestoneStatus + "</td></tr>"
+		                + "</table>"
+		                + "<p>Please take the necessary actions.</p>"
+		                + "<p>Regards,<br>ApMoSys Technologies</p>"
+		                + "</body></html>";
+	
+		            try {
+		                mailService.sendMailWithMultipleCC(
+		                    rmEmail,
+		                    Arrays.asList(hodEmail, directorEmail),
+		                    subject,
+		                    body
+		                );
+		                System.out.println("Mail sent for project: " + projectName);
+		            } catch (Exception e) {
+		                System.err.println("Error sending mail for project: " + projectName);
+		                e.printStackTrace();
+		                exceptionDetails = "Mail Error: " + e.getMessage();
+		            }
+		        }
+	
+		        httpStatusCode = HttpStatus.OK.value();
+		    } catch (Exception e) {
+		        System.err.println("Exception occurred in milestoneExpiryNotifierMail");
+		        e.printStackTrace();
+		        exceptionDetails = "Job Failed: " + e.toString();
+		    } finally {
+		        if (initialLog != null && initialLog.getId() != null) {
+		            apiLogUtility.endLog(
+		                initialLog.getId(),
+		                getExpiryMilestoneUrl,
+		                httpStatusCode,
+		                exceptionDetails,
+		                null
+		            );
+		        }
+		    }
+	
+		    System.out.println("======= Project Expiry Job Completed =======");
+		}
 
 	
 	
@@ -1027,7 +1051,162 @@ public class PoPortalAPIService {
 	                String logMsg = (exceptionDetailsForLog != null)
 	                        ? exceptionDetailsForLog
 	                        : "Fetched " + milestones.size() + " milestones.";
-	                apiLogUtility.endLog(initialLog.getId(), getMilestoneToBeExpiredUrl, finalHttpStatusCode, logMsg, httpRequest);
+	                apiLogUtility.endLog(initialLog.getId(), getExpiryMilestoneUrl, finalHttpStatusCode, logMsg, httpRequest);
+	            }
+	        } catch (Exception logEx) {
+	            logEx.printStackTrace();
+	        }
+	    }
+
+	    return response;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//update milestone endDate
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse updateMilestoneExtendedDate(MilestoneUpdatedLogDto dto) {
+	    ServiceResponse response = new ServiceResponse();
+	    String traceId = UUID.randomUUID().toString();
+	    ApiLog initialLog = null;
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+	    String exceptionDetailsForLog = null;
+	    boolean isLogEnded = false;
+
+	    try {
+	      
+	        if (dto == null || dto.getMilestoneId() == null || dto.getExtendedDate() == null) {
+	            String message = "Milestone ID or extended date is missing.";
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse(message);
+	            response.setServiceError(message);
+	            response.setServiceMessage(message);
+	            return response;
+	        }
+
+	      
+	        initialLog = apiLogUtility.startLog(
+	            traceId,
+	            "updateMilestoneExtendedDate",
+	            "poPortal",
+	            getCurrentUserId(),
+	            httpRequest
+	        );
+
+	     
+	        MilestoneUpdatedLog log = MilestoneUpdatedLog.builder()
+	            .milestoneId(dto.getMilestoneId())
+	            .poId(dto.getPoId())
+	            .projectId(dto.getProjectId())
+	            .milestoneName(dto.getMilestoneName())
+	            .milestoneStartDate(dto.getMilestoneStartDate())
+	            .milestoneEndDate(dto.getMilestoneEndDate())
+	            .description(dto.getDescription())
+	            .remarks(dto.getRemarks())
+	            .milestoneStatus(dto.getMilestoneStatus())
+	            .lineItemId(dto.getLineItemId())
+	            .lineItemName(dto.getLineItemName())
+	            .projectName(dto.getProjectName())
+	            .poNumber(dto.getPoNumber())
+	            .ExtendedDate(dto.getExtendedDate())
+	            .updatedBy(dto.getUpdatedBy())
+	            .build();
+	        
+	        
+	            Optional<MilestoneUpdatedLog> milestoneUpdatedLogExist=milestoneUpdatedLogRepository.findByExtendedDate(dto.getExtendedDate());
+	            
+	            if (milestoneUpdatedLogExist.isPresent()) {
+	            	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            	   response.setServiceMessage("Milestone extended date already exists in the system.");
+	   	            response.setServiceResponse("Milestone extended date already exists in the system.");
+	            	
+	            }
+
+	    
+	        if (dto.getMilestoneExtensionReasonId() != null) {
+	            milestoneExtensionReasonRepository.findById(dto.getMilestoneExtensionReasonId())
+	                .ifPresent(log::setMilestoneExtensionReason);
+	        }
+	        
+	        
+
+	      
+	        milestoneUpdatedLogRepository.save(log);
+	        
+	        
+	        MilestoneExpireDto updateRequest=new MilestoneExpireDto();
+	        
+	        updateRequest.setId(dto.getMilestoneId());
+	        updateRequest.setEndDate(dto.getExtendedDate());
+	        updateRequest.setUpdatedBy(dto.getUpdatedBy());
+	        
+
+	       
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.setContentType(MediaType.APPLICATION_JSON);
+	        headers.set("X-Trace-Id", traceId);
+	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+
+	    
+	        HttpEntity<MilestoneExpireDto> requestEntity = new HttpEntity<>(updateRequest, headers);
+
+	        ResponseEntity<String> externalResponse = restTemplate.exchange(
+	            updateMilestoneEndDateExternalUrl, 
+	            HttpMethod.POST,
+	            requestEntity,
+	            String.class
+	        );
+
+	        finalHttpStatusCode = externalResponse.getStatusCodeValue();
+
+	        if (externalResponse.getStatusCode() == HttpStatus.OK) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceMessage("Milestone extended date updated and external sync successful.");
+	            response.setServiceResponse("Milestone extended date updated and external sync successful.");
+	        } else {
+	            String msg = "External API failed with status: " + externalResponse.getStatusCode();
+	            exceptionDetailsForLog = msg;
+	            throw new RuntimeException(msg); // Triggers rollback
+	        }
+
+	    } catch (Exception e) {
+	        exceptionDetailsForLog = e.toString();
+	        e.printStackTrace();
+
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Failed to update milestone.");
+	        response.setServiceError(e.getMessage());
+	        response.setServiceMessage(e.getMessage());
+	        throw new RuntimeException("Rolling back transaction due to: " + e.getMessage(), e);
+	    } finally {
+	        try {
+	            if (initialLog != null && initialLog.getId() != null && !isLogEnded) {
+	                String logMsg = (exceptionDetailsForLog != null)
+	                        ? exceptionDetailsForLog
+	                        : "Milestone extended successfully.";
+	                apiLogUtility.endLog(
+	                    initialLog.getId(),
+	                    updateMilestoneEndDateExternalUrl,
+	                    finalHttpStatusCode,
+	                    logMsg,
+	                    httpRequest
+	                );
 	            }
 	        } catch (Exception logEx) {
 	            logEx.printStackTrace();
@@ -1037,6 +1216,7 @@ public class PoPortalAPIService {
 	    return response;
 	}
 
+	
 
 	
 }

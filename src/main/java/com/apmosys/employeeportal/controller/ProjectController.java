@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
+import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
@@ -162,6 +164,11 @@ public class ProjectController {
 	@PostMapping(value="/getAllMilestoneToBeExpired")
 	public ServiceResponse getAllMilestoneToBeExpired(@RequestBody RmAndHodEmailDto rmAndHodEmailDto){
 		return poPortalApiService.getAllMilestoneToBeExpired(rmAndHodEmailDto.getRmEmail());
+	}
+	
+	@PutMapping(value="/updateMilestoneExtendedDate")
+	public ServiceResponse updateMilestoneExtendedDate(@RequestBody MilestoneUpdatedLogDto milestoneUpdatedLogDto) {
+		return  poPortalApiService.updateMilestoneExtendedDate(milestoneUpdatedLogDto);
 	}
 	
 }
