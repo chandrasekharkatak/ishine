@@ -1088,6 +1088,10 @@ setTotalWorkingClientHours() {
       this.timesheetObj.currentManagerId = this.currentUser.managerId;
     }
 
+    this.payloadForFileUpload();
+    
+    this.timesheetObj.documentData.createdBy = this.currentUser.empId;
+
     console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -2037,6 +2041,7 @@ setTotalWorkingClientHours() {
     this.selectedFile = file;
     this.fileName = file.name;
   }
+
   clearPreviousSelections(){
     this.selectedProjectId = null;
   }
@@ -2053,6 +2058,7 @@ setTotalWorkingClientHours() {
 
   openSelfModal2(template: TemplateRef<any>) {
     this.selfClientIdUpdateModalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.getActiveProjectsAndClientSideIdByEmpId();
   }
 
   hideSelfModal2(): void {
@@ -2063,7 +2069,6 @@ setTotalWorkingClientHours() {
 
   openSelfModal3(template: TemplateRef<any>) {
     this.updateClientIdModalRef = this.modalService.show(template, { class: 'modal-lg' });
-    this.getActiveProjectsAndClientSideIdByEmpId();
   }
 
   hideSelfModal3(): void {
@@ -2152,6 +2157,19 @@ setTotalWorkingClientHours() {
     this.updateExistingClientSideId = inputElement.checked;
   }
 
+  payloadForFileUpload() {
+    this.timesheetObj.documentData.docName = this.fileName;
+    this.timesheetObj.documentData.docFile = this.selectedFile;
+    this.timesheetObj.documentData.empId = this.timesheetObj.empId;
+    this.timesheetObj.documentData.clientApprovalStatus = this.timesheetObj.clientApprovalStatus;
+    if(this.timesheetObj.documentData.clientApprovalStatus == 'pending'){
+      this.timesheetObj.documentData.finalFlag = false;
+    } else if(this.timesheetObj.documentData.clientApprovalStatus == 'approved'){
+      this.timesheetObj.documentData.finalFlag = true;
+    } else {
+      console.log("No approval status stored");
+    }
+  }
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

@@ -12,6 +12,7 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 
 import org.hibernate.envers.Audited;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -49,9 +50,11 @@ public class TimesheetDocumentDetails {
 	@Column(name = "created_on")
 	private LocalDateTime createdOn;
 	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	@Column(name = "created_by")
 	private Long createdBy;
 	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	@Column(name = "updated_on")
 	private LocalDateTime updatedOn;
 	

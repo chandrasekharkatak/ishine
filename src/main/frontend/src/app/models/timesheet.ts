@@ -1,3 +1,5 @@
+import { TimesheetDoc } from "./timesheetDoc";
+
 export class Timesheet{
   [x: string]: any;
     checkId:any
@@ -100,4 +102,5 @@ export class Timesheet{
     hasClientSideId:Boolean=false;
     shadowEmpId:any;
     selectedFile:any;
+    documentData:TimesheetDoc;
 }

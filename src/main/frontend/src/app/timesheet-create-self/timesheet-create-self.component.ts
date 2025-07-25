@@ -247,6 +247,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
       hasClientSideId: data?.hasClientSideId ?? null,
       shadowEmpId: data?.shadowEmpId ?? null,
       selectedFile: data?.selectedFile ?? null,
+      documentData: data?.documentData ?? null,
     };
 
     console.log("clientLocationId" + activity.clientLocationId);

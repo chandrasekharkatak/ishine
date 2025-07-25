@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,8 +21,10 @@ public class TimesheetDocumentDetailsDTO {
 	private String mimeType;
 	private Long timesheetId;
 	private Long empId;
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime createdOn;
 	private Long createdBy;
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime updatedOn;
 	private Long updatedBy;
 	private Boolean active;

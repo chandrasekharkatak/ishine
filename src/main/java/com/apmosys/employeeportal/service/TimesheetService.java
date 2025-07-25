@@ -434,6 +434,39 @@ public class TimesheetService {
 			System.err.println("Time sheet checked "+newTimesheet);
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
+			
+			if(timesheetDTO.getClientApprovalStatus().equalsIgnoreCase("pending") || timesheetDTO.getClientApprovalStatus().equalsIgnoreCase("approved")) {
+				TimesheetDocumentDetails docData = addTimesheetDocument(timesheetDTO.getDocumentData(),"Create");
+				docData.setTimesheetId(newTimesheetCreated.getTimesheetId());
+				
+				if (docData != null) {
+				    try {
+				        TimesheetDocumentDetails doc = timesheetDocumentDetailsRepository.save(docData);
+
+				        if (doc == null) {
+				            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				            response.setServiceResponse("Timesheet added, but document not saved.");
+
+				            apiLogInfo.setApiResponse("Timesheet added, but document not saved.");
+				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				        } else {
+				            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				            response.setServiceResponse("Timesheet added successfully");
+
+				            apiLogInfo.setApiResponse("Timesheet added successfully");
+				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				        }
+				    } catch (Exception e) {
+				        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				        response.setServiceResponse("Timesheet added, but document save failed due to an error.");
+
+				        apiLogInfo.setApiResponse("Exception while saving document: " + e.getMessage());
+				        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+				        e.printStackTrace(); 
+				    }
+				}
+			}	
 
 			if (!timesheetDTO.getDayType().equals("Public Holiday") && !timesheetDTO.getDayType().equals("Week Off") && !timesheetDTO.getDayType().equals("Leave")) {				
 				Optional.ofNullable(newTimesheetCreated.getEmpId()).ifPresentOrElse((timesheet) -> {
