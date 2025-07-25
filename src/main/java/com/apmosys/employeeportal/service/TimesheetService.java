@@ -364,6 +364,8 @@ public class TimesheetService {
 			newTimesheet.setClientSideId(timesheetDTO.getClientSideId() != null ? timesheetDTO.getClientSideId() : null);
 			newTimesheet.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus() != null ? timesheetDTO.getClientApprovalStatus() : null);
 			newTimesheet.setHasClientSideId(timesheetDTO.getClientSideId() != null ? timesheetDTO.getHasClientSideId() : null);
+			newTimesheet.setIsShadowTimesheet(timesheetDTO.getIsShadowTimesheet() != null ? (Boolean) timesheetDTO.getIsShadowTimesheet() : null);
+			newTimesheet.setShadowEmpId(timesheetDTO.getShadowEmpId() != null ? Long.parseLong(timesheetDTO.getShadowEmpId().toString()) : null);
 			
 			System.out.println("timesheetDTO.getCurrentmanagerId() ==> "+timesheetDTO.getCurrentManagerId());
 
@@ -381,9 +383,9 @@ public class TimesheetService {
 				newTimesheet.setOfficeOutTime(LocalDateTime.parse(timesheetDTO.getOfficeOutTime(), formatter));
 				newTimesheet.setTotalWorkingHours(timesheetDTO.getTotalWorkingOfficeHours());
 
-				newTimesheet.setClientInTime(timesheetDTO.getClientInTime());
-				newTimesheet.setClientOutTime(timesheetDTO.getClientOutTime());
-				newTimesheet.setTotalClientWorkingHours(timesheetDTO.getTotalClientWorkingHours());
+				newTimesheet.setClientInTime(timesheetDTO.getClientInTime() != null ? timesheetDTO.getClientInTime() : null);
+				newTimesheet.setClientOutTime(timesheetDTO.getClientOutTime() != null ? timesheetDTO.getClientOutTime() : null);
+				newTimesheet.setTotalClientWorkingHours(timesheetDTO.getTotalClientWorkingHours() != null ? timesheetDTO.getTotalClientWorkingHours() : null);
 				
 				String description = "";
 				if (allTimesheetActivities.isEmpty()) {
@@ -564,7 +566,8 @@ public class TimesheetService {
 						dto.setClientApprovalStatus(object[21] != null ? object[21].toString() : null);
 						dto.setHasClientSideId(object[22] != null ? (Boolean) object[22] : null);
 						dto.setEmployementId(object[22] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
-						
+						dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
+						dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
 						// Get InActive Activities In Timesheet
 						if(dto.getStatus().equals("Pending")) {
 							List<Object[]> inactiveActivityList = timesheetsRepository
@@ -1191,6 +1194,14 @@ public class TimesheetService {
 				existingTimesheet.setStatus("Pending");
 				existingTimesheet.setTotalTime((float) 0);
 
+				existingTimesheet.setProjectId(timesheetDTO.getProjectId() != null ? timesheetDTO.getProjectId() : null);
+				existingTimesheet.setClientSideId(timesheetDTO.getClientSideId() != null ? timesheetDTO.getClientSideId() : null);
+				existingTimesheet.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus() != null ? timesheetDTO.getClientApprovalStatus() : null);
+				existingTimesheet.setHasClientSideId(timesheetDTO.getClientSideId() != null ? timesheetDTO.getHasClientSideId() : null);
+				existingTimesheet.setIsShadowTimesheet(timesheetDTO.getIsShadowTimesheet() != null ? (Boolean) timesheetDTO.getIsShadowTimesheet() : null);
+				existingTimesheet.setShadowEmpId(timesheetDTO.getShadowEmpId() != null ? Long.parseLong(timesheetDTO.getShadowEmpId().toString()) : null);
+				
+
 				if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave")) {
 					timesheetActivityMapRepository.deleteByTimesheetId(timesheetDTO.getTimesheetId());
 					existingTimesheet.setDescription(timesheetDTO.getDescription());
@@ -1204,6 +1215,10 @@ public class TimesheetService {
 					existingTimesheet.setOfficeInTime(LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter));
 					existingTimesheet.setOfficeOutTime(LocalDateTime.parse(timesheetDTO.getOfficeOutTime(), formatter));
 					existingTimesheet.setTotalWorkingHours(timesheetDTO.getTotalWorkingOfficeHours());
+					
+					existingTimesheet.setClientInTime(timesheetDTO.getClientInTime() != null ? timesheetDTO.getClientInTime() : null);
+					existingTimesheet.setClientOutTime(timesheetDTO.getClientOutTime() != null ? timesheetDTO.getClientOutTime() : null);
+					existingTimesheet.setTotalClientWorkingHours(timesheetDTO.getTotalClientWorkingHours() != null ? timesheetDTO.getTotalClientWorkingHours() : null);
 
 					List<ActivityDTO> updatedTimesheetActivities = timesheetDTO.getAllTimesheetActivities();
 

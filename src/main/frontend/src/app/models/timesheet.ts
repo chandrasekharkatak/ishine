@@ -98,4 +98,5 @@ export class Timesheet{
     clientApprovalStatus:any=null;
     employmentId:any;
     hasClientSideId:Boolean=false;
+    shadowEmpId:any;
 }

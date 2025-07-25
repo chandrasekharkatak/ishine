@@ -81,4 +81,5 @@ public class Timesheet {
 	private String clientApprovalStatus;
 	private Integer projectId;
 	private Boolean hasClientSideId;
+	private Long shadowEmpId;
 }

@@ -245,6 +245,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
       clientApprovalStatus: data?.clientApprovalStatus ?? null,
       employmentId: data?.employmentId ?? null,
       hasClientSideId: data?.hasClientSideId ?? null,
+      shadowEmpId: data?.shadowEmpId ?? null,
     };
 
     console.log("clientLocationId" + activity.clientLocationId);

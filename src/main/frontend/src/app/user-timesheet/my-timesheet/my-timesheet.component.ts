@@ -117,6 +117,7 @@ AllWeekOfList:any[]=[];
   selfClientIdUpdateModalRef: BsModalRef = new BsModalRef();
   updateClientIdModalRef: BsModalRef = new BsModalRef();
   noClientSideId: Boolean = false;
+  employeeList:any[];
 
   previewUrl: SafeResourceUrl | null = null;
   fileError: string = '';
@@ -162,7 +163,7 @@ AllWeekOfList:any[]=[];
     this.sectionViewInit();
     this.preventBackButton();
     this.getActiveProjectsByEmpId();
-
+    this.getEmployeeByNameAndEmpld();
     
     // this.setStartDateMinMax();
   }
@@ -1055,8 +1056,8 @@ setTotalWorkingClientHours() {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
-      this.timesheetObj.clientInTime = moment(this.timesheetObj.clientInTime).format(dateTimeFormat);
-      this.timesheetObj.clientOutTime = moment(this.timesheetObj.clientOutTime).format(dateTimeFormat);
+      this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
+      this.timesheetObj.clientOutTime = this.timesheetObj.clientOutTime ? moment(this.timesheetObj.clientOutTime).isValid() ? moment(this.timesheetObj.clientOutTime).format(dateTimeFormat) : null : null;
     } else {
       this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
     }
@@ -1101,8 +1102,8 @@ setTotalWorkingClientHours() {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
-      this.timesheetObj.clientInTime = moment(this.timesheetObj.clientInTime).format(dateTimeFormat);
-      this.timesheetObj.clientOutTime = moment(this.timesheetObj.clientOutTime).format(dateTimeFormat);
+      this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
+      this.timesheetObj.clientOutTime = this.timesheetObj.clientOutTime ? moment(this.timesheetObj.clientOutTime).isValid() ? moment(this.timesheetObj.clientOutTime).format(dateTimeFormat) : null : null;
       this.timesheetObj.createdOn = moment(this.timesheetObj.createdOn).format(dateTimeFormat);
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
 
@@ -2051,6 +2052,17 @@ setTotalWorkingClientHours() {
         this.timesheetObj.employmentId = response.serviceResponse;
       } else {
         console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getEmployeeByNameAndEmpld() {
+    this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.employeeList = response.serviceResponse;
+        this.getTimesheetMetadata();
+      } else {
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
     });
   }
