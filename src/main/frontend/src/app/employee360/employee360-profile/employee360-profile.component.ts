@@ -1040,6 +1040,7 @@ export class Employee360ProfileComponent implements OnInit {
   
     // Final ID with prefix
     employee.employeementId = enteredId;
+    employee.employeeType = this.employeeObj.employeeType;
   
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Fail") {
