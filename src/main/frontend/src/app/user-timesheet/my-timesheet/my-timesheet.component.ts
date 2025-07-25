@@ -123,6 +123,7 @@ AllWeekOfList:any[]=[];
   rawObjectUrl: string | null = null;
   fileType: 'pdf' | 'image' | null = null;
   fileError: string = '';
+  fileName:any = null;
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -2016,6 +2017,7 @@ setTotalWorkingClientHours() {
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
     this.fileType = file.type === 'application/pdf' ? 'pdf' : 'image';
     this.selectedFile = file;
+    this.fileName = file.name;
   }
   clearPreviousSelections(){
     this.selectedProjectId = null;

@@ -35,6 +35,7 @@ import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActivityMap;
+import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -2297,6 +2298,17 @@ public class TimesheetService {
 
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
+	}
+	
+	public String addTimesheetDocument(TimesheetDocumentDetails timesheetDocumentDetails, String oprType) {
+		
+		if("Create".equalsIgnoreCase(oprType)) {
+			
+		}
+		
+		
+		return null;
+		
 	}
 	
 }
