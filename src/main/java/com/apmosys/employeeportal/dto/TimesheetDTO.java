@@ -123,7 +123,7 @@ public class TimesheetDTO {
 
 	private Boolean hasClientSideId;
 	
-	private String employementId;
+	private String employmentId;
 	
 	private Long shadowEmpId;
 	 

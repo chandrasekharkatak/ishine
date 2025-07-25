@@ -575,7 +575,7 @@ public class TimesheetService {
 						dto.setProjectId(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
 						dto.setClientApprovalStatus(object[21] != null ? object[21].toString() : null);
 						dto.setHasClientSideId(object[22] != null ? (Boolean) object[22] : null);
-						dto.setEmployementId(object[22] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
+						dto.setEmploymentId(object[22] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
 						dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
 						dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
 						// Get InActive Activities In Timesheet
