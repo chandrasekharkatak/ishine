@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -29,6 +30,7 @@ import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
@@ -45,6 +47,7 @@ import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
+import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -101,6 +104,9 @@ public class TimesheetService {
 	
 	@Autowired
 	private EmployeeClientSideIdMappingRepository employeeClientSideIdMappingRepository;
+	
+	@Autowired
+	private TimesheetDocumentDetailsRepository  timesheetDocumentDetailsRepository;
 
 //	public ServiceResponse getAllProjectsByEmpId(TimesheetDTO timesheetDTO) {
 //		ServiceResponse response = new ServiceResponse();
@@ -2300,14 +2306,32 @@ public class TimesheetService {
 	    return response;
 	}
 	
-	public String addTimesheetDocument(TimesheetDocumentDetails timesheetDocumentDetails, String oprType) {
-		
+	public TimesheetDocumentDetails addTimesheetDocument(TimesheetDocumentDetailsDTO timesheetDocumentDetailsDTO, String oprType) throws IOException {
+		TimesheetDocumentDetails data = new TimesheetDocumentDetails();
 		if("Create".equalsIgnoreCase(oprType)) {
-			
+			timesheetDocumentDetailsDTO.setActive(true);
+			timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
+		}
+		else {
+			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 		}
 		
-		
-		return null;
+		data.setDocName(timesheetDocumentDetailsDTO.getDocName());
+		data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
+		data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
+		data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
+		if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
+			data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
+		if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
+			data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
+		if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
+			data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
+		if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
+			data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
+		data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
+	    data.setRmApprovalStatus("Pending");
+	    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());	
+	    return data;
 		
 	}
 	

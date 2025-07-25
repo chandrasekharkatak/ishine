@@ -50,7 +50,7 @@ public class TimesheetDocumentDetails {
 	private LocalDateTime updatedOn;
 	
 	@Column(name = "updated_by")
-	private Long updated_by;
+	private Long updatedBy;
 	
 	@Column(name = "active")	
 	private Boolean active;

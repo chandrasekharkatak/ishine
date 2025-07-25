@@ -126,4 +126,6 @@ public class TimesheetDTO {
 	private String employementId;
 	
 	private Long shadowEmpId;
+	 
+	private TimesheetDocumentDetailsDTO documentData;
 }
