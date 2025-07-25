@@ -99,4 +99,5 @@ export class Timesheet{
     employmentId:any;
     hasClientSideId:Boolean=false;
     shadowEmpId:any;
+    selectedFile:any;
 }

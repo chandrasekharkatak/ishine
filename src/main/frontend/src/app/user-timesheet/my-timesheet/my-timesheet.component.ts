@@ -9,10 +9,12 @@ import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Activity } from 'src/app/models/activity';
 import { Employee } from 'src/app/models/employee';
+import { EmployeeClientSideIdMapping } from 'src/app/models/employeeClientSideIdMapping';
 import { Feature } from 'src/app/models/feature';
 import { Holiday } from 'src/app/models/holiday';
 import { Leave } from 'src/app/models/leave';
 import { Project } from 'src/app/models/project';
+import { ProjectClientSideId } from 'src/app/models/projectClientSideId';
 import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -119,6 +121,10 @@ AllWeekOfList:any[]=[];
   noClientSideId: Boolean = false;
   employeeList:any[];
   selectedFile: File | null = null;
+  empClientSideObj: EmployeeClientSideIdMapping = new EmployeeClientSideIdMapping();
+  updateExistingClientSideId: Boolean = false;
+  projectClientIdList: ProjectClientSideId[] = [];
+
   previewUrl: SafeResourceUrl | null = null;
   rawObjectUrl: string | null = null;
   fileType: 'pdf' | 'image' | null = null;
@@ -1027,6 +1033,15 @@ setTotalWorkingClientHours() {
       }
     }
 
+    if(this.timesheetObj.hasClientSideId){
+      if(this.timesheetObj.selectedFile == null){
+        this.openAlertMod(template,"Please upload Timesheet Proof!")
+        return false;
+      } else {
+        this.timesheetObj.selectedFile = this.selectedFile;
+      }
+    }
+
     return true;
   }
 
@@ -1072,7 +1087,7 @@ setTotalWorkingClientHours() {
     }else{
       this.timesheetObj.currentManagerId = this.currentUser.managerId;
     }
-    
+
     console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1978,6 +1993,9 @@ setTotalWorkingClientHours() {
     this.timesheetService.getClientSideIdByProjectId(projectId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timesheetObj.clientSideId = response.serviceResponse;
+        if(this.updateExistingClientSideId){
+          this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+        }
       } else {
         console.error(response.serviceResponse);
       }
@@ -2035,6 +2053,7 @@ setTotalWorkingClientHours() {
 
   openSelfModal2(template: TemplateRef<any>) {
     this.selfClientIdUpdateModalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.getActiveProjectsAndClientSideIdByEmpId();
   }
 
   hideSelfModal2(): void {
@@ -2044,7 +2063,7 @@ setTotalWorkingClientHours() {
   }
 
   openSelfModal3(template: TemplateRef<any>) {
-    this.updateClientIdModalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.updateClientIdModalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   hideSelfModal3(): void {
@@ -2074,6 +2093,65 @@ setTotalWorkingClientHours() {
       }
     });
   }
+
+  createClientSideIdMapping(template: TemplateRef<any>) {
+    this.empClientSideObj.empId = this.currentUser.empId;
+    this.timesheetService.createClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse)
+      }
+    });
+    this.resetUpdateClientSideId();
+  }
+
+  updateClientSideIdMapping(template: TemplateRef<any>) {
+    this.empClientSideObj.empId = this.currentUser.empId;
+    this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse)
+      }
+    });
+    this.resetUpdateClientSideId();
+  }
+
+  onProjectChange(projId: any): void {
+    if (this.updateExistingClientSideId) {
+      this.getClientSideIdByProjectId(projId);
+    }
+  }
+
+  resetUpdateClientSideId(){
+    this.empClientSideObj = new EmployeeClientSideIdMapping();
+  }
+
+  getActiveProjectsAndClientSideIdByEmpId(){
+    this.timesheetService.getActiveProjectsAndClientSideIdByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectClientIdList = response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getProjectTooltip(project: any): string {
+    if (!this.updateExistingClientSideId && project.clientSideId) {
+      return `Already mapped with Client Side ID: ${project.clientSideId}. Toggle ON to update.`;
+    } else if (this.updateExistingClientSideId && !project.clientSideId) {
+      return `No Client Side ID found for this project`;
+    }
+    return '';
+  }
+
+  onUpdateToggle(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    this.updateExistingClientSideId = inputElement.checked;
+  }
+
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
