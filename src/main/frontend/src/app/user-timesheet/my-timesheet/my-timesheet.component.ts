@@ -16,6 +16,7 @@ import { Leave } from 'src/app/models/leave';
 import { Project } from 'src/app/models/project';
 import { ProjectClientSideId } from 'src/app/models/projectClientSideId';
 import { Timesheet } from 'src/app/models/timesheet';
+import { TimesheetDoc } from 'src/app/models/timesheetDoc';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
@@ -2040,6 +2041,7 @@ setTotalWorkingClientHours() {
     this.fileType = file.type === 'application/pdf' ? 'pdf' : 'image';
     this.selectedFile = file;
     this.fileName = file.name;
+    console.log(this.selectedFile,"::this.selectedFile",this.fileName,"::this.fileName")
   }
 
   clearPreviousSelections(){
@@ -2158,6 +2160,9 @@ setTotalWorkingClientHours() {
   }
 
   payloadForFileUpload() {
+    if (!this.timesheetObj.documentData) {
+      this.timesheetObj.documentData = new TimesheetDoc();
+    }
     this.timesheetObj.documentData.docName = this.fileName;
     this.timesheetObj.documentData.docFile = this.selectedFile;
     this.timesheetObj.documentData.empId = this.timesheetObj.empId;
