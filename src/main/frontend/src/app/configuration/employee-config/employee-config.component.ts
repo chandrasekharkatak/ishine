@@ -1699,6 +1699,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   // Final ID with prefix
   employee.employeementId = enteredId;
+  employee.employeeType = this.employeeObj.employeeType;
 
   this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Fail") {
@@ -1750,7 +1751,7 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateApmosysEmail(this.employeeObj.email)) {
+    if (!this.validationService.validateApmosysEmail(this.employeeObj.email,this.employeeObj.employeeType)) {
       this.alertMessage = "Please Enter Valid Email ID !!"
       this.openAlertMod(template, this.alertMessage);
       this.employeeObj.email = '';

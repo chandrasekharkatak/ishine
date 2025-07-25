@@ -4882,7 +4882,14 @@ public class EmployeeService {
 		logBuilder.append("email : " + employeedto.getEmail());
 
 		try {
-			Employee checkEmployeementId = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
+			String employeeType = employeedto.getEmployeeType();
+			Employee checkEmployeementId;
+			if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
+			} else {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
+			}
+//			Employee checkEmployeementId = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
 //			DraftEmployee checkDraftEmployeementId = draftEmployeeRepository
 //					.findByEmployeementId(employeedto.getEmployeementId());
 
@@ -4891,12 +4898,12 @@ public class EmployeeService {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				
 			} else {
-				if (checkEmployeementId != null && employeedto.getEmployeementId().equals(checkEmployeementId.getEmployeementId())) {
+//				if (checkEmployeementId != null && employeedto.getEmployeementId().equals(checkEmployeementId.getEmployeementId())) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employeement ID already exist!");
 					apiLogInfo.setApiResponse("Employeement ID already exist!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
+//				}
 				
 			}
 

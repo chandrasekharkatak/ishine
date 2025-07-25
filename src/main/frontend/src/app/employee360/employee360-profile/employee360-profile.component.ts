@@ -1110,7 +1110,7 @@ export class Employee360ProfileComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateApmosysEmail(this.employeeObj.email)) {
+    if (!this.validationService.validateApmosysEmail(this.employeeObj.email,this.employeeObj.employeeType)) {
       this.alertMessage = "Please Enter Valid Email ID !!"
       this.openAlertMod(template, this.alertMessage);
       this.employeeObj.email = '';

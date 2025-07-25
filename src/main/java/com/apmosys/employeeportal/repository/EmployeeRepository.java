@@ -1081,5 +1081,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	        @Param("poProjectType") String poProjectType,
 	        @Param("days") Integer days,
 	        @Param("deptId") List<Long> deptId);
+	
+	
+	
+	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApmosysProduct = 'true'")
+	Employee findByEmployeementIdForApmosysProduct(@Param("empId") Long empId);
+	
+	
+	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') ")
+	Employee findByEmployeementIdForOthers(@Param("empId") Long empId);
 
 }

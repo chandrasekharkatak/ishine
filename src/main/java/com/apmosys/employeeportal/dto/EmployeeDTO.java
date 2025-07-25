@@ -340,6 +340,7 @@ this.isApmosysProduct = isApmosysProduct;
     private String deptName;
     private List<Long> deptId;
     private Integer days;
+    private String employeeType;
     
     //added
     private String isApmosysProduct;
