@@ -463,6 +463,22 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-md-3 mb-0">
+                                    <div class="info-wrapper">
+                                        <div class="form-group">
+                                            <label class="info-label"><span class="text-danger">*</span> Upload Timesheet Proof</label>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="file" class="form-control form-control-sm"
+                                                    accept=".pdf,.jpg,.jpeg,.png" (change)="onFileSelected($event)">
+                                                    <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
+                                                        [disabled]="!previewUrl" (click)="openPreviewModal()">
+                                                        <i class="fa fa-eye fa-lg text-primary"></i>
+                                                    </button>
+                                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="col-md-1 d-flex">
                                     <div class="m-0 mt-4 pt-2">
                                         <button type="button" class="btn btn-sm btn-outline-primary mx-1"
@@ -815,3 +831,22 @@
         <button type="button" class="btn btn-yes-alert" (click)="hideSelfModal3()">OK</button>&nbsp;
     </div>
 </ng-template>
+
+ <!-- Preview Modal Template -->
+    <ng-template #previewTemplate>
+        <div class="modal-header">
+            <h5 class="modal-title">Document Preview</h5>
+            <button type="button" class="close" aria-label="Close" (click)="modalRef?.hide()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body text-center">
+            <!-- PDF Preview -->
+            <iframe *ngIf="fileType === 'pdf'" [src]="previewUrl" width="100%" height="400px"
+                style="border: none;"></iframe>
+
+            <!-- Image Preview -->
+            <img *ngIf="fileType === 'image'" [src]="previewUrl" class="img-fluid" alt="Preview"
+                style="max-height: 400px;">
+        </div>
+    </ng-template>
