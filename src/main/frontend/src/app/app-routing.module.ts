@@ -87,6 +87,7 @@ import { DocumentUploadComponent } from './user-update-info/document-upload/docu
 import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
+import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -136,6 +137,7 @@ const routes: Routes = [
       { path: 'my-timesheet', component: MyTimesheetComponent, },
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
       { path: 'biomax-request', component: BiomaxApprovalComponent, },
+      { path: 'hr-dashboard', component: HrDashboardComponent, },
     
     ]
   },
@@ -152,6 +154,7 @@ const routes: Routes = [
       { path: 'my-timesheet', component: MyTimesheetComponent, },
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
       { path: 'biomax-request', component: BiomaxApprovalComponent, },
+      { path: 'hr-dashboard', component: HrDashboardComponent, },
     ]
   },
   {path:'user-team', component: UserTeamComponent, canActivate: [AuthGuard],
