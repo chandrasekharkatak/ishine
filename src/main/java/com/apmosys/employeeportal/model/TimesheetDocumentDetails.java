@@ -33,6 +33,9 @@ public class TimesheetDocumentDetails {
 	@Column(name = "doc_data")
 	private byte[] docData;
 	
+	@Column(name = "doc_mime_type")
+	private String docMimeType;
+	
 //	doc_path	String (UK)
 	@Column(name = "timesheet_id")
 	private Long timesheetId;

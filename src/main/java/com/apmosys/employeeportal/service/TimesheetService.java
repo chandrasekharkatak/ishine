@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -2315,7 +2316,7 @@ public class TimesheetService {
 			timesheetDocumentDetailsDTO.setActive(true);
 			timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
 		}
-		else {
+		else if("Update".equalsIgnoreCase(oprType)) {
 			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 		}
 		
@@ -2333,10 +2334,46 @@ public class TimesheetService {
 			data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
 		data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
 	    data.setRmApprovalStatus("Pending");
-	    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());	
+	    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
+	    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
 	    return data;
 		
 	}
+	
+	public TimesheetDocumentDetailsDTO fetchTimesheetDocument(Long docId, Long timesheetId) {
+	   TimesheetDocumentDetails entity = new TimesheetDocumentDetails();
+
+	    if (docId != null) {
+	    	entity = timesheetDocumentDetailsRepository.findByDocId(docId);
+	    } else if (timesheetId != null) {
+	    	entity = timesheetDocumentDetailsRepository.findTopByTimesheetIdOrderByUpdatedOnDesc(timesheetId);
+	    } else {
+	        throw new IllegalArgumentException("Either docId or timesheetId must be provided.");
+	    }
+	    TimesheetDocumentDetailsDTO dto = new TimesheetDocumentDetailsDTO();
+	    if(entity != null) {
+	    dto.setDocId(entity.getDocId());
+	    dto.setDocName(entity.getDocName());
+	    dto.setTimesheetId(entity.getTimesheetId());
+	    dto.setEmpId(entity.getEmpId());
+	    dto.setCreatedOn(entity.getCreatedOn());
+	    dto.setCreatedBy(entity.getCreatedBy());
+	    dto.setUpdatedOn(entity.getUpdatedOn());
+	    dto.setUpdatedBy(entity.getUpdatedBy());
+	    dto.setActive(entity.getActive());
+	    dto.setClientApprovalStatus(entity.getClientApprovalStatus());
+	    dto.setRmApprovalStatus(entity.getRmApprovalStatus());
+	    dto.setFinalFlag(entity.getFinalFlag());
+
+	    if (entity.getDocData() != null) {
+	        dto.setDocDataBase64(Base64.getEncoder().encodeToString(entity.getDocData()));
+	        dto.setMimeType(entity.getDocMimeType());
+	        }
+	    }
+	    else dto = null;
+	    return dto;
+	}
+
 	
 	public ServiceResponse createClientSideIdMapping(EmployeeClientSideIdMappingDTO empClientDTO) {
 	    ServiceResponse response = new ServiceResponse();

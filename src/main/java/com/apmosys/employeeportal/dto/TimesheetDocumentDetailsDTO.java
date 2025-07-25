@@ -15,6 +15,8 @@ public class TimesheetDocumentDetailsDTO {
 	private Long docId;
 	private String docName;
 	private MultipartFile docFile;
+	private String docDataBase64;
+	private String mimeType;
 	private Long timesheetId;
 	private Long empId;
 	private LocalDateTime createdOn;
