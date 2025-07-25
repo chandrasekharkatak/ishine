@@ -2058,7 +2058,6 @@ setTotalWorkingClientHours() {
 
   openSelfModal2(template: TemplateRef<any>) {
     this.selfClientIdUpdateModalRef = this.modalService.show(template, { class: 'modal-sm' });
-    this.getActiveProjectsAndClientSideIdByEmpId();
   }
 
   hideSelfModal2(): void {
@@ -2069,6 +2068,7 @@ setTotalWorkingClientHours() {
 
   openSelfModal3(template: TemplateRef<any>) {
     this.updateClientIdModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.getActiveProjectsAndClientSideIdByEmpId();
   }
 
   hideSelfModal3(): void {
