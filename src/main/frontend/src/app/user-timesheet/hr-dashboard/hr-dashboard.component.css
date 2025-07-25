@@ -1,0 +1,22 @@
+.card { margin: 20px auto; }
+.card-body { padding: 20px; }
+.d-flex {
+    flex-wrap: wrap;
+  }
+  
+  .flex-item {
+    min-width: 220px;
+    flex: 1 1 auto;
+  }
+  
+  .form-field {
+    width: 100%;
+    min-width: 200px;
+  }
+  
+  .search-btn {
+    height: 56px; /* To match mat-form-field height */
+    white-space: nowrap;
+    padding: 0 20px;
+  }
+  

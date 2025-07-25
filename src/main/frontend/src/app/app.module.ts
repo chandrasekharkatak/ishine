@@ -154,6 +154,7 @@ import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequ
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
+import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -279,7 +280,8 @@ import { ReimbursmentConfigComponent } from './configuration/reimbursment-config
      SafePipe,
      TravelConfigComponent,
      ReimbursmentConfigComponent,
-     TimesheetCreateSelfComponent
+     TimesheetCreateSelfComponent,
+     HrDashboardComponent
   
 
     //TestComponent

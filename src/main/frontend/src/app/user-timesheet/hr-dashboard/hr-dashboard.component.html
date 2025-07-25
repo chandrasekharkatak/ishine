@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>HR Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .card-title {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .chart-container {
+            height: 300px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid p-4">
+
+        <!-- Search -->
+        <!-- <div class="row mb-4">
+    <div class="col-md-12" style="justify-content: left;max-width: fit-content;min-width:100%">
+        <input id="employeeSearch" type="text" class="form-control" style="min-width: 200px;"
+        placeholder="Search by Name or Emp ID" aria-label="Search employee"
+        [formControl]="employeeCtrl" [matAutocomplete]="auto"
+        (input)="onEmployeeInputChange()">
+
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
+            [displayWith]="displayEmployee">
+            <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
+                {{ emp.name }}
+            </mat-option>
+        </mat-autocomplete>
+    </div>
+</div> -->
+
+        <div class="row mb-3">
+
+            <!-- Employee Search -->
+            <div class="col-md-4 mb-2">
+                <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>Search Employee</mat-label>
+                    <input matInput placeholder="Name or Emp ID" [formControl]="employeeCtrl" [matAutocomplete]="auto"
+                        (input)="onEmployeeInputChange()">
+                    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
+                        [displayWith]="displayEmployee">
+                        <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
+                            {{ emp.name }}
+                        </mat-option>
+                    </mat-autocomplete>
+                </mat-form-field>
+            </div>
+
+            <!-- From Date -->
+            <div class="col-md-3 mb-2">
+                <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>From Date</mat-label>
+                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate">
+                    <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #fromDatePicker></mat-datepicker>
+                </mat-form-field>
+            </div>
+
+            <!-- To Date -->
+            <div class="col-md-3 mb-2">
+                <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>To Date</mat-label>
+                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate">
+                    <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #toDatePicker></mat-datepicker>
+                </mat-form-field>
+            </div>
+
+            <!-- Search Button -->
+            <div class="col-md-2 mb-2">
+                <button mat-flat-button color="primary" class="w-100 search-btn" (click)="searchTimesheet()">
+                    🔍 Search
+                </button>
+            </div>
+
+        </div>
+        <!-- Time Sheet Distribution -->
+        <h4 class="mb-3 fw-bold">Time Sheet Distribution</h4>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-secondary">Total Employees</div>
+                        <div class="stat-value text-primary">248</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-success">Fully Approved</div>
+                        <div class="stat-value text-success">189</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-warning">Pending Client VMS</div>
+                        <div class="stat-value text-warning">5</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-secondary">Pending Client Approvals</div>
+                        <div class="stat-value text-secondary">12</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-warning">Pending Ishine</div>
+                        <div class="stat-value text-warning">45</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-secondary">Pending Manager Approval</div>
+                        <div class="stat-value text-secondary">12</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-danger">Document Rejected</div>
+                        <div class="stat-value text-danger">8</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-purple">Escalated Cases</div>
+                        <div class="stat-value text-primary">3</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <!-- <h6 class="text-center">VMS Status Distribution</h6> -->
+                        <div #vmsChartContainer style="width: 100%; height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <!-- <h6 class="text-center">Department Wise Employee</h6> -->
+                        <div #departmentChartContainer style="width: 100%; height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <!-- <h6 class="text-center">IShine Status Distribution</h6> -->
+                        <div #ishineChartContainer style="width: 100%; height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm" style="max-width: 350px;">
+                <div class="card-body">
+                    <div #docRejectChart style="width: 100%; height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+
+</html>

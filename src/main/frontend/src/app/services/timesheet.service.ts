@@ -133,4 +133,9 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}api/fetchEmploymentIdByEmpId?empId=${empId}`, null);
   }
 
+  getEmployeeMonthlyTimesheet(timesheetObj: Timesheet){
+    return this.http.get(`${this.baseUrl}` + `api/getOneMonthTimesheetReport`);
+  
+  }
+
 }
