@@ -135,7 +135,18 @@ export class TimesheetService {
 
   getEmployeeMonthlyTimesheet(timesheetObj: Timesheet){
     return this.http.get(`${this.baseUrl}` + `api/getOneMonthTimesheetReport`);
-  
+  }
+
+  createClientSideIdMapping(empClientSideObj: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/createClientSideIdMapping`,empClientSideObj);
+  }
+
+  updateClientSideIdMapping(empClientSideObj: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/updateClientSideIdMapping`,empClientSideObj);
+  }
+
+  getActiveProjectsAndClientSideIdByEmpId(empId: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getActiveProjectsAndClientSideIdByEmpId?empId=${empId}`, null);
   }
 
 }

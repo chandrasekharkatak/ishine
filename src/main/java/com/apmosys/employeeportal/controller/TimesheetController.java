@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -197,6 +198,21 @@ public class TimesheetController {
 	 @PostMapping("/fetchEmploymentIdByEmpId")
 	 public ServiceResponse fetchEmploymentIdByEmpId(@RequestParam Long empId) {
 	     return timesheetService.fetchEmploymentIdByEmpId(empId);
+	 }
+	 
+	 @PostMapping("/createClientSideIdMapping")
+	 public ServiceResponse createClientSideIdMapping(@RequestBody EmployeeClientSideIdMappingDTO empClientDTO) {
+	     return timesheetService.createClientSideIdMapping(empClientDTO);
+	 }
+	 
+	 @PostMapping("/updateClientSideIdMapping")
+	 public ServiceResponse updateClientSideIdMapping(@RequestBody EmployeeClientSideIdMappingDTO empClientDTO) {
+	     return timesheetService.updateClientSideIdMapping(empClientDTO);
+	 }
+	 
+	 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
+	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestParam Long empId) {
+	     return timesheetService.getActiveProjectsAndClientSideIdByEmpId(empId);
 	 }
 	 
 }

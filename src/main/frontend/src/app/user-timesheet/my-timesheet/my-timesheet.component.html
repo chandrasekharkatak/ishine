@@ -839,39 +839,52 @@
 
 <ng-template #update_clientId>
     <div class="modal-body text-center">
-        <h6>Please update your Client Side ID</h6>
+        <h5>Please update your Client Side ID</h5>
+        <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="hierarchy-switch-1" [checked]="updateExistingClientSideId"
+                (change)="onUpdateToggle($event)">
+            <label class="custom-control-label" for="hierarchy-switch-1">Update existing Client Side ID</label>
+        </div>
+    </div>
+    <div class="modal-body">
         <div class="row">
-            <div class="col-md-3 mb-0">
+            <div class="col-md-6 mb-0">
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Project</label>
                         <mat-select ngxMatSelect class="form-control"
-                                #filterActiveProjects="ngxMatSelect"
-                                [displayMember]="'projectName'"
-                                [valueMember]="'projectId'"
-                                [source]="activeProjectList"
-                                [useInfiniteScroll]="true"
-                                (selectionChange)="getClientSideIdByProjectId(timesheetObj.projectId)"
-                                [multiple]="false"
-                                [(ngModel)]="timesheetObj.projectId"
-                                >
-                                <mat-option [value]="project.projectId" *ngFor="let project of filterActiveProjects.filteredSource">
-                                {{project.projectName}}
-                                </mat-option>
+                            #filterActiveProject="ngxMatSelect"
+                            [displayMember]="'projectName'"
+                            [valueMember]="'projectId'"
+                            [source]="projectClientIdList"
+                            [useInfiniteScroll]="true"
+                            [multiple]="false"
+                            [(ngModel)]="empClientSideObj.projectId"
+                            (selectionChange)="onProjectChange(empClientSideObj.projectId)"
+                        >
+                        <mat-option
+                            [value]="project.projectId" *ngFor="let project of filterActiveProject.filteredSource"
+                            [disabled]="(!updateExistingClientSideId && project.clientSideId) || (updateExistingClientSideId && !project.clientSideId)"
+                            [title]="getProjectTooltip(project)">
+                            {{ project.projectName }}
+                        </mat-option>
                         </mat-select>
                     </div>
                 </div>
-                <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && !timesheetObj.hasClientSideId && !noClientSideId">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label">Client Side Id</label>
-                            <input class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.clientSideId">
-                        </div>
+            </div>
+            <div class="col-md-6 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label">Client Side Id</label>
+                        <input class="form-control" autocomplete="none" [(ngModel)]="empClientSideObj.clientSideId">
                     </div>
                 </div>
             </div>
         </div>
-        <button type="button" class="btn btn-yes-alert" (click)="hideSelfModal3()">OK</button>&nbsp;
+    </div>
+    <div class="modal-body text-center">
+        <button *ngIf = "!updateExistingClientSideId" type="button" class="btn btn-yes-alert" (click)="hideSelfModal3();createClientSideIdMapping(alert_message)">Set</button>&nbsp;
+        <button *ngIf = "updateExistingClientSideId" type="button" class="btn btn-yes-alert" (click)="hideSelfModal3();updateClientSideIdMapping(alert_message)">Update</button>&nbsp;
         <button type="button" class="btn btn-yes-alert" (click)="hideSelfModal3()">Cancel</button>&nbsp;
     </div>
 </ng-template>

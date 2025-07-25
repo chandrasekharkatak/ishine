@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.model.Timesheet;
@@ -315,5 +316,13 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 				"inner join EmployeeTeamMap etm on etm.teamId = t.teamId \n"+
 				"where etm.empId = :empId and etm.active = 1")
 		public List<ProjectDTO> getActiveProjectsByEmpId(Long empId);
+		
+		@Query(value ="select new com.apmosys.employeeportal.dto.ProjectClientSideIdDTO(CAST(p.projectId as long), p.projectName, ecsm.clientSideId )  \n"+
+				"from Project p  \n"+
+				"inner join Team t on t.projectId = p.projectId \n"+
+				"inner join EmployeeTeamMap etm on etm.teamId = t.teamId \n"+
+				"inner join EmployeeClientSideIdMapping ecsm on ecsm.projectId = p.projectId \n"+
+				"where etm.empId = :empId and etm.active = 1 and ecsm.active = true")
+		public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(Long empId);
 	
 }
