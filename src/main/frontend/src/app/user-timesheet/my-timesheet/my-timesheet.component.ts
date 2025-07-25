@@ -118,10 +118,11 @@ AllWeekOfList:any[]=[];
   updateClientIdModalRef: BsModalRef = new BsModalRef();
   noClientSideId: Boolean = false;
   employeeList:any[];
-
+  selectedFile: File | null = null;
   previewUrl: SafeResourceUrl | null = null;
-  fileError: string = '';
+  rawObjectUrl: string | null = null;
   fileType: 'pdf' | 'image' | null = null;
+  fileError: string = '';
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -1985,7 +1986,7 @@ setTotalWorkingClientHours() {
   openPreviewModal(){
     this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
   }
-  onFileSelected(event: any): void {
+ onFileSelected(event: any): void {
     const file: File = event.target.files[0];
     this.fileError = '';
     this.previewUrl = null;
@@ -2006,11 +2007,16 @@ setTotalWorkingClientHours() {
       return;
     }
 
+    if (this.rawObjectUrl) {
+      URL.revokeObjectURL(this.rawObjectUrl);
+    }
+
     const objectUrl = URL.createObjectURL(file);
+    this.rawObjectUrl = objectUrl;
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
     this.fileType = file.type === 'application/pdf' ? 'pdf' : 'image';
+    this.selectedFile = file;
   }
-
   clearPreviousSelections(){
     this.selectedProjectId = null;
   }
