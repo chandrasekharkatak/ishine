@@ -49,7 +49,7 @@ public class MilestoneUpdatedLog {
     private String poNumber;
     
     @Column(name = "extended_date")
-    private Date ExtendedDate;
+    private Date extendedDate;
     
     
     @Column(name = "updated_by")

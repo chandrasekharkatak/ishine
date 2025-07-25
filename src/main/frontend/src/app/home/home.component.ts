@@ -2,6 +2,7 @@ import { LocationStrategy } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import * as CryptoJS from 'crypto-js';
 import * as HighCharts from 'highcharts';
@@ -34,6 +35,11 @@ import { TimesheetService } from '../services/timesheet.service';
 import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
 import { TimesheetCreateSelfComponent } from '../timesheet-create-self/timesheet-create-self.component';
+import { ProjectService } from '../services/project.service';
+
+import { MilestoneToBeExpired } from '../models/milestoneToBeExpired';
+import { MilestoneExtendReason } from '../models/MilestoneExtendReason';
+import { MilestoneUpdatedLog } from '../models/MilestoneUpdatedLog';
 
 interface objlms {
   email: any
@@ -114,6 +120,17 @@ export class HomeComponent implements OnInit, AfterViewInit {
   bulkCompOffApprove: any = [];
   bulkCompOffReject: any = [];
   overLapsLeaveForManager: any = [];
+  milestoneToBeExpired: MilestoneToBeExpired[] = [];
+  milestoneExtendReason: MilestoneExtendReason[] = [];
+  milestoneExpiredPage = 1;
+
+  milestoneExpiredSortColumn = 'endDate';
+  milestoneExpiredSortColumnType = 'string';
+  milestoneExpiredSortDirection = 'asc';
+  isOtherReasonSelected: boolean = false;
+  milestoneCount: number = 0;
+  selectedMilestone: MilestoneToBeExpired | null = null;
+
   fieldTextType: boolean = false;
   fieldTextTypePassword: boolean = false;
   fieldTextTypeOldPass: boolean = false;
@@ -156,6 +173,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   isTimesheetFormVisible: boolean = false;
   lastTimesheetData: any = null;
 
+  milestoneForm!: FormGroup;
+
   leaveObj = new Leave();
 
   @ViewChild("thisMonthCal")
@@ -175,6 +194,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   @ViewChild('poexpire_template_fixed')
   poExpireTemplateRef: TemplateRef<any>;
+
+
+  @ViewChild('milestone_expired_list_modal') milestoneExpiredListModalRef!: TemplateRef<any>;
+
+  @ViewChild('milestoneDetailModal') milestoneDetailModalRef!: TemplateRef<any>;
+  @ViewChild('milestoneExpireValidationPupup') milestoneExpireValidationPupup: TemplateRef<any>;
+
 
 
   @ViewChild('mailSentPopUp')
@@ -236,6 +262,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     public utilityService: UtilityService,
     private cdr: ChangeDetectorRef,
     public employee360Service: Employee360Service,
+    public projectService: ProjectService,
+    private fb: FormBuilder,
+
   ) {
     this.authenticationService.currentUser.subscribe(x => {
       this.currentUser = x;
@@ -280,6 +309,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
       };
       this.bodyComponent.openChangePasswordOnFirstTimeLoggin();
 
+
+
+
+
     }
 
 
@@ -300,6 +333,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
 
     this.getAllNotifications();
+    this.fetchMilestones();
+    this.initMilestoneForm();
+    this.featchingmilestoneExtensionReason();
     this.getAllLeaveTypesByLeavePolicies(this.currentUser);
     if (this.userMapping.view_birthday_list) this.getAllEmployeesBirthDayToday();
     if (this.userMapping.view_work_anniversary_list) this.getAllEmployeesWorkAnniversaryToday();
@@ -2464,20 +2500,20 @@ export class HomeComponent implements OnInit, AfterViewInit {
             else {
               // this.lastTimesheetData = JSON.parse(JSON.stringify(res.serviceResponse));
               const originalData = JSON.parse(JSON.stringify(res.serviceResponse));
-            const selectedDate = day?.displayDate; // e.g., '2025-07-04'
+              const selectedDate = day?.displayDate; // e.g., '2025-07-04'
 
-          
-            const fixDateTime = (datetime: string): string => {
-              if (!datetime || !selectedDate) return datetime;
-              const timePart = datetime.split(' ')[1]; 
-              return `${selectedDate} ${timePart}`;
-            };
 
-            originalData.officeInTime = fixDateTime(originalData.officeInTime);
-            originalData.officeOutTime = fixDateTime(originalData.officeOutTime);
-            originalData.date = selectedDate;
+              const fixDateTime = (datetime: string): string => {
+                if (!datetime || !selectedDate) return datetime;
+                const timePart = datetime.split(' ')[1];
+                return `${selectedDate} ${timePart}`;
+              };
 
-            this.lastTimesheetData = originalData;
+              originalData.officeInTime = fixDateTime(originalData.officeInTime);
+              originalData.officeOutTime = fixDateTime(originalData.officeOutTime);
+              originalData.date = selectedDate;
+
+              this.lastTimesheetData = originalData;
             }
           } else {
             this.lastTimesheetData = null;
@@ -2627,8 +2663,209 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
   }
 
-}
 
+  fetchMilestones(): void {
+    const rmEmail = this.currentUser.email;
+
+    this.projectService.getAllMilestoneToBeExpired(rmEmail).subscribe({
+      next: (response) => {
+        console.log('Milestones to be expired fetched:', response);
+        const milestoneLength = Array.isArray(response.serviceResponse) ? response.serviceResponse.length : 0;
+        console.log('Number of milestones to be expired:', milestoneLength);
+
+        if (response.serviceStatus === 'Success' && milestoneLength > 0) {
+          this.milestoneToBeExpired = response.serviceResponse;
+          this.milestoneCount = milestoneLength;
+        }
+
+      },
+      error: (error) => {
+        console.error('Error fetching milestones:', error);
+
+      }
+    });
+  }
+  sortMilestoneExpiredData(event: any): void {
+    this.milestoneExpiredSortColumn = event.active;
+    this.milestoneExpiredSortColumnType = 'string'; // you can map by column if needed
+    this.milestoneExpiredSortDirection = event.direction || 'asc';
+  }
+  openMilestoneExpiredListModal(): void {
+    this.modalRef = this.modalService.show(this.milestoneExpiredListModalRef, {
+      class: 'modal-xl'
+    });
+  }
+
+  closeMilestoneExpiredListModal(): void {
+    this.modalRef?.hide();
+  }
+
+
+
+  private initMilestoneForm(): void {
+    this.milestoneForm = this.fb.group({
+      projectName: [''],
+      lineItemName: [''],
+      name: [''],
+      startDate: [''],
+      endDate: [''],
+      extendedDate: ['', Validators.required],
+      status: [''],
+      customReason: [''],
+      extensionReasonId: [null, Validators.required]
+    });
+
+
+
+
+
+
+
+
+
+  }
+
+
+
+
+  updateMilestoneDetails(milestone: MilestoneToBeExpired): void {
+
+    this.selectedMilestone = milestone;
+    this.milestoneForm.patchValue({
+      projectName: milestone.projectName,
+      lineItemName: milestone.lineItemName,
+      name: milestone.name,
+      startDate: this.formatDate(milestone.startDate),
+      endDate: this.formatDate(milestone.endDate),
+      status: milestone.status,
+      extendedDate: this.formatDate(milestone.extendedDate)
+
+    });
+
+    this.modalRef = this.modalService.show(this.milestoneDetailModalRef, { class: 'modal-lg' });
+  }
+
+  featchingmilestoneExtensionReason() {
+    this.projectService.getAllMilestoneExtendReason().subscribe({
+      next: (response) => {
+        console.log('AllMilestoneExtendReason to be expired fetched:', response);
+
+
+
+        if (response.serviceStatus === 'Success') {
+          this.milestoneExtendReason = response.serviceResponse;
+
+        }
+
+      },
+      error: (error) => {
+        console.error('Error fetching milestones:', error);
+
+      }
+    });
+  }
+response1:any;
+  updateMilestoneExtendedDateWithReason(): void {
+
+    if (this.milestoneForm.invalid) {
+
+      this.openAlertMod(this.milestoneExpireValidationPupup, "Please fill all required fields correctly.");
+      this.milestoneForm.markAllAsTouched();
+      return;
+    }
+    
+    const formValues = this.milestoneForm.value;
+
+    console.log("selectedMilestone" + this.selectedMilestone);
+
+    const payload: MilestoneUpdatedLog = {
+      milestoneId: this.selectedMilestone.id,
+      poId: this.selectedMilestone.poId,
+      projectId: this.selectedMilestone.projectId,
+
+      milestoneName: this.selectedMilestone.name,
+      milestoneStartDate: this.selectedMilestone.startDate
+        ? new Date(this.selectedMilestone.startDate).toISOString().split('T')[0]
+        : null,
+      milestoneEndDate: this.selectedMilestone.endDate
+        ? new Date(this.selectedMilestone.endDate).toISOString().split('T')[0]
+        : null,
+      description: this.selectedMilestone.description,
+      remarks: this.selectedMilestone.remarks,
+      milestoneStatus: this.selectedMilestone.status,
+
+      lineItemId: this.selectedMilestone.lienItemId,
+      lineItemName: this.selectedMilestone.lineItemName,
+      projectName: this.selectedMilestone.projectName,
+      poNumber: this.selectedMilestone.poNo,
+
+
+      extendedDate: formValues.extendedDate,
+      updatedBy: this.currentUser.empId,
+
+      milestoneExtensionReasonId: formValues.extensionReasonId,
+      milestoneExtensionReasonText: formValues.customReason
+    };
+
+    console.log('Payload for milestone extension:', payload);
+    
+    this.projectService.updateMilestoneExtendedDate(payload).subscribe({
+      next: (response) => {
+        this.response1=response.serviceMessage;
+        console.log('Milestone extension response:', response);
+        if (response.serviceStatus === 'Success') {
+
+          this.openAlertMod(this.milestoneExpireValidationPupup, response.serviceMessage);
+          this.closeMilestoneDetailModal();
+
+        } else {
+
+        }
+      },
+      error: (error) => {
+        console.error('Error updating milestone:', error);
+                  this.openAlertMod(this.milestoneExpireValidationPupup, this.response1);
+
+      }
+    });
+  }
+
+
+
+  onReasonChange(event: Event): void {
+    const selectedValue = (event.target as HTMLSelectElement).value;
+    const selectedReason = this.milestoneExtendReason.find(
+      r => r.id === +selectedValue
+    );
+
+    this.isOtherReasonSelected = selectedReason?.milestoneExtensionReason === 'Other';
+
+    if (this.isOtherReasonSelected) {
+      this.milestoneForm.get('customReason')?.reset();
+      this.milestoneForm.get('customReason')?.setValidators([Validators.required]);
+    } else {
+      this.isOtherReasonSelected = false;
+      this.milestoneForm.get('customReason')?.clearValidators();
+      this.milestoneForm.get('customReason')?.setValue('');
+    }
+    this.milestoneForm.get('extendedDate')?.updateValueAndValidity();
+
+  }
+
+
+
+  closeMilestoneDetailModal(): void {
+    this.modalRef?.hide();
+  }
+
+  private formatDate(date: Date | string): string {
+    if (!date) return '';
+    return new Date(date).toLocaleDateString('en-GB'); // dd/MM/yyyy
+  }
+
+
+
+}
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

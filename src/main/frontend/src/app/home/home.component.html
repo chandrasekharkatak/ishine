@@ -153,6 +153,23 @@
                     EXP PO
                 </a>
             </li>
+            <li class="nav-item mx-2 position-relative" *ngIf="milestoneCount > 0">
+                <button class="btn btn-light position-relative small-notification-btn"
+                    (click)="openMilestoneExpiredListModal()">
+                    <i class="fas fa-bell text-dark small-notification-icon"></i>
+                    <span *ngIf="milestoneCount > 0"
+                        class="badge bg-danger text-white position-absolute top-0 start-100 translate-middle small-badge">
+                        {{ milestoneCount }}
+                    </span>
+                </button>
+            </li>
+
+
+
+
+
+
+            &nbsp;
             <li class="nav-item pt-1 mr-2">
                 <small class="nav-text">Profile Completed</small>
                 <div class="progress profileCompleted">
@@ -505,8 +522,9 @@
                 </div>
             </div>
             <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
-               aria-labelledby="thisMonth-tabpanel">
-                <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails" (openTimesheet)="renderTimesheet($event)"></app-calendar>
+                aria-labelledby="thisMonth-tabpanel">
+                <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"
+                    (openTimesheet)="renderTimesheet($event)"></app-calendar>
             </div>
             <div class="tab-pane fade timesheet__tab-container pt-2" id="lastMonth-tabpanel" role="tabpanel"
                 (click)="renderTimesheet()" aria-labelledby="lastMonth-tabpanel">
@@ -1556,10 +1574,8 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
                     <app-timesheet-create-self *ngIf="isTimesheetFormVisible" [autofillData]="lastTimesheetData"
                         (teamMemberSelected)="onTeamMemberSelected($event)" (createTimesheet)="onCreateTimesheet()"
                         (timesheetSubmitted)="onTimesheetSubmissionComplete()"
-                        
-                          [showNoTimesheetPopupTrigger]="triggerNoTimesheetPopup"
-                          [showNoTimesheetPopupTriggerForInActiveEmployee]="triggerNoTimesheetPopupForInactiveEmployee"
-                          >
+                        [showNoTimesheetPopupTrigger]="triggerNoTimesheetPopup"
+                        [showNoTimesheetPopupTriggerForInActiveEmployee]="triggerNoTimesheetPopupForInactiveEmployee">
                     </app-timesheet-create-self>
 
 
@@ -1576,3 +1592,182 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
             </div>
         </div>
     </div>
+
+
+
+
+    <ng-template #milestone_expired_list_modal>
+        <div class="modal-header">
+            <h4 class="modal-title">Milestones to be Expired</h4>
+            <button type="button" class="close" aria-label="Close" (click)="closeMilestoneExpiredListModal()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <div class="table-container" bassHorizontalScroll>
+                <table class="table table-bordered" matSort (matSortChange)="sortMilestoneExpiredData($event)">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Sr. No</th>
+                            <th mat-sort-header="projectName|string">Project Name</th>
+                            <th mat-sort-header="lineItemName|string">Line Item</th>
+                            <th mat-sort-header="name|string">Milestone Name</th>
+
+                            <th mat-sort-header="startDate|string">Start Date</th>
+                            <th mat-sort-header="endDate|string">End Date</th>
+                            <th>Status</th>
+
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <ng-container *ngIf="milestoneToBeExpired.length === 0">
+                            <tr>
+                                <td colspan="10" class="text-center">No milestones to display...</td>
+                            </tr>
+                        </ng-container>
+
+                        <ng-container
+                            *ngFor="let milestone of milestoneToBeExpired | sort : [milestoneExpiredSortColumn, milestoneExpiredSortColumnType, milestoneExpiredSortDirection] | paginate: { itemsPerPage: 10, currentPage: milestoneExpiredPage }; let i = index">
+                            <tr>
+                                <td>{{ i + 1 }}</td>
+                                <td>{{ milestone.projectName }}</td>
+                                <td>{{ milestone.lineItemName }}</td>
+                                <td>{{ milestone.name }}</td>
+
+                                <td>{{ milestone.startDate | date: 'dd/MM/yyyy' }}</td>
+                                <td>{{ milestone.endDate | date: 'dd/MM/yyyy' }}</td>
+                                <td>{{ milestone.status }}</td>
+
+                                <td>
+
+                                    <button class="btn btn-sm btn-info" (click)="updateMilestoneDetails(milestone)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </ng-container>
+                    </tbody>
+                </table>
+
+                <div class="row col-md-12">
+                    <pagination-controls class="my-pagination" [hidden]="milestoneToBeExpired.length === 0"
+                        (pageChange)="milestoneExpiredPage = $event">
+                    </pagination-controls>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeMilestoneExpiredListModal()">Close</button>
+        </div>
+    </ng-template>
+
+
+
+
+    <ng-template #milestoneDetailModal>
+        <div class="modal-header border-bottom">
+            <h5 class="modal-title fw-semibold">Milestone Details</h5>
+            <button type="button" class="btn-close" aria-label="Close" (click)="closeMilestoneDetailModal()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form [formGroup]="milestoneForm" (ngSubmit)="updateMilestoneExtendedDateWithReason()">
+            <div class="modal-body">
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Project Name</label>
+                        <input type="text" class="form-control form-control-sm border-primary rounded"
+                            formControlName="projectName" readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Line Item</label>
+                        <input type="text" class="form-control form-control-sm border-primary rounded"
+                            formControlName="lineItemName" readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Milestone Name</label>
+                        <input type="text" class="form-control form-control-sm border-primary rounded"
+                            formControlName="name" readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Start Date</label>
+                        <input type="text" class="form-control form-control-sm border-primary rounded"
+                            formControlName="startDate" readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">End Date</label>
+                        <input type="text" class="form-control form-control-sm border-primary rounded"
+                            formControlName="endDate" readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Status</label>
+                        <input type="text" class="form-control form-control-sm border-primary rounded"
+                            formControlName="status" readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Extended Date</label>
+                        <input class="form-control form-control-sm border-primary rounded" autocomplete="off"
+                            [formControl]="$any(milestoneForm.get('extendedDate'))"
+                            [owlDateTimeTrigger]="extendedDatePicker" [owlDateTime]="extendedDatePicker"
+                            placeholder="Select Extended Date" />
+                        <owl-date-time #extendedDatePicker></owl-date-time>
+                    </div>
+
+
+                    <div class="col-md-6">
+                        <label for="extensionReasonId">Reason</label>
+                        <select class="form-control form-control-sm border-primary rounded" id="extensionReasonId"
+                            formControlName="extensionReasonId" (change)="onReasonChange($event)">
+                            <option [ngValue]="null" disabled>Select Reason</option>
+                            <option *ngFor="let reason of milestoneExtendReason" [value]="reason.id">
+                                {{ reason.milestoneExtensionReason }}
+                            </option>
+                        </select>
+                    </div>
+
+
+
+
+                    <!-- Conditional Text Field -->
+                    <div class="col-md-12" *ngIf="isOtherReasonSelected">
+                        <label class="form-label fw-semibold">Enter Custom Reason</label>
+                        <input type="text" class="form-control form-control-sm border-primary rounded"
+                            formControlName="customReason" placeholder="Specify your reason" />
+                    </div>
+
+
+                </div>
+            </div>
+
+            <div class="modal-footer border-top mt-3">
+                <button type="button" class="btn btn-secondary" (click)="closeMilestoneDetailModal()">Close</button>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+    </ng-template>
+
+
+
+
+    <ng-template #milestoneExpireValidationPupup>
+
+        <div class="modal-body text-center">
+
+            <p class="mb-3">{{ alertMessage }}</p>
+            <button type="button" class="btn btn-primary btn-sm px-4" (click)="cancelRequest()">OK</button>
+
+        </div>
+
+
+    </ng-template>

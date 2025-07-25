@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Project } from '../models/project';
 import { FCProjectMilestone } from '../models/fcProjectMilestone';
+import { MilestoneUpdatedLog } from '../models/MilestoneUpdatedLog';
 
 @Injectable({
   providedIn: 'root'
@@ -90,5 +91,23 @@ deleteTeamsByIdsBulk(teamObj: any){
     return this.http.get(`${this.baseUrl}` + `api/getMilestoneById`, { params: { milestoneId: milestoneId} });
   }
 
+  getAllMilestoneExtendReason():Observable<any>{
+    return this.http.get(`${this.baseUrl}` + `api/getAllMilestoneExtendReason`);
+  }
+
+ getAllMilestoneToBeExpired(rmEmail: string): Observable<any> {
+  const payload = {
+    rmEmail: rmEmail,
+    hodEmail: null
+  };
+
+  return this.http.post(`${this.baseUrl}`+`api/getAllMilestoneToBeExpired`, payload);
+}
+
+
+updateMilestoneExtendedDate(MilestoneUpdatedLog: MilestoneUpdatedLog): Observable<any> {
+  return this.http.put(`${this.baseUrl}` + `api/updateMilestoneExtendedDate`, MilestoneUpdatedLog);
+
+}
 
 }

@@ -441,3 +441,86 @@ thead {
     top: -0.7px;
     z-index: 100;
 }
+
+.small-notification-btn {
+  width: 36px;
+  height: 36px;
+  padding: 4px;
+}
+
+.small-notification-icon {
+  font-size: 16px;
+}
+
+.small-badge {
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  line-height: 16px;
+  padding: 0;
+}
+
+
+.styled-input {
+  border: 1px solid #4a3aff;
+  border-radius: 0.7rem;
+  box-shadow: none;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.styled-input:focus {
+  box-shadow: 0 0 0 2px rgba(74, 58, 255, 0.2);
+  border-color: #4a3aff;
+}
+
+.modal-body .form-group input,
+input[formControlName="extendedDate"] {
+  border: 1px solid #4a3aff;
+  border-radius: 0.6rem;
+  padding: 0.45rem 0.75rem;
+  box-shadow: none;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  font-size: 0.95rem;
+}
+
+.modal-body .form-group input:focus,
+input[formControlName="extendedDate"]:focus {
+  border-color: #4a3aff;
+  box-shadow: 0 0 0 2px rgba(74, 58, 255, 0.15);
+  outline: none;
+}
+
+.modal-body {
+  padding-top: 1rem;
+}
+
+.modal-header {
+  border-bottom: 1px solid #e1e1e1;
+}
+
+.modal-footer {
+  border-top: 1px solid #e1e1e1;
+  padding-top: 0.75rem;
+}
+
+.form-control:read-only {
+  background-color: #f9f9f9;
+  cursor: default;
+}
+
+.form-label {
+  margin-bottom: 0.25rem;
+}
+
+.border-primary {
+  border: 1px solid #4a3aff !important;
+}
+
+.rounded {
+  border-radius: 0.5rem !important;
+}
+
+::ng-deep .modal-dialog {
+  max-width: 1300px; 
+}
+

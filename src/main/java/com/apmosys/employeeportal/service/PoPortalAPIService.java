@@ -2,15 +2,19 @@ package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
-
+import java.util.Comparator;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
+import com.apmosys.employeeportal.model.MilestoneExtensionReason;
 
 
 import org.json.JSONObject;
@@ -1028,6 +1032,10 @@ public class PoPortalAPIService {
 
 	        if (apiResponse.getStatusCode() == HttpStatus.OK && apiResponse.getBody() != null) {
 	            milestones = Arrays.asList(apiResponse.getBody());
+	            
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceMessage("Successfully retived milestone tobe expired from po");
+	            
 	            response.setServiceResponse(milestones);
 	        } else {
 	            String msg = "External API returned status: " + apiResponse.getStatusCode();
@@ -1124,19 +1132,37 @@ public class PoPortalAPIService {
 	            .lineItemName(dto.getLineItemName())
 	            .projectName(dto.getProjectName())
 	            .poNumber(dto.getPoNumber())
-	            .ExtendedDate(dto.getExtendedDate())
+	            .extendedDate(dto.getExtendedDate())
 	            .updatedBy(dto.getUpdatedBy())
 	            .build();
 	        
 	        
-	            Optional<MilestoneUpdatedLog> milestoneUpdatedLogExist=milestoneUpdatedLogRepository.findByExtendedDate(dto.getExtendedDate());
+	        System.out.println("milestoneId="+dto.getMilestoneId()+" "+"extendedDate="+dto.getExtendedDate());
+	     
+	        
+	        
+	        
+	        Optional<MilestoneUpdatedLog> milestoneUpdatedLogExist = milestoneUpdatedLogRepository.findByMilestoneNameAndExtendedDate(dto.getMilestoneName(),dto.getExtendedDate());
+	        
+	        
+
+	        if (milestoneUpdatedLogExist.isPresent()) {
+	            Date existingExtendedDate = milestoneUpdatedLogExist.get().getExtendedDate();
+	            Date newExtendedDate = dto.getExtendedDate();
 	            
-	            if (milestoneUpdatedLogExist.isPresent()) {
-	            	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            	   response.setServiceMessage("Milestone extended date already exists in the system.");
-	   	            response.setServiceResponse("Milestone extended date already exists in the system.");
-	            	
+	            System.out.println("existingExtendedDate="+existingExtendedDate+" "+"newExtendedDate="+newExtendedDate);
+	            
+	            LocalDate existingDatePart = existingExtendedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+	            LocalDate newDatePart = newExtendedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+	            if (existingExtendedDate != null && newExtendedDate != null &&
+	                !newDatePart.isAfter(existingDatePart)) {
+
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceMessage("Milestone extended date should be after it's end Date");
+	                return response;
 	            }
+	        }
+
 
 	    
 	        if (dto.getMilestoneExtensionReasonId() != null) {
@@ -1155,6 +1181,10 @@ public class PoPortalAPIService {
 	        updateRequest.setId(dto.getMilestoneId());
 	        updateRequest.setEndDate(dto.getExtendedDate());
 	        updateRequest.setUpdatedBy(dto.getUpdatedBy());
+	    
+	        
+	        System.out.println("dto.getExtendedDate()="+dto.getExtendedDate());
+	        System.out.println("updateRequest="+updateRequest.getEndDate());
 	        
 
 	       
@@ -1215,8 +1245,48 @@ public class PoPortalAPIService {
 
 	    return response;
 	}
-
 	
+	
+	public ServiceResponse getAllMilestoneExtendReason() {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    StringBuilder logBuilder = new StringBuilder("Fetching milestone extension reasons... ");
+
+	    apiLogInfo.setApiUrl("/api/getAllMilestoneExtendReason");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    try {
+	        List<MilestoneExtensionReason> reasons = milestoneExtensionReasonRepository
+	                .findAllByOrderByMilestoneExtensionReasonAsc();
+
+	        response.setServiceResponse(reasons);
+	        response.setServiceMessage("Milestone extension reasons fetched successfully.");
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        apiLogInfo.setApiResponse("Successfully retrieved milestone extension reasons.");
+	        logBuilder.append("Success.");
+	    } catch (Exception e) {
+	        logBuilder.append("Failed. Exception: ").append(e.getMessage());
+
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceMessage("Failed to fetch milestone extension reasons.");
+	        response.setServiceError(e.getMessage());
+	        response.setServiceResponse(Collections.emptyList());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("Error: " + e.getMessage());
+
+	        
+	      
+	    }
+
+	   
+	    System.out.println(logBuilder.toString());
+
+	    return response;
+	}
+
 
 	
 }

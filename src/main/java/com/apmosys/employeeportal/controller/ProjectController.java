@@ -171,4 +171,11 @@ public class ProjectController {
 		return  poPortalApiService.updateMilestoneExtendedDate(milestoneUpdatedLogDto);
 	}
 	
+	
+	@GetMapping(value = "/getAllMilestoneExtendReason")
+	public ServiceResponse getAllMilestoneExtendReason() {
+		return poPortalApiService.getAllMilestoneExtendReason();
+	}
+	
+	
 }

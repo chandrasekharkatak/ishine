@@ -1,0 +1,25 @@
+export interface MilestoneUpdatedLog {
+  milestoneId?: number;
+  poId?: number;
+  projectId?: number;
+
+  milestoneName?: string;
+  milestoneStartDate?: string;  // ISO format or 'yyyy-MM-dd'
+  milestoneEndDate?: string;
+
+  description?: string;
+  remarks?: string;
+  milestoneStatus?: string;
+
+  lineItemId?: number;
+  lineItemName?: string;
+  projectName?: string;
+  poNumber?: string;
+
+  extendedDate?: Date;  // Can also use string if needed
+
+  updatedBy?: number;
+
+  milestoneExtensionReasonId?: number;
+  milestoneExtensionReasonText?: string;
+}
