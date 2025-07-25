@@ -1275,7 +1275,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
     console.log("Add timesheetObj : ", this.timesheetObj);
 
-    this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.addTimesheet2(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         setTimeout(() => {

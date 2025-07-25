@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
@@ -40,9 +41,9 @@ public class TimesheetController {
 	}
 	
 	@RequestMapping(value = "/addTimesheet", method = RequestMethod.POST)
-	public ServiceResponse addTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
+	public ServiceResponse addTimesheet(@RequestBody TimesheetDTO timesheetDTO,@RequestParam MultipartFile doc) {
 		System.out.println("timesheetDTO list : "+timesheetDTO);
-		ServiceResponse response = timesheetService.addTimesheet(timesheetDTO);
+		ServiceResponse response = timesheetService.addTimesheet(timesheetDTO,doc);
 		return response;
 	}
 	

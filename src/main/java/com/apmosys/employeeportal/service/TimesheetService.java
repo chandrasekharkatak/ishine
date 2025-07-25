@@ -25,6 +25,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
@@ -350,7 +351,7 @@ public class TimesheetService {
 		return response;
 	}
 
-	public ServiceResponse addTimesheet(TimesheetDTO timesheetDTO) {
+	public ServiceResponse addTimesheet(TimesheetDTO timesheetDTO, MultipartFile doc) {
 		ServiceResponse response = new ServiceResponse();
 		System.out.println("timesheetDTO currentManagerId : "+timesheetDTO.getCurrentManagerId());
 		
@@ -438,12 +439,13 @@ public class TimesheetService {
 			if(timesheetDTO.getClientApprovalStatus().equalsIgnoreCase("pending") || timesheetDTO.getClientApprovalStatus().equalsIgnoreCase("approved")) {
 				TimesheetDocumentDetails docData = addTimesheetDocument(timesheetDTO.getDocumentData(),"Create");
 				docData.setTimesheetId(newTimesheetCreated.getTimesheetId());
+				docData.setDocData(doc.getBytes());
 				
 				if (docData != null) {
 				    try {
-				        TimesheetDocumentDetails doc = timesheetDocumentDetailsRepository.save(docData);
+				        TimesheetDocumentDetails docu = timesheetDocumentDetailsRepository.save(docData);
 
-				        if (doc == null) {
+				        if (docu == null) {
 				            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				            response.setServiceResponse("Timesheet added, but document not saved.");
 
@@ -2354,7 +2356,7 @@ public class TimesheetService {
 		}
 		
 		data.setDocName(timesheetDocumentDetailsDTO.getDocName());
-		data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
+		
 		data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
 		data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
 		if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
