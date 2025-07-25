@@ -1094,7 +1094,7 @@ setTotalWorkingClientHours() {
     this.timesheetObj.documentData.createdBy = this.currentUser.empId;
 
     console.log("Add timesheetObj : ", this.timesheetObj);
-    this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.addTimesheet(this.timesheetObj,this.selectedFile).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();
@@ -2164,7 +2164,6 @@ setTotalWorkingClientHours() {
       this.timesheetObj.documentData = new TimesheetDoc();
     }
     this.timesheetObj.documentData.docName = this.fileName;
-    this.timesheetObj.documentData.docFile = this.selectedFile;
     this.timesheetObj.documentData.empId = this.timesheetObj.empId;
     this.timesheetObj.documentData.clientApprovalStatus = this.timesheetObj.clientApprovalStatus;
     if(this.timesheetObj.documentData.clientApprovalStatus == 'pending'){

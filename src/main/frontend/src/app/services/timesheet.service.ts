@@ -15,8 +15,8 @@ export class TimesheetService {
   constructor(private http: HttpClient) { }
 
   /* Add & Update Timesheet */
-  addTimesheet(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `api/addTimesheet`, timesheetObj);
+  addTimesheet(timesheetObj: Timesheet, selectedFile:any) {
+    return this.http.post(`${this.baseUrl}` + `api/addTimesheet?doc=${selectedFile}`, timesheetObj);
   }
 
   updateTimesheet(timesheetObj: Timesheet) {
@@ -147,6 +147,10 @@ export class TimesheetService {
 
   getActiveProjectsAndClientSideIdByEmpId(empId: any): Observable<any> {
     return this.http.post(`${this.baseUrl}api/getActiveProjectsAndClientSideIdByEmpId?empId=${empId}`, null);
+  }
+
+  addTimesheet2(timesheetObj: Timesheet) {
+    return this.http.post(`${this.baseUrl}` + `api/addTimesheet?`, timesheetObj);
   }
 
 }
