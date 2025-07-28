@@ -15,10 +15,18 @@ export class TimesheetService {
   constructor(private http: HttpClient) { }
 
   /* Add & Update Timesheet */
-  addTimesheet(timesheetObj: Timesheet, selectedFile:any) {
-    return this.http.post(`${this.baseUrl}` + `api/addTimesheet?doc=${selectedFile}`, timesheetObj);
+  addTimesheet(timesheetObj: Timesheet) {
+    return this.http.post(`${this.baseUrl}` + `api/addTimesheet`, timesheetObj);
   }
 
+  addTimesheetWithClient(timesheetObj: Timesheet, selectedFile:any) {
+    const formData = new FormData();
+  formData.append('dto', new Blob([JSON.stringify(timesheetObj)], { type: 'application/json' }));
+  formData.append('doc', selectedFile);
+    return this.http.post(`${this.baseUrl}` + `api/addTimesheetWithClient`, formData);
+  }
+  // ?doc=${selectedFile}
+  
   updateTimesheet(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/updateTimesheet`, timesheetObj);
   }

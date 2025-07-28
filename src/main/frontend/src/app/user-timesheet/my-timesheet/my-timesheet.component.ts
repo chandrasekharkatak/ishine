@@ -1094,7 +1094,7 @@ setTotalWorkingClientHours() {
     this.timesheetObj.documentData.createdBy = this.currentUser.empId;
 
     console.log("Add timesheetObj : ", this.timesheetObj);
-    this.timesheetService.addTimesheet(this.timesheetObj,this.selectedFile).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.addTimesheetWithClient(this.timesheetObj,this.selectedFile).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();

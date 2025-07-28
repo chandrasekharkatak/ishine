@@ -3,12 +3,14 @@ package com.apmosys.employeeportal.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,9 +43,19 @@ public class TimesheetController {
 	}
 	
 	@RequestMapping(value = "/addTimesheet", method = RequestMethod.POST)
-	public ServiceResponse addTimesheet(@RequestBody TimesheetDTO timesheetDTO,@RequestParam MultipartFile doc) {
+	public ServiceResponse addTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
 		System.out.println("timesheetDTO list : "+timesheetDTO);
-		ServiceResponse response = timesheetService.addTimesheet(timesheetDTO,doc);
+		ServiceResponse response = timesheetService.addTimesheet(timesheetDTO,null);
+		return response;
+	}
+	
+	@RequestMapping(value = "/addTimesheetWithClient", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") TimesheetDTO dto,
+			@RequestPart("doc") MultipartFile doc) 
+//	,@RequestBody TimesheetDTO timesheetDTO, @RequestBody MultipartFile doc
+	{
+		System.out.println("timesheetDTO list : "+dto);
+		ServiceResponse response = timesheetService.addTimesheet(dto,doc);
 		return response;
 	}
 	

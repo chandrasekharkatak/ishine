@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -437,12 +438,14 @@ public class TimesheetService {
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
 			
 			if(timesheetDTO.getClientApprovalStatus().equalsIgnoreCase("pending") || timesheetDTO.getClientApprovalStatus().equalsIgnoreCase("approved")) {
-				TimesheetDocumentDetails docData = addTimesheetDocument(timesheetDTO.getDocumentData(),"Create");
+				
+				TimesheetDocumentDetails docData = addTimesheetDocument(timesheetDTO.getDocumentData(),"Create",doc);
 				docData.setTimesheetId(newTimesheetCreated.getTimesheetId());
-				docData.setDocData(doc.getBytes());
+//				docData.setDocData(doc.getBytes());
 				
 				if (docData != null) {
 				    try {
+				    	System.out.println(docData);
 				        TimesheetDocumentDetails docu = timesheetDocumentDetailsRepository.save(docData);
 
 				        if (docu == null) {
@@ -2345,7 +2348,7 @@ public class TimesheetService {
 	    return response;
 	}
 	
-	public TimesheetDocumentDetails addTimesheetDocument(TimesheetDocumentDetailsDTO timesheetDocumentDetailsDTO, String oprType) throws IOException {
+	public TimesheetDocumentDetails addTimesheetDocument(TimesheetDocumentDetailsDTO timesheetDocumentDetailsDTO, String oprType, MultipartFile doc) throws IOException {
 		TimesheetDocumentDetails data = new TimesheetDocumentDetails();
 		if("Create".equalsIgnoreCase(oprType)) {
 			timesheetDocumentDetailsDTO.setActive(true);
@@ -2354,9 +2357,10 @@ public class TimesheetService {
 		else if("Update".equalsIgnoreCase(oprType)) {
 			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 		}
-		
+		if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
+		else throw new DataIntegrityViolationException("No Document found...!!");
 		data.setDocName(timesheetDocumentDetailsDTO.getDocName());
-		
+		data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
 		data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
 		data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
 		if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
@@ -2371,6 +2375,7 @@ public class TimesheetService {
 	    data.setRmApprovalStatus("Pending");
 	    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
 	    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
+	    data.setActive(true);
 	    return data;
 		
 	}
