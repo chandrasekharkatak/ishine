@@ -27,7 +27,7 @@
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="leaveFor" id="forSelf" value="self"
                                     [(ngModel)]="timesheetObj.timesheetAppliedFor" [disabled]="isUpdation"
-                                    (change)="getAllTeamMemberList();getTimesheetMetadata();openSelfModal1(self_clientId);timesheetObj.isShadowTimesheet = false">
+                                    (change)="getAllTeamMemberList();getTimesheetMetadata();timesheetObj.isShadowTimesheet = false">
                                 <label class="form-check-label" for="forSelf">Self</label>
                             </div>
                             <div class="form-check form-check-inline">
@@ -72,7 +72,7 @@
                                   [valueMember]="'projectId'"
                                   [source]="activeProjectList"
                                   [useInfiniteScroll]="true"
-                                  (selectionChange)="getClientSideIdByProjectId(timesheetObj.projectId)"
+                                  (selectionChange)="openSelfModal1(self_clientId)"
                                   [multiple]="false"
                                   [(ngModel)]="timesheetObj.projectId"
                                   >
@@ -125,7 +125,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label">VMS filled?</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.clientApprovalStatus" aria-placeholder="Select">
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.clientApprovalStatus" (change)="onClientApprovalStatusChange($event,noNotAppliedYet)" aria-placeholder="Select">
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option selected="selected" value="approved">Yes, Approved</option>
                                 <option selected="selected" value="pending">Yes, But Not Approved</option>
@@ -236,58 +236,61 @@
                     </div>
                 </div>
 
-                <div class="row ml-1 mt-5">
+                <div *ngIf="timesheetObj.clientSideId && !shadowForSelf">
+                    <div class="row ml-1 mt-5" >
                         <h6><span class="text-danger">*</span>Client Side</h6>
-                </div>
-                <!-- Client Side IN/OUT Time-->
-                <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row">
-                    <div class="col-md-3 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group input-wrapper">
-                                <label class="info-label"><span class="text-danger">*</span>In Time</label>
-                                <input id="clientInTime" class="form-control static-input" autocomplete="none" [(ngModel)]="timesheetObj.clientInTime" [owlDateTimeTrigger]="clientInTimePicker" [owlDateTime]="clientInTimePicker" [owlDateTimeFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
-                                (dateTimeChange)="resetTotalWorkingClientHours(alertTemplate)" (keydown)="disableMannualDateInput()" placeholder="Select In Time" autocomplete="off">
-                                <owl-date-time class="picker" [hour12Timer]="true" #clientInTimePicker></owl-date-time> 
+                    </div>
+                    <!-- Client Side IN/OUT Time-->
+                    <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row">
+                        <div class="col-md-3 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group input-wrapper">
+                                    <label class="info-label"><span class="text-danger">*</span>In Time</label>
+                                    <input id="clientInTime" class="form-control static-input" autocomplete="none" [(ngModel)]="timesheetObj.clientInTime" [owlDateTimeTrigger]="clientInTimePicker" [owlDateTime]="clientInTimePicker" [owlDateTimeFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
+                                    (dateTimeChange)="resetTotalWorkingClientHours(alertTemplate)" (keydown)="disableMannualDateInput()" placeholder="Select In Time" autocomplete="off">
+                                    <owl-date-time class="picker" [hour12Timer]="true" #clientInTimePicker></owl-date-time> 
 
-                                <!-- <p><span style="color:#193d8a; font-weight: bolder;">In Time:</span> {{ timesheetObj.officeInTime | date:'hh:mm a' }}</p> -->
-                                <p *ngIf="timesheetObj.clientInTime">
-                                    <span style="color:#193d8a; font-weight: bolder;">In Time:</span> 
-                                    {{ timesheetObj.clientInTime | date:'hh:mm a' }}
-                                </p>
-                                
+                                    <!-- <p><span style="color:#193d8a; font-weight: bolder;">In Time:</span> {{ timesheetObj.officeInTime | date:'hh:mm a' }}</p> -->
+                                    <p *ngIf="timesheetObj.clientInTime">
+                                        <span style="color:#193d8a; font-weight: bolder;">In Time:</span> 
+                                        {{ timesheetObj.clientInTime | date:'hh:mm a' }}
+                                    </p>
+                                    
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-3 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group input-wrapper">
-                                <label class="info-label"><span class="text-danger">*</span>Out Time</label>
-                                <input id="clientOutTime" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.clientOutTime" [owlDateTimeTrigger]="clientOutTimePicker" [owlDateTime]="clientOutTimePicker"
-                                (dateTimeChange)="setTotalWorkingClientHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off" [disabled]="!timesheetObj.clientInTime" [owlDateTimeFilter]="outTimeFilter" [max]="this.maxOutTimeDate">
-                                <owl-date-time class="picker" [startAt]="timesheetObj.clientInTime" [hour12Timer]="true" #clientOutTimePicker></owl-date-time>
-                                
-                                <p *ngIf="timesheetObj.clientOutTime"><span style="color:#193d8a; font-weight: bolder;">Out Time:</span> {{ timesheetObj.clientOutTime | date:'hh:mm a' }}</p>
+                        <div class="col-md-3 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group input-wrapper">
+                                    <label class="info-label"><span class="text-danger">*</span>Out Time</label>
+                                    <input id="clientOutTime" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.clientOutTime" [owlDateTimeTrigger]="clientOutTimePicker" [owlDateTime]="clientOutTimePicker"
+                                    (dateTimeChange)="setTotalWorkingClientHours()" (keydown)="disableMannualDateInput()" placeholder="Select Out Time" autocomplete="off" [disabled]="!timesheetObj.clientInTime" [owlDateTimeFilter]="outTimeFilter" [max]="this.maxOutTimeDate">
+                                    <owl-date-time class="picker" [startAt]="timesheetObj.clientInTime" [hour12Timer]="true" #clientOutTimePicker></owl-date-time>
+                                    
+                                    <p *ngIf="timesheetObj.clientOutTime"><span style="color:#193d8a; font-weight: bolder;">Out Time:</span> {{ timesheetObj.clientOutTime | date:'hh:mm a' }}</p>
 
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-2 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label">Total Working Hours</label>
-                                <input type="text" [(ngModel)]="timesheetObj.totalClientWorkingHours" step="any" class="form-control" autocomplete="none" value="0" disabled>
+                        <div class="col-md-2 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label">Total Working Hours</label>
+                                    <input type="text" [(ngModel)]="timesheetObj.totalClientWorkingHours" step="any" class="form-control" autocomplete="none" value="0" disabled>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-2 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label">Night Shift</label>
-                                <input class="form-control cell-checkbox" [(ngModel)]="timesheetObj.isNightShift" (click)="openNightShiftTemplate(night_shift_template,$event)" type="checkbox"/>
+                        <div class="col-md-2 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label">Night Shift</label>
+                                    <input class="form-control cell-checkbox" [(ngModel)]="timesheetObj.isNightShift" (click)="openNightShiftTemplate(night_shift_template,$event)" type="checkbox"/>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                
                 <!-- Add & Update Activities -->
                 <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="container-fluid px-0">
                     <div class="row ml-1 mt-5">
@@ -477,7 +480,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3 mb-0">
+                                <div class="col-md-3 mb-0" *ngIf="timesheetObj.clientSideId && !shadowForSelf">
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span> Upload Timesheet Proof</label>
@@ -835,7 +838,7 @@
 <ng-template #self_clientId_update>
     <div class="modal-body text-center">
         <h6>Have you updated your Client Side ID?</h6>
-        <button type="button" class="btn-yes-alert" (click)="hideSelfModal2()">YES</button>&nbsp;
+        <button type="button" class="btn-yes-alert" (click)="hideSelfModal2();checkClientSideIdPresentOrNot(timesheetObj)">YES</button>&nbsp;
         <button type="button" class="btn-no-alert" (click)="hideSelfModal2();openSelfModal3(update_clientId)">NO</button>&nbsp;
     </div>
 </ng-template>
@@ -888,7 +891,7 @@
     <div class="modal-body text-center">
         <button *ngIf = "!updateExistingClientSideId" type="button" class="btn btn-yes-alert" (click)="hideSelfModal3();createClientSideIdMapping(alert_message)">Set</button>&nbsp;
         <button *ngIf = "updateExistingClientSideId" type="button" class="btn btn-yes-alert" (click)="hideSelfModal3();updateClientSideIdMapping(alert_message)">Update</button>&nbsp;
-        <button type="button" class="btn btn-yes-alert" (click)="hideSelfModal3()">Cancel</button>&nbsp;
+        <button type="button" class="btn btn-no-alert" (click)="hideSelfModal3()">Cancel</button>&nbsp;
     </div>
 </ng-template>
 
@@ -910,3 +913,18 @@
                 style="max-height: 400px;">
         </div>
     </ng-template>
+
+<ng-template #noNotAppliedYet>
+    <div class="modal-body text-center">
+        <h6>Please fill the VMS to proceed with timesheet filling</h6>
+        <button type="button" class="btn-yes-alert" (click)="hideNoNotAppliedYet()">OK</button>&nbsp;
+    </div>
+</ng-template> 
+
+<ng-template #noClientSideIdFound>
+    <div class="modal-body text-center">
+        <h6>No client side Id found for this Project. Please update it to continue.</h6>
+        <button type="button" class="btn-yes-alert" (click)="hideNoClientSideIdFound();openSelfModal3(update_clientId)">Update</button>&nbsp;
+        <button type="button" class="btn-no-alert" (click)="hideNoClientSideIdFound()">Cancel</button>&nbsp;
+    </div>
+</ng-template> 
