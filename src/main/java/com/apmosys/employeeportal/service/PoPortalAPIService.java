@@ -68,6 +68,7 @@ import com.apmosys.employeeportal.response.ResourceRequirementResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.ToLong_helper;
 
 @Service
 public class PoPortalAPIService {
@@ -1092,6 +1093,7 @@ public class PoPortalAPIService {
 	public ServiceResponse updateMilestoneExtendedDate(MilestoneUpdatedLogDto dto) {
 	    ServiceResponse response = new ServiceResponse();
 	    String traceId = UUID.randomUUID().toString();
+	
 	    ApiLog initialLog = null;
 	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 	    String exceptionDetailsForLog = null;
@@ -1221,8 +1223,11 @@ public class PoPortalAPIService {
 
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceResponse("Failed to update milestone.");
+	        String msg=ToLong_helper.extractCustomMessage(e.getMessage());
+	        
 	        response.setServiceError(e.getMessage());
-	        response.setServiceMessage(e.getMessage());
+	        response.setServiceMessage(msg);
+	    
 	        throw new RuntimeException("Rolling back transaction due to: " + e.getMessage(), e);
 	    } finally {
 	        try {
@@ -1238,11 +1243,13 @@ public class PoPortalAPIService {
 	                    httpRequest
 	                );
 	            }
+	            return response;
 	        } catch (Exception logEx) {
 	            logEx.printStackTrace();
 	        }
 	    }
 
+	    System.out.println("response"+" "+response);
 	    return response;
 	}
 	

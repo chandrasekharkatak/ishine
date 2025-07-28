@@ -71,6 +71,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
 
+  milestoneDetailModalRefView: BsModalRef;
+  detailModalRef:BsModalRef;
+
 
   feature = "Home";
   currentUser: User;
@@ -101,6 +104,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   rewardsList: any[] = [];
   eventImages: any[] = [];
   isImagesLoaded: boolean = false;
+  response1:any;
 
   leaveBalanceList: any[] = [];
   rejectedLeavesList: any[] = [];
@@ -2664,6 +2668,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
 
+
+  //fetch all milestone to be expired by rm mail
   fetchMilestones(): void {
     const rmEmail = this.currentUser.email;
 
@@ -2685,23 +2691,28 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     });
   }
+
+  //sort milestone expired data by mat table
   sortMilestoneExpiredData(event: any): void {
     this.milestoneExpiredSortColumn = event.active;
-    this.milestoneExpiredSortColumnType = 'string'; // you can map by column if needed
+    this.milestoneExpiredSortColumnType = 'string'; 
     this.milestoneExpiredSortDirection = event.direction || 'asc';
   }
+  //opne model
   openMilestoneExpiredListModal(): void {
-    this.modalRef = this.modalService.show(this.milestoneExpiredListModalRef, {
+    this.detailModalRef = this.modalService.show(this.milestoneExpiredListModalRef, {
       class: 'modal-xl'
     });
   }
 
   closeMilestoneExpiredListModal(): void {
-    this.modalRef?.hide();
+    this.detailModalRef?.hide();
   }
 
 
 
+
+  //form initialization
   private initMilestoneForm(): void {
     this.milestoneForm = this.fb.group({
       projectName: [''],
@@ -2742,9 +2753,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     });
 
-    this.modalRef = this.modalService.show(this.milestoneDetailModalRef, { class: 'modal-lg' });
+     this.milestoneDetailModalRefView = this.modalService.show(this.milestoneDetailModalRef, { class: 'modal-lg' });
   }
 
+
+  //fetch all milestone to be expired reason
   featchingmilestoneExtensionReason() {
     this.projectService.getAllMilestoneExtendReason().subscribe({
       next: (response) => {
@@ -2764,7 +2777,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     });
   }
-response1:any;
+
+
+  //update milestone extended date with reason
   updateMilestoneExtendedDateWithReason(): void {
 
     if (this.milestoneForm.invalid) {
@@ -2809,29 +2824,41 @@ response1:any;
 
     console.log('Payload for milestone extension:', payload);
     
-    this.projectService.updateMilestoneExtendedDate(payload).subscribe({
-      next: (response) => {
-        this.response1=response.serviceMessage;
-        console.log('Milestone extension response:', response);
-        if (response.serviceStatus === 'Success') {
+    this.projectService.updateMilestoneExtendedDate(payload).subscribe(
+  (response: any) => {
+    console.log('Milestone extension response:', response);
+    if (response.serviceStatus === 'Success') {
+      this.response1 = response.serviceMessage;
+      this.openAlertMod(this.milestoneExpireValidationPupup, this.response1);
+      this.closeMilestoneDetailModal();
+    } else {
+   
+      this.response1 = response.serviceMessage|| 'An unexpected error occurred.';
+      this.openAlertMod(this.milestoneExpireValidationPupup, this.response1);
+    }
+  },
+  (errorResponse) => {
+    console.error('Error updating milestone:', errorResponse);
 
-          this.openAlertMod(this.milestoneExpireValidationPupup, response.serviceMessage);
-          this.closeMilestoneDetailModal();
 
-        } else {
+    let errorMessage = 'An unknown error occurred.';
+    if (errorResponse.error && errorResponse.error.message) {
 
-        }
-      },
-      error: (error) => {
-        console.error('Error updating milestone:', error);
-                  this.openAlertMod(this.milestoneExpireValidationPupup, this.response1);
+      errorMessage = errorResponse.error.message;
+    }
 
-      }
-    });
+
+
+    
+    this.openAlertMod(this.milestoneExpireValidationPupup, errorMessage);
+
+  }
+);
+ 
   }
 
 
-
+//onchamges in form
   onReasonChange(event: Event): void {
     const selectedValue = (event.target as HTMLSelectElement).value;
     const selectedReason = this.milestoneExtendReason.find(
@@ -2855,9 +2882,11 @@ response1:any;
 
 
   closeMilestoneDetailModal(): void {
-    this.modalRef?.hide();
+    this.milestoneDetailModalRefView?.hide();
   }
 
+
+  //convert form data to date type
   private formatDate(date: Date | string): string {
     if (!date) return '';
     return new Date(date).toLocaleDateString('en-GB'); // dd/MM/yyyy

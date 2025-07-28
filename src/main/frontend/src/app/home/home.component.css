@@ -520,7 +520,12 @@ input[formControlName="extendedDate"]:focus {
   border-radius: 0.5rem !important;
 }
 
-::ng-deep .modal-dialog {
-  max-width: 1300px; 
+
+.modal-dialog-lg-custom .modal-dialog {
+  max-width: 1300px; /* The large size you wanted */
 }
 
+/* Rule for your SMALL alert popup */
+.alert-modal-sm .modal-dialog {
+  max-width: 350px; /* The small size for this specific popup */
+}
