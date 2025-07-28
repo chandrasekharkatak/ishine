@@ -11,8 +11,8 @@
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Employee ID</label>
                             <input type="text" class="form-control" autocomplete="none"
-                                (keypress)="fieldRestictCharacterForLeaveAccToDifferntEmployeeType($event)"
-                                [(ngModel)]="assetObj.employeementId" placeholder="eg. A-1101/CS-1101/AP-1101">
+                                (keypress)="fieldRestrictCharacterForEmployeeId($event)"
+                                [(ngModel)]="assetObj.employeementId" placeholder="eg. A-1101/AP-1101">
                         </div>
                     </div>
                 </div>

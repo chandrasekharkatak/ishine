@@ -28,5 +28,6 @@ public class AssetDTO {
 	private String updatedByName;
 	private String assetType;
 	private String assetDetail;
+	private String employeeType;
 	
 }

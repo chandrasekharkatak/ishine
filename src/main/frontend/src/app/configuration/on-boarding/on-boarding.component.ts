@@ -104,28 +104,39 @@ export class OnBoardingComponent implements OnInit {
     return (true);
   }
 
-  fieldRestictCharacterForLeaveAccToDifferntEmployeeType(event) {
-  const inputField = event.target;
-  const value = inputField.value;
-  const k = event.charCode;
+ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
+  const input = (event.target as HTMLInputElement);
+  const value = input.value;
+  const key = event.key;
 
-  
-  if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-    return true;
-  }
+ 
+  // if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(key)) return;
 
-  
-  const prefixMatch = value.match(/^(A-|CS-|AP-)/);
-  const digitsPart = prefixMatch ? value.replace(prefixMatch[0], '') : value;
+ 
+  const validPrefix = value.startsWith('A-') || value.startsWith('AP-');
+  const digitsOnly = value.replace(/^A-|^AP-/, '');
 
+  if (!validPrefix && value.length < 3) {
   
-  if (digitsPart.length >= 6 && /\d/.test(String.fromCharCode(k))) {
+    if (value === '' && key === 'A') return;
+    if (value === 'A' && key === 'P') return;
+    if (value === 'A' && key === '-') return;
+    if (value === 'AP' && key === '-') return;
     event.preventDefault();
-    return false;
+    return;
   }
 
-  return true;
+ 
+  if (validPrefix) {
+   
+    if (!/^\d$/.test(key) || digitsOnly.length >= 6) {
+      event.preventDefault();
+    }
+  } else {
+    event.preventDefault();
+  }
 }
+
 
 
 getEmpIdPrefixFromFlags(employee: any): string {
@@ -157,21 +168,25 @@ getEmpIdPrefixFromFlags(employee: any): string {
     // }
 
 
-    if (empIdInput.startsWith('A-')) {
-    empIdInput = empIdInput.substring(2);
-  } else if (empIdInput.startsWith('CS-')) {
-    empIdInput = empIdInput.substring(3);
-  } else if (empIdInput.startsWith('AP-')) {
-    empIdInput = empIdInput.substring(3);
+    if (empIdInput.startsWith('AP-')) {
+    assetObj.employeeType = "Apmosys Product";
+    assetObj.employeementId = empIdInput.substring(3);
+  } else if (empIdInput.startsWith('A-')) {
+    assetObj.employeeType = "Other";
+    assetObj.employeementId = empIdInput.substring(2);
+  } else {
+    this.alertMessage = "Please enter valid Employee ID !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
   }
 
-  assetObj.employeementId = empIdInput;
+  // assetObj.employeementId = empIdInput;
 
-    if (!this.validationService.validateEmployeementId(assetObj.employeementId)) {
-      this.alertMessage = "Please enter valid Employee ID !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if (!this.validationService.validateEmployeementId(assetObj.employeementId)) {
+    //   this.alertMessage = "Please enter valid Employee ID !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     this.onBoardingService.getEmployeeOnBoardingDetailByEmployeementId(assetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

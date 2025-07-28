@@ -66,8 +66,15 @@ public class EmployeeOnBoardingService {
 		logBuilder.append("empId : "+assetDTO.getEmpId());
 	
 		try {
+			Employee empObj;
+			if("Apmosys Product".equalsIgnoreCase(assetDTO.getEmployeeType())){
+			empObj = employeeRepository.findByEmployeementIdForApmosysProduct(assetDTO.getEmployeementId());	
+			}else {
+			empObj = employeeRepository.findByEmployeementIdForOthers(assetDTO.getEmployeementId());			
+			}
 			
-			Employee empObj = employeeRepository.findByEmployeementId(assetDTO.getEmployeementId());
+//			Employee empObj = employeeRepository.findByEmployeementId(assetDTO.getEmployeementId());
+			
 			ServiceResponse snipitAssetApiResponse =  getAssetDataFromSnipitPortal(assetDTO);
 			
 			if(empObj != null) {
@@ -283,7 +290,14 @@ public class EmployeeOnBoardingService {
 		logBuilder.append("employeementId : "+assetDTO.getEmployeementId());
 		try {
 			
-			Employee empObj = employeeRepository.findByEmployeementId(assetDTO.getEmployeementId());
+			Employee empObj;
+			if("Apmosys Product".equalsIgnoreCase(assetDTO.getEmployeeType())){
+			empObj = employeeRepository.findByEmployeementIdForApmosysProduct(assetDTO.getEmployeementId());	
+			}else {
+			empObj = employeeRepository.findByEmployeementIdForOthers(assetDTO.getEmployeementId());			
+			}
+			
+//			Employee empObj = employeeRepository.findByEmployeementId(assetDTO.getEmployeementId());
 			if(empObj != null) {
 				
 				// SNIPIT API call to get user Id by email/username
