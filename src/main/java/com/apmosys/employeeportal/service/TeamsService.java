@@ -1315,6 +1315,8 @@ public class TeamsService {
 					dto.setProbationPeriod(object[20] != null ? Short.parseShort(object[20].toString()) : null);
 					dto.setIsConsultant(object[21] != null ? object[21].toString() : null);
 					dto.setIsApprenticeship(object[22] != null ? object[22].toString() : null);
+					dto.setClientSideId(object[23] != null ? object[23].toString() : null);
+					dto.setEmploymentId(object[24] != null ? object[24].toString() : null);
 					
 					Long empId = object[0] != null ? Long.parseLong(object[0].toString()): null;
 					List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMember(empId,date);
