@@ -353,6 +353,7 @@ public class TimesheetService {
 		return response;
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse addTimesheet(TimesheetDTO timesheetDTO, MultipartFile doc) {
 		ServiceResponse response = new ServiceResponse();
 		System.out.println("timesheetDTO currentManagerId : "+timesheetDTO.getCurrentManagerId());
@@ -442,6 +443,7 @@ public class TimesheetService {
 				
 				TimesheetDocumentDetails docData = addTimesheetDocument(timesheetDTO.getDocumentData(),"Create",doc);
 				docData.setTimesheetId(newTimesheetCreated.getTimesheetId());
+				docData.setEmpId(timesheetDTO.getEmpId());
 //				docData.setDocData(doc.getBytes());
 				
 				if (docData != null) {
