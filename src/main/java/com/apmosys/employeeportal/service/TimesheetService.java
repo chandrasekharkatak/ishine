@@ -31,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -2550,6 +2551,94 @@ public class TimesheetService {
             response.setServiceMessage("Project List fetched successfully!");
 
             apiLogInfo.setApiResponse("Project list where employee has active = 1 in Employee Team Mapping table fetched successfully!");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage()); 
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+	
+	public ServiceResponse getEmployeeListByProjectId(Integer projectId, Long currentUser) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+	    try {
+	    	List<GetEmployeeListByProjectIdDTO> empList = employeeRepository.getEmployeeListByProjectId(projectId,currentUser);
+	        
+	    	if (empList == null || empList.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No Active employees found for this Project!");
+	            response.setServiceMessage("No Active employees found for the Project with ProjectId: " + projectId);
+	            
+	            apiLogInfo.setApiResponse("No Active employees found for the Project with ProjectId: " + projectId);
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+	        
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(empList);
+            response.setServiceMessage("Employee List fetched successfully!");
+
+            apiLogInfo.setApiResponse("Employee List fetched successfully!");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage()); 
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+	
+	public ServiceResponse getClientSideIdByProjectIdAndEmpId(Long projectId, Long empId) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getClientSideIdByProjectIdAndEmpId");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("empId : " +empId+ "projectId:" +projectId+"\n");
+	    
+	    try {
+	        String clientSideId = employeeClientSideIdMappingRepository.getClientSideIdByProjectIdAndEmpId(projectId,empId);
+	        
+	        if (clientSideId.isEmpty() || clientSideId.equals("")) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No Client Side Id fetched for the selected Project!");
+	            response.setServiceMessage("No Client Side Id fetched for the selected Project! For ProjectId: " + projectId);
+	            
+	            apiLogInfo.setApiResponse("No Client Side Id fetched for the selected Project! For ProjectId: " + projectId);
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+	        
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(clientSideId);
+            response.setServiceMessage("Client Side Id fetched successfully!");
+    		logBuilder.append("empId : " +empId+ "Client Side Id :" +clientSideId+"\n");
+
+            apiLogInfo.setApiResponse("Client Side Id fetched successfully!");
             apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        
 	    } catch (Exception e) {

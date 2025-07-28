@@ -95,7 +95,9 @@
                                   [useInfiniteScroll]="true"
                                   [multiple]="false"
                                   [(ngModel)]="timesheetObj.shadowEmpId"
+                                  (selectionChange)="getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,timesheetObj.shadowEmpId)"
                                   >
+                                  <mat-option [value]="currentUser.empId">Self/Learning</mat-option>
                                   <mat-option [value]="emp.empId" *ngFor="let emp of filterShadowFor.filteredSource">
                                     {{emp.name}}
                                   </mat-option>

@@ -15,4 +15,7 @@ public interface EmployeeClientSideIdMappingRepository extends JpaRepository <Em
 	
 	public Optional<EmployeeClientSideIdMapping> findByProjectIdAndActive(Long projectId, Boolean active);
 	
+	@Query("SELECT e.clientSideId FROM EmployeeClientSideIdMapping e WHERE e.projectId = :projectId AND e.active = true AND e.empId = :empId")
+	public String getClientSideIdByProjectIdAndEmpId(Long projectId, Long empId);
+	
 }

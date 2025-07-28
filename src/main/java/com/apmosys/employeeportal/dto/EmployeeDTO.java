@@ -357,7 +357,7 @@ this.billableType = billableType !=null ? billableType : null;
 	public EmployeeDTO() {
 	};
 	
-	
+	private String clientSideId;
 
 	
 }

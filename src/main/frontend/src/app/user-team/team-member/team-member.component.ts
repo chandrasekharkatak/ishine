@@ -43,7 +43,7 @@ export class TeamMemberComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  teamMemberColumns:any[] = ['blank','employeementId','name','email','jobRoleName','mobileNo'];
+  teamMemberColumns:any[] = ['blank','employmentId','name','email', 'clientSideId', 'jobRoleName','mobileNo'];
 
   filteredEmployeeAuditHistory:any[] = [];
   employeeAuditHistory:any[] = [];
@@ -135,9 +135,10 @@ export class TeamMemberComponent implements OnInit {
 
       const onlySpecificDataArr = this.viewTeamMemberList.map(
         x => ({
-          "Employee Id": x.employeementId,
+          "Employee Id": x.employmentId,
           "Name": x.name,
           "Email": x.email,
+          "Client Side Id": x.clientSideId,
           "Job Role": x.jobRoleName,
           "Mobile No": x.mobileNo
         })

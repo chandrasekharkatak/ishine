@@ -33,6 +33,7 @@
                   <th scope="col" class="info-label">Sr No.</th>	
                   <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>	
                   <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>	
+                  <th scope="col" class="info-label" mat-sort-header="name|string">Client Side Id</th>
                   <th scope="col" class="info-label" mat-sort-header="email|string">Email</th>	
                   <th scope="col" class="info-label" mat-sort-header="jobRoleName|string">Job Role</th>	
                   <th scope="col" class="info-label" mat-sort-header="mobileNo|number">Mobile No.</th>
@@ -48,9 +49,10 @@
                   </tr>
                   <tr *ngFor="let viewTeamMember of viewTeamMemberList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                     <td>{{10*(page-1)+i+1}}</td>
-                    <td>{{viewTeamMember.employeementId}}</td>
+                    <td>{{viewTeamMember.employmentId}}</td>
                     <td id="clickablefor360" *ngIf="userMapping.my_team_member_employee_360" [navigateToEmployee360]="viewTeamMember.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{viewTeamMember.name}}</td>
                     <td *ngIf="!userMapping.my_team_member_employee_360">{{viewTeamMember.name}}</td>
+                    <td>{{viewTeamMember.clientSideId}}</td>
                     <td>{{viewTeamMember.email}}</td>
                     <td>{{viewTeamMember.jobRoleName}}</td>
                     <td>{{viewTeamMember.mobileNo}}</td>
