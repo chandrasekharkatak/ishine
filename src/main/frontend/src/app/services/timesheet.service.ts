@@ -153,4 +153,12 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/addTimesheet?`, timesheetObj);
   }
 
+  getEmployeeListByProjectId(projectId: any,currentUser: any){
+    return this.http.get(`${this.baseUrl}` + `api/getEmployeeListByProjectId?projectId=${projectId}&currentUser=${currentUser}`);
+  }
+
+  getClientSideIdByProjectIdAndEmpId(projectId: any,empId: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getClientSideIdByProjectIdAndEmpId?projectId=${projectId}&empId=${empId}`, null);
+  }
+
 }

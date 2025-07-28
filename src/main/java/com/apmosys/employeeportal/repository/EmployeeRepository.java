@@ -16,6 +16,7 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.model.Department;
@@ -1089,5 +1090,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	       "END " +
 	       "FROM Employee e WHERE e.empId = :empId")
 	public String fetchEmploymentIdByEmpId(Long empId);
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO(e.empId, e.name) " +
+		       "FROM com.apmosys.employeeportal.model.Employee e " +
+		       "INNER JOIN com.apmosys.employeeportal.model.EmployeeTeamMap etm ON etm.empId = e.empId " +
+		       "INNER JOIN com.apmosys.employeeportal.model.Team t ON t.teamId = etm.teamId " +
+		       "INNER JOIN com.apmosys.employeeportal.model.Project p ON p.projectId = t.projectId " +
+		       "WHERE p.projectId = :projectId AND etm.active != 0 AND etm.empId != :currentUser")
+	public List<GetEmployeeListByProjectIdDTO> getEmployeeListByProjectId(Integer projectId,Long currentUser);
 
 }

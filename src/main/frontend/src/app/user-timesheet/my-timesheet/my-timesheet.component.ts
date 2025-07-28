@@ -172,7 +172,6 @@ AllWeekOfList:any[]=[];
     this.sectionViewInit();
     this.preventBackButton();
     this.getActiveProjectsByEmpId();
-    this.getEmployeeByNameAndEmpld();
     
     // this.setStartDateMinMax();
   }
@@ -1995,16 +1994,20 @@ setTotalWorkingClientHours() {
   }
 
   getClientSideIdByProjectId(projectId){
-    this.timesheetService.getClientSideIdByProjectId(projectId).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.timesheetObj.clientSideId = response.serviceResponse;
-        if(this.updateExistingClientSideId){
-          this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+    if(this.timesheetObj.timesheetAppliedFor == "asShadow"){
+      this.getEmployeeListByProjectId(projectId)
+    } else {
+      this.timesheetService.getClientSideIdByProjectId(projectId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.timesheetObj.clientSideId = response.serviceResponse;
+          if(this.updateExistingClientSideId){
+            this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+          }
+        } else {
+          console.error(response.serviceResponse);
         }
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+      });
+    }
   }
 
   openPreviewModal(){
@@ -2090,8 +2093,8 @@ setTotalWorkingClientHours() {
     });
   }
 
-  getEmployeeByNameAndEmpld() {
-    this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
+  getEmployeeListByProjectId(projectId) {
+    this.timesheetService.getEmployeeListByProjectId(projectId,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.employeeList = response.serviceResponse;
         this.getTimesheetMetadata();
@@ -2173,6 +2176,19 @@ setTotalWorkingClientHours() {
     } else {
       console.log("No approval status stored");
     }
+  }
+
+  getClientSideIdByProjectIdAndEmpId(projectId,empId){
+    this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId,empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetObj.clientSideId = response.serviceResponse;
+        if(this.updateExistingClientSideId){
+          this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+        }
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
   }
 
 }

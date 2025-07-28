@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -214,6 +215,16 @@ public class TimesheetController {
 	 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
 	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestParam Long empId) {
 	     return timesheetService.getActiveProjectsAndClientSideIdByEmpId(empId);
+	 }
+	 
+	 @GetMapping("/getEmployeeListByProjectId")
+	 public ServiceResponse getEmployeeListByProjectId(@RequestParam Integer projectId,@RequestParam Long currentUser) {
+	     return timesheetService.getEmployeeListByProjectId(projectId,currentUser);
+	 }
+	 
+	 @PostMapping("/getClientSideIdByProjectIdAndEmpId")
+	 public ServiceResponse getClientSideIdByProjectIdAndEmpId(@RequestParam Long projectId,@RequestParam Long empId) {
+	     return timesheetService.getClientSideIdByProjectIdAndEmpId(projectId,empId);
 	 }
 	 
 }
