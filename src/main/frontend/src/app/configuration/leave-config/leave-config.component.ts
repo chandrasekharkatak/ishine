@@ -152,7 +152,7 @@ export class LeaveConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
+    console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
@@ -1060,6 +1060,40 @@ fieldRestictCharacterForLeaveAccToDifferntEmployeeType(event) {
 }
 
 
+fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
+  const input = (event.target as HTMLInputElement);
+  const value = input.value;
+  const key = event.key;
+
+ 
+  // if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(key)) return;
+
+ 
+  const validPrefix = value.startsWith('A-') || value.startsWith('AP-');
+  const digitsOnly = value.replace(/^A-|^AP-/, '');
+
+  if (!validPrefix && value.length < 3) {
+  
+    if (value === '' && key === 'A') return;
+    if (value === 'A' && key === 'P') return;
+    if (value === 'A' && key === '-') return;
+    if (value === 'AP' && key === '-') return;
+    event.preventDefault();
+    return;
+  }
+
+ 
+  if (validPrefix) {
+   
+    if (!/^\d$/.test(key) || digitsOnly.length >= 6) {
+      event.preventDefault();
+    }
+  } else {
+    event.preventDefault();
+  }
+}
+
+
   // Manage Leave Balance
   onGetEmpLeaveBalance(template: TemplateRef<any>) {
     this.leaveBalanceList = [];
@@ -1086,15 +1120,17 @@ fieldRestictCharacterForLeaveAccToDifferntEmployeeType(event) {
   }
 
  
-  if (empIdInput.startsWith('A-')) {
-    empIdInput = empIdInput.substring(2);
-  } else if (empIdInput.startsWith('CS-')) {
-    empIdInput = empIdInput.substring(3);
-  } else if (empIdInput.startsWith('AP-')) {
-    empIdInput = empIdInput.substring(3);
+ if (empIdInput.startsWith('AP-')) {
+    leaveObj.employeeType = "Apmosys Product";
+    leaveObj.employeementId = empIdInput.substring(3);
+  } else if (empIdInput.startsWith('A-')) {
+    leaveObj.employeeType = "Other";
+    leaveObj.employeementId = empIdInput.substring(2);
+  } else {
+    this.alertMessage = "Please enter valid Employee ID !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
   }
-
-  leaveObj.employeementId = empIdInput;
 
 
     if (!this.validationService.validateEmployeementId(leaveObj.employeementId)) {

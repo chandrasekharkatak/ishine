@@ -146,4 +146,5 @@ export class Leave{
 	leaveStatus:any;
 
 	currentUserEmpId:any;
+	employeeType;
 }

@@ -2023,8 +2023,15 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 		logBuilder.append("EmployeementId : "+leaveDTO.getEmployeementId());
 
 		try {
+			
+			Employee employee;
+			if("Apmosys Product".equalsIgnoreCase(leaveDTO.getEmployeeType())){
+				employee = employeeRepository.findByEmployeementIdForApmosysProduct(leaveDTO.getEmployeementId());	
+			}else {
+				employee = employeeRepository.findByEmployeementIdForOthers(leaveDTO.getEmployeementId());			
+			}
 
-			Employee employee = employeeRepository.findByEmployeementId(leaveDTO.getEmployeementId());
+//			Employee employee = employeeRepository.findByEmployeementId(leaveDTO.getEmployeementId());
 
 			if (employee != null) {
 				
