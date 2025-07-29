@@ -2717,7 +2717,7 @@ public class TimesheetService {
 		            logService.logMyInfo(httpRequest, apiLogInfo);
 		            return response;
 			 }else {
-				 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				 	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		            response.setServiceResponse(docDetails);
 //		            response.setServiceMessage("Client Side Id fetched successfully!");
 		            apiLogInfo.setApiResponse("Document details fetched successfully");
@@ -2734,6 +2734,54 @@ public class TimesheetService {
 		        apiLogInfo.setApiResponse(e.getMessage()); 
 		        apiLogInfo.setLogLevel("ERROR");
 		    }
+		 logService.logMyInfo(httpRequest, apiLogInfo);
+		 return response;
+	}
+	
+	public ServiceResponse checkIfProjectRequiresClientId(Integer projectId) {
+		ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/checkIfProjectRequiresClientId");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append( "projectId: " +projectId+"\n");
+		 try {
+			 Project projObj = projectRepository.getByProjectId(projectId);
+			 
+			 if(projObj == null) {
+				 
+				 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("No such project found in the system !");
+	             apiLogInfo.setApiResponse("No such project found in the system !");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             
+			 } else {
+				 
+				 Boolean flag = projObj.getHasClientSideId();
+				 
+				 if(flag != null) {
+					 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		             response.setServiceResponse(flag);
+		             apiLogInfo.setApiResponse("Client Side Id status fetched successfully");
+		             apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		             
+		    		 logService.logMyInfo(httpRequest, apiLogInfo);
+		             return response;
+				 }
+			 }
+		 }
+		 catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something went wrong.");
+		        response.setServiceError(e.getMessage());
+
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setApiResponse(e.getMessage()); 
+		        apiLogInfo.setLogLevel("ERROR");
+		    }
+		 logService.logMyInfo(httpRequest, apiLogInfo);
 		 return response;
 	}
 }

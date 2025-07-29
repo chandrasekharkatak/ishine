@@ -74,7 +74,7 @@
                                   [valueMember]="'projectId'"
                                   [source]="activeProjectList"
                                   [useInfiniteScroll]="true"
-                                  (selectionChange)="openSelfModal1(self_clientId)"
+                                  (selectionChange)="openSelfModal1(self_clientId,timesheetObj.projectId)"
                                   [multiple]="false"
                                   [(ngModel)]="timesheetObj.projectId"
                                   >
@@ -107,7 +107,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && !timesheetObj.hasClientSideId && !noClientSideId">
+                <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && !timesheetObj.hasClientSideId && !clientSideIdNotMandatory">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label">Client Side Id</label>
@@ -115,7 +115,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 mb-0" *ngIf="timesheetObj.hasClientSideId || noClientSideId">
+                <div class="col-md-3 mb-0" *ngIf="timesheetObj.hasClientSideId || clientSideIdNotMandatory">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label">Employment Id</label>
@@ -123,7 +123,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && !timesheetObj.hasClientSideId && !noClientSideId">
+                <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && !timesheetObj.hasClientSideId && !clientSideIdNotMandatory">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label">VMS filled?</label>
@@ -137,7 +137,7 @@
                     </div>
                 </div>
             </div>
-            <div *ngIf="(timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || noClientSideId || timesheetObj.hasClientSideId">
+            <div *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">
                 <div class="row">
                     <div class="col-md-3 mb-0">
                         <div class="info-wrapper">
@@ -238,7 +238,7 @@
                     </div>
                 </div>
 
-                <div *ngIf="timesheetObj.clientSideId && !shadowForSelf">
+                <div *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory">
                     <div class="row ml-1 mt-5" >
                         <h6><span class="text-danger">*</span>Client Side</h6>
                     </div>
@@ -482,7 +482,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3 mb-0" *ngIf="timesheetObj.clientSideId && !shadowForSelf">
+                                <div class="col-md-3 mb-0" *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory">
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span> Upload Timesheet Proof</label>
@@ -833,8 +833,8 @@
 <ng-template #self_clientId>
    <div class="modal-body text-center">
         <h6>Do you have a Client Side ID?</h6>
-        <button type="button" class="btn btn-yes-alert" (click)="hideSelfModal1();openSelfModal2(self_clientId_update);noClientSideId = false">YES</button>&nbsp;
-        <button type="button" class="btn btn-no-alert" (click)="hideSelfModal1();fetchEmploymentIdByEmpId();noClientSideId = !noClientSideId">NO</button>&nbsp;
+        <button type="button" class="btn btn-yes-alert" (click)="hideSelfModal1();openSelfModal2(self_clientId_update);clientSideIdNotMandatory = false">YES</button>&nbsp;
+        <button type="button" class="btn btn-no-alert" (click)="hideSelfModal1();fetchEmploymentIdByEmpId();clientSideIdNotMandatory = !clientSideIdNotMandatory">NO</button>&nbsp;
     </div>
 </ng-template>
 
@@ -924,10 +924,10 @@
     </div>
 </ng-template> 
 
-<ng-template #noClientSideIdFound>
+<ng-template #clientSideIdNotMandatoryFound>
     <div class="modal-body text-center">
         <h6>No client side Id found for this Project. Please update it to continue.</h6>
-        <button type="button" class="btn-yes-alert" (click)="hideNoClientSideIdFound();openSelfModal3(update_clientId)">Update</button>&nbsp;
-        <button type="button" class="btn-no-alert" (click)="hideNoClientSideIdFound()">Cancel</button>&nbsp;
+        <button type="button" class="btn-yes-alert" (click)="hideclientSideIdNotMandatoryFound();openSelfModal3(update_clientId)">Update</button>&nbsp;
+        <button type="button" class="btn-no-alert" (click)="hideclientSideIdNotMandatoryFound()">Cancel</button>&nbsp;
     </div>
 </ng-template> 

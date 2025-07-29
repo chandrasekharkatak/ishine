@@ -174,4 +174,8 @@ export class TimesheetService {
     return this.http.get(`${this.baseUrl}` + `api/getDocumentDataByDocId?docId=${docId}`);
   }
 
+  checkIfProjectRequiresClientId(projectId:any){
+    return this.http.get(`${this.baseUrl}` + `api/checkIfProjectRequiresClientId?projectId=${projectId}`);
+  }
+
 }
