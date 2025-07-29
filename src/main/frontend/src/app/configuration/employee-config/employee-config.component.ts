@@ -3348,9 +3348,9 @@ export class EmployeeConfigComponent implements OnInit {
     this.storedDataList.forEach((data) => {
       if (data.filterName == title) {
         data.queryList.forEach((queryObj) => {
-          if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-")) {
-            queryObj.value = "A-".concat(queryObj.value);
-          }
+          // if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-")) {
+          //   queryObj.value = "A-".concat(queryObj.value);
+          // }
 
           if (queryObj.column == 'From Date' || queryObj.column == 'To Date' || queryObj.column == 'Date' || queryObj.column == 'Date Of Joining') {
             queryObj.value = (queryObj.value) ? moment(queryObj.value).format("DD-MM-YYYY") : '';
@@ -3442,9 +3442,9 @@ export class EmployeeConfigComponent implements OnInit {
           query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD HH:mm:ss') : '';
         }
 
-        if (query.column == 'Employee Id') {
-          query.value = query.value.split("-")[1];
-        }
+        // if (query.column == 'Employee Id') {
+        //   query.value = query.value.split("-")[1];
+        // }
       });
 
       if (this.filterData.title == 'Filter All Employee') {

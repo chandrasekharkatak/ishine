@@ -778,7 +778,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "    des.designation_name, e.is_consultant, e.is_apprenticeship, e.reporting_manager_id, \n"
     		+ "    e5.name AS reportingManger, jr.employee_role, e.refered_type, e.refered_name, \n"
     		+ "    e.employee_confirmation_date, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName,\n"
-    		+ "    emp_proj_client.project_id, e.updated_by\n"
+    		+ "    emp_proj_client.project_id, e.updated_by,e.is_apmosys_product\n"
     		+ "\n"
     		+ "FROM employee e\n"
     		+ "\n"
