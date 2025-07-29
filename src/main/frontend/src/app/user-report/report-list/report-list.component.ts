@@ -1397,7 +1397,13 @@ export class ReportListComponent implements OnInit {
         this.allLeaveApplicationsList = response.serviceResponse;
         this.allLeaveApplicationsList.forEach(leave => {
           leave.employeementId = "A-".concat(leave.employeementId);
-          leave.employeeType = ((leave.isApprenticeship === 'true') ? 'Apprentice' : ((leave.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+          leave.employeeType = (leave.isApmosysProduct === 'true') 
+  ? 'Apmosys Product' 
+  : ((leave.isApprenticeship === 'true') 
+    ? 'Apprentice' 
+    : ((leave.isConsultant === 'true') 
+      ? 'Consultant' 
+      : 'On roll')),
             leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -1450,7 +1456,7 @@ export class ReportListComponent implements OnInit {
     ? 'Apprentice' 
     : ((leave.isConsultant === 'true') 
       ? 'Consultant' 
-      : 'Regular')),
+      : 'On roll')),
 
               leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
             leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
@@ -1912,9 +1918,9 @@ export class ReportListComponent implements OnInit {
     this.storedDataList.forEach((data) => {
       if (data.filterName == title) {
         data.queryList.forEach((queryObj) => {
-          if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-")) {
-            queryObj.value = "A-".concat(queryObj.value);
-          }
+          // if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-")) {
+          //   queryObj.value = "A-".concat(queryObj.value);
+          // }
 
           if (queryObj.column == 'From Date' || queryObj.column == 'To Date' || queryObj.column == 'Date' || queryObj.column == 'Date Of Joining') {
             queryObj.value = (queryObj.value) ? moment(queryObj.value).format("DD-MM-YYYY") : '';
@@ -1954,9 +1960,9 @@ export class ReportListComponent implements OnInit {
           query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD HH:mm:ss') : '';
         }
 
-        if (query.column == 'Employee Id') {
-          query.value = query.value.split("-")[1];
-        }
+        // if (query.column == 'Employee Id') {
+        //   query.value = query.value.split("-")[1];
+        // }
       });
 
       if (this.filterData.title == 'Filter Leave Report') {
@@ -2104,7 +2110,7 @@ export class ReportListComponent implements OnInit {
 
       const onlySpecificDataArr = this.allLeaveApplicationsList.map(
         x => ({
-          "Employee Id": x.employeementId,
+          "Employee Id": x.employmentIdAcToET,
           "Employee Type": x.employeeType,
           "Employee Name": x.employeeName,
           "Leave Type": x.leaveType,

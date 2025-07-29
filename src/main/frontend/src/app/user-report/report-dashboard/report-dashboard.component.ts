@@ -227,7 +227,7 @@ export class ReportDashboardComponent implements OnInit {
 
   billableChartByDepartmentColumns: any[] = ['Department'];
 
-  resignedColumns: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'dateOfResign', 'dateOfRelieving', 'managerName'];
+  resignedColumns: any[] = ['blank', 'employmentIdAcToET', 'employeeType', 'name', 'departmentName', 'dateOfResign', 'dateOfRelieving', 'managerName'];
   departmentIds: any[] = [];
   allDepartmentList: any[] = [];
   currentUser: User;
@@ -747,8 +747,10 @@ onFilterChange(filter: CustomFilter): void {
             employee.employeeType = "Consultant"
           } else if (employee.isApprenticeship == 'true') {
             employee.employeeType = "Apprentice"
+          }else if (employee.isApmosysProduct == 'true') {
+            employee.employeeType = "Apmosys Product"
           } else {
-            employee.employeeType = "Regular"
+            employee.employeeType = "On roll"
           }
           employee.dateOfRelieving = (employee.dateOfResign) ? moment(employee.dateOfResign).add(employee.noticePeriod, 'days') : null;
 
@@ -2101,12 +2103,12 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
     this.storedDataList.forEach((data) => {
       if (data.filterName == title) {
         data.queryList.forEach((queryObj) => {
-          if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-")) {
-            queryObj.value = "A-".concat(queryObj.value);
-          }
-          if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-")) {
-            queryObj.value = "A-".concat(queryObj.value);
-          }
+          // if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-")) {
+          //   queryObj.value = "A-".concat(queryObj.value);
+          // }
+          // if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-")) {
+          //   queryObj.value = "A-".concat(queryObj.value);
+          // }
           if (queryObj.column == 'From Date' || queryObj.column == 'To Date' || queryObj.column == 'Date' || queryObj.column == 'Date Of Joining') {
             queryObj.value = (queryObj.value) ? moment(queryObj.value).format("DD-MM-YYYY") : '';
           } else if (queryObj.column == 'Created On' || queryObj.column == 'Updated On') {
@@ -2140,9 +2142,9 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
           query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD HH:mm:ss') : '';
         }
 
-        if (query.column == 'Employee Id') {
-          query.value = query.value.split("-")[1];
-        }
+        // if (query.column == 'Employee Id') {
+        //   query.value = query.value.split("-")[1];
+        // }
       });
 
       console.log("updated queryList : ", emittedArray[0]);
