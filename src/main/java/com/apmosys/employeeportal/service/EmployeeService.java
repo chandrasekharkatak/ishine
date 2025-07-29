@@ -4404,7 +4404,7 @@ public class EmployeeService {
 
 	public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
 	    ServiceResponse response = new ServiceResponse();
-
+	    
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getAllEmployeesByDepartmentIds");
 	    apiLogInfo.setLogLevel("INFO");

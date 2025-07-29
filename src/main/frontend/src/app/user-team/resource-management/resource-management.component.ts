@@ -1054,7 +1054,7 @@ onDeptSelectionChange1() {
 
         this.departmentsList = this.projectFilterDTO.departmentsids;
         console.log(this.departmentsList, "+++++++++++++++++++++++++++++++this.depatmentFilterDTO");
-        this.getAllEmployeesByDepartmentIds(this.departmentsList);
+        // this.getAllEmployeesByDepartmentIds(this.departmentsList);
 
         this.rbacApiCalls();
     }
@@ -2276,7 +2276,7 @@ isAddButtonDisabled(): boolean {
     console.log("this.copyDepartment ", currentTeam);
     // this.getAllEmployeesByDepartmentIds(this.copyDepartment);
     // this.resetTeamMemberForm();
-    this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
+    this.getAllEmployeesByDepartmentIds(this.deptIdList);
     this.getAllEmployeesByRole(this.copyDepartment);
     this.allTeamList?.forEach((team: any) => {
       if (team.teamName == currentTeam.teamName) {
@@ -3317,7 +3317,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
     // this.getAllEmployeesByRole(currentTeam.departmentList);
     console.log("this.copyDepartment ", this.copyDepartment);
     // this.getAllEmployeesByDepartmentIds(this.copyDepartment);
-    this.getAllEmployeesByDepartmentIds(currentTeam.departmentList);
+    this.getAllEmployeesByDepartmentIds(this.deptIdList);
     this.getAllEmployeesByRole(this.copyDepartment);
     this.allTeamList?.forEach((team: any) => {
       if (team.teamName == currentTeam.teamName) {

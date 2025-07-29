@@ -8980,6 +8980,13 @@ public class ResourceManagementService {
 	            }).collect(Collectors.toList());
 	        projectDepartmentMapRepository.saveAll(newMaps);
 	    }
+	    
+	    String departmentIdsAsString = newIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(",")); 
+	    
+	    project.setDeptId(departmentIdsAsString);
+	    projectRepository.save(project);
 	    ServiceResponse response = new ServiceResponse();
 	    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	    response.setServiceResponse("Department mappings updated.");
@@ -9211,7 +9218,12 @@ public class ResourceManagementService {
 	    p.setIsDraftProject("true");
 	    p.setCreatedBy(dto.getCreatedBy());
 		p.setProjectStatus("Not Started");
-		p.setDepartmentName(dto.getDeptName());
+		String[] departments = dto.getDepartment();
+
+		if (departments != null) {
+		String combinedDepartments = String.join(", ", departments); 
+    	p.setDepartmentName(combinedDepartments);
+}
 	    return projectRepository.save(p);
 	}
 
@@ -9593,8 +9605,19 @@ public class ResourceManagementService {
 			is_dept = true;}
 		}
 		if(is_dept) {
+			Set<Long> newIds = Arrays.stream(poData.getDepartment())
+			        .map(name -> departmentRepository.findByName(name))
+			        .filter(Objects::nonNull)
+			        .map(Department::getDeptId)
+			        .collect(Collectors.toSet());
+			String departmentIdsAsString = newIds.stream()
+	                .map(String::valueOf) 
+	                .collect(Collectors.joining(",")); 
+		    
+		    project.setDeptId(departmentIdsAsString);
 			Project savedProject = projectRepository.save(project);
 			syncDepartments(savedProject, poData);
+	 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Project created successfully!");
 			
@@ -9724,6 +9747,9 @@ public class ResourceManagementService {
 					response.setServiceResponse("Create operation failed at saving departments!");
 					throw new RuntimeException("Create operation failed at saving departments!");
 				}
+				
+				
+				
 
 				ProjectDepartmentMap pdm = new ProjectDepartmentMap();
 				pdm.setProjectId(project.getProjectId());
@@ -9795,6 +9821,7 @@ public class ResourceManagementService {
 			existingProject.setPoNo(poPortalProjects.getPoNo());
 			isModified = true;
 		}
+		
 	
 
 		if (!Objects.equals(existingProject.getApmosysRM(), poPortalProjects.getApmosysRM())) {
@@ -9880,6 +9907,7 @@ public class ResourceManagementService {
 		        e.printStackTrace();
 		    }
 		}
+		
 
 		ServiceResponse clientUpdateResponse = updateClient(existingProject, poPortalProjects);
 		if (ServiceResponse.STATUS_FAIL.equals(clientUpdateResponse.getServiceStatus())) {
@@ -9891,6 +9919,16 @@ public class ResourceManagementService {
 		return isModified;
 	}
 	
+	private List<String> parseCsvString(String csvString) {
+	    if (csvString == null || csvString.trim().isEmpty() || "()".equals(csvString.trim())) {
+	        return Collections.emptyList();
+	    }
+	    // Remove parentheses and split by comma, trimming whitespace from each element
+	    return Arrays.stream(csvString.replace("(", "").replace(")", "").split(","))
+	                 .map(String::trim)
+	                 .filter(s -> !s.isEmpty()) // Ensure empty elements are not included
+	                 .collect(Collectors.toList());
+	}
 	
 	public ServiceResponse handleDelete(ResourceManagementDTO poData) {
 		ServiceResponse response = new ServiceResponse();
