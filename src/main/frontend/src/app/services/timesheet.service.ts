@@ -142,7 +142,8 @@ export class TimesheetService {
   }
 
   getEmployeeMonthlyTimesheet(timesheetObj: Timesheet){
-    return this.http.get(`${this.baseUrl}` + `api/getOneMonthTimesheetReport`);
+    console.log("TimesheetOBJ ::::::::::",timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/getOneMonthTimesheetReport`,timesheetObj);
   }
 
   createClientSideIdMapping(empClientSideObj: any): Observable<any> {

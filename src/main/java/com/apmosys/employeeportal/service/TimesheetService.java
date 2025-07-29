@@ -2575,6 +2575,7 @@ public class TimesheetService {
 	    return response;
 	}
 	
+
 	public ServiceResponse getEmployeeListByProjectId(Integer projectId, Long currentUser) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
@@ -2662,6 +2663,28 @@ public class TimesheetService {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+
+
+
+	public List<TimesheetDTO> getTimesheetForEmployee(Long empId, String fromDate, String toDate) {
+	    List<Object[]> records = timesheetsRepository.findByEmpIdAndDateBetween(empId, fromDate, toDate);
+
+	    return records.stream().map(record -> {
+	        TimesheetDTO dto = new TimesheetDTO();
+	        dto.setEmployeeName((String) record[0]); 
+	        dto.setProjectName((String) record[1]);  
+	        dto.setTeamName((String) record[2]);     
+//	        dto.set((String) record[3]);  
+	        dto.setDate(record[4] != null ? record[4].toString() : null); 
+	        dto.setDayType((String) record[5]);     
+	        dto.setTotalTime(record[6] != null ? Float.valueOf(record[6].toString()) : null); 
+	        dto.setActivity((String) record[7]);     
+	        dto.setDescription((String) record[8]);  
+	        dto.setManagerName((String) record[9]); 
+	        return dto;
+	    }).collect(Collectors.toList());
+	}
+
 	
 	public ServiceResponse getDocumentDataByDocId(Long docId) {
 		ServiceResponse response = new ServiceResponse();
