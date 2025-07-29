@@ -256,4 +256,8 @@ public class TimesheetController {
 	        return ResponseEntity.ok(timesheetList);
 	    }
 	 
+	 @GetMapping("/checkIfProjectRequiresClientId")
+	 public ServiceResponse checkIfProjectRequiresClientId(@RequestParam Integer projectId) {
+		 return timesheetService.checkIfProjectRequiresClientId(projectId);
+	 }
 }

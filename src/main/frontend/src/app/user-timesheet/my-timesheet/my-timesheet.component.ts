@@ -40,8 +40,8 @@ export class MyTimesheetComponent implements OnInit {
   @ViewChild("previewTemplate")
   previewModal : TemplateRef<any>;
 
-  @ViewChild("noClientSideIdFound")
-  noClientSideIdFound : TemplateRef<any>;
+  @ViewChild("clientSideIdNotMandatoryFound")
+  clientSideIdNotMandatoryFound : TemplateRef<any>;
 
   data: string;
   feature = "My Timesheets";
@@ -124,8 +124,8 @@ AllWeekOfList:any[]=[];
   selfClientIdUpdateModalRef: BsModalRef = new BsModalRef();
   updateClientIdModalRef: BsModalRef = new BsModalRef();
   noNotAppliedYetModalRef: BsModalRef = new BsModalRef();
-  noClientSideIdFoundModalRef: BsModalRef = new BsModalRef();
-  noClientSideId: Boolean = false;
+  clientSideIdNotMandatoryFoundModalRef: BsModalRef = new BsModalRef();
+  clientSideIdNotMandatory: Boolean = false;
   employeeList:any[];
   selectedFile: File | null = null;
   empClientSideObj: EmployeeClientSideIdMapping = new EmployeeClientSideIdMapping();
@@ -139,6 +139,8 @@ AllWeekOfList:any[]=[];
   fileName:any = null;
   docData: any;
   mimeType: any;
+  projectRequiresClientId : Boolean = false;
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -170,7 +172,7 @@ AllWeekOfList:any[]=[];
       this.serverDate = response;
     });
 
-    this.noClientSideId = false;
+    this.clientSideIdNotMandatory = true;
     this.shadowForSelf = false;
 
     this.timesheetObj.empId = this.currentUser.empId;
@@ -1052,7 +1054,7 @@ setTotalWorkingClientHours() {
       }
     }
 
-    if(this.timesheetObj.hasClientSideId){
+    if(this.timesheetObj.hasClientSideId && !this.clientSideIdNotMandatory){
       if(this.timesheetObj.selectedFile == null){
         this.openAlertMod(template,"Please upload Timesheet Proof!")
         return false;
@@ -2107,8 +2109,23 @@ setTotalWorkingClientHours() {
     this.selectedProjectId = null;
   }
 
-  openSelfModal1(template: TemplateRef<any>) {
-    this.selfClientIdModalRef = this.modalService.show(template, { class: 'modal-sm' });
+  openSelfModal1(template: TemplateRef<any>,projectId:any) {
+    this.timesheetService.checkIfProjectRequiresClientId(projectId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectRequiresClientId = response.serviceResponse;
+        if(this.projectRequiresClientId){
+          this.clientSideIdNotMandatory = false;
+        } else {
+          this.fetchEmploymentIdByEmpId();
+          this.clientSideIdNotMandatory = true;
+        }
+        this.selfClientIdModalRef = this.modalService.show(template, { class: 'modal-sm' });
+      } else {
+        console.error(response.serviceResponse);
+        this.fetchEmploymentIdByEmpId();
+        this.clientSideIdNotMandatory = true;
+      }
+    });
   }
 
   hideSelfModal1(): void {
@@ -2140,7 +2157,7 @@ setTotalWorkingClientHours() {
   }
 
   fetchEmploymentIdByEmpId(){
-    this.timesheetObj.hasClientSideId = this.noClientSideId;
+    this.timesheetObj.hasClientSideId = this.clientSideIdNotMandatory;
     this.timesheetService.fetchEmploymentIdByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timesheetObj.employmentId = response.serviceResponse;
@@ -2166,6 +2183,7 @@ setTotalWorkingClientHours() {
     this.timesheetService.createClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
+        this.getClientSideIdByProjectId(this.timesheetObj.projectId);
       } else {
         this.openAlertMod(template, response.serviceResponse)
       }
@@ -2178,6 +2196,7 @@ setTotalWorkingClientHours() {
     this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
+        this.getClientSideIdByProjectId(this.timesheetObj.projectId);
       } else {
         this.openAlertMod(template, response.serviceResponse)
       }
@@ -2276,16 +2295,16 @@ setTotalWorkingClientHours() {
 
   checkClientSideIdPresentOrNot(timesheetObj: Timesheet){
     if(timesheetObj.clientSideId == null || timesheetObj.clientSideId == '')
-      this.openNoClientSideIdFound(this.noClientSideIdFound);
+      this.openclientSideIdNotMandatoryFound(this.clientSideIdNotMandatoryFound);
   }
 
-  openNoClientSideIdFound(template: TemplateRef<any>) {
-    this.noClientSideIdFoundModalRef = this.modalService.show(template, { class: 'modal-md' });
+  openclientSideIdNotMandatoryFound(template: TemplateRef<any>) {
+    this.clientSideIdNotMandatoryFoundModalRef = this.modalService.show(template, { class: 'modal-md' });
   }
 
-  hideNoClientSideIdFound(): void {
-    if (this.noClientSideIdFoundModalRef) {
-      this.noClientSideIdFoundModalRef.hide();
+  hideclientSideIdNotMandatoryFound(): void {
+    if (this.clientSideIdNotMandatoryFoundModalRef) {
+      this.clientSideIdNotMandatoryFoundModalRef.hide();
     }
   }
 

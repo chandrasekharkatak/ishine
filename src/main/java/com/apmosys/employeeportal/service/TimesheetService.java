@@ -989,6 +989,16 @@ public class TimesheetService {
 						dto.setIsConsultant(object[17] != null ? object[17].toString() : null);
 						dto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
 						dto.setEmpId(object[19] != null ? Long.parseLong(object[19].toString()) : null);
+						dto.setClientInTime(object[20] != null ? ((Timestamp) object[20]).toLocalDateTime() : null);
+						dto.setClientOutTime(object[21] != null ? ((Timestamp) object[21]).toLocalDateTime() : null);
+						dto.setClientSideId(object[22] != null ? object[22].toString() : null);
+						dto.setTotalClientWorkingHours(object[23] != null ? object[23].toString() : null);
+						dto.setProjectId(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
+						dto.setClientApprovalStatus(object[25] != null ? object[25].toString() : null);
+						dto.setHasClientSideId(object[26] != null ? (Boolean) object[26] : null);
+						dto.setEmploymentId(object[19] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[19].toString())) : null);
+						dto.setIsShadowTimesheet(object[27] != null ? (Boolean) object[27] : null);
+						dto.setShadowEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
 						if(timesheetId != null)dto.setDocId(timesheetDocumentDetailsRepository.findDocIdByTimesheetId(timesheetId));
 						dtoList.add(dto);
 					});
@@ -2744,7 +2754,7 @@ public class TimesheetService {
 		            logService.logMyInfo(httpRequest, apiLogInfo);
 		            return response;
 			 }else {
-				 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				 	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		            response.setServiceResponse(docDetails);
 //		            response.setServiceMessage("Client Side Id fetched successfully!");
 		            apiLogInfo.setApiResponse("Document details fetched successfully");
@@ -2761,6 +2771,54 @@ public class TimesheetService {
 		        apiLogInfo.setApiResponse(e.getMessage()); 
 		        apiLogInfo.setLogLevel("ERROR");
 		    }
+		 logService.logMyInfo(httpRequest, apiLogInfo);
+		 return response;
+	}
+	
+	public ServiceResponse checkIfProjectRequiresClientId(Integer projectId) {
+		ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/checkIfProjectRequiresClientId");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append( "projectId: " +projectId+"\n");
+		 try {
+			 Project projObj = projectRepository.getByProjectId(projectId);
+			 
+			 if(projObj == null) {
+				 
+				 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("No such project found in the system !");
+	             apiLogInfo.setApiResponse("No such project found in the system !");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             
+			 } else {
+				 
+				 Boolean flag = projObj.getHasClientSideId();
+				 
+				 if(flag != null) {
+					 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		             response.setServiceResponse(flag);
+		             apiLogInfo.setApiResponse("Client Side Id status fetched successfully");
+		             apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		             
+		    		 logService.logMyInfo(httpRequest, apiLogInfo);
+		             return response;
+				 }
+			 }
+		 }
+		 catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something went wrong.");
+		        response.setServiceError(e.getMessage());
+
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setApiResponse(e.getMessage()); 
+		        apiLogInfo.setLogLevel("ERROR");
+		    }
+		 logService.logMyInfo(httpRequest, apiLogInfo);
 		 return response;
 	}
 }
