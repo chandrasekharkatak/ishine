@@ -324,5 +324,28 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 				"left join EmployeeClientSideIdMapping ecsm on ecsm.projectId = p.projectId AND ecsm.active = TRUE \n"+
 				"where etm.empId = :empId and etm.active = 1")
 		public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(Long empId);
+		
+		@Query(value = "SELECT DISTINCT e.name employee_name, p.project_name, t.team_name, " +
+	               "CASE WHEN po_project_type IS NOT NULL THEN po_project_type " +
+	               "ELSE internal_project_type END AS project_type, " +
+	               "et.date, day_type, et.total_time, " +
+	               "a.activity, etam.description, pm.name Project_Manager_name " +
+	               "FROM employee_timesheets et " +
+	               "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
+	               "INNER JOIN activities a ON a.activity_id = etam.activity_id " +
+	               "INNER JOIN teams t ON a.team_id = t.team_id " +
+	               "LEFT JOIN projects p ON t.project_id = p.project_id " +
+	               "LEFT JOIN project_manager_mapping pmm ON p.project_id = pmm.project_id " +
+	               "LEFT JOIN employee pm ON pm.emp_id = pmm.project_manager_id " +
+	               "LEFT JOIN employee_team_mapping etm ON t.team_id = etm.team_id " +
+	               "LEFT JOIN employee e ON et.emp_id = e.emp_id " +
+	               "WHERE e.employmentstatus != 'InActive' AND p.active = 'true' " +
+	               "AND etm.active != 0 AND t.is_active != 'N' " +
+	               "AND et.emp_id IN (:empId) " +
+	               "AND (et.date BETWEEN :fromDate AND :toDate)",
+	       nativeQuery = true)
+		public List<Object[]> findByEmpIdAndDateBetween(@Param("empId") Long empId,
+	                                         @Param("fromDate") String fromDate,
+	                                         @Param("toDate") String toDate);
 	
 }

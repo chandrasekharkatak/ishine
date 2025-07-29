@@ -620,6 +620,10 @@
                                                         (click)="openRejectModal(reject_project, project); closeMenu(i)">
                                                         <i class="fas fa-times"></i> Reject
                                                     </li>
+                                                    <li *ngIf="project.poProjectType"
+                                                        (click)="openClientSideIdPresent(clientSideIdPresent,project.projectId); closeMenu(i)">
+                                                        <i class="fas fa-id-badge"></i> ClientID Status
+                                                    </li>
                                                 </ul>
                                             </div>
                                         </td>
@@ -2937,3 +2941,11 @@
     <!-- <iframe [src]="reportListUrlSafe" width="100%" height="850px" frameborder="0"></iframe> -->
 
 </ng-container>
+
+<ng-template #clientSideIdPresent>
+    <div class="modal-body text-center">
+        <h6>Please select Yes if a Client Side ID is provided by the client and used in the VMS process, otherwise select No.</h6>
+        <button type="button" class="btn-yes-alert" (click)="updateHasClientSideId(true)">Yes</button>&nbsp;
+        <button type="button" class="btn-no-alert" (click)="updateHasClientSideId(false)">No</button>&nbsp;
+    </div>
+</ng-template> 

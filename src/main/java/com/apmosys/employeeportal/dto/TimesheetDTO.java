@@ -130,4 +130,8 @@ public class TimesheetDTO {
 	private TimesheetDocumentDetailsDTO documentData;
 	
 	private Long docId;
+	private String fromDate;
+
+	private String toDate;
+
 }

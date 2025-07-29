@@ -30,6 +30,7 @@ import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
+import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.service.ResourceManagementService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -405,5 +406,10 @@ public class ResourceManagementController {
 	public ServiceResponse deleteProjectTemp() {
 	    return resourceManagementService.deleteProjectTemp();
 	}
+	
+	@PostMapping("/updateHasClientSideId")
+    public ServiceResponse updateHasClientSideId(@RequestBody UpdateHasClientSideIdDTO dto) {
+        return resourceManagementService.updateHasClientSideId(dto);
+    }
 
 }
