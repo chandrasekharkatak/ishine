@@ -1,4 +1,5 @@
 export class TimesheetDoc{
+    docId:any;
     docName:any;
     docFile:any;
     timesheetId:any;

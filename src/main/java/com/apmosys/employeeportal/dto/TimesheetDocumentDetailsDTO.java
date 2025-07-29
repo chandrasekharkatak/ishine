@@ -31,4 +31,6 @@ public class TimesheetDocumentDetailsDTO {
 	private String clientApprovalStatus;
 	private String rmApprovalStatus;
 	private Boolean finalFlag;
+	
+	
 }

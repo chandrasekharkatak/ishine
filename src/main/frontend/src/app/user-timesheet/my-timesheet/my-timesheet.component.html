@@ -290,6 +290,34 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-6 mb-0" *ngIf="timesheetObj.clientSideId && !shadowForSelf">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label"><span class="text-danger">*</span> Upload Timesheet Proof</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="file" class="form-control form-control-sm"
+                                            accept=".pdf,.jpg,.jpeg,.png" (change)="onFileSelected($event)" style="max-width: 200px;">
+                                            <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
+                                                [disabled]="!previewUrl" (click)="openPreviewModal()">
+                                                <i class="fa fa-eye fa-lg text-primary"></i>
+                                            </button>
+                                            <label class="pl-2">{{fileName}}</label>
+                                        </div>
+                                    <small class="errorMsg text-danger">{{fileError}}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-0" *ngIf="timesheetObj.clientSideId && !shadowForSelf && isUpdation">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label">View Previous Doc Proof</label>
+                                    <div class="d-flex align-items-center">
+                                        <button *ngIf="timesheetObj.docId" class="btn btn-sm btn-outline-primary mb3" type="submit" title="copy timesheet" (click)="getDoscForPreview(timesheetObj.docId)"><em>View Doc</em></button>&nbsp;
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -482,23 +510,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3 mb-0" *ngIf="timesheetObj.clientSideId && !shadowForSelf">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span> Upload Timesheet Proof</label>
-                                                <div class="d-flex align-items-center">
-                                                    <input type="file" class="form-control form-control-sm"
-                                                    accept=".pdf,.jpg,.jpeg,.png" (change)="onFileSelected($event)">
-                                                    <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                                                        [disabled]="!previewUrl" (click)="openPreviewModal()">
-                                                        <i class="fa fa-eye fa-lg text-primary"></i>
-                                                    </button>
-                                                </div>
-                                            <small class="errorMsg text-danger">{{fileError}}</small>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 <div class="col-md-1 d-flex">
                                     <div class="m-0 mt-4 pt-2">
                                         <button type="button" class="btn btn-sm btn-outline-primary mx-1"

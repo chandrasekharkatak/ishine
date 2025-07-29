@@ -707,7 +707,8 @@ public class TimesheetService {
 					list.forEach((object) -> {
 
 						TimesheetDTO dto = new TimesheetDTO();
-						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						Long timesheetId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+						dto.setTimesheetId(timesheetId);
 						dto.setDate(object[1] != null ? object[1].toString() : null);
 						dto.setDayType(object[2] != null ? object[2].toString() : null);
 						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
@@ -723,7 +724,8 @@ public class TimesheetService {
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
-						
+						if(timesheetId != null)
+						dto.setDocumentEntityData(timesheetDocumentDetailsRepository.findByTimesheetId(timesheetId));
 						// Get InActive Activities In Timesheet
 						if(dto.getDayType().equals("Working") && (dto.getStatus().equals("Pending") || dto.getStatus().equals("Rejected"))) {
 							List<Object[]> inactiveActivityList = timesheetsRepository
@@ -1214,7 +1216,8 @@ public class TimesheetService {
 		return response;
 	}
 
-	public ServiceResponse updateTimesheet(TimesheetDTO timesheetDTO) {
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse updateTimesheet(TimesheetDTO timesheetDTO,MultipartFile doc) {
 		ServiceResponse response = new ServiceResponse();
 		
 		LogDTO apiLogInfo = new LogDTO();
@@ -1354,6 +1357,39 @@ public class TimesheetService {
 				existingTimesheet.setTotalTime(totalTime);
 
 				Timesheet updatedTimesheet = timesheetsRepository.save(existingTimesheet);
+				TimesheetDocumentDetails docData = addTimesheetDocument(timesheetDTO.getDocumentData(),"Update",doc);
+				docData.setTimesheetId(updatedTimesheet.getTimesheetId());
+				docData.setEmpId(timesheetDTO.getEmpId());
+//				docData.setDocData(doc.getBytes());
+				
+				if (docData != null) {
+				    try {
+				    	System.out.println(docData);
+				        TimesheetDocumentDetails docu = timesheetDocumentDetailsRepository.save(docData);
+
+				        if (docu == null) {
+				            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				            response.setServiceResponse("Timesheet added, but document not saved.");
+
+				            apiLogInfo.setApiResponse("Timesheet added, but document not saved.");
+				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				        } else {
+				            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				            response.setServiceResponse("Timesheet added successfully");
+
+				            apiLogInfo.setApiResponse("Timesheet added successfully");
+				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				        }
+				    } catch (Exception e) {
+				        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				        response.setServiceResponse("Timesheet added, but document save failed due to an error.");
+
+				        apiLogInfo.setApiResponse("Exception while saving document: " + e.getMessage());
+				        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+				        e.printStackTrace(); 
+				    }
+				}
 
 				if (updatedTimesheet.getTimesheetId() != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -2363,6 +2399,7 @@ public class TimesheetService {
 			timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
 		}
 		else if("Update".equalsIgnoreCase(oprType)) {
+			data = timesheetDocumentDetailsRepository.findByDocIdAndActive(timesheetDocumentDetailsDTO.getDocId(),true);
 			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 		}
 		if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
@@ -2392,9 +2429,9 @@ public class TimesheetService {
 	   TimesheetDocumentDetails entity = new TimesheetDocumentDetails();
 
 	    if (docId != null) {
-	    	entity = timesheetDocumentDetailsRepository.findByDocId(docId);
+	    	entity = timesheetDocumentDetailsRepository.findByDocIdAndActive(docId,true);
 	    } else if (timesheetId != null) {
-	    	entity = timesheetDocumentDetailsRepository.findTopByTimesheetIdOrderByUpdatedOnDesc(timesheetId);
+	    	entity = timesheetDocumentDetailsRepository.findTopByTimesheetIdAndActive(timesheetId,true);
 	    } else {
 	        throw new IllegalArgumentException("Either docId or timesheetId must be provided.");
 	    }
@@ -2696,7 +2733,7 @@ public class TimesheetService {
 		logBuilder.append( "docId:" +docId+"\n");
 		 try {
 			 TimesheetDocumentDetails docDetails = new TimesheetDocumentDetails();
-			 docDetails = timesheetDocumentDetailsRepository.findByDocId(docId);
+			 docDetails = timesheetDocumentDetailsRepository.findByDocIdAndActive(docId,true);
 			 if(docDetails == null) {
 				 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		            response.setServiceResponse("Document not found...!!");

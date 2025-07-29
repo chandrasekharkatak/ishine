@@ -313,13 +313,14 @@ AllWeekOfList:any[]=[];
     this.isTimesheetUpdate = true;
 
     this.timesheetObj = Object.assign({}, timesheetObj);
+    console.log(timesheetObj.docId);
+    console.log(this.timesheetObj.docId);
     this.timesheetObj.updatedTimesheetActivities = [];
     this.timesheetObj.date = (this.timesheetObj.date)? moment(timesheetObj.date, "DD-MM-YYYY").toDate() : '';
     this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime)? moment(timesheetObj.officeInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime)? moment(timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.createdOn = (this.timesheetObj.createdOn)? moment(timesheetObj.createdOn, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.dayType = (this.timesheetObj.dayType == "Holiday")? "Week Off" : this.timesheetObj.dayType;
-
     if (this.timesheetObj.officeInTime) {
       this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
     }
@@ -1185,7 +1186,8 @@ setTotalWorkingClientHours() {
     this.timesheetObj.createdBy = this.currentUser.empId;
     this.timesheetObj.currentManagerId = this.currentUser.managerId;
     //console.log("Update timesheetObj : ", this.timesheetObj);
-    this.timesheetService.updateTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.payloadForFileUpload();
+    this.timesheetService.updateTimesheetWithClient(this.timesheetObj,this.selectedFile).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();
@@ -2220,6 +2222,12 @@ setTotalWorkingClientHours() {
   payloadForFileUpload() {
     if (!this.timesheetObj.documentData) {
       this.timesheetObj.documentData = new TimesheetDoc();
+    }
+    if(this.timesheetObj.docId != null && this.timesheetObj.docId != undefined){
+      this.timesheetObj.documentData.docId = this.timesheetObj.docId
+    }
+    else{
+      this.timesheetObj.documentData.docId = null;
     }
     this.timesheetObj.documentData.docName = this.fileName;
     this.timesheetObj.documentData.empId = this.timesheetObj.empId;

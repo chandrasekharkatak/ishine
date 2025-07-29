@@ -105,10 +105,11 @@ public class TimesheetController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/updateTimesheet", method = RequestMethod.POST)
-	public ServiceResponse updateTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
+	@RequestMapping(value = "/updateTimesheet", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse updateTimesheet(@RequestPart("dto") TimesheetDTO timesheetDTO,
+			@RequestPart("doc") MultipartFile doc) {
 
-		ServiceResponse response = timesheetService.updateTimesheet(timesheetDTO);
+		ServiceResponse response = timesheetService.updateTimesheet(timesheetDTO,doc);
 		return response;
 	}
 	

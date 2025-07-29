@@ -8,8 +8,12 @@ import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 
 public interface TimesheetDocumentDetailsRepository extends JpaRepository<TimesheetDocumentDetails, Long>{
 
-	TimesheetDocumentDetails findByDocId(Long docId);
-	TimesheetDocumentDetails findTopByTimesheetIdOrderByUpdatedOnDesc(Long timesheetId);
+	TimesheetDocumentDetails findByDocIdAndActive(Long docId, Boolean active);
+	
+	TimesheetDocumentDetails findTopByTimesheetIdAndActive(Long timesheetId,Boolean active);
+	
+	@Query("SELECT t FROM TimesheetDocumentDetails t WHERE t.timesheetId = :timesheetId")
+	TimesheetDocumentDetails findByTimesheetId(Long timesheetId);
 	
 	@Query("SELECT t.docId FROM TimesheetDocumentDetails t WHERE t.timesheetId = :timesheetId")
 	Long findDocIdByTimesheetId(@Param("timesheetId") Long timesheetId);

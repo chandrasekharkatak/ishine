@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Getter;
@@ -128,6 +129,7 @@ public class TimesheetDTO {
 	private Long shadowEmpId;
 	 
 	private TimesheetDocumentDetailsDTO documentData;
+	private TimesheetDocumentDetails documentEntityData;
 	
 	private Long docId;
 	private String fromDate;
