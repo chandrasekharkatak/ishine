@@ -2966,6 +2966,7 @@
                         <th scope="col" class="info-label">Description</th>
                         <th scope="col" class="info-label" mat-sort-header="startDate|string">Start Date</th>
                         <th scope="col" class="info-label" mat-sort-header="endDate|string">End Date</th>
+                         <th scope="col" class="info-label" mat-sort-header="extendedDate|string">Extended Date</th>
                         <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                         <th scope="col" class="info-label">Remarks</th>
                         <th scope="col" class="info-label">Actions</th>
@@ -2986,6 +2987,7 @@
                             <td>{{milestone.description}}</td>
                             <td>{{milestone.startDate | date:'dd/MM/yyyy'}}</td>
                             <td>{{milestone.endDate | date:'dd/MM/yyyy'}}</td>
+                            <td>{{milestone.extendedDate| date:'dd/MM/yyyy'}}</td>
                             <td>{{milestone.status}}</td>
                             <td>{{milestone.remarks}}</td>
                             <td>
@@ -3059,6 +3061,15 @@
                     [owlDateTime]="endDatePicker" placeholder="Select End Date" [disabled]="true">
                 <owl-date-time #endDatePicker></owl-date-time>
                
+            </div>
+
+                       
+            <div class="form-field">
+                <label>Extended Date</label>
+                <input id="extendedDate" class="form-control static-input" autocomplete="off"
+                    [(ngModel)]="projectMilestone.extendedDate" [owlDateTimeTrigger]="extendedDatePicker"
+                    [owlDateTime]="extendedDatePicker" placeholder="Select Extended Date" [disabled]="true">
+                <owl-date-time #extendedDatePicker></owl-date-time>
             </div>
 
 

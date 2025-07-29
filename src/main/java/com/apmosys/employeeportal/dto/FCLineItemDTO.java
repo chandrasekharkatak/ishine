@@ -20,7 +20,7 @@ public class FCLineItemDTO {
 
 	private String status;
 	
-	private List<FCProjectMilestoneDTO>  fcProjectMilestoneDTOList;
+	
 	private List<FCProjectMilestoneDTO>  milestones;
 
 }

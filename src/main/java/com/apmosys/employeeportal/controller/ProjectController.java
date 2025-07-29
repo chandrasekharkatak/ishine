@@ -162,8 +162,8 @@ public class ProjectController {
 	}
 	
 	@PostMapping(value="/getAllMilestoneToBeExpired")
-	public ServiceResponse getAllMilestoneToBeExpired(@RequestBody RmAndHodEmailDto rmAndHodEmailDto){
-		return poPortalApiService.getAllMilestoneToBeExpired(rmAndHodEmailDto.getRmEmail());
+	public ServiceResponse getAllMilestoneToBeExpired(@RequestBody Long rmId){
+		return poPortalApiService.getAllMilestoneToBeExpired(rmId);
 	}
 	
 	@PutMapping(value="/updateMilestoneExtendedDate")

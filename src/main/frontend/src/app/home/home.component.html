@@ -153,17 +153,19 @@
                     EXP PO
                 </a>
             </li>
-            <li class="nav-item mx-2 position-relative" *ngIf="milestoneCount > 0">
-                <button class="btn btn-light position-relative small-notification-btn"
-                    (click)="openMilestoneExpiredListModal()">
-                    <i class="fas fa-bell text-dark small-notification-icon"></i>
-                    <span *ngIf="milestoneCount > 0"
-                        class="badge bg-danger text-white position-absolute top-0 start-100 translate-middle small-badge">
-                        {{ milestoneCount }}
-                    </span>
-                </button>
-            </li>
-
+               <li class="nav-item mx-2 position-relative" *ngIf="milestoneCount > 0">
+    <button class="btn btn-light position-relative small-notification-btn"
+        (click)="openMilestoneExpiredListModal()"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Milestone to be expired">
+        <i class="fas fa-bell text-dark small-notification-icon my-custom-margin-bottom"></i>
+        <span *ngIf="milestoneCount > 0"
+            class="badge bg-danger text-white position-absolute top-0 start-100 translate-middle small-badge">
+            {{ milestoneCount }}
+        </span>
+    </button>
+</li>
 
 
 
@@ -1774,7 +1776,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
                             [formControl]="$any(milestoneForm.get('extendedDate'))"
                             [owlDateTimeTrigger]="extendedDatePicker" [owlDateTime]="extendedDatePicker"
                             placeholder="Select Extended Date" />
-                        <owl-date-time #extendedDatePicker></owl-date-time>
+                        <owl-date-time #extendedDatePicker [pickerType]="'calendar'"></owl-date-time>
                     </div>
 
 

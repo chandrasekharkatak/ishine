@@ -48,6 +48,8 @@ public class FCProjectMilestoneDTO {
 	
 	private byte[] documentContent;
 	
+	private Date extendedDate;
+	
 	// Constructor for repository query
 	public FCProjectMilestoneDTO(Long id,Long poId,Long projectId, String name, String description, Date startDate, Date endDate, String status, String remarks,Long lineItemId,String lineItemName,String lineItemStatus,Long poProjectId) {
 		this.id = id;

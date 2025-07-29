@@ -17,5 +17,6 @@ export class FCProjectMilestone {
     documentName: any;
     documentPath: any;
    documentBase64: any;
+   extendedDate:any
    
 }

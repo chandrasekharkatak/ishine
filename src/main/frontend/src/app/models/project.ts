@@ -74,5 +74,6 @@ export class Project{
 	employeeTeamMapId:any;
 	draftStatus:any;
   combinedProjectType: string;
+  extendedDate: any; // Added for milestone extension
 
 }

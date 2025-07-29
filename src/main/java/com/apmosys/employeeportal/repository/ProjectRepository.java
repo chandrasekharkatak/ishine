@@ -841,19 +841,25 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	
 	
 	
-	@Query("SELECT new com.apmosys.employeeportal.dto.RmAndHodEmailDto(p.apmosysRmEmail, e.email) " +
+	@Query("SELECT new com.apmosys.employeeportal.dto.RmAndHodEmailDto(rm.email, hod.email) " +
 		       "FROM Project p " +
-		       "LEFT JOIN Department d ON d.deptId = p.deptId " +
-		       "LEFT JOIN Employee e ON e.empId = d.hodId " +
-		       "WHERE p.poProjectId = :projectId")
+		       "LEFT JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId " +
+		       "LEFT JOIN Employee rm ON pmm.projectManagerId = rm.empId " +
+		       "LEFT JOIN Department d ON p.deptId = d.deptId " +
+		       "LEFT JOIN Employee hod ON d.hodId = hod.empId " +
+		       "WHERE p.poProjectId = :projectId AND pmm.active = 1")
 		Optional<RmAndHodEmailDto> findRmAndHodEmailsByProjectId(@Param("projectId") Long projectId);
-
-	
 	
 	
 	
 	@Query("SELECT p.poProjectId FROM Project p WHERE LOWER(p.apmosysRmEmail) = LOWER(:rmEmail)")
 	List<Long> findProjectIdsByRmEmail(@Param("rmEmail") String rmEmail);
+	
+	
+	@Query("SELECT p.poProjectId FROM Project p JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId WHERE pmm.projectManagerId = :projectManagerId AND pmm.active = 1")
+	List<Long> findPoProjectIdsByProjectManagerIdWithJoin(@Param("projectManagerId") Long projectManagerId);
+
+	
 
 
 	

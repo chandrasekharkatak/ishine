@@ -95,13 +95,9 @@ deleteTeamsByIdsBulk(teamObj: any){
     return this.http.get(`${this.baseUrl}` + `api/getAllMilestoneExtendReason`);
   }
 
- getAllMilestoneToBeExpired(rmEmail: string): Observable<any> {
-  const payload = {
-    rmEmail: rmEmail,
-    hodEmail: null
-  };
+ getAllMilestoneToBeExpired(rmEmail: number): Observable<any> {
 
-  return this.http.post(`${this.baseUrl}`+`api/getAllMilestoneToBeExpired`, payload);
+  return this.http.post(`${this.baseUrl}`+`api/getAllMilestoneToBeExpired`, rmEmail);
 }
 
 

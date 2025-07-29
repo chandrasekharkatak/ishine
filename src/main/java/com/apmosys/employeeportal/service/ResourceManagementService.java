@@ -9045,7 +9045,7 @@ public class ResourceManagementService {
 	            fCLineItemRepository.save(lineItem);
 	        }
 
-	        for (FCProjectMilestoneDTO milestoneDTO : lineItemDTO.getFcProjectMilestoneDTOList()) {
+	        for (FCProjectMilestoneDTO milestoneDTO : lineItemDTO.getMilestones()) {
 	            FCProjectMilestone milestone = Optional.ofNullable(milestoneDTO.getId())
 	                .flatMap(fCProjectMilestoneRepository::findById).orElse(new FCProjectMilestone());
 

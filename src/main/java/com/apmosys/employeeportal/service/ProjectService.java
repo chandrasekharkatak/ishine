@@ -2647,7 +2647,8 @@ public class ProjectService {
 					apiLogInfo.setApiResponse("Project Id cannot be null!");
 					return serviceResponse;
 				} else {
-					Project project = projectRepository.findByPoProjectId(projectDto.getPoProjectId());					if (project == null) {
+					Project project = projectRepository.findByPoProjectId(projectDto.getPoProjectId());					
+					if (project == null) {
 						apiLogInfo.setApiResponse("Project not found!");
 						serviceResponse.setServiceResponse("Project not found!");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -3046,6 +3047,7 @@ public class ProjectService {
 							fcProjectMilestoneDTO.setDescription(fcProjectMilestoneDTOTemp.getDescription());
 							fcProjectMilestoneDTO.setStartDate(fcProjectMilestoneDTOTemp.getStartDate());
 							fcProjectMilestoneDTO.setEndDate(fcProjectMilestoneDTOTemp.getEndDate());
+							fcProjectMilestoneDTO.setExtendedDate(fcProjectMilestoneDTOTemp.getExtendedDate());
 							fcProjectMilestoneDTO.setStatus(fcProjectMilestoneDTOTemp.getStatus());
 							fcProjectMilestoneDTO.setRemarks(fcProjectMilestoneDTOTemp.getRemarks());
 							fcProjectMilestoneDTO.setLineItemId(fcLineItemDTO.getId());

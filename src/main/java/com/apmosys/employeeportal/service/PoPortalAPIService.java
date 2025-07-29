@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -182,6 +183,7 @@ public class PoPortalAPIService {
  	        apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity,new ParameterizedTypeReference<List<FCLineItemDTO>>() {});
 			if (apiResponse.getStatusCode() == HttpStatus.OK) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			
 				serviceResponse.setServiceResponse(apiResponse.getBody());
 				finalHttpStatusCode = HttpStatus.OK.value();
 			} else {
@@ -887,7 +889,8 @@ public class PoPortalAPIService {
 		            
 		            
 		            
-	
+	                 
+		   
 		            Optional<RmAndHodEmailDto> optionalEmails = projectRepository.findRmAndHodEmailsByProjectId(projectId);
 		            
 	
@@ -973,7 +976,7 @@ public class PoPortalAPIService {
 	
 	
 	
-	public ServiceResponse getAllMilestoneToBeExpired(String rmEmail) {
+	public ServiceResponse getAllMilestoneToBeExpired(Long rmId) {
 	    ServiceResponse response = new ServiceResponse();
 	    List<MilestoneExpireDto> milestones = new ArrayList<>();
 	    String traceId = UUID.randomUUID().toString();
@@ -984,9 +987,9 @@ public class PoPortalAPIService {
 
 	    try {
 	       
-	    	System.out.println("rmMail"+" "+rmEmail);
-	        if (rmEmail == null || rmEmail.trim().isEmpty()) {
-	            String message = "RM email is null or empty.";
+	    	System.out.println("rmMail"+" "+rmId);
+	        if (rmId == null || Objects.isNull(rmId)) {
+	            String message = "rmId is null or empty.";
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse(message);
 	            response.setServiceError(message);
@@ -1004,12 +1007,12 @@ public class PoPortalAPIService {
 	        );
 
 	        
-	        List<Long> projectIds = projectRepository.findProjectIdsByRmEmail(rmEmail);
+	        List<Long> projectIds = projectRepository.findPoProjectIdsByProjectManagerIdWithJoin(rmId);
 	        
-	        System.out.println(projectIds);
+	        System.out.println("projectIds="+projectIds);
 	        
 	        if (projectIds == null || projectIds.isEmpty()) {
-	            String message = "No project IDs found for RM: " + rmEmail;
+	            String message = "No project IDs found for RM: " + rmId;
 	            response.setServiceResponse(message);
 	            finalHttpStatusCode = HttpStatus.OK.value();
 	            return response;

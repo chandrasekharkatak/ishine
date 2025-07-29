@@ -5012,9 +5012,11 @@ filteredProjects: any[] = [];
 
     console.log("projectObjTemp", projectObjTemp);
     this.projectService.getAllProjectFCLineItemListByProjectId(projectObjTemp).pipe(first()).subscribe((response: any) => {
+      console.log("response_PO", response);
       if (response.serviceStatus == "Success") {
         console.log("response.serviceStatus "+JSON.stringify(response.serviceResponse));
         this.fcProjectMilestoneList = response.serviceResponse;
+        console.log("fcProjectMilestoneList", this.fcProjectMilestoneList);
 
         this.openProjectLineItemListModal();
       } else {
