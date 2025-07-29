@@ -2021,6 +2021,15 @@ setTotalWorkingClientHours() {
     }
   }
 
+  getDoscForPreview(docId:any){
+    console.log(docId,":docId");
+    this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        console.log(response.serviceResponse);
+      }
+    });
+  }
+
   openPreviewModal(){
     this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
   }

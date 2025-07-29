@@ -103,4 +103,5 @@ export class Timesheet{
     shadowEmpId:any;
     selectedFile:any;
     documentData:TimesheetDoc;
+    docId:any;
 }

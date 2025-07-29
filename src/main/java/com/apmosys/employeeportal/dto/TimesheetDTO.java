@@ -128,4 +128,6 @@ public class TimesheetDTO {
 	private Long shadowEmpId;
 	 
 	private TimesheetDocumentDetailsDTO documentData;
+	
+	private Long docId;
 }

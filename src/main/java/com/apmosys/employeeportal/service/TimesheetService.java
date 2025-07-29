@@ -594,7 +594,8 @@ public class TimesheetService {
 					list.forEach((object) -> {
 
 						TimesheetDTO dto = new TimesheetDTO();
-						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						Long timesheetId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+						dto.setTimesheetId(timesheetId);
 						dto.setDate(object[1] != null ? object[1].toString() : null);
 						dto.setDayType(object[2] != null ? object[2].toString() : null);
 						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
@@ -620,6 +621,8 @@ public class TimesheetService {
 						dto.setEmploymentId(object[22] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
 						dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
 						dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
+						if(timesheetId != null)
+						dto.setDocId(timesheetDocumentDetailsRepository.findDocIdByTimesheetId(timesheetId));
 						// Get InActive Activities In Timesheet
 						if(dto.getStatus().equals("Pending")) {
 							List<Object[]> inactiveActivityList = timesheetsRepository
@@ -964,7 +967,8 @@ public class TimesheetService {
 					list.forEach((object) -> {
 
 						TimesheetDTO dto = new TimesheetDTO();
-						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+						Long timesheetId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+						dto.setTimesheetId(timesheetId);
 						dto.setDate(object[1] != null ? object[1].toString() : null);
 						dto.setDayType(object[2] != null ? object[2].toString() : null);
 						dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
@@ -983,6 +987,7 @@ public class TimesheetService {
 						dto.setIsConsultant(object[17] != null ? object[17].toString() : null);
 						dto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
 						dto.setEmpId(object[19] != null ? Long.parseLong(object[19].toString()) : null);
+						if(timesheetId != null)dto.setDocId(timesheetDocumentDetailsRepository.findDocIdByTimesheetId(timesheetId));
 						dtoList.add(dto);
 					});
 
@@ -2657,5 +2662,45 @@ public class TimesheetService {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+	
+	public ServiceResponse getDocumentDataByDocId(Long docId) {
+		ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getDocumentDataByDocId");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append( "docId:" +docId+"\n");
+		 try {
+			 TimesheetDocumentDetails docDetails = new TimesheetDocumentDetails();
+			 docDetails = timesheetDocumentDetailsRepository.findByDocId(docId);
+			 if(docDetails == null) {
+				 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("Document not found...!!");
+		            response.setServiceMessage("Document not found...!!" + docId);
+		            
+		            apiLogInfo.setApiResponse("Document not found...!!" + docId);
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            logService.logMyInfo(httpRequest, apiLogInfo);
+		            return response;
+			 }else {
+				 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(docDetails);
+//		            response.setServiceMessage("Client Side Id fetched successfully!");
+		            apiLogInfo.setApiResponse("Document details fetched successfully");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			 }
+		 }
+		 catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something went wrong.");
+		        response.setServiceError(e.getMessage());
 
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setApiResponse(e.getMessage()); 
+		        apiLogInfo.setLogLevel("ERROR");
+		    }
+		 return response;
+	}
 }

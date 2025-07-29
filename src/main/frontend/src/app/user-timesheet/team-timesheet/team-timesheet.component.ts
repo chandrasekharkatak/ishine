@@ -534,11 +534,21 @@ export class TeamTimesheetComponent implements OnInit {
 
   }
 
+  getDoscForPreview(docId:any){
+    console.log(docId,":docId");
+    this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        console.log(response.serviceResponse);
+      }
+    });
+  }
+
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
     if(!this.isSearchEnabled){
       this.filters = {};
     }
+
   }
 
   onSearch(searchData){

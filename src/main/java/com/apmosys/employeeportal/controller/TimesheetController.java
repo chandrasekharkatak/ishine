@@ -239,4 +239,9 @@ public class TimesheetController {
 	     return timesheetService.getClientSideIdByProjectIdAndEmpId(projectId,empId);
 	 }
 	 
+	 @GetMapping("/getDocumentDataByDocId")
+	 public ServiceResponse getDocumentDataByDocId(@RequestParam Long docId) {
+	     return timesheetService.getDocumentDataByDocId(docId);
+	 }
+	 
 }

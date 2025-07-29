@@ -660,11 +660,12 @@
                                         (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
                                     <button class="btn btn-sm btn-outline-primary mb3" type="submit" title="copy timesheet"
                                         (click)="copyTimesheetDetailsToNotepad(timesheet)"><em>copy</em></button>&nbsp;
+                                    <button *ngIf="timesheet.docId" class="btn btn-sm btn-outline-primary mb3" type="submit" title="copy timesheet" (click)="getDoscForPreview(timesheet.docId)"><em>View Doc</em></button>&nbsp;
                                     <button
-                                        *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected' || ( timesheet.status === 'Approved' && timesheet.dayType === 'Holiday') || ( timesheet.status === 'Approved' && timesheet.dayType === 'Public Holiday') || ( timesheet.status === 'Approved' && timesheet.dayType === 'Week Off'))"
-                                        class="btn btn-sm btn-outline-primary mb3" type="submit"
-                                        (click)="checkTimesheetForInActiveActivities(timesheet, inactive_update_timesheet_template)"><em
-                                            class="fa fa-edit"></em></button>
+                                    *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected' || ( timesheet.status === 'Approved' && timesheet.dayType === 'Holiday') || ( timesheet.status === 'Approved' && timesheet.dayType === 'Public Holiday') || ( timesheet.status === 'Approved' && timesheet.dayType === 'Week Off'))"
+                                    class="btn btn-sm btn-outline-primary mb3" type="submit"
+                                    (click)="checkTimesheetForInActiveActivities(timesheet, inactive_update_timesheet_template)"><em
+                                        class="fa fa-edit"></em></button>
                                 </td>
                             </tr>
                         </tbody>

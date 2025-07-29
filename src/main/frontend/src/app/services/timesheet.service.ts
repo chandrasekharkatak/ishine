@@ -169,4 +169,8 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}api/getClientSideIdByProjectIdAndEmpId?projectId=${projectId}&empId=${empId}`, null);
   }
 
+   getDocumentDataByDocId(docId: any){
+    return this.http.get(`${this.baseUrl}` + `api/getDocumentDataByDocId?docId=${docId}`);
+  }
+
 }
