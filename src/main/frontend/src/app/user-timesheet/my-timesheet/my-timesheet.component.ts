@@ -213,6 +213,7 @@ AllWeekOfList:any[]=[];
 
     this.isTimesheetTable = false;
     this.isUpdation = false;
+    this.isTimesheetBulkForm = false;
 
     this.reset();
     this.getEmployeeBasicInfo();
@@ -235,6 +236,7 @@ AllWeekOfList:any[]=[];
     this.isTimesheetForm = false;
     this.isCreation = false;
     this.isUpdation = false;
+    this.isTimesheetBulkForm = false;
 
     this.showSelfTimesheets();
   }
