@@ -987,6 +987,16 @@ public class TimesheetService {
 						dto.setIsConsultant(object[17] != null ? object[17].toString() : null);
 						dto.setIsApprenticeship(object[18] != null ? object[18].toString() : null);
 						dto.setEmpId(object[19] != null ? Long.parseLong(object[19].toString()) : null);
+						dto.setClientInTime(object[20] != null ? ((Timestamp) object[20]).toLocalDateTime() : null);
+						dto.setClientOutTime(object[21] != null ? ((Timestamp) object[21]).toLocalDateTime() : null);
+						dto.setClientSideId(object[22] != null ? object[22].toString() : null);
+						dto.setTotalClientWorkingHours(object[23] != null ? object[23].toString() : null);
+						dto.setProjectId(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
+						dto.setClientApprovalStatus(object[25] != null ? object[25].toString() : null);
+						dto.setHasClientSideId(object[26] != null ? (Boolean) object[26] : null);
+						dto.setEmploymentId(object[19] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[19].toString())) : null);
+						dto.setIsShadowTimesheet(object[27] != null ? (Boolean) object[27] : null);
+						dto.setShadowEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
 						if(timesheetId != null)dto.setDocId(timesheetDocumentDetailsRepository.findDocIdByTimesheetId(timesheetId));
 						dtoList.add(dto);
 					});

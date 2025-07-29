@@ -88,6 +88,7 @@ import { EmployeeInfoComponent } from './user-update-info/employee-info/employee
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
+import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -122,7 +123,7 @@ const routes: Routes = [
       { path: 'performance-config' , component: PerformanceConfigComponent},
       { path: 'travel-config' , component: TravelConfigComponent},
       { path: 'reimbursment-config' , component:ReimbursmentConfigComponent},
-     
+      { path: 'timesheet-config' , component:TimesheetConfigComponent},
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],

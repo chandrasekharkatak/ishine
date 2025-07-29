@@ -2164,6 +2164,7 @@ setTotalWorkingClientHours() {
     this.timesheetService.createClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
+        this.getClientSideIdByProjectId(this.timesheetObj.projectId);
       } else {
         this.openAlertMod(template, response.serviceResponse)
       }
@@ -2176,6 +2177,7 @@ setTotalWorkingClientHours() {
     this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
+        this.getClientSideIdByProjectId(this.timesheetObj.projectId);
       } else {
         this.openAlertMod(template, response.serviceResponse)
       }
