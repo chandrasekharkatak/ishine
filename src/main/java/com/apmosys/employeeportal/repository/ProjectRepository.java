@@ -833,4 +833,10 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	@Modifying
     @Query(value = "CALL sp_SyncProjectsFromTemp", nativeQuery = true)
     void callSyncProjectsSP();
+	
+	@Query(value="SELECT p FROM Project p \n"
+			+ "WHERE p.active = 'true' \n"
+			+ "AND p.projectId = :projectId \n"
+			+ "AND p.active = 'true'")
+	Project getByProjectId(Integer projectId);
 }

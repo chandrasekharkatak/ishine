@@ -38,6 +38,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
@@ -92,6 +93,7 @@ import com.apmosys.employeeportal.dto.TeamInfoTeamDTO;
 import com.apmosys.employeeportal.dto.TeamInfoTeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamSpocDTO;
+import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
 import com.apmosys.employeeportal.model.Client;
@@ -99,6 +101,7 @@ import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.Project;
@@ -115,6 +118,7 @@ import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
+import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -200,6 +204,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	private JobRoleRepository jobRoleRepository;
+	
+	@Autowired
+	private EmployeeClientSideIdMappingRepository employeeClientSideIdMappingRepository;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -8869,5 +8876,72 @@ public class ResourceManagementService {
 		return response;
 	}
 	
+	public ServiceResponse updateHasClientSideId(UpdateHasClientSideIdDTO dto) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/updateHasClientSideId");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("flag : " +dto.getHasClientSideId()+ "projectId: " +dto.getProjectId()+"\n");
+	    
+	    try {
+	    		if(dto.getProjectId() != null) {
+	    			Project  project = projectRepository.getByProjectId(dto.getProjectId());
+	    			
+	    			if (project == null ) {
+	    				
+	    				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			            response.setServiceResponse("Could not update the Client Side Id status!");
+			            response.setServiceMessage("No Project fetched for ProjectId: " + dto.getProjectId());
+			            apiLogInfo.setApiResponse("No Project fetched for ProjectId: " + dto.getProjectId());
+			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			            logService.logMyInfo(httpRequest, apiLogInfo);
+			            
+			            return response;
+			            
+	    			} else {
+	    				
+	    				project.setHasClientSideId(dto.getHasClientSideId());
+	    				project.setUpdatedBy(dto.getCurrentUserEmpId())  ;
+	    				project.setUpdatedOn(LocalDateTime.now());
+	    				
+	    				Project savedProject = projectRepository.save(project); 
+	    				
+	    				if(savedProject == null) {
+	    					
+	    					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				            response.setServiceResponse("Failed to save client side id status!");
+				            response.setServiceMessage("Could not save client id status for the project with project id : " + dto.getProjectId());
+				            apiLogInfo.setApiResponse("Could not save client id status for the project with project id : " + dto.getProjectId());
+				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				            logService.logMyInfo(httpRequest, apiLogInfo);
+				            return response;
+	    					
+	    				}
+	    				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	    	            response.setServiceResponse("Client Side Id status updated successfully !");
+	    	            response.setServiceMessage("Client Side Id status updated successfully !");
+	    	    		logBuilder.append("Project id : " +savedProject.getProjectId()+ "Client Side Id Stautus: " +savedProject.getHasClientSideId()+"\n");
+
+	    	            apiLogInfo.setApiResponse("Client Side Id status updated successfully!");
+	    	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		            
+		        }
+    		} 
+	    }catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage()); 
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
 	
 }
