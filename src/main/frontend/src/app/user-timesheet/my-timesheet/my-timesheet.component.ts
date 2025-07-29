@@ -57,6 +57,7 @@ export class MyTimesheetComponent implements OnInit {
   isUpdation: boolean = false;
 
   isTimesheetForm: boolean = false;
+  isTimesheetBulkForm: boolean = false;
   isTimesheetTable: boolean = false;
 
   isTimesheetUpdate: boolean = false;
@@ -214,6 +215,16 @@ AllWeekOfList:any[]=[];
     this.reset();
     this.getEmployeeBasicInfo();
     this.getAllProjectsByEmpId(this.currentUser);
+  }
+
+  showBulkUploadForm(){
+    this.isTimesheetForm = false;
+    this.isCreation = false;
+
+    this.isTimesheetTable = false;
+    this.isUpdation = false;
+
+    this.isTimesheetBulkForm = true;
   }
 
   showViewMyTimesheets() {
@@ -2089,6 +2100,7 @@ setTotalWorkingClientHours() {
     console.log(this.selectedFile,"::this.selectedFile",this.fileName,"::this.fileName")
   }
 
+  
   clearPreviousSelections(){
     this.selectedProjectId = null;
   }

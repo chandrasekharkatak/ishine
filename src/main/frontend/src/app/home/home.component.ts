@@ -59,11 +59,20 @@ export class HomeComponent implements OnInit, AfterViewInit {
   @ViewChild(TimesheetCreateSelfComponent)
   childComp!: TimesheetCreateSelfComponent;
 
+  
+    @ViewChild("previewTemplate")
+    previewModal : TemplateRef<any>;
+
+ previewUrl: any;
+  fileType: '' | 'pdf' | 'image' | null = null;
+  docData:any;
+  mimeType:any;
 
   data: string;
   //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  modalRef2: BsModalRef = new BsModalRef();
 
 
   feature = "Home";
@@ -594,6 +603,35 @@ export class HomeComponent implements OnInit, AfterViewInit {
         console.error(response.serviceResponse)
       }
     });
+  }
+
+  getDoscForPreview(docId:any){
+      console.log(docId,":docId");
+      this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          console.log(response.serviceResponse);
+          this.docData = response.serviceResponse.docData;
+          console.log(typeof(this.docData),":docDataType")
+          this.mimeType = response.serviceResponse.docMimeType
+          this.showPreview(this.docData,this.mimeType)
+        }
+      });
+    }
+    showPreview(base64Data: string, mimeType: string) {
+    const dataUrl = `data:${mimeType};base64,${base64Data}`;
+      this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+  
+      if (mimeType === 'application/pdf') {
+        this.fileType = 'pdf';
+      } else if (mimeType.startsWith('image/')) {
+        this.fileType = 'image';
+      } else {
+        this.fileType = '';
+      }
+  
+  
+    // Open modal
+    this.modalRef2 = this.modalService.show(this.previewModal, { class: 'modal-lg' });
   }
 
   /* Approve / Reject Timesheet requests */

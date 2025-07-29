@@ -3,6 +3,8 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_timesheet"
             [ngClass]="{'active' : isTimesheetForm && isCreation}" (click)="showCreateTimesheetForm()">Create New
             Timesheet</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_timesheet"
+            [ngClass]="{'active' : isTimesheetBulkForm}" (click)="showBulkUploadForm()">Bulk Final Document Upload</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1"
             *ngIf="userMapping.view_my_timesheets || userMapping.update_timesheet"
             [ngClass]="{'active' : isTimesheetTable}" (click)="showViewMyTimesheets()">View My Timesheets</button>
