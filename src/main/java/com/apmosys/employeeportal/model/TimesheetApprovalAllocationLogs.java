@@ -20,9 +20,9 @@ public class TimesheetApprovalAllocationLogs {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID allocLogId;
+    private Long allocLogId;
 
-    private UUID allocId;
+    private Long allocId;
     private Long timesheetId;
     private Long approverId;
     private String approvalStatus;

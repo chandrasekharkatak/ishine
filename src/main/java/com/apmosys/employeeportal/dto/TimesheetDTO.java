@@ -135,5 +135,10 @@ public class TimesheetDTO {
 	private String fromDate;
 
 	private String toDate;
+	private Long allocId;
+	private Integer previousLevelId;
+	private Long previousApproverId;
+	private Integer rejectionId;
+	private Integer levelId;
 
 }
