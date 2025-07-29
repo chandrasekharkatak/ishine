@@ -1024,7 +1024,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 						+ "    e.experience, e.billable, e.child1, e.child2, e.child3, e.mothers_name, e.spouse, \n"
 						+ "    e.total_experience, emp_proj_client.project_name, emp_proj_client.client_name, emp_proj_client.project_id, e.updated_on, \n"
 						+ "    e4.name AS createdByName, e3.name AS updatedByName, e.designation_id, de.designation_name, \n"
-						+ "    e.updated_by, e.billable_type, emp_proj_client.team_name,e.is_consultant, e.is_apprenticeship \n"  // Added comma here
+						+ "    e.updated_by, e.billable_type, emp_proj_client.team_name,e.is_consultant, e.is_apprenticeship, \n"  // Added comma here
 						+ "    emp_proj_client.po_no, \n"
 						+ "    emp_proj_client.po_start_date, emp_proj_client.po_end_date, emp_proj_client.po_project_type, \n"
 						+ " \n"
