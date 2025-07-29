@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -634,6 +635,17 @@ public class EmployeeController {
 	@RequestMapping(value="/fetchInactivePOListOfEmployee",method=RequestMethod.POST)  
 	public ServiceResponse fetchInactivePOListOfEmployee(@RequestBody EmployeeDTO employeeDTO) {
 	    return employeeService.fetchInactivePOListOfEmployee(employeeDTO);
+	}
+	
+	@PutMapping("/revoke")
+	public ServiceResponse revokeConfirmantion(@RequestBody EmployeeDTO employeeDto)
+	{
+		return employeeService.revokeConfirmation(employeeDto);
+	}
+	
+	@PostMapping("/probation-reminders")
+	public ServiceResponse getProbationRemindersForHod(@RequestBody EmployeeDTO employeeDto) {
+	    return employeeService.getEmployeesNearingProbationEnd(employeeDto);
 	}
 	
 }

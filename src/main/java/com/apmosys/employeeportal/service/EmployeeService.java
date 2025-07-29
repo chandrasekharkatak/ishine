@@ -3244,6 +3244,7 @@ public class EmployeeService {
             return response;
         }
 		
+		
 		try {
 			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
@@ -3251,8 +3252,11 @@ public class EmployeeService {
 			if (allEmployeeList != null) {
 				allEmployeeList.forEach((object) -> {
 					EmployeeDTO empDTO = new EmployeeDTO();
-
+				
+					Float noOfDays = employeeRepository.getNOOfDays(Long.parseLong(object[50].toString()));
+					
 					empDTO.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					empDTO.setNoOfDays(noOfDays);
 					empDTO.setAadhar(object[1] != null ? Long.parseLong(object[1].toString()) : null);
 					empDTO.setAboutMe(object[2] != null ? object[2].toString() : null);
 					empDTO.setAddress(object[3] != null ? object[3].toString() : null);
@@ -3349,8 +3353,7 @@ public class EmployeeService {
 					empDTO.setHodId(object[84] != null ? Long.parseLong(object[84].toString()) : null );
 				    empDTO.setHodName(object[85] != null ? object[85].toString() : null);
 				    empDTO.setHodDepartmentName(object[86] != null ? object[86].toString() : null);
-					
-					
+				
 					
 					if (object[87] != null && object[72] != null) {
 		                String projectIdStr = object[87].toString().trim();
@@ -3384,7 +3387,10 @@ public class EmployeeService {
 					empDTO.setUpdatedBy(object[88] != null ? Long.parseLong(object[88].toString()) : null);
 					empDTO.setIsConfirmedClicked(object[89]!= null ? Long.parseLong(object[89].toString()):null);
 					empDTO.setIsExtensionClicked(object[90]!= null ? Long.parseLong(object[90].toString()):null);
-
+					
+					
+					
+					
 					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
 					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
 					
@@ -3631,6 +3637,8 @@ public class EmployeeService {
 					empDTO.setHodId(object[84] != null ? Long.parseLong(object[84].toString()) : null );
 				    empDTO.setHodName(object[85] != null ? object[85].toString() : null);
 				    empDTO.setHodDepartmentName(object[86] != null ? object[86].toString() : null);
+				    
+				    
 				    if (object[87] != null && object[72] != null) {
 		                String projectIdStr = object[87].toString().trim();
 		                String projectNameStr = object[72].toString().trim();
@@ -7522,6 +7530,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	    try {
 	        String cacheKey = "allEmployees";
 	        EmployeeDTO cachedEmployee = null;
+	        Float noOfDays = employeeRepository.getNOOfDays(employeeDto.getEmpId());
 	        
 	        if (employeeCache.containsKey(cacheKey)) {
 	            List<EmployeeDTO> cachedEmployees = employeeCache.get(cacheKey);
@@ -7593,7 +7602,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	            return response;
 	        }
 	        
-	        short newTotalProbation = (short) (employee.getProbationPeriod() + employeeDto.getExtendedPeriod());
+	        short newTotalProbation = (short) (employee.getProbationPeriod() + employeeDto.getExtendedPeriod()+noOfDays);
 	        
 	        employee.setProbationPeriod(newTotalProbation);
 	        employee.setExtendedPeriod(employeeDto.getExtendedPeriod());
@@ -7721,9 +7730,11 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	            logService.logMyInfo(httpRequest, apiLogInfo);
 	            return response;
 	        }
-
-	        LocalDate probationEndDate = LocalDate.parse(cachedEmployee.getDateOfJoining()).plusDays(cachedEmployee.getProbationPeriod());
-	        LocalDate today = LocalDate.now();
+	        Float noOfDays = employeeRepository.getNOOfDays(employeeDto.getEmpId());
+LocalDate probationEndDate = LocalDate.parse(cachedEmployee.getDateOfJoining())
+        .plusDays(cachedEmployee.getProbationPeriod())
+        .plusDays(Math.round(noOfDays));
+			        LocalDate today = LocalDate.now();
 
 	        Employee employee = employeeRepository.findByEmpId(employeeDto.getEmpId());
 	        if (employee == null) {
@@ -7782,6 +7793,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	        employee.setUpdatedOn(LocalDateTime.now());
 	        employee.setUpdatedBy(employeeDto.getHodId().intValue());
 	        employeeRepository.save(employee);
+	        
+	        sendConfirmationSuccessEmail(employee);
 
 	        
 	        if (employeeCache.containsKey(cacheKey)) {
@@ -7949,7 +7962,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	        }
 
 	     
-	        if (employee.getProbationPeriod() <= STANDARD_PROBATION_DAYS) {
+	        Float noOfDays = employeeRepository.getNOOfDays(employeeDto.getEmpId());
+	        if ((employee.getProbationPeriod() + noOfDays) <= STANDARD_PROBATION_DAYS) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("Cannot reduce probation. Employee is not on an extended probation period.");
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -7958,7 +7972,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	        }
 
 	      
-	        short newTotalProbation = (short) (employee.getProbationPeriod() - employeeDto.getDaysToReduce());
+	        short newTotalProbation = (short) (employee.getProbationPeriod() + noOfDays - employeeDto.getDaysToReduce());
 	        if (newTotalProbation < STANDARD_PROBATION_DAYS) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("Probation period cannot be reduced below the standard " + STANDARD_PROBATION_DAYS + " days.");
@@ -8221,5 +8235,216 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		    return response;
 	}
     
+    public ServiceResponse revokeConfirmation(EmployeeDTO employeeDto) {
+        ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setApiUrl("/api/revokeConfirmation");
+        apiLogInfo.setLogLevel("INFO");
+
+        try {
+            String cacheKey = "allEmployees";
+            Long employeeIdToRevoke = employeeDto.getEmpId();
+
+            Optional<Employee> employeeOptional = employeeRepository.findById(employeeIdToRevoke);
+
+            if (employeeOptional.isEmpty()) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Employee not found with ID " + employeeIdToRevoke);
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                logService.logMyInfo(httpRequest, apiLogInfo);
+                return response;
+            }
+            
+            Employee employeeToUpdate = employeeOptional.get();
+
+            
+            Long actualHodId = departmentRepository.findHodIdForEmployee(employeeIdToRevoke);
+
+            if (actualHodId == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Could not determine the HOD for employee " + employeeDto.getEmploymentId() + ".");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                logService.logMyInfo(httpRequest, apiLogInfo);
+                return response;
+            }
+
+      
+            if (!actualHodId.equals(employeeDto.getHodId())) {
+                String actualHodName = employeeRepository.findEmployeeNameById(actualHodId);
+                String requestorHodName = employeeRepository.findEmployeeNameById(employeeDto.getHodId());
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("User " + requestorHodName + " is not the authorized HOD. The correct HOD is " + actualHodName + ".");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                logService.logMyInfo(httpRequest, apiLogInfo);
+                return response;
+            }
+
+         
+            if (employeeToUpdate.getIsConfirmedClicked() == 0) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Confirmation for employee " + employeeToUpdate.getName() + " has not been clicked yet. Nothing to revoke.");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                logService.logMyInfo(httpRequest, apiLogInfo);
+                return response;
+            }
+
+            
+            employeeToUpdate.setIsConfirmedClicked(0L); 
+            employeeToUpdate.setEmploymentstatus("Probation"); 
+            employeeToUpdate.setUpdatedOn(LocalDateTime.now());
+            employeeToUpdate.setUpdatedBy(employeeDto.getHodId().intValue());
+            
+            employeeRepository.save(employeeToUpdate);
+
+           
+            if (employeeCache.containsKey(cacheKey)) {
+                List<EmployeeDTO> cachedEmployees = employeeCache.get(cacheKey);
+                for (EmployeeDTO empDTO : cachedEmployees) {
+                    if (empDTO.getEmpId().equals(employeeIdToRevoke)) {
+                        empDTO.setIsConfirmedClicked(0L); 
+                        empDTO.setEmploymentstatus("Probation"); 
+                        empDTO.setUpdatedOn(LocalDateTime.now().toString());
+                        empDTO.setUpdatedBy(employeeDto.getHodId());
+                        break;
+                    }
+                }
+                employeeCache.put(cacheKey, cachedEmployees); 
+                apiLogInfo.setApiResponse("Database and cache updated. EmpId: " + employeeIdToRevoke);
+            }
+
+            
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse("Confirmation for employee '" + employeeToUpdate.getName() + "' has been successfully revoked.");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("An internal error occurred while revoking confirmation: " + e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            apiLogInfo.setLogLevel("ERROR");
+            response.setServiceError(e.getMessage());
+        }
+
+        logService.logMyInfo(httpRequest, apiLogInfo);
+        return response;
+    }
+ 
+
+ public ServiceResponse getEmployeesNearingProbationEnd(EmployeeDTO employeeDto) {
+     ServiceResponse response = new ServiceResponse();
+    
+     
+     LogDTO apiLogInfo = new LogDTO();
+     apiLogInfo.setApiUrl("/api/employees/probation-reminders/"); 
+     apiLogInfo.setLogLevel("INFO");
+
+     try {
+    	 Long hodId =  employeeDto.getHodId();
+         LocalDate today = LocalDate.now();
+         List<Employee> employeesToCheck = employeeRepository.getEmployeeInProbation();
+         employeesToCheck.addAll(employeeRepository.getEmployeeInProbationExtended());
+
+         List<EmployeeDTO> employeesNearingEnd = new ArrayList<>();
+
+         for (Employee employee : employeesToCheck) {
+             if (employee.getProbationPeriod() == null || employee.getDateOfJoining() == null) {
+                 continue;
+             }
+
+             Float noOfDays = employeeRepository.getNOOfDays(employeeDto.getEmpId());
+LocalDate confirmationDate = employee.getDateOfJoining()
+        .plusDays(employee.getProbationPeriod())
+        .plusDays(Math.round(noOfDays));
+		             long daysLeft = ChronoUnit.DAYS.between(today, confirmationDate);
+
+             if (daysLeft == 6 || daysLeft  == 3 || daysLeft == 1) {
+           
+                 Long actualHodId = departmentRepository.findHodIdForEmployee(employee.getEmpId());
+                 
+                 if (hodId.equals(actualHodId)) {
+                     EmployeeDTO dto = new EmployeeDTO();
+                     dto.setEmpId(employee.getEmpId());
+                     dto.setName(employee.getName());
+
+                     Object[] departmentInfo = employeeRepository.getDepartmentRow(employee.getEmpId());
+                     if (departmentInfo != null && departmentInfo.length > 0) {
+                         dto.setDepartmentName((String) departmentInfo[1]);
+                     }
+                     
+              
+                     dto.setHodName(employeeRepository.findEmployeeNameById(hodId));
+                     
+                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
+                     dto.setEmployeeConfirmationDate(confirmationDate.format(formatter));
+
+                     employeesNearingEnd.add(dto);
+                 }
+             }
+         }
+
+         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+         response.setServiceResponse(employeesNearingEnd);
+         apiLogInfo.setApiResponse("Successfully retrieved " + employeesNearingEnd.size() + " employees for probation reminder for HOD ID: " + hodId);
+         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+     } catch (Exception e) {
+         e.printStackTrace();
+         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+         response.setServiceResponse("An error occurred while fetching probation reminders: " + e.getMessage());
+         apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+         apiLogInfo.setLogLevel("ERROR");
+     }
+
+     logService.logMyInfo(httpRequest, apiLogInfo);
+     return response;
+ }
+    
+ 
+ private void sendConfirmationSuccessEmail(Employee employee) {
+	    if (employee == null || employee.getEmpId() == null) {
+	        return;
+	    }
+
+	    try {
+	        String employeeEmail = employeeRepository.getMailByEmpId(employee.getEmpId());
+	        if (employeeEmail == null || employeeEmail.isEmpty()) {
+	            return;
+	        }
+
+	        String departmentName = employeeRepository.getDepartment(employee.getEmpId());
+	        Long hodId = departmentRepository.findHodIdForEmployee(employee.getEmpId());
+	        String hodName = "Management";
+	        if (hodId != null) {
+	            hodName = employeeRepository.findEmployeeNameById(hodId);
+	        }
+
+	        String subject = "Congratulations on Your Confirmation";
+
+	        String effectiveDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy"));
+
+	        StringBuilder body = new StringBuilder();
+	        body.append("<html><body>");
+	        body.append("<p>Dear ").append(employee.getName()).append(",</p>");
+	        body.append("<p>We are delighted to inform you that following the successful completion of your probationary period, your employment status has been confirmed, effective ").append(effectiveDate).append(".</p>");
+	        body.append("<p>Your performance and dedication have been highly valued, and we are excited to have you as a permanent member of the ").append(departmentName != null ? departmentName : "team").append(".</p>");
+	        body.append("<p>We look forward to your continued contributions and a successful journey with us.</p>");
+	        body.append("<p>Congratulations once again!</p><br/>");
+	        body.append("<p>Best regards,</p>");
+	        body.append("<b>").append(hodName).append("</b><br/>");
+	        if(departmentName != null) {
+	             body.append("Head of ").append(departmentName).append("<br/>");
+	        }
+	        body.append("<br/><br/><hr/>");
+	        body.append("<p><i>This is an auto-generated email. Please do not reply.</i></p>");
+	        body.append("<a href=\"https://ishine.apmosys.com/\">Visit iShine Portal</a>");
+	        body.append("</body></html>");
+
+	        mailService.sendMail(employeeEmail, subject, body.toString());
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
 }
 	

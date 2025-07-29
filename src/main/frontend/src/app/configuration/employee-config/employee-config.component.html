@@ -1586,6 +1586,7 @@
                                 <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="referedName|string">
                                     Referred By</th>
                                 <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
+                                <th scope="col" class="info-label" *ngIf="isTable">Expected Confirmation Date</th>
                                 <th scope="col" class="info-label" *ngIf="isTable">Days Left for Confirmation</th>
                                 <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
                                     scope="col" class="info-label">Actions</th>
@@ -1651,6 +1652,7 @@
                                     {{employee.updatedByName}}</td>
                                 <td *ngIf="isTable">{{employee.referedName}}</td>
                                 <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
+                                <td *ngIf="isTable">{{getConfirmationDate(employee)}}</td>
                                 <td *ngIf="isTable" style="width: 150px; min-width: 150px; max-width: 150px;">
                                     <div class="d-flex align-items-center" style="
                                         width: 100%; 
@@ -1674,43 +1676,35 @@
                                             ">
                                             {{employee.days_left_for_full_time}}
                                         </span>
-                                        <button 
-                                            *ngIf="(employee.employmentstatus === 'Probation' && employee.isConfirmedClicked != 1 && employee.days_left_for_full_time != 'N/A') || employee.days_left_for_full_time<0 "
-                                            (click)="openEmployeeModal(employee, employeeConfirmationModal)"
-                                            title="Click to view Employee Confirmation"
-                                            style="
-                                                padding: 4px 8px;
-                                                margin-left: 8px;
-                                                font-size: 12px;
-                                                line-height: 1.2;
-                                                border: 1px solid #0d6efd;
-                                                background-color: transparent;
-                                                color: #0d6efd;
-                                                border-radius: 4px;
-                                                cursor: pointer;
-                                                text-decoration: none;
-                                                display: inline-block;
-                                                font-weight: 400;
-                                                text-align: center;
-                                                vertical-align: middle;
-                                                user-select: none;
-                                                transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
-                                                width: 70px;
-                                                height: 28px;
-                                                min-width: 70px;
-                                                max-width: 70px;
-                                                min-height: 28px;
-                                                max-height: 28px;
-                                                flex-shrink: 0;
-                                            "
-                                            onmouseover="this.style.backgroundColor='#0d6efd'; this.style.color='#ffffff';"
-                                            onmouseout="this.style.backgroundColor='transparent'; this.style.color='#0d6efd';"
-                                            onfocus="this.style.outline='none'; this.style.boxShadow='0 0 0 0.2rem rgba(13, 110, 253, 0.25)';"
-                                            onblur="this.style.boxShadow='none';">
-                                            <i class="fa fa-eye" style="margin-right: 4px;"></i> View
-                                        </button>
+                                        <!-- 
+  Use ng-container to apply the *ngIf condition once without adding an extra element to the DOM.
+  This is cleaner and more efficient.
+-->
+
                                     </div>
+                                    <ng-container *ngIf="(employee.employmentstatus === 'Probation' && employee.isConfirmedClicked != 1 && employee.days_left_for_full_time != 'N/A') || employee.days_left_for_full_time < 0">
+
+                                        <div class="button-stack">
+                                            <button 
+                                                class="action-btn"
+                                                (click)="openEmployeeModal(employee, employeeConfirmationModal)"
+                                                title="Click to view Employee Confirmation">
+                                                <i class="fa fa-eye"></i> View
+                                            </button>
+                                        </div>
+                                    </ng-container>
+                                  <ng-container *ngIf="employee.isConfirmedClicked == 1 && employee.days_left_for_full_time >= 0">
+    <div class="button-stack">
+        <button 
+            class="action-btn"
+            (click)="openRevokeModal(employee, revoke_confirmation_modal)"
+            title="Click to Revoke Confirmation">
+            <i class="fa fa-ban"></i> Revoke
+        </button>
+    </div>
+</ng-container>
                                 </td>
+                               
 
                                 <td
                                     *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
@@ -1882,6 +1876,18 @@
 
 
 
+<ng-template #revoke_confirmation_modal>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to revoke confirmation for this employee?</p>
+      
+        <button type="button" class="btn btn-success" (click)="confirmRevoke(alert_message)">
+            Yes, proceed
+        </button> 
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">
+            No, Cancel
+        </button> 
+    </div>
+</ng-template>
 <ng-template #delete_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to delete the Employee?</p>
@@ -1933,6 +1939,14 @@
 <ng-template #revoke_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to Enable Account?</p>
+        <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes,
+            proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+<ng-template #revoke_confirmation>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to revoke confirmation for this employee?</p>
         <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes,
             proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
@@ -3654,10 +3668,12 @@
       </button>
      
     <button *ngIf="selectedEmployee.days_left_for_full_time < -100" type="button" class="btn btn-outline-warning m-1"
-            (click)="selectedTab = 'Confirm Employee Late'"
+            (click)="selectedTab = 'Reason for Delay'"
             title="Click to give reason for delay">
       Reason for Delay
     </button>
+
+    
     
     <div *ngIf="selectedTab == 'Confirm Employee Late'" class="card card-body mt-2 bg-light border-success">
         <h5 class="card-title">Confirm Employee (Late)</h5>

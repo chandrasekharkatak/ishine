@@ -315,6 +315,19 @@ confirmationReason: string = '';
     default: return 'badge bg-secondary';
   }
 }
+getConfirmationDate(employee: any): string { 
+    if (employee.dateOfJoining && employee.probationPeriod) {
+        const [day, month, year] = employee.dateOfJoining.split('-');
+        const doj = new Date(year, month - 1, day); 
+        
+        const probationDays = parseInt(employee.probationPeriod);
+        const noOfDays = employee.noOfDays || 0; 
+        const confirmationDate = new Date(doj.getTime() + ((probationDays + noOfDays) * 24 * 60 * 60 * 1000));
+        
+        return this.datePipe.transform(confirmationDate, 'dd-MM-yyyy') || '';
+    }
+    return '';
+}
 
 openEmployeeModal(employee: any, employeeTemplate: TemplateRef<any>) {
     this.selectedEmployee = employee;
@@ -324,11 +337,11 @@ openEmployeeModal(employee: any, employeeTemplate: TemplateRef<any>) {
         const doj = new Date(year, month - 1, day); 
         
         const probationDays = parseInt(this.selectedEmployee.probationPeriod);
-        const confirmationDate = new Date(doj.getTime() + (probationDays * 24 * 60 * 60 * 1000));
+        const noOfDays = this.selectedEmployee.noOfDays || 0; 
+        const confirmationDate = new Date(doj.getTime() + ((probationDays + noOfDays) * 24 * 60 * 60 * 1000));
         
         this.selectedEmployee.confirmationDate = confirmationDate;
     }
-    
     
     this.confirmationReason = '';
     this.reasonForDelay = '';
@@ -340,8 +353,53 @@ openEmployeeModal(employee: any, employeeTemplate: TemplateRef<any>) {
         class: 'modal-xl'  
     });
 }
+  openRevokeModal(employee: any, revokeModalTemplate: TemplateRef<any>) {
+    this.selectedEmployee = employee;
+    this.modalRef = this.modalService.show(revokeModalTemplate, { class: 'modal-sm' });
+  }
 
+ confirmRevoke(alert_message: TemplateRef<any>) {
+    if (!this.selectedEmployee) {
+      console.error('No employee selected for revoke action.');
+      this.modalRef?.hide();
+      return;
+    }
 
+    const payload = {
+        empId: this.selectedEmployee.empId,
+        hodId: this.currentUser.empId
+    };
+    
+    this.employeeService.revokeConfirmation(payload).subscribe({
+      next: (response) => {
+        if (response && response.serviceStatus === 'SUCCESS') {
+          console.log('Revoke successful:', response.serviceResponse);
+          
+          this.selectedEmployee.isConfirmedClicked = 0;
+          this.selectedEmployee.employmentstatus = "Probation"; 
+
+          const message = "Confirmation has been revoked successfully.";
+          this.openAlertMod7(alert_message, message);
+
+        } else {
+          console.error('Revoke failed:', response.serviceResponse);
+          const errorMessage = response.serviceResponse || 'An unexpected error occurred while revoking confirmation.';
+          this.openAlertMod7(alert_message, errorMessage);
+          
+        }
+        
+        this.modalRef?.hide();
+      },
+      error: (err) => {
+        const errorMessage = err.error?.serviceResponse || 'An unexpected server error occurred.';
+        
+        console.error('Failed to revoke confirmation:', errorMessage);
+        this.openAlertMod7(alert_message, errorMessage);
+
+        this.modalRef?.hide();
+      }
+    });
+}
 
 handleConfirmClick(employee: any, alert_message: TemplateRef<any>) {
     if (employee.days_left_for_full_time < 0) {

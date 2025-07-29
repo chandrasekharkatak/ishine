@@ -205,3 +205,58 @@ margin: 1rem 1rem;
   font-size: 0.7rem;
 }
   
+
+/* Container to stack the buttons vertically with space between them */
+.button-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Aligns buttons to the left */
+    gap: 8px; /* This creates an 8px space between the buttons */
+}
+
+/* Common styles for both action buttons */
+.action-btn {
+    /* Sizing and Layout */
+    display: inline-flex; /* Use flex to easily center content */
+    align-items: center;
+    justify-content: center;
+    width: 80px;  /* Increased width slightly to better fit "Revoke" */
+    height: 28px;
+    padding: 4px 8px;
+    flex-shrink: 0;
+    
+    /* Font and Text */
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    
+    /* Appearance */
+    color: #0d6efd;
+    background-color: transparent;
+    border: 1px solid #0d6efd;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+
+    /* Smooth transition for hover/focus effects */
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+/* Replaces onmouseover/onmouseout JavaScript with the CSS :hover pseudo-class */
+.action-btn:hover {
+    background-color: #0d6efd;
+    color: #ffffff;
+}
+
+/* Replaces onfocus/onblur JavaScript with the CSS :focus pseudo-class */
+.action-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Style for the icon inside the button */
+.action-btn i {
+    margin-right: 5px;
+}

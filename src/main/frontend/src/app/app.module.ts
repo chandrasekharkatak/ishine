@@ -159,6 +159,7 @@ import { TravelConfigComponent } from './configuration/travel-config/travel-conf
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
 import { ViewImageComponent } from './user-team/view-image/view-image.component';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -315,6 +316,7 @@ import { MatIconModule } from '@angular/material/icon';
     DragDropModule,
     MatIconModule,
     MatDialogModule,
+    MatCheckboxModule,
     NgxMatSelectModule.forRoot({
       maxWidthForMobileView: 600,
       inFirstLoadCallSearcher: true,

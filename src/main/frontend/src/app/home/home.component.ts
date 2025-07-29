@@ -61,10 +61,11 @@ interface LmsRediredtion {
 export class HomeComponent implements OnInit, AfterViewInit {
   private lmsbaseurl: any = '';
   lines: any = [];
+  probationNotifications: any[] = [];
+  isLoadingNotifications = false;
 
   @ViewChild(TimesheetCreateSelfComponent)
   childComp!: TimesheetCreateSelfComponent;
-
 
   data: string;
   //modal
@@ -364,6 +365,35 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   }
 
+   openProbationNotificationModal(template: TemplateRef<any>) {
+    if (!this.currentUser || !this.currentUser.empId) {
+        console.error("Current user (HOD) not found. Cannot fetch notifications.");
+        return;
+    }
+      
+    this.isLoadingNotifications = true;
+    this.probationNotifications = [];
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+
+    const payload = {
+      hodId: this.currentUser.empId,
+    };
+
+   
+    this.employeeService.getProbationReminders(payload).subscribe({
+      next: (response) => {
+        if (response && response.serviceStatus === 'SUCCESS') {
+          this.probationNotifications = response.serviceResponse;
+        } else {      
+        }
+        this.isLoadingNotifications = false;
+      },
+      error: (err) => {
+        console.error('Failed to load probation notifications', err);
+        this.isLoadingNotifications = false;
+      }
+    });
+  }
 
   switchTab(tab: string) {
     this.selectedTab = tab;

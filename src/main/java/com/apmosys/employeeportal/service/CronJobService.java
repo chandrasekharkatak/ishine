@@ -1662,7 +1662,7 @@ public class CronJobService {
 				
 				Long daysLeftUntilConfirmation = ChronoUnit.DAYS.between(today,confirmationDate);
 				
-				if(daysLeftUntilConfirmation == 6 || daysLeftUntilConfirmation == 3 || 
+				if(daysLeftUntilConfirmation == 30 || daysLeftUntilConfirmation == 6 || daysLeftUntilConfirmation == 3 || 
 						daysLeftUntilConfirmation == 1 || daysLeftUntilConfirmation == 0)
 				{
 					 preConfirmationList.add(employee);
@@ -1795,8 +1795,10 @@ public class CronJobService {
 		        String hrBody = buildHtmlEmailBody(hrIntro, employees); 
 		        
 		        try {
+		        	String email = "raj.swain@apmosys.com";
 		        	
-		            mailService.sendMail(hrMailAddress, hrSubject, hrBody);
+//		        	mailService.sendMail(hrMailAddress, hrSubject, hrBody);
+		            mailService.sendMail(email, hrSubject, hrBody);
 		        } catch (Exception e) {
 		            e.printStackTrace();
 		        }
@@ -1867,8 +1869,9 @@ public class CronJobService {
 		        String hrBody = buildHtmlEmailBody(hrIntro, employees);
 		        
 		        try {
-		        	
-		            mailService.sendMail(hrMailAddress, hrSubject, hrBody);
+		        	String email = "raj.swain@apmosys.com";
+//		            mailService.sendMail(hrMailAddress, hrSubject, hrBody);
+		            mailService.sendMail(email, hrSubject, hrBody);
 		        } catch (Exception e) {
 		            e.printStackTrace();
 		        }

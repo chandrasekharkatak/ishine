@@ -1202,6 +1202,22 @@ thead {
 }
 
 
+.file-input-group {
+  display: flex;
+  align-items: center;
+}
 
+.plain-file-input {
+  flex-grow: 1; /* Allows the input to take up available space */
+}
 
+.file-name-display {
+  font-size: 0.8rem;
+  color: #6c757d; /* Bootstrap's text-muted color */
+  margin-top: 5px;
+}
 
+.select-all-header {
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.12);
+}

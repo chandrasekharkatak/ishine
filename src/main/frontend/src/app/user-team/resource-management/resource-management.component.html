@@ -1646,8 +1646,11 @@
                         <div class="form-field">
                             <label><span class="text-danger">*</span>Department</label>
 
-                            <mat-select class="form-control name-field" multiple [(ngModel)]="teamObj.departmentList">
-
+                            <mat-select class="form-control name-field" placeholder="Select Departments" 
+                            (selectionChange)="onDeptSelectionChange1()" 
+                            [(ngModel)]="deptIdList" 
+                            
+                            multiple>
                                 <mat-option class="non-selectable" disabled>
                                     <div style="display: flex; align-items: center;">
                                         <input type="text" [(ngModel)]="searchTextDeptTeam"
@@ -1663,10 +1666,10 @@
                                     </div>
                                 </mat-option>
 
-                                <mat-option (click)="toggleSelectAllDept()"
-                                    [disabled]="filteredDepartmentsTeam.length === 0">
-                                    {{ isAllDeptSelected ? 'Deselect All' : 'Select All' }}
-                                </mat-option>
+                                 <mat-option [value]="'all'" [disabled]="filteredDepartments.length === 0">
+        {{ isAllSelected ? 'Deselect All' : 'Select All' }}
+    </mat-option>
+    
 
                                 <mat-option *ngFor="let dept of filteredDepartmentsTeam" [value]="dept.deptId">
                                     {{ dept.name }}
@@ -2987,7 +2990,7 @@
                             <td>{{milestone.remarks}}</td>
                             <td>
                                 <button class="btn btn-sm btn-primary" [disabled]="milestone.status === 'Completed'"
-                                    [title]="milestone.status === 'Completed' ? 'Cannot edit completed milestone during In Progress phase' : ''"
+                                    [title]="milestone.status === 'Completed' ? 'Cannot edit completed milestone' : ''"
                                     (click)="openUpdateProjectMilestoneModal(milestone)">
                                     <i class="fas fa-edit"></i>
                                 </button>&nbsp;&nbsp;
@@ -3079,15 +3082,39 @@
             </div>
 
             <div class="form-field full-width">
-    <label>Remarks <span style="color: red;">*</span></label>
-    <textarea class="form-control" [(ngModel)]="projectMilestone.remarks" rows="3" required></textarea>
-</div>
+                <label>Remarks <span style="color: red;">*</span></label>
+                <textarea class="form-control" [(ngModel)]="projectMilestone.remarks" rows="3" required></textarea>
+            </div>
 
 
             <div class="form-field full-width">
-                <label>Upload Document</label>
-                <input type="file" class="plain-file-input" (change)="onFileSelected($event)" accept=".pdf,.jpg,.jpeg,.png" />
-            </div>
+    <label>Upload Document</label>
+
+    <!-- Group the input and button together for better layout -->
+    <div class="file-input-group">
+        
+        <!-- Your existing file input -->
+        <input 
+            type="file" 
+            class="plain-file-input" 
+            (change)="onFileSelected($event)" 
+            accept=".jpg,.jpeg,.png,.pdf" /> <!-- Added .pdf to accept -->
+        
+        <!-- The new Preview Button -->
+        <button 
+            type="button" 
+            class="btn btn-sm btn-outline-secondary ml-2" 
+            (click)="previewSelectedFile()"
+            [disabled]="!selectedFile"> <!-- Button is disabled until a file is chosen -->
+            <i class="fa fa-eye"></i> Preview
+        </button>
+
+    </div>
+    <!-- Optional: Display the selected file name -->
+    <div *ngIf="selectedFile" class="file-name-display">
+        Selected: {{ selectedFile.name }}
+    </div>
+</div>
 
         </div>
     </div>

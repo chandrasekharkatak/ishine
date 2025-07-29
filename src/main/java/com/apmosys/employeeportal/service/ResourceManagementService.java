@@ -1295,7 +1295,7 @@ public class ResourceManagementService {
 
 			// Update project properties
 //		    if(projManagerId != null) {
-//			project.setIsDraftProject("false");
+			project.setIsDraftProject("false");
 			project.setProjectName(dto.getName());
 			project.setPoNo(dto.getPoNo());
 			project.setPoStartDate(dto.getPoStartDate());
@@ -1307,6 +1307,8 @@ public class ResourceManagementService {
 			project.setClientRM(dto.getClientRM());
 			project.setUpdatedBy(dto.getCreatedBy());
 			project.setUpdatedOn(LocalDateTime.now());
+			project.setProjectStatus("In Progress");
+			project.setDepartmentName(dto.getDepartmentName());
 			Project dbResponse = projectRepository.save(project);
 
 			ServiceResponse responseProjectManager = this.setProjectManager(dto, dbResponse);
@@ -5994,8 +5996,6 @@ public class ResourceManagementService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				logBuilder.append("\n No Resource Requirement Found!");
 
-				return response;
-
 			} else {	
 				
 				ServiceResponse countApiResponse = poPortalAPIService.getCountByProjectId(id);
@@ -9210,6 +9210,8 @@ public class ResourceManagementService {
 	    p.setApmosysRmEmail(dto.getApmosysRmEmail());
 	    p.setIsDraftProject("true");
 	    p.setCreatedBy(dto.getCreatedBy());
+		p.setProjectStatus("Not Started");
+		p.setDepartmentName(dto.getDeptName());
 	    return projectRepository.save(p);
 	}
 
@@ -9512,13 +9514,17 @@ public class ResourceManagementService {
 		
 		if (poData == null) {
 			finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-			throw new BadRequestException("No data received from PoPortal");
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("No Po Data received from PoPortal");
+			return serviceResponse;
 		}
 
 		try {
 			if(poData.getId() == null) {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-			throw new BadRequestException("No Po Project ID received from PoPortal");
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Po Project Id is not provided");
+				return serviceResponse;
 			}
 			String requestType = poData.getRequestType();
 			if ("create".equalsIgnoreCase(requestType)) {
@@ -9529,7 +9535,9 @@ public class ResourceManagementService {
 				serviceResponse =  handleDelete(poData);
 			} else {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-				throw new BadRequestException("Invalid request type: " + requestType);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+				serviceResponse.setServiceResponse("No Valid request type found! " + requestType);
+				return serviceResponse;
 			}
 			finalHttpStatusCode = HttpStatus.OK.value();
 
@@ -9559,7 +9567,7 @@ public class ResourceManagementService {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Project is already created in ishine!");
 			response.setStatusCode(HttpStatus.CONFLICT.value());
-			throw new ConflictException("Project is already created in Ishine!");
+			return response;
 		}
 
 		Project project = createProjectEntity(poData);
@@ -9594,7 +9602,7 @@ public class ResourceManagementService {
 		if(!is_dept) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Project can not be created!  Invalid Department ");
-			throw new BadRequestException("Invalid Department Name");
+			return response;
 		}
 		return response;
 		}
@@ -9749,7 +9757,7 @@ public class ResourceManagementService {
 		if (existingProject == null) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("No project found with PoProjectId: " + poData.getId());
-			throw new RuntimeException("No project found with PoProjectId: " + poData.getId());
+			return response;
 		}
 
 		isModified = checkIfExistingProjectUpdated(existingProject, poData);
@@ -9764,13 +9772,15 @@ public class ResourceManagementService {
 		ServiceResponse deptResp = syncProjectDepartments(existingProject, poData);
 		if (ServiceResponse.STATUS_FAIL.equals(deptResp.getServiceStatus())) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			throw new RuntimeException("Failed to Sync Department while updating project.");
+			response.setServiceResponse("Failed to Sync Departments while updating project.");
+			return response;
 		}
 
 		ServiceResponse reqResp = syncResourceRequirements(existingProject, poData);
 		if (ServiceResponse.STATUS_FAIL.equals(reqResp.getServiceStatus())) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			throw new RuntimeException("Failed to Sync Resource Requirement while updating project.");
+			response.setServiceResponse("Failed to Sync Resource Requirements while updating project.");
+			return response;
 		}
 
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -9889,7 +9899,7 @@ public class ResourceManagementService {
 		if (existingProject == null) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Project not found in Ishine Portal for PoProjectID: " + poData.getId());
-			return response;
+			return response;      // Use the list to fetch the relevant employees
 		}
 		
 		List<Team> team = teamRepository.findTeamandIsActive(poData.getId());
@@ -9897,7 +9907,7 @@ public class ResourceManagementService {
 		{
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Team is active in Ishine Portal for PoProjectID: " + poData.getId());
-			throw new BadRequestException("Team is active in Ishine Portal for PoProjectID: " + poData.getId());
+			return response;
 		}
 		existingProject.setActive("false");
 		existingProject.setUpdatedBy(6L);

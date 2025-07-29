@@ -342,6 +342,8 @@ this.name = name;
 	private Long isExtensionClicked;
     private List<Long> deptId;
     private Integer days;
+    private Float noOfDays;
+    
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
     public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
             Long mobileNo, Long managerId, String managerName, String jobRoleName,

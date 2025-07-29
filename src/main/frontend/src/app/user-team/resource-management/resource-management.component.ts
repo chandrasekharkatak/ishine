@@ -105,7 +105,7 @@ export class ResourceManagementComponent implements OnInit {
   projectSummaryData: any[] = [];
 
   selectedFile: File | null = null;
-
+  selectedFilePreviewUrl: string | null = null;
   milestoneDocumentUrl: SafeResourceUrl | null = null;
 
 
@@ -933,33 +933,131 @@ export class ResourceManagementComponent implements OnInit {
   // }
 
   
-  toggleSelectAllDept() {
-    console.log(this.skipSelectionChange,"this.skipSelectionChange")
-    // this.skipSelectionChange = true
-    console.log(this.isAllSelected, "this.isAllSelected")
+  // toggleSelectAllDept() {
+  //   console.log(this.skipSelectionChange,"this.skipSelectionChange")
+  //   // this.skipSelectionChange = true
+  //   console.log(this.isAllSelected, "this.isAllSelected")
     
+  //   if (this.isAllSelected) {
+  //     this.deptIdList = [];
+  //     this.skipSelectionChange = false;
+  //     this.isAllSelected = false;
+  //     console.log(this.skipSelectionChange,"this.skipSelectionChange")
+  //     console.log(this.isAllSelected, "this.isAllSelected")
+  //   } else {
+  //     this.deptIdList = this.filteredDepartments.map(dept => dept.deptId);
+  //     console.log(this.deptIdList, "this.deptIdList");
+  //     this.isAllSelected = true;
+  //     this.skipSelectionChange = true;
+  //      console.log(this.skipSelectionChange,"this.skipSelectionChange")
+  //     console.log(this.isAllSelected, "this.isAllSelected")
+  //   }
+
+  //   this.projectFilterDTO.approvalStatus = "All";
+  //   this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+  //   this.projectFilterDTO.departmentsids = this.deptIdList;
+  //   this.projectFilterDTO.departments = [];
+  //   this.filterStateService.deptIdList = this.deptIdList;
+  //   this.rbacApiCalls();
+  // }
+
+  toggleSelectAllDept() {
     if (this.isAllSelected) {
       this.deptIdList = [];
-      this.skipSelectionChange = false;
-      this.isAllSelected = false;
-      console.log(this.skipSelectionChange,"this.skipSelectionChange")
-      console.log(this.isAllSelected, "this.isAllSelected")
     } else {
-      this.deptIdList = this.filteredDepartments.map(dept => dept.deptId);
-      this.isAllSelected = true;
-      this.skipSelectionChange = true;
-       console.log(this.skipSelectionChange,"this.skipSelectionChange")
-      console.log(this.isAllSelected, "this.isAllSelected")
+      this.deptIdList = [...this.filteredDepartments.map(dept => dept.deptId), 'all'];
     }
+   
+    this.isAllSelected = !this.isAllSelected;
 
-    this.projectFilterDTO.approvalStatus = "All";
-    this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
-    this.projectFilterDTO.departmentsids = this.deptIdList;
-    this.projectFilterDTO.departments = [];
-    this.filterStateService.deptIdList = this.deptIdList;
-    this.rbacApiCalls();
+    this.applyFilters(); 
+}
+
+
+onDeptSelectionChange2() {
+
+  console.log(this.deptIdList)
+
+  const selectAllWasClicked = this.deptIdList.includes('all');
+
+ 
+  const allItemsSelected = this.filteredDepartments.length > 0 &&
+    this.deptIdList.filter(id => id !== 'all').length === this.filteredDepartments.length;
+
+  if (selectAllWasClicked && !this.isAllSelected) {
+    
+    this.deptIdList = [...this.filteredDepartments.map(dept => dept.deptId), 'all'];
+    this.isAllSelected = true;
+      console.log(this.deptIdList)
+
+  } else if (!selectAllWasClicked && this.isAllSelected) {
+  
+    this.deptIdList = [];
+    this.isAllSelected = false;
+  } else if (!this.isAllSelected && allItemsSelected) {
+
+    this.isAllSelected = true;
+    this.deptIdList.push('all');
+  } else if (this.isAllSelected && !allItemsSelected) {
+   
+    this.isAllSelected = false;
+    this.deptIdList = this.deptIdList.filter(id => id !== 'all');
   }
 
+
+  console.log(this.filteredDepartments, "this.filteredDepartments");
+  console.log(this.deptIdList, "this.deptIdList");
+
+  this.applyFilters();
+}
+
+onDeptSelectionChange1() {
+
+  const selectAllWasTriggered = this.deptIdList.includes('all');
+  const allItemsAreSelected = this.filteredDepartments.length > 0 &&
+      (this.deptIdList.length - (selectAllWasTriggered ? 1 : 0)) === this.filteredDepartments.length;
+
+  if (selectAllWasTriggered && !this.isAllSelected) {
+    this.isAllSelected = true;
+    this.deptIdList = [...this.filteredDepartments.map(dept => dept.deptId), 'all'];
+  }
+
+  else if (!selectAllWasTriggered && this.isAllSelected) {
+    this.isAllSelected = false;
+    this.deptIdList = [];
+  }
+
+  else if (allItemsAreSelected && !this.isAllSelected) {
+    this.isAllSelected = true;
+    if (!this.deptIdList.includes('all')) {
+        this.deptIdList.push('all');
+    }
+  }
+  else if (!allItemsAreSelected && this.isAllSelected) {
+    this.isAllSelected = false;
+    this.deptIdList = this.deptIdList.filter(id => id !== 'all');
+  }
+  this.applyFilters();
+}
+
+    applyFilters() {
+        console.log('Applying filters with departments:', this.deptIdList);
+
+        const selectedIds = this.deptIdList.filter(id => id !== 'all');
+        const selectedIdsSet = new Set(selectedIds);
+        const selectedDepartments = this.filteredDepartments.filter(dept => selectedIdsSet.has(dept.deptId));
+
+        this.projectFilterDTO.approvalStatus = "All";
+        this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+        this.projectFilterDTO.departmentsids = selectedIds;
+        this.projectFilterDTO.departments = selectedDepartments;
+
+        this.departmentsList = this.projectFilterDTO.departmentsids;
+        console.log(this.departmentsList, "+++++++++++++++++++++++++++++++this.depatmentFilterDTO");
+        this.getAllEmployeesByDepartmentIds(this.departmentsList);
+
+        this.rbacApiCalls();
+    }
 
   toggleSelectAllDept1() {
     console.log(this.isAllSelected, "this.isAllSelected");
@@ -1993,47 +2091,54 @@ export class ResourceManagementComponent implements OnInit {
 
   // ---- END-------//
   addTeamMember() {
-    const newTeamMember = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
-
-    if (newTeamMember || this.selectedRequirement) {
-      const memberToAdd = {
-        ...newTeamMember,
-        employeeRole: this.newteamMember.employeeRole,
-        resourceOverviewId: this.selectedRequirement?.resourceOverviewId,
-        isShadow: this.newteamMember.isShadow,
-        isDefaultProject: this.newteamMember.isDefaultProject,
-        teamName: this.currentTeam.teamName
-      };
-      if (this.selectedRequirement) {
-        memberToAdd['resourceOverviewId'] = this.selectedRequirement.resourceOverviewId;
-      }
-
-      this.allTeamMembers.push(memberToAdd);
-
-      this.newteamMember = new TeamMember();
-      this.addMemberCtrl.reset();
-      this.selectedRequirement = null;
-      this.teamMemberCtrl.reset();
-
-    } else {
-      const memberToAdd = {
-        ...newTeamMember,
-        employeeRole: this.newteamMember.employeeRole,
-        isShadow: this.newteamMember.isShadow,
-        isDefaultProject: this.newteamMember.isDefaultProject,
-        teamName: this.currentTeam.teamName
-      };
-
-      this.allTeamMembers.push(memberToAdd);
-
-      this.newteamMember = new TeamMember();
-      this.addMemberCtrl.reset();
-      this.selectedRequirement = null;
-      this.teamMemberCtrl.reset();
-      this.hasNewTeamMembers = true;
+    // 1. Basic Validation: Ensure an employee is selected from the dropdown.
+    if (!this.newteamMember || !this.newteamMember.empId) {
+      // You can add a user-friendly message here (e.g., using a toast service)
+      console.error("No employee selected.");
+      return; 
     }
-  }
 
+    // 2. Uniqueness Check: Verify if the employee is already in the 'allTeamMembers' list.
+    const isAlreadyAdded = this.allTeamMembers.some(member => member.empId === this.newteamMember.empId);
+
+    if (isAlreadyAdded) {
+      // Inform the user that this member is already added.
+      // this.toastService.warning('This team member has already been added.', 'Duplicate');
+      console.warn('This team member has already been added.');
+      return; // Stop the function here.
+    }
+
+    // 3. Find the full employee object from the master list.
+    const employeeData = this.employeeListByDept.find(employee => employee.empId == this.newteamMember.empId);
+    if (!employeeData) {
+      console.error("Could not find employee data for the selected ID.");
+      return;
+    }
+
+    // 4. Create the new team member object with all required properties.
+    const memberToAdd = {
+      ...employeeData, // Copy all base properties from the master list
+      employeeRole: this.newteamMember.employeeRole || [], // Ensure it's an array
+      isShadow: this.newteamMember.isShadow ? 1 : 0,
+      isDefaultProject: this.newteamMember.isDefaultProject ? 1 : 0,
+      teamName: this.currentTeam.teamName,
+      // Add resourceOverviewId only if a requirement was selected
+      resourceOverviewId: this.selectedRequirement ? this.selectedRequirement.resourceOverviewId : null,
+    };
+    
+    // 5. Add the new member to the array.
+    this.allTeamMembers.push(memberToAdd);
+    this.hasNewTeamMembers = true;
+
+    // 6. Reset form controls for the next entry.
+    this.newteamMember = new TeamMember(); 
+    this.addMemberCtrl.reset();
+    this.selectedRequirement = null;
+    this.teamMemberCtrl.reset();
+    
+    // This is a crucial step to update the UI list (see Step 2 below)
+    this.updateEmployeeListAccordingToTeamMembers();
+  }
   removeTeamMember(teamMember, index) {
     const currentTeam = this.currentTeam;
     this.allTeamList?.forEach((team) => {
@@ -2046,6 +2151,15 @@ export class ResourceManagementComponent implements OnInit {
       }
     });
   }
+  isEmployeeAllocated(employeeId: number): boolean {
+    // Check if the employee is in the "New Team Members" list being built
+    const isinNewMembers = this.allTeamMembers.some(member => member.empId === employeeId);
+    
+    // Check if the employee is already in the "Existing Team Members" list for this team
+    const isinExistingMembers = this.teamObj?.allTeamMemberList?.some(member => member.empId === employeeId);
+
+    return isinNewMembers || isinExistingMembers;
+}
 
   removeInputTeamMemberField(teamMember) {
     this.allTeamMembers.forEach((value, index) => {
@@ -4982,6 +5096,12 @@ filteredProjects: any[] = [];
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
 
+    this.selectedFile = null;
+    this.selectedFilePreviewUrl = null;
+
+
+    if(!file){return ;}
+
     if (file) {
       const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
 
@@ -4992,10 +5112,28 @@ filteredProjects: any[] = [];
         return;
       }
 
+      const reader = new FileReader();
+      reader.onload = () => {
+      this.selectedFilePreviewUrl = reader.result as string;};    
+      reader.readAsDataURL(file);
 
       this.selectedFile = file;
 
     }
+  }
+    previewSelectedFile(): void {
+    if (!this.selectedFile || !this.selectedFilePreviewUrl) {
+      alert('Please select a file to preview.');
+      return;
+    }
+
+    this.dialog.open(ViewImageComponent, {
+      width: '80%',
+      data: {
+        imageUrl: this.selectedFilePreviewUrl,
+        fileName: this.selectedFile.name
+      }
+    });
   }
 
   openAlertModForMilestone(template: TemplateRef<any>, message: any) {

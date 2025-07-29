@@ -176,7 +176,6 @@
                     <div class="progress-bar progress-bar-success" role="progressbar"
                         [style.width]="profileCompletedPercentage" aria-valuemin="0" aria-valuemax="100"
                         title="{{profileCompletedPercentage}}">{{profileCompletedPercentage}}</div>
-                    <!-- <small class="justify-content-center d-flex w-100 profileCompleted-value" >{{profileCompletedPercentage}}</small> -->
                 </div>
             </li>
             <li class="nav-item">
@@ -184,6 +183,16 @@
                     <i class="fa-solid fa-bullhorn"></i>
                 </a>
             </li>
+            <button class="btn btn-info position-relative" (click)="openProbationNotificationModal(probation_notification_modal)">
+    <i class="fa-solid fa-bell"></i>
+
+    
+    <span *ngIf="!isLoadingNotifications && probationNotifications.length > 0"
+          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+        {{ probationNotifications.length }}
+        <span class="visually-hidden">probation notifications</span>
+    </span>
+</button>
             <li class="nav-item">
                 <div class="dropdown">
                     <a class="nav-link nav-text dropdown-toggle" id="user-dropdown" role="button" data-toggle="dropdown"
@@ -1334,6 +1343,53 @@
     </ng-template>
 
 
+    <!-- The Modal Template -->
+<ng-template #probation_notification_modal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left"><b>Probation Ending Soon</b></h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">×</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div *ngIf="isLoadingNotifications" class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p>Loading Notifications...</p>
+        </div>
+
+        <div *ngIf="!isLoadingNotifications">
+            <div *ngIf="probationNotifications.length > 0; else noNotifications">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Employee Name</th>
+                            <th>Department</th>
+                            <th>HOD</th>
+                            <th>Confirmation Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let emp of probationNotifications">
+                            <td>{{ emp.name }}</td>
+                            <td>{{ emp.departmentName || 'N/A' }}</td>
+                            <td>{{ emp.hodName || 'N/A' }}</td>
+                            <td>{{ emp.confirmationDate }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        
+            <ng-template #noNotifications>
+                <div class="text-center text-muted p-4">
+                    <p>No employees have their probation ending in the next 6 days.</p>
+                </div>
+            </ng-template>
+        </div>
+    </div>
+</ng-template>
     <!-- Notiication Modal -->
     <ng-template #notification_template>
         <div class="modal-header">

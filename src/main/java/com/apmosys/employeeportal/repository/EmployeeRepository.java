@@ -1147,5 +1147,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	        @Param("poProjectType") String poProjectType,
 	        @Param("days") Integer days,
 	        @Param("deptId") List<Long> deptId);
+	
+	@Query(nativeQuery = true,value = "select sum(no_of_days) from employee_leave where emp_id = :empId")
+	public Float getNOOfDays(@Param("empId") Long empId);
 
 }

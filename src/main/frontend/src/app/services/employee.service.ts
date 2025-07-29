@@ -435,4 +435,13 @@ fetchInactivePOCounts(employeeReport:any){
   return this.http.post(`${this.baseUrl}` + `api/fetchInactivePOListOfEmployee`,employeeReport);
 
  }
+
+   revokeConfirmation(payload:any): Observable<any> {
+  
+    return this.http.put(`${this.baseUrl}api/revoke`, payload);
+  }
+
+  getProbationReminders(payload:any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/probation-reminders`,payload);
+}
 }
