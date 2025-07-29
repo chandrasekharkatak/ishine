@@ -133,9 +133,11 @@ AllWeekOfList:any[]=[];
   shadowForSelf:Boolean = false;
   previewUrl: SafeResourceUrl | null = null;
   rawObjectUrl: string | null = null;
-  fileType: 'pdf' | 'image' | null = null;
+  fileType: '' | 'pdf' | 'image' | null = null;
   fileError: string = '';
   fileName:any = null;
+  docData: any;
+  mimeType: any;
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -2026,9 +2028,29 @@ setTotalWorkingClientHours() {
     this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         console.log(response.serviceResponse);
+        this.docData = response.serviceResponse.docData;
+        console.log(typeof(this.docData),":docDataType")
+        this.mimeType = response.serviceResponse.docMimeType
+        this.showPreview(this.docData,this.mimeType)
       }
     });
   }
+  showPreview(base64Data: string, mimeType: string) {
+  const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+
+    if (mimeType === 'application/pdf') {
+      this.fileType = 'pdf';
+    } else if (mimeType.startsWith('image/')) {
+      this.fileType = 'image';
+    } else {
+      this.fileType = '';
+    }
+
+
+  // Open modal
+  this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+}
 
   openPreviewModal(){
     this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });

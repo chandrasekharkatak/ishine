@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Feature } from 'src/app/models/feature';
@@ -16,6 +16,7 @@ import { Employee360Service } from 'src/app/services/employee360.service';
 import { SortPipe } from 'src/app/sort.pipe';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-team-timesheet',
@@ -23,6 +24,9 @@ import { UtilityService } from 'src/app/services/utility.service';
   styleUrls: ['./team-timesheet.component.css']
 })
 export class TeamTimesheetComponent implements OnInit {
+
+  @ViewChild("previewTemplate")
+    previewModal : TemplateRef<any>;
 
   data: string;
   feature = "Team Timesheets";
@@ -66,6 +70,11 @@ export class TeamTimesheetComponent implements OnInit {
   allTimesheetColumns:any[] = ['blank','employeementId','employeeName','date','dayType','description','totalTime','officeInTime','officeOutTime','totalWorkingOfficeHours','status','isNightShift','leaveType','remarks'];
   allTimesheetReqColumns:any[] = ['blank','employeementId','employeeName','date','dayType','description','createdByName','totalTime','officeInTime','officeOutTime','totalWorkingOfficeHours','isNightShift','status'];
 
+  previewUrl: any;
+  fileType: '' | 'pdf' | 'image' | null = null;
+  docData:any;
+  mimeType:any;
+
   constructor(
     public validationService: ValidationService,
     private modalService: BsModalService,
@@ -76,6 +85,7 @@ export class TeamTimesheetComponent implements OnInit {
     private employee360Service: Employee360Service,
     private employeeService: EmployeeService,
     private utilityService: UtilityService,
+    private sanitizer: DomSanitizer
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -539,9 +549,29 @@ export class TeamTimesheetComponent implements OnInit {
     this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         console.log(response.serviceResponse);
+        this.docData = response.serviceResponse.docData;
+        console.log(typeof(this.docData),":docDataType")
+        this.mimeType = response.serviceResponse.docMimeType
+        this.showPreview(this.docData,this.mimeType)
       }
     });
   }
+  showPreview(base64Data: string, mimeType: string) {
+  const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+
+    if (mimeType === 'application/pdf') {
+      this.fileType = 'pdf';
+    } else if (mimeType.startsWith('image/')) {
+      this.fileType = 'image';
+    } else {
+      this.fileType = '';
+    }
+
+
+  // Open modal
+  this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+}
 
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
