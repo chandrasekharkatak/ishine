@@ -150,7 +150,7 @@ this.clickCount = 0;
 
   }
   getAppreciateEmployeeByCurrentUser(){
-    this.employeeObj.appreciationBy = this.currentUser.employeementId;
+    this.employeeObj.appreciationBy = this.currentUser.empId;
     this.employeeObj.appreciationEventId = this.currentUser.appreciationEventInfo.appreciationEventId;
     //console.log(this.employeeObj.appreciationEventId, "this.employeeObj.appreciationEventId");
     //console.log(this.currentUser.appreciationEventInfo.appreciationEventId, "checking current event");
@@ -167,7 +167,7 @@ this.clickCount = 0;
 
   }
   CountMyAppreciationBYcurrentUser(){
-    this.employeeObj.appreciationTo = this.currentUser.employeementId;
+    this.employeeObj.appreciationTo = this.currentUser.empId;
     //console.log("CurrentEmpId :",this.employeeObj.appreciationTo);
     this.appreciationService.CountMyAppreciationBYcurrentUser(this.employeeObj).pipe(first()).subscribe((response :any) =>{
       if(response.serviceStatus == "Success"){
@@ -202,7 +202,7 @@ this.clickCount = 0;
        })
 
        this.allEmployee.forEach((employee)=>{
-         const appreciatedEmployee = this.appreciateEmployeeByCurrentUser.find((apprEmployee)=> employee.employeementId == apprEmployee.appreciationTo);
+         const appreciatedEmployee = this.appreciateEmployeeByCurrentUser.find((apprEmployee)=> employee.empId == apprEmployee.appreciationTo);
          if(appreciatedEmployee){
           employee.isAppreciated = true;
          }else{
@@ -267,8 +267,8 @@ this.clickCount = 0;
 
 
     //employment id
-    this.employeeObj.appreciationBy = this.currentUser.employeementId;
-    this.employeeObj.appreciationTo = this.employee.employeementId;
+    this.employeeObj.appreciationBy = this.currentUser.empId;
+    this.employeeObj.appreciationTo = this.employee.empId;
     //console.log("currentuser employmentId" + this.employeeObj.appreciationBy)
     //console.log("appreciationTo employmentId" + this.employeeObj.appreciationTo)
 
