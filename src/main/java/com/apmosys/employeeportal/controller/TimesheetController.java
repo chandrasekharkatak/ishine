@@ -218,11 +218,6 @@ public class TimesheetController {
 	     return timesheetService.fetchEmploymentIdByEmpId(empId);
 	 }
 	 
-	 @PostMapping("/createClientSideIdMapping")
-	 public ServiceResponse createClientSideIdMapping(@RequestBody EmployeeClientSideIdMappingDTO empClientDTO) {
-	     return timesheetService.createClientSideIdMapping(empClientDTO);
-	 }
-	 
 	 @PostMapping("/updateClientSideIdMapping")
 	 public ServiceResponse updateClientSideIdMapping(@RequestBody EmployeeClientSideIdMappingDTO empClientDTO) {
 	     return timesheetService.updateClientSideIdMapping(empClientDTO);

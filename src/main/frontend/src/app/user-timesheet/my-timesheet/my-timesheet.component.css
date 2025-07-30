@@ -126,3 +126,11 @@ textarea.form-control-sm {
 
   
   
+.clickable-icon {
+  cursor: pointer;
+  color: #007bff;
+}
+.clickable-icon:hover {
+  color: #0056b3;
+}
+
