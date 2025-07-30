@@ -2057,6 +2057,12 @@ setTotalWorkingClientHours() {
     console.log(this.currentUser.empId)
     this.timesheetService.bulkFinalDocumentUpload(this.selectedFile,this.fromDate,this.toDate,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus === "Success"){
+        this.selectedFile=null;
+        this.fromDate= '';
+        this.toDate='';
+        this.currentUser.empId ='';
+        this.fileName ='';
+        this.fileType ='';
         this.openAlertMod(template, response.serviceResponse);
       }
     });
