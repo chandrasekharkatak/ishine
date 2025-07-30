@@ -839,4 +839,17 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "AND p.projectId = :projectId \n"
 			+ "AND p.active = 'true'")
 	Project getByProjectId(Integer projectId);
+
+	@Query(value="select distinct p.project_name,p.po_no,p.po_project_id\n"
+			+ " from projects p\n"
+			+ "INNER JOIN project_department_map pd ON p.project_id = pd.project_id\n"
+			+ "INNER JOIN department d ON pd.dept_id = d.dept_id\n"
+			+ "INNER JOIN teams t ON p.project_id = t.project_id\n"
+			+ "INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
+			+ "INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
+			+ "INNER JOIN clients c ON p.client_id = c.client_id\n"
+			+ "WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
+			+ "and has_client_side_id = 1\n"
+			+ "and date(etm.start_date) < curdate()",nativeQuery = true)
+	public List<Object[]> getProjectWithCliendSideID();
 }
