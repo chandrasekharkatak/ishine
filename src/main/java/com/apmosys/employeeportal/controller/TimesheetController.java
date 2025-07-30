@@ -257,17 +257,29 @@ public class TimesheetController {
 	 public ServiceResponse checkIfProjectRequiresClientId(@RequestParam Integer projectId) {
 		 return timesheetService.checkIfProjectRequiresClientId(projectId);
 	 }
-//	 @PostMapping("/totalVmsFilledCount")
-//	    public ServiceResponse totalVmsFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
-//	        ServiceResponse response = timesheetService.totalVmsFilledCount(timesheetDTO.getClientApprovalStatus());
-//	        return response;
-//	    }
-//	 
-//	 @PostMapping("/totalIshineFilledCount")
-//	    public ServiceResponse totalIshineFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
-//		 ServiceResponse response = timesheetService.totalIshineFilledCount(timesheetDTO.getStatus());
-//	        return response;
-//	    }
+	 @PostMapping("/totalVmsFilledCount")
+	    public ServiceResponse totalVmsFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
+	        ServiceResponse response = timesheetService.totalVmsFilledCount(timesheetDTO.getClientApprovalStatus());
+	        return response;
+	    }
+	 
+	 @PostMapping("/totalIshineFilledCount")
+	    public ServiceResponse totalIshineFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
+		 ServiceResponse response = timesheetService.totalIshineFilledCount(timesheetDTO.getStatus());
+	        return response;
+	    }
+	 
+	 @PostMapping("/totalvmsNotFilled")
+	    public ServiceResponse totalvmsNotFilled(@RequestBody TimesheetDTO timesheetDTO) {
+	        ServiceResponse response = timesheetService.totalvmsNotFilled(timesheetDTO.getClientApprovalStatus());
+	        return response;
+	    }
+	 
+	 @PostMapping("/totalIshineNotFilledCount")
+	    public ServiceResponse totalIshineNotFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
+		 ServiceResponse response = timesheetService.totalIshineNotFilledCount(timesheetDTO.getStatus());
+	        return response;
+	    }
 	 
 	 @RequestMapping(value="/getVmsDocumentApprovalStatusWiseCount",method=RequestMethod.GET)
 	 public ServiceResponse getVmsDocumentApprovalStatusWiseCount() {

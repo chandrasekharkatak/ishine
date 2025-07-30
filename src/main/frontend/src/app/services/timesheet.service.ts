@@ -197,6 +197,13 @@ export class TimesheetService {
 
    getVmsDocumentApprovalStatusWiseCount(){
     return this.http.get(`${this.baseUrl}`+`api/getVmsDocumentApprovalStatusWiseCount`);
+   }
+  totalvmsNotFilled(timesheetObj: Timesheet){
+    return this.http.post(`${this.baseUrl}`+`api/totalvmsNotFilled`,timesheetObj);
+  }
+
+  totalIshineNotFilledCount(timesheetObj: Timesheet){
+    return this.http.post(`${this.baseUrl}`+`api/totalIshineNotFilledCount`,timesheetObj);
   }
 
 }

@@ -43,6 +43,10 @@ export class HrDashboardComponent implements AfterViewInit {
   hodCount: number = 0;
   hrCount: number = 0;
   rmCount: number = 0;
+  totalVmsFilledCount: any;
+  totalIshineFilledCount: any;
+  totalvmsNotFilled: any;
+  totalIshineNotFilledCount: any;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -56,6 +60,9 @@ export class HrDashboardComponent implements AfterViewInit {
     this.getEmployeeByNameAndEmpld();
     this.TotalEmployeeCount();
     this.vmsCompletion();
+    this.ishineCompletion();
+    this.vmsNotFilled();
+    this.ishineNotFilled();
 
     this.employeeCtrl.valueChanges
     .pipe(
@@ -303,6 +310,11 @@ refreshDashboard(): void {
  
  // this.loadDashboardData(); 
   this.setLastUpdatedTime();
+  this.TotalEmployeeCount();
+  this.vmsCompletion();
+  this.ishineCompletion();
+  this.vmsNotFilled();
+  this.ishineNotFilled();
 }
 
 setLastUpdatedTime(): void {
@@ -327,25 +339,31 @@ TotalEmployeeCount() {
 }
 
 vmsCompletion() {
-  this.timesheetObj.clientApprovalStatus = "pending"
+  this.timesheetObj.clientApprovalStatus = "pending";
   this.timesheetService.totalVmsFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Success") {
-      console.log(response.serviceResponse);
-      this.totalEmployees = response.serviceResponse;
+      console.log("Raw response:", response.serviceResponse);
+      const nestedArray = response.serviceResponse;
+      this.totalVmsFilledCount = nestedArray?.[0]?.[0] ?? 0;
+
+      console.log("Total VMS completion:", this.totalVmsFilledCount);
     } else {
-      this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      // this.openAlertMod(this.alertTemplate, response.serviceResponse);
     }
   });
 }
+
 
 
 ishineCompletion() {
   this.timesheetService.totalIshineFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Success") {
       console.log(response.serviceResponse);
-      this.totalEmployees = response.serviceResponse;
+      const nestedArray = response.serviceResponse;
+      this.totalIshineFilledCount = nestedArray?.[0]?.[0] ?? 0;
+      console.log("Total Ishine completion",this.totalIshineFilledCount);
     } else {
-      this.openAlertMod(this.alertTemplate, response.serviceResponse);
+     // this.openAlertMod(this.alertTemplate, response.serviceResponse);
     }
   });
 }
@@ -399,6 +417,32 @@ getVmsDocumentApprovalStatusWiseCount() {
 
     } else {
       this.openAlertMod(this.alertTemplate, response.serviceResponse);
+    }
+  });
+}
+
+vmsNotFilled() {
+  this.timesheetService.totalvmsNotFilled(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      const nestedArray = response.serviceResponse;
+      this.totalvmsNotFilled = nestedArray?.[0]?.[0] ?? 0;
+      console.log("Total VMS not completion",this.totalvmsNotFilled);
+    } else {
+     // this.openAlertMod(this.alertTemplate, response.serviceResponse);
+    }
+  });
+}
+
+ishineNotFilled() {
+  this.timesheetService.totalIshineNotFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      const nestedArray = response.serviceResponse;
+      this.totalIshineNotFilledCount = nestedArray?.[0]?.[0] ?? 0;
+      console.log("Total Ishine NOt completion",this.totalIshineNotFilledCount);
+    } else {
+     // this.openAlertMod(this.alertTemplate, response.serviceResponse);
     }
   });
 }
