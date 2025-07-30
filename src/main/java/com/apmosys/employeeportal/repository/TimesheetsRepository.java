@@ -315,7 +315,7 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 				"from Project p  \n"+
 				"inner join Team t on t.projectId = p.projectId \n"+
 				"inner join EmployeeTeamMap etm on etm.teamId = t.teamId \n"+
-				"where etm.empId = :empId and etm.active = 1")
+				"where etm.empId = :empId and etm.active = 1 and t.isActive = 'Y' and p.active = 'true'")
 		public List<ProjectDTO> getActiveProjectsByEmpId(Long empId);
 		
 		@Query(value ="select new com.apmosys.employeeportal.dto.ProjectClientSideIdDTO(CAST(p.projectId as long), p.projectName, ecsm.clientSideId )  \n"+
