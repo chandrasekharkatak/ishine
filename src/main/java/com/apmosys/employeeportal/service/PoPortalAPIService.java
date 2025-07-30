@@ -1211,6 +1211,60 @@ public class PoPortalAPIService {
 	        finalHttpStatusCode = externalResponse.getStatusCodeValue();
 
 	        if (externalResponse.getStatusCode() == HttpStatus.OK) {
+	        	// Email logic only after external sync is successful
+		        Optional<RmAndHodEmailDto> optionalEmails = projectRepository.findRmAndHodEmailsByProjectId(dto.getProjectId());
+
+		        if (!optionalEmails.isPresent()) {
+		        	String msg="Skipping milestone due to all emails being empty:";
+		        	System.out.println("Skipping milestone due to all emails being empty: " + dto.getMilestoneName());
+	               
+		        }
+
+		        RmAndHodEmailDto emailDto = optionalEmails.get();
+		        String rmEmail = "dibyaranjan.das@apmosys.com";
+		        String hodEmail = "manoj.sahoo@apmosys.com";
+		        String directorEmail = "shubhak.nagar@pmosys.com";
+
+		        if (Stream.of(rmEmail, hodEmail, directorEmail).allMatch(email -> email == null || email.isEmpty())) {
+		              
+		                System.out.println("Skipping milestone due to missing RM/HOD data: " + dto.getMilestoneName());
+
+		    	       
+		        }
+
+		       
+		        SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/d");
+		        String extendedDate=formatter.format(dto.getExtendedDate());
+		        String subject = "Project Milestone Expiry Notification: " + dto.getProjectName();
+		        String body = "<html><body>"
+		                + "<p>Dear Team,</p>"
+		                + "<p>The following project milestone end date has been extended from " + dto.getMilestoneEndDate() + " to " + extendedDate + ".</p>"
+		                + "<table border='1' style='border-collapse: collapse;'>"
+		                + "<tr><th>PO Number</th><td>" + dto.getPoNumber() + "</td></tr>"
+		                + "<tr><th>Project Name</th><td>" + dto.getProjectName() + "</td></tr>"
+		                + "<tr><th>Milestone Name</th><td>" + dto.getMilestoneName() + "</td></tr>"
+		                + "<tr><th>Line Item</th><td>" + dto.getLineItemName() + "</td></tr>"
+		                + "<tr><th>Milestone Start Date</th><td>" + dto.getMilestoneStartDate() + "</td></tr>"
+		                + "<tr><th>Milestone End Date</th><td>" + dto.getMilestoneEndDate() + "</td></tr>"
+		                		 + "<tr><th>Milestone End Date</th><td>" + extendedDate + "</td></tr>"
+		                + "<tr><th>Status</th><td>" + dto.getMilestoneStatus() + "</td></tr>"
+		                + "</table>"
+		                + "<p>Please take the necessary actions.</p>"
+		                + "<p>Regards,<br>ApMoSys Technologies</p>"
+		                + "</body></html>";
+
+		        try {
+		            mailService.sendMailWithMultipleCC(
+		                    rmEmail,
+		                    Arrays.asList(hodEmail, directorEmail),
+		                    subject,
+		                    body
+		            );
+		        } catch (Exception mailEx) {
+		            // Log mail failure
+		            System.err.println("Mail send failed: " + mailEx.getMessage());
+		        }
+
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            response.setServiceMessage("Milestone extended date updated and external sync successful.");
 	            response.setServiceResponse("Milestone extended date updated and external sync successful.");

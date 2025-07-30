@@ -2787,6 +2787,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
 
     this.milestoneDetailModalRefView = this.modalService.show(this.milestoneDetailModalRef, { class: 'modal-lg' });
+    this.minExtendedDate();
   }
 
 
@@ -2966,6 +2967,48 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.popUpModalResf?.hide();
 
     this.closeMilestoneDetailModal();
+  }
+
+
+   
+    minExtendedDateformilestone:Date;
+   public  minExtendedDate(): void {
+    const endDate=this.milestoneForm.get('endDate').value;;
+    this.minExtendedDateformilestone=new Date(this.convertToISO(endDate));
+    console.log("minExtendedDateformilestone",this.minExtendedDateformilestone);
+   
+  }
+  convertToISO(dateString: string): string {
+  const [day, month, year] = dateString.split('/');
+  return `${year}-${month}-${day}`; 
+}
+
+public getDaysLeftForExpiry(endDate: string | Date): string {
+    if (!endDate) {
+      return 'N/A'; 
+    }
+
+    const today = new Date();
+    const milestoneEndDate = new Date(endDate);
+
+   
+    today.setHours(0, 0, 0, 0);
+    milestoneEndDate.setHours(0, 0, 0, 0);
+    
+   
+    const differenceInMs = milestoneEndDate.getTime() - today.getTime();
+
+    
+    const daysLeft = Math.ceil(differenceInMs / (1000 * 60 * 60 * 24));
+
+    if (daysLeft < 0) {
+      return 'Expired';
+    } else if (daysLeft === 0) {
+      return 'Expires Today';
+    } else {
+      // Use "day" for 1 and "days" for all other cases
+      return `${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} left`;
+    }
   }
 
 

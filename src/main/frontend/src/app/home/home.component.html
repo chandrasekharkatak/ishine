@@ -1675,7 +1675,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
                             <th mat-sort-header="startDate|string">Start Date</th>
                             <th mat-sort-header="endDate|string">End Date</th>
                             <th>Status</th>
-
+                            <th>Days Left</th> 
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -1696,7 +1696,9 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
                                 <td>{{ milestone.startDate | date: 'dd/MM/yyyy' }}</td>
                                 <td>{{ milestone.endDate | date: 'dd/MM/yyyy' }}</td>
+                              
                                 <td>{{ milestone.status }}</td>
+                                <td>{{ getDaysLeftForExpiry(milestone.endDate) }}</td>
 
                                 <td>
 
@@ -1774,7 +1776,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
                         <label class="form-label fw-semibold">Extended Date</label>
                         <input class="form-control form-control-sm border-primary rounded" autocomplete="off"
                             [formControl]="$any(milestoneForm.get('extendedDate'))"
-                            [owlDateTimeTrigger]="extendedDatePicker" [owlDateTime]="extendedDatePicker"
+                            [owlDateTimeTrigger]="extendedDatePicker" [owlDateTime]="extendedDatePicker" [min]="minExtendedDateformilestone"    [disabled]="!milestoneForm.get('endDate').value"
                             placeholder="Select Extended Date" />
                         <owl-date-time #extendedDatePicker [pickerType]="'calendar'"></owl-date-time>
                     </div>
