@@ -207,13 +207,25 @@
                     <!-- <div class="status-description">Overdue by 2+ days: 47</div> -->
                 </div>
                 
-                <div class="status-card">
+                <!-- <div class="status-card">
                     <div class="status-title">I-Shine Not Filled</div>
                     <div class="status-value">{{totalIshineNotFilledCount}} 
-                        <!-- <span class="badge badge-danger">33.0%</span> -->
                     </div>
-                    <!-- <div class="status-description">Overdue by 2+ days: 89</div> -->
-                </div>
+                    <div class="status-description">Out Of : {{totalExpectedEmployees}}</div>
+                </div> -->
+                <div class="status-card">
+                    <div class="status-title">I-Shine Not Filled</div>
+                    
+                    <div class="status-value">
+                      {{ totalIshineNotFilledCount }}
+                      <span *ngIf="totalExpectedEmployees" class="badge badge-danger">
+                        {{ ((totalIshineNotFilledCount / totalExpectedEmployees) * 100) | number:'1.1-1' }}%
+                      </span>
+                    </div>
+                  
+                    <div class="status-description">Out Of: {{ totalExpectedEmployees }}</div>
+                  </div>
+                  
                 
                 <div class="status-card">
                     <div class="status-title">I-Shine Filled (Not Approved)</div>
