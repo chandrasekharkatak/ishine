@@ -694,7 +694,58 @@
 </div>
 <!-- end :: View Timesheets -->
 
+<!-- Start :: showBulkUploadForm -->
+<div class="row" *ngIf="isTimesheetBulkForm">
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isTimesheetBulkForm">Final Document Bulk Upload</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+              <!-- From Date -->
+              <div class="col-md-4 mb-3">
+                <div class="form-group">
+                  <label class="info-label"><span class="text-danger">*</span>From Date</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    [(ngModel)]="fromDate"
+                    name="fromDate"
+                    required
+                    #fromDateRef="ngModel"
+                  />
+                  <div class="text-danger" *ngIf="fromDateRef.invalid && fromDateRef.touched">
+                    From Date is required.
+                  </div>
+                </div>
+              </div>
+          
+              <!-- To Date -->
+              <div class="col-md-4 mb-3">
+                <div class="form-group">
+                  <label class="info-label"><span class="text-danger">*</span>To Date</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    [(ngModel)]="toDate"
+                    name="toDate"
+                    required
+                    #toDateRef="ngModel"
+                    [min]="fromDate"
+                  />
+                  <div class="text-danger" *ngIf="toDateRef.invalid && toDateRef.touched">
+                    To Date is required and cannot be earlier than From Date.
+                  </div>
+                </div>
+              </div>
+            </div>
 
+        </div>
+    </div>
+</div>
+
+
+<!-- End :: showBulkUploadForm -->
 
 <!-- Advance filter backupcode -->
 

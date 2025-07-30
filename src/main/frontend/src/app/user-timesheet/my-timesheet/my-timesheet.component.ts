@@ -140,6 +140,8 @@ AllWeekOfList:any[]=[];
   docData: any;
   mimeType: any;
   projectRequiresClientId : Boolean = false;
+  fromDate : any;
+  toDate : any;
 
   constructor(
     private validationService: ValidationService,
