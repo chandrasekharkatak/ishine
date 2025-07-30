@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Timesheet } from '../models/timesheet';
-import { Query } from '../models/query';
-import { environment } from 'src/environments/environment';
 import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
+import { Query } from '../models/query';
+import { Timesheet } from '../models/timesheet';
 
 @Injectable({
   providedIn: 'root'
@@ -193,6 +193,17 @@ export class TimesheetService {
 
   finalDocumentApproval(timesheetObj: Timesheet){
     return this.http.post(`${this.baseUrl}`+`api/finalDocumentApproval`,timesheetObj);
+  }
+
+   getVmsDocumentApprovalStatusWiseCount(){
+    return this.http.get(`${this.baseUrl}`+`api/getVmsDocumentApprovalStatusWiseCount`);
+   }
+  totalvmsNotFilled(timesheetObj: Timesheet){
+    return this.http.post(`${this.baseUrl}`+`api/totalvmsNotFilled`,timesheetObj);
+  }
+
+  totalIshineNotFilledCount(timesheetObj: Timesheet){
+    return this.http.post(`${this.baseUrl}`+`api/totalIshineNotFilledCount`,timesheetObj);
   }
 
 }

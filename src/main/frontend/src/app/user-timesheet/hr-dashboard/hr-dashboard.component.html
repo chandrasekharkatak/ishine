@@ -168,13 +168,13 @@
                 
                 <div class="metric-card success">
                     <div class="metric-title">VMS Completion</div>
-                    <div class="metric-value">84%</div>
+                    <div class="metric-value">{{ totalVmsFilledCount }}</div>
                     <div class="metric-change positive">↑ 5.1% from last week</div>
                 </div>
                 
                 <div class="metric-card warning">
                     <div class="metric-title">I-Shine Completion</div>
-                    <div class="metric-value">67%</div>
+                    <div class="metric-value">{{ totalIshineFilledCount }}</div>
                     <div class="metric-change positive">↑ 3.2% from last week</div>
                 </div>
                 
@@ -201,14 +201,18 @@
                 
                 <div class="status-card">
                     <div class="status-title">VMS Not Filled</div>
-                    <div class="status-value">199 <span class="badge badge-danger">16.0%</span></div>
-                    <div class="status-description">Overdue by 2+ days: 47</div>
+                    <div class="status-value">{{totalvmsNotFilled}}
+                         <!-- <span class="badge badge-danger">16.0%</span> -->
+                        </div>
+                    <!-- <div class="status-description">Overdue by 2+ days: 47</div> -->
                 </div>
                 
                 <div class="status-card">
                     <div class="status-title">I-Shine Not Filled</div>
-                    <div class="status-value">411 <span class="badge badge-danger">33.0%</span></div>
-                    <div class="status-description">Overdue by 2+ days: 89</div>
+                    <div class="status-value">{{totalIshineNotFilledCount}} 
+                        <!-- <span class="badge badge-danger">33.0%</span> -->
+                    </div>
+                    <!-- <div class="status-description">Overdue by 2+ days: 89</div> -->
                 </div>
                 
                 <div class="status-card">
@@ -225,19 +229,25 @@
                 
                 <div class="status-card">
                     <div class="status-title">RM Document Rejections</div>
-                    <div class="status-value">189 <span class="badge badge-danger">15.2%</span></div>
+                    <div class="status-value">{{rmCount}} 
+                        <!-- <span class="badge badge-danger">15.2%</span> -->
+                    </div>
                     <div class="status-description">Reporting manager level</div>
                 </div>
                 
                 <div class="status-card">
                     <div class="status-title">HR Document Rejections</div>
-                    <div class="status-value">166 <span class="badge badge-danger">13.3%</span></div>
+                    <div class="status-value"> {{hrCount}}
+                        <!-- <span class="badge badge-danger">13.3%</span> -->
+                    </div>
                     <div class="status-description">Human resources level</div>
                 </div>
                 
                 <div class="status-card">
-                    <div class="status-title">HoD Document Rejections</div>
-                    <div class="status-value">73 <span class="badge badge-danger">5.9%</span></div>
+                    <div class="status-title">HOD Document Rejections</div>
+                    <div class="status-value">{{hodCount}} 
+                        <!-- <span class="badge badge-danger">5.9%</span> -->
+                    </div>
                     <div class="status-description">Head of Department level</div>
                 </div>
                 

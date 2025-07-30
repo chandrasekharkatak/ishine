@@ -349,10 +349,37 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 	                                         @Param("fromDate") String fromDate,
 	                                         @Param("toDate") String toDate);
 
-//		@Query(value ="")
-//		public List<TimesheetDTO> getTotalVmsFilledCount(String clientApprovalStatus);
-//
-//		@Query(value ="")
-//		public List<TimesheetDTO> totalIshineFilledCount(String status);
+		
+		@Query(value = "SELECT COUNT(DISTINCT emp_id) FROM employee_timesheets WHERE client_side_id IS NOT NULL AND client_side_id != ''", nativeQuery = true)
+		public List<Object[]> getTotalVmsFilledCount(String clientApprovalStatus);
+
+		@Query(value = "SELECT COUNT(DISTINCT emp_id) AS employee_count_with_client_id " +
+	               "FROM employee_timesheets " +
+	               "WHERE MONTH(created_on) = MONTH(CURRENT_DATE()) " +
+	               "AND YEAR(created_on) = YEAR(CURRENT_DATE()) " +
+	               "AND day_type = 'Working'", nativeQuery = true)
+		public List<Object[]> totalIshineFilledCount();
+		
+		@Query(value = "select count(distinct e.emp_id) from employee e inner join employee_timesheets et\n"
+				+ "on e.emp_id = et.emp_id \n"
+				+ "where e.emp_id not in\n"
+				+ "(\n"
+				+ "SELECT DISTINCT emp_id AS employee_count_with_client_id\n"
+				+ "FROM employee_timesheets\n"
+				+ "WHERE client_side_id IS NOT NULL AND client_side_id != ''\n"
+				+ ")\n"
+				+ "and client_side_id IS NOT NULL AND client_side_id != ''", nativeQuery = true)
+		public List<Object[]> totalvmsNotFilled(String clientApprovalStatus);
+
+		@Query(value = "select count(distinct emp_id) from employee where emp_id not in\n"
+				+ "(\n"
+				+ "SELECT DISTINCT emp_id AS employee_count_with_client_id\n"
+				+ "FROM employee_timesheets\n"
+				+ "WHERE MONTH(created_on) = MONTH(CURRENT_DATE())\n"
+				+ "  AND YEAR(created_on) = YEAR(CURRENT_DATE())\n"
+				+ "  and day_type like \"%Working%\"\n"
+				+ "  ) and employmentstatus != 'InActive'", nativeQuery = true)
+		public List<Object[]> totalIshineNotFilledCount();
+
 	
 }
