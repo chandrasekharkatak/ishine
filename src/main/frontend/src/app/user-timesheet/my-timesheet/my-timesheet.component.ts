@@ -120,7 +120,7 @@ AllWeekOfList:any[]=[];
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId:any;
-  selfClientIdModalRef: BsModalRef = new BsModalRef();
+  // selfClientIdModalRef: BsModalRef = new BsModalRef();
   selfClientIdUpdateModalRef: BsModalRef = new BsModalRef();
   updateClientIdModalRef: BsModalRef = new BsModalRef();
   noNotAppliedYetModalRef: BsModalRef = new BsModalRef();
@@ -129,7 +129,6 @@ AllWeekOfList:any[]=[];
   employeeList:any[];
   selectedFile: File | null = null;
   empClientSideObj: EmployeeClientSideIdMapping = new EmployeeClientSideIdMapping();
-  updateExistingClientSideId: Boolean = false;
   projectClientIdList: ProjectClientSideId[] = [];
   shadowForSelf:Boolean = false;
   previewUrl: SafeResourceUrl | null = null;
@@ -142,6 +141,12 @@ AllWeekOfList:any[]=[];
   projectRequiresClientId : Boolean = false;
   fromDate : any;
   toDate : any;
+  clientSideIdForm: BsModalRef = new BsModalRef();
+  noClientSideIdProvided: BsModalRef = new BsModalRef();
+  @ViewChild("update_clientId")
+  updateClientId: TemplateRef<any>;
+  @ViewChild("clientSideIdForm")
+  clientSideIdFormRef: TemplateRef<any>;
 
   constructor(
     private validationService: ValidationService,
@@ -2035,23 +2040,6 @@ setTotalWorkingClientHours() {
     });
   }
 
-  getClientSideIdByProjectId(projectId){
-    if(this.timesheetObj.timesheetAppliedFor == "asShadow"){
-      this.getEmployeeListByProjectId(projectId)
-    } else {
-      this.timesheetService.getClientSideIdByProjectId(projectId).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.timesheetObj.clientSideId = response.serviceResponse;
-          if(this.updateExistingClientSideId){
-            this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
-          }
-        } else {
-          console.error(response.serviceResponse);
-        }
-      });
-    }
-  }
-
   getDoscForPreview(docId:any){
     console.log(docId,":docId");
     this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
@@ -2157,43 +2145,8 @@ setTotalWorkingClientHours() {
     this.selectedProjectId = null;
   }
 
-  openSelfModal1(template: TemplateRef<any>,projectId:any) {
-    this.timesheetService.checkIfProjectRequiresClientId(projectId).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.projectRequiresClientId = response.serviceResponse;
-        if(this.projectRequiresClientId){
-          this.clientSideIdNotMandatory = false;
-        } else {
-          this.fetchEmploymentIdByEmpId();
-          this.clientSideIdNotMandatory = true;
-        }
-        this.selfClientIdModalRef = this.modalService.show(template, { class: 'modal-sm' });
-      } else {
-        console.error(response.serviceResponse);
-        this.fetchEmploymentIdByEmpId();
-        this.clientSideIdNotMandatory = true;
-      }
-    });
-  }
-
-  hideSelfModal1(): void {
-    if (this.selfClientIdModalRef) {
-      this.selfClientIdModalRef.hide();
-    }
-  }
-
-  openSelfModal2(template: TemplateRef<any>) {
-    this.selfClientIdUpdateModalRef = this.modalService.show(template, { class: 'modal-sm' });
-    this.getClientSideIdByProjectId(this.timesheetObj.projectId);
-  }
-
-  hideSelfModal2(): void {
-    if (this.selfClientIdUpdateModalRef) {
-      this.selfClientIdUpdateModalRef.hide();
-    }
-  }
-
   openSelfModal3(template: TemplateRef<any>) {
+    this.empClientSideObj.clientSideId = '';
     this.updateClientIdModalRef = this.modalService.show(template, { class: 'modal-lg' });
     this.getActiveProjectsAndClientSideIdByEmpId();
   }
@@ -2226,25 +2179,12 @@ setTotalWorkingClientHours() {
     });
   }
 
-  createClientSideIdMapping(template: TemplateRef<any>) {
-    this.empClientSideObj.empId = this.currentUser.empId;
-    this.timesheetService.createClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.getClientSideIdByProjectId(this.timesheetObj.projectId);
-      } else {
-        this.openAlertMod(template, response.serviceResponse)
-      }
-    });
-    this.resetUpdateClientSideId();
-  }
-
   updateClientSideIdMapping(template: TemplateRef<any>) {
     this.empClientSideObj.empId = this.currentUser.empId;
     this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.getClientSideIdByProjectId(this.timesheetObj.projectId);
+        this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId,this.empClientSideObj.empId);
       } else {
         this.openAlertMod(template, response.serviceResponse)
       }
@@ -2253,9 +2193,7 @@ setTotalWorkingClientHours() {
   }
 
   onProjectChange(projId: any): void {
-    if (this.updateExistingClientSideId) {
-      this.getClientSideIdByProjectId(projId);
-    }
+    this.getClientSideIdByProjectIdAndEmpId(projId,this.currentUser.empId);
   }
 
   resetUpdateClientSideId(){
@@ -2270,20 +2208,6 @@ setTotalWorkingClientHours() {
         console.error(response.serviceResponse);
       }
     });
-  }
-
-  getProjectTooltip(project: any): string {
-    if (!this.updateExistingClientSideId && project.clientSideId) {
-      return `Already mapped with Client Side ID: ${project.clientSideId}. Toggle ON to update.`;
-    } else if (this.updateExistingClientSideId && !project.clientSideId) {
-      return `No Client Side ID found for this project`;
-    }
-    return '';
-  }
-
-  onUpdateToggle(event: Event): void {
-    const inputElement = event.target as HTMLInputElement;
-    this.updateExistingClientSideId = inputElement.checked;
   }
 
   payloadForFileUpload() {
@@ -2308,21 +2232,21 @@ setTotalWorkingClientHours() {
     }
   }
 
-  getClientSideIdByProjectIdAndEmpId(projectId,empId){
-    if(this.timesheetObj.shadowEmpId == this.currentUser.empId){
-      this.shadowForSelf = true;
-    }
-    this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId,empId).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.timesheetObj.clientSideId = response.serviceResponse;
-        if(this.updateExistingClientSideId){
-          this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
-        }
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
+  // getClientSideIdByProjectId(projectId:any){
+  //   if(this.timesheetObj.shadowEmpId == this.currentUser.empId){
+  //     this.shadowForSelf = true;
+  //   }
+  //   this.timesheetService.getClientSideIdByProjectId(projectId).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.timesheetObj.clientSideId = response.serviceResponse;
+  //       if(this.updateExistingClientSideId){
+  //         this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+  //       }
+  //     } else {
+  //       console.error(response.serviceResponse);
+  //     }
+  //   });
+  // }
 
   openNoNotAppliedYet(template: TemplateRef<any>) {
     this.noNotAppliedYetModalRef = this.modalService.show(template, { class: 'modal-md' });
@@ -2356,6 +2280,89 @@ setTotalWorkingClientHours() {
     }
   }
 
+  getProjectName(projectId: number): string {
+    const project = this.projectClientIdList?.find(p => p.projectId === projectId);
+    return project ? project.projectName : '';
+  }
+
+  hideClientSideIdForm() {
+    this.clientSideIdForm.hide();
+  }
+
+  onCancelClientSideId(template: TemplateRef<any>) {
+    this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId,this.currentUser.empId);
+    this.hideClientSideIdForm();
+    this.noClientSideIdProvided = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  hideNoClientSideIdProvided (){
+    this.noClientSideIdProvided.hide();
+  }
+
+  onProjectSelect(projectId:any){
+    if(this.timesheetObj.timesheetAppliedFor == "asShadow"){
+      this.getEmployeeListByProjectId(projectId)
+    } else {
+      this.checkIfProjectRequiresClientId(projectId);
+    }
+  }
+
+  checkIfProjectRequiresClientId(projectId:any){
+    this.timesheetService.checkIfProjectRequiresClientId(projectId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectRequiresClientId = response.serviceResponse;
+        if(this.projectRequiresClientId){
+          this.clientSideIdNotMandatory = false;
+          this.timesheetObj.clientSideId = null;
+          this.onProjectRequiresClientId(projectId,this.currentUser.empId);
+        } else {
+          this.fetchEmploymentIdByEmpId();
+          this.clientSideIdNotMandatory = true;
+        }
+      } else {
+        console.error(response.serviceResponse);
+        this.fetchEmploymentIdByEmpId();
+        this.clientSideIdNotMandatory = true;
+      }
+    });
+  }
+
+  onProjectRequiresClientId(projectId:any,empId:any){
+    this.timesheetObj.clientSideId == null;
+    this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId,empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetObj.clientSideId = response.serviceResponse;
+        if(this.timesheetObj.clientSideId){
+          this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+        }
+      } else {
+        console.error(response.serviceResponse);
+      }
+      if(this.timesheetObj.clientSideId == null && this.projectRequiresClientId){
+        this.getActiveProjectsAndClientSideIdByEmpId();
+        this.empClientSideObj.projectId = projectId;
+        
+      }
+    });
+  }
+
+  openClientSideIdForm(){
+    this.empClientSideObj.clientSideId = '';
+    this.clientSideIdForm = this.modalService.show(this.clientSideIdFormRef, { class: 'modal-lg' });
+  }
+
+  getClientSideIdByProjectIdAndEmpId(projectId:any,empId:any){
+    this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId,empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetObj.clientSideId = response.serviceResponse;
+        if(this.timesheetObj.clientSideId){
+          this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+        }
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

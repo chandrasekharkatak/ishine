@@ -47,6 +47,7 @@ export class HrDashboardComponent implements AfterViewInit {
   totalIshineFilledCount: any;
   totalvmsNotFilled: any;
   totalIshineNotFilledCount: any;
+  totalExpectedEmployees: any;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -439,7 +440,8 @@ ishineNotFilled() {
     if (response.serviceStatus === "Success") {
       console.log(response.serviceResponse);
       const nestedArray = response.serviceResponse;
-      this.totalIshineNotFilledCount = nestedArray?.[0]?.[0] ?? 0;
+      this.totalExpectedEmployees = nestedArray?.[0]?.[0] ?? 0;
+      this.totalIshineNotFilledCount = nestedArray?.[0]?.[1] ?? 0;
       console.log("Total Ishine NOt completion",this.totalIshineNotFilledCount);
     } else {
      // this.openAlertMod(this.alertTemplate, response.serviceResponse);

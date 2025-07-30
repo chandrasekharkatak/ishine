@@ -2350,9 +2350,9 @@ public class TimesheetService {
 	    apiLogInfo.setLogLevel("INFO");
 	    
 	    try {
-	        String clientSideId = employeeClientSideIdMappingRepository.findClientSideIdByProjectId(projectId);
+	    	Optional<String> clientSideId = employeeClientSideIdMappingRepository.findClientSideIdByProjectId(projectId);
 	        
-	        if (clientSideId.isEmpty() || clientSideId.equals("")) {
+	    	if (clientSideId.isEmpty() || clientSideId.get().trim().isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("No Client Side Id fetched for the selected Project!");
 	            response.setServiceMessage("No Client Side Id fetched for the selected Project! For ProjectId: " + projectId);
@@ -2376,7 +2376,7 @@ public class TimesheetService {
 	        response.setServiceResponse("Something went wrong.");
 	        response.setServiceError(e.getMessage());
 
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	        apiLogInfo.setApiResponse(e.getMessage()); 
 	        apiLogInfo.setLogLevel("ERROR");
 	    }
@@ -2493,57 +2493,6 @@ public class TimesheetService {
 	    else dto = null;
 	    return dto;
 	}
-
-	
-	public ServiceResponse createClientSideIdMapping(EmployeeClientSideIdMappingDTO empClientDTO) {
-	    ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("create_client_side_id_mapping");
-	    apiLogInfo.setApiUrl("/api/createClientSideIdMapping");
-	    apiLogInfo.setLogLevel("INFO");
-
-	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("empId: ").append(empClientDTO.getEmpId())
-	              .append(", projectId: ").append(empClientDTO.getProjectId());
-
-	    try {
-	        Optional<EmployeeClientSideIdMapping> existing = employeeClientSideIdMappingRepository.findByProjectIdAndActive(empClientDTO.getProjectId(), true);
-	        if (existing.isPresent()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("An active mapping already exists for this project.");
-	            return response;
-	        }
-
-	        EmployeeClientSideIdMapping newEmpClient = new EmployeeClientSideIdMapping();
-	        newEmpClient.setEmpId(empClientDTO.getEmpId());
-	        newEmpClient.setProjectId(empClientDTO.getProjectId());
-	        newEmpClient.setClientSideId(empClientDTO.getClientSideId());
-	        newEmpClient.setCreatedBy(empClientDTO.getEmpId());
-	        newEmpClient.setCreatedOn(LocalDateTime.now());
-	        newEmpClient.setActive(true);
-
-	        EmployeeClientSideIdMapping newMapping = employeeClientSideIdMappingRepository.save(newEmpClient);
-
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse("Saved Successfully!");
-	        apiLogInfo.setApiResponse("New Mapping created for project id : "
-	            + newMapping.getProjectId() + " for client side id: " + newMapping.getClientSideId());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something Went Wrong.");
-	        response.setServiceError(e.getMessage());
-
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setLogLevel("ERROR");
-	    }
-
-	    apiLogInfo.setApiRequest(logBuilder.toString());
-	    logService.logMyInfo(httpRequest, apiLogInfo);
-	    return response;
-	}
 	
 	public ServiceResponse updateClientSideIdMapping(EmployeeClientSideIdMappingDTO empClientDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -2555,14 +2504,29 @@ public class TimesheetService {
 		logBuilder.append("empId : " +empClientDTO.getEmpId()+ "projectId:" +empClientDTO.getProjectId());
 		try {
 
-			Optional<EmployeeClientSideIdMapping> existingEmpClientMap = employeeClientSideIdMappingRepository.findByProjectIdAndActive(empClientDTO.getProjectId(),true);
-
+			Optional<EmployeeClientSideIdMapping> existingEmpClientMap = employeeClientSideIdMappingRepository.findByProjectIdAndActiveAndEmpId(empClientDTO.getProjectId(), true, empClientDTO.getEmpId());
+	        
 			if (!existingEmpClientMap.isPresent()) {
 
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No Client Side Id found for this project!");
-	            apiLogInfo.setApiResponse("No mapping found for projectId: " + empClientDTO.getProjectId());
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				EmployeeClientSideIdMapping newEmpClient = new EmployeeClientSideIdMapping();
+		        newEmpClient.setEmpId(empClientDTO.getEmpId());
+		        newEmpClient.setProjectId(empClientDTO.getProjectId());
+		        newEmpClient.setClientSideId(empClientDTO.getClientSideId());
+		        newEmpClient.setCreatedBy(empClientDTO.getEmpId());
+		        newEmpClient.setCreatedOn(LocalDateTime.now());
+		        newEmpClient.setActive(true);
+
+		        EmployeeClientSideIdMapping newMapping = employeeClientSideIdMappingRepository.save(newEmpClient);
+
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse("Saved Successfully!");
+		        apiLogInfo.setApiResponse("New Mapping created for project id : "
+		            + newMapping.getProjectId() + " for client side id: " + newMapping.getClientSideId());
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+		        apiLogInfo.setApiRequest(logBuilder.toString());
+        		logService.logMyInfo(httpRequest, apiLogInfo);
+        		return response;
 
 	        } else {
 
@@ -2589,6 +2553,9 @@ public class TimesheetService {
 	                    + updatedMapping.getProjectId() + ", clientSideId: " + updatedMapping.getClientSideId());
 	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	            }
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+        		logService.logMyInfo(httpRequest, apiLogInfo);
+        		return response;
 	        }
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2700,26 +2667,32 @@ public class TimesheetService {
 		logBuilder.append("empId : " +empId+ "projectId:" +projectId+"\n");
 	    
 	    try {
-	        String clientSideId = employeeClientSideIdMappingRepository.getClientSideIdByProjectIdAndEmpId(projectId,empId);
+	    	Optional<String> clientSideId = employeeClientSideIdMappingRepository.getClientSideIdByProjectIdAndEmpId(projectId,empId);
 	        
-	        if (clientSideId.isEmpty() || clientSideId.equals("")) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        if (clientSideId.isPresent()) {
+	        	
+
+	        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(clientSideId);
+	            response.setServiceMessage("Client Side Id fetched successfully!");
+	    		logBuilder.append("empId : " +empId+ "Client Side Id :" +clientSideId+"\n");
+
+	            apiLogInfo.setApiResponse("Client Side Id fetched successfully!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        	
+	        } else {
+
+	        	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("No Client Side Id fetched for the selected Project!");
 	            response.setServiceMessage("No Client Side Id fetched for the selected Project! For ProjectId: " + projectId);
 	            
 	            apiLogInfo.setApiResponse("No Client Side Id fetched for the selected Project! For ProjectId: " + projectId);
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	            logService.logMyInfo(httpRequest, apiLogInfo);
-	            return response;
+
 	        }
 	        
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(clientSideId);
-            response.setServiceMessage("Client Side Id fetched successfully!");
-    		logBuilder.append("empId : " +empId+ "Client Side Id :" +clientSideId+"\n");
-
-            apiLogInfo.setApiResponse("Client Side Id fetched successfully!");
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            logService.logMyInfo(httpRequest, apiLogInfo);
+            return response;
 	        
 	    } catch (Exception e) {
 	        e.printStackTrace();

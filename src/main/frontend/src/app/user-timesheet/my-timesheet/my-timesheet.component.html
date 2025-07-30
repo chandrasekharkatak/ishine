@@ -74,7 +74,7 @@
                                   [valueMember]="'projectId'"
                                   [source]="activeProjectList"
                                   [useInfiniteScroll]="true"
-                                  (selectionChange)="openSelfModal1(self_clientId,timesheetObj.projectId)"
+                                  (selectionChange)="onProjectSelect(timesheetObj.projectId)"
                                   [multiple]="false"
                                   [(ngModel)]="timesheetObj.projectId"
                                   >
@@ -107,15 +107,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && !timesheetObj.hasClientSideId && !clientSideIdNotMandatory">
+                <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && !clientSideIdNotMandatory">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label">Client Side Id</label>
+                            <label class="info-label">Client Side Id <span *ngIf="!clientSideIdNotMandatory" class="clickable-icon" title="Update Client Side Id" (click)="openSelfModal3(update_clientId)"><i class="fa-solid fa-user-pen"></i></span></label>
                             <input class="form-control" autocomplete="none" disabled [(ngModel)]="timesheetObj.clientSideId">
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 mb-0" *ngIf="timesheetObj.hasClientSideId || clientSideIdNotMandatory">
+                <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && (timesheetObj.hasClientSideId || clientSideIdNotMandatory)">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label">Employment Id</label>
@@ -970,30 +970,9 @@
     </div>
 </ng-template>
 
-<ng-template #self_clientId>
-   <div class="modal-body text-center">
-        <h6>Do you have a Client Side ID?</h6>
-        <button type="button" class="btn btn-yes-alert" (click)="hideSelfModal1();openSelfModal2(self_clientId_update);clientSideIdNotMandatory = false">YES</button>&nbsp;
-        <button type="button" class="btn btn-no-alert" (click)="hideSelfModal1();fetchEmploymentIdByEmpId();clientSideIdNotMandatory = !clientSideIdNotMandatory">NO</button>&nbsp;
-    </div>
-</ng-template>
-
-<ng-template #self_clientId_update>
-    <div class="modal-body text-center">
-        <h6>Have you updated your Client Side ID?</h6>
-        <button type="button" class="btn-yes-alert" (click)="hideSelfModal2();checkClientSideIdPresentOrNot(timesheetObj)">YES</button>&nbsp;
-        <button type="button" class="btn-no-alert" (click)="hideSelfModal2();openSelfModal3(update_clientId)">NO</button>&nbsp;
-    </div>
-</ng-template>
-
 <ng-template #update_clientId>
     <div class="modal-body text-center">
-        <h5>Please update your Client Side ID</h5>
-        <div class="custom-control custom-switch">
-            <input type="checkbox" class="custom-control-input" id="hierarchy-switch-1" [checked]="updateExistingClientSideId"
-                (change)="onUpdateToggle($event)">
-            <label class="custom-control-label" for="hierarchy-switch-1">Update existing Client Side ID</label>
-        </div>
+        <h5>Update Client Side ID Form</h5>
     </div>
     <div class="modal-body">
         <div class="row">
@@ -1012,9 +991,7 @@
                             (selectionChange)="onProjectChange(empClientSideObj.projectId)"
                         >
                         <mat-option
-                            [value]="project.projectId" *ngFor="let project of filterActiveProject.filteredSource"
-                            [disabled]="(!updateExistingClientSideId && project.clientSideId) || (updateExistingClientSideId && !project.clientSideId)"
-                            [title]="getProjectTooltip(project)">
+                            [value]="project.projectId" *ngFor="let project of filterActiveProject.filteredSource">
                             {{ project.projectName }}
                         </mat-option>
                         </mat-select>
@@ -1032,8 +1009,7 @@
         </div>
     </div>
     <div class="modal-body text-center">
-        <button *ngIf = "!updateExistingClientSideId" type="button" class="btn btn-yes-alert" (click)="hideSelfModal3();createClientSideIdMapping(alert_message)">Set</button>&nbsp;
-        <button *ngIf = "updateExistingClientSideId" type="button" class="btn btn-yes-alert" (click)="hideSelfModal3();updateClientSideIdMapping(alert_message)">Update</button>&nbsp;
+        <button type="button" class="btn btn-yes-alert" (click)="hideSelfModal3();updateClientSideIdMapping(alert_message)">Update</button>&nbsp;
         <button type="button" class="btn btn-no-alert" (click)="hideSelfModal3()">Cancel</button>&nbsp;
     </div>
 </ng-template>
@@ -1071,3 +1047,40 @@
         <button type="button" class="btn-no-alert" (click)="hideclientSideIdNotMandatoryFound()">Cancel</button>&nbsp;
     </div>
 </ng-template> 
+
+<ng-template #clientSideIdForm>
+    <div class="modal-body text-center">
+        <h5>Please provide Client Side ID to continue.</h5>
+    </div>
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-md-6 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Project</label>
+                        <input class="form-control" autocomplete="none" disabled [value]="getProjectName(empClientSideObj.projectId)">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-0">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label">Client Side Id</label>
+                        <input class="form-control" autocomplete="none" [(ngModel)]="empClientSideObj.clientSideId">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-body text-center">
+        <button type="button" class="btn btn-yes-alert" (click)="hideClientSideIdForm();updateClientSideIdMapping(alert_message)">Set</button>&nbsp;
+        <button type="button" class="btn btn-no-alert" (click)="onCancelClientSideId(clientSideIdNotMandatoryFound)">Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #noClientSideIdProvided>
+    <div class="modal-body text-center">
+        <h6>Timesheet cannot be filled as no client side id was provided.</h6>
+        <button type="button" class="btn-no-alert" (click)="hideNoClientSideIdProvided()">Ok</button>&nbsp;
+    </div>
+</ng-template>

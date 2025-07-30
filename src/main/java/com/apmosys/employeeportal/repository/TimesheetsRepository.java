@@ -371,14 +371,15 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 				+ "and client_side_id IS NOT NULL AND client_side_id != ''", nativeQuery = true)
 		public List<Object[]> totalvmsNotFilled(String clientApprovalStatus);
 
-		@Query(value = "select count(distinct emp_id) from employee where emp_id not in\n"
-				+ "(\n"
-				+ "SELECT DISTINCT emp_id AS employee_count_with_client_id\n"
-				+ "FROM employee_timesheets\n"
-				+ "WHERE MONTH(created_on) = MONTH(CURRENT_DATE())\n"
-				+ "  AND YEAR(created_on) = YEAR(CURRENT_DATE())\n"
-				+ "  and day_type like \"%Working%\"\n"
-				+ "  ) and employmentstatus != 'InActive'", nativeQuery = true)
+		@Query(value = "SELECT\n"
+				+ "    COUNT(DISTINCT e.emp_id) AS total_active_employees,\n"
+				+ "    COUNT(DISTINCT CASE WHEN et.emp_id IS NULL THEN e.emp_id END) AS employees_who_did_not_fill\n"
+				+ "FROM employee e\n"
+				+ "LEFT JOIN employee_timesheets et ON e.emp_id = et.emp_id\n"
+				+ "                          AND MONTH(et.created_on) = MONTH(CURRENT_DATE())\n"
+				+ "                          AND YEAR(et.created_on) = YEAR(CURRENT_DATE())\n"
+				+ "                          AND et.day_type LIKE '%Working%'\n"
+				+ "WHERE e.employmentstatus != 'InActive' and e.emp_Id NOT BETWEEN 1 and 6;", nativeQuery = true)
 		public List<Object[]> totalIshineNotFilledCount();
 
 	

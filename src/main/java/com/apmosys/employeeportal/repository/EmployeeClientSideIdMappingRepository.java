@@ -11,11 +11,11 @@ import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 public interface EmployeeClientSideIdMappingRepository extends JpaRepository <EmployeeClientSideIdMapping, Long> {
 
 	@Query("SELECT e.clientSideId FROM EmployeeClientSideIdMapping e WHERE e.projectId = :projectId AND e.active = true")
-	public String findClientSideIdByProjectId(@Param("projectId") Long projectId);
+	public Optional<String> findClientSideIdByProjectId(@Param("projectId") Long projectId);
 	
-	public Optional<EmployeeClientSideIdMapping> findByProjectIdAndActive(Long projectId, Boolean active);
+	public Optional<EmployeeClientSideIdMapping> findByProjectIdAndActiveAndEmpId(Long projectId, Boolean active, Long empId);
 	
 	@Query("SELECT e.clientSideId FROM EmployeeClientSideIdMapping e WHERE e.projectId = :projectId AND e.active = true AND e.empId = :empId")
-	public String getClientSideIdByProjectIdAndEmpId(Long projectId, Long empId);
+	public Optional<String> getClientSideIdByProjectIdAndEmpId(Long projectId, Long empId);
 	
 }
