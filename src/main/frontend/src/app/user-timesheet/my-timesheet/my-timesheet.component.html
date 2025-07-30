@@ -791,9 +791,34 @@
                   </div>
                 </div>
               </div>
-            </div>
 
+              <div class="col-md-4 mb-3">
+                <div class="form-group">
+                  <label class="info-label"><span class="text-danger">*</span>Bulk Approval Proof</label>
+                  <div class="d-flex align-items-center">
+                        <input type="file" class="form-control form-control-sm"
+                        accept=".pdf,.jpg,.jpeg,.png" (change)="onFinalFileSelected($event)" style="max-width: 200px;">
+                        <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
+                            [disabled]="!previewUrl" (click)="openPreviewModal()">
+                            <i class="fa fa-eye fa-lg text-primary"></i>
+                        </button>
+                    </div>
+                    <div class="text" *ngIf="fileName">
+                       {{fileName}}
+                    </div>
+                  <div class="text-danger" *ngIf="fileError">
+                    {{fileError}} 
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm mx-1">Upload</button>
+                </div>
         </div>
+        </div>
+
     </div>
 </div>
 

@@ -217,6 +217,12 @@ AllWeekOfList:any[]=[];
     this.isUpdation = false;
     this.isTimesheetBulkForm = false;
 
+    this.rawObjectUrl = null;
+    this.previewUrl = null;
+    this.fileType = null;
+    this.selectedFile = null;
+    this.fileName = null;
+
     this.reset();
     this.getEmployeeBasicInfo();
     this.getAllProjectsByEmpId(this.currentUser);
@@ -2096,6 +2102,40 @@ setTotalWorkingClientHours() {
 
     if (file.size > maxSize) {
       this.fileError = 'File size must be 1MB or less.';
+      return;
+    }
+
+    if (this.rawObjectUrl) {
+      URL.revokeObjectURL(this.rawObjectUrl);
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    this.rawObjectUrl = objectUrl;
+    this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    this.fileType = file.type === 'application/pdf' ? 'pdf' : 'image';
+    this.selectedFile = file;
+    this.fileName = file.name;
+    console.log(this.selectedFile,"::this.selectedFile",this.fileName,"::this.fileName")
+  }
+
+  onFinalFileSelected(event: any): void {
+    const file: File = event.target.files[0];
+    this.fileError = '';
+    this.previewUrl = null;
+    this.fileType = null;
+
+    if (!file) return;
+
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    const maxSize = 3 * 1024 * 1024; 
+
+    if (!allowedTypes.includes(file.type)) {
+      this.fileError = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
+      return;
+    }
+
+    if (file.size > maxSize) {
+      this.fileError = 'File size must be 3MB or less.';
       return;
     }
 
