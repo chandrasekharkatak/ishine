@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Timesheet;
 
 @Repository
@@ -347,5 +348,11 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 		public List<Object[]> findByEmpIdAndDateBetween(@Param("empId") Long empId,
 	                                         @Param("fromDate") String fromDate,
 	                                         @Param("toDate") String toDate);
+
+//		@Query(value ="")
+//		public List<TimesheetDTO> getTotalVmsFilledCount(String clientApprovalStatus);
+//
+//		@Query(value ="")
+//		public List<TimesheetDTO> totalIshineFilledCount(String status);
 	
 }

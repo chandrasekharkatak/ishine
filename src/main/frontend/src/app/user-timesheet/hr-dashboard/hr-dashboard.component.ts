@@ -51,6 +51,7 @@ export class HrDashboardComponent implements AfterViewInit {
     this.setLastUpdatedTime();
     this.getEmployeeByNameAndEmpld();
     this.TotalEmployeeCount();
+    this.vmsCompletion();
 
     this.employeeCtrl.valueChanges
     .pipe(
@@ -320,6 +321,40 @@ TotalEmployeeCount() {
   });
 }
 
+vmsCompletion() {
+  this.timesheetObj.clientApprovalStatus = "pending"
+  this.timesheetService.totalVmsFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.totalEmployees = response.serviceResponse;
+    } else {
+      this.openAlertMod(this.alertTemplate, response.serviceResponse);
+    }
+  });
+}
+
+
+ishineCompletion() {
+  this.timesheetService.totalIshineFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.totalEmployees = response.serviceResponse;
+    } else {
+      this.openAlertMod(this.alertTemplate, response.serviceResponse);
+    }
+  });
+}
+
+finalDocumentApproval() {
+  this.timesheetService.finalDocumentApproval(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === "Success") {
+      console.log(response.serviceResponse);
+      this.totalEmployees = response.serviceResponse;
+    } else {
+      this.openAlertMod(this.alertTemplate, response.serviceResponse);
+    }
+  });
+}
 
 
 }
