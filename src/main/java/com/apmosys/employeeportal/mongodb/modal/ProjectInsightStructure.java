@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.mongodb.modal;
 
 import javax.persistence.Id;
 
+import org.bson.types.ObjectId;
+
 import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 import com.apmosys.employeeportal.mongodb.dto.FormDataDTO;
@@ -14,7 +16,7 @@ import lombok.Data;
 public class ProjectInsightStructure {
 
 	@Id
-	private String id;
+	private ObjectId id;
 	private FormStructureDTO structure;
 	private FormDataDTO data;
 	private String createdBy;
@@ -23,7 +25,7 @@ public class ProjectInsightStructure {
 	private String updatedBy;
 	private String isDraft;
 	
-	@Version
-	private Long version;
+	// @Version
+	// private Long version;
 
 }

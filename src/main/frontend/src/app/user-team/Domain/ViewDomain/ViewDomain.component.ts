@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsightDomainService.service';
+import { Domain, Service, SubDomain, SubService } from '../Type';
 
 @Component({
   selector: 'app-ViewDomain',
@@ -9,7 +10,7 @@ import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsi
 })
 export class ViewDomainComponent implements OnInit {
 
-  @Input() domain: any = {}
+  @Input() domain: Domain = null;
   @Input() isEditing: boolean = false;
   @Output() onClose = new EventEmitter<void>()
 
@@ -29,23 +30,6 @@ export class ViewDomainComponent implements OnInit {
   modalRef?: BsModalRef;
 
   message: string = null;
-
-  saveDomain() {
-    console.log("Saved Domain: ", this.toBeEdited);
-
-    this.projectInsightDomainService.editDomainData(this.toBeEdited).subscribe({
-      next: (res: any) => {
-        console.log("Edited Domain: ", res);
-        // this.getDomainData(this.editDomain.domain)
-        this.message = "Domain edited successfully";
-        this.openModal(this.deleteDomainConfirmation);
-        this.onClose.emit();
-      },
-      error: (error: any) => {
-        console.error("Error: ", error);
-      }
-    })
-  }
 
   changeInput(event: Event, id: number, type: string) {
     const value = (event.target as HTMLInputElement).value;
@@ -68,7 +52,7 @@ export class ViewDomainComponent implements OnInit {
   }
 
 
-  deleteDomainData(id: number, type: string, domain: any, isActive: boolean) {
+  deleteDomainData(id: number, type: string, domain: Domain | Service| SubDomain | SubService, isActive: boolean) {
     this.projectInsightDomainService.deleteDomainData(id, type).subscribe({
       next: (res: any) => {
         console.log("Deleted Domain: ", res);
@@ -80,12 +64,12 @@ export class ViewDomainComponent implements OnInit {
     })
   }
 
-  onToggle(domain: any, isActive: boolean) {
+  onToggle(domain: Domain | Service| SubDomain | SubService, isActive: boolean) {
     domain.isActive = !isActive
   }
 
-  getDomainData(domain: string) {
-    this.projectInsightDomainService.getDomain(domain).subscribe({
+  getDomainData(name: string) {
+    this.projectInsightDomainService.getDomain(name).subscribe({
       next: (res: any) => {
         console.log("Domain: ", res);
         this.editDomain = res
@@ -103,5 +87,36 @@ export class ViewDomainComponent implements OnInit {
   toggle(domain: any) {
     domain.isOpen = !domain.isOpen
   }
+
+  // addChildrenSubDomainList(i: number) {
+  //     const subDomain: SubDomain = {
+  //       isOpen: true,
+  //       subdomain: '',
+  //       subDomainChildrenList: [],
+  //       serviceList: []
+  //     }
+  //     this.domain.subDomainList[i].subDomainChildrenList.push(subDomain)
+  // }
+
+  // addChildrenServiceList(i: number, j: number) {
+  //   const service: Service = {
+  //     isOpen: true,
+  //     service: '',
+  //     subServiceList: []
+  //   }
+  //   this.domain.subDomainList[i].subDomainChildrenList[j].serviceList.push(service)
+  // }
+
+  // addSubServiceList(i: number, j: number,parent:string, k?: number) {
+  //   const subService: SubService = {
+  //     isOpen: true,
+  //     subService: '',
+  //     subServiceChildren: []
+  //   }
+  //   if(parent === 'domain' ){
+  //     this.domain.service
+  //   }
+  //   this.domain.subDomainList[i].subDomainChildrenList[j].serviceList[i].subServiceList.push(subService);
+  // }
 
 }

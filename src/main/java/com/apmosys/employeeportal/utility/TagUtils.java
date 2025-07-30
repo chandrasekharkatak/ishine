@@ -1,6 +1,9 @@
 package com.apmosys.employeeportal.utility;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,6 +20,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.config.MeilisearchConfig;
 import com.apmosys.employeeportal.dto.TagDTO;
 import com.apmosys.employeeportal.model.TagMaster;
 import com.apmosys.employeeportal.repository.TagMasterRepository;
@@ -32,6 +36,9 @@ public class TagUtils {
 	
 	@Autowired
 	TagMasterRepository tagMasterRepository;
+
+	@Autowired
+	private SearchUtils searchUtils;
 	
 	//save tags project-milestone-module-submodule wise
 	public ServiceResponse saveTags(TagDTO tagDTO) {
@@ -59,22 +66,33 @@ public class TagUtils {
 
 	        // Save new tags if any remain
 	        if (!extractedTags.isEmpty()) {
-	            List<TagMaster> newTags = extractedTags.stream()
-	            	.filter(tag -> tag != null)
-	                .map(tag -> {
-	                	TagMaster tm = new TagMaster();
- 	                    
- 	                    tm.setEntityId(tagDTO.getEntityId());
-	                	tm.setEntityType(tagDTO.getEntityType());
-	                	tm.setProjectId(tagDTO.getProjectId());
-	                	tm.setTag(tag);
-	                	tm.setType(tagDTO.getType());
+				List<Map<String, Object>> meiliDataList = new ArrayList<>();
+				List<TagMaster> newTags = extractedTags.stream()
+				.filter(tag -> tag != null)
+				.map(tag -> {
+					TagMaster tm = new TagMaster(); 	                    
+					tm.setEntityId(tagDTO.getEntityId());
+					tm.setEntityType(tagDTO.getEntityType());
+					tm.setProjectId(tagDTO.getProjectId());
+					tm.setTag(tag);
+					tm.setType(tagDTO.getType());
+					
+						Map<String, Object> meiliData = new HashMap<>();
+						meiliData.put("tag", tag);
+						meiliData.put("projectId", tagDTO.getProjectId());
+
+						meiliDataList.add(meiliData);
  	                    
  	                    return tm;
 	                })
 	                .collect(Collectors.toList());
 
 	            List<TagMaster> savedTags = tagMasterRepository.saveAll(newTags);
+
+				if(!meiliDataList.isEmpty()){
+					searchUtils.addData("tags", meiliDataList);
+				}
+
 	            if (!savedTags.isEmpty()) {
 	            	response.setServiceMessage("Success");
 		        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

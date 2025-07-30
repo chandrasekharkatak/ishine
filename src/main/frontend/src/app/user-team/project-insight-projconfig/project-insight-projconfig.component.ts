@@ -416,6 +416,32 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     }
   }
 
+  filterModal:boolean = false;
+
+  openFilterModal(){
+    this.filterModal = true;
+  }
+
+  closeFilterModal(){
+    this.filterModal = false;
+  }
+
+  existingFilter = {}
+  
+  applyFilterModal(filter:any){
+    this.projectInsightProjconfigService.filterProjectInsight(filter).subscribe({
+      next: (res: any) => {
+        this.existingFilter = filter
+        
+        this.allProjectInsightProjectList = [...res.content];
+        this.closeFilterModal();
+      }, error: (error: any) => {
+        throw error;
+      }
+    })
+    
+  }
+
   addData(item: any, child: string, parent: string, value?: string) {
 
     if (!value || value.trim() === '') {
@@ -709,10 +735,12 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     });
   }
 
+  limit = 10;
+
   onGlobalSearch(){
-    this.projectInsightService.searchProjectInsight(this.searchKeyword).pipe(first()).subscribe({
+    this.projectInsightService.searchProjectInsight(this.searchKeyword,this.page - 1, this.limit).pipe(first()).subscribe({
       next: (response: any) => {
-        this.allProjectInsightProjectList = response;
+        this.allProjectInsightProjectList = response.content;
       },
       error: (error: any) => {
         this.alertMessage = error;

@@ -5,7 +5,7 @@
       <button type="button" class="btn btn-danger" (click)="closeModal()" aria-label="Close">{{isEditing ?
         "Cancel" : "Close"
         }}</button>
-      <button *ngIf="isEditing && toBeEdited.length>0" type="button" class="btn btn-primary" (click)="saveDomain()">Save</button>
+      <!-- <button *ngIf="isEditing && toBeEdited.length>0" type="button" class="btn btn-primary" (click)="saveDomain()">Save</button> -->
     </div>
   </div>
 </div>
@@ -15,10 +15,10 @@
     <div>
       <div style="display: flex; gap: 10px; width: 100%;">
         <div *ngIf="!isEditing" class="tree-label">
-          {{ editDomain.domain }}
+          {{ editDomain.name }}
         </div>
-        <input type="text" *ngIf="isEditing" (input)="changeInput($event, editDomain.domainId, 'domain')"
-          [(ngModel)]="editDomain.domain">
+        <input type="text" *ngIf="isEditing" (input)="changeInput($event, editDomain.id, 'domain')"
+          [(ngModel)]="editDomain.name">
       </div>
       <ul *ngIf="editDomain.subDomains?.length">
         <ng-container
@@ -32,12 +32,12 @@
                   {{ service.isOpen ? '▼' : '▶' }}
                 </span>
                 <div style="display: flex; justify-content: space-between; width: 100%;">
-                  <span *ngIf="!isEditing">{{ service.service }}</span>
-                  <input type="text" *ngIf="isEditing" (input)="changeInput($event, service.serviceId, 'service')"
-                    [(ngModel)]="service.service">
+                  <span *ngIf="!isEditing">{{ service.name }}</span>
+                  <input type="text" *ngIf="isEditing" (input)="changeInput($event, service.id, 'service')"
+                    [(ngModel)]="service.name">
                   <label *ngIf="isEditing" class="switch">
                     <input type="checkbox" [checked]="service.isActive"
-                      (change)="deleteDomainData( service.serviceId, 'service', service, service.isActive)">
+                      (change)="deleteDomainData( service.id, 'service', service, service.isActive)">
                     <span class="slider round"></span>
                   </label>
                 </div>
@@ -62,11 +62,11 @@
             {{ subDomain.isOpen ? '▼' : '▶' }}
           </span>
           <div style="display: flex; justify-content: space-between; width: 100%;">
-            <span *ngIf="!isEditing">{{ subDomain.subDomain }}</span>
-            <input type="text" (input)="changeInput($event, subDomain.subDomainId, 'subDomain')" *ngIf="isEditing"
-              [(ngModel)]="subDomain.subDomain">
+            <span *ngIf="!isEditing">{{ subDomain.name }}</span>
+            <input type="text" (input)="changeInput($event, subDomain.id, 'subDomain')" *ngIf="isEditing"
+              [(ngModel)]="subDomain.name">
             <label *ngIf="isEditing" class="switch">
-              <input type="checkbox" [checked]="subDomain.isActive" (change)="deleteDomainData( subDomain.subDomainId, 'subDomain', subDomain, subDomain.isActive)">
+              <input type="checkbox" [checked]="subDomain.isActive" (change)="deleteDomainData( subDomain.id, 'subDomain', subDomain, subDomain.isActive)">
               <span class="slider round"></span>
             </label>
           </div>
@@ -85,12 +85,12 @@
                   {{ service.isOpen ? '▼' : '▶' }}
                 </span>
                 <div style="display: flex; justify-content: space-between; width: 100%;">
-                  <span *ngIf="!isEditing">{{ service.service }}</span>
-                  <input type="text" *ngIf="isEditing" (input)="changeInput($event, service.serviceId, 'service')"
-                    [(ngModel)]="service.service">
+                  <span *ngIf="!isEditing">{{ service.name }}</span>
+                  <input type="text" *ngIf="isEditing" (input)="changeInput($event, service.id, 'service')"
+                    [(ngModel)]="service.name">
                   <label *ngIf="isEditing" class="switch">
                     <input type="checkbox" [checked]="service.isActive"
-                      (change)="deleteDomainData( service.serviceId, 'service', service, service.isActive)">
+                      (change)="deleteDomainData( service.id, 'service', service, service.isActive)">
                     <span class="slider round"></span>
                   </label>
                 </div>
@@ -115,9 +115,9 @@
             {{ subService.isOpen ? '▼' : '▶' }}
           </span>
           <div style="display: flex; justify-content: space-between;width: 100%;">
-            <span *ngIf="!isEditing">{{ subService.subService }}</span>
+            <span *ngIf="!isEditing">{{ subService.name }}</span>
             <input type="text" *ngIf="isEditing" (input)="changeInput($event, subService.id, 'subService')"
-              [(ngModel)]="subService.subService">
+              [(ngModel)]="subService.name">
             <label *ngIf="isEditing" class="switch">
               <input type="checkbox" [checked]="subService.isActive"
                 (change)="deleteDomainData( subService.id, 'subService', subService, subService.isActive)">

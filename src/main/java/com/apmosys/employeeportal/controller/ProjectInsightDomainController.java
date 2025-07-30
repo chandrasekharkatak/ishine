@@ -14,11 +14,15 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 
+import com.apmosys.employeeportal.dto.DomainDataDTO;
+import com.apmosys.employeeportal.dto.FilterProjectInsightDTO;
+import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainCreatedBy;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightEditDomainDTO;
 import com.apmosys.employeeportal.enums.ProjectInsightDomainApprovedStatus;
 import com.apmosys.employeeportal.model.ProjectInsightDomain;
+import com.apmosys.employeeportal.model.ProjectInsightDomainData;
 import com.apmosys.employeeportal.model.ProjectInsightSubDomain;
 import com.apmosys.employeeportal.service.ProjectInsightDomainService;
 
@@ -30,11 +34,11 @@ public class ProjectInsightDomainController {
     private ProjectInsightDomainService projectInsightDomainService;
 
     @PostMapping("/create-project-insight-domain")
-    public ResponseEntity<?> createProjectInsightDomain(@RequestBody ProjectInsightDomainDTO projectInsightDomainDTO,
+    public ResponseEntity<?> createProjectInsightDomain(@RequestBody DomainDataDTO projectInsightDomainDTO,
             @RequestParam Long createdBy) {
         try {
-            Map<String, Object> result = projectInsightDomainService.createProjectInsightDomain(projectInsightDomainDTO, createdBy);
-            return ResponseEntity.ok(result);
+            String result = projectInsightDomainService.saveDomainTree(projectInsightDomainDTO,false, createdBy);
+            return ResponseEntity.ok(Map.of("message",result));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -42,9 +46,9 @@ public class ProjectInsightDomainController {
     }
 
     @PostMapping("/get-all-project-insight-domains")
-    public ResponseEntity<List<ProjectInsightDomain>> getAllProjectInsightDomains(@RequestBody List<Long> ids) {
+    public ResponseEntity<List<ProjectInsightDomainData>> getAllProjectInsightDomains(@RequestBody List<Long> ids) {
         try {
-            List<ProjectInsightDomain> list = projectInsightDomainService.getAllProjectInsightDomains(ids);
+            List<ProjectInsightDomainData> list = projectInsightDomainService.getAllProjectInsightDomains(ids);
             return ResponseEntity.ok(list);
         } catch (Exception e) {
             e.printStackTrace();
@@ -66,7 +70,7 @@ public class ProjectInsightDomainController {
     @GetMapping("/get-project-domain")
     public ResponseEntity<?> getProjectDomain(@RequestParam Integer page, @RequestParam Integer limit,
             @RequestParam(required = false) String createdBy, @RequestParam(required = false) String domain,
-            @RequestParam(required = false) String createdOn, @RequestParam(required = false) Boolean isActive, @RequestParam(required = false) ProjectInsightDomainApprovedStatus isApproved) {
+            @RequestParam(required = false) String createdOn, @RequestParam(required = false) Boolean isActive, @RequestParam(required = false) String isApproved) {
         try {
             LocalDateTime parsedDate = null;
             if (createdOn != null) {
@@ -97,7 +101,7 @@ public class ProjectInsightDomainController {
     @GetMapping("/get-domain")
     public ResponseEntity<?> getDomain(@RequestParam String domain) {
         try {
-            ProjectInsightDomain result = projectInsightDomainService.findDomain(domain);
+            ProjectInsightDomainData result = projectInsightDomainService.findDomain(domain);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             e.printStackTrace();
@@ -107,9 +111,9 @@ public class ProjectInsightDomainController {
 
     @PutMapping("/edit-domains")
     public ResponseEntity<?> editDomains(
-            @RequestBody List<ProjectInsightEditDomainDTO> listProjectInsightEditDomainDTO) {
+            @RequestBody DomainDataDTO dto, @RequestParam Long createdBy) {
         try {
-            projectInsightDomainService.editDomains(listProjectInsightEditDomainDTO);
+            projectInsightDomainService.saveDomainTree(dto, true, createdBy);
             return ResponseEntity.ok(Map.of("message", "Updated Successfully"));
         } catch (Exception e) {
             e.printStackTrace();
@@ -118,10 +122,9 @@ public class ProjectInsightDomainController {
     }
 
     @DeleteMapping("/delete-domain-data")
-    public ResponseEntity<?> deleteDomains(@RequestParam Long id, @RequestParam String type,
-            @RequestParam(required = false) String name) {
+    public ResponseEntity<?> deleteDomains(@RequestParam Long id, @RequestParam String type) {
         try {
-            projectInsightDomainService.softDelete(id, type, name);
+            projectInsightDomainService.softDelete(id);
             return ResponseEntity.ok(Map.of("message", type + " Deleted Successfully"));
         } catch (Exception e) {
             e.printStackTrace();
@@ -129,14 +132,48 @@ public class ProjectInsightDomainController {
         }
     }
 
-    @PutMapping("/approved-domain")
-    public ResponseEntity<?> approveDomain(@RequestParam Long id, @RequestParam ProjectInsightDomainApprovedStatus isApproved, @RequestParam Long approvedBy) {
+    @PutMapping("/approve-domain")
+    public ResponseEntity<?> approveDomain(@RequestParam Long id, @RequestParam String isApproved, @RequestParam Long approvedBy) {
         try {
-            projectInsightDomainService.approveDomain(id, isApproved, approvedBy);
+            projectInsightDomainService.approveDomain(id,isApproved, approvedBy);
             return ResponseEntity.ok(Map.of("message", "Approved Successfully"));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/filter-project-insight")
+    public ResponseEntity<?> filterProjectInsight(@RequestParam Integer page, @RequestParam Integer limit, @RequestBody Map<String, Object> filterProjectInsightDTO) {
+        try {
+            Page<ProjectInsighProjectMappingDTO> list = projectInsightDomainService
+                    .filterProjectInsight(filterProjectInsightDTO,page, limit);
+            return ResponseEntity.ok(list);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @GetMapping("/load-all-filters")
+    public ResponseEntity<?> loadAllFilters() {
+        try {
+            Map<String, Object> map = projectInsightDomainService.loadAllFilters();
+            return ResponseEntity.ok(map);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @GetMapping("/search-project-insight")
+    public ResponseEntity<?> search(@RequestParam String search, @RequestParam Integer page, @RequestParam Integer limit) {
+        try {
+            Page<ProjectInsighProjectMappingDTO> list = projectInsightDomainService.search(search, page, limit);
+            return ResponseEntity.ok(list);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
         }
     }
 

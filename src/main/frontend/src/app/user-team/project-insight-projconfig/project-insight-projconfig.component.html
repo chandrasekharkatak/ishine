@@ -30,7 +30,7 @@
           </button>
         </div>
         <div class="col-md-4">
-          <button class="btn btn-outline-primary btn-sm">
+          <button class="btn btn-outline-primary btn-sm" (click)="openFilterModal()" >
             <i class="fa fa-filter"></i>
           </button>
           <button class="btn btn-outline-primary btn-sm ml-1" (click)="openCreateProject()">
@@ -738,3 +738,7 @@
 
 
 <app-add-data-modal [isVisible]="isVisible" [parentType]="parentItem" (onSave)="saveModal($event)" (changeChildType)="changeChildType($event)" (onClose)="closeModal()" [title]="title" ></app-add-data-modal>
+
+<div *ngIf="filterModal" >
+  <app-FilterProjectInsight [isVisible]="filterModal" (onClose)="closeFilterModal()" (onApplyFilter)="applyFilterModal($event)" [existingFilters]="existingFilter" ></app-FilterProjectInsight>
+</div>

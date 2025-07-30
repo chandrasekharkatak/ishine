@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
-import { SubService } from '../Type';
+import { Domain, SubService, Service, SubDomain } from '../Type';
+import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsightDomainService.service';
 
 @Component({
   selector: 'app-SubService',
@@ -8,11 +9,18 @@ import { SubService } from '../Type';
 })
 export class SubServiceComponent {
 
+  @Input() isViewing = false
   @Input() subServiceList: SubService[] = []
-  constructor() { }
+  @Input() isEditing = false
+
+  constructor(private readonly projectInsightDomainService: ProjectInsightDomainServiceService) { }
 
   addChildrenSubServiceList(ind: number) {
-    this.subServiceList[ind].subServiceChildren.push({isOpen: true, subService: '', subServiceChildren: []})
+    this.subServiceList[ind].subServices.push({isOpen: true,isActive: true, name: '', subServices: [], type: 'subService'})
+  }
+
+  newData(data:any){
+    return !data.id;
   }
 
   removeChildrenSubServiceList(ind: number) {
@@ -22,5 +30,17 @@ export class SubServiceComponent {
   toggleSubService(ind: number) {
     this.subServiceList[ind].isOpen = !this.subServiceList[ind].isOpen
   }
+
+  deleteDomainData(id: number, type: string, domain: Domain | Service| SubDomain | SubService, isActive: boolean) {
+      this.projectInsightDomainService.deleteDomainData(id, type).subscribe({
+        next: (res: any) => {
+          console.log("Deleted Domain: ", res);
+          domain.isActive = !isActive
+        },
+        error: (error: any) => {
+          console.error("Error: ", error);
+        }
+      })
+    }
 
 }

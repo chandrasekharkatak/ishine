@@ -57,6 +57,12 @@
 			<artifactId>ehcache</artifactId>
 			<version>3.10.1</version>
 		</dependency>
+
+		<dependency>
+  <groupId>com.meilisearch.sdk</groupId>
+  <artifactId>meilisearch-java</artifactId>
+  <version>0.15.0</version>
+</dependency>
 		<!-- Hibernate Caching API -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -169,6 +175,13 @@
         <artifactId>tokenizers</artifactId>
         <version>0.24.0</version>
     </dependency>
+
+	<!-- https://mvnrepository.com/artifact/com.meilisearch.sdk/meilisearch-java -->
+<dependency>
+    <groupId>com.meilisearch.sdk</groupId>
+    <artifactId>meilisearch-java</artifactId>
+    <version>0.15.0</version>
+</dependency>
 		
 		
 		

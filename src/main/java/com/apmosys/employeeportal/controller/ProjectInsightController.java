@@ -206,6 +206,7 @@ public class ProjectInsightController {
 	        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
 	    } catch (Exception e) {
 	        ServiceResponse response = new ServiceResponse();
+			e.printStackTrace();
 	        response.setServiceStatus("An unexpected error occurred while saving the project.");
 	        response.setServiceResponse(null);
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);

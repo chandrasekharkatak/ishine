@@ -16,10 +16,11 @@ export class DomainModalComponent implements OnInit {
   currUserId = this.user.currentUserValue.empId;
   loading = false;
 
-
+  @Input() viewing = false;
+  @Input() isEditing = false;
   @Input() isVisible = false;
   @Output() onClose = new EventEmitter<void>();
-  @Input() incomingDomain:any = null;
+  @Input() incomingDomain: any = null;
 
   onCloseModal() {
     this.onClose.emit();
@@ -28,13 +29,31 @@ export class DomainModalComponent implements OnInit {
   alertMessage = '';
 
   domain: Domain = {
-    domain: '',
-    subDomainList: [],
-    serviceList: []
+    name: '',
+    subDomains: [],
+    services: [],
+    isActive: true,
+    type: 'domain'
+  }
+
+  deleteDomainData(id: number, type: string, domain: Domain | Service | SubDomain | SubService, isActive: boolean) {
+    this.projectInsightDomainService.deleteDomainData(id, type).subscribe({
+      next: (res: any) => {
+        console.log("Deleted Domain: ", res);
+        domain.isActive = !isActive
+      },
+      error: (error: any) => {
+        console.error("Error: ", error);
+      }
+    })
+  }
+
+  newData(data: any) {
+    return !data.id;
   }
 
   ngOnInit() {
-    if(this.incomingDomain){
+    if (this.incomingDomain) {
       this.domain = this.incomingDomain
     }
   }
@@ -44,34 +63,52 @@ export class DomainModalComponent implements OnInit {
 
   createDomain() {
     this.loading = true;
-    this.projectInsightDomainService.createDomain(this.domain, this.currUserId).subscribe({
-      next: (res: any) => {
-        this.alertMessage = "Domain created successfully";
-        this.openDomainCreatedModal();
-        this.onCloseModal();
-      }, error: (error: any) => {
-        console.error("Error: ", error);
-      }, complete: () => {
-        this.loading = false;
-      }
-    })
+    console.log("Domain: ", this.domain);
+    if (this.isEditing) {
+      this.projectInsightDomainService.editDomainData(this.domain, this.currUserId).subscribe({
+        next: (res: any) => {
+          this.alertMessage = "Domain created successfully";
+          this.openDomainCreatedModal();
+          this.onCloseModal();
+        }, error: (error: any) => {
+          console.error("Error: ", error);
+        }, complete: () => {
+          this.loading = false;
+        }
+      })
+    }
+    else {
+      this.projectInsightDomainService.createDomain(this.domain, this.currUserId).subscribe({
+        next: (res: any) => {
+          this.alertMessage = "Domain created successfully";
+          this.openDomainCreatedModal();
+          this.onCloseModal();
+        }, error: (error: any) => {
+          console.error("Error: ", error);
+        }, complete: () => {
+          this.loading = false;
+        }
+      })
+    }
   }
 
   toggleService(ind: number) {
-    this.domain.serviceList[ind].isOpen = !this.domain.serviceList[ind].isOpen;
+    this.domain.services[ind].isOpen = !this.domain.services[ind].isOpen;
   }
 
-  removeServices(ind:number){
-    this.domain.serviceList.splice(ind, 1);
+  removeServices(ind: number) {
+    this.domain.services.splice(ind, 1);
   }
 
-  addSubServices(ind:number){
-    const subService:SubService = {
+  addSubServices(ind: number) {
+    const subService: SubService = {
       isOpen: true,
-      subService: '',
-      subServiceChildren: []
+      name: '',
+      subServices: [],
+      isActive: true,
+      type: 'subService'
     }
-    this.domain.serviceList[ind].subServiceList.push(subService);
+    this.domain.services[ind].subServices.push(subService);
   }
 
   openDomainCreatedModal() {
@@ -89,42 +126,48 @@ export class DomainModalComponent implements OnInit {
   }
 
   addServiceList() {
-    const service:Service = {
+    const service: Service = {
       isOpen: true,
-      service: '',
-      subServiceList: []
+      name: '',
+      isActive: true,
+      subServices: [],
+      type: 'service'
     }
-    this.domain.serviceList.push(service);
+    this.domain.services.push(service);
   }
 
   addSubDomainList() {
     const subDomain: SubDomain = {
-      subdomain: '',
-      subDomainChildrenList: [],
-      serviceList: [],
+      name: '',
+      subDomains: [],
+      isActive: true,
+      services: [],
+      type: 'subDomain',
       isOpen: true
     }
-    this.domain.subDomainList.push(subDomain);
+    this.domain.subDomains.push(subDomain);
 
   }
 
   changeSubDomain(event: Event, index: number) {
-    this.domain.subDomainList[index].subdomain = (event.target as HTMLInputElement).value;
+    this.domain.subDomains[index].name = (event.target as HTMLInputElement).value;
   }
 
   changeChildrenSubDomain(event: any, subDomainId: number, currChildrenSubDomainId: number) {
-    this.domain.subDomainList[subDomainId].subDomainChildrenList[currChildrenSubDomainId].subdomain = event.target.value;
+    this.domain.subDomains[subDomainId].subDomains[currChildrenSubDomainId].name = event.target.value;
 
   }
 
   addChildrenSubDomainList(i: number) {
     const subDomain: SubDomain = {
       isOpen: true,
-      subdomain: '',
-      subDomainChildrenList: [],
-      serviceList: []
+      name: '',
+      subDomains: [],
+      isActive: true,
+      services: [],
+      type: 'subDomain'
     }
-    this.domain.subDomainList[i].subDomainChildrenList.push(subDomain)
+    this.domain.subDomains[i].subDomains.push(subDomain)
   }
 
 

@@ -10,6 +10,6 @@ public class ProjectInsightEditDomainDTO {
     private Long parent_id;
     private String parent_id_name;
     private String name;
-    private String children_name;
+    private String type;
     
 }

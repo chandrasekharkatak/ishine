@@ -16,11 +16,11 @@ public class ProjectInsightDomainCreatedBy {
     private LocalDateTime createdOn;
     private Long domainId;
     private Boolean isActive;
-    private ProjectInsightDomainApprovedStatus isApproved;
+    private String isApproved;
     private String approvedBy;
 
     public ProjectInsightDomainCreatedBy(String domain,Long domainId, LocalDateTime createdOn, String createdBy, Boolean isActive,
-            ProjectInsightDomainApprovedStatus isApproved, String approvedBy) {
+            String isApproved, String approvedBy) {
         this.domain = domain;
         this.domainId = domainId;
         this.createdBy = createdBy;
