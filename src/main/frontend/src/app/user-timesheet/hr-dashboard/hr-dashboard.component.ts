@@ -1,13 +1,13 @@
-import { Component, AfterViewInit, ElementRef, ViewChild, TemplateRef } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import * as Highcharts from 'highcharts';
-import { Employee } from 'src/app/models/employee';
-import { first, map, startWith } from 'rxjs/operators';
-import { EmployeeService } from 'src/app/services/employee.service';
-import { TimesheetService } from 'src/app/services/timesheet.service';
-import { Timesheet } from 'src/app/models/timesheet';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first, map, startWith } from 'rxjs/operators';
+import { Employee } from 'src/app/models/employee';
+import { Timesheet } from 'src/app/models/timesheet';
+import { EmployeeService } from 'src/app/services/employee.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
+import { TimesheetService } from 'src/app/services/timesheet.service';
 
 
 
@@ -39,6 +39,10 @@ export class HrDashboardComponent implements AfterViewInit {
   paginationArray: number[] = [];
   lastUpdated: string = '';
   totalEmployees = 0;
+  VmsRejectioncount: any[] = [];
+  hodCount: number = 0;
+  hrCount: number = 0;
+  rmCount: number = 0;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -69,6 +73,7 @@ export class HrDashboardComponent implements AfterViewInit {
     this.renderIshineChart();
     this.renderDepartmentChart();
     this.renderDocRejectChart();
+    this.getVmsDocumentApprovalStatusWiseCount();
   }
 
   renderVmsChart(): void {
@@ -355,6 +360,47 @@ finalDocumentApproval() {
     }
   });
 }
+// VmsRejectioncount:any[]=[];
+// getVmsDocumentApprovalStatusWiseCount(){
+//    this.timesheetService.getVmsDocumentApprovalStatusWiseCount().pipe(first()).subscribe((response: any) => {
+//     if (response.serviceStatus === "Success") {
+//       console.log(response.serviceResponse);
+//       this.VmsRejectioncount = response.serviceResponse;
+//       console.log("test",this.VmsRejectioncount);
+//     } else {
+//       this.openAlertMod(this.alertTemplate, response.serviceResponse);
+//     }
+//   });
+// }
 
+
+getVmsDocumentApprovalStatusWiseCount() {
+  this.timesheetService.getVmsDocumentApprovalStatusWiseCount().pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === "Success") {
+      this.VmsRejectioncount = response.serviceResponse;
+
+      this.hodCount = 0;
+      this.hrCount = 0;
+      this.rmCount = 0;
+
+      for (const item of this.VmsRejectioncount) {
+        switch (item.reason) {
+          case 'Rejected By HOD':
+            this.hodCount = item.count;
+            break;
+          case 'Rejected By HR':
+            this.hrCount = item.count;
+            break;
+          case 'Rejected By RM':
+            this.rmCount = item.count;
+            break;
+        }
+      }
+
+    } else {
+      this.openAlertMod(this.alertTemplate, response.serviceResponse);
+    }
+  });
+}
 
 }

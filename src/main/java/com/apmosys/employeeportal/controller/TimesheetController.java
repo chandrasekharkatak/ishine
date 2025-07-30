@@ -269,4 +269,10 @@ public class TimesheetController {
 //	        return response;
 //	    }
 	 
+	 @RequestMapping(value="/getVmsDocumentApprovalStatusWiseCount",method=RequestMethod.GET)
+	 public ServiceResponse getVmsDocumentApprovalStatusWiseCount() {
+		 ServiceResponse reponse= timesheetService.getVmsDocumentApprovalStatusWiseCount();
+		 return reponse;
+	 }
+	 
 }

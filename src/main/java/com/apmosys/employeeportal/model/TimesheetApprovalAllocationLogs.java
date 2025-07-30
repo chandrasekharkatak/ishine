@@ -32,4 +32,6 @@ public class TimesheetApprovalAllocationLogs {
     private Integer rejectionId;
     private Long createdBy;
     private LocalDateTime createdOn;
+    private Integer rejectionLevel;
+    private Integer hierarchyOrder;
 }

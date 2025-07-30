@@ -33,4 +33,6 @@ public class TimesheetDocumentApproval {
     private LocalDateTime createdOn;
     private Long updatedBy;
     private LocalDateTime updatedOn;
+    private Integer rejectionLevel;
+    private Integer hierarchyOrder;
 }

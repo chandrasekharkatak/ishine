@@ -36,6 +36,7 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.Employee;
@@ -3004,6 +3005,8 @@ public class TimesheetService {
 			}
 			return response;
 			}
+
+
 	
 	
 	
@@ -3089,6 +3092,45 @@ public class TimesheetService {
 //	    return response;
 //	}
 
-	
+	public ServiceResponse getVmsDocumentApprovalStatusWiseCount() {
+		ServiceResponse response = new ServiceResponse();
+		
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getVmsDocumentApprovalStatusWiseCount");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("getVmsDocumentApprovalStatusWiseCount");
+		try {
+			List<TimesheetDocumentApprovalDTO> details = timesheetDocumentApprovalRepository.getRejectionCountsByLevel();
+			 if(details == null) {
+				 
+				    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("VMS Rejection Count Not Present");
+		            response.setServiceMessage("VMS Rejection Count Not Present");
+		            
+		            apiLogInfo.setApiResponse("VMS Rejection Count Not Present");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            logService.logMyInfo(httpRequest, apiLogInfo);
+		            return response;
+			 }else {
+				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(details);
+		            response.setServiceMessage("VMS Rejection Count Fetched");
+		            apiLogInfo.setApiResponse("VMS Rejection Count Fetched");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			 }
+			
+		}catch(Exception e) {
+			    e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something went wrong.");
+		        response.setServiceError(e.getMessage());
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setApiResponse(e.getMessage()); 
+		        apiLogInfo.setLogLevel("ERROR");
+		}
+		
+		return response;
+	}
 	
 }

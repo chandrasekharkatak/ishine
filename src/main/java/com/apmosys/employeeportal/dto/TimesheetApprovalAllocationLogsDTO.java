@@ -13,8 +13,8 @@ import lombok.ToString;
 @ToString
 public class TimesheetApprovalAllocationLogsDTO {
 	
-	    private UUID allocLogId;
-	    private UUID allocId;
+	    private Long allocLogId;
+	    private Long allocId;
 	    private Long timesheetId;
 	    private Long approverId;
 	    private String approvalStatus;
@@ -24,4 +24,6 @@ public class TimesheetApprovalAllocationLogsDTO {
 	    private Integer rejectionId;
 	    private Long createdBy;
 	    private LocalDateTime createdOn;
+	    private Integer rejectionLevel;
+	    private Integer hierarchyOrder;
 }

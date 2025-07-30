@@ -11,8 +11,8 @@ import lombok.ToString;
 @Setter
 @ToString
 public class TimesheetDocumentApprovalDTO {
-	 private UUID allocId;
-
+	
+	    private Long allocId;
 	    private Long timesheetId;
 	    private Long approverId;
 	    private String approvalStatus;
@@ -24,4 +24,13 @@ public class TimesheetDocumentApprovalDTO {
 	    private LocalDateTime createdOn;
 	    private Long updatedBy;
 	    private LocalDateTime updatedOn;
+	    private Integer rejectionLevel;
+	    private Integer hierarchyOrder;
+	    private String reason;
+	    private Long count;
+
+	    public TimesheetDocumentApprovalDTO(String reason, Long count) {
+	        this.reason = reason;
+	        this.count = count;
+	    }
 }
