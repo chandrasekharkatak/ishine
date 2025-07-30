@@ -149,7 +149,6 @@ export class TimesheetService {
   }
 
   getEmployeeMonthlyTimesheet(timesheetObj: Timesheet){
-    console.log("TimesheetOBJ ::::::::::",timesheetObj);
     return this.http.post(`${this.baseUrl}` + `api/getOneMonthTimesheetReport`,timesheetObj);
   }
 
@@ -183,6 +182,17 @@ export class TimesheetService {
 
   checkIfProjectRequiresClientId(projectId:any){
     return this.http.get(`${this.baseUrl}` + `api/checkIfProjectRequiresClientId?projectId=${projectId}`);
+  }
+  totalVmsFilledCount(timesheetObj: Timesheet){
+    return this.http.post(`${this.baseUrl}`+`api/totalVmsFilledCount`,timesheetObj);
+  }
+
+  totalIshineFilledCount(timesheetObj: Timesheet){
+    return this.http.post(`${this.baseUrl}`+`api/totalIshineFilledCount`,timesheetObj);
+  }
+
+  finalDocumentApproval(timesheetObj: Timesheet){
+    return this.http.post(`${this.baseUrl}`+`api/finalDocumentApproval`,timesheetObj);
   }
 
 }

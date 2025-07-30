@@ -198,7 +198,6 @@
                                 (dateTimeChange)="resetTotalWorkingOfficeHours(alertTemplate); timesheetObj.clientInTime = timesheetObj.officeInTime" (keydown)="disableMannualDateInput()" placeholder="Select In Time" autocomplete="off">
                                 <owl-date-time class="picker" [hour12Timer]="true" #officeInTimePicker></owl-date-time> 
 
-                                <!-- <p><span style="color:#193d8a; font-weight: bolder;">In Time:</span> {{ timesheetObj.officeInTime | date:'hh:mm a' }}</p> -->
                                 <p *ngIf="timesheetObj.officeInTime">
                                     <span style="color:#193d8a; font-weight: bolder;">In Time:</span> 
                                     {{ timesheetObj.officeInTime | date:'hh:mm a' }}
@@ -236,7 +235,61 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> 
+
+                <!-- <div *ngIf="timesheetObj.dayType !== 'Public Holiday' && timesheetObj.dayType !== 'Week Off' && timesheetObj.dayType !== 'Leave'" class="row gx-3 align-items-end  ">
+                   
+                    <div class="col-md-3">
+                      <label class="form-label"><span class="text-danger">*</span> In Time</label>
+                      <div class="position-relative">
+                        <input id="officeInTime" class="form-control" placeholder="Select In Time"
+                          [(ngModel)]="timesheetObj.officeInTime"
+                          [owlDateTimeTrigger]="officeInTimePicker"
+                          [owlDateTime]="officeInTimePicker"
+                          [owlDateTimeFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
+                          (dateTimeChange)="resetTotalWorkingOfficeHours(alertTemplate); timesheetObj.clientInTime = timesheetObj.officeInTime"
+                          (keydown)="disableMannualDateInput()" autocomplete="off">
+                        <owl-date-time #officeInTimePicker [hour12Timer]="true"></owl-date-time>
+                      </div>
+                      <small *ngIf="timesheetObj.officeInTime" class="text-muted d-block mt-1">
+                        <strong class="text-primary">In Time:</strong> {{ timesheetObj.officeInTime | date:'hh:mm a' }}
+                      </small>
+                    </div>
+                  
+                   
+                    <div class="col-md-3">
+                      <label class="form-label"><span class="text-danger">*</span> Out Time</label>
+                      <div class="position-relative">
+                        <input id="officeOutTime" class="form-control" placeholder="Select Out Time"
+                          [(ngModel)]="timesheetObj.officeOutTime"
+                          [owlDateTimeTrigger]="officeOutTimePicker"
+                          [owlDateTime]="officeOutTimePicker"
+                          [owlDateTimeFilter]="outTimeFilter"
+                          [max]="maxOutTimeDate"
+                          [disabled]="!timesheetObj.officeInTime"
+                          (dateTimeChange)="setTotalWorkingOfficeHours(); timesheetObj.clientOutTime = timesheetObj.officeOutTime; timesheetObj.totalClientWorkingHours = timesheetObj.totalWorkingOfficeHours"
+                          (keydown)="disableMannualDateInput()" autocomplete="off">
+                        <owl-date-time #officeOutTimePicker [hour12Timer]="true" [startAt]="timesheetObj.officeInTime"></owl-date-time>
+                      </div>
+                      <small *ngIf="timesheetObj.officeOutTime" class="text-muted d-block mt-1">
+                        <strong class="text-primary">Out Time:</strong> {{ timesheetObj.officeOutTime | date:'hh:mm a' }}
+                      </small>
+                    </div>
+                  
+                    
+                    <div class="col-md-2">
+                      <label class="form-label">Total Working Hours</label>
+                      <input type="text" class="form-control" [(ngModel)]="timesheetObj.totalWorkingOfficeHours" disabled>
+                    </div>
+                  
+                    
+                    <div class="col-md-2">
+                      <label class="form-label">Night Shift</label><br />
+                      <input type="checkbox" class="form-check-input mt-2" [(ngModel)]="timesheetObj.isNightShift"
+                        (click)="openNightShiftTemplate(night_shift_template, $event)">
+                    </div>
+                  </div> -->
+                  
 
                 <div *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory">
                     <div class="row ml-1 mt-5" >

@@ -16,12 +16,12 @@ import java.util.UUID;
 @Getter
 @Setter
 @ToString
-public class TimesheetApprovalAllocation {
+public class TimesheetDocumentApproval {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID allocId;
-
+    private Long allocId;
+    
     private Long timesheetId;
     private Long approverId;
     private String approvalStatus;
