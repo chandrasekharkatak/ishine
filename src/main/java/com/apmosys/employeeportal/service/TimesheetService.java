@@ -3189,4 +3189,67 @@ public class TimesheetService {
 		return response;
 	}
 	
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse replaceAllTemporaryFileWithFinalFile(MultipartFile file, LocalDate fromDate, LocalDate toDate, Long empId) {
+	    ServiceResponse response = new ServiceResponse();
+
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("replaceAllTemporaryFileWithFinalFile");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("replaceAllTemporaryFileWithFinalFile");
+
+	    try {
+	        if (empId == null || fromDate == null || toDate == null || file == null || file.isEmpty()) {
+	            throw new IllegalArgumentException("Required input(s) are missing or file is empty.");
+	        }
+
+	        List<TimesheetDocumentDetails> docDatas = timesheetDocumentDetailsRepository
+	                .getDocsByEmpAndDateRange(empId, fromDate, toDate);
+
+	        if (docDatas == null || docDatas.isEmpty()) {
+	            throw new IllegalStateException("No timesheet documents found for the given employee and date range.");
+	        }
+
+	        byte[] fileBytes = file.getBytes();
+	        String fileName = file.getOriginalFilename();
+	        String contentType = file.getContentType();
+
+	        docDatas.stream().forEach(doc -> {
+	            doc.setDocName(fileName);
+	            doc.setDocData(fileBytes);
+	            doc.setDocMimeType(contentType);
+	            doc.setUpdatedBy(empId);
+	            doc.setUpdatedOn(LocalDateTime.now());
+	            doc.setFinalFlag(true);
+	        });
+
+	        timesheetDocumentDetailsRepository.saveAll(docDatas);
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("All temporary files replaced with final document successfully.");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	    } catch (IllegalArgumentException | IllegalStateException e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse(e.getMessage());
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw e; 
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw new RuntimeException("Failed to replace documents", e); // ensure rollback
+	    }
+
+	    return response;
+	}
+
+	
 }

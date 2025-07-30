@@ -2052,6 +2052,15 @@ setTotalWorkingClientHours() {
       }
     });
   }
+
+  bulkFinalDocumentUpload(template?: TemplateRef<any>){
+    console.log(this.currentUser.empId)
+    this.timesheetService.bulkFinalDocumentUpload(this.selectedFile,this.fromDate,this.toDate,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if(response.serviceStatus === "Success"){
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
   showPreview(base64Data: string, mimeType: string) {
   const dataUrl = `data:${mimeType};base64,${base64Data}`;
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);

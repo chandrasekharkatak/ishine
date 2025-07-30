@@ -282,4 +282,23 @@ public class TimesheetController {
 		 return reponse;
 	 }
 	 
+	 @PostMapping(value = "/bulkFinalDocumentUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	 public ServiceResponse bulkFinalDocumentUpload(
+	         @RequestPart("finalFile") MultipartFile file,
+	         @RequestParam("fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
+	         @RequestParam("toDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
+	         @RequestParam("empId") Long empId) {
+	     
+	     System.out.println("Received file: " + file.getOriginalFilename());
+	     System.out.println("From Date: " + fromDate);
+	     System.out.println("To Date: " + toDate);
+	     
+	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId);
+	     // TODO: Add your processing logic here
+	     
+	     return reponse;
+	 }
+	 
+	 
+	 
 }

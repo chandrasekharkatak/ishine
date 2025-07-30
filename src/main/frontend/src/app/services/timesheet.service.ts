@@ -38,6 +38,17 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/updateTimesheet`, formData);
   }
 
+  bulkFinalDocumentUpload(finalFile: File, fromDate: string, toDate: string, empId: number): Observable<any> {
+  const formData = new FormData();
+  formData.append('finalFile', finalFile);
+  formData.append('fromDate', fromDate);
+  formData.append('toDate', toDate);
+  formData.append('empId', empId.toString());
+    return this.http.post(`${this.baseUrl}` + `api/bulkFinalDocumentUpload`, formData);
+
+  }
+
+
   getAllProjectsByEmpId(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/getAllProjectsByEmpId`, timesheetObj);
   }
