@@ -157,6 +157,7 @@ export class ReportDashboardComponent implements OnInit {
   apprenticeCountForDisplay = 0;
   consultantCountForDisplay = 0;
   regularCountForDisplay = 0;
+  apmosysProductCountForDisplay = 0;
   allResignEmployee: any;
 
   filterData: any = new FilterData();
@@ -212,7 +213,12 @@ export class ReportDashboardComponent implements OnInit {
   experienceCountBetween2and5Consultant = 0;
   experienceCountBetween5and10Consultant = 0;
   experienceCountAbove10Consultant = 0;
-  
+  //Apmosys Product
+  experienceCountBetween0and1ApmosysProduct = 0;
+  experienceCountBetween1and2ApmosysProduct = 0;
+  experienceCountBetween2and5ApmosysProduct = 0;
+  experienceCountBetween5and10ApmosysProduct = 0;
+  experienceCountAbove10ApmosysProduct = 0;
 
   leaveSummaryColumns: any[] = ['Employee Id', 'employeeType', 'Full Name', 'Leave Type', 'Department', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   timesheetSummaryColumns: any[] = ['Employee Id', 'employeeType', 'Full Name', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By'];
@@ -312,6 +318,7 @@ export class ReportDashboardComponent implements OnInit {
     const joiningApprentice = Array(12).fill(0);
     const joiningConsultant = Array(12).fill(0);
     const resigning = Array(12).fill(0);
+    const joiningApmosysProduct = Array(12).fill(0);
 
     const monthIndexMap: { [key: string]: number } = {
       January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
@@ -325,6 +332,7 @@ export class ReportDashboardComponent implements OnInit {
         joiningApprentice[idx] = item.apprenticeCount || 0;
         joiningConsultant[idx] = item.consultantCount || 0;
         resigning[idx] = item.resignCount || 0;
+        joiningApmosysProduct[idx] = item.apmosysProductCount || 0;
       }
     });
 
@@ -332,7 +340,8 @@ export class ReportDashboardComponent implements OnInit {
       { name: 'Regular', data: joiningRegular, stack: 'joined', color: '#1f77b4' },
       { name: 'apprenticeship', data: joiningApprentice, stack: 'joined', color: '#ff7f0e' },
       { name: 'consultant', data: joiningConsultant, stack: 'joined', color: '#2ca02c' },
-      { name: 'resign', data: resigning, stack: 'resigned', color: '#d62728' }
+      { name: 'resign', data: resigning, stack: 'resigned', color: '#d62728' },
+      { name: 'Apmosys Product', data: joiningApmosysProduct, stack: 'joined', color: '#9467bd' }
     ];
 
     this.renderMultiBarChart('Employee Join VS Resign', 'employeeJoinAndResign', chartData, 'Employee', this.openEmployeeJoinResignModalTable.bind(this));
@@ -471,7 +480,7 @@ onFilterChange(filter: CustomFilter): void {
   }
 
 
-    loadDashboardData(queryObjList: any): void {
+  loadDashboardData(queryObjList: any): void {
     this.isLoading = true;
 
     
@@ -488,17 +497,8 @@ onFilterChange(filter: CustomFilter): void {
       next: (results) => {
         this.renderAllPieCharts(results.graphSummary);
 
-        if (results.leaveTrend && results.leaveTrend.serviceStatus === 'Success') {
-          this.leaveTrendAnalysisList = results.leaveTrend.serviceResponse;
-          this.extractLeaveTrendAnalysisData();
-        } else {
-           console.error("Failed to fetch leave trend or no data returned.");
-           this.leaveTrendAnalysisList = [];
-           this.extractLeaveTrendAnalysisData();
-        }
-
         // --- Process Join vs. Resign ---
-        if (results.joinResign && results.joinResign.serviceStatus === 'Success') {
+        if ( results.joinResign.serviceStatus === 'Success') {
           this.processJoinResignCount(results.joinResign);
         } else {
           console.error('JoinVsResign failed or no data returned.');
@@ -511,6 +511,17 @@ onFilterChange(filter: CustomFilter): void {
           console.error("Failed to fetch Work Location data.");
           this.renderWorkLocationData([]); // Pass empty array to render placeholder
         }
+
+        if (results.leaveTrend && results.leaveTrend.serviceStatus === 'Success') {
+          this.leaveTrendAnalysisList = results.leaveTrend.serviceResponse;
+          this.extractLeaveTrendAnalysisData();
+        } else {
+           console.error("Failed to fetch leave trend or no data returned.");
+           this.leaveTrendAnalysisList = [];
+           this.extractLeaveTrendAnalysisData();
+        }
+
+        
 
         
         
@@ -544,12 +555,12 @@ onFilterChange(filter: CustomFilter): void {
       this.experienceCountBetween0and1 = 0; this.experienceCountBetween1and2 = 0; this.experienceCountBetween2and5 = 0; this.experienceCountBetween5and10 = 0; this.experienceCountAbove10 = 0;
       this.experienceCountBetween0and1Apprentice = 0; this.experienceCountBetween1and2Apprentice = 0; this.experienceCountBetween2and5Apprentice = 0; this.experienceCountBetween5and10Apprentice = 0; this.experienceCountAbove10Apprentice = 0;
       this.experienceCountBetween0and1Consultant = 0; this.experienceCountBetween1and2Consultant = 0; this.experienceCountBetween2and5Consultant = 0; this.experienceCountBetween5and10Consultant = 0; this.experienceCountAbove10Consultant = 0;
-      this.countOfAllEmployees = 0; this.employeeInProbationAfter6MonthsCount = 0; this.apprenticeCountForDisplay = 0; this.consultantCountForDisplay = 0; this.regularCountForDisplay = 0;
+      this.countOfAllEmployees = 0; this.employeeInProbationAfter6MonthsCount = 0; this.apprenticeCountForDisplay = 0; this.consultantCountForDisplay = 0; this.regularCountForDisplay = 0; this.apmosysProductCountForDisplay = 0;
       
       this.renderPlaceholderChart('Employee Status Summary', 'employeeStatus');
       this.renderPlaceholderChart('Gender Summary', 'genderSummary');
       this.renderPlaceholderChart('Age Summary', 'employeeAgeSummary');
-      this.plotEmployeeExperienceColumnGraph('Employee Experience', 'employeeExperienceSummary', [], [], [], [], this.openEmployeeExperienceModalTable.bind(this));
+      this.plotEmployeeExperienceColumnGraph('Employee Experience', 'employeeExperienceSummary', [], [], [], [],[], this.openEmployeeExperienceModalTable.bind(this));
       this.renderPlaceholderChart('Fresher - Lateral Summary', 'fresherLateralChart');
       this.renderPlaceholderChart('Billable Employee Summary', 'billableChart');
       this.renderPlaceholderChart('Employee Billable/Non-Billable Summary', 'billableChartByDepartment');
@@ -601,7 +612,13 @@ onFilterChange(filter: CustomFilter): void {
     this.apprenticeCountForDisplay = data.apprenticeCountDisplay || 0;
     this.consultantCountForDisplay = data.consultantCountDisplay || 0;
     this.regularCountForDisplay = data.regularCountDisplay || 0;
+    this.apmosysProductCountForDisplay = data.apmosysProductDisplay || 0;
 
+    this.experienceCountBetween0and1ApmosysProduct = data.apmosysProductYear0to1 || 0;
+    this.experienceCountBetween1and2ApmosysProduct = data.apmosysProductYear1to2 || 0;
+    this.experienceCountBetween2and5ApmosysProduct = data.apmosysProductYear2to5 || 0;
+    this.experienceCountBetween5and10ApmosysProduct = data.apmosysProductYear5to10 || 0;
+    this.experienceCountAbove10ApmosysProduct = data.apmosysProductYearAbove10 || 0;
     // --- Now build and render the charts with the sanitized data ---
     
     // Employee Status Chart
@@ -644,17 +661,18 @@ onFilterChange(filter: CustomFilter): void {
     
     // Experience Chart
     const experienceData = [
-      { name: "0 to 1", employeeCount: this.experienceCountBetween0and1, apprenticeCount: this.experienceCountBetween0and1Apprentice, consultantCount: this.experienceCountBetween0and1Consultant },
-      { name: "1 to 2", employeeCount: this.experienceCountBetween1and2, apprenticeCount: this.experienceCountBetween1and2Apprentice, consultantCount: this.experienceCountBetween1and2Consultant },
-      { name: "2 to 5", employeeCount: this.experienceCountBetween2and5, apprenticeCount: this.experienceCountBetween2and5Apprentice, consultantCount: this.experienceCountBetween2and5Consultant },
-      { name: "5 to 10", employeeCount: this.experienceCountBetween5and10, apprenticeCount: this.experienceCountBetween5and10Apprentice, consultantCount: this.experienceCountBetween5and10Consultant },
-      { name: "10+", employeeCount: this.experienceCountAbove10, apprenticeCount: this.experienceCountAbove10Apprentice, consultantCount: this.experienceCountAbove10Consultant },
+      { name: "0 to 1", employeeCount: this.experienceCountBetween0and1, apprenticeCount: this.experienceCountBetween0and1Apprentice, consultantCount: this.experienceCountBetween0and1Consultant , apmosysProductCount: this.experienceCountBetween0and1ApmosysProduct },
+      { name: "1 to 2", employeeCount: this.experienceCountBetween1and2, apprenticeCount: this.experienceCountBetween1and2Apprentice, consultantCount: this.experienceCountBetween1and2Consultant , apmosysProductCount: this.experienceCountBetween1and2ApmosysProduct },
+      { name: "2 to 5", employeeCount: this.experienceCountBetween2and5, apprenticeCount: this.experienceCountBetween2and5Apprentice, consultantCount: this.experienceCountBetween2and5Consultant , apmosysProductCount: this.experienceCountBetween2and5ApmosysProduct },
+      { name: "5 to 10", employeeCount: this.experienceCountBetween5and10, apprenticeCount: this.experienceCountBetween5and10Apprentice, consultantCount: this.experienceCountBetween5and10Consultant , apmosysProductCount: this.experienceCountBetween5and10ApmosysProduct },
+      { name: "10+", employeeCount: this.experienceCountAbove10, apprenticeCount: this.experienceCountAbove10Apprentice, consultantCount: this.experienceCountAbove10Consultant , apmosysProductCount: this.experienceCountAbove10ApmosysProduct },
     ];
     const totalExperienceCategories = experienceData.map(exp => exp.name);
     const employeeSeries = experienceData.map(exp => exp.employeeCount);
     const apprenticeSeries = experienceData.map(exp => exp.apprenticeCount);
     const consultantSeries = experienceData.map(exp => exp.consultantCount);
-    this.plotEmployeeExperienceColumnGraph('Employee Experience', 'employeeExperienceSummary', totalExperienceCategories, employeeSeries, apprenticeSeries, consultantSeries, this.openEmployeeExperienceModalTable.bind(this));
+    const apmosysProductSeries = experienceData.map(exp => exp.apmosysProductCount);
+    this.plotEmployeeExperienceColumnGraph('Employee Experience', 'employeeExperienceSummary', totalExperienceCategories, employeeSeries, apprenticeSeries, consultantSeries, apmosysProductSeries, this.openEmployeeExperienceModalTable.bind(this));
 
     // Fresher/Lateral Chart
     const fresherLateralData = [
@@ -1574,6 +1592,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
     const employeeCounts = chartData.map((dept: any) => dept.data[0]);
     const apprenticeCounts = chartData.map((dept: any) => dept.data[1]);
     const consultantCounts = chartData.map((dept: any) => dept.data[2]);
+    const apmosysProductCounts = chartData.map((dept: any) => dept.data[3] || 0);
 
     (Highcharts as any).chart(chartId, {
       chart: {
@@ -1639,25 +1658,30 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
       },
       series: [
         {
-          name: 'Employee Count',
+          name: 'Employee',
           data: employeeCounts,
           color: '#e74c3c',
         },
         {
-          name: 'Apprentice Count',
+          name: 'Apprentice',
           data: apprenticeCounts,
           color: '#2ecc71',
         },
         {
-          name: 'Consultant Count',
+          name: 'Consultant',
           data: consultantCounts,
           color: '#2234bd',
+        },
+        {
+          name: 'Apmosys Product',
+          data: apmosysProductCounts,
+          color: '#f1c40f',
         },
       ],
     });
   }
-  
-  plotEmployeeExperienceColumnGraph(chartName, chartId, categories, employeeSeries, apprenticeSeries, consultantSeries, openMod) {
+
+  plotEmployeeExperienceColumnGraph(chartName, chartId, categories, employeeSeries, apprenticeSeries, consultantSeries, apmosysProductSeries, openMod) {
     (Highcharts as any).chart(chartId, {
       chart: {
         type: 'column',
@@ -1744,6 +1768,9 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
                 } else if (clickedSeries === 'Consultant') {
                   openMod(clickedCategory, 'consultant');
                 }
+                else if (clickedSeries === 'Apmosys Product') {
+                  openMod(clickedCategory, 'apmosysProduct');
+                }
               },
             },
           },
@@ -1763,7 +1790,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
         symbolWidth: 12,
         symbolRadius: 3,
       },
-      colors: ['#176fc2', '#faa614', '#89fc72'], 
+      colors: ['#176fc2', '#faa614', '#89fc72', '#e74c3c'],
       series: [
         {
           name: 'Employees',
@@ -1776,6 +1803,10 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
         {
           name: 'Consultant',
           data: consultantSeries,
+        },
+        {
+          name: 'Apmosys Product',
+          data: apmosysProductSeries,
         },
       ],
     });
@@ -2645,7 +2676,8 @@ openTotalCountModal(title: any) {
       consultant: false,
       regular: false,
       probation: false,
-      allEmp: false
+      allEmp: false,
+      isApmosysProduct: 'false',
     };
 
     switch(title) {
@@ -2663,6 +2695,9 @@ openTotalCountModal(title: any) {
         break;
       case 'Regular Count':
         requestBody.regular = true;
+        break;
+      case 'Apmosys Product Count':
+        requestBody.isApmosysProduct = 'true';
         break;
       default:
         requestBody.allEmp = true;
@@ -2994,6 +3029,7 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
   if (type === 'employee') employeeType = 'regular';
   else if (type === 'apprentice') employeeType = 'apprentice';
   else if (type === 'consultant') employeeType = 'consultant';
+  else if (type === 'apmosysProduct') employeeType = 'apmosys_product';
 
   const payload = {
     employeeType: employeeType,
@@ -3431,7 +3467,8 @@ private getDepartmentIdsByName(deptName: string): number[] {
               departmentName,
               employeeCount: 0,
               apprenticeCount: 0,
-              consultantCount: 0
+              consultantCount: 0,
+              ApmosysProductCount: 0
             };
           }
 
@@ -3441,6 +3478,8 @@ private getDepartmentIdsByName(deptName: string): number[] {
             departmentMap[departmentName].apprenticeCount += count;
           } else if (type === "Consultant") {
             departmentMap[departmentName].consultantCount += count;
+          } else if (type === "ApmosysProduct") {
+            departmentMap[departmentName].ApmosysProductCount += count;
           }
         });
 
@@ -3453,7 +3492,8 @@ private getDepartmentIdsByName(deptName: string): number[] {
           data: [
             dept.employeeCount,
             dept.apprenticeCount,
-            dept.consultantCount
+            dept.consultantCount,
+            dept.ApmosysProductCount
           ]
         }));
 

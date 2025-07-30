@@ -497,6 +497,16 @@
             <small class="chart-title">Regular<br/>Count</small>
           </div>
         </div>
+       
+        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+          <div class="employee-count-card" (click)="openTotalCountModal('Apmosys Product Count')">
+            <div class="count-icon">
+              <i class="fa-brands fa-adn"></i>
+            </div>
+            <h4 class="card-title">{{ apmosysProductCountForDisplay }}</h4>
+            <small class="chart-title">APMOSYS<br/>Product Count</small>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -633,7 +643,7 @@
               <th
                 scope="col"
                 class="info-label wide-col"
-                mat-sort-header="employmentIdAcToET|string"
+                mat-sort-header="employeementId|string"
               >
                 Emp ID
               </th>
@@ -736,7 +746,7 @@
               "
             >
               <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
-              <td>{{ leave.employmentIdAcToET }}</td>
+              <td>{{ leave.employeementId }}</td>
               <td>{{ leave.employeeType }}</td>
               <td *ngIf="!userMapping.reports_employee_360">
                 {{ leave.employeeName }}
