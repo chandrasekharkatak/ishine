@@ -55,7 +55,7 @@ public class TimesheetController {
 	
 	@RequestMapping(value = "/addTimesheetWithClient", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") TimesheetDTO dto,
-			@RequestPart("doc") MultipartFile doc) 
+			@RequestPart(value = "doc",required = false) MultipartFile doc) 
 //	,@RequestBody TimesheetDTO timesheetDTO, @RequestBody MultipartFile doc
 	{
 		System.out.println("timesheetDTO list : "+dto);

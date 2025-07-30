@@ -1114,10 +1114,14 @@ setTotalWorkingClientHours() {
     }else{
       this.timesheetObj.currentManagerId = this.currentUser.managerId;
     }
-
-    this.payloadForFileUpload();
-    
-    this.timesheetObj.documentData.createdBy = this.currentUser.empId;
+    if(this.clientSideIdNotMandatory){
+      this.timesheetObj.clientInTime = null;
+      this.timesheetObj.clientOutTime = null;
+      // this.timesheetObj.documentData.createdBy = this.currentUser.empId;
+    }
+    else{
+       this.payloadForFileUpload();
+    }
 
     console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheetWithClient(this.timesheetObj,this.selectedFile).pipe(first()).subscribe((response: any) => {

@@ -449,7 +449,7 @@ public class TimesheetService {
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
 			
-			if(timesheetDTO.getClientApprovalStatus().equalsIgnoreCase("pending") || timesheetDTO.getClientApprovalStatus().equalsIgnoreCase("approved")) {
+			if(doc != null && ("pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())||"approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus()))) {
 				
 				TimesheetDocumentDetails docData = addTimesheetDocument(timesheetDTO.getDocumentData(),"Create",doc);
 				docData.setTimesheetId(newTimesheetCreated.getTimesheetId());
