@@ -2877,7 +2877,8 @@ public class TimesheetService {
 				timesheetDetails.setPreviousApproverId(timesheetDTO.getPreviousApproverId());
 				timesheetDetails.setRejectionId(timesheetDTO.getRejectionId());
 				timesheetDetails.setCreatedBy(timesheetDTO.getEmpId());
-				LocalDateTime createdOn = LocalDateTime.parse(timesheetDTO.getCreatedOn());
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+				LocalDateTime createdOn = LocalDateTime.parse(timesheetDTO.getCreatedOn(), formatter);
 				timesheetDetails.setCreatedOn(createdOn);
 				
 				dbResponse = timesheetDocumentApprovalRepository.save(timesheetDetails);
@@ -2948,7 +2949,8 @@ public class TimesheetService {
 					timesheetDetails.setPreviousApproverId(timesheetDTO.getPreviousApproverId());
 					timesheetDetails.setRejectionId(timesheetDTO.getRejectionId());
 					timesheetDetails.setCreatedBy(timesheetDTO.getEmpId());
-					LocalDateTime createdOn = LocalDateTime.parse(timesheetDTO.getCreatedOn());
+					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+					LocalDateTime createdOn = LocalDateTime.parse(timesheetDTO.getCreatedOn(), formatter);
 					timesheetDetails.setCreatedOn(createdOn);
 					timesheetDetails.setAllocId(timesheetDTO.getAllocId());					
 					dbResponse = timesheetApprovalAllocationLogsRepository.save(timesheetDetails);
@@ -2962,7 +2964,8 @@ public class TimesheetService {
 					timesheetDetails.setPreviousApproverId(timesheetDetailsForDocumentApproval.getPreviousApproverId());
 					timesheetDetails.setRejectionId(timesheetDetailsForDocumentApproval.getRejectionId());
 					timesheetDetails.setCreatedBy(timesheetDTO.getEmpId());
-					LocalDateTime createdOn = LocalDateTime.parse(timesheetDTO.getCreatedOn());
+					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+					LocalDateTime createdOn = LocalDateTime.parse(timesheetDTO.getCreatedOn(), formatter);
 					timesheetDetails.setCreatedOn(createdOn);
 					timesheetDetails.setAllocId(timesheetDetailsForDocumentApproval.getAllocId());					
 					dbResponse = timesheetApprovalAllocationLogsRepository.save(timesheetDetails);
