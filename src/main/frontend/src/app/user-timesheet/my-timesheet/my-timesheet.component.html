@@ -755,49 +755,77 @@
         </div>
         <div class="card-body">
             <div class="row">
-              <!-- From Date -->
-              <div class="col-md-4 mb-3">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Project</label>
+                            <mat-select ngxMatSelect class="form-control"
+                                  #filterActiveProjects="ngxMatSelect"
+                                  [displayMember]="'projectName'"
+                                  [valueMember]="'projectId'"
+                                  [source]="activeProjectList"
+                                  [useInfiniteScroll]="true"
+                                  (selectionChange)="onProjectSelect(timesheetObj.projectId)"
+                                  [multiple]="false"
+                                  [(ngModel)]="timesheetObj.projectId"
+                                  >
+                                  <mat-option [value]="project.projectId" *ngFor="let project of filterActiveProjects.filteredSource">
+                                    {{project.projectName}}
+                                  </mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+              <!-- From Date [matDatepickerFilter]="dateFilter"-->
+              <div class="col-md-4 mb-3" *ngIf="!clientSideIdNotMandatory">
                 <div class="form-group">
                   <label class="info-label"><span class="text-danger">*</span>From Date</label>
+                  <mat-form-field appearance="outline" class="w-100 custom-form-field">
                   <input
-                    type="date"
-                    class="form-control"
-                    [(ngModel)]="fromDate"
-                    name="fromDate"
-                    required
-                    #fromDateRef="ngModel"
-                  />
-                  <div class="text-danger" *ngIf="fromDateRef.invalid && fromDateRef.touched">
-                    From Date is required.
-                  </div>
+                        matInput
+                        [matDatepicker]="picker"
+                        [(ngModel)]="fromDate"
+                        [min]="minDate"
+                        [max]="maxDate"
+                        required
+                      />
+                      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                      <mat-datepicker #picker></mat-datepicker>
+                    </mat-form-field>
                 </div>
               </div>
           
               <!-- To Date -->
-              <div class="col-md-4 mb-3">
+              <div class="col-md-4 mb-3" *ngIf="!clientSideIdNotMandatory">
                 <div class="form-group">
                   <label class="info-label"><span class="text-danger">*</span>To Date</label>
+                 <mat-form-field appearance="outline" class="w-100">
                   <input
-                    type="date"
-                    class="form-control"
+                    matInput
+                    [matDatepicker]="toPicker"
                     [(ngModel)]="toDate"
                     name="toDate"
                     required
                     #toDateRef="ngModel"
                     [min]="fromDate"
+                    [max]="maxDate"
+                    [disabled]="!fromDate"
                   />
-                  <div class="text-danger" *ngIf="toDateRef.invalid && toDateRef.touched">
+                  <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #toPicker></mat-datepicker>
+                  </mat-form-field>
+                  <!-- <div class="text-danger" *ngIf="toDateRef.invalid && toDateRef.touched">
                     To Date is required and cannot be earlier than From Date.
-                  </div>
+                  </div> -->
                 </div>
               </div>
 
-              <div class="col-md-4 mb-3">
+              <div class="col-md-4 mb-3" *ngIf="!clientSideIdNotMandatory">
                 <div class="form-group">
                   <label class="info-label"><span class="text-danger">*</span>Bulk Approval Proof</label>
                   <div class="d-flex align-items-center">
                         <input type="file" class="form-control form-control-sm"
-                        accept=".pdf,.jpg,.jpeg,.png" (change)="onFinalFileSelected($event)" style="max-width: 200px;">
+                        accept=".pdf,.jpg,.jpeg,.png" (change)="onFinalFileSelected($event)" >
                         <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
                             [disabled]="!previewUrl" (click)="openPreviewModal()">
                             <i class="fa fa-eye fa-lg text-primary"></i>
@@ -812,7 +840,7 @@
                 </div>
               </div>
             </div>
-            <div class="row justify-content-center">
+            <div class="row justify-content-center" *ngIf="!clientSideIdNotMandatory">
                 <div class="col-md-2">
                     <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="bulkFinalDocumentUpload(alert_message)">Upload</button>
                 </div>

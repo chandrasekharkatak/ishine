@@ -15,16 +15,16 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 	
 	TimesheetDocumentDetails findTopByTimesheetIdAndActive(Long timesheetId,Boolean active);
 	
-	@Query("SELECT t FROM TimesheetDocumentDetails t WHERE t.timesheetId = :timesheetId")
+	@Query("SELECT t FROM TimesheetDocumentDetails t WHERE t.timesheetId = :timesheetId and t.active = true")
 	TimesheetDocumentDetails findByTimesheetId(Long timesheetId);
 	
-	@Query("SELECT t.docId FROM TimesheetDocumentDetails t WHERE t.timesheetId = :timesheetId")
+	@Query("SELECT t.docId FROM TimesheetDocumentDetails t WHERE t.timesheetId = :timesheetId and t.active = true")
 	Long findDocIdByTimesheetId(@Param("timesheetId") Long timesheetId);
 	
 	@Query("SELECT tdd FROM TimesheetDocumentDetails tdd \n" +
 		       "INNER JOIN Timesheet et on et.timesheetId = tdd.timesheetId \n" +
 		       "WHERE et.empId = :empId \n" +
-		       "AND et.date BETWEEN :fromDate AND :toDate")
+		       "AND et.date BETWEEN :fromDate AND :toDate and tdd.active = true")
 		List<TimesheetDocumentDetails> getDocsByEmpAndDateRange(
 		    @Param("empId") Long empId,
 		    @Param("fromDate") LocalDate fromDate,

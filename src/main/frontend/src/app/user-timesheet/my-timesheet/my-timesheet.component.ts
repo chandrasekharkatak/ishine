@@ -148,6 +148,8 @@ AllWeekOfList:any[]=[];
   @ViewChild("clientSideIdForm")
   clientSideIdFormRef: TemplateRef<any>;
 
+  minDate: string;
+  maxDate: string;
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -190,7 +192,7 @@ AllWeekOfList:any[]=[];
     this.sectionViewInit();
     this.preventBackButton();
     this.getActiveProjectsByEmpId();
-    
+    this.thisMonthValidation();
     // this.setStartDateMinMax();
   }
   preventBackButton() {
@@ -201,6 +203,33 @@ AllWeekOfList:any[]=[];
   }
 //method
 
+thisMonthValidation(){
+  const now = new Date();
+const year = now.getFullYear();
+const month = now.getMonth(); // 0-based
+const day = now.getDate();
+
+let minDate: Date;
+
+// If 1st or 2nd, allow from 1st of previous month
+if (day === 1 || day === 2) {
+  minDate = new Date(year, month - 1, 1);
+} else {
+  minDate = new Date(year, month, 1);
+}
+minDate.setDate(minDate.getDate()+1);
+// Calculate the last day of the current month
+const lastDayOfCurrentMonth = new Date(year, month + 1, 0); // 0 gives last day of current month
+
+// Add 2-day buffer reliably
+const maxDate = new Date(lastDayOfCurrentMonth);
+maxDate.setDate(maxDate.getDate() + 3);
+
+// Assign to class variables in yyyy-MM-dd format
+this.minDate = minDate.toISOString().split('T')[0];
+this.maxDate = maxDate.toISOString().split('T')[0];
+
+}
 
   sectionViewInit() {
     if (this.userMapping.add_timesheet) {
@@ -2055,11 +2084,26 @@ setTotalWorkingClientHours() {
 
   bulkFinalDocumentUpload(template?: TemplateRef<any>){
     console.log(this.currentUser.empId)
-    this.timesheetService.bulkFinalDocumentUpload(this.selectedFile,this.fromDate,this.toDate,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+    if(this.selectedFile != null &&this.fromDate != null &&this.toDate != null &&this.currentUser.empId != null ){
+      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile,this.fromDate,this.toDate,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus === "Success"){
         this.openAlertMod(template, response.serviceResponse);
       }
     });
+    }else{
+      
+      if(this.fromDate == null){
+        this.openAlertMod(template, "Select from date..!!");
+      }
+      else if(this.toDate == null){
+        this.openAlertMod(template, "Select to date..!!");
+      }
+      else if(this.selectedFile == null){
+        this.openAlertMod(template, "File not provided..!!");
+      }else{
+        this.openAlertMod(template, "Employee Id is null. Please contact HR...!!");
+      }
+    }
   }
   showPreview(base64Data: string, mimeType: string) {
   const dataUrl = `data:${mimeType};base64,${base64Data}`;
