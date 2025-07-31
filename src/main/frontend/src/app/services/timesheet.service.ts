@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -45,6 +45,15 @@ export class TimesheetService {
   formData.append('toDate', toDate);
   formData.append('empId', empId.toString());
     return this.http.post(`${this.baseUrl}` + `api/bulkFinalDocumentUpload`, formData);
+
+  }
+
+  getAllDisabledDateListForBulkDocSubmit(projectId : any, empId : any){
+    const params = new HttpParams()
+    .set('projectId', projectId)
+    .set('empId', empId);
+
+    return this.http.get(`${this.baseUrl}` + `api/getAllDisabledDateListForBulkDocSubmit`,{params});
 
   }
 

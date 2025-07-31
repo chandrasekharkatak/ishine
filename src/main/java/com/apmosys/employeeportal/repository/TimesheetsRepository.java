@@ -381,6 +381,16 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 				+ "                          AND et.day_type LIKE '%Working%'\n"
 				+ "WHERE e.employmentstatus != 'InActive' and e.emp_Id NOT BETWEEN 1 and 6;", nativeQuery = true)
 		public List<Object[]> totalIshineNotFilledCount();
+		
+		@Query("SELECT et.date FROM Timesheet et " +
+			       "INNER JOIN TimesheetDocumentDetails tdd ON et.timesheetId = tdd.timesheetId " +
+			       "WHERE et.empId = :empId " +
+			       "AND et.projectId = :projectId " +
+			       "AND tdd.active = true " +
+			       "AND tdd.finalFlag = false "+
+			       "AND (tdd.rmApprovalStatus = 'Approved' OR tdd.rmApprovalStatus = 'Pending' OR tdd.hrApprovalStatus != 'Rejected')")
+			Set<LocalDate> findDatesByEmpIdAndProjectId(@Param("empId") Long empId,
+			                                             @Param("projectId") Integer projectId);
 
 	
 }

@@ -684,7 +684,7 @@
                         </div>
                     </div>
                 </div>
-              <!-- From Date [matDatepickerFilter]="dateFilter"-->
+              <!-- From Date [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"-->
               <div class="col-md-4 mb-3" *ngIf="!clientSideIdNotMandatory">
                 <div class="form-group">
                   <label class="info-label"><span class="text-danger">*</span>From Date</label>
@@ -692,6 +692,7 @@
                   <input
                         matInput
                         [matDatepicker]="picker"
+                        [matDatepickerFilter]="disableDates"
                         [(ngModel)]="fromDate"
                         [min]="minDate"
                         [max]="maxDate"
@@ -711,6 +712,7 @@
                   <input
                     matInput
                     [matDatepicker]="toPicker"
+                    [matDatepickerFilter]="disableDates"
                     [(ngModel)]="toDate"
                     name="toDate"
                     required

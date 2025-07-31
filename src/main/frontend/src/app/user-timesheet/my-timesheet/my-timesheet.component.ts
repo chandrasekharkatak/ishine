@@ -153,6 +153,8 @@ AllWeekOfList:any[]=[];
 
   minDate: string;
   maxDate: string;
+  disableList: any;
+  disableListFormatted: Date[] = [];
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -2396,8 +2398,31 @@ setTotalWorkingClientHours() {
   }
 
   getAllDisabledDateListForBulkDocSubmit(projectId:any){
+    if(projectId != null){
+       this.timesheetService.getAllDisabledDateListForBulkDocSubmit(projectId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if(response.serviceStatus === "Success"){
+        this.disableList = response.serviceResponse;
+        this.disableListFormatted = this.disableList.map(d => new Date(d));
+      }
+    });
+    }
+    else{
 
+    }
+   
   }
+
+disableDates = (date: Date | null): boolean => {
+  if (!date) return true;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+  const day = String(date.getDate()).padStart(2, '0');
+  const formattedDate = `${year}-${month}-${day}`;
+
+  // Disable if the formatted date exists in disableList
+  return !this.disableList.includes(formattedDate);
+};
 
   checkIfProjectRequiresClientId(projectId:any){
     this.timesheetService.checkIfProjectRequiresClientId(projectId).pipe(first()).subscribe((response: any) => {

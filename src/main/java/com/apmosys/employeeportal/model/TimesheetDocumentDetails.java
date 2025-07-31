@@ -70,6 +70,9 @@ public class TimesheetDocumentDetails {
 	@Column(name = "rm_approval_status")
 	private String rmApprovalStatus;
 	
+	@Column(name = "hr_approval_status")
+	private String hrApprovalStatus;
+	
 	@Column(name = "final_flag")
 	private Boolean finalFlag;
 }

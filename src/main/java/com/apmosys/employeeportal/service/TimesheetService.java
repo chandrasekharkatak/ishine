@@ -6,13 +6,16 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -41,6 +44,7 @@ import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
+import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.Timesheet;
@@ -52,8 +56,10 @@ import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
@@ -102,6 +108,12 @@ public class TimesheetService {
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
 
+	@Autowired
+	private EmployeeLeaveRepository employeeLeaveRepository;
+	
+	@Autowired
+	private HolidayRepository holidayRepository;
+	
 	@Autowired
 	MailService mailService;
 
@@ -454,6 +466,7 @@ public class TimesheetService {
 				TimesheetDocumentDetails docData = addTimesheetDocument(timesheetDTO.getDocumentData(),"Create",doc);
 				docData.setTimesheetId(newTimesheetCreated.getTimesheetId());
 				docData.setEmpId(timesheetDTO.getEmpId());
+				docData.setCreatedBy(timesheetDTO.getEmpId());
 //				docData.setDocData(doc.getBytes());
 				
 				if (docData != null) {
@@ -3254,36 +3267,86 @@ public class TimesheetService {
 	
 	
 	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse getAllDisabledDateListForBulkDocSubmit(Long projectId, Long empId) {
+	public ServiceResponse getAllDisabledDateListForBulkDocSubmit(Integer projectId, Long empId) {
 		ServiceResponse response = new ServiceResponse();
 
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("replaceAllTemporaryFileWithFinalFile");
-	    apiLogInfo.setLogLevel("INFO");
-	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("replaceAllTemporaryFileWithFinalFile");
-		
-	    try {
-	        if (projectId == null || empId == null) {
-	            throw new IllegalArgumentException("Required input(s) are  missing or file is empty.");
-	        }
-	        List<LocalDate> dateList = new ArrayList<>();
-	        
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse(dateList);
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong.");
-	        response.setServiceError(e.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setApiResponse(e.getMessage());
-	        apiLogInfo.setLogLevel("ERROR");
-	        throw new RuntimeException("Failed to replace documents", e); // ensure rollback
-	    }
-	    
-	    return response;
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("replaceAllTemporaryFileWithFinalFile");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("replaceAllTemporaryFileWithFinalFile");
+
+		try {
+			if (projectId == null || empId == null) {
+				throw new IllegalArgumentException("Required input(s) are missing.");
+			}
+
+			Set<LocalDate> combinedDateSet = new HashSet<>();
+
+			Set<LocalDate> timesheetDates = timesheetsRepository.findDatesByEmpIdAndProjectId(empId, projectId);
+			System.out.println(timesheetDates);
+			if (timesheetDates != null && !timesheetDates.isEmpty()) {
+				combinedDateSet.addAll(timesheetDates);
+			}
+
+			
+			YearMonth currentMonth = YearMonth.now();
+			LocalDate firstDay = currentMonth.atDay(1);
+			LocalDate lastDayWithBuffer = currentMonth.atEndOfMonth().plusDays(3);
+
+			
+			List<EmployeeLeave> empLeaveData = employeeLeaveRepository.findLeavesInCurrentMonth(empId, firstDay,
+					lastDayWithBuffer);
+			if (empLeaveData != null && !empLeaveData.isEmpty()) {
+				Set<LocalDate> leaveDates = getAllLeaveDates(empLeaveData);
+				System.out.println(leaveDates);
+				if (leaveDates != null && !leaveDates.isEmpty()) {
+					combinedDateSet.addAll(leaveDates);
+				}
+			}
+
+			
+			Set<LocalDate> holidays = holidayRepository.findHolidaysWithinBuffer(firstDay, lastDayWithBuffer);
+			System.out.println(holidays);
+			if (holidays != null && !holidays.isEmpty()) {
+				combinedDateSet.addAll(holidays);
+			}
+
+			if (!combinedDateSet.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(combinedDateSet);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No data found.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+		}
+
+		return response;
 	}
-	
+	 public Set<LocalDate> getAllLeaveDates(List<EmployeeLeave> empLeaveData) {
+	        Set<LocalDate> leaveDates = new HashSet<>();
+
+	        for (EmployeeLeave leave : empLeaveData) {
+	                LocalDate start = leave.getFromDate();
+	                LocalDate end = leave.getToDate();
+
+	                while (!start.isAfter(end)) {
+	                    leaveDates.add(start);
+	                    start = start.plusDays(1);
+	                }
+	        }
+
+	        return leaveDates;
+	    }
 }

@@ -300,7 +300,7 @@ public class TimesheetController {
 	 }
 	 
 	 @GetMapping("/getAllDisabledDateListForBulkDocSubmit")
-	 public ServiceResponse getAllDisabledDateListForBulkDocSubmit(@RequestParam("projectId") Long projectId,@RequestParam("empId") Long empId) {
+	 public ServiceResponse getAllDisabledDateListForBulkDocSubmit(@RequestParam("projectId") Integer projectId,@RequestParam("empId") Long empId) {
 		
 		 ServiceResponse reponse= timesheetService.getAllDisabledDateListForBulkDocSubmit(projectId,empId);
 		
