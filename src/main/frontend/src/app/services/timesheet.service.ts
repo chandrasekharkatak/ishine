@@ -226,4 +226,8 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}`+`api/totalIshineNotFilledCount`,timesheetObj);
   }
 
+  getEmployeeViewForClientAttendanceStatus(){
+    return this.http.get(`${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`);
+  }
+
 }

@@ -307,4 +307,10 @@ public class TimesheetController {
 		return reponse;
 	 }
 	 
+	 @GetMapping("/getEmployeeViewForClientAttendanceStatus")
+	 public ServiceResponse getEmployeeViewForClientAttendanceStatus() {
+		 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus();
+		 return reponse;
+	 }
+	 
 }
