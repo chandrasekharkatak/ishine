@@ -1300,7 +1300,7 @@ public class ResourceManagementService {
 			                ? Long.parseLong(req.getResourceOverviewId().toString())
 			                : null;
 
-			        if (overviewId != null && resourceRequirementRepository.existsById(overviewId)) {
+			        if (overviewId != null && resourceRequirementRepository.existsByResourceOverviewId(overviewId)) {
 			            return; 
 			        }
 
