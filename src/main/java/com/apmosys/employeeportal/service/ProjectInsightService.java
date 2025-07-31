@@ -3842,14 +3842,14 @@ public class ProjectInsightService {
 		ProjectInsighProjectMapping mappingResponse = projectInsighProjectMappingRepository.findByProjectId(projectId);
 
 		if (mappingResponse != null) {
-			mappingResponse.setProjectInsightId(structure.getId());
+			mappingResponse.setProjectInsightId(structure.getId().toString());
 
 			projectInsighProjectMappingRepository.save(mappingResponse);
 			return "Mapping updated successfully for projectId: " + projectId;
 		} else {
 			ProjectInsighProjectMapping newObj = new ProjectInsighProjectMapping();
 			newObj.setProjectId(projectId);
-			newObj.setProjectInsightId(structure.getId());
+			newObj.setProjectInsightId(structure.getId().toString());
 			newObj.setIsDraft(structure.getIsDraft());
 			newObj.setCreatedBy(Long.parseLong(structure.getCreatedBy()));
 
