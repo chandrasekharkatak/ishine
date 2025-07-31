@@ -612,7 +612,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     @Query(value="SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n " + 
 			"CASE  \n " + 
-			"  WHEN isConsultant = 'true' THEN CONCAT('CS-', e.employeementId)  \n " + 
+			"  WHEN isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId)  \n " + 
 			"  ELSE CONCAT('A-', e.employeementId)  \n " + 
 			"END)  \n " + 
 			"FROM Employee e where e.employmentstatus != 'InActive' and e.empId not between 1 and 6")
