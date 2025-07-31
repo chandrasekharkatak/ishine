@@ -1,11 +1,14 @@
 import { AfterViewInit, Component, ElementRef, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { Sort } from '@angular/material/sort';
 import * as Highcharts from 'highcharts';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
+import { GetEmployeeViewForClientAttendanceStatus } from 'src/app/models/getEmployeeViewForClientAttendanceStatus';
 import { Timesheet } from 'src/app/models/timesheet';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
@@ -51,24 +54,35 @@ export class HrDashboardComponent implements AfterViewInit {
   totalvmsNotFilled: any;
   totalIshineNotFilledCount: any;
   totalExpectedEmployees: any;
+  employeeView:GetEmployeeViewForClientAttendanceStatus[] = [];
+  employeeViewColumns: any[] = ['employmentId', 'name', 'billable', 'billableType', 'mobileNo', 'email', 'departmentName', 'expectedFillCount', 'timesheetFilledCount', 'clientSideAttendancePendingCount', 'clientSideAttendanceApprovedCount', 'clientSideAttendanceNotFilledCount', 'projectName', 'poNo', 'projectType', 'projectManagers', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'team', 'teamLeadName'];
+  filters: any = {};
+  isSearchEnabled: boolean = false;
+  sortDirection = 'asc';
+  sortColumn: any;
+  sortColumnType: any;
+  excelName: any;
+  tableName: any;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: BsModalService,
     private projectService:ProjectService,
     private resourceManagementService: ResourceManagementService,
+    private exportExcelService: ExportExcelService,
   ) {}
 
   async ngOnInit(): Promise<void> {
 
-    this.setLastUpdatedTime();
+    // this.setLastUpdatedTime();
     this.getEmployeeByNameAndEmpld();
-    this.getProjectByNameAndPoNo();
-    this.TotalEmployeeCount();
-    this.vmsCompletion();
-    this.ishineCompletion();
-    this.vmsNotFilled();
-    this.ishineNotFilled();
+    // this.getProjectByNameAndPoNo();
+    // this.TotalEmployeeCount();
+    // this.vmsCompletion();
+    // this.ishineCompletion();
+    // this.vmsNotFilled();
+    // this.ishineNotFilled();
+    this.getEmployeeViewForClientAttendanceStatus();
 
     this.employeeCtrl.valueChanges
     .pipe(
@@ -520,6 +534,69 @@ projectList:any[]=[];
     });
   }
 
+  getEmployeeViewForClientAttendanceStatus() {
+    this.timesheetService.getEmployeeViewForClientAttendanceStatus().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.employeeView = response.serviceResponse;
+      } else {
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    });
+  }
+
+  toggleSearch(): void {
+    this.isSearchEnabled = !this.isSearchEnabled;
+
+    if (!this.isSearchEnabled) {
+      this.filters = {};
+    }
+  }
+
+  sortData(sort: Sort) {
+    //console.log(sort);
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction;
+    }
+  }
+
+  onSearch(searchData: any) {
+  this.filters = searchData;
+  }
+
+  exportToExcel(): void {
+  this.excelName = "Employee Attendance View.xlsx";
+  this.tableName = "Employee Info";
+
+  const exportData = this.employeeView.map((x: any) => ({
+    'Employment ID': x.employmentId || 'NA',
+    'Employee Name': x.name || 'NA',
+    'Billable': x.billable || 'NA',
+    'Billable Type': x.billableType || 'NA',
+    'Mobile No': x.mobileNo || 'NA',
+    'Email': x.email || 'NA',
+    'Department': x.departmentName || 'NA',
+    'Expected Attendance Fill Count': x.expectedFillCount ?? 0,
+    'Timesheet Filled Count': x.timesheetFilledCount ?? 0,
+    'Client Side Attendance Pending%': x.clientSideAttendancePendingCount ?? 0,
+    'Client Side Attendance Approved%': x.clientSideAttendanceApprovedCount ?? 0,
+    'Client Side Attendance Not Filled%': x.clientSideAttendanceNotFilledCount ?? 0,
+    'Project Name': x.projectName || 'NA',
+    'PO Number': x.poNo || 'NA',
+    'Project Type': x.projectType || 'NA',
+    'Project Manager': x.projectManagers || 'NA',
+    'Client': x.clientName || 'NA',
+    'Apmosys RM': x.apmosysRM || 'NA',
+    'Apmosys RM Email': x.apmosysRmEmail || 'NA',
+    'Client RM': x.clientRM || 'NA',
+    'Team Name': x.team || 'NA',
+    'Team Lead Name': x.teamLeadName || 'NA'
+  }));
+
+  this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
+}
 
 
 }
