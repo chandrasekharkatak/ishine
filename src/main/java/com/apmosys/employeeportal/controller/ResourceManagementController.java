@@ -401,11 +401,11 @@ public class ResourceManagementController {
 	    return resourceManagementService.getDeptsByUser(currentUserEmpId);
 	}
 	
-	@GetMapping("/deleteTempProjects")
-	@Scheduled(cron = "${project.temp.logs}")
-	public ServiceResponse deleteProjectTemp() {
-	    return resourceManagementService.deleteProjectTemp();
-	}
+//	@GetMapping("/deleteTempProjects")
+//	@Scheduled(cron = "${project.temp.logs}")
+//	public ServiceResponse deleteProjectTemp() {
+//	    return resourceManagementService.deleteProjectTemp();
+//	}
 	
 	@PostMapping("/updateHasClientSideId")
     public ServiceResponse updateHasClientSideId(@RequestBody UpdateHasClientSideIdDTO dto) {

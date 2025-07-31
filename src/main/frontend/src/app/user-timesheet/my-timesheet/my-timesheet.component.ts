@@ -2087,7 +2087,16 @@ setTotalWorkingClientHours() {
   }
 
   bulkFinalDocumentUpload(template?: TemplateRef<any>){
+    this.toDate = this.toDate instanceof Date
+    ? this.toDate.toISOString().split('T')[0]
+    : this.toDate;
+    this.fromDate = this.fromDate instanceof Date
+    ? this.fromDate.toISOString().split('T')[0]
+    : this.fromDate;
     console.log(this.currentUser.empId)
+    console.log(this.fromDate);
+    console.log(this.toDate);
+    console.log(this.timesheetObj.projectId);
     if(this.selectedFile != null &&this.fromDate != null &&this.toDate != null &&this.currentUser.empId != null ){
       this.timesheetService.bulkFinalDocumentUpload(this.selectedFile,this.fromDate,this.toDate,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus === "Success"){
@@ -2377,6 +2386,17 @@ setTotalWorkingClientHours() {
     } else {
       this.checkIfProjectRequiresClientId(projectId);
     }
+  }
+
+  onProjectSelectBulk(projectId:any){
+
+      this.checkIfProjectRequiresClientId(projectId);
+      this.getAllDisabledDateListForBulkDocSubmit(projectId);
+    
+  }
+
+  getAllDisabledDateListForBulkDocSubmit(projectId:any){
+
   }
 
   checkIfProjectRequiresClientId(projectId:any){

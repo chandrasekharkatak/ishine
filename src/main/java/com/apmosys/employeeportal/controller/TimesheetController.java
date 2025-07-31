@@ -299,6 +299,12 @@ public class TimesheetController {
 	     return reponse;
 	 }
 	 
-	 
+	 @GetMapping("/getAllDisabledDateListForBulkDocSubmit")
+	 public ServiceResponse getAllDisabledDateListForBulkDocSubmit(@RequestParam("projectId") Long projectId,@RequestParam("empId") Long empId) {
+		
+		 ServiceResponse reponse= timesheetService.getAllDisabledDateListForBulkDocSubmit(projectId,empId);
+		
+		return reponse;
+	 }
 	 
 }

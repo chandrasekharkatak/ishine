@@ -3250,6 +3250,40 @@ public class TimesheetService {
 
 	    return response;
 	}
+	
+	
+	
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse getAllDisabledDateListForBulkDocSubmit(Long projectId, Long empId) {
+		ServiceResponse response = new ServiceResponse();
 
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("replaceAllTemporaryFileWithFinalFile");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("replaceAllTemporaryFileWithFinalFile");
+		
+	    try {
+	        if (projectId == null || empId == null) {
+	            throw new IllegalArgumentException("Required input(s) are  missing or file is empty.");
+	        }
+	        List<LocalDate> dateList = new ArrayList<>();
+	        
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(dateList);
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw new RuntimeException("Failed to replace documents", e); // ensure rollback
+	    }
+	    
+	    return response;
+	}
 	
 }
