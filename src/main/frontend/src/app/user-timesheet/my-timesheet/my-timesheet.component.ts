@@ -275,6 +275,7 @@ this.maxDate = maxDate.toISOString().split('T')[0];
     this.isUpdation = false;
 
     this.isTimesheetBulkForm = true;
+    this.reset();
   }
 
   showViewMyTimesheets() {
