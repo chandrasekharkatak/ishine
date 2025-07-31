@@ -6,6 +6,7 @@ import { first, map, startWith } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { Timesheet } from 'src/app/models/timesheet';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 
@@ -25,8 +26,10 @@ export class HrDashboardComponent implements AfterViewInit {
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   selectedEmpId: any;
+  selectedProjectId:any;
   filteredEmployees: Employee[] = [];
   employeeCtrl = new FormControl();
+   projectPoCtrl = new FormControl();
   employeeList: Employee[] = [];
   teamLeadsList: any[] = [];
   filteredTeamLeads: Employee[] = [];
@@ -52,6 +55,7 @@ export class HrDashboardComponent implements AfterViewInit {
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: BsModalService,
+    private projectService:ProjectService,
     private resourceManagementService: ResourceManagementService,
   ) {}
 
@@ -59,6 +63,7 @@ export class HrDashboardComponent implements AfterViewInit {
 
     this.setLastUpdatedTime();
     this.getEmployeeByNameAndEmpld();
+    this.getProjectByNameAndPoNo();
     this.TotalEmployeeCount();
     this.vmsCompletion();
     this.ishineCompletion();
@@ -73,6 +78,16 @@ export class HrDashboardComponent implements AfterViewInit {
     )
     .subscribe(filtered => {
       this.filteredEmployees = filtered;
+    });
+
+    this.projectPoCtrl.valueChanges
+    .pipe(
+      startWith(''),
+      map(value => typeof value === 'string' ? value : value?.projectName || ''),
+      map(name => this.filterProject(name))
+    )
+    .subscribe(filtered => {
+      this.filteredProject = filtered;
     });
   }
 
@@ -204,7 +219,13 @@ export class HrDashboardComponent implements AfterViewInit {
     }
     return emp && emp.name ? emp.name : '';
   }
-
+ displayProject(project: any): string {
+    console.log("emp", project);  // This is helpful for debugging
+    if (typeof project === 'string') {
+      return project;  // User is typing or you manually set value to string
+    }
+    return project && project.projectName ? project.projectName : '';
+  }
   filterEmployees(searchText: string) {
     const lowerText = (searchText || '').toLowerCase();
     return this.employeeList.filter(emp =>
@@ -212,6 +233,14 @@ export class HrDashboardComponent implements AfterViewInit {
       emp.employmentId.toLowerCase().includes(lowerText)
     );
   }
+filterProject(searchText: string) {
+  const lowerText = (searchText || '').toLowerCase();
+  return this.projectList.filter(emp => {
+    const pName = emp.projectName ? emp.projectName.toLowerCase() : '';
+    const pPoNo = emp.poNo ? emp.poNo.toLowerCase() : '';
+    return pName.includes(lowerText) || pPoNo.includes(lowerText);
+  });
+}
 
   onEmployeeSelected(event: any) {
     const selectedEmp = event.option.value;
@@ -226,9 +255,23 @@ export class HrDashboardComponent implements AfterViewInit {
     if (!this.employeeCtrl.value || this.employeeCtrl.value.trim() === '') {
         this.selectedEmpId = 0;
     }
-}
+  }
 
+ onProjectInputChange() {
+    if (!this.projectPoCtrl.value || this.projectPoCtrl.value.trim() === '') {
+        this.selectedProjectId = 0;
+    }
+  }
 
+   onProjectSelected(event: any) {
+    const selectedProject = event.option.value;
+    if (selectedProject) {
+      this.selectedProjectId = selectedProject.projectId;
+      this.projectPoCtrl.setValue(selectedProject.projectName);
+      console.log('Selected Employee ID:', this.selectedProjectId);
+
+    }
+  }
 onDateRangeChange(): void {
   // You might add logic here to validate the date range, etc.
 }
@@ -448,5 +491,35 @@ ishineNotFilled() {
     }
   });
 }
+
+toggleValue = false;
+
+onToggleChange(event: Event) {
+  // Cast event target as HTMLInputElement to read checked property
+  const isChecked = (event.target as HTMLInputElement).checked;
+  console.log('Toggle is now:', isChecked);
+
+  // Call your desired logic here
+  // Example: update a property used for toggling rows
+  this.toggleValue = !this.toggleValue;
+
+  // Add any other side effects or function calls you want here
+}
+
+filteredProject:any[]=[];
+projectList:any[]=[];
+  getProjectByNameAndPoNo() {
+    this.projectService.getProjectWithCliendSideID().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.projectList = response.serviceResponse;
+        this.filteredProject =  this.projectList;
+        console.log("test", this.filteredProject)
+      } else {
+        // this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    });
+  }
+
+
 
 }

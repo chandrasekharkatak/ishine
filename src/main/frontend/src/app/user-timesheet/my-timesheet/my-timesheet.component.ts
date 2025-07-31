@@ -147,6 +147,9 @@ AllWeekOfList:any[]=[];
   updateClientId: TemplateRef<any>;
   @ViewChild("clientSideIdForm")
   clientSideIdFormRef: TemplateRef<any>;
+  alertWithResetModRef: BsModalRef = new BsModalRef();
+  @ViewChild("alert_message_with_reset")
+  alertModalWithoutReload: TemplateRef<any>;
 
   minDate: string;
   maxDate: string;
@@ -999,6 +1002,15 @@ setTotalWorkingClientHours() {
 
       //console.log("totalWorkingHoursInSeconds : ", totalWorkingHoursInSeconds);
 
+      if(this.timesheetObj.hasClientSideId && !this.clientSideIdNotMandatory){
+        if(this.timesheetObj.selectedFile == null){
+          this.openAlertMod(template,"Please upload Client Side Attendance Proof!")
+          return false;
+        } else {
+          this.timesheetObj.selectedFile = this.selectedFile;
+        }
+      }
+
       if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeInTime)) {
         this.alertMessage = "Please enter In Date-Time !!"
         this.openAlertMod(template, this.alertMessage);
@@ -1097,16 +1109,6 @@ setTotalWorkingClientHours() {
         return false;
       }
     }
-
-    if(this.timesheetObj.hasClientSideId && !this.clientSideIdNotMandatory){
-      if(this.timesheetObj.selectedFile == null){
-        this.openAlertMod(template,"Please upload Timesheet Proof!")
-        return false;
-      } else {
-        this.timesheetObj.selectedFile = this.selectedFile;
-      }
-    }
-
     return true;
   }
 
@@ -1379,8 +1381,7 @@ setTotalWorkingClientHours() {
       }
       } else {
         console.error(response.serviceResponse)
-        this.openAlertMod(this.alertTemplate, "Please contact the RMG team and set up your default project mapping!");
-
+        this.openAlertWithResetMod(this.alertModalWithoutReload, "Please contact the RMG team and set up your default project mapping!");
       }
     });
   }
@@ -1490,6 +1491,9 @@ setTotalWorkingClientHours() {
         }else{
           
           allActivityList = allActivityList.filter(x => x.departmentList?.map(x=>+x).includes(this.currentUser.departmentId));
+          if (allActivityList.length === 0) {
+            this.openAlertMod(this.alertModalWithoutReload, "No activity found for your department!");
+          }
           // console.log('else',allActivityList)
         }
 
@@ -1887,7 +1891,7 @@ setTotalWorkingClientHours() {
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
 
-    let content = "Employment Id: A-" + this.currentUser.employeementId
+    let content = "Employment ID: A-" + this.currentUser.employeementId
       + " Name: " + this.currentUser.name
       + " Date: " + this.timesheetObj.date
       + " Daytype: " + this.timesheetObj.dayType
@@ -2087,6 +2091,12 @@ setTotalWorkingClientHours() {
     if(this.selectedFile != null &&this.fromDate != null &&this.toDate != null &&this.currentUser.empId != null ){
       this.timesheetService.bulkFinalDocumentUpload(this.selectedFile,this.fromDate,this.toDate,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus === "Success"){
+        this.selectedFile=null;
+        this.fromDate= '';
+        this.toDate='';
+        this.currentUser.empId ='';
+        this.fileName ='';
+        this.fileType ='';
         this.openAlertMod(template, response.serviceResponse);
       }
     });
@@ -2200,6 +2210,7 @@ setTotalWorkingClientHours() {
 
   openSelfModal3(template: TemplateRef<any>) {
     this.empClientSideObj.clientSideId = '';
+    this.empClientSideObj.projectId = this.timesheetObj.projectId;
     this.updateClientIdModalRef = this.modalService.show(template, { class: 'modal-lg' });
     this.getActiveProjectsAndClientSideIdByEmpId();
   }
@@ -2237,7 +2248,7 @@ setTotalWorkingClientHours() {
     this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId,this.empClientSideObj.empId);
+        this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId,this.currentUser.empId);
       } else {
         this.openAlertMod(template, response.serviceResponse)
       }
@@ -2257,6 +2268,12 @@ setTotalWorkingClientHours() {
     this.timesheetService.getActiveProjectsAndClientSideIdByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectClientIdList = response.serviceResponse;
+        if(this.projectClientIdList){
+          const matchedProject = this.projectClientIdList.find(p => p.projectId === this.empClientSideObj.projectId);
+          if (matchedProject) {
+            this.empClientSideObj.clientSideId = matchedProject.clientSideId;
+          }
+        }
       } else {
         console.error(response.serviceResponse);
       }
@@ -2308,6 +2325,7 @@ setTotalWorkingClientHours() {
   hideNoNotAppliedYet(): void {
     if (this.noNotAppliedYetModalRef) {
       this.noNotAppliedYetModalRef.hide();
+      this.resetTimesheetForm();
     }
   }
 
@@ -2345,11 +2363,12 @@ setTotalWorkingClientHours() {
   onCancelClientSideId(template: TemplateRef<any>) {
     this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId,this.currentUser.empId);
     this.hideClientSideIdForm();
-    this.noClientSideIdProvided = this.modalService.show(template, { class: 'modal-sm' });
+    this.openclientSideIdNotMandatoryFound(template);
   }
 
   hideNoClientSideIdProvided (){
     this.noClientSideIdProvided.hide();
+    this.resetTimesheetForm();
   }
 
   onProjectSelect(projectId:any){
@@ -2394,7 +2413,7 @@ setTotalWorkingClientHours() {
       if(this.timesheetObj.clientSideId == null && this.projectRequiresClientId){
         this.getActiveProjectsAndClientSideIdByEmpId();
         this.empClientSideObj.projectId = projectId;
-        
+        this.openClientSideIdForm();
       }
     });
   }
@@ -2415,6 +2434,45 @@ setTotalWorkingClientHours() {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+  resetTimesheetForm(){
+    this.timesheetObj.projectId = '';
+    this.timesheetObj.clientSideId = '';
+    this.timesheetObj.hasClientSideId = false;
+    this.timesheetObj.shadowEmpId = '';
+    this.timesheetObj.timesheetAppliedFor = '';
+    this.timesheetObj.empId = '';
+    this.timesheetObj.employmentId = '';
+    this.timesheetObj.clientApprovalStatus = '';
+    this.timesheetObj.dayType = '';
+    this.timesheetObj.date = '';
+    this.timesheetObj.description = '';
+    this.timesheetObj.officeInTime = '';
+    this.timesheetObj.officeOutTime = '';
+    this.timesheetObj.totalWorkingOfficeHours = '';
+    this.timesheetObj.isNightShift = '';
+    this.timesheetObj.clientInTime = '';
+    this.timesheetObj.clientOutTime = '';
+    this.timesheetObj.totalClientWorkingHours = '';
+    this.timesheetObj.docId = '';
+    this.allTimesheetActivities = [];
+  }
+
+  openNoClientSideIdProvided(template: TemplateRef<any>){
+    if(this.timesheetObj.clientSideId.length == 0){
+      this.noClientSideIdProvided = this.modalService.show(template, { class: 'modal-sm' });
+    }
+  }
+
+  openAlertWithResetMod(template: TemplateRef<any>, message: any) {
+    this.alertWithResetModRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  cancelRequest2(){
+    this.alertWithResetModRef.hide();
+    this.resetTimesheetForm();
   }
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

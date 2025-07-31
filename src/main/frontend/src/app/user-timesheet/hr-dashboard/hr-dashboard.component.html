@@ -29,11 +29,22 @@
 <body>
     <div class="container-fluid p-4">
 
+        <!-- First row: Toggle button alone -->
         <div class="row mb-3">
+            <div class="col-auto">
+                <label class="switch">
+                    <input type="checkbox" checked (change)="onToggleChange($event)">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Second row: All other fields -->
+        <div class="row mb-3 align-items-center" *ngIf="!toggleValue">
 
             <!-- Employee Search -->
-            <div class="col-md-4 mb-2">
-                <mat-form-field appearance="fill" class="w-100">
+            <div class="col-md-4 mb-2 d-flex align-items-center">
+                <mat-form-field appearance="fill" class="w-100 ms-2">
                     <mat-label>Search Employee</mat-label>
                     <input matInput placeholder="Name or Emp ID" [formControl]="employeeCtrl" [matAutocomplete]="auto"
                         (input)="onEmployeeInputChange()">
@@ -68,12 +79,61 @@
 
             <!-- Search Button -->
             <div class="col-md-2 mb-2">
-                <button mat-flat-button color="primary" class="w-100 search-btn" (click)="searchTimesheet(timesheet_details)">
+                <button mat-flat-button color="primary" class="w-100 search-btn"
+                    (click)="searchTimesheet(timesheet_details)">
                     🔍 Search
                 </button>
             </div>
 
         </div>
+
+          <div class="row mb-3 align-items-center" *ngIf="toggleValue">
+
+            <!-- Employee Search -->
+            <div class="col-md-4 mb-2 d-flex align-items-center">
+                <mat-form-field appearance="fill" class="w-100 ms-2">
+                    <mat-label>Search By Project/PoNo</mat-label>
+                    <input matInput placeholder="Search By Project Name or PoNo" [formControl]="projectPoCtrl" [matAutocomplete]="auto"
+                        (input)="onProjectInputChange()">
+                    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onProjectSelected($event)"
+                        [displayWith]="displayProject">
+                        <mat-option *ngFor="let emp of filteredProject" [value]="emp">
+                            {{ emp.projectName }}
+                        </mat-option>
+                    </mat-autocomplete>
+                </mat-form-field>
+            </div>
+
+            <!-- From Date -->
+            <div class="col-md-3 mb-2">
+                <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>From Date</mat-label>
+                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate">
+                    <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #fromDatePicker></mat-datepicker>
+                </mat-form-field>
+            </div>
+
+            <!-- To Date -->
+            <div class="col-md-3 mb-2">
+                <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>To Date</mat-label>
+                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate">
+                    <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #toDatePicker></mat-datepicker>
+                </mat-form-field>
+            </div>
+
+            <!-- Search Button -->
+            <div class="col-md-2 mb-2">
+                <button mat-flat-button color="primary" class="w-100 search-btn"
+                  >
+                    🔍 Search
+                </button>
+            </div>
+
+        </div>
+
         <!-- Time Sheet Distribution -->
         <!-- <h4 class="mb-3 fw-bold">Time Sheet Distribution</h4>
         <div class="row g-3 mb-4">
@@ -146,18 +206,18 @@
         <div class="dashboard">
             <div class="header d-flex justify-content-between align-items-center">
                 <div class="title d-flex align-items-center">
-                  <span class="title-icon">📊</span>
-                  <span class="ml-2">Employee Compliance Dashboard</span>
+                    <span class="title-icon">📊</span>
+                    <span class="ml-2">Employee Compliance Dashboard</span>
                 </div>
-              
+
                 <div class="last-updated d-flex align-items-center">
-                  <span>Updated: {{ lastUpdated }}</span>
-                  <button class="btn btn-link p-0 ml-2" (click)="refreshDashboard()" title="Refresh">
-                    <i class="fas fa-sync-alt"></i>
-                  </button>
+                    <span>Updated: {{ lastUpdated }}</span>
+                    <button class="btn btn-link p-0 ml-2" (click)="refreshDashboard()" title="Refresh">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
-              </div>
-            
+            </div>
+
             <!-- Key Metrics -->
             <div class="metrics-grid">
                 <div class="metric-card">
@@ -165,26 +225,26 @@
                     <h2>{{ totalEmployees }}</h2>
                     <!-- <div class="metric-change positive">↑ 56 from last month</div> -->
                 </div>
-                
+
                 <div class="metric-card success">
                     <div class="metric-title">VMS Completion</div>
                     <div class="metric-value">{{ totalVmsFilledCount }}</div>
                     <div class="metric-change positive">↑ 5.1% from last week</div>
                 </div>
-                
+
                 <div class="metric-card warning">
                     <div class="metric-title">I-Shine Completion</div>
                     <div class="metric-value">{{ totalIshineFilledCount }}</div>
                     <div class="metric-change positive">↑ 3.2% from last week</div>
                 </div>
-                
+
                 <div class="metric-card danger">
                     <div class="metric-title"> Final Document Approval</div>
                     <div class="metric-value">58%</div>
                     <div class="metric-change negative">↓ 1.8% from last week</div>
                 </div>
             </div>
-            
+
             <!-- Status Overview -->
             <div class="status-grid">
                 <!-- <div class="status-card">
@@ -192,21 +252,21 @@
                     <div class="status-value">892 <span class="badge badge-success">71.5%</span></div>
                     <div class="status-description">Of total employees</div>
                 </div> -->
-                
+
                 <div class="status-card">
                     <div class="status-title">VMS Not Approved</div>
                     <div class="status-value">156 <span class="badge badge-warning">12.5%</span></div>
                     <div class="status-description">Pending client review</div>
                 </div>
-                
+
                 <div class="status-card">
                     <div class="status-title">VMS Not Filled</div>
                     <div class="status-value">{{totalvmsNotFilled}}
-                         <!-- <span class="badge badge-danger">16.0%</span> -->
-                        </div>
+                        <!-- <span class="badge badge-danger">16.0%</span> -->
+                    </div>
                     <!-- <div class="status-description">Overdue by 2+ days: 47</div> -->
                 </div>
-                
+
                 <!-- <div class="status-card">
                     <div class="status-title">I-Shine Not Filled</div>
                     <div class="status-value">{{totalIshineNotFilledCount}} 
@@ -215,38 +275,38 @@
                 </div> -->
                 <div class="status-card">
                     <div class="status-title">I-Shine Not Filled</div>
-                    
+
                     <div class="status-value">
-                      {{ totalIshineNotFilledCount }}
-                      <span *ngIf="totalExpectedEmployees" class="badge badge-danger">
-                        {{ ((totalIshineNotFilledCount / totalExpectedEmployees) * 100) | number:'1.1-1' }}%
-                      </span>
+                        {{ totalIshineNotFilledCount }}
+                        <span *ngIf="totalExpectedEmployees" class="badge badge-danger">
+                            {{ ((totalIshineNotFilledCount / totalExpectedEmployees) * 100) | number:'1.1-1' }}%
+                        </span>
                     </div>
-                  
+
                     <div class="status-description">Out Of: {{ totalExpectedEmployees }}</div>
-                  </div>
-                  
-                
+                </div>
+
+
                 <div class="status-card">
                     <div class="status-title">I-Shine Filled (Not Approved)</div>
                     <div class="status-value">113 <span class="badge badge-warning">9.1%</span></div>
                     <div class="status-description">Pending documentation</div>
                 </div>
-                
+
                 <!-- <div class="status-card">
                     <div class="status-title">I-Shine (Approved) </div>
                     <div class="status-value">723 <span class="badge badge-success">58.0%</span></div>
                     <div class="status-description">Fully compliant</div>
                 </div> -->
-                
+
                 <div class="status-card">
                     <div class="status-title">RM Document Rejections</div>
-                    <div class="status-value">{{rmCount}} 
+                    <div class="status-value">{{rmCount}}
                         <!-- <span class="badge badge-danger">15.2%</span> -->
                     </div>
                     <div class="status-description">Reporting manager level</div>
                 </div>
-                
+
                 <div class="status-card">
                     <div class="status-title">HR Document Rejections</div>
                     <div class="status-value"> {{hrCount}}
@@ -254,15 +314,15 @@
                     </div>
                     <div class="status-description">Human resources level</div>
                 </div>
-                
+
                 <div class="status-card">
                     <div class="status-title">HOD Document Rejections</div>
-                    <div class="status-value">{{hodCount}} 
+                    <div class="status-value">{{hodCount}}
                         <!-- <span class="badge badge-danger">5.9%</span> -->
                     </div>
                     <div class="status-description">Head of Department level</div>
                 </div>
-                
+
                 <div class="status-card">
                     <div class="status-title">Documents Reuploaded</div>
                     <div class="status-value">228 <span class="badge badge-primary">18.3%</span></div>
@@ -273,10 +333,10 @@
                     <div class="status-value">47 <span class="badge badge-primary">18.3%</span></div>
                     <div class="status-description">pending for approval</div>
                 </div>
-                
+
             </div>
-            
-           
+
+
         </div>
 
         <!-- Charts -->
@@ -321,68 +381,69 @@
 
 </html>
 
-  <ng-template #timesheet_details>
+<ng-template #timesheet_details>
     <div class="modal-header">
-      <h5 class="modal-title">Timesheet Details</h5>
+        <h5 class="modal-title">Timesheet Details</h5>
     </div>
     <div class="modal-body">
-      <div *ngIf="employeeTimesheet && employeeTimesheet.length > 0">
-        <div class="table-responsive">
-          <table class="table table-bordered table-hover">
-            <thead class="thead-light">
-              <tr>
-                <th>Sr No.</th>
-                <th>Date</th>
-                <th>Day Type</th>
-                <th>Employee Name</th>
-                <th>Project Name</th>
-                <th>Team Name</th>
-                <th>Activity</th>
-                <th>Description</th>
-                <th>Total Time (hrs)</th>
-                <th>Manager</th>
-                <th>Document</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let entry of employeeTimesheet | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                <td>{{ (page - 1) * 10 + i + 1 }}</td>
-                <td>{{ entry.date }}</td>
-                <td>{{ entry.dayType }}</td>
-                <td>{{ entry.employeeName }}</td>
-                <td>{{ entry.projectName }}</td>
-                <td>{{ entry.teamName }}</td>
-                <td>{{ entry.activity }}</td>
-                <td>{{ entry.description }}</td>
-                <td>{{ entry.totalTime }}</td>
-                <td>{{ entry.managerName }}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" (click)="previewDocument(entry.documentData.fileUrl)">
-                        Preview
-                      </button>
-                </td>
-                <td>
-                  <button class="btn btn-sm btn-success mr-1" (click)="approveTimesheet(entry)">Accept</button>
-                  <button class="btn btn-sm btn-danger" (click)="rejectTimesheet(entry)">Reject</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div *ngIf="employeeTimesheet && employeeTimesheet.length > 0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Sr No.</th>
+                            <th>Date</th>
+                            <th>Day Type</th>
+                            <th>Employee Name</th>
+                            <th>Project Name</th>
+                            <th>Team Name</th>
+                            <th>Activity</th>
+                            <th>Description</th>
+                            <th>Total Time (hrs)</th>
+                            <th>Manager</th>
+                            <th>Document</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            *ngFor="let entry of employeeTimesheet | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                            <td>{{ (page - 1) * 10 + i + 1 }}</td>
+                            <td>{{ entry.date }}</td>
+                            <td>{{ entry.dayType }}</td>
+                            <td>{{ entry.employeeName }}</td>
+                            <td>{{ entry.projectName }}</td>
+                            <td>{{ entry.teamName }}</td>
+                            <td>{{ entry.activity }}</td>
+                            <td>{{ entry.description }}</td>
+                            <td>{{ entry.totalTime }}</td>
+                            <td>{{ entry.managerName }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary"
+                                    (click)="previewDocument(entry.documentData.fileUrl)">
+                                    Preview
+                                </button>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-success mr-1"
+                                    (click)="approveTimesheet(entry)">Accept</button>
+                                <button class="btn btn-sm btn-danger" (click)="rejectTimesheet(entry)">Reject</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <pagination-controls class="my-pagination" [hidden]="employeeTimesheet.length == 0"
+                (pageChange)="handlePageChange($event)"></pagination-controls>
         </div>
-  
-        <!-- Pagination -->
-        <pagination-controls class="my-pagination" [hidden]="employeeTimesheet.length == 0"
-        (pageChange)="handlePageChange($event)"></pagination-controls>
-      </div>
-  
-      <div *ngIf="employeeTimesheet?.length === 0">
-        <p class="text-center text-muted">No timesheet data found for the selected employee and date range.</p>
-      </div>
+
+        <div *ngIf="employeeTimesheet?.length === 0">
+            <p class="text-center text-muted">No timesheet data found for the selected employee and date range.</p>
+        </div>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Close</button>
+        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Close</button>
     </div>
-  </ng-template>
-  
-  
+</ng-template>

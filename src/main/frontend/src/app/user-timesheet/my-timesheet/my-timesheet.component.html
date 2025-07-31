@@ -19,126 +19,126 @@
             <strong *ngIf="isUpdation">Update Timesheet</strong>
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="row ml-1 mt-5">
-                            <h6><span class="text-danger">*</span>Timesheet Application For</h6>
-                        </div>
-                        <div class="form-group">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="leaveFor" id="forSelf" value="self"
-                                    [(ngModel)]="timesheetObj.timesheetAppliedFor" [disabled]="isUpdation"
-                                    (change)="getAllTeamMemberList();getTimesheetMetadata();timesheetObj.isShadowTimesheet = false">
-                                <label class="form-check-label" for="forSelf">Self</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="leaveFor" id="forSelfAsShadow" value="asShadow"
-                                    [(ngModel)]="timesheetObj.timesheetAppliedFor" [disabled]="isUpdation"
-                                    (change)="timesheetObj.isShadowTimesheet = true">
-                                <label class="form-check-label" for="forShadow">As Shadow</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="leaveFor" id="forTeamMember"
-                                    value="team" [(ngModel)]="timesheetObj.timesheetAppliedFor" [disabled]="isUpdation"
-                                    (change)="getAllTeamMemberList();timesheetObj.isShadowTimesheet = false">
-                                <label class="form-check-label" for="forTeamMember">Team member</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div *ngIf="this.timesheetObj.timesheetAppliedFor == 'team'" class="row">
-                <div class="col-md-4 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Team Member</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.empId"
-                                [disabled]="isUpdation" (change)="getTimesheetMetadata($event.target)">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}">
-                                    {{teamMember.name}}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row" *ngIf = "timesheetObj.timesheetAppliedFor">
-                <div class="col-md-3 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Project</label>
-                            <mat-select ngxMatSelect class="form-control"
-                                  #filterActiveProjects="ngxMatSelect"
-                                  [displayMember]="'projectName'"
-                                  [valueMember]="'projectId'"
-                                  [source]="activeProjectList"
-                                  [useInfiniteScroll]="true"
-                                  (selectionChange)="onProjectSelect(timesheetObj.projectId)"
-                                  [multiple]="false"
-                                  [(ngModel)]="timesheetObj.projectId"
-                                  >
-                                  <mat-option [value]="project.projectId" *ngFor="let project of filterActiveProjects.filteredSource">
-                                    {{project.projectName}}
-                                  </mat-option>
-                            </mat-select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-0" *ngIf = "timesheetObj.isShadowTimesheet == true || timesheetObj.timesheetAppliedFor == 'asShadow'">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Shadow For</label>
-                            <mat-select ngxMatSelect class="form-control"
-                                  #filterShadowFor="ngxMatSelect"
-                                  [displayMember]="'name'"
-                                  [valueMember]="'empId'"
-                                  [source]="employeeList"
-                                  [useInfiniteScroll]="true"
-                                  [multiple]="false"
-                                  [(ngModel)]="timesheetObj.shadowEmpId"
-                                  (selectionChange)="getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,timesheetObj.shadowEmpId)"
-                                  >
-                                  <mat-option [value]="currentUser.empId">Self/Learning</mat-option>
-                                  <mat-option [value]="emp.empId" *ngFor="let emp of filterShadowFor.filteredSource">
-                                    {{emp.name}}
-                                  </mat-option>
-                            </mat-select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && !clientSideIdNotMandatory">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label">Client Side Id <span *ngIf="!clientSideIdNotMandatory" class="clickable-icon" title="Update Client Side Id" (click)="openSelfModal3(update_clientId)"><i class="fa-solid fa-user-pen"></i></span></label>
-                            <input class="form-control" autocomplete="none" disabled [(ngModel)]="timesheetObj.clientSideId">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && (timesheetObj.hasClientSideId || clientSideIdNotMandatory)">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label">Employment Id</label>
-                            <input class="form-control" autocomplete="none" disabled [(ngModel)]="timesheetObj.employmentId">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && !timesheetObj.hasClientSideId && !clientSideIdNotMandatory">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label">VMS filled?</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.clientApprovalStatus" (change)="onClientApprovalStatusChange($event,noNotAppliedYet)" aria-placeholder="Select">
-                                <option selected="selected" value="" disabled>Select</option>
-                                <option selected="selected" value="approved">Yes, Approved</option>
-                                <option selected="selected" value="pending">Yes, But Not Approved</option>
-                                <option selected="selected" value="no">No, Not Applied Yet</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">
+            <div class="card col-md-12 px-3">
                 <div class="row">
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="row ml-1 mt-5">
+                                <h6><span class="text-danger">*</span>Timesheet Application For</h6>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="leaveFor" id="forSelf" value="self"
+                                        [(ngModel)]="timesheetObj.timesheetAppliedFor" [disabled]="isUpdation"
+                                        (change)="getAllTeamMemberList();getTimesheetMetadata();timesheetObj.isShadowTimesheet = false">
+                                    <label class="form-check-label" for="forSelf">Self</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="leaveFor" id="forSelfAsShadow" value="asShadow"
+                                        [(ngModel)]="timesheetObj.timesheetAppliedFor" [disabled]="isUpdation"
+                                        (change)="timesheetObj.isShadowTimesheet = true">
+                                    <label class="form-check-label" for="forShadow">As Shadow</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="leaveFor" id="forTeamMember"
+                                        value="team" [(ngModel)]="timesheetObj.timesheetAppliedFor" [disabled]="isUpdation"
+                                        (change)="getAllTeamMemberList();timesheetObj.isShadowTimesheet = false">
+                                    <label class="form-check-label" for="forTeamMember">Team member</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="this.timesheetObj.timesheetAppliedFor == 'team'" class="row">
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label"><span class="text-danger">*</span>Team Member</label>
+                                <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.empId"
+                                    [disabled]="isUpdation" (change)="getTimesheetMetadata($event.target)">
+                                    <option selected="selected" value="" disabled>Select</option>
+                                    <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}">
+                                        {{teamMember.name}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" *ngIf = "timesheetObj.timesheetAppliedFor">
+                    <div class="col-md-3 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label"><span class="text-danger">*</span>Project</label>
+                                <mat-select ngxMatSelect class="form-control"
+                                    #filterActiveProjects="ngxMatSelect"
+                                    [displayMember]="'projectName'"
+                                    [valueMember]="'projectId'"
+                                    [source]="activeProjectList"
+                                    [useInfiniteScroll]="true"
+                                    (selectionChange)="onProjectSelect(timesheetObj.projectId)"
+                                    [multiple]="false"
+                                    [(ngModel)]="timesheetObj.projectId"
+                                    >
+                                    <mat-option [value]="project.projectId" *ngFor="let project of filterActiveProjects.filteredSource">
+                                        {{project.projectName}}
+                                    </mat-option>
+                                </mat-select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-0" *ngIf = "timesheetObj.isShadowTimesheet == true || timesheetObj.timesheetAppliedFor == 'asShadow'">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label"><span class="text-danger">*</span>Shadow For</label>
+                                <mat-select ngxMatSelect class="form-control"
+                                    #filterShadowFor="ngxMatSelect"
+                                    [displayMember]="'name'"
+                                    [valueMember]="'empId'"
+                                    [source]="employeeList"
+                                    [useInfiniteScroll]="true"
+                                    [multiple]="false"
+                                    [(ngModel)]="timesheetObj.shadowEmpId"
+                                    (selectionChange)="getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,timesheetObj.shadowEmpId)"
+                                    >
+                                    <mat-option [value]="currentUser.empId">Self/Learning</mat-option>
+                                    <mat-option [value]="emp.empId" *ngFor="let emp of filterShadowFor.filteredSource">
+                                        {{emp.name}}
+                                    </mat-option>
+                                </mat-select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && !clientSideIdNotMandatory">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label">Client Side ID <span *ngIf="!clientSideIdNotMandatory" class="clickable-icon" title="Update Client Side ID" (click)="openSelfModal3(update_clientId)"><i class="fa-solid fa-user-pen"></i></span></label>
+                                <input class="form-control" autocomplete="none" disabled [(ngModel)]="timesheetObj.clientSideId">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && (timesheetObj.hasClientSideId || clientSideIdNotMandatory)">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label">Employment ID</label>
+                                <input class="form-control" autocomplete="none" disabled [(ngModel)]="timesheetObj.employmentId">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && !timesheetObj.hasClientSideId && !clientSideIdNotMandatory">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label">Client Side Attendance filled?</label>
+                                <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.clientApprovalStatus" (change)="onClientApprovalStatusChange($event,noNotAppliedYet)" aria-placeholder="Select">
+                                    <option selected="selected" value="" disabled>Select</option>
+                                    <option selected="selected" value="approved">Yes, Approved</option>
+                                    <option selected="selected" value="pending">Yes, But Not Approved</option>
+                                    <option selected="selected" value="no">No, Not Applied Yet</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">
                     <div class="col-md-3 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
@@ -155,6 +155,8 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="card col-md-12 px-3" *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">
                 <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
                     <div class="col-md-3 mb-0">
                         <div class="info-wrapper">
@@ -185,6 +187,8 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="card col-md-12 px-3" *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">
                 <div class="row ml-1 mt-5">
                         <h6><span class="text-danger">*</span>ApMoSys</h6>
                 </div>
@@ -236,64 +240,12 @@
                         </div>
                     </div>
                 </div> 
-
-                <!-- <div *ngIf="timesheetObj.dayType !== 'Public Holiday' && timesheetObj.dayType !== 'Week Off' && timesheetObj.dayType !== 'Leave'" class="row gx-3 align-items-end  ">
-                   
-                    <div class="col-md-3">
-                      <label class="form-label"><span class="text-danger">*</span> In Time</label>
-                      <div class="position-relative">
-                        <input id="officeInTime" class="form-control" placeholder="Select In Time"
-                          [(ngModel)]="timesheetObj.officeInTime"
-                          [owlDateTimeTrigger]="officeInTimePicker"
-                          [owlDateTime]="officeInTimePicker"
-                          [owlDateTimeFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
-                          (dateTimeChange)="resetTotalWorkingOfficeHours(alertTemplate); timesheetObj.clientInTime = timesheetObj.officeInTime"
-                          (keydown)="disableMannualDateInput()" autocomplete="off">
-                        <owl-date-time #officeInTimePicker [hour12Timer]="true"></owl-date-time>
-                      </div>
-                      <small *ngIf="timesheetObj.officeInTime" class="text-muted d-block mt-1">
-                        <strong class="text-primary">In Time:</strong> {{ timesheetObj.officeInTime | date:'hh:mm a' }}
-                      </small>
-                    </div>
-                  
-                   
-                    <div class="col-md-3">
-                      <label class="form-label"><span class="text-danger">*</span> Out Time</label>
-                      <div class="position-relative">
-                        <input id="officeOutTime" class="form-control" placeholder="Select Out Time"
-                          [(ngModel)]="timesheetObj.officeOutTime"
-                          [owlDateTimeTrigger]="officeOutTimePicker"
-                          [owlDateTime]="officeOutTimePicker"
-                          [owlDateTimeFilter]="outTimeFilter"
-                          [max]="maxOutTimeDate"
-                          [disabled]="!timesheetObj.officeInTime"
-                          (dateTimeChange)="setTotalWorkingOfficeHours(); timesheetObj.clientOutTime = timesheetObj.officeOutTime; timesheetObj.totalClientWorkingHours = timesheetObj.totalWorkingOfficeHours"
-                          (keydown)="disableMannualDateInput()" autocomplete="off">
-                        <owl-date-time #officeOutTimePicker [hour12Timer]="true" [startAt]="timesheetObj.officeInTime"></owl-date-time>
-                      </div>
-                      <small *ngIf="timesheetObj.officeOutTime" class="text-muted d-block mt-1">
-                        <strong class="text-primary">Out Time:</strong> {{ timesheetObj.officeOutTime | date:'hh:mm a' }}
-                      </small>
-                    </div>
-                  
-                    
-                    <div class="col-md-2">
-                      <label class="form-label">Total Working Hours</label>
-                      <input type="text" class="form-control" [(ngModel)]="timesheetObj.totalWorkingOfficeHours" disabled>
-                    </div>
-                  
-                    
-                    <div class="col-md-2">
-                      <label class="form-label">Night Shift</label><br />
-                      <input type="checkbox" class="form-check-input mt-2" [(ngModel)]="timesheetObj.isNightShift"
-                        (click)="openNightShiftTemplate(night_shift_template, $event)">
-                    </div>
-                  </div> -->
-                  
-
+            </div>
+            <div class="card col-md-12 px-3" *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">
                 <div *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory">
                     <div class="row ml-1 mt-5" >
                         <h6><span class="text-danger">*</span>Client Side</h6>
+                        <small class="text-muted ml-1">(Ensure that the Client Side in-time and out-time align with the timings in the Client Side Attendance proof)</small>
                     </div>
                     <!-- Client Side IN/OUT Time-->
                     <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row">
@@ -343,14 +295,14 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-0" *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory">
+                        <div class="col-md-3 mb-0" *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory">
                             <div class="info-wrapper">
                                 <div class="form-group">
-                                    <label class="info-label"><span class="text-danger">*</span> Upload Timesheet Proof</label>
+                                    <label class="info-label" style="width: auto;"><span class="text-danger">*</span> Upload Client Side Attendance Proof</label>
                                         <div class="d-flex align-items-center">
                                             <input type="file" class="form-control form-control-sm"
                                             accept=".pdf,.jpg,.jpeg,.png" (change)="onFileSelected($event)" style="max-width: 200px;">
-                                            <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
+                                            <button class="btn btn-outline-primary btn-sm ms-2 p" title="Preview"
                                                 [disabled]="!previewUrl" (click)="openPreviewModal()">
                                                 <i class="fa fa-eye fa-lg text-primary"></i>
                                             </button>
@@ -373,7 +325,8 @@
                         </div>
                     </div>
                 </div>
-                
+            </div>
+            <div class="card col-md-12 px-3" *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">
                 <!-- Add & Update Activities -->
                 <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="container-fluid px-0">
                     <div class="row ml-1 mt-5">
@@ -478,51 +431,6 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <!-- <div class="col-md-3 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                                            <select class="form-control" aria-hidden="true"
-                                                [(ngModel)]="activityObj.projectId" (blur)="validateProjectName($event,activityObj.projectId)"
-                                                (change)="getAllActivitiesByProjectIdandEmpId(activityObj);">
-                                                <option selected="selected" value="" disabled>Select</option>
-                                                <option *ngFor="let project of activityObj.projectList"
-                                                    value="{{project.projectId}}">{{project.projectName}}</option>
-                                            </select>
-                                            <small class="errorMsg text-danger"></small>
-                                        </div>
-                                    </div>
-                                </div> -->
-
-                                <!-- <div class="col-md-3 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Team Name</label>
-                                                <mat-select ngxMatSelect 
-                                                    class="form-control"
-                                                    #teamName="ngxMatSelect" 
-                                                    [displayMember]="'projectName | teamName'"
-                                                    [valueMember]="'teamId'"
-                                                    [source]="activityObj.projectList" 
-                                                    [useInfiniteScroll]="true"
-                                                    (selectionChange)="getAllActivitiesByProjectIdandEmpId(activityObj)"
-                                                    [multiple]="false" 
-                                                    [(ngModel)]="activityObj.teamId">
-                                                    <mat-option [value]="project.teamId" *ngFor="let project of teamName.filteredSource">
-                                                        {{project.projectName}} | {{project.teamName}}
-                                                    </mat-option>
-                                                </mat-select>
-                                            <select class="form-control" aria-hidden="true"
-                                                [(ngModel)]="activityObj.teamId" 
-                                                (change)="getAllActivitiesByProjectIdandEmpId(activityObj);">
-                                                <option selected="selected" value="" disabled>Select</option>
-                                                <option *ngFor="let project of activityObj.projectList"
-                                                    value="{{project.teamId}}">{{project.projectName}} | {{project.teamName}}</option>
-                                            </select>
-                                            <small class="errorMsg text-danger"></small>
-                                        </div>
-                                    </div>
-                                </div> -->
                                 <div class="col-md-3 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
@@ -579,7 +487,7 @@
                 </div>
                 <!-- end :: Add & Update Activities -->
                 <div class="row mt-3">
-                    <div class="col-md-12">
+                    <div class="col-md-12" style="padding-bottom: 1.5rem;">
                         <button *ngIf="isCreation && userMapping.add_timesheet" type="submit"
                             class="btn btn-primary btn-sm mx-1" [disabled]="disableCreateUpdateTimesheet" (click)="onCreateTimesheet(alert_message)">Create
                             Timesheet</button>
@@ -1029,7 +937,7 @@
             <div class="col-md-6 mb-0">
                 <div class="info-wrapper">
                     <div class="form-group">
-                        <label class="info-label">Client Side Id</label>
+                        <label class="info-label">Client Side ID</label>
                         <input class="form-control" autocomplete="none" [(ngModel)]="empClientSideObj.clientSideId">
                     </div>
                 </div>
@@ -1037,8 +945,8 @@
         </div>
     </div>
     <div class="modal-body text-center">
-        <button type="button" class="btn btn-yes-alert" (click)="hideSelfModal3();updateClientSideIdMapping(alert_message)">Update</button>&nbsp;
-        <button type="button" class="btn btn-no-alert" (click)="hideSelfModal3()">Cancel</button>&nbsp;
+        <button type="button" class="btn-yes-alert" (click)="hideSelfModal3();updateClientSideIdMapping(alert_message)">Update</button>&nbsp;
+        <button type="button" class="btn-no-alert" (click)="hideSelfModal3();openNoClientSideIdProvided(noClientSideIdProvided)">Cancel</button>&nbsp;
     </div>
 </ng-template>
 
@@ -1063,16 +971,16 @@
 
 <ng-template #noNotAppliedYet>
     <div class="modal-body text-center">
-        <h6>Please fill the VMS to proceed with timesheet filling</h6>
+        <h6>Please ensure to fill the Client Side Attendance within two days to proceed with timesheet filling or you will be marked as defaulter.</h6>
         <button type="button" class="btn-yes-alert" (click)="hideNoNotAppliedYet()">OK</button>&nbsp;
     </div>
 </ng-template> 
 
 <ng-template #clientSideIdNotMandatoryFound>
     <div class="modal-body text-center">
-        <h6>No client side Id found for this Project. Please update it to continue.</h6>
+        <h6>No client side ID found for this Project. Please update it to continue.</h6>
         <button type="button" class="btn-yes-alert" (click)="hideclientSideIdNotMandatoryFound();openSelfModal3(update_clientId)">Update</button>&nbsp;
-        <button type="button" class="btn-no-alert" (click)="hideclientSideIdNotMandatoryFound()">Cancel</button>&nbsp;
+        <button type="button" class="btn-no-alert" (click)="hideclientSideIdNotMandatoryFound();openNoClientSideIdProvided(noClientSideIdProvided)">Cancel</button>&nbsp;
     </div>
 </ng-template> 
 
@@ -1093,7 +1001,7 @@
             <div class="col-md-6 mb-0">
                 <div class="info-wrapper">
                     <div class="form-group">
-                        <label class="info-label">Client Side Id</label>
+                        <label class="info-label">Client Side ID</label>
                         <input class="form-control" autocomplete="none" [(ngModel)]="empClientSideObj.clientSideId">
                     </div>
                 </div>
@@ -1108,7 +1016,14 @@
 
 <ng-template #noClientSideIdProvided>
     <div class="modal-body text-center">
-        <h6>Timesheet cannot be filled as no client side id was provided.</h6>
-        <button type="button" class="btn-no-alert" (click)="hideNoClientSideIdProvided()">Ok</button>&nbsp;
+        <h6>Timesheet cannot be filled as no client side ID was provided. Please ensure to fill it within 2 working days or you will be marked as a defaulter.</h6>
+        <button type="button" class="btn-yes-alert" (click)="hideNoClientSideIdProvided()">Ok</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alert_message_with_reset>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest2()">OK</button>&nbsp;
     </div>
 </ng-template>
