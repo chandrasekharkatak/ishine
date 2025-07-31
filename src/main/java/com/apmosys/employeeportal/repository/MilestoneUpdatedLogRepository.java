@@ -23,6 +23,8 @@ public interface MilestoneUpdatedLogRepository extends JpaRepository<MilestoneUp
 	 
 
 	    Optional<MilestoneUpdatedLog> findByMilestoneNameAndExtendedDate(String milestoneName, Date extendedDate);
+	    
+	    Optional<MilestoneUpdatedLog> findTopByMilestoneIdOrderByUpdatedOnDesc(Long milestoneId);
 
 	 
 	 

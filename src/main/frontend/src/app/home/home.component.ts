@@ -2834,11 +2834,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
       milestoneName: this.selectedMilestone.name,
       milestoneStartDate: this.selectedMilestone.startDate
-        ? new Date(this.selectedMilestone.startDate).toISOString().split('T')[0]
-        : null,
+        ? new Date(this.selectedMilestone.startDate):null,
       milestoneEndDate: this.selectedMilestone.endDate
-        ? new Date(this.selectedMilestone.endDate).toISOString().split('T')[0]
-        : null,
+        ? new Date(this.selectedMilestone.endDate):null,
       description: this.selectedMilestone.description,
       remarks: this.selectedMilestone.remarks,
       milestoneStatus: this.selectedMilestone.status,
@@ -3006,8 +3004,7 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
     } else if (daysLeft === 0) {
       return 'Expires Today';
     } else {
-      // Use "day" for 1 and "days" for all other cases
-      return `${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} left`;
+     return `${daysLeft}`;
     }
   }
 

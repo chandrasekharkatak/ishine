@@ -529,3 +529,6 @@ input[formControlName="extendedDate"]:focus {
 .alert-modal-sm .modal-dialog {
   max-width: 350px; /* The small size for this specific popup */
 }
+.required-asterisk {
+  color: red;
+}

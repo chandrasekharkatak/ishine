@@ -4,8 +4,8 @@ export interface MilestoneUpdatedLog {
   projectId?: number;
 
   milestoneName?: string;
-  milestoneStartDate?: string;  // ISO format or 'yyyy-MM-dd'
-  milestoneEndDate?: string;
+  milestoneStartDate?: Date;  // ISO format or 'yyyy-MM-dd'
+  milestoneEndDate?: Date;
 
   description?: string;
   remarks?: string;

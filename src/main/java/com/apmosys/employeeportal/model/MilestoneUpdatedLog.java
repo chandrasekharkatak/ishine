@@ -32,8 +32,8 @@ public class MilestoneUpdatedLog {
     private Long projectId;
 
     private String milestoneName;
-    private String milestoneStartDate;
-    private String milestoneEndDate;
+    private Date milestoneStartDate;
+    private Date milestoneEndDate;
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -58,5 +58,8 @@ public class MilestoneUpdatedLog {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "milestone_extension_reason_id", referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_milestone_reason"))
     private MilestoneExtensionReason milestoneExtensionReason;
+    
+    @Column(name = "updated_on")
+    private Date updatedOn;
 }
 

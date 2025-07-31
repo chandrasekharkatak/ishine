@@ -17,8 +17,8 @@ public class MilestoneUpdatedLogDto {
     private Long projectId;
 
     private String milestoneName;
-    private String milestoneStartDate;
-    private String milestoneEndDate;
+    private Date milestoneStartDate;
+    private Date milestoneEndDate;
 
     private String description;
     private String remarks;

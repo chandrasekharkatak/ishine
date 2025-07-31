@@ -1687,7 +1687,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
                         </ng-container>
 
                         <ng-container
-                            *ngFor="let milestone of milestoneToBeExpired | sort : [milestoneExpiredSortColumn, milestoneExpiredSortColumnType, milestoneExpiredSortDirection] | paginate: { itemsPerPage: 10, currentPage: milestoneExpiredPage }; let i = index">
+                            *ngFor="let milestone of milestoneToBeExpired | sort : [milestoneExpiredSortColumn, milestoneExpiredSortColumnType, milestoneExpiredSortDirection] | paginate: { itemsPerPage: 5, currentPage: milestoneExpiredPage }; let i = index">
                             <tr>
                                 <td>{{ i + 1 }}</td>
                                 <td>{{ milestone.projectName }}</td>
@@ -1773,7 +1773,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Extended Date</label>
+                        <label class="form-label fw-semibold">Extended Date<span class="required-asterisk">*</span></label>
                         <input class="form-control form-control-sm border-primary rounded" autocomplete="off"
                             [formControl]="$any(milestoneForm.get('extendedDate'))"
                             [owlDateTimeTrigger]="extendedDatePicker" [owlDateTime]="extendedDatePicker" [min]="minExtendedDateformilestone"    [disabled]="!milestoneForm.get('endDate').value"
@@ -1783,7 +1783,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
 
                     <div class="col-md-6">
-                        <label for="extensionReasonId">Reason</label>
+                        <label for="extensionReasonId">Reason<span class="required-asterisk">*</span></label>
                         <select class="form-control form-control-sm border-primary rounded" id="extensionReasonId"
                             formControlName="extensionReasonId" (change)="onReasonChange($event)">
                             <option [ngValue]="null" disabled>Select Reason</option>
@@ -1794,13 +1794,11 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
                     </div>
 
 
-
-
                     <!-- Conditional Text Field -->
-                    <div class="col-md-12" *ngIf="isOtherReasonSelected">
-                        <label class="form-label fw-semibold">Enter Custom Reason</label>
-                        <input type="text" class="form-control form-control-sm border-primary rounded"
-                            formControlName="customReason" placeholder="Specify your reason" />
+                   <div class="col-md-12" *ngIf="isOtherReasonSelected">
+                    <label class="form-label fw-semibold">Enter Custom Reason</label>
+                          <textarea class="form-control form-control-sm border-primary rounded" formControlName="customReason"
+                       placeholder="Specify your reason" rows="3"></textarea>
                     </div>
 
 

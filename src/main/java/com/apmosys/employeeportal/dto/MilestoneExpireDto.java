@@ -22,6 +22,7 @@ public class MilestoneExpireDto {
 	private String projectName;
 	private String poNo;
 	private Long updatedBy;
+	private String milestoneExtensionReason;
 	
     
 	
