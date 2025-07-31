@@ -322,8 +322,8 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 				"from Project p  \n"+
 				"inner join Team t on t.projectId = p.projectId \n"+
 				"inner join EmployeeTeamMap etm on etm.teamId = t.teamId \n"+
-				"left join EmployeeClientSideIdMapping ecsm on ecsm.projectId = p.projectId AND ecsm.active = TRUE \n"+
-				"where etm.empId = :empId and etm.active = 1")
+				"left join EmployeeClientSideIdMapping ecsm on ecsm.projectId = p.projectId AND ecsm.active = TRUE AND ecsm.empId = etm.empId \n"+
+				"where etm.empId = :empId and etm.active = 1 and p.active = 'true' and t.isActive = 'Y'")
 		public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(Long empId);
 		
 		@Query(value = "SELECT DISTINCT e.name employee_name, p.project_name, t.team_name, " +
