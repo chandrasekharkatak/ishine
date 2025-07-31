@@ -25,7 +25,7 @@ public class TimesheetRejectionReasonsMaster {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long rejectionId;
-	private Long rejectionReason;
+	private String rejectionReason;
 	private Boolean active;
 	private Long createdBy;
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

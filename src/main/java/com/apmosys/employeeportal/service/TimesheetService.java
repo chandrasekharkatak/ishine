@@ -1,7 +1,6 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -24,9 +23,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -53,6 +50,7 @@ import com.apmosys.employeeportal.model.TimesheetActivityMap;
 import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
 import com.apmosys.employeeportal.model.TimesheetDocumentApproval;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
+import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -67,6 +65,7 @@ import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetApprovalAllocationLogsRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
+import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -138,6 +137,9 @@ public class TimesheetService {
     
 	@Autowired
 	TimesheetApprovalAllocationLogsRepository  timesheetApprovalAllocationLogsRepository; 
+	
+	@Autowired
+	TimesheetRejectionReasonsMasterRepository  timesheetRejectionReasonsMasterRepository;
 //	public ServiceResponse getAllProjectsByEmpId(TimesheetDTO timesheetDTO) {
 //		ServiceResponse response = new ServiceResponse();
 //		try {
@@ -3431,5 +3433,107 @@ public class TimesheetService {
 		 logService.logMyInfo(httpRequest, apiLogInfo);
 		 return response;
 	}
+	public ServiceResponse getEmployeeTimesheetsByProject(TimesheetDTO timesheetDTO) {
+		   ServiceResponse response = new ServiceResponse();
+
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("getEmployeeTimesheetsByProject");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    logBuilder.append("getEmployeeTimesheetsByProject");
+		    try {
+		    	List<Object[]> timesheetDetailsAccordingToProject = projectRepository.getEmployeeTimesheetsByProject(timesheetDTO.getProjectId(),timesheetDTO.getFromDate(),timesheetDTO.getToDate());
+		    	
+		    	if(timesheetDetailsAccordingToProject == null) {
+					 
+				    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("No Timesheet Details Found");
+		            response.setServiceMessage("No Timesheet Details Found");
+		            
+		            apiLogInfo.setApiResponse("No Timesheet Details Found");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            logService.logMyInfo(httpRequest, apiLogInfo);
+		            return response;
+			 }else {
+				 
+				 List<TimesheetDTO> employeeTimesheetsByProjectDetails = new ArrayList<TimesheetDTO>();
+				 for(Object[] object: timesheetDetailsAccordingToProject) {
+					 TimesheetDTO dto = new TimesheetDTO();
+					 dto.setEmployeeName(object[0] != null ? object[0].toString() : null);                 // e.name
+					 dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);        // e.emp_id
+					 dto.setEmployeementId(object[2] != null ? Long.parseLong(object[2].toString()) : null); // e.employeement_id
+					 dto.setClientSideId(object[3] != null ? object[3].toString() : null);                  // e.client_side_id
+					 dto.setProjectName(object[4] != null ? object[4].toString() : null);                   // e.project_name
+					 dto.setExpectedEODCount(object[5] != null ? Long.parseLong(object[5].toString()) : null); // wds.expected_fill_count
+					 dto.setSubmittedCount(object[6] != null ? Integer.valueOf(object[6].toString()) : null);          // ts.submitted_count
+					 dto.setClientPendingCount(object[7] != null ? Integer.valueOf(object[7].toString()) : null);       // ds.Client_pending_count
+					 dto.setClientApprovedCount(object[8] != null ? Integer.valueOf(object[8].toString()) : null);      // ds.Client_Approved_count
+
+					 employeeTimesheetsByProjectDetails.add(dto);
+				 }
+				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(employeeTimesheetsByProjectDetails);
+		            response.setServiceMessage("Timesheet details successfully fetched.");
+		            apiLogInfo.setApiResponse("Timesheet details successfully fetched.");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			 }
+			
+		    }catch(Exception e) {
+		    	    e.printStackTrace();
+			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			        response.setServiceResponse("Something went wrong.");
+			        response.setServiceError(e.getMessage());
+			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			        apiLogInfo.setApiResponse(e.getMessage()); 
+			        apiLogInfo.setLogLevel("ERROR");
+		    }
+		    
+	    return response;
+	}
+
+	public ServiceResponse getRejectionReason() {
+		
+		   ServiceResponse response = new ServiceResponse();
+
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("getRejectionReason");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    logBuilder.append("getRejectionReason");
+		    try {
+		    	List<TimesheetRejectionReasonsMaster> detailsOfRejection=timesheetRejectionReasonsMasterRepository.findAll();
+		    	
+		    	if(detailsOfRejection == null) {
+					 
+				    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("No Reject Reasons Found.");
+		            response.setServiceMessage("No Reject Reasons Found.");
+		            
+		            apiLogInfo.setApiResponse("No Reject Reasons Found.");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            logService.logMyInfo(httpRequest, apiLogInfo);
+		            return response;
+			 }else {
+				 
+				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(detailsOfRejection);
+		            response.setServiceMessage("Reject reasons fetched successfully.");
+		            apiLogInfo.setApiResponse("Reject reasons fetched successfully.");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			 }
+			
+		    }catch(Exception e) {
+		    	    e.printStackTrace();
+			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			        response.setServiceResponse("Something went wrong.");
+			        response.setServiceError(e.getMessage());
+			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			        apiLogInfo.setApiResponse(e.getMessage()); 
+			        apiLogInfo.setLogLevel("ERROR");
+		    }
+		    
+	    return response;
+	}
+
 	
 }

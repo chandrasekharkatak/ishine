@@ -230,4 +230,8 @@ export class TimesheetService {
     return this.http.get(`${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`);
   }
 
+  getRejectionReason(){
+    return this.http.get(`${this.baseUrl}`+`api/totalIshineNotFilledCount`);
+  }
+   
 }

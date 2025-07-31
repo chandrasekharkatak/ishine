@@ -64,6 +64,8 @@ export class HrDashboardComponent implements AfterViewInit {
   excelName: any;
   tableName: any;
 
+
+timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','expectedEODCount','submittedCount','clientApprovedCount','clientPendingCount'];
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: BsModalService,
@@ -76,7 +78,7 @@ export class HrDashboardComponent implements AfterViewInit {
 
     this.setLastUpdatedTime();
     this.getEmployeeByNameAndEmpld();
-    // this.getProjectByNameAndPoNo();
+   this.getProjectByNameAndPoNo();
     // this.TotalEmployeeCount();
     this.vmsCompletion();
     // this.ishineCompletion();
@@ -282,7 +284,7 @@ filterProject(searchText: string) {
     if (selectedProject) {
       this.selectedProjectId = selectedProject.projectId;
       this.projectPoCtrl.setValue(selectedProject.projectName);
-      console.log('Selected Employee ID:', this.selectedProjectId);
+      console.log('Selected Employee ID:', this.selectedProjectId,selectedProject);
 
     }
   }
@@ -533,6 +535,30 @@ projectList:any[]=[];
       }
     });
   }
+employeeListAccordingToProject:any[]=[];
+    getEmployeeTimesheetsByProject(template: TemplateRef<any> ) {
+      this.page = 1;
+  if (!this.selectedProjectId || !this.fromDate || !this.toDate) {
+     this.openAlertMod(this.alertTemplate, 'Please select an project and valid dates.');
+    return;
+  }
+  this.timesheetObj.projectId = this.selectedProjectId;
+  this.timesheetObj.fromDate = this.formatDate(this.fromDate);
+  this.timesheetObj.toDate = this.formatDate(this.toDate);
+    this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.employeeListAccordingToProject = response.serviceResponse;
+        console.log("test",this.employeeListAccordingToProject);
+        this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+        this.fromDate = null;
+        this.toDate = null;
+        this.timesheetObj.projectId = '' ;
+      } else {
+        // this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    });
+  }
+
 
   getEmployeeViewForClientAttendanceStatus() {
     this.timesheetService.getEmployeeViewForClientAttendanceStatus().pipe(first()).subscribe((response: any) => {
@@ -597,4 +623,26 @@ projectList:any[]=[];
   this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
 }
 
+  resetSearch() {
+    this.isSearchEnabled = false;
+    this.filters = {};
+  }
+
+ 
+modalTitle = 'Timesheet Details';
+  exportToExcelEmployeeSummary(): void {
+      const onlySpecificDataArr = this.employeeListAccordingToProject.map(
+        x => ({
+          "Emp ID": x.employeementId,
+          "Name": x.employeeName,
+          "Project Name": x.projectName,
+          "Expected Timesheet Count": x.expectedEODCount,
+          "Total Applied Count": x.submittedCount,
+          "Client Approved Timesheet Count": x.clientApprovedCount,
+          "Client Pending Timesheet Count": x.clientPendingCount,
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
+    }
 }
+

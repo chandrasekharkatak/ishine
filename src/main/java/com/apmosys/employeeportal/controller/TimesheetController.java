@@ -4,10 +4,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -311,6 +310,21 @@ public class TimesheetController {
 	 public ServiceResponse getEmployeeViewForClientAttendanceStatus() {
 		 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus();
 		 return reponse;
+	 }
+	 @RequestMapping(value = "/getEmployeeTimesheetsByProject", method =RequestMethod.POST)
+	 public ServiceResponse getEmployeeTimesheetsByProject(@RequestBody TimesheetDTO timesheetDTO) {
+	      
+	     ServiceResponse reponse= timesheetService.getEmployeeTimesheetsByProject(timesheetDTO);
+	     
+	     return reponse;
+	 }
+	 
+	 @RequestMapping(value = "/getRejectionReason",method = RequestMethod.GET)
+	 public ServiceResponse getRejectionReason() {
+	      
+	     ServiceResponse reponse= timesheetService.getRejectionReason();
+	     
+	     return reponse;
 	 }
 	 
 }

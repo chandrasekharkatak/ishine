@@ -1,22 +1,21 @@
+import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
+import { DomSanitizer } from '@angular/platform-browser';
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
 import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { TimesheetService } from 'src/app/services/timesheet.service';
-import { ValidationService } from 'src/app/services/validation.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { Sort } from '@angular/material/sort';
-import { LocationStrategy } from '@angular/common';
-import * as moment from 'moment';
-import { AppComponent } from 'src/app/app.component';
-import { Employee360Service } from 'src/app/services/employee360.service';
-import { SortPipe } from 'src/app/sort.pipe';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { Employee360Service } from 'src/app/services/employee360.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
-import { DomSanitizer } from '@angular/platform-browser';
+import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
   selector: 'app-team-timesheet',
@@ -26,7 +25,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 export class TeamTimesheetComponent implements OnInit {
 
   @ViewChild("previewTemplate")
-    previewModal : TemplateRef<any>;
+  previewModal: TemplateRef<any>;
 
   data: string;
   feature = "Team Timesheets";
@@ -35,7 +34,7 @@ export class TeamTimesheetComponent implements OnInit {
 
   sortDirection = 'asc';
   sortColumn: any;
-  sortColumnType:any;
+  sortColumnType: any;
 
   //flags 
   isAllTimesheetTable: boolean = false;
@@ -51,7 +50,7 @@ export class TeamTimesheetComponent implements OnInit {
   modalRef: BsModalRef = new BsModalRef();
   allTeamTimesheets: any[] = [];
   allTeamTimesheetRequests: Timesheet[] = [];
-  
+
 
   timesheetObj: Timesheet = new Timesheet();
   startDate: any;
@@ -62,18 +61,18 @@ export class TeamTimesheetComponent implements OnInit {
   bulkApprove: any = [];
   bulkReject: any = [];
 
-  tableName : String;
+  tableName: String;
 
 
-  filters:any = {};
-  isSearchEnabled:boolean = false;
-  allTimesheetColumns:any[] = ['blank','employeementId','employeeName','date','dayType','description','totalTime','officeInTime','officeOutTime','totalWorkingOfficeHours','status','isNightShift','leaveType','remarks'];
-  allTimesheetReqColumns:any[] = ['blank','employeementId','employeeName','date','dayType','description','createdByName','totalTime','officeInTime','officeOutTime','totalWorkingOfficeHours','isNightShift','status'];
+  filters: any = {};
+  isSearchEnabled: boolean = false;
+  allTimesheetColumns: any[] = ['blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'status', 'isNightShift', 'leaveType', 'remarks'];
+  allTimesheetReqColumns: any[] = ['blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
 
   previewUrl: any;
   fileType: '' | 'pdf' | 'image' | null = null;
-  docData:any;
-  mimeType:any;
+  docData: any;
+  mimeType: any;
 
   constructor(
     public validationService: ValidationService,
@@ -100,7 +99,7 @@ export class TeamTimesheetComponent implements OnInit {
 
     this.sectionViewInit();
     this.preventBackButton();
-    
+    this.getRejectionReason();
 
   }
   preventBackButton() {
@@ -109,7 +108,7 @@ export class TeamTimesheetComponent implements OnInit {
       history.pushState(null, null, location.href);
     })
   }
-  
+
   sectionViewInit() {
     if (this.userMapping.view_my_teams_timesheets) {
       this.showAllTimesheetsTable();
@@ -132,9 +131,9 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   showAllTimesheetRequestsTable() {
-    this.sortColumn=[];
-    this.sortColumnType=[];
-    this.sortDirection='';
+    this.sortColumn = [];
+    this.sortColumnType = [];
+    this.sortDirection = '';
     this.isAllTimesheetRequestTable = true;
 
     this.isAllTimesheetTable = false;
@@ -203,7 +202,7 @@ export class TeamTimesheetComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
         this.allTeamTimesheetRequests.forEach((timesheet, index) => {
-          timesheet.checkId = "timesheet"+index;
+          timesheet.checkId = "timesheet" + index;
           timesheet.employeementId = "A-".concat(timesheet.employeementId);
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -214,7 +213,7 @@ export class TeamTimesheetComponent implements OnInit {
         this.allTeamTimesheetRequests.forEach(timesheet => {
           timesheet.emp360 = timesheet.empId;
           timesheet.emp360CreatedBy = timesheet.createdBy;
-          });
+        });
 
         //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
@@ -394,13 +393,13 @@ export class TeamTimesheetComponent implements OnInit {
 
 
   //sorting timesheet	
-  sortData(sort: Sort){	
+  sortData(sort: Sort) {
     //console.log(sort);
-    if(sort.active){
-      let sortParams:any[] = sort.active?.split("|");
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 
@@ -466,9 +465,9 @@ export class TeamTimesheetComponent implements OnInit {
 
   bulkApproveWithoutNightShiftRequest(template: TemplateRef<any>) {
     this.bulkApprove = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
-    if(this.bulkApprove.length !== 0){
+    if (this.bulkApprove.length !== 0) {
       this.onBulkApproval(template);
-    }else{
+    } else {
       this.cancelRequest();
       this.showAllTimesheetRequestsTable();
     }
@@ -488,9 +487,9 @@ export class TeamTimesheetComponent implements OnInit {
   bulkRejectWithoutNightShiftRequest(bulkRejectTimesheet: TemplateRef<any>) {
     this.timesheetObj.rejectReason = null;
     this.bulkReject = this.bulkApprove.filter((x) => x.isNightShift == "false" || x.isNightShift == null);
-    if(this.bulkReject.length !== 0){
+    if (this.bulkReject.length !== 0) {
       this.openBulkRejectTimesheet(bulkRejectTimesheet);
-    }else{
+    } else {
       this.cancelRequest();
       this.showAllTimesheetRequestsTable();
     }
@@ -544,20 +543,20 @@ export class TeamTimesheetComponent implements OnInit {
 
   }
 
-  getDoscForPreview(docId:any){
-    console.log(docId,":docId");
+  getDoscForPreview(docId: any) {
+    console.log(docId, ":docId");
     this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         console.log(response.serviceResponse);
         this.docData = response.serviceResponse.docData;
-        console.log(typeof(this.docData),":docDataType")
+        console.log(typeof (this.docData), ":docDataType")
         this.mimeType = response.serviceResponse.docMimeType
-        this.showPreview(this.docData,this.mimeType)
+        this.showPreview(this.docData, this.mimeType)
       }
     });
   }
   showPreview(base64Data: string, mimeType: string) {
-  const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    const dataUrl = `data:${mimeType};base64,${base64Data}`;
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
 
     if (mimeType === 'application/pdf') {
@@ -569,24 +568,36 @@ export class TeamTimesheetComponent implements OnInit {
     }
 
 
-  // Open modal
-  this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
-}
+    // Open modal
+    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+  }
 
-  toggleSearch(){
+  toggleSearch() {
     this.isSearchEnabled = !this.isSearchEnabled;
-    if(!this.isSearchEnabled){
+    if (!this.isSearchEnabled) {
       this.filters = {};
     }
 
   }
 
-  onSearch(searchData){
+  onSearch(searchData) {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
 
+rejectReasonList:any[]=[];
+  getRejectionReason() {
+   
+    this.timesheetService.getRejectionReason().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+         this.rejectReasonList=response.serviceResponse;
+         console.log("test",this.rejectReasonList);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
 
+  }
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {

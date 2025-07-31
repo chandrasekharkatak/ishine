@@ -2687,9 +2687,11 @@ public class ProjectService {
        if(details != null) {
 		for(Object[] object:details) {
 			ProjectFetchDTO projectDetails= new ProjectFetchDTO();
-			projectDetails.setProjectId(object[2] != null ? Integer.valueOf(object[2].toString()) : null);
+			
 			projectDetails.setProjectName(object[0] != null ? object[0].toString() : null);
-			projectDetails.setPoNo(object[1] != null ? object[1].toString() : null)			;
+			projectDetails.setPoNo(object[1] != null ? object[1].toString() : null);
+			projectDetails.setProjectId(object[2] != null ? Integer.valueOf(object[2].toString()) : null);
+			
 			dtoList.add(projectDetails);
 			}
         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
