@@ -2751,9 +2751,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       ];
       const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
-      ws['!cols'] = columns.map(col =>
-        (col.key.endsWith('Id') && !col.key.endsWith('Name')) ? { hidden: true } : {}
-      );
+      // ws['!cols'] = columns.map(col =>
+      //   (col.key.endsWith('Id') && !col.key.endsWith('Name')) ? { hidden: true } : {}
+      // );
   
       XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31)); // Excel sheet name limit
     });
