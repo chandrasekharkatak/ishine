@@ -563,40 +563,38 @@ projectList:any[]=[];
   }
 
   onSearch(searchData: any) {
-  this.filters = searchData;
+    this.filters = searchData;
   }
 
   exportToExcel(): void {
-  this.excelName = "Employee Attendance View.xlsx";
-  this.tableName = "Employee Info";
+    this.excelName = "Employee Attendance View.xlsx";
+    this.tableName = "Employee Info";
 
-  const exportData = this.employeeView.map((x: any) => ({
-    'Employment ID': x.employmentId || 'NA',
-    'Employee Name': x.name || 'NA',
-    'Billable': x.billable || 'NA',
-    'Billable Type': x.billableType || 'NA',
-    'Mobile No': x.mobileNo || 'NA',
-    'Email': x.email || 'NA',
-    'Department': x.departmentName || 'NA',
-    'Expected Attendance Fill Count': x.expectedFillCount ?? 0,
-    'Timesheet Filled Count': x.timesheetFilledCount ?? 0,
-    'Client Side Attendance Pending%': x.clientSideAttendancePendingCount ?? 0,
-    'Client Side Attendance Approved%': x.clientSideAttendanceApprovedCount ?? 0,
-    'Client Side Attendance Not Filled%': x.clientSideAttendanceNotFilledCount ?? 0,
-    'Project Name': x.projectName || 'NA',
-    'PO Number': x.poNo || 'NA',
-    'Project Type': x.projectType || 'NA',
-    'Project Manager': x.projectManagers || 'NA',
-    'Client': x.clientName || 'NA',
-    'Apmosys RM': x.apmosysRM || 'NA',
-    'Apmosys RM Email': x.apmosysRmEmail || 'NA',
-    'Client RM': x.clientRM || 'NA',
-    'Team Name': x.team || 'NA',
-    'Team Lead Name': x.teamLeadName || 'NA'
+    const exportData = this.employeeView.map((x: any) => ({
+      'Employment ID': x.employmentId || 'NA',
+      'Employee Name': x.name || 'NA',
+      'Billable': x.billable || 'NA',
+      'Billable Type': x.billableType || 'NA',
+      'Mobile No': x.mobileNo || 'NA',
+      'Email': x.email || 'NA',
+      'Department': x.departmentName || 'NA',
+      'Expected Attendance Fill Count': x.expectedFillCount ?? 0,
+      'Timesheet Filled Count': x.timesheetFilledCount ?? 0,
+      'Client Side Attendance Pending%': x.clientSideAttendancePendingCount ?? 0,
+      'Client Side Attendance Approved%': x.clientSideAttendanceApprovedCount ?? 0,
+      'Client Side Attendance Not Filled%': x.clientSideAttendanceNotFilledCount ?? 0,
+      'Project Name': x.projectName || 'NA',
+      'PO Number': x.poNo || 'NA',
+      'Project Type': x.projectType || 'NA',
+      'Project Manager': x.projectManagers || 'NA',
+      'Client': x.clientName || 'NA',
+      'Apmosys RM': x.apmosysRM || 'NA',
+      'Apmosys RM Email': x.apmosysRmEmail || 'NA',
+      'Client RM': x.clientRM || 'NA',
+      'Team Name': x.team || 'NA',
+      'Team Lead Name': x.teamLeadName || 'NA'
   }));
-
   this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
 }
-
 
 }
