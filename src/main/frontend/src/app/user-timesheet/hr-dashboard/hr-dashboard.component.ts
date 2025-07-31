@@ -74,13 +74,13 @@ export class HrDashboardComponent implements AfterViewInit {
 
   async ngOnInit(): Promise<void> {
 
-    // this.setLastUpdatedTime();
+    this.setLastUpdatedTime();
     this.getEmployeeByNameAndEmpld();
     // this.getProjectByNameAndPoNo();
     // this.TotalEmployeeCount();
-    // this.vmsCompletion();
+    this.vmsCompletion();
     // this.ishineCompletion();
-    // this.vmsNotFilled();
+    this.vmsNotFilled();
     // this.ishineNotFilled();
     this.getEmployeeViewForClientAttendanceStatus();
 

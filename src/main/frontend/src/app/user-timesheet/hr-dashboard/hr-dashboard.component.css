@@ -402,3 +402,48 @@ input:focus + .slider {
 input:checked + .slider:before {
   transform: translateX(20px);  
 }
+
+
+
+.metric-card {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    height: 140px; /* Fixed height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .metric-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: normal;
+  }
+  
+  .metric-value,
+  .metric-card h2 {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  .success {
+    background-color: #d4edda;
+  }
+  
+  .warning {
+    background-color: #fff3cd;
+  }
+  
+  .danger {
+    background-color: #f8d7da;
+  }
+  
