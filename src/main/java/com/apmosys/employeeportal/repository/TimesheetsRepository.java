@@ -326,11 +326,11 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 				"where etm.empId = :empId and etm.active = 1 and p.active = 'true' and t.isActive = 'Y'")
 		public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(Long empId);
 		
-		@Query(value = "SELECT DISTINCT e.name employee_name, p.project_name, t.team_name, " +
+		@Query(value = "SELECT DISTINCT e.name, p.project_name, t.team_name, " +
 	               "CASE WHEN po_project_type IS NOT NULL THEN po_project_type " +
 	               "ELSE internal_project_type END AS project_type, " +
 	               "et.date, day_type, et.total_time, " +
-	               "a.activity, etam.description, pm.name Project_Manager_name " +
+	               "a.activity, etam.description, pm.name Project_Manager_name , et.timesheet_id " +
 	               "FROM employee_timesheets et " +
 	               "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
 	               "INNER JOIN activities a ON a.activity_id = etam.activity_id " +

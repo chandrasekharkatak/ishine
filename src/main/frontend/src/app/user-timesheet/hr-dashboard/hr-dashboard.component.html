@@ -650,8 +650,8 @@
                             <td>{{ entry.totalTime }}</td>
                             <td>{{ entry.managerName }}</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary"
-                                    (click)="previewDocument(entry.documentData.fileUrl)">
+                                <button class="btn btn-sm btn-outline-primary" *ngIf="entry.docId"
+                                    (click)="getDoscForPreview(entry.docId)">
                                     Preview
                                 </button>
                             </td>
@@ -842,3 +842,21 @@
     </div>
   </div>
 </ng-template>
+<!-- Preview Modal Template -->
+    <ng-template #previewTemplate>
+        <div class="modal-header">
+            <h5 class="modal-title">Document Preview</h5>
+            <button type="button" class="close" aria-label="Close" (click)="modalRef2?.hide()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body text-center">
+            <!-- PDF Preview -->
+            <iframe *ngIf="fileType === 'pdf'" [src]="previewUrl" width="100%" height="400px"
+                style="border: none;"></iframe>
+
+            <!-- Image Preview -->
+            <img *ngIf="fileType === 'image'" [src]="previewUrl" class="img-fluid" alt="Preview"
+                style="max-height: 400px;">
+        </div>
+    </ng-template>

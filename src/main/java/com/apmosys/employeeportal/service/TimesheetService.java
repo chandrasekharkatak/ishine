@@ -2743,6 +2743,9 @@ public class TimesheetService {
 	            dto.setActivity((String) record[7]);     
 	            dto.setDescription((String) record[8]);  
 	            dto.setManagerName((String) record[9]); 
+	            Long timesheetId = record[10] != null ? Long.valueOf(record[10].toString()) : null;
+	            Long docId = timesheetDocumentDetailsRepository.findDocIdByTimesheetId(timesheetId);
+	            dto.setDocId(docId != null ? docId : null);
 	            return dto;
 	        }).collect(Collectors.toList());
 
@@ -3235,6 +3238,7 @@ public class TimesheetService {
 	            doc.setDocName(fileName);
 	            doc.setDocData(fileBytes);
 	            doc.setDocMimeType(contentType);
+	            doc.setClientApprovalStatus("Approved");
 	            doc.setUpdatedBy(empId);
 	            doc.setUpdatedOn(LocalDateTime.now());
 	            doc.setFinalFlag(true);

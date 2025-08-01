@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, ElementRef, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
+import { DomSanitizer } from '@angular/platform-browser';
 import * as Highcharts from 'highcharts';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
@@ -28,6 +29,8 @@ export class HrDashboardComponent implements AfterViewInit {
   @ViewChild('docRejectChart', { static: false }) docRejectChart!: ElementRef;
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+  @ViewChild("previewTemplate")
+  previewModal: TemplateRef<any>;
   selectedEmpId: any;
   selectedProjectId:any;
   filteredEmployees: Employee[] = [];
@@ -63,7 +66,10 @@ export class HrDashboardComponent implements AfterViewInit {
   sortColumnType: any;
   excelName: any;
   tableName: any;
-
+  previewUrl: any;
+  fileType: '' | 'pdf' | 'image' | null = null;
+  docData: any;
+  mimeType: any;
 
 timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','expectedEODCount','submittedCount','clientApprovedCount','clientPendingCount'];
   constructor(private employeeService: EmployeeService,
@@ -72,6 +78,7 @@ timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectN
     private projectService:ProjectService,
     private resourceManagementService: ResourceManagementService,
     private exportExcelService: ExportExcelService,
+    private sanitizer: DomSanitizer
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -294,6 +301,7 @@ onDateRangeChange(): void {
 
 alertMessage: any;
 modalRef: BsModalRef = new BsModalRef();
+modalRef2: BsModalRef = new BsModalRef();
 
 openAlertMod(template: TemplateRef<any>, message: any) {
   this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
@@ -569,6 +577,35 @@ employeeListAccordingToProject:any[]=[];
       }
     });
   }
+
+   getDoscForPreview(docId: any) {
+      console.log(docId, ":docId");
+      this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          console.log(response.serviceResponse);
+          this.docData = response.serviceResponse.docData;
+          console.log(typeof (this.docData), ":docDataType")
+          this.mimeType = response.serviceResponse.docMimeType
+          this.showPreview(this.docData, this.mimeType)
+        }
+      });
+    }
+    showPreview(base64Data: string, mimeType: string) {
+      const dataUrl = `data:${mimeType};base64,${base64Data}`;
+      this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+  
+      if (mimeType === 'application/pdf') {
+        this.fileType = 'pdf';
+      } else if (mimeType.startsWith('image/')) {
+        this.fileType = 'image';
+      } else {
+        this.fileType = '';
+      }
+  
+  
+      // Open modal
+      this.modalRef2 = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    }
 
   toggleSearch(): void {
     this.isSearchEnabled = !this.isSearchEnabled;
