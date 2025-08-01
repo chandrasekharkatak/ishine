@@ -66,6 +66,13 @@ export class HrDashboardComponent implements AfterViewInit {
 
 
 timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','expectedEODCount','submittedCount','clientApprovedCount','clientPendingCount'];
+  totalClientSideApprovedCount: any;
+  eodNotFilledCount: any;
+  totalClientSidePendingCount: any;
+  totalDocumentApprovedCount: any;
+  totalDocumentPendingCOunt: any;
+  totalDocumentPendingCount: any;
+  totalDocumentRejectedCount: any;
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: BsModalService,
@@ -83,7 +90,7 @@ timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectN
     this.vmsCompletion();
     // this.ishineCompletion();
     this.vmsNotFilled();
-    // this.ishineNotFilled();
+    this.ishineNotFilled();
     this.getEmployeeViewForClientAttendanceStatus();
 
     this.employeeCtrl.valueChanges
@@ -499,6 +506,13 @@ ishineNotFilled() {
     if (response.serviceStatus === "Success") {
       console.log(response.serviceResponse);
       const nestedArray = response.serviceResponse;
+      this.totalClientSideApprovedCount = nestedArray?.[0]?.[0] ?? 0;
+      this.totalClientSidePendingCount = nestedArray?.[0]?.[1] ?? 0;
+      this.eodNotFilledCount = nestedArray?.[0]?.[2] ?? 0;
+      this.totalDocumentApprovedCount = nestedArray?.[0]?.[4] ?? 0;
+      this.totalDocumentRejectedCount = nestedArray?.[0]?.[5] ?? 0;
+
+
       this.totalExpectedEmployees = nestedArray?.[0]?.[0] ?? 0;
       this.totalIshineNotFilledCount = nestedArray?.[0]?.[1] ?? 0;
       console.log("Total Ishine NOt completion",this.totalIshineNotFilledCount);

@@ -57,21 +57,21 @@
               
                 <div class="col-md-2">
                   <div class="metric-card success">
-                    <div class="metric-title">CS EOD Approved</div>
-                    <div class="metric-value">100</div>
+                    <div class="metric-title">Ready For Invoicing</div>
+                    <div class="metric-value">{{totalClientSideApprovedCount}}</div>
                   </div>
                 </div>
               
                 <div class="col-md-2">
                   <div class="metric-card warning">
-                    <div class="metric-title">CS EOD Pending</div>
-                    <div class="metric-value">50</div>
+                    <div class="metric-title">CS Approval Pending</div>
+                    <div class="metric-value">{{totalClientSidePendingCount}}</div>
                   </div>
                 </div>
               
                 <div class="col-md-2">
                   <div class="metric-card danger">
-                    <div class="metric-title">EOD Not Filled</div>
+                    <div class="metric-title">Defaulters</div>
                     <div class="metric-value">{{ totalvmsNotFilled }}</div>
                   </div>
                 </div>
@@ -79,14 +79,14 @@
                 <div class="col-md-2">
                   <div class="metric-card success">
                     <div class="metric-title">Doc Approved</div>
-                    <div class="metric-value">58%</div>
+                    <div class="metric-value">{{totalDocumentApprovedCount}}%</div>
                   </div>
                 </div>
               
                 <div class="col-md-2">
                   <div class="metric-card danger">
                     <div class="metric-title">Doc Rejected</div>
-                    <div class="metric-value">58%</div>
+                    <div class="metric-value">{{totalDocumentRejectedCount}}%</div>
                   </div>
                 </div>
               </div>
