@@ -33,7 +33,9 @@
             <div class="header d-flex justify-content-between align-items-center">
                 <div class="title d-flex align-items-center">
                     <span class="title-icon">📊</span>
-                    <span class="ml-2">Employee Compliance Dashboard</span>
+                    <!-- <span class="ml-2">Employee Compliance Dashboard</span> -->
+                    <span class="ml-2">Client-Side Attendance Dashboard</span>
+
                 </div>
 
                 <div class="last-updated d-flex align-items-center">
@@ -216,7 +218,7 @@
                     <div class="col-md-2 mb-2" style="padding-bottom: 22px;">
                         <button mat-flat-button color="primary" class="w-100 search-btn"
                             (click)="searchTimesheet(timesheet_details)">
-                            🔍 Search
+                            <i class="fa fa-search"></i> Search
                         </button>
                     </div>
         
@@ -260,10 +262,10 @@
                     </div>
         
                     <!-- Search Button -->
-                    <div class="col-md-2 mb-2">
+                    <div class="col-md-2 mb-2" style="padding-bottom: 22px;">
                         <button mat-flat-button color="primary" class="w-100 search-btn"
                         (click)="getEmployeeTimesheetsByProject(timesheet_summary_template)">
-                            🔍 Search
+                        <i class="fa fa-search"></i> Search
                         </button>
                     </div>
         
@@ -467,10 +469,8 @@
                                             <td>{{project.clientSideAttendanceApprovedCount || 0}}</td>
                                             <td>{{project.clientSideAttendanceNotFilledCount || 0}}</td>
                                             <td title="Click to view Team Details">
-                                                <span style="cursor: pointer; color: blue;" id="clickablefor360"
-                                                    (click)="cancelRequest()"
-                                                    [navigateToProjectView]="project.projectViewId">
-                                                    {{project.projectName ? project.projectName : 'NA' }}
+                                                <span id="clickablefor360" [navigateToTeamEmployeeTimesheet]="project.projectId">
+                                                    {{project.projectName ? project.projectName : 'NA' }}{{project.projectId}}
                                                 </span>
                                             </td>
                                             <td>{{project.poNo ? project.poNo : 'NA' }}</td>

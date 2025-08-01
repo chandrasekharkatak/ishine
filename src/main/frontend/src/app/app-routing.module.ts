@@ -89,6 +89,7 @@ import { InformationPreviewComponent } from './user-update-info/information-prev
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
 import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
+import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -213,6 +214,7 @@ const routes: Routes = [
   },
   
   {path:'project-view', component: ProjectViewComponent},
+  {path:'team-employee-timesheet', component: TeamEmployeeTimesheetViewComponent},
   {path:'lms-tab', component: LmstabComponent, canActivate: [AuthGuard]},
   {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
   {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
