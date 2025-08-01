@@ -35,4 +35,5 @@ public class TimesheetDocumentApproval {
     private LocalDateTime updatedOn;
     private Integer rejectionLevel;
     private Integer hierarchyOrder;
+    private Integer rejectedhierarchyOrder;
 }

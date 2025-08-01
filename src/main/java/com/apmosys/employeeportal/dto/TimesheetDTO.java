@@ -143,5 +143,8 @@ public class TimesheetDTO {
 	private Integer submittedCount;
 	private Integer ClientPendingCount;
 	private Integer ClientApprovedCount;
+	private Long hodId;
+	private Long rmId;
+	private Integer rejectedhierarchyOrder;
 
 }
