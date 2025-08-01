@@ -153,7 +153,7 @@ getTeamMemberByTeamId(teamId:any){
   }
   
   getTeamInfo(projectId:any){
-    return this.http.get(`${this.baseUrl}`+`api/getTeamInfo?projectId=${projectId}`,null);
+    return this.http.get(`${this.baseUrl}`+`api/getTeamInfo?projectId=${projectId}`);
   }
 
 

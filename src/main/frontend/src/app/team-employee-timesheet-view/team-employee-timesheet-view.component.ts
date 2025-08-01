@@ -25,12 +25,12 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       this.projectId = params['projectId'];
+      if (this.projectId) {
+        this.getTeamInfo(this.projectId);
+      } else {
+        console.warn("projectId is missing in query params.");
+      }
       console.log('Received projectId from query param:', this.projectId);
-    if (this.projectId) {
-    this.getTeamInfo(this.projectId);
-  } else {
-    console.warn("projectId is missing in query params.");
-  }
     });
   }
 
