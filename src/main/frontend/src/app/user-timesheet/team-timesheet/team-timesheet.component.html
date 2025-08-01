@@ -329,6 +329,15 @@
 <ng-template #reject_timesheet>
 <div class="modal-body text-center">
     <p>Kindly provide reason(s) for rejecting application.</p>
+    <mat-form-field appearance="fill" class="w-100">
+            <mat-label><span class="text-danger">*</span>Reject Reason</mat-label>
+            <mat-select [(ngModel)]="selectedRejectReason">
+              <mat-option *ngFor="let reason of rejectReasons" [value]="reason.rejectionId">
+                {{ reason.rejectionReason }}
+              </mat-option>
+            </mat-select>
+    </mat-form-field>
+    <label class="info-label">Reject Remark</label>
     <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
     <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();rejectTimesheetRequest(alert_message)">Reject</button>&nbsp;
     <button type="button" class="btn btn-danger" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;

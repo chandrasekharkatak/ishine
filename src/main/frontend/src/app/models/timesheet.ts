@@ -104,4 +104,7 @@ export class Timesheet{
     selectedFile:any;
     documentData:TimesheetDoc;
     docId:any;
+    rejectionId: any;
+    hodId:any;
+    rmId:any;
 }

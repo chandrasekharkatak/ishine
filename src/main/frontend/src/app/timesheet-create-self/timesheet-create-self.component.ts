@@ -150,6 +150,9 @@ export class TimesheetCreateSelfComponent implements OnInit {
     this.clientList = data.clientName ? [{ clientId: data.clientId, clientName: data.clientName }] : [];
 
     this.timesheetObj = {
+      hodId:data?.hodId ?? null,
+      rmId:data?.rmId ?? null,
+      rejectionId:data?.rejectionId ?? null,
       checkId: data?.checkId ?? null,
       timesheetId: data?.timesheetId ?? null,
       allTimesheetActivities: this.allTimesheetActivities,

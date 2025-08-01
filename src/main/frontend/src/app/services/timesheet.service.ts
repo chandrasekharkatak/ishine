@@ -231,7 +231,7 @@ export class TimesheetService {
   }
 
   getRejectionReason(){
-    return this.http.get(`${this.baseUrl}`+`api/totalIshineNotFilledCount`);
+    return this.http.get(`${this.baseUrl}`+`api/getRejectionReason`);
   }
    
 }

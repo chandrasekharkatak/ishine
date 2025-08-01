@@ -73,6 +73,8 @@ export class TeamTimesheetComponent implements OnInit {
   fileType: '' | 'pdf' | 'image' | null = null;
   docData: any;
   mimeType: any;
+  selectedRejectReason: any;
+  rejectReasons: any[] = [];
 
   constructor(
     public validationService: ValidationService,
@@ -100,7 +102,6 @@ export class TeamTimesheetComponent implements OnInit {
     this.sectionViewInit();
     this.preventBackButton();
     this.getRejectionReason();
-
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -229,6 +230,9 @@ export class TeamTimesheetComponent implements OnInit {
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
     timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
+    timesheetObj.rejectionId = this.selectedRejectReason;
+    timesheetObj.rmId = this.currentUser.reportingManagerId;
+    timesheetObj.hodId = this.currentUser.hodId;
 
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -257,6 +261,7 @@ export class TeamTimesheetComponent implements OnInit {
     this.cancelRequest();
 
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.getRejectionReason();
   }
 
 
@@ -585,13 +590,12 @@ export class TeamTimesheetComponent implements OnInit {
     //console.log("Updated Filter : ", this.filters);
   }
 
-rejectReasonList:any[]=[];
   getRejectionReason() {
    
     this.timesheetService.getRejectionReason().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-         this.rejectReasonList=response.serviceResponse;
-         console.log("test",this.rejectReasonList);
+         this.rejectReasons=response.serviceResponse;
+         console.log("test",this.rejectReasons);
       } else {
         console.error(response.serviceResponse)
       }
