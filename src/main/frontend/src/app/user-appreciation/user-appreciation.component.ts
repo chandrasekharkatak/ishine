@@ -240,16 +240,16 @@ this.clickCount = 0;
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if(!this.validationService.validateAlphaWithSpace(employeeObj.reason)) {
-      this.alertMessage = "Only support letters in Description !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    if(!this.validationService.validateTeamName(employeeObj.reason)){
-      this.alertMessage = "Please enter a valid comment for why you want to give appreciation?"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+    // if(!this.validationService.validateAlphaWithSpace(employeeObj.reason)) {
+    //   this.alertMessage = "Only support letters in Description !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
+    // if(!this.validationService.validateTeamName(employeeObj.reason)){
+    //   this.alertMessage = "Please enter a valid comment for why you want to give appreciation?"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
     return true;
   }
 
