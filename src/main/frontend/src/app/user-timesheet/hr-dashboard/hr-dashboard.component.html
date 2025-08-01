@@ -469,10 +469,8 @@
                                             <td>{{project.clientSideAttendanceApprovedCount || 0}}</td>
                                             <td>{{project.clientSideAttendanceNotFilledCount || 0}}</td>
                                             <td title="Click to view Team Details">
-                                                <span style="cursor: pointer; color: blue;" id="clickablefor360"
-                                                    (click)="cancelRequest()"
-                                                    [navigateToProjectView]="project.projectViewId">
-                                                    {{project.projectName ? project.projectName : 'NA' }}
+                                                <span id="clickablefor360" [navigateToTeamEmployeeTimesheet]="project.projectId">
+                                                    {{project.projectName ? project.projectName : 'NA' }}{{project.projectId}}
                                                 </span>
                                             </td>
                                             <td>{{project.poNo ? project.poNo : 'NA' }}</td>

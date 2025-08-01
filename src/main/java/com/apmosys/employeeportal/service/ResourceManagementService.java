@@ -3859,7 +3859,7 @@ public class ResourceManagementService {
 		return response;
 	}
 
-	public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) {
+	public ServiceResponse getTeamInfo(Integer projectId) {
 
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -3867,10 +3867,10 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getTeamInfo");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("TeamInfo : " + projectRepository.getTeamInfo(resourceManagementDTO.getProjectId()).size());
+		logBuilder.append("TeamInfo : " + projectRepository.getTeamInfo(projectId).size());
 
 		try {
-			List<Object[]> teamInfo = projectRepository.getTeamInfo(resourceManagementDTO.getProjectId());
+			List<Object[]> teamInfo = projectRepository.getTeamInfo(projectId);
 		    
 		    Map<Long, TeamInfoTeamDTO> teamMap = new LinkedHashMap<>();
 
@@ -3909,14 +3909,27 @@ public class ResourceManagementService {
 		        member.setStartDate(object[6] != null ? object[6].toString() : null);
 		        member.setActive(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
 		        member.setEmployeeTeamMapId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+		        member.setEmploymentId(object[16] != null ? object[16].toString() : null);
+		        member.setEmail(object[17] != null ? object[17].toString() : null);
+		        member.setMobileNo(object[18] != null ? Long.parseLong(object[18].toString()) : null);
+		        member.setDate(object[19] != null ? object[19].toString() : null);
+//		        member.setApmosysInTime(object[20] != null ? LocalDateTime.parse(object[20].toString()) : null);
+//		        member.setApmosysOutTime(object[21] != null ? LocalDateTime.parse(object[21].toString()) : null);
+//		        member.setClientInTime(object[22] != null ? LocalDateTime.parse(object[22].toString()) : null);
+//		        member.setClientOutTime(object[23] != null ? LocalDateTime.parse(object[23].toString()) : null);
+		        member.setExpectedTimesheetFilledCount(object[24] != null ? Long.parseLong(object[24].toString()) : null);
+		        member.setApmosysTimesheetFilledCount(object[25] != null ? Long.parseLong(object[25].toString()) : null);
+		        member.setClientSideAttendancePendingCount(object[26] != null ? Long.parseLong(object[26].toString()) : null);
+		        member.setClientSideAttendanceApprovedCount(object[27] != null ? Long.parseLong(object[27].toString()) : null);
+//		        member.setDocId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
 
 		        member.setIsDefaultProject(
 		            this.isDefaultProject(
-		                member.getEmpId(), resourceManagementDTO.getProjectId()
+		                member.getEmpId(), projectId
 		            )
 		        );
 		        	
-				Map<String, Object> activeProjectInfo = this.getActiveProjectDetailsIfMultiple(member.getEmpId(), resourceManagementDTO.getProjectId());
+				Map<String, Object> activeProjectInfo = this.getActiveProjectDetailsIfMultiple(member.getEmpId(), projectId);
 				if ((Boolean) activeProjectInfo.get("isMultipleActiveProjects")) {
 				    List<Map<String, Object>> otherProjects = (List<Map<String, Object>>) activeProjectInfo.get("projects");
 				    member.setOtherActiveProjects(otherProjects);

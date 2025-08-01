@@ -190,7 +190,7 @@ export class ProjectViewComponent implements OnInit {
       return 'NA';
     }
   }
-  getTeamInfo(project): void {
+  getTeamInfo(project:any): void {
     this.employee360Service.getTeamInfo(project).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === "Success") {

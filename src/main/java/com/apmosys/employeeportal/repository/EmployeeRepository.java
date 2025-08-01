@@ -1211,7 +1211,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "\n"
 			+ "    IFNULL(ds.Client_pending_count, 0) AS ClientSidePendingTimesheet_count,\n"
 			+ "    IFNULL(ds.Client_Approved_count, 0) AS Client_Approved_count,\n"
-			+ "    e.apmosysrm, e.apmosys_rm_email, e.clientrm,e.employement_id,e.dept_name,e.Project_Manager\n"
+			+ "    e.apmosysrm, e.apmosys_rm_email, e.clientrm,e.employement_id,e.dept_name,e.Project_Manager,e.project_id\n"
 			+ "FROM\n"
 			+ "    Base_Employees e\n"
 			+ "CROSS JOIN\n"

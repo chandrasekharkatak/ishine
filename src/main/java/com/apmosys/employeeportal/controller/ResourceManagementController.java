@@ -156,10 +156,10 @@ public class ResourceManagementController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getTeamInfo", method = RequestMethod.POST)
-	public ServiceResponse getTeamInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+	@GetMapping("/getTeamInfo")
+	public ServiceResponse getTeamInfo(@RequestParam Integer projectId) {
 		
-		ServiceResponse response = resourceManagementService.getTeamInfo(resourceManagementDTO);
+		ServiceResponse response = resourceManagementService.getTeamInfo(projectId);
 		return response;
 	}
 	@RequestMapping(value = "/getTeamMemberByTeamId/{teamId}", method = RequestMethod.GET)
