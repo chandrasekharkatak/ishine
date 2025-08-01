@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -856,12 +857,20 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	List<Long> findProjectIdsByRmEmail(@Param("rmEmail") String rmEmail);
 	
 	
-	@Query("SELECT p.poProjectId FROM Project p JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId WHERE pmm.projectManagerId = :projectManagerId AND pmm.active = 1")
-	List<Long> findPoProjectIdsByProjectManagerIdWithJoin(@Param("projectManagerId") Long projectManagerId);
-
-	
-
-
+     
+	   @Query("SELECT p FROM Project p WHERE p.poProjectType = 'Fixed Cost'")
+	    List<Project> findAllFixedCostProjects();
+	   
+	    @Query("SELECT p FROM Project p WHERE p.poProjectType = 'Fixed Cost' " +
+	           "AND p.projectStatus = 'Completed' " +
+	           "AND p.projectCompletionDate >= :startDate")
+	    List<Project> findCompletedFixedCostProjectsAfterDate(@Param("startDate") LocalDateTime startDate);
+	    
+	    
+	    
+	    @Query("SELECT p FROM Project p WHERE p.poProjectType = 'Fixed Cost' " +
+	           "AND p.projectCompletionDate < CURRENT_TIMESTAMP") 
+	    List<Project> findExpiredFixedCostProjects();
 	
 	
 	

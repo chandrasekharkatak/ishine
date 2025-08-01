@@ -8,9 +8,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.Comparator;
 import javax.servlet.http.HttpServletRequest;
@@ -51,6 +53,7 @@ import com.apmosys.employeeportal.dto.MilestoneExpireDto;
 import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
+import com.apmosys.employeeportal.dto.ProjectWiseMilestoneDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
@@ -59,6 +62,7 @@ import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.MilestoneUpdatedLog;
+import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -1327,7 +1331,96 @@ public class PoPortalAPIService {
 
 	    return response;
 	}
-
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public ServiceResponse getMilestoneProjectWise() {
+	    ServiceResponse response = new ServiceResponse();
+	    String traceId = UUID.randomUUID().toString();
+	    ApiLog initialLog = null;
+	    List<MilestoneExpireDto> milestones = new ArrayList<>();
+	    try {
+	  
+	        initialLog = apiLogUtility.startLog(traceId, "getMilestoneProjectWise", "poPortal", getCurrentUserId(), httpRequest);
+	        
+	    
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.setContentType(MediaType.APPLICATION_JSON);
+	        headers.set("X-Trace-Id", traceId);
+	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+	        HttpEntity<List<Long>> requestEntity = new HttpEntity<>(null, headers);
+	        
+	       
+	        ResponseEntity<MilestoneExpireDto[]> apiResponse = restTemplate.exchange(
+	            getExpiryMilestoneUrl, 
+	            HttpMethod.POST, 
+	            requestEntity, 
+	            MilestoneExpireDto[].class
+	        );
+	    
+	        if (apiResponse.getStatusCode() == HttpStatus.OK && apiResponse.getBody() != null) {
+	            milestones = Arrays.asList(apiResponse.getBody());
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceMessage("Successfully fetched milestones.");
+	      
+	            Map<Long, List<MilestoneExpireDto>> milestonesByProject = milestones.stream()
+	                    .collect(Collectors.groupingBy(MilestoneExpireDto::getProjectId));
+	            List<ProjectWiseMilestoneDto> projectWithMilestonesList = new ArrayList<>();
+	            for (Long projectId : milestonesByProject.keySet()) {
+	                List<MilestoneExpireDto> milestoneList = milestonesByProject.get(projectId);
+	                Project project = projectRepository.findByPoProjectId(projectId);
+	                if (project == null) {
+	                    String msg = "Project with ID " + projectId + " not found based on the milestone.";
+	                    logger.warn(msg);
+	                    
+	                    continue;
+	                }
+	                
+	                ProjectWiseMilestoneDto projectWithMilestones = new ProjectWiseMilestoneDto();
+	                projectWithMilestones.setProject(project);
+	                projectWithMilestones.setMilestones(milestoneList);
+	                projectWithMilestonesList.add(projectWithMilestones);
+	            }
+	            response.setServiceResponse(projectWithMilestonesList);
+	            logger.info("Grouped {} milestones based on project IDs.", milestones.size());
+	        } else {
+	            String errorMsg = "Failed to fetch milestones: " + apiResponse.getStatusCode();
+	            logger.error(errorMsg);
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceMessage(errorMsg);
+	            response.setStatusCode(200);
+	        }
+	    } catch (Exception e) {
+	        logger.error("Unexpected error occurred while fetching milestones: {}", e.getMessage(), e);
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Unexpected error occurred.");
+	        response.setServiceError(e.getMessage());
+	        response.setServiceMessage("Error: " + e.getMessage());
+	    } finally {
+	       
+	        try {
+	            if (initialLog != null && initialLog.getId() != null) {
+	                String logMsg = initialLog.getId() != null ? "Total milestones fetched: " + milestones.size() : "Log ended without fetching milestones.";
+	                apiLogUtility.endLog(initialLog.getId(), getExpiryMilestoneUrl, HttpStatus.OK.value(), logMsg, httpRequest);
+	            }
+	        } catch (Exception logEx) {
+	            logger.error("Failed to end log: {}", logEx.getMessage());
+	        }
+	    }
+	    return response;
+	}
+}
+	
+        	  
+        	
+        	
+ 
 
 	
-}
+

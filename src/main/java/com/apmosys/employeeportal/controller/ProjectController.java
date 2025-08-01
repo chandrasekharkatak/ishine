@@ -123,7 +123,7 @@ public class ProjectController {
 	
 	@PostMapping(value = "/poProjectTimesheetSync")
 	public ServiceResponse poProjectTimesheetSync(HttpServletRequest httpRequest,@RequestBody Set<Long> projectIdList) {
-		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+//		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return projectService.poProjectTimesheetSync(projectIdList);
 	}
 	
@@ -175,6 +175,19 @@ public class ProjectController {
 	@GetMapping(value = "/getAllMilestoneExtendReason")
 	public ServiceResponse getAllMilestoneExtendReason() {
 		return poPortalApiService.getAllMilestoneExtendReason();
+	}
+	
+	
+	@GetMapping(value = "/getMilestoneProjectWise")
+	public ServiceResponse getMilestoneProjectWise() {
+		return poPortalApiService.getMilestoneProjectWise();
+	}
+	
+	
+	
+	@PostMapping(value="/getCompletedFixedCostProjects")
+	public ServiceResponse getCompletedFixedCostProjects(@RequestBody @RequestParam String timeFrame){
+		return projectService.getCompletedFixedCostProjects(timeFrame);
 	}
 	
 	

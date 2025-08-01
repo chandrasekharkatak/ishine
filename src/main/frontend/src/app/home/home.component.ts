@@ -2963,7 +2963,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   cancelRequestPopup() {
 
     this.popUpModalResf?.hide();
-
+    this.milestoneForm.get('extensionReasonId')?.reset();
     this.closeMilestoneDetailModal();
   }
 
@@ -2973,6 +2973,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
    public  minExtendedDate(): void {
     const endDate=this.milestoneForm.get('endDate').value;;
     this.minExtendedDateformilestone=new Date(this.convertToISO(endDate));
+      this.milestoneForm.get('extensionReasonId')?.reset();
     console.log("minExtendedDateformilestone",this.minExtendedDateformilestone);
    
   }

@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -3060,5 +3061,91 @@ public class ProjectService {
 			}
 			return fcProjectMilestoneDTOList;
 		}
-
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		public ServiceResponse getCompletedFixedCostProjects(String timeFrame) {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    StringBuilder logBuilder = new StringBuilder("Fetching completed fixed cost projects... ");
+		    apiLogInfo.setApiUrl("/api/getCompletedFixedCostProjects");
+		    apiLogInfo.setLogLevel("INFO");
+		    LocalDateTime startDate;
+		    try {
+		        if ("all".equalsIgnoreCase(timeFrame)) {
+		           
+		            List<Project> allFcProjects = projectRepository.findAllFixedCostProjects();
+		            response.setServiceResponse(allFcProjects);
+		            response.setServiceMessage("All fixed cost projects fetched successfully.");
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            logBuilder.append("Fetched ").append(allFcProjects.size()).append(" projects successfully.");
+		            return response;
+		        }
+		        // Determine the start date based on the timeFrame parameter
+		        switch (timeFrame.toLowerCase()) {
+		            case "lastmonth":
+		                startDate = LocalDate.now().minusMonths(1).withDayOfMonth(1).atStartOfDay();
+		                break;
+		            case "last6months":
+		                startDate = LocalDate.now().minusMonths(6).withDayOfMonth(1).atStartOfDay();
+		                break;
+		            case "lastyear":
+		                startDate = LocalDate.now().minusYears(1).withDayOfYear(1).atStartOfDay();
+		                break;
+		            case "defaulter":
+		             
+		                List<Project> expiredProjects = projectRepository.findExpiredFixedCostProjects();
+		                response.setServiceResponse(expiredProjects);
+		                response.setServiceMessage("All defaulter fixed cost projects fetched successfully.");
+		                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		                logBuilder.append("Fetched ").append(expiredProjects.size()).append(" expired projects successfully.");
+		                return response;
+		            default:
+		                throw new IllegalArgumentException("Invalid time frame specified: " + timeFrame);
+		        }
+		    
+		        List<Project> fcProjects = projectRepository.findCompletedFixedCostProjectsAfterDate(startDate);
+		        response.setServiceResponse(fcProjects);
+		        response.setServiceMessage("Completed fixed cost projects fetched successfully.");
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        logBuilder.append("Fetched ").append(fcProjects.size()).append(" completed projects successfully.");
+		        
+		    } catch (IllegalArgumentException iae) {
+		        logBuilder.append("Failed due to: ").append(iae.getMessage());
+		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceMessage("Invalid time frame specified.");
+		        response.setServiceError(iae.getMessage());
+		        response.setServiceResponse(Collections.emptyList());
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setApiResponse("Error: " + iae.getMessage());
+		        System.err.println(logBuilder.toString()); 
+		        return response;
+		    } catch (Exception e) {
+		        logBuilder.append("Failed. Exception: ").append(e.getMessage());
+		        e.printStackTrace(); 
+		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceMessage("Failed to fetch completed fixed cost projects.");
+		        response.setServiceError(e.getMessage());
+		        response.setServiceResponse(Collections.emptyList());
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setApiResponse("Error: " + e.getMessage());
+		        System.err.println(logBuilder.toString()); 
+		        return response;
+		    } finally {
+		        System.out.println(logBuilder.toString());
+		    }
+		    return response; 
+		}
 }
