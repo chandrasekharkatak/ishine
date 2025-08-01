@@ -327,4 +327,11 @@ public class TimesheetController {
 	     return reponse;
 	 }
 	 
+	 @PostMapping("/approveOrRejectDocument")
+	 public ServiceResponse approveOrRejectDocument(@RequestParam("docId") Long docId, @RequestParam("approvedOrRejectedBy") Long approvedOrRejectedBy, @RequestParam("approvalStatus") String approvalStatus,@RequestParam("timesheetId") Long timesheetId) {
+	      
+	     ServiceResponse reponse= timesheetService.approveOrRejectDocument(docId,approvedOrRejectedBy,approvalStatus);
+	     
+	     return reponse;
+	 }
 }

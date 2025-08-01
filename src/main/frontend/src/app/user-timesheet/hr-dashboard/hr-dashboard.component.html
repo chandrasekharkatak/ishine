@@ -623,17 +623,17 @@
                     <thead class="thead-light">
                         <tr>
                             <th>Sr No.</th>
-                            <th>Date</th>
-                            <th>Day Type</th>
-                            <th>Employee Name</th>
-                            <th>Project Name</th>
-                            <th>Team Name</th>
-                            <th>Activity</th>
-                            <th>Description</th>
-                            <th>Total Time (hrs)</th>
-                            <th>Manager</th>
-                            <th>Document</th>
-                            <th>Action</th>
+                            <th style="min-width: 100px">Date</th>
+                            <th style="min-width: 100px">Day Type</th>
+                            <th style="min-width: 200px">Employee Name</th>
+                            <th style="min-width: 200px">Project Name</th>
+                            <th style="min-width: 200px">Team Name</th>
+                            <th style="min-width: 200px">Activity</th>
+                            <th style="min-width: 200px">Description</th>
+                            <th style="min-width: 150px">Total Time (hrs)</th>
+                            <th style="min-width: 200px">Manager</th>
+                            <th style="min-width: 100px">Document</th>
+                            <th style="min-width: 100px">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -657,8 +657,8 @@
                             </td>
                             <td>
                                 <button class="btn btn-sm btn-success mr-1"
-                                    (click)="approveTimesheet(entry)">Accept</button>
-                                <button class="btn btn-sm btn-danger" (click)="rejectTimesheet(entry)">Reject</button>
+                                    (click)="approveTimesheet(entry)"><i class="fa-solid fa-check"></i></button>
+                                <button class="btn btn-sm btn-danger" (click)="rejectTimesheet(entry)"><i class="fa-solid fa-circle-xmark"></i></button>
                             </td>
                         </tr>
                     </tbody>
@@ -703,13 +703,6 @@
           <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
         </a>
       </div>
-      <div class="col d-flex align-items-center ">
-          <span class="font-weight-bold text-muted small">
-            Displaying:
-            {{ (employeeListAccordingToProject | colFilter : filters : false).length }} of
-            {{ employeeListAccordingToProject.length }} employees
-          </span>
-      </div>
       <div class="export-button mt-3">
         <button
           type="button"
@@ -719,6 +712,13 @@
         >
           <em class="fa fa-file-arrow-down fa-2x"></em>
         </button>
+      </div>
+      <div class="col d-flex align-items-center ">
+          <span class="font-weight-bold text-muted small">
+            Displaying:
+            {{ (employeeListAccordingToProject | colFilter : filters : false).length }} of
+            {{ employeeListAccordingToProject.length }} employees
+          </span>
       </div>
       <div class="table-container">
         <table
@@ -731,49 +731,49 @@
               <th scope="col" class="info-label wide-col">Sr No.</th>
               <th
                 scope="col"
-                class="info-label wide-col"
+                class="info-label wide-col"  style="min-width: 100px;"
                 mat-sort-header="employeementId|empId"
               >
                 Emp Id
               </th>
               <th
                 scope="col"
-                class="info-label wide-col"
+                class="info-label wide-col" style="min-width: 100px;"
                 mat-sort-header="employeeName|empId"
               >
                 Employee Name
               </th>
               <th
                 scope="col"
-                class="info-label wide-col"
+                class="info-label wide-col" style="min-width: 100px;"
                 mat-sort-header="projectName|string"
               >
                 Project Name
               </th>
               <th
                 scope="col"
-                class="info-label wide-col"
+                class="info-label wide-col" style="min-width: 100px;"
                 mat-sort-header="expectedEODCount|string"
               >
                 Expected Timesheet Count
               </th>
               <th
                 scope="col"
-                class="info-label wide-col"
+                class="info-label wide-col" style="min-width: 100px;"
                 mat-sort-header="submittedCount|string"
               >
                 Total Applied Count
               </th>
               <th
                 scope="col"
-                class="info-label wide-col"
+                class="info-label wide-col" style="min-width: 100px;"
                 mat-sort-header="clientApprovedCount|string"
               >
                 Client Approved Timesheet Count
               </th>
               <th
                 scope="col"
-                class="info-label wide-col"
+                class="info-label wide-col" style="min-width: 100px;"
                 mat-sort-header="clientPendingCount|string"
               >
                Client Pending Timesheet Count

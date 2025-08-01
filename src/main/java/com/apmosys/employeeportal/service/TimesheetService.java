@@ -3540,5 +3540,40 @@ public class TimesheetService {
 	    return response;
 	}
 
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse approveOrRejectDocument(Long docId,Long approvedOrRejectedBy,String approvalStatus){
+		
+		ServiceResponse response = new ServiceResponse();
+
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("approveOrRejectDocument");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("approveOrRejectDocument");
+
+		try {
+			if (docId == null || approvedOrRejectedBy == null) {
+				throw new IllegalArgumentException("Required input(s) are missing.");
+			}
+			TimesheetDocumentDetails timesheetDocumentDetails = new TimesheetDocumentDetails();
+			timesheetDocumentDetails = timesheetDocumentDetailsRepository.findByDocIdAndActive(docId,true);
+			if("Approved".equalsIgnoreCase(approvalStatus))
+			timesheetDocumentDetails.setHrApprovalStatus("Approved");
+			else if("Rejected".equalsIgnoreCase(approvalStatus))
+			timesheetDocumentDetails.setHrApprovalStatus("Rejected");
+			
+			else throw new IllegalArgumentException("Invalid approval status..!!");
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		return response;
+	}
 	
 }
