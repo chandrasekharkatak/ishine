@@ -1163,6 +1163,8 @@ public class TimesheetService {
 		try { 
 
 			Optional<Timesheet> timesheetobject = timesheetsRepository.findById(timesheetDTO.getTimesheetId());
+			Employee empDetails = employeeRepository.findByEmpId(timesheetDTO.getEmpId());
+			timesheetDTO.setRmId(empDetails.getReportingManagerId());
             if(timesheetDTO.getClientSideId() !=null) {
 	
             	ServiceResponse response1 = timesheetDocumentApproval(timesheetDTO);
@@ -2865,10 +2867,58 @@ public class TimesheetService {
 				timesheetDetails.setTimesheetId(timesheetDTO.getTimesheetId());
 				timesheetDetails.setApproverId(timesheetDTO.getTimesheetStatusUpdatedBy());	
 				timesheetDetails.setApprovalStatus(timesheetDTO.getStatus());
-				timesheetDetails.setLevelId(timesheetDTO.getLevelId());
 				timesheetDetails.setPreviousLevelId(timesheetDTO.getPreviousLevelId());
 				timesheetDetails.setPreviousApproverId(timesheetDTO.getPreviousApproverId());
-				timesheetDetails.setRejectionId(timesheetDTO.getRejectionId());
+				if (timesheetDTO.getRejectionId() != null) {
+				    timesheetDetails.setRejectionId(timesheetDTO.getRejectionId());
+
+				    // HOD check
+				    if (timesheetDTO.getHodId() != null
+				            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+				            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+				        timesheetDetails.setRejectedhierarchyOrder(2);
+				        timesheetDetails.setRejectionLevel(1);
+				        timesheetDetails.setHierarchyOrder(2);
+				        timesheetDetails.setLevelId(1);
+
+				    // RM check
+				    } else if (timesheetDTO.getRmId() != null
+				            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+				            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+				        timesheetDetails.setRejectedhierarchyOrder(1);
+				        timesheetDetails.setRejectionLevel(1);
+				        timesheetDetails.setHierarchyOrder(1);
+				        timesheetDetails.setLevelId(1);
+
+				    // Assume HR
+				    } else {
+				        timesheetDetails.setRejectedhierarchyOrder(3);
+				        timesheetDetails.setRejectionLevel(2);
+				        timesheetDetails.setHierarchyOrder(2);
+				        timesheetDetails.setLevelId(2);
+				    }
+				}
+				else {
+					  if (timesheetDTO.getHodId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+					        timesheetDetails.setLevelId(2);
+					        timesheetDetails.setHierarchyOrder(2);
+
+					    // RM check
+					    } else if (timesheetDTO.getRmId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+					    	 timesheetDetails.setLevelId(1);
+						        timesheetDetails.setHierarchyOrder(1);
+
+					    // Assume HR
+					    } else {
+					    	 timesheetDetails.setLevelId(2);
+						        timesheetDetails.setHierarchyOrder(2);
+					    }
+				}
+
 				timesheetDetails.setCreatedBy(timesheetDTO.getEmpId());
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 				LocalDateTime createdOn = LocalDateTime.parse(timesheetDTO.getCreatedOn(), formatter);
@@ -2876,12 +2926,61 @@ public class TimesheetService {
 				
 				dbResponse = timesheetDocumentApprovalRepository.save(timesheetDetails);
 			}else {
-				timesheetDetailsForDocumentApproval.setApproverId(timesheetDTO.getTimesheetStatusUpdatedBy());	
-				timesheetDetailsForDocumentApproval.setApprovalStatus(timesheetDTO.getStatus());
-				timesheetDetailsForDocumentApproval.setLevelId(timesheetDTO.getLevelId());
+				
 				timesheetDetailsForDocumentApproval.setPreviousLevelId(timesheetDetailsForDocumentApproval.getLevelId());
 				timesheetDetailsForDocumentApproval.setPreviousApproverId(timesheetDetailsForDocumentApproval.getApproverId());
-				timesheetDetailsForDocumentApproval.setRejectionId(timesheetDetailsForDocumentApproval.getRejectionId());
+				timesheetDetailsForDocumentApproval.setApproverId(timesheetDTO.getTimesheetStatusUpdatedBy());	
+				timesheetDetailsForDocumentApproval.setApprovalStatus(timesheetDTO.getStatus());
+
+				if (timesheetDTO.getRejectionId() != null) {
+					timesheetDetailsForDocumentApproval.setRejectionId(timesheetDTO.getRejectionId());
+
+				    // HOD check
+				    if (timesheetDTO.getHodId() != null
+				            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+				            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+				    	timesheetDetailsForDocumentApproval.setRejectedhierarchyOrder(2);
+				    	timesheetDetailsForDocumentApproval.setRejectionLevel(1);
+				    	timesheetDetailsForDocumentApproval.setHierarchyOrder(2);
+				    	timesheetDetailsForDocumentApproval.setLevelId(1);
+
+				    // RM check
+				    } else if (timesheetDTO.getRmId() != null
+				            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+				            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+				    	timesheetDetailsForDocumentApproval.setRejectedhierarchyOrder(1);
+				    	timesheetDetailsForDocumentApproval.setRejectionLevel(1);
+				    	timesheetDetailsForDocumentApproval.setHierarchyOrder(1);
+				    	timesheetDetailsForDocumentApproval.setLevelId(1);
+
+				    // Assume HR
+				    } else {
+				    	timesheetDetailsForDocumentApproval.setRejectedhierarchyOrder(3);
+				    	timesheetDetailsForDocumentApproval.setRejectionLevel(2);
+				    	timesheetDetailsForDocumentApproval.setHierarchyOrder(2);
+				    	timesheetDetailsForDocumentApproval.setLevelId(2);
+				    }
+				}
+				else {
+					  if (timesheetDTO.getHodId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+						  timesheetDetailsForDocumentApproval.setLevelId(2);
+						  timesheetDetailsForDocumentApproval.setHierarchyOrder(2);
+
+					    // RM check
+					    } else if (timesheetDTO.getRmId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+					    	timesheetDetailsForDocumentApproval.setLevelId(1);
+					    	timesheetDetailsForDocumentApproval.setHierarchyOrder(1);
+
+					    // Assume HR
+					    } else {
+					    	timesheetDetailsForDocumentApproval.setLevelId(2);
+					    	 timesheetDetailsForDocumentApproval.setHierarchyOrder(2);
+					    }
+				}
 				timesheetDetailsForDocumentApproval.setUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
 				timesheetDetailsForDocumentApproval.setUpdatedOn(LocalDateTime.now());
 				dbResponse = timesheetDocumentApprovalRepository.save(timesheetDetailsForDocumentApproval);
@@ -2937,10 +3036,56 @@ public class TimesheetService {
 					timesheetDetails.setTimesheetId(timesheetDTO.getTimesheetId());
 					timesheetDetails.setApproverId(timesheetDTO.getTimesheetStatusUpdatedBy());	
 					timesheetDetails.setApprovalStatus(timesheetDTO.getStatus());
-					timesheetDetails.setLevelId(timesheetDTO.getLevelId());
-					timesheetDetails.setPreviousLevelId(timesheetDTO.getPreviousLevelId());
-					timesheetDetails.setPreviousApproverId(timesheetDTO.getPreviousApproverId());
-					timesheetDetails.setRejectionId(timesheetDTO.getRejectionId());
+					if (timesheetDTO.getRejectionId() != null) {
+					    timesheetDetails.setRejectionId(timesheetDTO.getRejectionId());
+
+					    // HOD check
+					    if (timesheetDTO.getHodId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+					        timesheetDetails.setRejectedhierarchyOrder(2);
+					        timesheetDetails.setRejectionLevel(1);
+					        timesheetDetails.setHierarchyOrder(2);
+					        timesheetDetails.setLevelId(1);
+
+					    // RM check
+					    } else if (timesheetDTO.getRmId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+					        timesheetDetails.setRejectedhierarchyOrder(1);
+					        timesheetDetails.setRejectionLevel(1);
+					        timesheetDetails.setHierarchyOrder(1);
+					        timesheetDetails.setLevelId(1);
+
+					    // Assume HR
+					    } else {
+					        timesheetDetails.setRejectedhierarchyOrder(3);
+					        timesheetDetails.setRejectionLevel(2);
+					        timesheetDetails.setHierarchyOrder(2);
+					        timesheetDetails.setLevelId(2);
+					    }
+					}
+					else {
+						  if (timesheetDTO.getHodId() != null
+						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+						            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+						        timesheetDetails.setLevelId(2);
+						        timesheetDetails.setHierarchyOrder(2);
+
+						    // RM check
+						    } else if (timesheetDTO.getRmId() != null
+						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+						            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+						    	 timesheetDetails.setLevelId(1);
+							        timesheetDetails.setHierarchyOrder(1);
+
+						    // Assume HR
+						    } else {
+						    	 timesheetDetails.setLevelId(2);
+							        timesheetDetails.setHierarchyOrder(2);
+						    }
+					}
+
 					timesheetDetails.setCreatedBy(timesheetDTO.getEmpId());
 					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 					LocalDateTime createdOn = LocalDateTime.parse(timesheetDTO.getCreatedOn(), formatter);
@@ -2950,12 +3095,59 @@ public class TimesheetService {
 				}else {
 					TimesheetApprovalAllocationLogs timesheetDetails = new TimesheetApprovalAllocationLogs();
 					timesheetDetails.setTimesheetId(timesheetDetailsForDocumentApproval.getTimesheetId());
-					timesheetDetails.setApproverId(timesheetDetailsForDocumentApproval.getApproverId());	
-					timesheetDetails.setApprovalStatus(timesheetDetailsForDocumentApproval.getApprovalStatus());
-					timesheetDetails.setLevelId(timesheetDetailsForDocumentApproval.getLevelId());
 					timesheetDetails.setPreviousLevelId(timesheetDetailsForDocumentApproval.getPreviousLevelId());
 					timesheetDetails.setPreviousApproverId(timesheetDetailsForDocumentApproval.getPreviousApproverId());
-					timesheetDetails.setRejectionId(timesheetDetailsForDocumentApproval.getRejectionId());
+					timesheetDetails.setApproverId(timesheetDetailsForDocumentApproval.getApproverId());	
+					timesheetDetails.setApprovalStatus(timesheetDetailsForDocumentApproval.getApprovalStatus());
+					if (timesheetDTO.getRejectionId() != null) {
+						timesheetDetails.setRejectionId(timesheetDTO.getRejectionId());
+
+					    // HOD check
+					    if (timesheetDTO.getHodId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+					    	timesheetDetails.setRejectedhierarchyOrder(2);
+					    	timesheetDetails.setRejectionLevel(1);
+					    	timesheetDetails.setHierarchyOrder(2);
+					    	timesheetDetails.setLevelId(1);
+
+					    // RM check
+					    } else if (timesheetDTO.getRmId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+					    	timesheetDetails.setRejectedhierarchyOrder(1);
+					    	timesheetDetails.setRejectionLevel(1);
+					    	timesheetDetails.setHierarchyOrder(1);
+					    	timesheetDetails.setLevelId(1);
+
+					    // Assume HR
+					    } else {
+					    	timesheetDetails.setRejectedhierarchyOrder(3);
+					    	timesheetDetails.setRejectionLevel(2);
+					    	timesheetDetails.setHierarchyOrder(2);
+					    	timesheetDetails.setLevelId(2);
+					    }
+					}
+					else {
+						  if (timesheetDTO.getHodId() != null
+						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+						            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+							  timesheetDetails.setLevelId(2);
+							  timesheetDetails.setHierarchyOrder(2);
+
+						    // RM check
+						    } else if (timesheetDTO.getRmId() != null
+						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+						            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
+						    	timesheetDetails.setLevelId(1);
+						    	timesheetDetails.setHierarchyOrder(1);
+
+						    // Assume HR
+						    } else {
+						    	timesheetDetails.setLevelId(2);
+						    	timesheetDetails.setHierarchyOrder(2);
+						    }
+					}
 					timesheetDetails.setCreatedBy(timesheetDTO.getEmpId());
 					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 					LocalDateTime createdOn = LocalDateTime.parse(timesheetDTO.getCreatedOn(), formatter);

@@ -231,8 +231,6 @@ export class TeamTimesheetComponent implements OnInit {
     timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
     timesheetObj.rejectionId = this.selectedRejectReason;
-    timesheetObj.rmId = this.currentUser.reportingManagerId;
-    timesheetObj.hodId = this.currentUser.hodId;
 
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
