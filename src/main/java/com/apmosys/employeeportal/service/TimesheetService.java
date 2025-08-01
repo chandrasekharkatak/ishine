@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
@@ -1163,8 +1164,12 @@ public class TimesheetService {
 		try { 
 
 			Optional<Timesheet> timesheetobject = timesheetsRepository.findById(timesheetDTO.getTimesheetId());
-			Employee empDetails = employeeRepository.findByEmpId(timesheetDTO.getEmpId());
-			timesheetDTO.setRmId(empDetails.getReportingManagerId());
+//			Optional<EmployeeDTO> empDetails = employeeRepository.findEmployeeReportingManagerIdAndHODIdDetailsByEmpId(timesheetDTO.getEmpId());
+//			EmployeeDTO dto = empDetails.get();
+//		    timesheetDTO.setRmId(dto.getReportingManagerId());
+//		    timesheetDTO.setHodId(dto.getHodId());
+		    ServiceResponse response3 = this.utiltyMethodToGetHodIdAndRmId(timesheetDTO);
+		    
             if(timesheetDTO.getClientSideId() !=null) {
 	
             	ServiceResponse response1 = timesheetDocumentApproval(timesheetDTO);
@@ -3732,6 +3737,7 @@ public class TimesheetService {
 	    return response;
 	}
 
+
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse approveOrRejectDocument(Long docId,Long approvedOrRejectedBy,String approvalStatus){
 		
@@ -3768,4 +3774,50 @@ public class TimesheetService {
 		return response;
 	}
 	
+
+    public ServiceResponse utiltyMethodToGetHodIdAndRmId(TimesheetDTO timesheetDTO) {
+		
+		   ServiceResponse response = new ServiceResponse();
+
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("utiltyMethodToGetHodIdAndRmId");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    logBuilder.append("utiltyMethodToGetHodIdAndRmId");
+		    try {
+		    	Optional<EmployeeDTO> empDetails = employeeRepository.findEmployeeReportingManagerIdAndHODIdDetailsByEmpId(timesheetDTO.getEmpId());	
+		    	if(empDetails == null) {
+					 
+				    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("Employee Details Not Found.");
+		            response.setServiceMessage("Employee Details Not Found.");
+		            
+		            apiLogInfo.setApiResponse("Employee Details Not Found.");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            logService.logMyInfo(httpRequest, apiLogInfo);
+		            return response;
+			 }else {
+				    EmployeeDTO dto = empDetails.get();
+				    timesheetDTO.setRmId(dto.getReportingManagerId());
+				    timesheetDTO.setHodId(dto.getHodId()); 
+				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(timesheetDTO);
+		            response.setServiceMessage("Employee Details Fetched Successfully.");
+		            apiLogInfo.setApiResponse("Employee Details Fetched Successfully.");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			 }
+			
+		    }catch(Exception e) {
+		    	    e.printStackTrace();
+			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			        response.setServiceResponse("Something went wrong.");
+			        response.setServiceError(e.getMessage());
+			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			        apiLogInfo.setApiResponse(e.getMessage()); 
+			        apiLogInfo.setLogLevel("ERROR");
+		    }
+		    
+	    return response;
+	} 
+
 }

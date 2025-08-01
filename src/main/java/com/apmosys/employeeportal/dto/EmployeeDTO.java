@@ -359,5 +359,10 @@ this.billableType = billableType !=null ? billableType : null;
 	
 	private String clientSideId;
 
+    
+    public EmployeeDTO(Long reportingManagerId, Long hodId) {
+    this.reportingManagerId = reportingManagerId;
+    this.hodId = hodId;
+}
 	
 }

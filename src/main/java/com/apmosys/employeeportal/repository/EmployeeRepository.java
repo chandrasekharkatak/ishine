@@ -1224,5 +1224,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "ORDER BY\n"
 			+ "    e.name",nativeQuery = true)
 	public List<Object[]> getEmployeeViewForClientAttendanceStatus();
+	
+	
+		 @Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.reportingManagerId, d.hodId)\n"
+		 		+ "FROM Employee e, JobRole jr, Department d\n"
+		 		+ "WHERE e.jobRoleId = jr.jobRoleId\n"
+		 		+ "  AND jr.deptId = d.deptId\n"
+		 		+ "  AND e.empId = :empId")
+		    Optional<EmployeeDTO> findEmployeeReportingManagerIdAndHODIdDetailsByEmpId(@Param("empId") Long empId);
 
 }
