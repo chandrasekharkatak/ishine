@@ -21,6 +21,7 @@ import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
 import com.apmosys.employeeportal.service.TimesheetService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -334,4 +335,21 @@ public class TimesheetController {
 	     
 	     return reponse;
 	 }
+	 
+	 @PostMapping(value = "/setTimesheetRejectReason")
+	 public ServiceResponse setTimesheetRejectReason(@RequestBody TimesheetRejectionReasonsMasterDTO rejectReasonObj) {
+		 
+		 ServiceResponse reponse= timesheetService.setTimesheetRejectReason(rejectReasonObj);
+	     return reponse;
+	     
+	 }
+	 
+	 @GetMapping(value = "/getRejectionReasonById")
+	 public ServiceResponse getRejectionReasonById(@RequestParam Long rejectionId) {
+		 
+		 ServiceResponse reponse= timesheetService.getRejectionReasonById(rejectionId);
+	     return reponse;
+	     
+	 }
+	 
 }

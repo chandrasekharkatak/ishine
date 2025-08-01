@@ -20,6 +20,7 @@ import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
+import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
 
@@ -1038,4 +1039,5 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		        @Param("proj_ID") Integer projectId,
 		        @Param("from_Date") String fromDate,
 		        @Param("to_Date") String toDate);
+
 }

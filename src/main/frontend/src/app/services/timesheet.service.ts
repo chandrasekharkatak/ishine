@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Query } from '../models/query';
 import { Timesheet } from '../models/timesheet';
+import { TimesheetRejectReason } from '../models/timesheetRejectionReasons';
 
 @Injectable({
   providedIn: 'root'
@@ -232,6 +233,14 @@ export class TimesheetService {
 
   getRejectionReason(){
     return this.http.get(`${this.baseUrl}`+`api/getRejectionReason`);
+  }
+
+  setTimesheetRejectReason(rejectReasonObj: TimesheetRejectReason){
+    return this.http.post(`${this.baseUrl}`+`api/setTimesheetRejectReason`,rejectReasonObj);
+  }
+
+  getRejectionReasonById(rejectionId:any){
+    return this.http.get(`${this.baseUrl}`+`api/getRejectionReasonById?rejectionId=${rejectionId}`);
   }
    
 }
