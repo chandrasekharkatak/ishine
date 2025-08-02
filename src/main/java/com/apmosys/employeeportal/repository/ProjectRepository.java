@@ -871,6 +871,11 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	    @Query("SELECT p FROM Project p WHERE p.poProjectType = 'Fixed Cost' " +
 	           "AND p.projectCompletionDate < CURRENT_TIMESTAMP") 
 	    List<Project> findExpiredFixedCostProjects();
+
+
+
+		@Query("SELECT p.poProjectId FROM Project p JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId WHERE pmm.projectManagerId = :projectManagerId AND pmm.active = 1")
+	List<Long> findPoProjectIdsByProjectManagerIdWithJoin(@Param("projectManagerId") Long projectManagerId);
 	
 	
 	

@@ -1221,3 +1221,89 @@ thead {
     padding: 8px 16px;
     border-bottom: 1px solid rgba(0,0,0,0.12);
 }
+.search-header {
+  /* 1. Set position to relative to act as a positioning anchor for the button */
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-header input.form-control {
+  width: 100%;
+  /* 2. Add padding on the right to make space for the button! */
+  /* This prevents the text from running underneath the button. */
+  padding-right: 30px; 
+  
+  /* Standard input styling */
+  outline: none;
+  border: 1px solid #ccc;
+  padding-left: 8px;
+  height: 38px; /* Example height */
+  border-radius: 4px;
+}
+
+/* 3. Position the button absolutely within the container */
+.clear-btn {
+  position: absolute;
+  right: 8px; /* Position it 8px from the right edge */
+  top: 50%;   /* Center it vertically */
+  transform: translateY(-50%); /* Fine-tune the vertical centering */
+
+  /* The same subtle styling */
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.clear-btn:hover {
+  color: #333;
+}
+
+/*
+ * Fullscreen Modal Styles for ngx-bootstrap
+ */
+
+/* Target the dialog when it has our fullscreen class */
+/* ================================================================
+   Definitive Fullscreen Page Modal Styles for ngx-bootstrap
+   ================================================================ */
+
+/* 
+  1. Target the main modal dialog when it has our fullscreen class.
+     This makes it fill the entire viewport.
+*/
+.modal-dialog.fullscreen-modal {
+    position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.8); /* Dark, semi-transparent background */
+        display: flex; /* For centering modal content */
+        justify-content: center;
+        align-items: center;
+        z-index: 9999; /* Ensure it's on top of other content */
+}
+
+/* 
+  2. Target the content wrapper inside the dialog.
+     We turn it into a flex container to control its children.
+*/
+.modal-dialog.fullscreen-modal .modal-content {
+       background-color: white;
+        padding: 20px;
+        border-radius: 5px; /* Stack children vertically (header, body) */
+}
+
+/*
+  3. Target the modal body.
+     This is the key to making ONLY the content scrollable.
+*/
+.modal-dialog.fullscreen-modal .modal-body {
+  flex: 1;              /* Allow the body to grow and fill available space */
+  overflow-y: auto;     /* Add a vertical scrollbar ONLY when content overflows */
+}

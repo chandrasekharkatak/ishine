@@ -1,5 +1,5 @@
 import { ViewportScroller } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild,Renderer2, ElementRef } from '@angular/core';
 import { _MatAutocompleteBase, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { FormControl, NgForm } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
@@ -107,6 +107,8 @@ export class ResourceManagementComponent implements OnInit {
   selectedFile: File | null = null;
   selectedFilePreviewUrl: string | null = null;
   milestoneDocumentUrl: SafeResourceUrl | null = null;
+  modalRef: BsModalRef = new BsModalRef();
+  isModalFullscreen = false;
 
 
   // new cards changes.....................................................................
@@ -151,7 +153,7 @@ export class ResourceManagementComponent implements OnInit {
 
   alertMessage: any;
   alert_Message: any;
-  modalRef: BsModalRef = new BsModalRef();
+ 
   modalRef2: BsModalRef = new BsModalRef();
   modalRef1: BsModalRef = new BsModalRef();
   modalRef3: BsModalRef = new BsModalRef();
@@ -494,6 +496,14 @@ export class ResourceManagementComponent implements OnInit {
   isApproved:boolean = false;
   advanceFilter: any;
   skipSelectionChange: boolean = false;
+isLoadingMilestones: any;
+   activeModalTab: 'info' | 'milestone' = 'info';
+  teamMemberTemplate: any;
+  preview_team_new_teams_only: TemplateRef<any>;
+  delete_team_modal: TemplateRef<any>;
+  MarkAsCompleteDefaultProject: TemplateRef<any>;
+  OtherProjectDefaultMapping: TemplateRef<any>;
+isCollapsed1: any;
   ;
   notificationService: any;
 
@@ -516,7 +526,10 @@ export class ResourceManagementComponent implements OnInit {
     private breadcrumbService: BreadcrumbService,
     private employee360Service: Employee360Service,
     private sanitizer: DomSanitizer,
-    private dialog:MatDialog
+    private dialog:MatDialog,
+    private renderer: Renderer2,
+    private appComponent: AppComponent,
+    private el: ElementRef 
   ) {
 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -525,6 +538,8 @@ export class ResourceManagementComponent implements OnInit {
     this.reportListUrlSafe = this.sanitizer.bypassSecurityTrustResourceUrl(reportUrl);
 
   }
+
+
 
 
   async ngOnInit(): Promise<void> {
@@ -659,6 +674,21 @@ export class ResourceManagementComponent implements OnInit {
   }
 
 
+   toggleModalFullscreen() {
+    this.isModalFullscreen = !this.isModalFullscreen;
+    if (this.modalRef) {
+      if (this.isModalFullscreen) {
+        
+        let elem= this.modalRef;// this.modalRef.setClass('custom-modal modal-dialog.fullscreen-modal');
+        // this.modalRef.requestFullscreen();
+       elem.setClass('custom-modal modal-dialog.fullscreen-modal');
+
+      } else {
+        
+        this.modalRef.setClass('custome-modal modal-lg');
+      }
+    }
+  }
   sectionViewInit() {
     if (this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin') {
       this.isHOD = true;
@@ -1192,6 +1222,9 @@ onDeptSelectionChange1() {
     this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
   }
 
+
+
+
   alreadyCreatedTeam() {
     this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1410,11 +1443,11 @@ onDeptSelectionChange1() {
           return false;
         }
 
-        if (projObj.departmentList == undefined || projObj.departmentList.length == 0 || projObj.departmentList == null) {
-          this.alertMessage = `Please select Team's department - ${index + 1}.`
-          flag = false;
-          return;
-        }
+        // if (projObj.departmentId == undefined || projObj.departmentId.length == 0 || projObj.departmentId == null) {
+        //   this.alertMessage = `Please select Team's department - ${index + 1}.`
+        //   flag = false;
+        //   return;
+        // }
 
         if (projObj.teamMemberList == undefined || projObj.teamMemberList.length == 0 || projObj.teamMemberList == null) {
           this.alertMessage = `Please add team member(s) - ${index + 1}.`
@@ -2714,9 +2747,23 @@ isAddButtonDisabled(): boolean {
     this.fetchTimesheetMissingCount();
   }
 
+   ranges1 = [
+    { label: '1M', value: "lastmonth" },
+    { label: '6M', value: "last6months"},
+    { label: '1Y', value: "lastyear" }
+  ];
+
+
+ selectedRange1 = this.ranges1[0];
+
+  selectRange1(range: any) {
+    this.selectedRange1 = range;
+    this.fetchTimesheetMissingCount();
+  }
 
   unfilledTimesheetProjectList: any[] = [];
   unfilledTimesheetProjectListCount: any;
+
   fetchTimesheetMissingCount() {
     const today = new Date();
     const fromDate = new Date(today);
@@ -3282,10 +3329,13 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
      this.getAllDepartmentList1(project);
     this.getTeamListByProjectName(project);
     this.getEmployeeByNameAndEmpld();
+    this.activeModalTab = 'info'; 
+    // this.isModalFullscreen = false;
 
-    // this.modalRef1 = this.modalService.show(template, { class: 'custom-modal'});
     this.modalRef1 = this.modalService.show(template, { class: 'modal-lg' });
+   
   }
+
 
   openTeamMembersModal(template: any, projectObj, currentTeam) {
     if (projectObj.id) {
@@ -5005,24 +5055,42 @@ filteredProjects: any[] = [];
     this.projectLineItemListModalRef.hide();
   }
 
-  showProjectMilestones(projectObj: any) {
+showProjectMilestones(projectObj: any) {
     this.fcProjectMilestoneList = [];
+     this.isLoadingMilestones = true; 
+    
     let projectObjTemp = new Project();
     projectObjTemp.poProjectId = projectObj?.poProjectId;
 
-    console.log("projectObjTemp", projectObjTemp);
-    this.projectService.getAllProjectFCLineItemListByProjectId(projectObjTemp).pipe(first()).subscribe((response: any) => {
-      console.log("response_PO", response);
-      if (response.serviceStatus == "Success") {
-        console.log("response.serviceStatus "+JSON.stringify(response.serviceResponse));
-        this.fcProjectMilestoneList = response.serviceResponse;
-        console.log("fcProjectMilestoneList", this.fcProjectMilestoneList);
+    console.log("Fetching milestones for project:", projectObjTemp);
 
-        this.openProjectLineItemListModal();
-      } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
+    this.projectService.getAllProjectFCLineItemListByProjectId(projectObjTemp)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            console.log("Milestone data received:", response.serviceResponse);
+            this.fcProjectMilestoneList = response.serviceResponse;
+          } else {
+            console.error("Error fetching milestones:", response.serviceResponse);
+            this.openAlertMod(this.alertTemplate, response.serviceResponse);
+          }
+           this.isLoadingMilestones = false; 
+        },
+        error: (err) => {
+            console.error("HTTP error fetching milestones:", err);
+            this.openAlertMod(this.alertTemplate, "An unexpected error occurred while fetching milestones.");
+        }
     });
+}
+
+   switchModalTab(tabName: 'info' | 'milestone') {
+    this.activeModalTab = tabName;
+
+    // If switching to the milestone tab, fetch the data
+    if (tabName === 'milestone') {
+      this.showProjectMilestones(this.projectObj);
+    }
   }
 
 
@@ -5058,6 +5126,7 @@ filteredProjects: any[] = [];
       this.projectMilestoneSortColumn = sortParams[0];
       this.projectMilestoneSortColumnType = sortParams[1];
       this.projectMilestoneSortDirection = sort.direction;
+      this.showProjectMilestones(this.projectObj);
     }
   }
 
