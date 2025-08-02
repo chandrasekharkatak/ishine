@@ -15,7 +15,16 @@ import { ResourceManagementService } from 'src/app/services/resource-management.
 import { TimesheetService } from 'src/app/services/timesheet.service';
 
 
-
+interface DayCell {
+  date: Date;
+  day: number | '';        // For empty placeholder cells
+  isToday: boolean;
+  isWeekend: boolean;
+  isHoliday: boolean;
+  attendance?: string;     // "P", "A", "PT", "RP", "H"
+  intime?: string;         // e.g. "09:04"
+  outtime?: string;        // e.g. "18:31"
+}
 @Component({
   selector: 'app-hr-dashboard',
   templateUrl: './hr-dashboard.component.html',
@@ -71,6 +80,8 @@ export class HrDashboardComponent implements AfterViewInit {
   docData: any;
   mimeType: any;
 
+  
+
 timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','expectedEODCount','submittedCount','clientApprovedCount','clientPendingCount'];
   totalClientSideApprovedCount: any;
   eodNotFilledCount: any;
@@ -79,6 +90,7 @@ timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectN
   totalDocumentPendingCOunt: any;
   totalDocumentPendingCount: any;
   totalDocumentRejectedCount: any;
+
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: BsModalService,
@@ -90,6 +102,7 @@ timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectN
 
   async ngOnInit(): Promise<void> {
 
+    this.generateMonthGrid();
     this.setLastUpdatedTime();
     this.getEmployeeByNameAndEmpld();
    this.getProjectByNameAndPoNo();
@@ -805,6 +818,91 @@ modalTitle = 'Timesheet Details';
         console.error('Error fetching timesheet', error);
       }
     );
+    }
+
+
+    userName = "Jyotiprakash Panigrahi";
+    selectedMonth = new Date(); // Defaults to current month
+    monthGrid: DayCell[][] = [];
+    weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  
+    // Customize your legend codes and display colors below
+    legend = {
+      P: { code: 'P', label: 'Present', color: '#28a745' },
+      A: { code: 'A', label: 'Absent', color: '#ff4444' },
+      PT: { code: 'PT', label: 'Pending Timesheet', color: '#ffc107' },
+      RP: { code: 'RP', label: 'Regularize Present', color: '#007bff' },
+      H: { code: 'H', label: 'Holiday', color: '#20c997' }
+    };
+    legendEntries = Object.values(this.legend);
+  
+
+  
+    monthSelected(event: Date, datepicker: any) {
+      this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
+      this.generateMonthGrid();
+      datepicker.close();
+    }
+    changeMonth(date: Date) {
+      if (!date) return;
+      this.selectedMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+      this.generateMonthGrid();
+    }
+  
+    generateMonthGrid() {
+      // Replace this with your real backend data. For demo: random codes and times.
+      const month = this.selectedMonth.getMonth();
+      const year = this.selectedMonth.getFullYear();
+  
+      const firstDayOfMonth = new Date(year, month, 1);
+      const lastDayOfMonth = new Date(year, month + 1, 0);
+      const firstDayWeekIdx = (firstDayOfMonth.getDay() + 6) % 7; // Monday=0
+  
+      const daysInMonth = lastDayOfMonth.getDate();
+      const today = new Date();
+      let grid: DayCell[][] = [];
+      let week: DayCell[] = [];
+  
+      const attendanceCodes = ['P', 'A', 'PT', 'RP', 'P', 'P', 'A'];
+      const holidays = [13]; // Example: 13th is a holiday
+  
+      for (let i = 0; i < firstDayWeekIdx; ++i) {
+        week.push({ date: new Date(0), day: '', isToday: false, isWeekend: false, isHoliday: false });
+      }
+      for (let day = 1; day <= daysInMonth; ++day) {
+        const date = new Date(year, month, day);
+        const weekday = (date.getDay() + 6) % 7;
+        const isWeekend = weekday >= 5;
+        const isHoliday = holidays.includes(day);
+        const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+  
+        // Demo data - replace with API lookup!
+        let attendance = '';
+        let intime = '', outtime = '';
+        if (isHoliday) {
+          attendance = 'H';
+        } else {
+          attendance = attendanceCodes[(day + 1) % attendanceCodes.length];
+          intime = attendance === 'A' ? '' : '09:' + (10 + day % 50).toString().padStart(2, '0');
+          outtime = attendance === 'A' ? '' : '18:' + (20 + day % 40).toString().padStart(2, '0');
+        }
+  
+        week.push({
+          date, day, isToday, isWeekend, isHoliday,
+          attendance, intime, outtime
+        });
+        if (week.length === 7) {
+          grid.push(week);
+          week = [];
+        }
+      }
+      if (week.length) {
+        while (week.length < 7) {
+          week.push({ date: new Date(0), day: '', isToday: false, isWeekend: false, isHoliday: false });
+        }
+        grid.push(week);
+      }
+      this.monthGrid = grid;
     }
 
     
