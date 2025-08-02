@@ -363,16 +363,24 @@ this.maxDate = maxDate.toISOString().split('T')[0];
     this.isTimesheetTable = false;
     this.isCreation = false;
     this.isTimesheetUpdate = true;
+    console.log("OLD",timesheetObj);
+
 
     this.timesheetObj = Object.assign({}, timesheetObj);
     console.log(timesheetObj.docId);
     console.log(this.timesheetObj.docId);
+
+    
     this.timesheetObj.updatedTimesheetActivities = [];
     this.timesheetObj.date = (this.timesheetObj.date)? moment(timesheetObj.date, "DD-MM-YYYY").toDate() : '';
     this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime)? moment(timesheetObj.officeInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime)? moment(timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.createdOn = (this.timesheetObj.createdOn)? moment(timesheetObj.createdOn, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.dayType = (this.timesheetObj.dayType == "Holiday")? "Week Off" : this.timesheetObj.dayType;
+    this.timesheetObj.clientInTime = (this.timesheetObj.clientInTime)? moment(timesheetObj.clientInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+    this.timesheetObj.clientOutTime = (this.timesheetObj.clientOutTime)? moment(timesheetObj.clientOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+    console.log("NEW",this.timesheetObj);
+
     if (this.timesheetObj.officeInTime) {
       this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
     }
@@ -1580,6 +1588,7 @@ setTotalWorkingClientHours() {
           console.error(response.serviceResponse)
         }
       });
+      console.log("this.timesheetObj",this.timesheetObj);
   }
 
   // getTimesheetData(template:TemplateRef<any>){
