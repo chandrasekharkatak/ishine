@@ -40,6 +40,7 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
+import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
@@ -2517,6 +2518,7 @@ public class TimesheetService {
 	    return dto;
 	}
 	
+	@Transactional
 	public ServiceResponse updateClientSideIdMapping(EmployeeClientSideIdMappingDTO empClientDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -3713,9 +3715,9 @@ public class TimesheetService {
 		    StringBuilder logBuilder = new StringBuilder();
 		    logBuilder.append("getRejectionReason");
 		    try {
-		    	List<TimesheetRejectionReasonsMaster> detailsOfRejection=timesheetRejectionReasonsMasterRepository.findAll();
+		    	Optional<List<TimesheetRejectionReasonsMasterDTO>> detailsOfRejection=timesheetRejectionReasonsMasterRepository.getAllActiveRejectionReason();
 		    	
-		    	if(detailsOfRejection == null) {
+		    	if(!detailsOfRejection.isPresent()) {
 					 
 				    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		            response.setServiceResponse("No Reject Reasons Found.");
@@ -3746,42 +3748,146 @@ public class TimesheetService {
 		    
 	    return response;
 	}
-
-
-	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse approveOrRejectDocument(Long docId,Long approvedOrRejectedBy,String approvalStatus){
-		
+	
+	@Transactional
+	public ServiceResponse setTimesheetRejectReason(TimesheetRejectionReasonsMasterDTO rejectReasonObj) {
 		ServiceResponse response = new ServiceResponse();
-
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("approveOrRejectDocument");
+		apiLogInfo.setSubFeatureName("setTimesheetRejectReason");
+		apiLogInfo.setApiUrl("/api/setTimesheetRejectReason");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("approveOrRejectDocument");
-
+		logBuilder.append("setTimesheetRejectReason : " +rejectReasonObj.getRejectionReason());
 		try {
-			if (docId == null || approvedOrRejectedBy == null) {
-				throw new IllegalArgumentException("Required input(s) are missing.");
-			}
-			TimesheetDocumentDetails timesheetDocumentDetails = new TimesheetDocumentDetails();
-			timesheetDocumentDetails = timesheetDocumentDetailsRepository.findByDocIdAndActive(docId,true);
-			if("Approved".equalsIgnoreCase(approvalStatus))
-			timesheetDocumentDetails.setHrApprovalStatus("Approved");
-			else if("Rejected".equalsIgnoreCase(approvalStatus))
-			timesheetDocumentDetails.setHrApprovalStatus("Rejected");
+
+			Optional<TimesheetRejectionReasonsMaster> existingRejectReason = timesheetRejectionReasonsMasterRepository.findByRejectionId(rejectReasonObj.getRejectionId());
+	        
+			if (existingRejectReason.isPresent()) {
+				
+				TimesheetRejectionReasonsMaster newRejectReason = new TimesheetRejectionReasonsMaster();
+				newRejectReason.setRejectionReason(rejectReasonObj.getRejectionReason());
+		        newRejectReason.setActive(true);
+		        newRejectReason.setCreatedBy(rejectReasonObj.getCreatedBy());
+		        newRejectReason.setCreatedOn(LocalDateTime.now());
+
+		        TimesheetRejectionReasonsMaster newMapping = timesheetRejectionReasonsMasterRepository.save(newRejectReason);
+		        
+		        if(newMapping == null) {
+		        	
+		        	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			        response.setServiceResponse("Could not store new reject reason!");
+			        apiLogInfo.setApiResponse("Something went worong while storing the the new reject reason!");
+			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        		
+		        } else {
+		        	
+		        	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			        response.setServiceResponse("New Reject Reason Successfully!");
+			        apiLogInfo.setApiResponse("New Reject Reason created!");
+			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        		
+		        }
+
+		        apiLogInfo.setApiRequest(logBuilder.toString());
+        		logService.logMyInfo(httpRequest, apiLogInfo);
+        		return response;
+		        
+	        } else {
+
+	        	TimesheetRejectionReasonsMaster exstRejectRsn = existingRejectReason.get();
+	        	
+	        	exstRejectRsn.setRejectionReason(rejectReasonObj.getRejectionReason());
+	        	exstRejectRsn.setActive(rejectReasonObj.getActive());
+	        	exstRejectRsn.setUpdatedBy(rejectReasonObj.getUpdatedBy());
+	        	exstRejectRsn.setUpdatedOn(LocalDateTime.now());
+
+	        	TimesheetRejectionReasonsMaster updatedMapping = timesheetRejectionReasonsMasterRepository.save(exstRejectRsn);
+
+	            if (updatedMapping == null) {
+	            	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Unable to update the reject reason!");
+	                apiLogInfo.setApiResponse("Failed to update the reject reason! ");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                
+	            } else {
+	            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                response.setServiceResponse("Updated Successfully!");
+	                apiLogInfo.setApiResponse("Reject reason updated successfully ");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            }
+	            
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+        		logService.logMyInfo(httpRequest, apiLogInfo);
+        		return response;
+        		
+	        }
 			
-			else throw new IllegalArgumentException("Invalid approval status..!!");
-			
-		}catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something went wrong.");
+			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setApiResponse(e.getMessage());
 			apiLogInfo.setLogLevel("ERROR");
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+	
+	public ServiceResponse getRejectionReasonById(Long rejectionId) {
+		
+		   ServiceResponse response = new ServiceResponse();
+
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("getRejectionReasonById");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    logBuilder.append("getRejectionReasonById");
+		    try {
+		    	Optional<TimesheetRejectionReasonsMaster> detailsOfRejection=timesheetRejectionReasonsMasterRepository.findByRejectionId(rejectionId);
+		    	
+		    	if(detailsOfRejection.isPresent()) {
+				 
+				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(detailsOfRejection);
+		            response.setServiceMessage("Reject reasons fetched successfully.");
+		            apiLogInfo.setApiResponse("Reject reasons fetched successfully.");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		            
+		            apiLogInfo.setApiResponse("Reject reasons fetched successfully.");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		            
+	    		}else {
+	    			
+	    			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("No Reject Reasons Found.");
+		            response.setServiceMessage("No Reject Reasons Found.");
+		            
+		            apiLogInfo.setApiResponse("No Reject Reasons Found.");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            
+	    		}
+
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+			
+		    } catch(Exception e) {
+		    	
+	    	    e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something went wrong.");
+		        response.setServiceError(e.getMessage());
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setApiResponse(e.getMessage()); 
+		        apiLogInfo.setLogLevel("ERROR");
+			        
+		    }
+
+        logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
 	
 
@@ -3829,5 +3935,41 @@ public class TimesheetService {
 		    
 	    return response;
 	} 
+
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse approveOrRejectDocument(Long docId,Long approvedOrRejectedBy,String approvalStatus){
+		
+		ServiceResponse response = new ServiceResponse();
+
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("approveOrRejectDocument");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("approveOrRejectDocument");
+
+		try {
+			if (docId == null || approvedOrRejectedBy == null) {
+				throw new IllegalArgumentException("Required input(s) are missing.");
+			}
+			TimesheetDocumentDetails timesheetDocumentDetails = new TimesheetDocumentDetails();
+			timesheetDocumentDetails = timesheetDocumentDetailsRepository.findByDocIdAndActive(docId,true);
+			if("Approved".equalsIgnoreCase(approvalStatus))
+			timesheetDocumentDetails.setHrApprovalStatus("Approved");
+			else if("Rejected".equalsIgnoreCase(approvalStatus))
+			timesheetDocumentDetails.setHrApprovalStatus("Rejected");
+			
+			else throw new IllegalArgumentException("Invalid approval status..!!");
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		return response;
+	}
 
 }

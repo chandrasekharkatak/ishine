@@ -315,46 +315,106 @@ openAlertMod(template: TemplateRef<any>, message: any) {
   this.alertMessage = message;
 }
 
-searchTimesheet(template: TemplateRef<any> ) {
+openAlertMod1(template1: TemplateRef<any>, message: any) {
+  this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
+  this.alertMessage = message;
+}
 
-this.page = 1;
-const totalPages = Math.ceil(this.employeeTimesheet.length / 10);
-this.paginationArray = Array.from({ length: totalPages }, (_, i) => i + 1);
+// searchTimesheet(template: TemplateRef<any> ) {
+
+// this.page = 1;
+// const totalPages = Math.ceil(this.employeeTimesheet.length / 10);
+// this.paginationArray = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+//   if (!this.selectedEmpId || !this.fromDate || !this.toDate) {
+//     alert('Please select an employee and valid dates.');
+//     return;
+//   }
+
+//   this.timesheetObj.empId = this.selectedEmpId;
+//   this.timesheetObj.fromDate = this.formatDate(this.fromDate);
+//   this.timesheetObj.toDate = this.formatDate(this.toDate);
+
+
+//   console.log("empId ::::::::",this.timesheetObj.empId);
+//   console.log("fromDate ::::::::",this.timesheetObj.fromDate);
+//   console.log("toDate ::::::::",this.timesheetObj.toDate);
+
+
+//   this.timesheetService.getEmployeeMonthlyTimesheet(this.timesheetObj)
+//     .subscribe(
+//       (data: any[]) => {  
+//         this.employeeTimesheet = data;
+//         console.log('Timesheet:', data);
+//         this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+//         this.fromDate = null;
+//         this.toDate = null;
+//         this.timesheetObj.empId = '' ;
+//       },
+//       (error) => {
+//         console.error('Error fetching timesheet', error);
+//       }
+      
+//     );
+// }
+
+searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>,openModal: boolean = false) {
+  this.page = 1;
 
   if (!this.selectedEmpId || !this.fromDate || !this.toDate) {
-    alert('Please select an employee and valid dates.');
+    // alert('Please select an employee and valid datessss.');
+        this.alertMessage = "Please enter Employee Name !!";
+    this.openAlertMod1(template1, this.alertMessage);
+    return;
     return;
   }
 
+  // if (!this.selectedEmpId || this.selectedEmpId === null || this.selectedEmpId === '') {
+  //   this.alertMessage = "Please enter Employee Name !!";
+  //   this.openAlertMod(template, this.alertMessage);
+  //   return;
+  // }
+  
+  // if (!this.fromDate || this.fromDate === null ) {
+  //   this.alertMessage = "Please enter Valid From Date !!";
+  //   this.openAlertMod(template, this.alertMessage);
+  //   return;
+  // }
+  
+  // if (!this.toDate || this.toDate === null ) {
+  //   this.alertMessage = "Please enter Valid To Date !!";
+  //   this.openAlertMod(template, this.alertMessage);
+  //   return;
+  // }
+
   this.timesheetObj.empId = this.selectedEmpId;
-  this.timesheetObj.fromDate = this.formatDate(this.fromDate);
-  this.timesheetObj.toDate = this.formatDate(this.toDate);
+  // this.timesheetObj.fromDate = this.formatDate(this.fromDate);
+  // this.timesheetObj.toDate = this.formatDate(this.toDate);
+  this.timesheetObj.fromDate = this.fromDate;
+  this.timesheetObj.toDate = this.toDate;
 
+  this.timesheetService.getEmployeeMonthlyTimesheet(this.timesheetObj).subscribe(
+    (data: any[]) => {
+      this.employeeTimesheet = data;
 
-  console.log("empId ::::::::",this.timesheetObj.empId);
-  console.log("fromDate ::::::::",this.timesheetObj.fromDate);
-  console.log("toDate ::::::::",this.timesheetObj.toDate);
-
-
-  this.timesheetService.getEmployeeMonthlyTimesheet(this.timesheetObj)
-    .subscribe(
-      (data: any[]) => {  
-        this.employeeTimesheet = data;
-        console.log('Timesheet:', data);
+      if (openModal && template) {
         this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-        //this.filteredEmployees = [];
+      }
+
+      // Optional: reset fields if needed only during modal opening
+      if (openModal) {
         this.fromDate = null;
         this.toDate = null;
-        this.timesheetObj.empId = '' ;
-      },
-      (error) => {
-        console.error('Error fetching timesheet', error);
+        this.timesheetObj.empId = '';
       }
-      
-    );
+    },
+    (error) => {
+      console.error('Error fetching timesheet', error);
+    }
+  );
 }
 
-   //pagination
+
       handlePageChange(event) {
        this.page = event;
    }
@@ -364,6 +424,9 @@ formatDate(date: Date): string {
 }
 cancelRequest() {
   this.modalRef.hide();
+}
+cancelRequest1() {
+  this.modalRef2.hide();
 }
 
 previewDocument(entry: any): void {
@@ -695,5 +758,55 @@ modalTitle = 'Timesheet Details';
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
     }
+
+
+
+    refreshTimesheet(template: TemplateRef<any>) {
+      this.page = 1;
+
+      console.log("Selected Employee " ,this.selectedEmpId);
+      console.log("Selected Fromdate " ,this.fromDate);
+
+      console.log("Selected ToDate " ,this.toDate);
+
+
+  if (!this.selectedEmpId || !this.fromDate || !this.toDate) {
+    alert('Please select an employee and valid dates.');
+    return;
+  }
+
+  this.timesheetObj.empId = this.selectedEmpId;
+  // this.timesheetObj.fromDate = this.formatDate(this.fromDate);
+  // this.timesheetObj.toDate = this.formatDate(this.toDate);
+  this.timesheetObj.fromDate = this.fromDate;
+  this.timesheetObj.toDate = this.toDate;
+
+  console.log("empId ::::::::", this.timesheetObj.empId);
+  console.log("fromDate ::::::::", this.timesheetObj.fromDate);
+  console.log("toDate ::::::::", this.timesheetObj.toDate);
+
+  this.timesheetService.getEmployeeMonthlyTimesheet(this.timesheetObj)
+    .subscribe(
+      (data: any[]) => {
+        this.employeeTimesheet = data;
+
+        const totalPages = Math.ceil(this.employeeTimesheet.length / 10);
+        this.paginationArray = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+        console.log('Timesheet:', data);
+        this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+
+        // Reset form fields after search
+        this.fromDate = null;
+        this.toDate = null;
+        this.timesheetObj.empId = '';
+      },
+      (error) => {
+        console.error('Error fetching timesheet', error);
+      }
+    );
+    }
+
+    
 }
 

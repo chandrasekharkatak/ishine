@@ -1,7 +1,139 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" >Timesheet Reject Reasons</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" >Timesheet Reject Reasons</button>
-        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.manage_employee_leave_balance) && !isHolidayForm && !isLeaveTypeForm && !isLeavePolicyForm" [ngClass]="{'active' : isLeaveBalanceForm}" (click)="showLeaveBalanceForm()">Manage Employee Leave Balance</button> -->
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="getRejectionReason()" [ngClass]="{'active' : rejectReasons}" >Timesheet Reject Reasons</button>
     </div>
 </div>
+
+<!-- start :: See all Table -->
+<div class="row" *ngIf="isTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Timesheet Reject Reasons(s)</h1>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
+                    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isForm && isCreation}" (click)="showCreateForm()"><em class="fa-solid fa-plus"></em>&nbsp; Add New Reject Reason</button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
+                    </a>
+                </div>
+
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                        [hidden]="allRejectReasons.length == 0" (click)="exportToExcel()"><em
+                            class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
+
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'rejectInfo'" [tableTHeadId]="'rejectInfoTHead'"
+                    [tableTHeadTrId]="'rejectInfoTHeadTr'">
+                    <table class="table" id="rejectInfo" matSort
+                        (matSortChange)="sortData($event)">
+                        <thead class="thead-light" id="rejectInfoTHead">
+                            <tr id="rejectInfoTHeadTr">
+                                <th scope="col" class="info-label">Sr No.</th>
+                                <th scope="col" class="info-label" mat-sort-header="rejectionReason|string">Reject Reason</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                                <th scope="col" class="info-label">Actions</th>
+                            </tr>
+                            <tr app-column-filter-bar *ngIf="isTable && isSearchEnabled" [columnList]="rejectColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="allRejectReasons.length == 0 || (allRejectReasons | colFilter:filters:false).length == 0">
+                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                            </tr>
+                            <tr
+                                *ngFor="let reject of allRejectReasons | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+                                <th class="info-label">{{17*(page-1)+i+1}}</th>
+                                <td>{{reject.rejectionReason}}</td>
+                                <td *ngIf="userMapping.employee360_view_timesheet_config"id="clickablefor360" [navigateToEmployee360]="reject.createdBy" style="cursor: pointer;" title="Click to view Employee 360">{{reject.createdByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_timesheet_config">{{reject.createdByName}}</td>
+                                <td>{{reject.createdOn}}</td>
+                                <td *ngIf="userMapping.employee360_view_timesheet_config" id="clickablefor360" [navigateToEmployee360]="reject.updatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{reject.updatedByName}}</td>
+                                <td *ngIf="!userMapping.employee360_view_timesheet_config">{{reject.updatedByName}}</td>
+                                <td>{{reject.updatedOn}}</td>
+                                <td >
+                                    <button *ngIf="userMapping.update_reject_reason" class="btn btn-sm btn-outline-primary"
+                                        type="submit" (click)="showUpdateForm(reject.rejectionId)"><em class="fa fa-edit"></em></button>&nbsp;
+                                    <!-- <button *ngIf="userMapping.delete_department" class="btn btn-sm btn-outline-danger"
+                                        type="submit" (click)="openDeleteDepartment(delete_template,dept)"><em
+                                            class="fa fa-trash"></em></button> -->
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="allRejectReasons.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="allDeptList.length == 0" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em></button> -->
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: see all table -->
+
+<!-- start :: Create & Update Form -->
+<div class="row">
+    <div class="px-0">
+        <button class="btn btn-sm btn-outline-primary mb-1" *ngIf="!isTable && (this.userMapping.view_all_reject_reason || this.userMapping.update_reject_reason || this.userMapping.delete__reject_reason)" (click)="this.showTable()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+    </div>
+    <div class="card col-md-12 px-0" *ngIf="isForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isCreation">Create Timesheet Reject Reason</strong>
+            <strong *ngIf="isUpdation">Update Timesheet Reject Reason</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Reject Reason</label>
+                            <input type="text" class="form-control" maxlength="255" autocomplete="none"
+                            [(ngModel)]="rejectReasonObj.rejectionReason" (blur)="validateRejectReason(rejectReasonObj.rejectionReason,alert_message)">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Visibility</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="rejectReasonObj.active" >
+                                <option selected="selected" value="" disabled>Select</option>
+                                <option value=true>Enable</option>
+                                 <option value=false>Disable</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="(isCreation && userMapping.create_reject_reason) || (isUpdation && userMapping.update_reject_reason)" type="submit" class="btn btn-primary btn-sm mx-1"
+                    (click)="setTimesheetRejectReason(rejectReasonObj,alert_message)">{{ isCreation ? 'Create Reject Reason' : 'Update Reject Reason' }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end :: create & update form -->
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
