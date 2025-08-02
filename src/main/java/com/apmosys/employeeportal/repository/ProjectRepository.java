@@ -875,8 +875,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 
 
 		@Query("SELECT p.poProjectId FROM Project p JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId WHERE pmm.projectManagerId = :projectManagerId AND pmm.active = 1")
-	List<Long> findPoProjectIdsByProjectManagerIdWithJoin(@Param("projectManagerId") Long projectManagerId);
-	
+		List<Long> findPoProjectIdsByProjectManagerIdWithJoin(@Param("projectManagerId") Long projectManagerId);
 	
 	
 	

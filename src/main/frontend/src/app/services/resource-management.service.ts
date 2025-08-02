@@ -8,6 +8,7 @@ import { ProjectFilterDTO } from '../models/projectFilterDTO';
   providedIn: 'root'
 })
 export class ResourceManagementService {
+  
   private baseUrl:any = environment.baseUrl;
 
   constructor(private http: HttpClient) { }
@@ -155,6 +156,10 @@ export class ResourceManagementService {
 
   combinedPOINTERNALDataList(projectFilterDTO:ProjectFilterDTO) {
     return this.http.post(`${this.baseUrl}` + `api/combinedPOINTERNALDataList`, projectFilterDTO);
+  }
+
+  getFixedCostProjectList(tabName: string = '') {
+    return this.http.get(`${this.baseUrl}` + `api/getCompletedFixedCostProjects`, { params: { tabName: tabName } });
   }
 
 }

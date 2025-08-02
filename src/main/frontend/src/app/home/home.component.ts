@@ -77,6 +77,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   popUpModalResf: BsModalRef;
 
 
+
   feature = "Home";
   currentUser: User;
   currentUserName = "";
@@ -136,6 +137,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   isOtherReasonSelected: boolean = false;
   milestoneCount: number = 0;
   selectedMilestone: MilestoneToBeExpired | null = null;
+
 
   fieldTextType: boolean = false;
   fieldTextTypePassword: boolean = false;

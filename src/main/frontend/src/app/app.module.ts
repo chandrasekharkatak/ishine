@@ -16,6 +16,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatAccordion } from '@angular/material/expansion';
+
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AngularEditorModule } from '@kolkov/angular-editor';
 import { NgHorizontalScrollModule } from 'angular-horizontal-scroll-table';
@@ -143,6 +144,7 @@ import { InformationPreviewComponent } from './user-update-info/information-prev
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 import{TimesheetCreateSelfComponent} from './timesheet-create-self/timesheet-create-self.component';
 import { MatDialogModule } from '@angular/material/dialog';
+
 registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 // 

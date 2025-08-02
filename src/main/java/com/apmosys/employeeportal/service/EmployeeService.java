@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,8 +34,10 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -137,9 +140,14 @@ import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
 import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
 import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
+import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
+import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
+import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.LogEvents;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -322,10 +330,15 @@ public class EmployeeService {
 	@Autowired
 	private ApiLogUtility apiLogUtility;
 	
+	
+
+	
 //	@Value("${bd.mail}")
 //	private String businessMail;
 	
 	private final Map<String, List<EmployeeDTO>> employeeCache = new ConcurrentHashMap<>();
+
+
 
 
 //	@Transactional
@@ -579,6 +592,7 @@ public class EmployeeService {
 				employeeTeamMap.setEmpId(newEmployee.getEmpId());
 				employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
 				employeeTeamMap.setActive(2l);
+				employeeTeamMap.setStartDate(LocalDateTime.now());
 				employeeTeamMap.setStartDate(LocalDateTime.now());
 				employeeTeamMap.setEmployeeRole(employeeRole.toString());
 				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
@@ -3245,6 +3259,7 @@ public class EmployeeService {
         }
 		
 		
+		
 		try {
 			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
@@ -3255,7 +3270,10 @@ public class EmployeeService {
 				
 					Float noOfDays = employeeRepository.getNOOfDays(Long.parseLong(object[50].toString()));
 					
+	
+					
 					empDTO.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					empDTO.setNoOfDays(noOfDays);
 					empDTO.setNoOfDays(noOfDays);
 					empDTO.setAadhar(object[1] != null ? Long.parseLong(object[1].toString()) : null);
 					empDTO.setAboutMe(object[2] != null ? object[2].toString() : null);
@@ -3384,6 +3402,7 @@ public class EmployeeService {
 
 		            }
 			
+			
 					empDTO.setUpdatedBy(object[88] != null ? Long.parseLong(object[88].toString()) : null);
 					empDTO.setIsConfirmedClicked(object[89]!= null ? Long.parseLong(object[89].toString()):null);
 					empDTO.setIsExtensionClicked(object[90]!= null ? Long.parseLong(object[90].toString()):null);
@@ -3409,6 +3428,7 @@ public class EmployeeService {
 					dtoList.add(empDTO);
 				});
 			 employeeCache.put(cacheKey, dtoList);
+			 
 			 
 
 //	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -4404,6 +4424,7 @@ public class EmployeeService {
 
 	public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
 	    ServiceResponse response = new ServiceResponse();
+	    
 	    
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getAllEmployeesByDepartmentIds");
@@ -5918,6 +5939,7 @@ public class EmployeeService {
 		String exceptionDetailsForLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		String sourceSystem = httpRequest.getRequestURL().toString();
+		
 		try {
 			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllEmployeeInfo", "PoPortal", null ,httpRequest);
 			List<PoPortalDTO> poPortalDTOList  = employeeRepository.getAllEmployeeInfoForPoPortal();
@@ -5926,6 +5948,7 @@ public class EmployeeService {
 					poPortalDTO.setIsHead(validationService.validateHodId(poPortalDTO.getEmployeeId()) ? "Y" : "N");
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(poPortalDTOList);
 				response.setServiceResponse(poPortalDTOList);
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiResponse("List fetched of size : "+poPortalDTOList.size());
@@ -6348,7 +6371,7 @@ public class EmployeeService {
 					            diff.visit(new DiffNode.Visitor() {
 					                public void node(DiffNode node, Visit visit) {
 					                    if (!node.hasChildren()) {
-					                        final Object oldValue = node.canonicalGet(teamDtoList.get(currentIndex));
+											final Object oldValue = node.canonicalGet(teamDtoList.get(currentIndex));
 					                        final Object newValue = node.canonicalGet(teamDtoList.get(currentIndex + 1));
 					                        try {
 					                            Field field = TeamDTO.class.getDeclaredField(node.getPropertyName());
@@ -6390,6 +6413,8 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+	
 	
 	public ServiceResponse unlockAllTimesheet(EmployeeDTO employeeDto) {
 		

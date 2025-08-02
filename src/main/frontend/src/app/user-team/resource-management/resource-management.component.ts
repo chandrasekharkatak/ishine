@@ -118,8 +118,6 @@ export class ResourceManagementComponent implements OnInit {
 
   @ViewChild('alertTemplate') alertTemplateForMilestone!: TemplateRef<any>;
 
-
-
   @ViewChild("alert_message")
   alertModal: TemplateRef<any>;
 
@@ -504,6 +502,7 @@ isLoadingMilestones: any;
   MarkAsCompleteDefaultProject: TemplateRef<any>;
   OtherProjectDefaultMapping: TemplateRef<any>;
 isCollapsed1: any;
+  fcProjectList: any;
   ;
   notificationService: any;
 
@@ -1222,6 +1221,19 @@ onDeptSelectionChange1() {
     this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
   }
 
+
+  getFixedCostProjectList(tabName: string = '') {
+    const payload = tabName;
+    this.resourceManagementService.getFixedCostProjectList(payload).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.fcProjectList = response.serviceResponse;
+        this.fcProjectList = this.fcProjectList.sort((a, b) => a.projectName.localeCompare(b.projectName));
+        console.log(this.fcProjectList, "this.fcProjectList");
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
 
 
 

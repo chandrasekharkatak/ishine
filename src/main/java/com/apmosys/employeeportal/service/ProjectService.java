@@ -172,12 +172,26 @@ public class ProjectService {
 	@Value("${poPortal.api.allProjects}")
 	private String allPoPortalProjects;
 	
-	@Value("${file.location.documents.fcmilestone}")
-	private String fcMileStone;
+// 	@Value("${file.location.documents.fcmilestone}")
+// 	private String fcMileStone;
 	
 	
-	@Value("${poPortal.api.updateMilestones}")
-	private String updateMilestoneUrl;
+// 	@Value("${poPortal.api.updateMilestones}")
+// 	private String updateMilestoneUrl;
+	
+// //	@Value("${file.location.documents.fcmilestone}")
+// 	private String fcMileStone;
+	
+	
+// //	@Value("${poPortal.api.updateMilestones}")
+// 	private String updateMilestoneUrl;
+	
+// //	@Value("${file.location.documents.fcmilestone}")
+// 	private String fcMileStone;
+	
+	
+// //	@Value("${poPortal.api.updateMilestones}")
+// 	private String updateMilestoneUrl;
 	
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
