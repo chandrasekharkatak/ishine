@@ -687,8 +687,8 @@
               <!-- From Date [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"-->
               <div class="col-md-3 mb-3" *ngIf="!clientSideIdNotMandatory">
                 <div class="form-group">
-                  <label class="info-label"><span class="text-danger">*</span>From Date</label>
-                  <mat-form-field appearance="outline" class="w-100 custom-form-field">
+                  <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>From Date</label>
+                  <mat-form-field style="display: contents;">
                   <input
                         matInput
                         [matDatepicker]="picker"
@@ -707,8 +707,8 @@
               <!-- To Date -->
               <div class="col-md-3 mb-3" *ngIf="!clientSideIdNotMandatory">
                 <div class="form-group">
-                  <label class="info-label"><span class="text-danger">*</span>To Date</label>
-                 <mat-form-field appearance="outline" class="w-100">
+                  <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>To Date</label>
+                 <mat-form-field style="display: contents;">
                   <input
                     matInput
                     [matDatepicker]="toPicker"

@@ -3492,10 +3492,20 @@ public class TimesheetService {
 			if (timesheetDates != null && !timesheetDates.isEmpty()) {
 				combinedDateSet.addAll(timesheetDates);
 			}
+			LocalDate today = LocalDate.now();
+	        YearMonth targetMonth;
 
-			
+	        if (today.getDayOfMonth() <= 3) {
+	            // Take previous month
+	            targetMonth = YearMonth.now().minusMonths(1);
+	        } else {
+	            // Take current month
+	            targetMonth = YearMonth.now();
+	        }
+
+	        LocalDate firstDay = targetMonth.atDay(1);
 			YearMonth currentMonth = YearMonth.now();
-			LocalDate firstDay = currentMonth.atDay(1);
+//			LocalDate firstDay = currentMonth.atDay(1);
 			LocalDate lastDayWithBuffer = currentMonth.atEndOfMonth().plusDays(3);
 
 			

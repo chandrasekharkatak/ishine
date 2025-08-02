@@ -268,6 +268,7 @@ this.maxDate = maxDate.toISOString().split('T')[0];
   }
 
   showBulkUploadForm(){
+    this.clientSideIdNotMandatory = true;
     this.isTimesheetForm = false;
     this.isCreation = false;
 
@@ -344,7 +345,7 @@ this.maxDate = maxDate.toISOString().split('T')[0];
 
   checkTimesheetForInActiveActivities(timesheetObj: Timesheet, template: TemplateRef<any>){
 
-    
+    this.reset();
       if(timesheetObj.dayType == "Working" && (timesheetObj.status == "Pending" || timesheetObj.status == "Rejected") && timesheetObj?.inactiveTimesheetActivities){
           this.openInActiveUpdateConfimationModal(template, timesheetObj);
       }else{
