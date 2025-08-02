@@ -352,4 +352,12 @@ public class TimesheetController {
 	     
 	 }
 	 
+	 @GetMapping(value = "/getProjectViewForClientAttendanceStatus")
+	 public ServiceResponse getProjectViewForClientAttendanceStatus() {
+
+		 ServiceResponse reponse= timesheetService.getProjectViewForClientAttendanceStatus();
+	     return reponse;
+	     
+	 }
+	 
 }

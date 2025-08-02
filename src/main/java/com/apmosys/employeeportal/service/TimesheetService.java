@@ -34,6 +34,7 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
+import com.apmosys.employeeportal.dto.GetProjectViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -3647,6 +3648,7 @@ public class TimesheetService {
 		 logService.logMyInfo(httpRequest, apiLogInfo);
 		 return response;
 	}
+	
 	public ServiceResponse getEmployeeTimesheetsByProject(TimesheetDTO timesheetDTO) {
 		   ServiceResponse response = new ServiceResponse();
 
@@ -3972,4 +3974,74 @@ public class TimesheetService {
 		return response;
 	}
 
+	public ServiceResponse getProjectViewForClientAttendanceStatus() {
+		ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getProjectViewForClientAttendanceStatus");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append( "getProjectViewForClientAttendanceStatus: \n");
+		 try {
+			 Optional<List<Object[]>> resultList = projectRepository.getProjectViewForClientAttendanceStatus();
+			 
+			 if(!resultList.isPresent()) {
+			        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			        response.setServiceResponse("No data found from database");
+
+			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			        apiLogInfo.setApiResponse("Empty list received from repository."); 
+			        apiLogInfo.setLogLevel("ERROR");
+			        
+			        logService.logMyInfo(httpRequest, apiLogInfo);
+					return response;
+			 }
+
+	        List<GetProjectViewForClientAttendanceStatusDTO> dtoList = new ArrayList<>();
+	        
+	        for (Object[] obj : resultList.get()) {
+	            GetProjectViewForClientAttendanceStatusDTO dto = new GetProjectViewForClientAttendanceStatusDTO();
+	            dto.setProjectId(obj[0] != null ? Integer.parseInt(obj[0].toString()) : null);
+	            dto.setProjectName(obj[1] != null ? obj[1].toString() : null);
+	            dto.setProjectManagerName(obj[2] != null ? obj[2].toString() : null);
+	            dto.setPoNo(obj[3] != null ? obj[3].toString() : null);
+	            dto.setProjectType(obj[4] != null ? obj[4].toString() : null);
+	            dto.setClientName(obj[5] != null ? obj[5].toString() : null);
+	            dto.setApmosysRM(obj[6] != null ? obj[6].toString() : null);
+	            dto.setApmosysRMEmail(obj[7] != null ? obj[7].toString() : null);
+	            dto.setClientRM(obj[8] != null ? obj[8].toString() : null);
+	            dto.setTotalExpectedFillCount(obj[9] != null ? Integer.parseInt(obj[9].toString()) : 0);
+	            dto.setTotalIshineFilledCount(obj[10] != null ? Integer.parseInt(obj[10].toString()) : 0);
+	            dto.setTotalClientSideNotFilledCount(obj[11] != null ? Integer.parseInt(obj[11].toString()) : 0);
+	            dto.setTotalClientSidePendingCount(obj[12] != null ? Integer.parseInt(obj[12].toString()) : 0);
+	            dto.setTotalClientSideApprovedCount(obj[13] != null ? Integer.parseInt(obj[13].toString()) : 0);
+	            dto.setClientSideApprovedPercent(obj[14] != null ? Double.parseDouble(obj[14].toString()) : 0.0);
+	            dto.setClientSidePendingPercent(obj[15] != null ? Double.parseDouble(obj[15].toString()) : 0.0);
+	            dto.setClientSideNotFilledPercent(obj[16] != null ? Double.parseDouble(obj[16].toString()) : 0.0);
+	            
+	            dtoList.add(dto);
+	        }
+	        
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(dtoList);
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        apiLogInfo.setApiResponse("Fetched " + dtoList.size() + " records successfully.");
+	        
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+	        return response;
+		        
+		 } catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something went wrong.");
+		        response.setServiceError(e.getMessage());
+
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setApiResponse(e.getMessage()); 
+		        apiLogInfo.setLogLevel("ERROR");
+		    }
+		 logService.logMyInfo(httpRequest, apiLogInfo);
+		 return response;
+	}
 }

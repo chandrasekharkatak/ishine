@@ -242,5 +242,9 @@ export class TimesheetService {
   getRejectionReasonById(rejectionId:any){
     return this.http.get(`${this.baseUrl}`+`api/getRejectionReasonById?rejectionId=${rejectionId}`);
   }
+
+  getProjectViewForClientAttendanceStatus(){
+    return this.http.get(`${this.baseUrl}`+`api/getProjectViewForClientAttendanceStatus`);
+  }
    
 }

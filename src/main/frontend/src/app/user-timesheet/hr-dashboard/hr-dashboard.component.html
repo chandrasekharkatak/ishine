@@ -220,13 +220,13 @@
                     <input type="checkbox" checked (change)="onToggleChange($event)">
                     <span class="slider round"></span>
                 </label>
-                <h5 class="ms-2 mb-0">Toggle View</h5>
+                <h3 class="ms-2 mb-0">{{toggleValue ? 'Project View' : 'Employee View'}}</h3>
             </div>
         </div>
 
+        <div><h5 class="ms-2 mb-0">Individual{{toggleValue ? ' Project ' : ' Employee '}}Insight</h5></div>
         <!-- Second row: All other fields -->
         <div class="row mb-3 align-items-center" *ngIf="!toggleValue">
-
             <!-- Employee Search -->
             <div class="col-md-4 mb-2 d-flex align-items-center">
                 <mat-form-field appearance="fill" class="w-100 ms-2">
@@ -417,11 +417,11 @@
             </div>
         </div> -->
 
-        <div class="row">
+        <div class="row" *ngIf="!toggleValue">
             <div class="col-md-12">
                 <div class="row">
                     <div class="col-md-12">
-                        <h5>Employee View</h5>
+                        <h5>Employee Overview</h5>
                         <div class="row mb-2 mt-2">
                             <div class="col-md-1" [hidden]="employeeView.length == 0" style="display: flex;
                         justify-content: left;
@@ -448,7 +448,7 @@
                             </span>
                         </div>
 
-                        <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'"
+                        <div class="table-container" bassHorizontalScroll [tableId]="'employeeInfo'"
                             [tableTHeadId]="'employeeInfoTHead'" [tableTHeadTrId]="'employeeInfoTHeadTr'">
                             <table class="table" id="employee-info" matSort (matSortChange)="sortData($event)">
                                 <thead class="thead-light">
@@ -581,6 +581,96 @@
                             </table>
                             <div class="row col-md-12">
                                 <pagination-controls class="my-pagination" [hidden]="employeeView.length == 0"
+                                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" *ngIf="toggleValue">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5>Project Overview</h5>
+                        <div class="row mb-2 mt-2">
+                            <div class="col-md-1" [hidden]="projectView.length == 0" style="display: flex;
+                        justify-content: left; max-width: fit-content; cursor: pointer;">
+                                <a (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">
+                                    <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
+                                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                                </a>
+                            </div>
+                            <div class="col-md-1" style="display: flex; justify-content: left; max-width: fit-content;  cursor: pointer;">
+                                <i class="fa fa-download" style="color: #053885;display: flex; justify-content: left; max-width: fit-content;" 
+                                [hidden]="projectView.length == 0" (click)="exportToExcel()"></i>
+                            </div>
+                        </div>
+                        <div class="col d-flex align-items-center ">
+                            <span class="font-weight-bold text-muted small">
+                                Displaying:
+                                {{ (projectView | colFilter : filters : false).length }} of
+                                {{ projectView.length }} projects
+                            </span>
+                        </div>
+
+                        <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'"
+                            [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
+                            <table class="table" id="project-view-table" matSort (matSortChange)="sortData($event)">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th class="info-label" style="min-width: 300px;" mat-sort-header="projectName|string">Project Name</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="projectManagerName|string">Project Manager</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="poNo|string">PO Number</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="projectType|string">Project Type</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="clientName|string">Client</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="apmosysRM|string">Apmosys RM</th>
+                                        <th class="info-label" style="min-width: 300px;" mat-sort-header="apmosysRMEmail|string">Apmosys RM Email</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="clientRM|string">Client RM</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="totalExpectedFillCount|string">Expected Fill Count</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="totalIshineFilledCount|string">iShine Filled Count</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="totalClientSideNotFilledCount|string">Client Side Not Filled</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="totalClientSidePendingCount|string">Client Side Pending</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="totalClientSideApprovedCount|string">Client Side Approved</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="clientSideApprovedPercent|string">Client Approved %</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="clientSidePendingPercent|string">Client Pending %</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="clientSideNotFilledPercent|string">Client Not Filled %</th>
+                                    </tr>
+                                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectViewColumns"
+                                        (onSearch)="onSearch($event);page=1"></tr>
+                                </thead>
+                                <tbody>
+                                    <ng-container *ngIf="projectView.length === 0">
+                                        <tr>
+                                        <td colspan="17" class="text-center info-label">No details to display...</td>
+                                        </tr>
+                                    </ng-container>
+                                    <ng-container *ngFor="let project of projectView | sort: [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                        <tr>
+                                            <td>{{ project.projectName || 'NA' }}</td>
+                                            <td>{{ project.projectManagerName || 'NA' }}</td>
+                                            <td>{{ project.poNo || 'NA' }}</td>
+                                            <td>{{ project.projectType || 'NA' }}</td>
+                                            <td>{{ project.clientName || 'NA' }}</td>
+                                            <td>{{ project.apmosysRM || 'NA' }}</td>
+                                            <td>{{ project.apmosysRMEmail || 'NA' }}</td>
+                                            <td>{{ project.clientRM || 'NA' }}</td>
+                                            <td>{{ project.totalExpectedFillCount || 0 }}</td>
+                                            <td>{{ project.totalIshineFilledCount || 0 }}</td>
+                                            <td>{{ project.totalClientSideNotFilledCount || 0 }}</td>
+                                            <td>{{ project.totalClientSidePendingCount || 0 }}</td>
+                                            <td>{{ project.totalClientSideApprovedCount || 0 }}</td>
+                                            <td>{{ project.clientSideApprovedPercent || 0 }}%</td>
+                                            <td>{{ project.clientSidePendingPercent || 0 }}%</td>
+                                            <td>{{ project.clientSideNotFilledPercent || 0 }}%</td>
+                                        </tr>
+                                    </ng-container>
+                                </tbody>
+                            </table>
+
+                            <div class="row col-md-12">
+                                <pagination-controls class="my-pagination" [hidden]="projectView.length == 0"
                                     (pageChange)="handlePageChange($event)"></pagination-controls>
                             </div>
                         </div>

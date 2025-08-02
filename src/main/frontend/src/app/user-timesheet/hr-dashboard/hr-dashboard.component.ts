@@ -7,6 +7,7 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { GetEmployeeViewForClientAttendanceStatus } from 'src/app/models/getEmployeeViewForClientAttendanceStatus';
+import { ProjectViewForTimesheet } from 'src/app/models/projectViewForTimesheet';
 import { Timesheet } from 'src/app/models/timesheet';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
@@ -79,10 +80,9 @@ export class HrDashboardComponent implements AfterViewInit {
   fileType: '' | 'pdf' | 'image' | null = null;
   docData: any;
   mimeType: any;
-
-  
-
-timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','expectedEODCount','submittedCount','clientApprovedCount','clientPendingCount'];
+  projectView:ProjectViewForTimesheet[] = [];
+  projectViewColumns: any[] = ['projectName','projectManagerName','poNo','projectType','clientName','apmosysRM','apmosysRMEmail','clientRM','totalExpectedFillCount','totalIshineFilledCount','totalClientSideNotFilledCount','totalClientSidePendingCount','totalClientSideApprovedCount','clientSideApprovedPercent','clientSidePendingPercent','clientSideNotFilledPercent'];
+  timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','expectedEODCount','submittedCount','clientApprovedCount','clientPendingCount'];
   totalClientSideApprovedCount: any;
   eodNotFilledCount: any;
   totalClientSidePendingCount: any;
@@ -90,6 +90,7 @@ timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectN
   totalDocumentPendingCOunt: any;
   totalDocumentPendingCount: any;
   totalDocumentRejectedCount: any;
+  toggleValue: Boolean=false;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -101,17 +102,19 @@ timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectN
   ) {}
 
   async ngOnInit(): Promise<void> {
-
+    this.toggleValue = true;
+    if(this.toggleValue){
+      this.getProjectViewForClientAttendanceStatus();
+    }
     this.generateMonthGrid();
     this.setLastUpdatedTime();
     this.getEmployeeByNameAndEmpld();
-   this.getProjectByNameAndPoNo();
+    this.getProjectByNameAndPoNo();
     // this.TotalEmployeeCount();
     this.vmsCompletion();
     // this.ishineCompletion();
     this.vmsNotFilled();
     this.ishineNotFilled();
-    this.getEmployeeViewForClientAttendanceStatus();
 
     this.employeeCtrl.valueChanges
     .pipe(
@@ -606,8 +609,6 @@ ishineNotFilled() {
   });
 }
 
-toggleValue = false;
-
 onToggleChange(event: Event) {
   // Cast event target as HTMLInputElement to read checked property
   const isChecked = (event.target as HTMLInputElement).checked;
@@ -616,6 +617,12 @@ onToggleChange(event: Event) {
   // Call your desired logic here
   // Example: update a property used for toggling rows
   this.toggleValue = !this.toggleValue;
+
+  if(!this.toggleValue){
+    this.getEmployeeViewForClientAttendanceStatus();
+  } else {
+    this.getProjectViewForClientAttendanceStatus();
+  }
 
   // Add any other side effects or function calls you want here
 }
@@ -906,5 +913,14 @@ modalTitle = 'Timesheet Details';
     }
 
     
+    getProjectViewForClientAttendanceStatus() {
+    this.timesheetService.getProjectViewForClientAttendanceStatus().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.projectView = response.serviceResponse;
+      } else {
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    });
+  }
 }
 
