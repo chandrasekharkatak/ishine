@@ -360,4 +360,12 @@ public class TimesheetController {
 	     
 	 }
 	 
+	 @PostMapping(value = "/updateActiveByRejectIdId")
+	 public ServiceResponse updateActiveByRejectIdId(@RequestBody TimesheetRejectionReasonsMasterDTO rejectReasonObj) {
+		 
+		 ServiceResponse reponse= timesheetService.updateActiveByRejectIdId(rejectReasonObj);
+	     return reponse;
+	     
+	 }
+	 
 }

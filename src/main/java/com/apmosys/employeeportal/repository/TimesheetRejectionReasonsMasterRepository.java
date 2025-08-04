@@ -18,9 +18,8 @@ public interface TimesheetRejectionReasonsMasterRepository extends JpaRepository
             "r.rejectionId, r.rejectionReason, r.active, r.createdBy, " +
             "r.createdOn, r.updatedBy, r.updatedOn, c.name as createdByName, u.name as updatedByName) " +
             "FROM TimesheetRejectionReasonsMaster r "
-            + "INNER JOIN Employee c on c.empId = r.createdBy \n"
-            + "INNER JOIN Employee u on u.empId = r.updatedBy \n"
-            + "WHERE r.active = true")
-    public Optional<List<TimesheetRejectionReasonsMasterDTO>> getAllActiveRejectionReason();
+            + "LEFT JOIN Employee c on c.empId = r.createdBy \n"
+            + "LEFT JOIN Employee u on u.empId = r.updatedBy ")
+    public Optional<List<TimesheetRejectionReasonsMasterDTO>> getAllRejectionReason();
 
 }

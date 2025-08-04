@@ -246,5 +246,9 @@ export class TimesheetService {
   getProjectViewForClientAttendanceStatus(){
     return this.http.get(`${this.baseUrl}`+`api/getProjectViewForClientAttendanceStatus`);
   }
+
+  updateActiveByRejectIdId(rejectReasonObj: TimesheetRejectReason){
+    return this.http.post(`${this.baseUrl}`+`api/updateActiveByRejectIdId`,rejectReasonObj);
+  }
    
 }

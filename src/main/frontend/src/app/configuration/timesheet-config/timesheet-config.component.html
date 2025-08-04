@@ -67,9 +67,8 @@
                                 <td >
                                     <button *ngIf="userMapping.update_reject_reason" class="btn btn-sm btn-outline-primary"
                                         type="submit" (click)="showUpdateForm(reject.rejectionId)"><em class="fa fa-edit"></em></button>&nbsp;
-                                    <!-- <button *ngIf="userMapping.delete_department" class="btn btn-sm btn-outline-danger"
-                                        type="submit" (click)="openDeleteDepartment(delete_template,dept)"><em
-                                            class="fa fa-trash"></em></button> -->
+                                    <button *ngIf="userMapping.update_reject_reason" class="btn btn-sm btn-outline-danger" type="submit" (click)="updateActiveByRejectIdId(reject)">
+                                        <em [ngClass]="reject.active ? 'fa fa-eye-slash' : 'fa fa-eye'"></em></button>
                                 </td>
                             </tr>
                         </tbody>
@@ -135,5 +134,12 @@
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alert_message_show_table>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="closeAlertShowTable()">OK</button>&nbsp;
     </div>
 </ng-template>
