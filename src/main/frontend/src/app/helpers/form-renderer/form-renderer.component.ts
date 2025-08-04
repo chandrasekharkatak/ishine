@@ -20,12 +20,13 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   dynamicForm: FormGroup;
   dependentFieldOptions: Map<string, Map<string, any[]>> = new Map();
-  private apiCache = new Map<string, any[]>();
+  apiCache :Map<string, any[]> = new Map<string, any[]>(); 
   dependentOptionsMap: { [fieldName: string]: any[] } = {};
 
   constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService) {}
 
   async ngOnInit() {
+    console.log('Called ngOnInit ------------------------------------------');
     this.isLoading = true;
     await this.prepareApiOptions();
     this.buildForm();
@@ -36,6 +37,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   async ngOnChanges(changes: SimpleChanges) {
+    console.log('Called ngOnChanges ------------------------------------------');
     if (
       (changes.fields && changes.fields.currentValue !== changes.fields.previousValue) ||
       (changes.formData && changes.formData.currentValue !== changes.formData.previousValue)
@@ -72,21 +74,26 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   async prepareApiOptions() {
-    const apiPromises = this.fields.map(async field => {
-      if (field.optionSource === 'api' && field.apiUrl) {
-        field.options = await this.loadApiOptions(field);
+    const apiUrlMap = new Map<string, any[]>();
+
+    const apiFields = this.fields.filter(f => f.optionSource?.toLowerCase() === 'api' && f.apiUrl);
+    const uniqueApiUrls = [...new Set(apiFields.map(f => f.apiUrl))];
+
+    for (const apiUrl of uniqueApiUrls) {
+      const options = await this.loadApiOptions(apiUrl);
+      apiUrlMap.set(apiUrl, options);
+    }
+
+    for (const field of this.fields) {
+      if (field.optionSource?.toLowerCase() === 'api' && field.apiUrl) {
+        field.options = this.getOptionsFromApiResponse(field,apiUrlMap.get(field.apiUrl));
       }
-      if (
-        field.optionSource === 'dependent' &&
-        field.parentField &&
-        this.formData &&
-        this.formData[field.parentField]
-      ) {
+
+      if (field.optionSource === 'dependent' && field.parentField && this.formData?.[field.parentField]) {
         const parentValue = this.formData[field.parentField];
         field.options = await this.getDependentOptions(field, parentValue);
       }
-    });
-    await Promise.all(apiPromises);
+    }
   }
 
   buildForm() {
@@ -172,16 +179,26 @@ export class FormRendererComponent implements OnInit, OnChanges {
     this.loadDependentOptionsForExistingData();
   }
   
-  async loadInitialOptions(changed:boolean = false) {
+  async loadInitialOptions(changed: boolean = false) {
     // console.log("loadInitialOptions");
-    
+    const apiUrlMap = new Map<string, any[]>();
+
+    const apiFields = this.fields.filter(f => f.optionSource?.toLowerCase() === 'api' && f.apiUrl);
+    const uniqueApiUrls = [...new Set(apiFields.map(f => f.apiUrl))];
+
+    for (const apiUrl of uniqueApiUrls) {
+      const response = await this.loadApiOptions(apiUrl);
+      apiUrlMap.set(apiUrl, response);
+    }
+
     for (const field of this.fields) {
       if (field.optionSource === 'api' && field.apiUrl) {
-        if(!changed){
-          field.options = await this.loadApiOptions(field);
-        }else {
-          if(field.label.toLowerCase() === 'Domain'.toLowerCase()){
-            field.options = await this.loadApiOptions(field);
+        if (!changed) {
+          field.options = this.getOptionsFromApiResponse(field, apiUrlMap.get(field.apiUrl));
+        } else {
+          if (field.label.toLowerCase() === 'Domain'.toLowerCase()) {
+            field.options = this.getOptionsFromApiResponse(field, apiUrlMap.get(field.apiUrl));
+
           }
         }
       }
@@ -234,26 +251,23 @@ export class FormRendererComponent implements OnInit, OnChanges {
     return this.dynamicForm.get(fieldName)?.value;
   }
 
-  async loadApiOptions(field: any): Promise<any[]> {
+  async loadApiOptions(apiUrl): Promise<any[]> {
     // Check cache first
-    if (this.apiCache.has(field.apiUrl)) {
-      return this.apiCache.get(field.apiUrl);
+    if (this.apiCache.has(apiUrl)) {
+      return this.apiCache.get(apiUrl);
     }
   
     try {
-      const response = await this.apiSourceService.loadDynamicApi(field.apiUrl).toPromise();
+      const response = await this.apiSourceService.loadDynamicApi(apiUrl).toPromise();
+       console.log('==== called loadAPIOptions');
+       console.log(apiUrl);
       if (response && Array.isArray(response)) {
-        const options = response.map(item => ({
-          label: item[field.apiLabelKey || 'name'] || item['label'],
-          value: item[field.apiValueKey || 'id'] || item['value']
-        }));
-        
-        // Cache the result
-        this.apiCache.set(field.apiUrl, options);
-        return options;
+            // Cache the result
+    this.apiCache.set(apiUrl, response);
+        return response;
       }
     } catch (error) {
-      console.error(`Error loading API options for ${field.name}:`, error);
+      console.error(`Error loading API options for ${apiUrl}:`, error);
       return [];
     }
     return [];
@@ -583,5 +597,13 @@ export class FormRendererComponent implements OnInit, OnChanges {
       flex: `0 0 ${width}%`,
       minWidth: '220px',
     };
+  }
+
+  getOptionsFromApiResponse(field: any, response: any) {
+    const options = response.map(item => ({
+      label: item[field.apiLabelKey || 'name'] || item['label'],
+      value: item[field.apiValueKey || 'id'] || item['value']
+    }));
+    return options;
   }
 }

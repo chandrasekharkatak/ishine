@@ -5,24 +5,33 @@ import java.util.Map;
 
 import javax.persistence.Id;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.apmosys.employeeportal.mongodb.dto.ClientDTO;
+import com.apmosys.employeeportal.mongodb.dto.DepartmentDTO;
+import com.apmosys.employeeportal.mongodb.dto.DomainDTO;
 
 import lombok.Data;
 
-@Document(collection = "project_insight_structure")
 @Data
+@Document(collection = "project_insight_project_details")
 public class ProjectInsightProjectDetails {
-	
+
 	@Id
 	private String id;
 	private String projectName;
 	private Integer projectId;
-	private Client client;
-	List<Department> departments;
-	Map<String,Object> additionalInfo;
-	
-	
-	
+	private String isDraft;
+	private ClientDTO client;
+	private String formId;
+	private List<DomainDTO> domains;
+	private List<DepartmentDTO> departments;
+	private Map<String, Object> additionalInfo;
+
+	private String createdBy;
+	private String createdOn;
+	private String updatedBy;
+	private String updatedOn;
 
 }

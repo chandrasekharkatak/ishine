@@ -21,7 +21,8 @@ public interface ProjectInsighProjectMappingRepository extends JpaRepository<Pro
 		       "   p.projectName, " +
 		       "   e.name, " +
 		       "   c.clientName," +
-		       "   manager.name" +
+		       "   manager.name, " +
+		       "   pm.projectInsightDetailsId" +
 		       ") " +
 		       "FROM ProjectInsighProjectMapping pm " +
 		       "JOIN Project p ON p.id = pm.projectId " +
@@ -38,7 +39,8 @@ public interface ProjectInsighProjectMappingRepository extends JpaRepository<Pro
        "   p.projectName, " +
        "   e.name, " +
        "   c.clientName, " +
-       "   manager.name " +
+       "   manager.name, " +
+       "   pm.projectInsightDetailsId" +
        ") " +
        "FROM ProjectInsighProjectMapping pm " +
        "JOIN Project p ON p.id = pm.projectId " +
@@ -59,7 +61,8 @@ List<ProjectInsighProjectMappingDTO> fetchAllProjectMappingsByInsightIds(@Param(
 		       "   p.projectName, " +
 		       "   e.name, " +
 		       "   c.clientName, " +
-		       "   manager.name" +
+		       "   manager.name, " +
+		       "   pm.projectInsightDetailsId" +
 		       ") " +
 		       "FROM ProjectInsighProjectMapping pm " +
 		       "JOIN Project p ON p.id = pm.projectId " +

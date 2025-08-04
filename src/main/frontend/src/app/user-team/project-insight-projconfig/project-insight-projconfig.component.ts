@@ -28,6 +28,9 @@ import { environment } from 'src/environments/environment';
 import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsightDomainService.service';
 import { Domain, SubDomain, SubService } from './Type';
 import { AddDataModalComponent } from './AddDataModal/AddDataModal.component';
+import { ProjectInsightProjectDetails } from 'src/app/models/projectInsightDetails';
+import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
+import { ProjectInsightFormDetails } from 'src/app/models/projectInsightFormDetails';
 
 interface FormNode {
   id: string;
@@ -35,7 +38,9 @@ interface FormNode {
   fields: any[];
   formData: any;
   layoutConfig?: any[];
-  children: FormNode[];
+  children?: FormNode[];
+  parentId?: any;
+  parentType?: any;
   questionList?: ProjectQuestion[];
   fieldDependencies?: { [key: string]: string };
   dependentFieldsMap?: { [key: string]: string[] };
@@ -529,30 +534,25 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   showTable() {
     this.isTable = true;
     this.isCreateForm = false;
-
     this.getAllProjectInsightProjectList();
   }
 
   openViewProjectInsight(projectInsightId: any){
     this.cancelRequest();
-
     this.isEdit = false;
     this.isCreateForm = true;
     this.isTable = false;
-
     this.projectInsightId = projectInsightId;
-    this.getProjectInsightByInsightId(projectInsightId);
+    this.getProjectInsightDetailsByObjectId(projectInsightId);
   }
 
   openEditProjectInsight(projectInsightId: any){
     this.cancelRequest();
-
     this.isEdit = true;
     this.isCreateForm = true;
     this.isTable = false;
-    
     this.projectInsightId = projectInsightId;
-    this.getProjectInsightByInsightId(projectInsightId);
+    this.getProjectInsightDetailsByObjectId(projectInsightId);
   }
 
   openDeleteProjectInsight(projectInsightId: any){
@@ -1756,7 +1756,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       this.modalRef = this.modalService.show(this.alertMessageTemplate);
       return;
     }
-  
+    console.log(structure);
+    console.log(data);
     const payload = {
       structure: structure,
       data: data,
@@ -2802,4 +2803,119 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   closeDocumentPreviewTemplate() {
     this.documentPreviewModalRef.hide();
   }
+
+  saveProjectInsightDetails(isDraft: any) {
+    this.cancelRequest();
+    const structure = this.rootNode;
+    const data = this.collectFormData(this.rootNode);
+
+    let projectInsightDetailsDTO: ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO();
+    projectInsightDetailsDTO.projectInsightFormDetails = this.transformFormNodeToFormDetails(this.rootNode);
+    projectInsightDetailsDTO.projectInsightGroupDetails = null;
+    projectInsightDetailsDTO.projectInsightQuestionDetails = null;
+    projectInsightDetailsDTO.projectInsightProjectDetails.isDraft = isDraft;
+    projectInsightDetailsDTO.projectInsightProjectDetails.id = this.projectInsightId;
+    projectInsightDetailsDTO.projectInsightProjectDetails.createdBy = this.currentUser.empId;
+    projectInsightDetailsDTO.projectInsightProjectDetails.projectId = this.getProjectId(this.rootNode.formData);
+    projectInsightDetailsDTO.projectInsightProjectDetails.additionalInfo = this.rootNode.formData;
+    let fields = JSON.parse(JSON.stringify(projectInsightDetailsDTO.projectInsightFormDetails.fields));
+    projectInsightDetailsDTO.projectInsightFormDetails.fields = this.resetOptionsForOptionTypeAPI(fields);
+
+    console.log(projectInsightDetailsDTO);
+
+    this.projectInsightService.saveProjectInsightDetails(projectInsightDetailsDTO).pipe(take(1)).subscribe(
+      (response: any) => {
+        this.alertMessage = response.serviceStatus;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      },
+      (error) => {
+        console.log(error, " : error");
+        this.alertMessage = error?.error?.serviceResponse || 'An unexpected error occurred.';
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      }
+    );
+  }
+
+  getProjectInsightDetailsByObjectId(projectInsightId: any) {
+    this.projectInsightService.getProjectInsightDetailsByObjectId(projectInsightId).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.rootNode = this.transformFormDetailsToFormNode(response?.projectInsightFormDetails);
+        this.mergeFormDataIntoFormStructure(this.rootNode, response?.projectInsightProjectDetails);
+        this.currentNodePath = [this.rootNode];
+      },
+      error: (error: any) => {
+        this.alertMessage = error;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      }
+    });
+  }
+
+    mergeFormDataIntoFormStructure(structure: any, data: any) {
+    if (structure.fields && Array.isArray(structure.fields) && data?.additionalInfo) {
+      structure.fields.forEach(field => {
+        field.value = data.additionalInfo[field.name];
+      });
+      structure.formData = data.additionalInfo;
+    }
+    if (data?.questions) {
+      structure.questionList = data.questions;
+    }
+    if (structure?.children && data?.child) {
+      for (let i = 0; i < structure.children.length; i++) {
+        this.mergeFormDataIntoFormStructure(structure.children[i], data.child[i]);
+      }
+    }
+  }
+
+
+  resetOptionsForOptionTypeAPI(fields: any) {
+    if (fields) {
+      fields.forEach(row => {
+        if (row.optionSource?.toLowerCase() === 'api') {
+          row.options = [];
+        }
+      });
+    }
+    return fields;
+  }
+
+  getProjectId(data: any) {
+    const projectFieldKey = Object.keys(data || {}).find(
+      key => key.toLowerCase().includes('projectname')
+    );
+    const projectId = projectFieldKey ? data[projectFieldKey] : null;
+
+    if (!projectId) {
+      this.alertMessage = "Project Name/ Field is required to save as draft.";
+      this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      return;
+    }
+    return projectId;
+  }
+
+  transformFormNodeToFormDetails(formNode: FormNode): any {
+    const formDetails: ProjectInsightFormDetails = {
+      id: formNode.id,
+      formName: formNode.formName,
+      parentId: formNode.parentId,
+      parentType: formNode.parentType,
+      fields: formNode.fields
+    };
+    return formDetails;
+  }
+
+  transformFormDetailsToFormNode(formDetails: any): FormNode {
+    const node: FormNode = {
+      id: formDetails.id,
+      formName: formDetails.formName,
+      parentId: formDetails.parentId,
+      parentType: formDetails.parentType,
+      fields: formDetails.fields || [],
+      formData: {},
+      layoutConfig: this.getLayoutConfig(formDetails.fields || [])
+    };
+    node.children = (formDetails.children || []).map(child => this.transformFormDetailsToFormNode(child));
+    return node;
+  }
+
 }

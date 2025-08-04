@@ -3,7 +3,6 @@ package com.apmosys.employeeportal.controller;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.Entity;
 import javax.persistence.OptimisticLockException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -26,13 +26,11 @@ import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
-import com.apmosys.employeeportal.model.ProjectInsighProjectMapping;
-import com.apmosys.employeeportal.model.QuestionMaster;
+import com.apmosys.employeeportal.mongodb.dto.ProjectInsightDetailsDTO;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.response.SearchResultResponse;
 import com.apmosys.employeeportal.service.ProjectInsightService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
-import com.apmosys.employeeportal.utility.SimilarityFinder;
 
 @RestController
 @RequestMapping("/api")
@@ -270,6 +268,55 @@ public class ProjectInsightController {
 		ServiceResponse response = projectInsightService.onSaveResponseAsDraft(userDraft, empId);
 		return ResponseEntity.ok(response);
 	}
+
+	/*	
+	 * MongoDb New Structure Implementation [START]
+	 */
+
+	@GetMapping(value = "/getProjectInsightDetailsByObjectId")
+	public ResponseEntity<ProjectInsightDetailsDTO> getProjectInsightDetailsByObjectId(@RequestParam String id) {
+		return ResponseEntity.ok(projectInsightService.getProjectInsightDetailsByObjectId(id));
+	}
+
+	@PostMapping(value = "/getProjectInsightGroupDetailsByObjectId")
+	public ResponseEntity<ProjectInsightDetailsDTO> getProjectInsightGroupDetailsByObjectId(@RequestBody String id) {
+		return ResponseEntity.ok(projectInsightService.getProjectInsightGroupDetailsByObjectId(id));
+	}
+
+	@PostMapping(value = "/getProjectInsightQuestionDetailsByObjectId")
+	public ResponseEntity<ProjectInsightDetailsDTO> getProjectInsightQuestionDetailsByObjectId(@RequestBody String id) {
+		return ResponseEntity.ok(projectInsightService.getProjectInsightQuestionDetailsByObjectId(id));
+	}
+	
+	@GetMapping(value = "/getProjectInsightQuestionDetailsByParentIdAndParentType")
+	public ResponseEntity<ProjectInsightDetailsDTO> getProjectInsightQuestionDetailsByParentIdAndParentType(@RequestParam String parentId, @RequestParam String parentType) {
+		return ResponseEntity.ok(projectInsightService.getProjectInsightQuestionDetailsByParentIdAndParentType(parentId,parentType));
+	}
+	
+	@PostMapping(value = "/saveProjectInsightDetails")
+	public ResponseEntity<ServiceResponse> saveProjectInsightDetails(@RequestBody ProjectInsightDetailsDTO projectInsightDetailsDTO) {
+		return ResponseEntity.ok(projectInsightService.saveProjectInsightDetails(projectInsightDetailsDTO));
+	}
+
+	@PostMapping(value = "/saveProjectInsightGroupDetails")
+	public ResponseEntity<ServiceResponse> saveProjectInsightGroupDetails(@RequestBody ProjectInsightDetailsDTO projectInsightDetailsDTO) {
+		return ResponseEntity.ok(projectInsightService.saveProjectInsightGroupDetails(projectInsightDetailsDTO));
+	}
+
+	@PostMapping(value = "/saveProjectInsightQuestionDetails")
+	public ResponseEntity<ServiceResponse> saveProjectInsightQuestionDetails(@RequestBody ProjectInsightDetailsDTO projectInsightDetailsDTO) {
+		return ResponseEntity.ok(projectInsightService.saveProjectInsightQuestionDetails(projectInsightDetailsDTO));
+	}
+
+
+	
+
+	
+
+
+	/*	
+	 * MongoDb New Structure Implementation [END]
+	 */
 
 
 }

@@ -138,5 +138,34 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/onSaveResponseAsDraft`, object);
   }
 
+  getProjectInsightDetailsByObjectId(objectId: any) {
+    const params = new HttpParams().set('id', objectId.toString());
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightDetailsByObjectId/`, { params });
+  }
+
+  getProjectInsightGroupDetailsByObjectId(objectId: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getProjectInsightGroupDetailsByObjectId/`,objectId);
+  }
+
+  getProjectInsightQuestionDetailsByObjectId(objectId: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByObjectId/`,objectId);
+  }
+
+  getProjectInsightQuestionDetailsByParentIdAndParentType(parentId: any, parentType: any) {
+    const params = new HttpParams().set('parentId', parentId).set('parentType', parentType);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByParentIdAndParentType/`, { params });
+  }
+
+  saveProjectInsightDetails(projectInsightDetailsDTO: any) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightDetails`, projectInsightDetailsDTO);
+  }
+
+  saveProjectInsightGroupDetails(projectInsightDetailsDTO: any) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightGroupDetails`, projectInsightDetailsDTO);
+  }
+
+  saveProjectInsightQuestionDetails(projectInsightDetailsDTO: any) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightQuestionDetails`, projectInsightDetailsDTO);
+  }
 
 }

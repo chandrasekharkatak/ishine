@@ -72,7 +72,7 @@
                 <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openViewProjectInsight(proj.projectInsightId)">
                   <em class="fa-solid fa-eye"></em>
                 </button>&nbsp;
-                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openEditProjectInsight(proj.projectInsightId)">
+                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openEditProjectInsight(proj.projectInsightDetailsId)">
                   <em class="fa fa-edit"></em>
                 </button>&nbsp;
                 <button class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteProjectInsight(proj.projectInsightId)">
@@ -341,7 +341,7 @@
               (click)="addSubSubGroup()">
               <i class="fa fa-plus"></i> Add SubSubGroup
             </button>
-            <button type="button" *ngIf="isEdit" class="btn btn-secondary btn-sm mr-2" (click)="onSaveAsDraft()">Save as Draft</button>
+            <button type="button" *ngIf="isEdit" class="btn btn-secondary btn-sm mr-2" (click)="saveProjectInsightDetails('Y')">Save as Draft</button>
             <button type="button" *ngIf="isEdit" class="btn btn-secondary btn-sm mr-2" (click)="onSaveAndAssign()">Save and
               Assign</button>
             <button type="button" class="btn btn-outline-secondary btn-sm mr-2"

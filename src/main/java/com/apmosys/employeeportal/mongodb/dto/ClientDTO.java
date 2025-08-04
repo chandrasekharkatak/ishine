@@ -1,10 +1,11 @@
-package com.apmosys.employeeportal.mongodb.modal;
+package com.apmosys.employeeportal.mongodb.dto;
 
 import lombok.Data;
 
 @Data
-public class Client {
+public class ClientDTO {
 
 	private Integer clientId;
 	private String clientName;
+	
 }

@@ -15,22 +15,18 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.persistence.Column;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
+import org.bson.types.ObjectId;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -44,17 +40,15 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.apmosys.employeeportal.Exception.BadRequestException;
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
-import com.apmosys.employeeportal.dto.FormFieldDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ModuleDTO;
-import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightEntityDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightMilestoneDTO;
-import com.apmosys.employeeportal.dto.ProjectInsightResponseDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightResponsePointsDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionDTO;
@@ -81,12 +75,19 @@ import com.apmosys.employeeportal.model.TagMaster;
 import com.apmosys.employeeportal.model.UserContributionDocument;
 import com.apmosys.employeeportal.model.UserContributionResponseRemarks;
 import com.apmosys.employeeportal.mongodb.dto.FormDataDTO;
-import com.apmosys.employeeportal.mongodb.dto.FormStructureDTO;
-import com.apmosys.employeeportal.mongodb.dto.OptionValueDTO;
+import com.apmosys.employeeportal.mongodb.dto.ProjectInsightDetailsDTO;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightQuestionDTO;
 import com.apmosys.employeeportal.mongodb.modal.FileStorage;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightFormDetails;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightGroupDetails;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectDetails;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightQuestionDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.mongodb.repository.FileMongoRepository;
+import com.apmosys.employeeportal.mongodb.repository.ProjectInsightFormDetailsRepository;
+import com.apmosys.employeeportal.mongodb.repository.ProjectInsightGroupDetailsRepository;
+import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectDetailsRepository;
+import com.apmosys.employeeportal.mongodb.repository.ProjectInsightQuestionDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightStructureRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -113,7 +114,6 @@ import com.apmosys.employeeportal.utility.NLPUtils;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.TagSpecifications;
 import com.apmosys.employeeportal.utility.TagUtils;
-import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Service
 public class ProjectInsightService {
@@ -209,7 +209,19 @@ public class ProjectInsightService {
 	
 	@Autowired
 	private ProjectInsightDomainRepository projectInsightDomainRepository;
+	
+	@Autowired
+	private ProjectInsightProjectDetailsRepository projectInsightProjectDetailsRepository;
 
+	@Autowired
+	private ProjectInsightGroupDetailsRepository projectInsightGroupDetailsRepository ;
+	
+	@Autowired
+	private ProjectInsightFormDetailsRepository projectInsightFormDetailsRepository ;
+	
+	@Autowired
+	private ProjectInsightQuestionDetailsRepository projectInsightQuestionDetailsRepository;
+	
 	@Transactional
 	public ServiceResponse createProjectInsightQuestion(ProjectInsightDTO projectInsightDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -3879,8 +3891,7 @@ public class ProjectInsightService {
 
 			} else {
 
-				dbResponse = projectInsighProjectMappingRepository
-						.fetchAllProjectMappings();
+				dbResponse = projectInsighProjectMappingRepository.fetchAllProjectMappings();
 			}
 
 			if (dbResponse != null) {
@@ -3889,6 +3900,7 @@ public class ProjectInsightService {
 				throw new RuntimeException("No Project Insight found !!.");
 			}
 		} catch (Exception ex) {
+			ex.printStackTrace();
 			throw new RuntimeException("Something went wrong !!.", ex);
 		}
 	}
@@ -4238,7 +4250,303 @@ public class ProjectInsightService {
 	        return response;
 		}
 	}
+	
 
+	/*	
+	 * MongoDb New Structure Implementation [START]
+	 */
 
+	public ServiceResponse saveProjectInsightDetails(ProjectInsightDetailsDTO projectInsightDetailsDTO) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiUrl("/api/saveProjectInsightDetails");
+		try {
+			ProjectInsightProjectDetails projectInsightProjectDetails = projectInsightDetailsDTO.getProjectInsightProjectDetails();
+			if (projectInsightProjectDetails == null) {
+				throw new BadRequestException("Project Insight Details cannot be null.");
+			} else if (projectInsightProjectDetails.getProjectId() == null) {
+				throw new BadRequestException("Project Id cannot be null.");
+			}
+
+			Project project = projectRepository.findByProjectId(projectInsightProjectDetails.getProjectId());
+			if (project == null) {
+				throw new BadRequestException("Project not Found.");
+			}
+
+			boolean isNew = (projectInsightProjectDetails.getId() == null);
+			if (isNew) {
+				projectInsightProjectDetails.setCreatedBy(projectInsightProjectDetails.getCreatedBy());
+				projectInsightProjectDetails.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			} else {
+				Optional<ProjectInsightProjectDetails> existingOpt = projectInsightProjectDetailsRepository.findById(projectInsightProjectDetails.getId());
+				if (existingOpt.isPresent()) {
+					ProjectInsightProjectDetails existing = existingOpt.get();
+					projectInsightProjectDetails.setCreatedBy(existing.getCreatedBy());
+					projectInsightProjectDetails.setCreatedOn(existing.getCreatedOn());
+				} else {
+					projectInsightProjectDetails.setCreatedBy(projectInsightProjectDetails.getCreatedBy());
+					projectInsightProjectDetails
+							.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				}
+				projectInsightProjectDetails.setUpdatedBy(projectInsightProjectDetails.getUpdatedBy());
+				projectInsightProjectDetails.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			}
+
+			ProjectInsightProjectDetails dbResponse = projectInsightProjectDetailsRepository.save(projectInsightProjectDetails);
+			if (dbResponse == null) {
+				throw new BadRequestException("Unable to save Project Insight Details.");
+			}
+			saveProjectInsightDetailsMappingInfo(dbResponse);
+			saveProjectInsightFormDetails(projectInsightDetailsDTO.getProjectInsightFormDetails(), dbResponse.getId(),
+					"Project");
+
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(dbResponse);
+		} catch (BadRequestException e) {
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceMessage("Something went wrong.");
+			serviceResponse.setServiceResponse("Something went wrong.");
+		}
+		return serviceResponse;
+	}
+
+	public ServiceResponse saveProjectInsightGroupDetails(ProjectInsightDetailsDTO projectInsightDetailsDTO) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiUrl("/api/saveProjectInsightGroupDetails");
+		try {
+			ProjectInsightGroupDetails projectInsightGroupDetails = projectInsightDetailsDTO.getProjectInsightGroupDetails();
+			if (projectInsightGroupDetails == null) {
+				throw new BadRequestException("Project Insight Group Details cannot be null.");
+			} else if (projectInsightGroupDetails.getParentId() == null
+					|| projectInsightGroupDetails.getParentType() == null) {
+				throw new BadRequestException("Project Insight Group Details ParentId or ParentType cannot be null.");
+			}
+
+			boolean parentExists = checkIfParentExists(projectInsightGroupDetails.getParentId(),
+					projectInsightGroupDetails.getParentType(), false);
+
+			if (!parentExists) {
+				throw new BadRequestException("Project Insight Group Details Parent Not Found.");
+			}
+
+			boolean isNew = (projectInsightGroupDetails.getId() == null);
+
+			if (isNew) {
+				projectInsightGroupDetails.setCreatedBy(projectInsightGroupDetails.getCreatedBy());
+				projectInsightGroupDetails.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			} else {
+				Optional<ProjectInsightGroupDetails> existingOpt = projectInsightGroupDetailsRepository.findById(projectInsightGroupDetails.getId());
+				if (existingOpt.isPresent()) {
+					ProjectInsightGroupDetails existing = existingOpt.get();
+					projectInsightGroupDetails.setCreatedBy(existing.getCreatedBy());
+					projectInsightGroupDetails.setCreatedOn(existing.getCreatedOn());
+				} else {
+					projectInsightGroupDetails.setCreatedBy(projectInsightGroupDetails.getCreatedBy());
+					projectInsightGroupDetails
+							.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				}
+				projectInsightGroupDetails.setUpdatedBy(projectInsightGroupDetails.getUpdatedBy());
+				projectInsightGroupDetails.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			}
+
+			ProjectInsightGroupDetails dbResponse = projectInsightGroupDetailsRepository.save(projectInsightGroupDetails);
+			if (dbResponse == null) {
+				throw new BadRequestException("Unable to save Project Insight Group Details.");
+			}
+			saveProjectInsightFormDetails(projectInsightDetailsDTO.getProjectInsightFormDetails(), dbResponse.getId(),
+					"Group");
+
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(dbResponse);
+		} catch (BadRequestException e) {
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceMessage("Something went wrong.");
+			serviceResponse.setServiceResponse("Something went wrong.");
+		}
+		return serviceResponse;
+	}
+
+	public ServiceResponse saveProjectInsightQuestionDetails(ProjectInsightDetailsDTO projectInsightDetailsDTO) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiUrl("/api/saveProjectInsightQuestionDetails");
+		try {
+			ProjectInsightQuestionDetails projectInsightQuestionDetails = projectInsightDetailsDTO
+					.getProjectInsightQuestionDetails();
+			if (projectInsightQuestionDetails == null) {
+				throw new BadRequestException("Project Insight Group Details cannot be null.");
+			} else if (projectInsightQuestionDetails.getParentId() == null
+					|| projectInsightQuestionDetails.getParentType() == null) {
+				throw new BadRequestException(
+						"Project Insight Question Details ParentId or ParentType cannot be null.");
+			}
+
+			boolean parentExists = checkIfParentExists(projectInsightQuestionDetails.getParentId(),
+					projectInsightQuestionDetails.getParentType(), false);
+
+			if (!parentExists) {
+				throw new BadRequestException("Project Insight Question Details Parent Not Found.");
+			}
+
+			boolean isNew = (projectInsightQuestionDetails.getId() == null);
+
+			if (isNew) {
+				projectInsightQuestionDetails.setCreatedBy(projectInsightQuestionDetails.getCreatedBy());
+				projectInsightQuestionDetails.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			} else {
+				Optional<ProjectInsightQuestionDetails> existingOpt = projectInsightQuestionDetailsRepository.findById(projectInsightQuestionDetails.getId());
+				if (existingOpt.isPresent()) {
+					ProjectInsightQuestionDetails existing = existingOpt.get();
+					projectInsightQuestionDetails.setCreatedBy(existing.getCreatedBy());
+					projectInsightQuestionDetails.setCreatedOn(existing.getCreatedOn());
+				} else {
+					projectInsightQuestionDetails.setCreatedBy(projectInsightQuestionDetails.getCreatedBy());
+					projectInsightQuestionDetails
+							.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				}
+				projectInsightQuestionDetails.setUpdatedBy(projectInsightQuestionDetails.getUpdatedBy());
+				projectInsightQuestionDetails.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			}
+
+			ProjectInsightQuestionDetails dbResponse = projectInsightQuestionDetailsRepository.save(projectInsightQuestionDetails);
+			if (dbResponse == null) {
+				throw new BadRequestException("Unable to save Project Insight Question Details.");
+			}
+			saveProjectInsightFormDetails(projectInsightDetailsDTO.getProjectInsightFormDetails(), dbResponse.getId(),
+					"Question");
+
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(dbResponse);
+		} catch (BadRequestException e) {
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceMessage("Something went wrong.");
+			serviceResponse.setServiceResponse("Something went wrong.");
+		}
+		return serviceResponse;
+	}
+
+	private void saveProjectInsightFormDetails(ProjectInsightFormDetails projectInsightFormDetails, String parentId, String parentType) {
+		try {
+
+			boolean parentExists = checkIfParentExists(parentId, parentType, true);
+
+			if (!parentExists) {
+				throw new BadRequestException("Project Insight Form Details Parent Not Found.");
+			}
+
+			boolean isNew = (projectInsightFormDetails.getId() == null);
+
+			if (isNew) {
+				projectInsightFormDetails.setCreatedBy(projectInsightFormDetails.getCreatedBy());
+				projectInsightFormDetails.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			} else {
+				Optional<ProjectInsightFormDetails> existingOpt = projectInsightFormDetailsRepository.findById(projectInsightFormDetails.getId());
+				if (existingOpt.isPresent()) {
+					ProjectInsightFormDetails existing = existingOpt.get();
+					projectInsightFormDetails.setCreatedBy(existing.getCreatedBy());
+					projectInsightFormDetails.setCreatedOn(existing.getCreatedOn());
+				} else {
+					projectInsightFormDetails.setCreatedBy(projectInsightFormDetails.getCreatedBy());
+					projectInsightFormDetails.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				}
+				projectInsightFormDetails.setUpdatedBy(projectInsightFormDetails.getUpdatedBy());
+				projectInsightFormDetails.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			}
+			projectInsightFormDetails.setParentId(parentId);
+			projectInsightFormDetails.setParentType(parentType);
+
+			ProjectInsightFormDetails dbResponse = projectInsightFormDetailsRepository.save(projectInsightFormDetails);
+			if (dbResponse == null) {
+				throw new BadRequestException("Unable to save Project Insight Form Details.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	/*
+	 * create get apis for projects,groups,questions along with their structure.
+	 */
+
+	public ProjectInsightDetailsDTO getProjectInsightDetailsByObjectId(String id) {
+		ProjectInsightDetailsDTO projectInsightDetailsDTO = new ProjectInsightDetailsDTO();
+		try {
+			ProjectInsightProjectDetails existing = projectInsightProjectDetailsRepository.findById(id).orElseThrow(() -> new BadRequestException("Project Insight Details not found with id: " + id));
+			ProjectInsightFormDetails existingForm = projectInsightFormDetailsRepository.findByParentIdAndParentType(id,"Project").orElseThrow(() -> new BadRequestException("Project Insight Form Details not found with id: " + id));
+			projectInsightDetailsDTO.setProjectInsightProjectDetails(existing);
+			projectInsightDetailsDTO.setProjectInsightFormDetails(existingForm);
+		} catch (BadRequestException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Something went wrong !!", e);
+		}
+		return projectInsightDetailsDTO;
+	}
+
+	public ProjectInsightDetailsDTO getProjectInsightGroupDetailsByObjectId(String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public ProjectInsightDetailsDTO getProjectInsightQuestionDetailsByObjectId(String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public ProjectInsightDetailsDTO getProjectInsightQuestionDetailsByParentIdAndParentType(String parentId, String parentType) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	
+	// helper methods
+
+	private void saveProjectInsightDetailsMappingInfo(ProjectInsightProjectDetails projectInsightProjectDetails) {
+		ProjectInsighProjectMapping mappingResponse = projectInsighProjectMappingRepository.findByProjectId(projectInsightProjectDetails.getProjectId());
+		if (mappingResponse != null) {
+			mappingResponse.setProjectInsightDetailsId(projectInsightProjectDetails.getId());
+			projectInsighProjectMappingRepository.save(mappingResponse);
+		} else {
+			ProjectInsighProjectMapping newObj = new ProjectInsighProjectMapping();
+			newObj.setProjectId(projectInsightProjectDetails.getProjectId());
+			newObj.setProjectInsightDetailsId(projectInsightProjectDetails.getId());
+			newObj.setIsDraft(projectInsightProjectDetails.getIsDraft());
+			newObj.setCreatedBy(Long.parseLong(projectInsightProjectDetails.getCreatedBy()));
+			projectInsighProjectMappingRepository.save(newObj);
+		}
+	}
+
+	private boolean checkIfParentExists(String parentId, String parentType, boolean checkForQuestion) {
+		boolean isParentExists = false;
+		if (parentId == null || parentType == null) {
+			return isParentExists;
+		}
+		if (parentType.equals("Project")) {
+			isParentExists = projectInsightProjectDetailsRepository.existsById(parentId);
+		} else {
+			isParentExists = projectInsightGroupDetailsRepository.existsById(parentId);
+			if (checkForQuestion) {
+				isParentExists = projectInsightQuestionDetailsRepository.existsByParentIdAndParentType(parentId, parentType);
+			}
+		}
+		return isParentExists;
+	}
 
 }
