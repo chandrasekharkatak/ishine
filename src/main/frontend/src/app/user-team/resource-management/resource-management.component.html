@@ -183,6 +183,83 @@
                             </div>
                         </div>
 
+                        
+                     
+                         <!-- added for TNM active projects -->
+                        <div class="col-md-2" style="display: flex;
+                        justify-content: flex-start; max-width: fit-content;
+                         margin-left: -15px;" (click)="selectStatusTab('activeTNMProjects')"
+                            [ngClass]="{'selected-card': selectedStatusTab === 'activeTNMProjects'}">
+                            <div class="mini-card1" style="border-left: 4px solid #107503;">
+                                <div class="value fw-bold" style="color: #107503;">
+                                    {{tabCounts.allActiveTNMProjectsCount}}
+                                </div>
+                                <div class="label text-muted">TNM Active<br>Projects<i
+                                        class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #107503;"></i></div>
+                            </div>
+                        </div>
+
+
+                        <!-- added for TNM expired projects -->
+                        <div class="col-md-6" (click)="selectStatusTab('expiredTNM')"
+                            [ngClass]="{'selected-card': selectedStatusTab === 'expiredTNM'}">
+                            <div class="mini-card-tnm" style="border-left: 4px solid #8B0000; padding: 5px 8px;">
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="value fw-semibold" style="color: #8B0000; font-size: 16px;">
+                                        <ng-container
+                                            *ngIf="tabCounts?.allExpiredTNMProjectsCount !== null && tabCounts?.allExpiredTNMProjectsCount !== undefined; else mainLoadingSpinner">
+                                            {{getCurrentExpiredCount()}}
+                                        </ng-container>
+                                        <ng-template #mainLoadingSpinner>
+                                            <i class="fa fa-spinner fa-spin text-secondary"></i>
+                                        </ng-template>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                </div>
+
+                                <div class="range-buttons mb-2" (click)="$event.stopPropagation()"
+                                    style="display: flex; flex-wrap: nowrap; gap: 2px; justify-content: space-between;">
+
+                                    <div *ngFor="let filter of expiredProjectFilters; let i = index"
+                                        class="filter-container"
+                                        style="display: flex; flex-direction: column; align-items: center;">
+
+                                        <button [class.active]="selectedExpiredProjectFilter === filter"
+                                            class="pill-button" (click)="selectExpiredProjectFilter(filter)"
+                                            [title]="filter.title"
+                                            style="white-space: nowrap; font-size: 10px; padding: 4px 5px; border-radius: 12px; border: 1px solid #ddd; background: #f8f9fa;"
+                                            [ngStyle]="{
+                        'background-color': selectedExpiredProjectFilter === filter ? '#8B0000' : '#f8f9fa',
+                        'color': selectedExpiredProjectFilter === filter ? '#fff' : '#333',
+                        'border-color': selectedExpiredProjectFilter === filter ? '#8B0000' : '#ddd'
+                    }">
+                                            {{ filter.label }}
+                                        </button>
+                                        <div class="filter-count"
+                                            style="text-align: center; font-size: 10px; color: #666; margin-top: 2px; font-weight: 600;">
+                                            <ng-container
+                                                *ngIf="tabCounts && tabCounts[filter.key] !== null && tabCounts[filter.key] !== undefined">
+                                                {{tabCounts[filter.key]}}
+                                            </ng-container>
+                                            <ng-container
+                                                *ngIf="!tabCounts || tabCounts[filter.key] === null || tabCounts[filter.key] === undefined">
+                                                <i class="fa fa-spinner fa-spin" style="font-size: 8px;"></i>
+                                            </ng-container>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="label text-muted">
+                                    {{ selectedExpiredProjectFilter?.title || 'All Expired TNM Projects' }}
+                                    <i class="fa-solid fa-briefcase fa-beat-fade"
+                                        style="color: #8B0000; margin-left: 5px; margin-top: 10px;"></i>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
                 </div>
@@ -665,6 +742,13 @@
                                                     'NA' }}{{!last ? ',' : ''}}
                                                 </span>
                                             </ng-container>
+                                            <ng-container
+                                                *ngIf="(!project.projectManagers || project.projectManagers.length === 0) && project.projectManager">
+                                                <span class="info-label">
+                                                    {{project.projectManager ? project.projectManager : 'NA'}}
+                                                </span>
+                                            </ng-container>
+
                                         </td>
                                         <td>{{project.clientName ? project.clientName:'NA'}}</td>
                                         <td>{{project.apmosysRM ? project.apmosysRM:'NA'}}</td>

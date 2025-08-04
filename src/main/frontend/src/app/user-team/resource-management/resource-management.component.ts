@@ -1033,6 +1033,25 @@ export class ResourceManagementComponent implements OnInit {
       this.projectFilterDTO.completionStatus = this.selectedStatusTab;
       this.projectFilterDTO.approvalStatus = "All";
     }
+   else if (this.selectedStatusTab == "activeTNMProjects") {
+        this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.approvalStatus = "activeTNM";
+    }
+     else if (this.selectedStatusTab == "expiredTNM") {
+        // Set default filter if none selected
+        if (!this.selectedExpiredProjectFilter) {
+            this.selectedExpiredProjectFilter = this.expiredProjectFilters.find(f => f.key === 'allExpiredTNMProjectsCount') || this.expiredProjectFilters[0]; 
+        }
+        
+        this.projectFilterDTO.approvalStatus = "expiredTNM";
+        this.projectFilterDTO.completionStatus = null;
+        
+        this.projectFilterDTO.expiredProjectFilter = this.selectedExpiredProjectFilter.key;
+        
+        console.log('ExpiredTNM selected - Filter:', this.selectedExpiredProjectFilter);
+        console.log('ExpiredTNM selected - Filter Key:', this.projectFilterDTO.expiredProjectFilter);
+        console.log('ExpiredTNM selected - DepartmentIds:', this.projectFilterDTO.departmentsids);
+    }
     else {
       this.projectFilterDTO.completionStatus = null;
     }
@@ -2748,28 +2767,83 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
     this.resourceManagementService.combinedPOINTERNALDataList(projectFilterDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         console.log(response.serviceResponse);
-        this.allProject_Po_Internal = response.serviceResponse.combinedNewProjects.map((project: any) => {
-          // Add the combined project type to each project object
-          project.combinedProjectType = this.getProjectType(project);
+        
+         if (this.selectedStatusTab === 'expiredTNM' && response.serviceResponse) {
+                let expiredProjects = [];
+                
+                if (this.selectedExpiredProjectFilter && this.selectedExpiredProjectFilter.key) {
+                    const filterKey = this.selectedExpiredProjectFilter.key;
+                    
+                    const dataKeyMapping = {
+                        'expiredProjectsWithin1Month': 'expiredTNMProjectsWithin1Month',
+                        'expiredProjects1To2Months': 'expiredTNMProjects1To2Months',
+                        'expiredProjects2To3Months': 'expiredTNMProjects2To3Months',
+                        'expiredProjects3To6Months': 'expiredTNMProjects3To6Months',
+                        'expiredProjects6To9Months': 'expiredTNMProjects6To9Months',
+                        'expiredProjects9To12Months': 'expiredTNMProjects9To12Months',
+                        'expiredProjectsAbove12Months': 'expiredTNMProjectsAbove12Months',
+                        'allExpiredTNMProjectsCount': 'allExpiredTNMProjects'
+                    };
+                    
+                    const dataKey = dataKeyMapping[filterKey] || 'allExpiredTNMProjects';
+                    expiredProjects = response.serviceResponse[dataKey] || [];
+                } else {
+                    expiredProjects = response.serviceResponse.allExpiredTNMProjects || [];
+                }
+                
+                if (expiredProjects && expiredProjects.length > 0) {
+                    this.allProject_Po_Internal = expiredProjects.map((project: any) => {
+                        project.combinedProjectType = this.getProjectType(project);
+                        
+                        if (project.projectManager && project.projectManager.trim() !== '') {
+                            project.projectManagerName = project.projectManager;
+                        } else {
+                            project.projectManagerName = ''; 
+                        }
+                        return project;
+                    });
+                    
+                    console.log(`Loaded ${expiredProjects.length} expired TNM projects for filter: ${this.selectedExpiredProjectFilter?.title}`);
+                }
+            } 
+            else if (response.serviceResponse.activeTNMProjects && response.serviceResponse.activeTNMProjects.length > 0) {
+                this.allProject_Po_Internal = response.serviceResponse.activeTNMProjects.map((project: any) => {
+                    project.combinedProjectType = this.getProjectType(project);
 
-          if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
-            const managerNamesString = project.projectManagers
-              .map(manager => manager.projectManagerName)
-              .join(', ');
+                    if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
+                        const managerNamesString = project.projectManagers
+                            .map(manager => manager.projectManagerName)
+                            .join(', ');
+                        project.projectManagerName = managerNamesString;
+                    } else if (project.projectManager && project.projectManager.trim() !== '') {
+                        project.projectManagerName = project.projectManager;
+                    } else {
+                        project.projectManagerName = ''; 
+                    }
+                    return project;
+                });
+            }
+            else if (response.serviceResponse.combinedNewProjects && response.serviceResponse.combinedNewProjects.length > 0) {
+                this.allProject_Po_Internal = response.serviceResponse.combinedNewProjects.map((project: any) => {
+                    project.combinedProjectType = this.getProjectType(project);
 
-            project.projectManagerName = managerNamesString;
-          } else {
+                    if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
+                        const managerNamesString = project.projectManagers
+                            .map(manager => manager.projectManagerName)
+                            .join(', ');
 
-            project.projectManagerName = ''; 
-          }
-          return project;
-          this.createDepartmentArray();
-        });
-        // this.tabCounts = response.serviceResponse.counts;
-        // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
+                        project.projectManagerName = managerNamesString;
+                    } else {
+                        project.projectManagerName = ''; 
+                    }
+                    return project;
+                });
+            }
+            
+            this.createDepartmentArray();
+        } else {
+            this.openAlertMod(template, response.serviceResponse);
+        }
     });
   }
 
@@ -4851,4 +4925,86 @@ filteredProjects: any[] = [];
       }
     });
   }
+
+
+
+expiredProjectFilters = [
+    { key: 'allExpiredTNMProjectsCount', label: 'All', title: 'All Expired TNM Projects' },
+    { key: 'expiredProjectsWithin1Month', label: '1M', title: 'Expired Within 1 Month' },
+    { key: 'expiredProjects1To2Months', label: '1-2M', title: 'Expired 1 to 2 Months' },
+    { key: 'expiredProjects2To3Months', label: '2-3M', title: 'Expired 2 to 3 Months' },
+    { key: 'expiredProjects3To6Months', label: '3-6M', title: 'Expired 3 to 6 Months' },
+    { key: 'expiredProjects6To9Months', label: '6-9M', title: 'Expired 6 to 9 Months' },
+    { key: 'expiredProjects9To12Months', label: '9-12M', title: 'Expired 9 to 12 Months' },
+    { key: 'expiredProjectsAbove12Months', label: '12M+', title: 'Expired Above 12 Months' }
+];
+
+selectedExpiredProjectFilter: any = null;
+expiredProjectDisplayCount: number | null = null;
+
+getCurrentExpiredCount(): number {
+    if (!this.tabCounts) return 0;
+    if (this.selectedExpiredProjectFilter && this.selectedExpiredProjectFilter.key) {
+        return this.tabCounts[this.selectedExpiredProjectFilter.key] || 0;
+    }
+    return this.tabCounts.allExpiredTNMProjectsCount || 0;
+}
+
+initializeExpiredProjectFilters() {
+  this.expiredProjectFilters = [
+    { 
+      label: 'All', 
+      key: 'allExpiredTNMProjectsCount', 
+      title: 'All Expired TNM Projects'
+    },
+    { 
+      label: '0-1M', 
+      key: 'expiredProjectsWithin1Month', 
+      title: 'TNM Projects Expired Within 1 Month'
+    },
+    { 
+      label: '1-2M', 
+      key: 'expiredProjects1To2Months', 
+      title: 'TNM Projects Expired 1 to 2 Months Ago'
+    },
+    { 
+      label: '2-3M', 
+      key: 'expiredProjects2To3Months', 
+      title: 'TNM Projects Expired 2 to 3 Months Ago'
+    },
+    {
+      label: '3-6M',
+      key: 'expiredProjects3To6Months',
+      title: 'TNM Projects Expired 3 to 6 Months Ago'
+    },
+    {
+      label: '6-9M' ,
+      key: 'expiredProjects6To9Months',
+      title: 'TNM Projects Expired 6 to 9 Months Ago'
+    },
+    {
+      label: '9-12M',
+      key: 'expiredProjects9To12Months',
+      title: 'TNM Projects Expired 9 to 12 Months Ago'
+    },
+    {
+      label: '> 1Y',
+      key: 'expiredProjectsAbove12Months',
+      title: 'TNM Projects Expired More Than 1 Year Ago'
+    }
+
+  ];
+ 
+  this.selectedExpiredProjectFilter = this.expiredProjectFilters[0];
+}
+
+selectExpiredProjectFilter(filter: any) {
+    this.selectedExpiredProjectFilter = filter;
+    this.projectFilterDTO.expiredProjectFilter = filter.key;
+    
+    console.log('Selected expired project filter:', filter);
+    console.log('Filter key set to:', this.projectFilterDTO.expiredProjectFilter);
+    
+    this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+}
 }

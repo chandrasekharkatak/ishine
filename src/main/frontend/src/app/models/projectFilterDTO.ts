@@ -7,4 +7,6 @@ export class ProjectFilterDTO{
     isOther:boolean = false;
     departmentsids: any[] = [];
     departments:any[] = [];
+  days: any;
+  expiredProjectFilter: any;
 }

@@ -116,6 +116,26 @@ thead {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   }
 
+  .mini-card2{
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 10px 12px;
+    min-width: 200px;
+    min-height: 60px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-left: 4px solid var(--card-border-color);
+    font-family: 'Segoe UI', sans-serif;
+    background: white;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+
   .mini-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -305,6 +325,7 @@ thead {
     padding: 30px;
     margin: auto;
   }
+
   h3 {
     margin-bottom: 20px;
     font-size: 20px;
@@ -1154,6 +1175,7 @@ thead {
   border-radius: 4px;
 }
 
+
 .dropdown-right-menu li {
   padding: 8px 14px;
   list-style: none;
@@ -1165,6 +1187,122 @@ thead {
 .dropdown-right-menu li:hover {
   background-color: #f5f5f5;
 }
+.pill-button {
+  background-color: #f2f2f2;
+  border: none;
+  border-radius: 999px;
+  padding: 3px 6px; /* Reduced from 2px 8px */
+  font-size: 9px; /* Reduced from 10px */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #333;
+  white-space: nowrap;
+  min-width: 0;
+  flex-shrink: 1; /* Allow shrinking */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pill-button.active {
+  background-color: #e91e63;
+  color: #fff;
+  font-weight: bold;
+}
+
+.range-buttons {
+  display: flex;
+  gap: 2px; /* Reduced gap */
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  width: 100%;
+  overflow: hidden; /* Prevent overflow */
+}
+
+.filter-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 0; /* Allow shrinking below content size */
+  max-width: none;
+}
+
+.filter-count {
+  text-align: center;
+  font-size: 8px; /* Reduced from 10px */
+  color: #666;
+  margin-top: 1px; /* Reduced from 2px */
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+  .pill-button {
+    padding: 2px 4px;
+    font-size: 8px;
+  }
+  
+  .filter-count {
+    font-size: 7px;
+  }
+  
+  .range-buttons {
+    gap: 1px;
+  }
+}
+
+@media (max-width: 576px) {
+  .pill-button {
+    padding: 1px 3px;
+    font-size: 7px;
+  }
+  
+  .filter-count {
+    font-size: 6px;
+  }
+}
+
+@media (max-width: 400px) {
+  .pill-button {
+    padding: 1px 2px;
+    font-size: 6px;
+  }
+  
+  .filter-count {
+    font-size: 5px;
+  }
+}
+
+/* For larger screens */
+@media (min-width: 1200px) {
+  .pill-button {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  
+  .filter-count {
+    font-size: 9px;
+  }
+}
+.mini-card-tnm{
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 10px 12px;
+    min-width: 150px;
+    min-height: 60px;
+    /* margin-bottom: 10px; */
+    /* display: flex; */
+    flex-direction: column;
+    justify-content: space-between;
+    border-left: 5px solid var(--card-border-color);
+    font-family: 'Segoe UI', sans-serif;
+    background: white;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
 
 
 
