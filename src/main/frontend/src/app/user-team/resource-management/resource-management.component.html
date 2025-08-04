@@ -145,7 +145,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-3 py-1">
                             <div class="mini-card1 timesheet-card"
                                 style="border-left: 4px solid #e91e63; padding: 12px;"
                                 (click)="EmployeeViewDataModel(employee_data,'Unfilled Timesheet Projects')">
@@ -182,6 +182,57 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="row" *ngIf="!isCollapsed1">
+        <div class="col-md-13 mx-3">
+    <div class="mini-card1 fixed-cost-card" 
+         style="border-left: 4px solid #0e6dcd; padding: 10px;">
+
+     
+        <div class="d-flex justify-content-between align-items-center mt-0">
+            <div class="value fw-bold" style="color: #0e6dcd;" >
+                <ng-container *ngIf="!isCountLoading; else countSpinner"  >
+                    {{ totalProjectCount }}
+                </ng-container>
+                <ng-template #countSpinner>
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                </ng-template>
+            </div>
+            <div class="label fw-semibold text-muted text-end">
+                Total Projects
+            </div>
+        </div>
+
+<div class="d-flex justify-content-between align-items-center mt-0">
+
+    <div class="label fw-semibold" style="color: #0e6dcd;">Projects</div>
+    <div class="range-buttons-container">
+        <div class="filter-item" *ngFor="let range of ranges1">
+            <button 
+                class="pill-button"
+                [class.active]="selectedRange1 === range"
+                (click)="selectRange1(range)">
+                {{ range.label }}
+            </button>
+            <div class="filter-count">
+                <ng-container *ngIf="!isCountLoading; else countSpinner">
+                    {{ range.count }}
+                </ng-container>
+                <ng-template #countSpinner>
+                    <i class="fa fa-spinner fa-spin fa-xs text-secondary"></i>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+</div>
+        <div class="label text-muted mt-0"> 
+            All Fixed Cost Projects
+            <i class="fa-solid fa-calendar-check fa-beat-fade ms-1" style="color: #0e6dcd"></i>
+        </div>
+    </div>
+</div>
+
+    </div>
 
                     </div>
 
@@ -493,83 +544,18 @@
         </div>
 
       
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="col-md-4 mb-2 d-flex justify-content-between align-items-center"></div>
-                <h5 class="mb-3">Fixed Cost Project</h5>
-                <i class="fa" [ngClass]="isCollapsed1 ? 'fa-chevron-down' : 'fa-chevron-up'"
-                            style="cursor: pointer; padding-right: 120px;" (click)="isCollapsed1 = !isCollapsed1"
-                            title="{{ isCollapsed1 ? 'Expand Section' : 'Collapse Project Status Report' }}">
-                </i>
-                </div>
-                <div class="row" *ngIf="!isCollapsed1">
-                    <div class="col-md-2" style="display: flex; max-width: fit-content; cursor: pointer;" 
-                        (click)="selectStatusTab('Total Fixed Cost')"
-                        [ngClass]="{'selected-card': selectedStatusTab === 'Total Fixed Cost'}">
-                        <div class="mini-card1" style="border-left: 4px solid #9E9E9E;">
-                            <div class="value fw-bold" style="color: #9E9E9E;">{{tabCounts.notStartedCount}}</div>
-                            <div class="label text-muted">Total Fixed Cost <i class="fa-solid fa-calculator fa-beat-fade" style="color: #d51919;"></i></div>
-                        </div>
-                    </div>
-                    <div class="col-md-2" style="display: flex; max-width: fit-content; cursor: pointer;" 
-                        (click)="selectStatusTab('Defaulter-Fixed Cost')"
-                        [ngClass]="{'selected-card': selectedStatusTab === 'Defaulter-Fixed Cost'}">
-                        <div class="mini-card1" style="border-left: 4px solid #FFB300;">
-                            <div class="value fw-bold" style="color: #FFB300;">{{tabCounts.pendingForApprovalCount}}</div>
-                            <div class="label text-muted">Defaulter-Fixed Cost<i class="fa-solid fa-face-meh fa-beat-fade" style="color: #FFB300;"></i></div>
-                        </div>
-                    </div>
-                    <div class="col-md-2" style="display: flex; max-width: fit-content; cursor: pointer;" 
-                        (click)="selectStatusTab('To be expired in 5 days')"
-                        [ngClass]="{'selected-card': selectedStatusTab === 'To be expired in 5 days'}">
-                        <div class="mini-card1" style="border-left: 4px solid #355066;">
-                            <div class="value fw-bold" style="color: #485199;">{{tabCounts.approvedCount}}</div>
-                            <div class="label text-muted">To be expired in 5 days <i class="fa-solid fa-check-circle fa-beat-fade" style="color: #4CAF50;"></i></div>
-                        </div>
-                    </div>
+<div class="row mb-4">
+    <!-- <div class="col-md-4 mb-2 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Fixed Cost Project</h5>
 
+        <i class="fa" [ngClass]="isCollapsed1 ? 'fa-chevron-right' : 'fa-chevron-left'"
+            style="cursor: pointer;" (click)="isCollapsed1 = !isCollapsed1"
+            title="{{ isCollapsed1 ? 'Expand Section' : 'Collapse Project Status Report' }}">
+        </i>
+    </div> -->
 
-                    <div class="col-md-3">
-                                    <div class="mini-card1 timesheet-card"
-                                        style="border-left: 4px solid #0ecd38; padding: 12px;"
-                                        (click)="EmployeeViewDataModel(employee_data,'Unfilled Timesheet Projects')">
-
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div class="value fw-bold" style="color: #11db28;">
-                                                <ng-container
-                                                    *ngIf="unfilledTimesheetProjectListCount !== null && unfilledTimesheetProjectListCount !== undefined; else loadingSpinner">
-                                                    {{ unfilledTimesheetProjectListCount }}
-                                                </ng-container>
-                                                <ng-template #loadingSpinner>
-                                                    <i class="fa fa-spinner fa-spin text-secondary"></i>
-                                                </ng-template>
-                                            </div>
-                                            <div class="label fw-semibold text-muted text-end">
-                                                Completed Projects
-                                            </div>
-                                        </div>
-
-                                        <div class="d-flex justify-content-between align-items-center">
-            <div class="label fw-semibold" style="color: #00ec33;">Last</div>
-
-            <div class="range-buttons" (click)="$event.stopPropagation()">
-                <button *ngFor="let range of ranges1"
-                        class="pill-button"
-                        [class.active]="selectedRange1 === range"
-                        (click)="selectRange1(range)">
-                    {{ range.label }}
-                </button>
-            </div>
-        </div>
-
-                                        <div class="label text-muted"> All Milestone Completed
-                                            <i class="fa-solid fa-calendar-xmark fa-beat-fade" style="color: #e91e63"></i>
-                                        </div>
-                                    </div>
-                                </div>
-
-                </div>
-        </div>
+    
+    </div>
 </div>
 
 
@@ -666,7 +652,7 @@
                                     <tr>
                                         <th colspan="9" class="text-center info-label">No details to display...</th>
                                     </tr>
-                                </ng-container>
+                                </ng-container> 
                                 <ng-container
                                     *ngFor="let project of allProject_Po_Internal | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                     <tr>
@@ -715,7 +701,7 @@
                                             <span style="cursor: pointer; color: blue;" id="clickablefor360"
                                                 (click)="cancelRequest()"
                                                 [navigateToProjectView]="project.projectViewId">
-                                                {{project.name ? project.name : 'NA' }}
+                                               {{ project.name || project.projectName || 'NA' }}
                                             </span>
                                         </td>
                                         <td>{{project.poNo ? project.poNo : 'NA' }}</td>
@@ -741,9 +727,10 @@
                                                     *ngFor="let managerData of project.projectManagers; let last = last"
                                                     style="cursor: pointer;" class="info-label">
                                                     {{managerData.projectManagerName ? managerData.projectManagerName :
-                                                    'NA' }}{{!last ? ',' : ''}}
+                                                    'NA'}}{{!last ? ',' : ''}}
                                                 </span>
                                             </ng-container>
+                                            {{project.projectManager}}
                                         </td>
                                         <td>{{project.clientName ? project.clientName:'NA'}}</td>
                                         <td>{{project.apmosysRM ? project.apmosysRM:'NA'}}</td>

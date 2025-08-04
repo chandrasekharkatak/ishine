@@ -25,7 +25,9 @@ import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
+import com.apmosys.employeeportal.request.ProjectRequest;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.service.PoPortalAPIService;
 import com.apmosys.employeeportal.service.ProjectService;
@@ -186,8 +188,13 @@ public class ProjectController {
 	
 	
 	@PostMapping(value="/getCompletedFixedCostProjects")
-	public ServiceResponse getCompletedFixedCostProjects(@RequestBody @RequestParam String timeFrame){
-		return projectService.getCompletedFixedCostProjects(timeFrame);
+	public ServiceResponse getCompletedFixedCostProjects(@RequestBody ProjectRequest projectRequest){
+		return projectService.getCompletedFixedCostProjects(projectRequest);
+	}
+	
+	@PostMapping(value = "/getFixedCostCount")
+	public ServiceResponse getFixedCostCount(@RequestBody ProjectFilterDTO projectFilter) {
+		return projectService.getFcCount(projectFilter);
 	}
 	
 	

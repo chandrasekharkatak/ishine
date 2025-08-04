@@ -158,8 +158,12 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}` + `api/combinedPOINTERNALDataList`, projectFilterDTO);
   }
 
-  getFixedCostProjectList(tabName: string = '') {
-    return this.http.get(`${this.baseUrl}` + `api/getCompletedFixedCostProjects`, { params: { tabName: tabName } });
+  getFixedCostProjectList(payload: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getCompletedFixedCostProjects`, payload);
+  }
+
+  getFixedCostCount(ProjectFilterDTO: ProjectFilterDTO) {
+    return this.http.post(`${this.baseUrl}` + `api/getFixedCostCount`, ProjectFilterDTO);
   }
 
 }

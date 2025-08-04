@@ -1307,3 +1307,36 @@ thead {
   flex: 1;              /* Allow the body to grow and fill available space */
   overflow-y: auto;     /* Add a vertical scrollbar ONLY when content overflows */
 }
+
+
+
+
+.range-buttons-container {
+  display: flex;
+  align-items: flex-start; /* Aligns items to the top */
+  gap: 0px; /* Creates space between each filter item. Adjust as needed. */
+}
+
+/* This is the container for a single button and its count */
+.filter-item {
+  display: flex;
+  flex-direction: column; /* Stacks the button and count vertically */
+  align-items: center;    /* Centers them horizontally */
+  min-width: 60px; /* Gives each item a minimum width to prevent squishing */
+}
+
+/* Your existing button styling - no changes needed */
+.pill-button {
+  /* ... your existing styles for padding, border, etc. ... */
+}
+.pill-button.active {
+  /* ... your existing styles for the active state ... */
+}
+
+/* This is the new styling for the count number below the button */
+.filter-count {
+  margin-top: 6px; /* Adds space between the button and the count */
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+}

@@ -74,6 +74,8 @@ export class ResourceManagementComponent implements OnInit {
     { value: 32, label: "Pending", icon: "fa-hourglass-half", iconColor: "#03A9F4", borderColor: "#03A9F4" }
   ];
 
+  completedProjectsCount: number | null = null;
+  isCountLoading: boolean = false;
   showReportList = false;
   reportListUrlSafe: SafeResourceUrl;
   isCollapsed: boolean = false;
@@ -404,6 +406,8 @@ export class ResourceManagementComponent implements OnInit {
   showDetails: boolean = false;
   showDetailsTimesheet: boolean = false;
   changeTable: boolean = true;
+  totalProjectCount: number = 0;
+  defaulterCount: number = 0;
 
   // filters: any = {};
   // isSearchEnabled: boolean = false;
@@ -503,8 +507,8 @@ isLoadingMilestones: any;
   OtherProjectDefaultMapping: TemplateRef<any>;
 isCollapsed1: any;
   fcProjectList: any;
-  ;
   notificationService: any;
+  iscountLoading: boolean;
 
 
   constructor(
@@ -670,6 +674,14 @@ isCollapsed1: any;
       this.selectStatusTab(this.selectedStatusTab);
       console.log(this.selectedStatusTab, "this.selectedStatusTab");
     }
+
+    // this.getFixedCostProjectList("all");
+    // this.getFixedCostProjectList("defaulter");
+    // this.fetchCompletedProjectsCount("lastmonth");
+
+    this.getFixedCostCount(this.projectFilterDTO);
+
+    
   }
 
 
@@ -1221,19 +1233,130 @@ onDeptSelectionChange1() {
     this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
   }
 
+   selectStatusTab1(status: string) {
+    this.page = 1;
+    this.selectedStatusTab = status;
 
-  getFixedCostProjectList(tabName: string = '') {
-    const payload = tabName;
-    this.resourceManagementService.getFixedCostProjectList(payload).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.fcProjectList = response.serviceResponse;
-        this.fcProjectList = this.fcProjectList.sort((a, b) => a.projectName.localeCompare(b.projectName));
-        console.log(this.fcProjectList, "this.fcProjectList");
+    
+    if (this.scroller) {
+      const documentHeight = document.body.scrollHeight;
+      this.scroller.scrollToPosition([0, documentHeight]);
+    }
+  
+    this.getFixedCostProjectList(status,this.projectFilterDTO);
+  }
+
+getFixedCostCount(projectFilterDTO: any) {
+    this.resourceManagementService.getFixedCostCount(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success" && response.serviceResponse) {
+        
+        this.totalProjectCount = response.serviceResponse.totalFixedCostcount;
+        this.defaulterCount = response.serviceResponse.expiredCount;
+        
+        
+        const allRange = this.ranges1.find(range => range.value === 'all');
+        if (allRange) {
+          allRange.count = this.totalProjectCount; 
+        }
+
+        const defaulterRange = this.ranges1.find(range => range.value === 'defaulter');
+        if (defaulterRange) {
+          defaulterRange.count = this.defaulterCount; 
+        }
+
+        console.log("Total Fixed Cost Project Count:", this.totalProjectCount);
+        console.log("Defaulter/Expired Count:", this.defaulterCount);
+        console.log("Updated ranges1 array:", this.ranges1);
+
       } else {
-        console.error(response.serviceResponse);
+        this.totalProjectCount = 0;
+        this.defaulterCount = 0;
+        this.ranges1.forEach(range => {
+            if (range.value === 'all' || range.value === 'defaulter') {
+                range.count = 0;
+            }
+        });
+        console.error("Failed to get fixed cost count:", response.serviceResponse || response.serviceMessage);
       }
     });
   }
+
+  getFixedCostProjectList(tabName:any,projectFilterDTO: any) {
+    this.isCountLoading = true;
+    const payload = {
+      projectFilterDTO: projectFilterDTO,
+      tabName: this.selectedRange1.value}
+    this.resourceManagementService.getFixedCostProjectList(payload).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        const receivedProjects = response.serviceResponse;  
+        if (tabName === 'all') {
+          this.allProject_Po_Internal = receivedProjects;
+          console.log("All Projects Updated:", this.allProject_Po_Internal);
+        } else if (tabName === 'defaulter') {
+          this.allProject_Po_Internal = receivedProjects;
+          console.log("All Projects Updated:", this.allProject_Po_Internal);
+        }
+        if (tabName === this.selectedStatusTab) {
+          this.fcProjectList = receivedProjects.sort((a, b) => a.projectName.localeCompare(b.projectName));
+          console.log("Displayed List Updated:", this.fcProjectList);
+        }
+        this.isCountLoading = false; 
+
+      } else {
+        if (tabName === this.selectedStatusTab) {
+          this.fcProjectList = [];
+        }
+        this.isCountLoading = false; 
+        console.error(`Failed to get list for ${tabName}:`, response.serviceResponse);
+
+      }
+    });
+  }
+
+   ranges1 = [
+    {label: 'All', value: "all",count:this.totalProjectCount},
+    {label:'Default', value: "defaulter",count:this.defaulterCount},
+    { label: 'Ongoing', value: "ongoing",count:0},
+    { label: 'Delays', value: "delays",count:0},
+    { label: 'Ontime', value: "ontime",count:0}
+  ];
+
+
+ selectedRange1 = this.ranges1[0];
+
+   
+ selectRange1(range: any): void {
+    if (this.selectedRange1 === range) {
+      return; 
+    }
+    
+    this.selectedRange1 = range;
+    this.getFixedCostProjectList(range.value, this.projectFilterDTO);
+  }
+
+  // fetchCompletedProjectsCount(timeRange: string): void {
+  //   this.isCountLoading = true; 
+
+  //   this.resourceManagementService.getFixedCostProjectList(timeRange).pipe(first()).subscribe({
+  //     next: (response: any) => {
+  //       if (response.serviceStatus === "Success") {
+  //         this.completedProjectsCount = response.serviceResponse.length;
+  //         this.allProject_Po_Internal = response.serviceResponse;
+  //         console.log('Completed Projects Count:', this.completedProjectsCount);
+  //         console.log('All Projects:', this.allProject_Po_Internal);
+  //       } else {
+  //         this.completedProjectsCount = 0;
+  //         console.error('API Error:', response.serviceResponse);
+  //       }
+  //       this.isCountLoading = false; 
+  //     },
+  //     error: (err) => {
+  //       this.completedProjectsCount = 0;
+  //       this.isCountLoading = false; 
+  //       console.error('Failed to fetch completed projects count', err);
+  //     }
+  //   });
+  // }
 
 
 
@@ -2759,19 +2882,7 @@ isAddButtonDisabled(): boolean {
     this.fetchTimesheetMissingCount();
   }
 
-   ranges1 = [
-    { label: '1M', value: "lastmonth" },
-    { label: '6M', value: "last6months"},
-    { label: '1Y', value: "lastyear" }
-  ];
-
-
- selectedRange1 = this.ranges1[0];
-
-  selectRange1(range: any) {
-    this.selectedRange1 = range;
-    this.fetchTimesheetMissingCount();
-  }
+  
 
   unfilledTimesheetProjectList: any[] = [];
   unfilledTimesheetProjectListCount: any;
@@ -4883,6 +4994,7 @@ filteredProjects: any[] = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.rbacApiCalls();
       // this.getEmployeeReportData();
+      
     }else {
       this.projectFilterDTO = this.deptList2;
       this.projectFilterDTO.approvalStatus = "All";
@@ -4891,6 +5003,8 @@ filteredProjects: any[] = [];
       this.projectFilterDTO.departments = [];
       this.filterStateService.deptIdList = this.deptIdList;
       this.rbacApiCalls();
+     
+    
     } 
   }
 
@@ -4934,6 +5048,7 @@ filteredProjects: any[] = [];
       this.filterStateService.deptIdListByUser = this.deptIdListByUser;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.rbacApiCalls();
+      
     } else {
       // Select all departments
       this.deptIdListByUser = this.filteredDepartmentsByUser.map(dept => dept.deptId);
@@ -4945,6 +5060,7 @@ filteredProjects: any[] = [];
       this.filterStateService.deptIdListByUser = this.deptIdListByUser;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
       this.rbacApiCalls();
+      
     }
 
   }
@@ -4975,7 +5091,7 @@ filteredProjects: any[] = [];
       const deptIds: number[] = this.deptIdList.map(dept => dept.deptId);
       this.projectFilterDTO.departmentsids = deptIds;
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);     
     }
     else {
       this.projectFilterDTO.departments = this.deptIdListByUser;
@@ -5049,6 +5165,7 @@ filteredProjects: any[] = [];
     this.RbacBothShankhInternal(this.projectFilterDTO);
     this.ProjectLessEmployees(this.projectFilterDTO);
     this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
+    this.getFixedCostCount(this.projectFilterDTO);
   }
 
   clearField() {
