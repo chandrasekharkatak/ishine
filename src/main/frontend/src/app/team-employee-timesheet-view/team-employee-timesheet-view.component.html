@@ -47,20 +47,18 @@
                                         *ngIf="team.teamMemberDetails && team.teamMemberDetails.length > 0">
                                         <ng-container *ngFor="let member of team.teamMemberDetails; let j = index">
                                             <tr>
-                                                <!-- These cells span only once per team -->
                                                 <td *ngIf="j === 0" [attr.rowspan]="team.teamMemberDetails.length">
                                                     {{ i + 1 }}</td>
+                                                <td *ngIf="j === 0" [attr.rowspan]="team.teamMemberDetails.length">
+                                                    {{ team.teamName }}
+                                                </td>
                                                 <td *ngIf="j === 0" [attr.rowspan]="team.teamMemberDetails.length">
                                                     {{ team.spoc ? team.spoc : 'NA' }}
                                                 </td>
                                                 <td *ngIf="j === 0" [attr.rowspan]="team.teamMemberDetails.length">
                                                     {{ team.teamLeadName ? team.teamLeadName : 'NA' }}
                                                 </td>
-                                                <td *ngIf="j === 0" [attr.rowspan]="team.teamMemberDetails.length">
-                                                    {{ team.teamName }}
-                                                </td>
                                                 <td>{{ member.employmentId || 'N/A' }}</td>
-                                                <!-- These cells are specific to each member -->
                                                 <td>
                                                     <span [navigateToEmployee360]="member.emp360"
                                                         style="cursor: pointer; color: rgb(7, 124, 170);"

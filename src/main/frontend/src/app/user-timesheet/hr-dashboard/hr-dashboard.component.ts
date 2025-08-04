@@ -81,7 +81,7 @@ export class HrDashboardComponent implements AfterViewInit {
   docData: any;
   mimeType: any;
   projectView:ProjectViewForTimesheet[] = [];
-  projectViewColumns: any[] = ['projectName','projectManagerName','poNo','projectType','clientName','apmosysRM','apmosysRMEmail','clientRM','totalExpectedFillCount','totalIshineFilledCount','totalClientSideNotFilledCount','totalClientSidePendingCount','totalClientSideApprovedCount','clientSideApprovedPercent','clientSidePendingPercent','clientSideNotFilledPercent'];
+  projectViewColumns: any[] = ['projectName','projectManagerName','poNo','projectType','clientName','apmosysRM','apmosysRMEmail','clientRM','totalExpectedFillCount','totalIshineFilledCount','totalClientSideApprovedCount','clientSideApprovedPercent','totalClientSidePendingCount','clientSidePendingPercent','totalClientSideNotFilledCount','clientSideNotFilledPercent'];
   timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','expectedEODCount','submittedCount','clientApprovedCount','clientPendingCount'];
   totalClientSideApprovedCount: any;
   eodNotFilledCount: any;
@@ -731,28 +731,28 @@ employeeListAccordingToProject:any[]=[];
     this.tableName = "Employee Info";
 
     const exportData = this.employeeView.map((x: any) => ({
-      'Employment ID': x.employmentId || 'NA',
-      'Employee Name': x.name || 'NA',
+      'Emp ID': x.employmentId || 'NA',
+      'Employee': x.name || 'NA',
       'Billable': x.billable || 'NA',
       'Billable Type': x.billableType || 'NA',
       'Mobile No': x.mobileNo || 'NA',
       'Email': x.email || 'NA',
       'Department': x.departmentName || 'NA',
-      'Expected Attendance Fill Count': x.expectedFillCount ?? 0,
-      'Timesheet Filled Count': x.timesheetFilledCount ?? 0,
-      'Client Side Attendance Pending%': x.clientSideAttendancePendingCount ?? 0,
-      'Client Side Attendance Approved%': x.clientSideAttendanceApprovedCount ?? 0,
-      'Client Side Attendance Not Filled%': x.clientSideAttendanceNotFilledCount ?? 0,
-      'Project Name': x.projectName || 'NA',
-      'PO Number': x.poNo || 'NA',
+      'Expected DSR': x.expectedFillCount ?? 0,
+      'Ishine DSR': x.timesheetFilledCount ?? 0,
+      'Client Filled': x.clientSideAttendancePendingCount ?? 0,
+      'Client Approved': x.clientSideAttendanceApprovedCount ?? 0,
+      'Client Not Filled': x.clientSideAttendanceNotFilledCount ?? 0,
+      'Project': x.projectName || 'NA',
+      'PO No': x.poNo || 'NA',
       'Project Type': x.projectType || 'NA',
-      'Project Manager': x.projectManagers || 'NA',
+      'Manager': x.projectManagers || 'NA',
       'Client': x.clientName || 'NA',
       'Apmosys RM': x.apmosysRM || 'NA',
-      'Apmosys RM Email': x.apmosysRmEmail || 'NA',
+      'RM Email': x.apmosysRmEmail || 'NA',
       'Client RM': x.clientRM || 'NA',
-      'Team Name': x.team || 'NA',
-      'Team Lead Name': x.teamLeadName || 'NA'
+      'Team': x.team || 'NA',
+      'Team Lead': x.teamLeadName || 'NA'
   }));
   this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
 }
@@ -922,5 +922,35 @@ modalTitle = 'Timesheet Details';
       }
     });
   }
+
+  onSearch2(searchData2: any) {
+    this.filters = searchData2;
+  }
+
+  exportProjectOverviewToExcel(): void {
+    const excelName = "Project Overview.xlsx";
+
+    const exportData = this.projectView.map((project: any) => ({
+      'Project Name': project.projectName || 'NA',
+      'PO Number': project.poNo || 'NA',
+      'Project Type': project.projectType || 'NA',
+      'Project Manager': project.projectManagerName || 'NA',
+      'Client': project.clientName || 'NA',
+      'Apmosys RM': project.apmosysRM || 'NA',
+      'Apmosys RM Email': project.apmosysRMEmail || 'NA',
+      'Client RM': project.clientRM || 'NA',
+      'Expected Fill Count': project.totalExpectedFillCount ?? 0,
+      'iShine Filled Count': project.totalIshineFilledCount ?? 0,
+      'Client Pending %': (project.clientSidePendingPercent ?? 0) + '%',
+      'Client Side Pending': project.totalClientSidePendingCount ?? 0,
+      'Client Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
+      'Client Side Approved': project.totalClientSideApprovedCount ?? 0,
+      'Client Not Filled %': (project.clientSideNotFilledPercent ?? 0) + '%',
+      'Client Side Not Filled': project.totalClientSideNotFilledCount ?? 0
+    }));
+
+    this.exportExcelService.exportTableDataToExcel(exportData, excelName);
+  }
+
 }
 

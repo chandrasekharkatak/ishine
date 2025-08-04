@@ -3913,15 +3913,15 @@ public class ResourceManagementService {
 		        member.setEmail(object[16] != null ? object[16].toString() : null);
 		        member.setMobileNo(object[17] != null ? Long.parseLong(object[17].toString()) : null);
 		        member.setDate(object[18] != null ? object[18].toString() : null);
-		        member.setApmosysInTime(object[19] != null ? LocalDateTime.parse(object[19].toString()) : null);
-		        member.setApmosysOutTime(object[20] != null ? LocalDateTime.parse(object[20].toString()) : null);
-		        member.setClientInTime(object[21] != null ? LocalDateTime.parse(object[21].toString()) : null);
-		        member.setClientOutTime(object[22] != null ? LocalDateTime.parse(object[22].toString()) : null);
+		        member.setApmosysInTime(object[19] != null ? parseDateTime(object[19]) : null);
+		        member.setApmosysOutTime(object[20] != null ? parseDateTime(object[20]) : null);
+		        member.setClientInTime(object[21] != null ? parseDateTime(object[21]) : null);
+		        member.setClientOutTime(object[22] != null ? parseDateTime(object[22]) : null);
 		        member.setExpectedTimesheetFilledCount(object[23] != null ? Long.parseLong(object[23].toString()) : null);
 		        member.setApmosysTimesheetFilledCount(object[24] != null ? Long.parseLong(object[24].toString()) : null);
 		        member.setClientSideAttendancePendingCount(object[25] != null ? Long.parseLong(object[25].toString()) : null);
 		        member.setClientSideAttendanceApprovedCount(object[26] != null ? Long.parseLong(object[26].toString()) : null);
-		        member.setDocId(object[27] != null ? Long.parseLong(object[27].toString()) : null);
+		        member.setDocId(object[27] != null ? object[27].toString() : null);
 
 		        member.setIsDefaultProject(
 		            this.isDefaultProject(
@@ -8955,6 +8955,16 @@ public class ResourceManagementService {
 
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
+	}
+	
+	private LocalDateTime parseDateTime(Object obj) {
+	    if (obj == null) return null;
+	    try {
+	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
+	        return LocalDateTime.parse(obj.toString(), formatter);
+	    } catch (DateTimeParseException e) {
+	        return null;
+	    }
 	}
 	
 }

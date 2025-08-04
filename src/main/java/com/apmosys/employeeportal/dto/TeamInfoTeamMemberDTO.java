@@ -36,6 +36,6 @@ public class TeamInfoTeamMemberDTO {
     private Long apmosysTimesheetFilledCount;
     private Long clientSideAttendancePendingCount;
     private Long clientSideAttendanceApprovedCount;
-    private Long docId;
+    private String docId;
 
 }

@@ -579,3 +579,19 @@ input:checked + .slider:before {
   }
 }
 
+.progress-bar {
+  color: #fff;
+  font-size: 0.825rem;
+}
+
+.progress-bar-approved {
+  background-color: #37a550;
+}
+
+.progress-bar-pending {
+  background-color: #d09f10;
+}
+
+.progress-bar-notFilled {
+  background-color: #742e2e;
+}
