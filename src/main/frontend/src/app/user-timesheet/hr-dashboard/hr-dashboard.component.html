@@ -183,19 +183,19 @@
 
 
         </div>
+        <br>
+                    <!-- Toggle Switch -->
+                    <div class="row mb-4">
+                        <div class="col-auto d-flex align-items-center">
+                            <label class="switch mb-0">
+                                <input type="checkbox" checked (change)="onToggleChange($event)">
+                                <span class="slider round"></span>
+                            </label>
+                            <h5 class="ms-3 mb-0 text-primary">{{ toggleValue ? 'Project View' : 'Employee View' }}</h5>
+                        </div>
+                    </div>
 
-        <div class="insight-container p-4 rounded shadow-effect">
-            <!-- Toggle Switch -->
-            <div class="row mb-4">
-                <div class="col-auto d-flex align-items-center">
-                    <label class="switch mb-0">
-                        <input type="checkbox" checked (change)="onToggleChange($event)">
-                        <span class="slider round"></span>
-                    </label>
-                    <h3 class="ms-3 mb-0 text-primary">{{ toggleValue ? 'Project View' : 'Employee View' }}</h3>
-                </div>
-            </div>
-        
+        <div class="insight-container p-2 rounded shadow-effect">        
             <!-- Subtitle -->
             <div class="mb-3">
                 <h5 class="ms-1 fw-semibold text-secondary">
@@ -206,7 +206,7 @@
             <!-- Employee View Fields -->
             <div class="row g-3 align-items-center" *ngIf="!toggleValue">
                 <!-- Employee Search -->
-                <div class="col-md-4">
+                <div class="col-md-7">
                     <mat-form-field appearance="fill" class="w-100">
                         <mat-label>Search Employee</mat-label>
                         <input matInput placeholder="Name or Emp ID" [formControl]="employeeCtrl" required
@@ -224,7 +224,7 @@
                 </div>
         
                 <!-- From Date -->
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <mat-form-field appearance="fill" class="w-100">
                         <mat-label>From Date</mat-label>
                         <input matInput [matDatepicker]="fromDatePicker" placeholder="From"
@@ -238,7 +238,7 @@
                 </div>
         
                 <!-- To Date -->
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <mat-form-field appearance="fill" class="w-100">
                         <mat-label>To Date</mat-label>
                         <input matInput [matDatepicker]="toDatePicker" placeholder="To"
@@ -252,18 +252,21 @@
                 </div>
         
                 <!-- Search Button -->
-                <div class="col-md-2 d-grid" style="padding-bottom: 22px;">
-                    <button mat-flat-button color="primary" class="search-btn"
-                            (click)="searchTimesheet(timesheet_details, alert_message, true)">
-                        <i class="fa fa-search"></i> Search
+                <div class="col-md-1 d-flex justify-content-end align-items-end" style="padding-bottom: 22px;">
+                    <button type="button"
+                            class="btn btn-icon"
+                            (click)="searchTimesheet(timesheet_details, alert_message, true)"
+                            title="Search">
+                      <i class="fa fa-search"></i>
                     </button>
-                </div>
+                  </div>                  
+                  
             </div>
         
             <!-- Project View Fields -->
             <div class="row g-3 align-items-center" *ngIf="toggleValue">
                 <!-- Project Search -->
-                <div class="col-md-4">
+                <div class="col-md-7">
                     <mat-form-field appearance="fill" class="w-100">
                         <mat-label>Search By Project/PoNo</mat-label>
                         <input matInput placeholder="Search By Project Name or PoNo" [formControl]="projectPoCtrl"
@@ -278,7 +281,7 @@
                 </div>
         
                 <!-- From Date -->
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <mat-form-field appearance="fill" class="w-100">
                         <mat-label>From Date</mat-label>
                         <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate">
@@ -288,7 +291,7 @@
                 </div>
         
                 <!-- To Date -->
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <mat-form-field appearance="fill" class="w-100">
                         <mat-label>To Date</mat-label>
                         <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate">
@@ -298,12 +301,14 @@
                 </div>
         
                 <!-- Search Button -->
-                <div class="col-md-2 d-grid " style="padding-bottom: 22px;">
-                    <button mat-flat-button color="primary" class="search-btn"
-                            (click)="getEmployeeTimesheetsByProject(timesheet_summary_template)">
-                        <i class="fa fa-search"></i> Search
+                <div class="col-md-1 d-flex justify-content-end align-items-end" style="padding-bottom: 22px;">
+                    <button type="button"
+                            class="btn btn-icon"
+                            (click)="searchTimesheet(timesheet_details, alert_message, true)"
+                            title="Search">
+                      <i class="fa fa-search"></i>
                     </button>
-                </div>
+                  </div>   
             </div>
         </div>
 <br>        

@@ -41,7 +41,7 @@ body {
 }
 
 .dashboard {
-    padding: 24px;
+    /* padding: 24px; */
     max-width: 1440px;
     margin: 0 auto;
 }
@@ -595,3 +595,60 @@ input:checked + .slider:before {
 .progress-bar-notFilled {
   background-color: #742e2e;
 }
+.insight-container {
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 16px; 
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  font-size: 14px; 
+  max-height: 115px;
+}
+
+.insight-container:hover {
+  transform: scale(1.01);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border-color: #1976d2;
+}
+
+.insight-container .mat-form-field {
+  margin-bottom: 8px !important; /* Reduce space below fields */
+}
+
+.insight-container .row {
+  margin-bottom: 8px !important;
+}
+
+.search-btn {
+  padding: 6px 12px !important;
+  font-size: 13px;
+  height: auto;
+}
+
+h5 {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.btn-icon {
+  border: none;
+  background: #fff;
+  color: #0275d8;
+  border-radius: 50%;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  transition: background 0.2s;
+}
+
+.btn-icon:hover {
+  background: #e7eaec;
+  color: #0056b3;
+  box-shadow: 0 4px 12px rgba(4, 94, 179, 0.918);
+}
+
