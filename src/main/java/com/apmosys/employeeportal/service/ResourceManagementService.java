@@ -3867,7 +3867,7 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getTeamInfo");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("TeamInfo : " + projectRepository.getTeamInfo(projectId).size());
+//		logBuilder.append("TeamInfo : " + projectRepository.getTeamInfo(projectId).size());
 
 		try {
 			List<Object[]> teamInfo = projectRepository.getTeamInfo(projectId);
@@ -3893,8 +3893,8 @@ public class ResourceManagementService {
 		            team = new TeamInfoTeamDTO();
 		            team.setTeamId(teamId);
 		            team.setTeamName(object[1] != null ? object[1].toString() : null);
-		            team.setTeamLeadName(object[13] != null ? object[13].toString() : null);
-		            team.setSpoc(object[12] != null ? object[12].toString() : null);
+		            team.setTeamLeadName(object[14] != null ? object[14].toString() : null);
+		            team.setSpoc(object[13] != null ? object[13].toString() : null);
 		            team.setTeamMemberDetails(new ArrayList<>());
 
 		            teamMap.put(teamId, team);
@@ -3908,20 +3908,9 @@ public class ResourceManagementService {
 		        member.setBillableType(object[5] != null ? object[5].toString() : null);
 		        member.setStartDate(object[6] != null ? object[6].toString() : null);
 		        member.setActive(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
-		        member.setEmployeeTeamMapId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
-		        member.setEmploymentId(object[15] != null ? object[15].toString() : null);
-		        member.setEmail(object[16] != null ? object[16].toString() : null);
-		        member.setMobileNo(object[17] != null ? Long.parseLong(object[17].toString()) : null);
-		        member.setDate(object[18] != null ? object[18].toString() : null);
-		        member.setApmosysInTime(object[19] != null ? parseDateTime(object[19]) : null);
-		        member.setApmosysOutTime(object[20] != null ? parseDateTime(object[20]) : null);
-		        member.setClientInTime(object[21] != null ? parseDateTime(object[21]) : null);
-		        member.setClientOutTime(object[22] != null ? parseDateTime(object[22]) : null);
-		        member.setExpectedTimesheetFilledCount(object[23] != null ? Long.parseLong(object[23].toString()) : null);
-		        member.setApmosysTimesheetFilledCount(object[24] != null ? Long.parseLong(object[24].toString()) : null);
-		        member.setClientSideAttendancePendingCount(object[25] != null ? Long.parseLong(object[25].toString()) : null);
-		        member.setClientSideAttendanceApprovedCount(object[26] != null ? Long.parseLong(object[26].toString()) : null);
-		        member.setDocId(object[27] != null ? object[27].toString() : null);
+		        member.setEmployeeTeamMapId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+		        member.setDepartment(object[16] != null ? object[16].toString() : null);
+		        member.setEmploymentId(object[17] != null ? object[17].toString() : null);
 
 		        member.setIsDefaultProject(
 		            this.isDefaultProject(

@@ -143,7 +143,7 @@ export class ProjectViewComponent implements OnInit {
           this.projectObj = this.projectList[0];
           // Add combined project type to the project object
           this.projectObj.combinedProjectType = this.getProjectType(this.projectObj);
-          this.getTeamInfo(this.projectObj);
+          this.getTeamInfo(this.projectObj.projectId);
         } else {
           console.warn("Failed to fetch project info");
         }
@@ -160,7 +160,7 @@ export class ProjectViewComponent implements OnInit {
           this.projectObj = this.projectList[0];
           // Add combined project type to the project object
           this.projectObj.combinedProjectType = this.getProjectType(this.projectObj);
-          this.getTeamInfo(this.projectObj);
+          this.getTeamInfo(this.projectObj.projectId);
         } else {
           console.warn("Failed to fetch project info");
         }
