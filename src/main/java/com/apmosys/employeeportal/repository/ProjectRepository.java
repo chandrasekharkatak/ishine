@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.ExpiredPoDto;
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
@@ -954,6 +955,32 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
                 @Param("from_Date") String fromDate,
                 @Param("to_Date") String toDate);
 
+
+		
+		@Query("SELECT new com.apmosys.employeeportal.dto.ExpiredPoDto(" +
+			       "p.poNo, " +
+			       "p.projectName, " +
+			       "p.poEndDate, " +
+			       "p.apmosysRM, " +
+			       "c.clientName, " +
+			       "p.clientRM, " +
+			       "DATEDIFF(CURRENT_DATE, p.poEndDate)) " +
+			       "FROM Project p " +
+			       "JOIN ProjectDepartmentMap pd ON p.projectId = pd.projectId " +
+			       "JOIN Department d ON pd.deptId = d.deptId " +
+			       "JOIN Team t ON p.projectId = t.projectId " +
+			       "JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId " +
+			       "JOIN Client c ON p.clientId = c.clientId " +
+			       "JOIN ProjectManagerMapping pm ON p.projectId = pm.projectId " +
+			       "LEFT JOIN Employee e1 ON e1.empId = pm.projectManagerId " +
+			       "LEFT JOIN JobRole j1 ON j1.jobRoleId = e1.jobRoleId " +
+			       "LEFT JOIN Department d1 ON d1.deptId = j1.deptId " +
+			       "WHERE p.poProjectType = 'TNM' " +
+			       "AND etm.active != 0 " +
+			       "AND t.isActive != 'N' " +
+			       "AND p.active != 'false' " +
+			       "AND p.poEndDate < CURRENT_DATE")
+			List<ExpiredPoDto> getAllExpiredTNMProject();
 
 
 	    

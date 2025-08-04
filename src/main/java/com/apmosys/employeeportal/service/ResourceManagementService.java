@@ -53,6 +53,7 @@ import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExceptionReportDTO;
+import com.apmosys.employeeportal.dto.ExpiredPoDto;
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
@@ -9372,6 +9373,48 @@ public class ResourceManagementService {
 			}
 		return response;
 	}
+	
+	public ServiceResponse getAllExpiredTNMProject() {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getAllExpiredTNMProject");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder("Fetching all expired TNM projects");
+
+	    try {
+	        
+	        List<ExpiredPoDto> expiredProjects = projectRepository.getAllExpiredTNMProject();
+
+	        if (expiredProjects != null && !expiredProjects.isEmpty()) {
+	            response.setServiceResponse(expiredProjects); 
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            apiLogInfo.setApiResponse("Expired TNM projects fetched successfully. Count: " + expiredProjects.size());
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            logBuilder.append(". Total expired projects found: ").append(expiredProjects.size());
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No expired TNM projects found.");
+	            apiLogInfo.setApiResponse("No expired TNM projects found");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logBuilder.append(". No expired projects found");
+	        }
+	    } catch (Exception e) {
+	     
+	        e.printStackTrace(); 
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong while fetching expired TNM projects.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        logBuilder.append(". Error occurred: ").append(e.getMessage());
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+	
+	
 	
 	
 }

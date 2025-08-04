@@ -199,6 +199,13 @@ public class ResourceManagementController {
 	    return resourceManagementService.getEmployeeByNameAndEmpld();
 	}
 	
+	@GetMapping("/getAllExpiredTNMProject")
+	public ServiceResponse getAllExpiredTNMProject() {
+	    return resourceManagementService.getAllExpiredTNMProject();
+	}
+	
+	
+	
 	 @PostMapping("/combinedPOINTERNALCountList")
 	    public ServiceResponse combinedDataCount(@RequestBody ProjectFilterDTO projectFilterDTO) {
 	        return resourceManagementService.combinedDataCount(projectFilterDTO);
