@@ -1,3 +1,5 @@
+import { ProjectInsightQuestionDetails } from "./projectInsightQuestionDetails";
+
 export class ProjectInsightGroupDetails {
 
     id: any;
@@ -6,7 +8,8 @@ export class ProjectInsightGroupDetails {
     parentId: any;
     parentType: any;
     formId: any;
-    additionalInfo: Map<string, any>;;
+    questionList: ProjectInsightQuestionDetails[] = [];
+    additionalInfo: Map<string, any>;
     createdBy: any;
     createdOn: any;
     updatedBy: any;

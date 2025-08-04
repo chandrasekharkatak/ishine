@@ -10,7 +10,6 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Template } from '@angular/compiler/src/render3/r3_ast';
 import { FormBuilderService } from 'src/app/services/form-builder.service';
-import { ProjectQuestion } from 'src/app/models/projectQuestion';
 import { ProjectInsightEntity } from 'src/app/models/projectInsightEntity';
 import { SurveyOption } from 'src/app/models/sureyOption';
 import { ValidationService } from 'src/app/services/validation.service';
@@ -31,6 +30,7 @@ import { AddDataModalComponent } from './AddDataModal/AddDataModal.component';
 import { ProjectInsightProjectDetails } from 'src/app/models/projectInsightDetails';
 import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
 import { ProjectInsightFormDetails } from 'src/app/models/projectInsightFormDetails';
+import { ProjectInsightQuestionDetails } from 'src/app/models/projectInsightQuestionDetails';
 
 interface FormNode {
   id: string;
@@ -41,7 +41,7 @@ interface FormNode {
   children?: FormNode[];
   parentId?: any;
   parentType?: any;
-  questionList?: ProjectQuestion[];
+  questionList?: ProjectInsightQuestionDetails[];
   fieldDependencies?: { [key: string]: string };
   dependentFieldsMap?: { [key: string]: string[] };
 }
@@ -100,6 +100,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   @ViewChild('alert_message') alertMessageTemplate: TemplateRef<any>;
   @ViewChild('delete_template') deleteTemplate: TemplateRef<any>;
   @ViewChild('addFieldModal') addFieldModal: TemplateRef<any>;
+  @ViewChild('addOrUpdateQuestionModal') addOrUpdateQuestionModal: TemplateRef<any>;
 
   expandedPaths: { [key: string]: boolean } = {};
 
@@ -117,6 +118,12 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   searchKeyword: any;
   currentVersion: any;
 
+  // Add or Update Question 
+  addOrUpdateQuestionModalRef: BsModalRef;
+  question :ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
+  questionParentId:any
+  questionParentType:any;
+  
   apiList = [];
 
   rows = Array(8).fill({});
@@ -134,7 +141,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   displayedResponseUserId: any[] = [];
   rolesGreaterThanManager: any[] = ['HOD', 'SuperAdmin', 'HR', 'RMG'];
   currentQuestionIndex: number | null = null;
-  currentQuestionList: ProjectQuestion[] | null = null;
+  currentQuestionList: ProjectInsightQuestionDetails[] | null = null;
 
   // Form
   dynamicForm: FormGroup;
@@ -170,7 +177,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   isCurrentEmployeeRoleGreaterThanManager: boolean;
   isSelected: any
   isEdit: boolean = true;
-
+  isQuestionUpdate: boolean = false;
+  questionRenderType: 'edit' | 'view' | 'answer' | 'approval' = 'edit';
+  
   //domain tree
   expanded: { [key: string]: boolean } = {};
 
@@ -1822,7 +1831,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   // Question Configurations
-  navigateToQuestion(questionList: ProjectQuestion[], questionIndex: number) {
+  navigateToQuestion(questionList: ProjectInsightQuestionDetails[], questionIndex: number) {
     this.currentQuestionList = questionList;
     this.currentQuestionIndex = questionIndex;
   }
@@ -1833,7 +1842,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   addQuestion(entity: FormNode) {
-    let question: ProjectQuestion = new ProjectQuestion();
+    let question: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
     if (!entity.questionList) {
       entity.questionList = [];
     }
@@ -1841,14 +1850,14 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.navigateToQuestion(entity.questionList, entity.questionList.length - 1);
   }
 
-  deleteQuestion(questionList: ProjectQuestion[], questionIndex: any) {
+  deleteQuestion(questionList: ProjectInsightQuestionDetails[], questionIndex: any) {
     if (!this.projectInsightObj.deletedProjectInsightEntityList) {
       this.projectInsightObj.deletedProjectInsightEntityList = [];
     }
     questionList.forEach((question, index) => {
-      if (index == questionIndex && this.validationService.validateNullUndefinedEmptyString(question.questionId)) {
+      if (index == questionIndex && this.validationService.validateNullUndefinedEmptyString(question.id)) {
         let projectInsightEntity = new ProjectInsightEntity();
-        projectInsightEntity.entityId = question.questionId;
+        projectInsightEntity.entityId = question.id;
         projectInsightEntity.entityType = 'Question';
         this.projectInsightObj.deletedProjectInsightEntityList.push(projectInsightEntity);
       }
@@ -1857,15 +1866,15 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   // Option Configurations
-  addOption(i, questionObj: ProjectQuestion) {
+  addOption(i, questionObj: ProjectInsightQuestionDetails) {
     questionObj?.optionsList.splice(i + 1, 0, new SurveyOption());
   }
 
-  removeOption(i, questionObj: ProjectQuestion) {
+  removeOption(i, questionObj: ProjectInsightQuestionDetails) {
     questionObj?.optionsList.splice(i, 1);
   }
 
-  setOption(questionObj: ProjectQuestion) {
+  setOption(questionObj: ProjectInsightQuestionDetails) {
     if (questionObj.optionType == "checkbox" || questionObj.optionType == "radio") {
       questionObj.optionsList = [];
       questionObj.optionsList.splice(1, 0, new SurveyOption());
@@ -2806,8 +2815,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   saveProjectInsightDetails(isDraft: any) {
     this.cancelRequest();
-    const structure = this.rootNode;
-    const data = this.collectFormData(this.rootNode);
 
     let projectInsightDetailsDTO: ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO();
     projectInsightDetailsDTO.projectInsightFormDetails = this.transformFormNodeToFormDetails(this.rootNode);
@@ -2820,8 +2827,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     projectInsightDetailsDTO.projectInsightProjectDetails.additionalInfo = this.rootNode.formData;
     let fields = JSON.parse(JSON.stringify(projectInsightDetailsDTO.projectInsightFormDetails.fields));
     projectInsightDetailsDTO.projectInsightFormDetails.fields = this.resetOptionsForOptionTypeAPI(fields);
-
-    console.log(projectInsightDetailsDTO);
 
     this.projectInsightService.saveProjectInsightDetails(projectInsightDetailsDTO).pipe(take(1)).subscribe(
       (response: any) => {
@@ -2842,6 +2847,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         this.rootNode = this.transformFormDetailsToFormNode(response?.projectInsightFormDetails);
         this.mergeFormDataIntoFormStructure(this.rootNode, response?.projectInsightProjectDetails);
         this.currentNodePath = [this.rootNode];
+        this.getProjectInsightQuestionDetailsByParentIdAndParentType(this.rootNode?.parentId, this.rootNode?.parentType);
       },
       error: (error: any) => {
         this.alertMessage = error;
@@ -2866,7 +2872,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       }
     }
   }
-
 
   resetOptionsForOptionTypeAPI(fields: any) {
     if (fields) {
@@ -2916,6 +2921,83 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     };
     node.children = (formDetails.children || []).map(child => this.transformFormDetailsToFormNode(child));
     return node;
+  }
+
+  saveProjectInsightGroupDetails(isDraft: any) {
+
+  }
+
+  openAddOrUpdateQuestionModal(currentNode: any, isQuestionUpdate: any,question?:any) {
+    this.questionRenderType = 'edit';
+    this.questionParentId = currentNode.parentId;
+    this.questionParentType = currentNode.parentType;
+    this.isQuestionUpdate = isQuestionUpdate;
+    this.question = question || new ProjectInsightQuestionDetails();
+    this.addOrUpdateQuestionModalRef = this.modalService.show(this.addOrUpdateQuestionModal, { class: 'modal-lg modal-dialog-centered' });
+    // this.addOrUpdateQuestionModalRef = this.modalService.show(this.addOrUpdateQuestionModal, { class: 'modal-md' });
+  }
+
+  closeAddOrUpdateQuestionModal() {
+    if (this.addOrUpdateQuestionModalRef) {
+      this.addOrUpdateQuestionModalRef.hide();
+    }
+  }
+
+  addOrUpdateQuestion() {
+    let projectInsightQuestionDetails = this.question;
+    projectInsightQuestionDetails.parentId = this.questionParentId;
+    projectInsightQuestionDetails.parentType = this.questionParentType;
+    if (this.isQuestionUpdate) {
+      projectInsightQuestionDetails.updatedBy = this.currentUser.empId;
+    } else {
+      projectInsightQuestionDetails.createdBy = this.currentUser.empId;
+    }
+    this.projectInsightService.saveProjectInsightQuestionDetails(projectInsightQuestionDetails).pipe(take(1)).subscribe(
+      (response: any) => {
+        this.alertMessage = response.serviceStatus;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.closeAddOrUpdateQuestionModal();
+        this.getProjectInsightQuestionDetailsByParentIdAndParentType(this.questionParentId, this.questionParentType);
+      },
+      (error) => {
+        console.log(error, " : error");
+        this.alertMessage = error?.error?.serviceResponse || 'An unexpected error occurred.';
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      }
+    );
+  }
+
+  onAssignToChange(question: any) {
+    if (!question.projectResponseList) {
+      question.projectResponseList = [];
+    }
+    const selectedEmpIds = question.toAssignEmployeeList || [];
+    question.projectResponseList = question.projectResponseList.filter(
+      (resp: ProjectResponse) => selectedEmpIds.includes(resp.responseBy)
+    );
+
+    selectedEmpIds.forEach((empId: number) => {
+      if (!question.projectResponseList.some((resp: ProjectResponse) => resp.responseBy === empId)) {
+        const emp = this.allEmployeeList.find((e: any) => e.empId === empId);
+        const response = new ProjectResponse();
+        response.responseBy = empId;
+        response.responseByEmpName = emp ? emp.name : '';
+        response.assignedOn = new Date();
+        question.projectResponseList.push(response);
+      }
+    });
+  }
+
+  getProjectInsightQuestionDetailsByParentIdAndParentType(questionParentId: any, questionParentType: any) {
+    this.projectInsightService.getProjectInsightQuestionDetailsByParentIdAndParentType(questionParentId, questionParentType).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.currentQuestionList = response.serviceResponse;
+      },
+      error: (error: any) => {
+        this.alertMessage = error;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      }
+    });
   }
 
 }

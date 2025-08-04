@@ -10,12 +10,14 @@ export class ProjectInsightQuestionDetails {
     documentUpload: any;
     currentActiveBadgeLevel: any;
     optionType: any;
+    parentId: any;
+    parentType: any;
 
     optionsList: SurveyOption[] = [];
     badgePathList: ProjectInsightBadgePath[] = [];
     toTaggedEmployeeIdList: any[] = [];
     toAssignedEmployeeIdList: any[] = [];
-    
+
     createdBy: any;
     createdOn: any;
     updatedBy: any;

@@ -27,6 +27,7 @@ import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightDetailsDTO;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightQuestionDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.response.SearchResultResponse;
 import com.apmosys.employeeportal.service.ProjectInsightService;
@@ -289,7 +290,7 @@ public class ProjectInsightController {
 	}
 	
 	@GetMapping(value = "/getProjectInsightQuestionDetailsByParentIdAndParentType")
-	public ResponseEntity<ProjectInsightDetailsDTO> getProjectInsightQuestionDetailsByParentIdAndParentType(@RequestParam String parentId, @RequestParam String parentType) {
+	public ResponseEntity<ServiceResponse> getProjectInsightQuestionDetailsByParentIdAndParentType(@RequestParam String parentId, @RequestParam String parentType) {
 		return ResponseEntity.ok(projectInsightService.getProjectInsightQuestionDetailsByParentIdAndParentType(parentId,parentType));
 	}
 	
@@ -304,8 +305,8 @@ public class ProjectInsightController {
 	}
 
 	@PostMapping(value = "/saveProjectInsightQuestionDetails")
-	public ResponseEntity<ServiceResponse> saveProjectInsightQuestionDetails(@RequestBody ProjectInsightDetailsDTO projectInsightDetailsDTO) {
-		return ResponseEntity.ok(projectInsightService.saveProjectInsightQuestionDetails(projectInsightDetailsDTO));
+	public ResponseEntity<ServiceResponse> saveProjectInsightQuestionDetails(@RequestBody ProjectInsightQuestionDetails projectInsightQuestionDetails) {
+		return ResponseEntity.ok(projectInsightService.saveProjectInsightQuestionDetails(projectInsightQuestionDetails));
 	}
 
 

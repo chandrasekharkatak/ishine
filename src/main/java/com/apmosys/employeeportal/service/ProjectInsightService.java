@@ -4375,16 +4375,14 @@ public class ProjectInsightService {
 		return serviceResponse;
 	}
 
-	public ServiceResponse saveProjectInsightQuestionDetails(ProjectInsightDetailsDTO projectInsightDetailsDTO) {
+	public ServiceResponse saveProjectInsightQuestionDetails(ProjectInsightQuestionDetails projectInsightQuestionDetails) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setLogLevel("INFO");
 		apiLogInfo.setApiUrl("/api/saveProjectInsightQuestionDetails");
 		try {
-			ProjectInsightQuestionDetails projectInsightQuestionDetails = projectInsightDetailsDTO
-					.getProjectInsightQuestionDetails();
 			if (projectInsightQuestionDetails == null) {
-				throw new BadRequestException("Project Insight Group Details cannot be null.");
+				throw new BadRequestException("Project Insight Question Details cannot be null.");
 			} else if (projectInsightQuestionDetails.getParentId() == null
 					|| projectInsightQuestionDetails.getParentType() == null) {
 				throw new BadRequestException(
@@ -4422,9 +4420,7 @@ public class ProjectInsightService {
 			if (dbResponse == null) {
 				throw new BadRequestException("Unable to save Project Insight Question Details.");
 			}
-			saveProjectInsightFormDetails(projectInsightDetailsDTO.getProjectInsightFormDetails(), dbResponse.getId(),
-					"Question");
-
+	
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(dbResponse);
 		} catch (BadRequestException e) {
@@ -4510,9 +4506,28 @@ public class ProjectInsightService {
 		return null;
 	}
 
-	public ProjectInsightDetailsDTO getProjectInsightQuestionDetailsByParentIdAndParentType(String parentId, String parentType) {
-		// TODO Auto-generated method stub
-		return null;
+	public ServiceResponse getProjectInsightQuestionDetailsByParentIdAndParentType(String parentId, String parentType) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiUrl("/api/getProjectInsightQuestionDetailsByParentIdAndParentType");
+		StringBuilder logBuilder = new StringBuilder();
+		try {
+			List<ProjectInsightQuestionDetails> questionDetailsList = projectInsightQuestionDetailsRepository.findByParentIdAndParentType(parentId, parentType);
+			if(questionDetailsList == null || questionDetailsList.isEmpty()) {
+				throw new BadRequestException("Project Insight Question Details not found");
+			}
+			
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(questionDetailsList);
+			return serviceResponse;
+		} catch (BadRequestException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Something went wrong !!", e);
+		}
 	}
 	
 	

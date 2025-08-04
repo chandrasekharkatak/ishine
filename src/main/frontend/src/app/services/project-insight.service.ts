@@ -164,8 +164,8 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightGroupDetails`, projectInsightDetailsDTO);
   }
 
-  saveProjectInsightQuestionDetails(projectInsightDetailsDTO: any) {
-    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightQuestionDetails`, projectInsightDetailsDTO);
+  saveProjectInsightQuestionDetails(projectInsightQuestionDetails: any) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightQuestionDetails`, projectInsightQuestionDetails);
   }
 
 }
