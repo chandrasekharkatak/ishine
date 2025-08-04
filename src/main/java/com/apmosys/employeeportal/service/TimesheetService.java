@@ -33,6 +33,7 @@ import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.GetProjectViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -3709,26 +3710,26 @@ public class TimesheetService {
 
 	public ServiceResponse getRejectionReason() {
 		
-		   ServiceResponse response = new ServiceResponse();
+	   ServiceResponse response = new ServiceResponse();
 
-		    LogDTO apiLogInfo = new LogDTO();
-		    apiLogInfo.setSubFeatureName("getRejectionReason");
-		    apiLogInfo.setLogLevel("INFO");
-		    StringBuilder logBuilder = new StringBuilder();
-		    logBuilder.append("getRejectionReason");
-		    try {
-		    	Optional<List<TimesheetRejectionReasonsMasterDTO>> detailsOfRejection=timesheetRejectionReasonsMasterRepository.getAllRejectionReason();
-		    	
-		    	if(!detailsOfRejection.isPresent()) {
-					 
-				    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		            response.setServiceResponse("No Reject Reasons Found.");
-		            response.setServiceMessage("No Reject Reasons Found.");
-		            
-		            apiLogInfo.setApiResponse("No Reject Reasons Found.");
-		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		            logService.logMyInfo(httpRequest, apiLogInfo);
-		            return response;
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getRejectionReason");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("getRejectionReason");
+	    try {
+	    	Optional<List<TimesheetRejectionReasonsMasterDTO>> detailsOfRejection=timesheetRejectionReasonsMasterRepository.getAllRejectionReason();
+	    	
+	    	if(!detailsOfRejection.isPresent()) {
+				 
+			    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No Reject Reasons Found.");
+	            response.setServiceMessage("No Reject Reasons Found.");
+	            
+	            apiLogInfo.setApiResponse("No Reject Reasons Found.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
 			 }else {
 				 
 				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -3737,8 +3738,7 @@ public class TimesheetService {
 		            apiLogInfo.setApiResponse("Reject reasons fetched successfully.");
 		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			 }
-			
-		    }catch(Exception e) {
+	    } catch(Exception e) {
 		    	    e.printStackTrace();
 			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			        response.setServiceResponse("Something went wrong.");
@@ -4129,6 +4129,120 @@ public class TimesheetService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+	
+	public ServiceResponse getEmployeeTimesheetAsCalender(Integer projectId, Integer month, Integer year) {
+		
+	   ServiceResponse response = new ServiceResponse();
+
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getEmployeeTimesheetAsCalender");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("getEmployeeTimesheetAsCalender");
+	    try {
+	    	List<Object[]> empTimesheet = timesheetsRepository.getEmployeeTimesheetAsCalender(projectId,month,year);
+	    	
+	    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
+
+	    	for (Object[] obj : empTimesheet) {
+	    	    GetEmployeeTimesheetAsCalenderDTO dto = new GetEmployeeTimesheetAsCalenderDTO();
+
+	    	    dto.setEmpId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+	    	    dto.setClientSideId(obj[1] != null ? obj[1].toString() : null);
+	    	    dto.setStartDate(obj[2] != null ? obj[2].toString() : null);
+	    	    dto.setTeamName(obj[3] != null ? obj[3].toString() : null);
+	    	    dto.setTeamId(obj[4] != null ? Long.parseLong(obj[4].toString()) : null);
+	    	    dto.setEmployeeName(obj[5] != null ? obj[5].toString() : null);
+	    	    dto.setSpoc(obj[6] != null ? obj[6].toString() : null);
+	    	    dto.setBillableType(obj[7] != null ? obj[7].toString() : null);
+	    	    dto.setEmployeeRole(obj[8] != null ? obj[8].toString() : null);
+	    	    dto.setDepartment(obj[9] != null ? obj[9].toString() : null);
+	    	    dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
+	    	    dto.setProjectName(obj[11] != null ? obj[11].toString() : null);
+	    	    dto.setProjectManagerName(obj[12] != null ? obj[12].toString() : null);
+	    	    dto.setPoNo(obj[13] != null ? obj[13].toString() : null);
+	    	    dto.setClientName(obj[14] != null ? obj[14].toString() : null);
+
+	    	    // Newly added fields
+	    	    dto.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
+	    	    dto.setMonthName(obj[16] != null ? obj[16].toString() : null);
+
+	    	    dto.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
+	    	    dto.setApmosysTimesheetFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
+	    	    dto.setClientSideNotFilledCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
+	    	    dto.setClientSidePendingCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
+	    	    dto.setClientSideApprovedCount(obj[21] != null ? Integer.parseInt(obj[21].toString()) : null);
+
+	    	    for (int i = 0; i < 31; i++) {
+	    	        int index = 22 + i;
+	    	        String value = obj.length > index && obj[index] != null ? obj[index].toString() : null;
+	    	        switch (i + 1) {
+	    	            case 1: dto.setD1(value); break;
+	    	            case 2: dto.setD2(value); break;
+	    	            case 3: dto.setD3(value); break;
+	    	            case 4: dto.setD4(value); break;
+	    	            case 5: dto.setD5(value); break;
+	    	            case 6: dto.setD6(value); break;
+	    	            case 7: dto.setD7(value); break;
+	    	            case 8: dto.setD8(value); break;
+	    	            case 9: dto.setD9(value); break;
+	    	            case 10: dto.setD10(value); break;
+	    	            case 11: dto.setD11(value); break;
+	    	            case 12: dto.setD12(value); break;
+	    	            case 13: dto.setD13(value); break;
+	    	            case 14: dto.setD14(value); break;
+	    	            case 15: dto.setD15(value); break;
+	    	            case 16: dto.setD16(value); break;
+	    	            case 17: dto.setD17(value); break;
+	    	            case 18: dto.setD18(value); break;
+	    	            case 19: dto.setD19(value); break;
+	    	            case 20: dto.setD20(value); break;
+	    	            case 21: dto.setD21(value); break;
+	    	            case 22: dto.setD22(value); break;
+	    	            case 23: dto.setD23(value); break;
+	    	            case 24: dto.setD24(value); break;
+	    	            case 25: dto.setD25(value); break;
+	    	            case 26: dto.setD26(value); break;
+	    	            case 27: dto.setD27(value); break;
+	    	            case 28: dto.setD28(value); break;
+	    	            case 29: dto.setD29(value); break;
+	    	            case 30: dto.setD30(value); break;
+	    	            case 31: dto.setD31(value); break;
+	    	        }
+	    	    }
+
+	    	    dtoList.add(dto);
+	    	}
+
+	    	if(dtoList.isEmpty()){
+	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Unable to fetch the timesheet Data!");
+                apiLogInfo.setApiResponse("Failed to set the data in dto \n");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                
+            } else {
+            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(dtoList);
+                apiLogInfo.setApiResponse("Timesheet Data fetched successfully ");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            }
+            
+            apiLogInfo.setApiRequest(logBuilder.toString());
+    		logService.logMyInfo(httpRequest, apiLogInfo);
+    		return response;
+    		
+	    } catch(Exception e) {
+		    	    e.printStackTrace();
+			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			        response.setServiceResponse("Something went wrong.");
+			        response.setServiceError(e.getMessage());
+			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			        apiLogInfo.setApiResponse(e.getMessage()); 
+			        apiLogInfo.setLogLevel("ERROR");
+		    }
+		    
+	    return response;
 	}
 	
 }
