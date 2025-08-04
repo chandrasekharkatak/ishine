@@ -424,7 +424,7 @@ public class AppreciationService {
 		 
 		 ServiceResponse response = new ServiceResponse();
 		 try {
-		 List<AppreciationDTO>objectArrayList = appreciationRepository.appreciationToCurrentUserToEmployees(employeeDTO.getAppreciationTo());
+		 List<AppreciationDTO>objectArrayList = appreciationRepository.appreciationToCurrentUserToEmployees(employeeDTO.getAppreciationBy());
 		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse(objectArrayList);
 	     
