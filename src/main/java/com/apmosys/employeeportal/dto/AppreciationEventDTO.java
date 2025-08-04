@@ -4,13 +4,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @ToString
 @Getter
 @Setter
+
 public class AppreciationEventDTO {
 	
 private Long appreciationEventId;
@@ -36,6 +39,8 @@ private String name;
 	
 	private Long employeement_id;
 	
+	private String employmentIdAccToET;
+	
 	private String comment;
 	
 	private String AppreciationDate;
@@ -47,5 +52,10 @@ private String name;
 	private Long TotalYouAreSupportiveCount;
 	private Long TotalYouAreReliableCount;
 	private Long TotalYouAreAMotivatorCount;
+	
+	private Long totalAppreciation;
+	
+	
+	
 
 }

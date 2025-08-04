@@ -149,17 +149,85 @@
 <!-- view Appreciation summary start -->
 
 <div class=row-md-6  style="margin-left: 5px; margin-right: 5px;" *ngIf="viewAppreciationForm">
+<!-- <div class="top-leaderboard" *ngIf="top7Appreciated.length >0">
+  <h3 class="leaderboard-heading">🏆 Top 7 Most Appreciated Employees</h3>
+
+  <div class="leaderboard-cards">
+    <div class="leaderboard-card animate-in" *ngFor="let emp of top7Appreciated; let i = index"
+         [ngClass]="{
+           'gold': i === 0,
+           'silver': i === 1,
+           'bronze': i === 2
+         }">
+      <div class="rank-badge">#{{ i + 1 }}</div>
+      <div class="emp-name">{{ emp.name }}</div>
+      <div class="emp-id">{{ emp.employmentIdAccToET }}</div>
+      <div class="emp-dept">{{ emp.department }}</div>
+      <div class="emp-score">❤️ {{ emp.totalAppreciation }}</div>
+    </div>
+  </div>
+</div> -->
+
+<div class="top-leaderboard" *ngIf="top7Appreciated.length > 0">
+  <h3 class="leaderboard-heading">🏆 Top 7 Most Appreciated Employees</h3>
+
+  <!-- <div class="leaderboard-cards-horizontal">
+    <div class="leaderboard-card animate-in"
+         *ngFor="let emp of top7Appreciated; let i = index"
+         [ngClass]="{
+           'gold': i === 0,
+           'silver': i === 1,
+           'bronze': i === 2
+         }">
+      <div class="rank-badge">#{{ i + 1 }}</div>
+      <div class="emp-name">{{ emp.name }}</div>
+      <div class="emp-id">{{ emp.employmentIdAccToET }}</div>
+      <div class="emp-dept">{{ emp.department }}</div>
+      <div class="emp-score">❤️ {{ emp.totalAppreciation }}</div>
+    </div>
+  </div> -->
+<div class="leaderboard-cards-horizontal">
+  <div class="leaderboard-card animate-in"
+     *ngFor="let emp of top7Appreciated; let i = index"
+     [style.background-color]="appreciationColorMap[emp.totalAppreciation]">
+
+    
+    <div class="rank-badge">#{{ emp.rank }}</div>
+    <div class="emp-name">{{ emp.name }}</div>
+    <div class="emp-id">{{ emp.employmentIdAccToET }}</div>
+    <div class="emp-dept">{{ emp.department }}</div>
+    <div class="emp-score"><ng-container [ngSwitch]="emp.rank">
+    <span *ngSwitchCase="1">🥇</span>
+    <span *ngSwitchCase="2">🥈</span>
+    <span *ngSwitchCase="3">🥉</span>
+    <span *ngSwitchCase="4">👑</span>
+    <span *ngSwitchCase="5">🌟</span>
+    <span *ngSwitchCase="6">🚀</span>
+    <span *ngSwitchCase="7">💎</span>
+    <span *ngSwitchDefault>✨</span> <!-- fallback emoji -->
+  </ng-container>
+  {{ emp.totalAppreciation }}</div>
+  </div>
+</div>
+
+</div>
+
     <div class="selector-toggle" >
         <a href="javascript:void(0)" (click)="toggleSearch()">
             <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
         </a>
     </div>
+     <div class="export-button ">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                        [hidden]="EmployeeAppreciationList.length == 0" (click)="exportToExcelAppreciationEmployee()"><em
+                            class="fa fa-file-arrow-down fa-2x"></em></button>
+                </div>
     <table class="table" matSort (matSortChange)="sortData($event)">
         <thead class="thead-light">
             <tr>
                 <th scope="col" class="info-label">Sr No.</th>
-                <th scope="col" class="info-label" mat-sort-header="empId|empId">Employement ID</th>
+                <th scope="col" class="info-label" mat-sort-header="employmentIdAccToET|string">Employement ID</th>
                 <th scope="col" class="info-label" mat-sort-header="name|string">Employee Name</th>
                 <th scope="col" class="info-label" mat-sort-header="department|string">Department</th>
                 <th scope="col" class="info-label">You Are My Star</th>
@@ -168,17 +236,20 @@
                 <th scope="col" class="info-label">You Are Supportive</th>
                 <th scope="col" class="info-label">You Are Reliable</th>
                 <th scope="col" class="info-label">You Are A Motivator</th>
-                <th scope="col" class="info-label">Actions</th>
+                <th scope="col" class="info-label">Total Appreciation</th>
+                <!-- <th scope="col" class="info-label">Actions</th> -->
             </tr>
+            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="appreciationEmployeeColumns"
+                                (onSearch)="onSearch($event); page=1"></tr>
         </thead>
         <tbody>
             <tr *ngIf="EmployeeAppreciationList.length == 0">
-                <th colspan="6" class="text-center info-label">No Files to display...</th>
+                <th colspan="10" class="text-center info-label">No Files to display...</th>
             </tr>
             <tr
                 *ngFor="let event of EmployeeAppreciationList |  colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]|paginate: { itemsPerPage: 10, currentPage: page }, let i = index ">
                 <th class="info-label">{{10*(page-1)+i+1}}</th>
-                <td>{{event.employeement_id}}</td>
+                <td>{{event.employmentIdAccToET}}</td>
                 <td>{{event.name}}</td>
                 <td>{{event.department}}</td>
                 <td>{{event.totalYouAreMyStarCount}}</td>
@@ -187,15 +258,21 @@
                 <td>{{event.totalYouAreSupportiveCount}}</td>
                 <td>{{event.totalYouAreReliableCount}}</td>
                 <td>{{event.totalYouAreAMotivatorCount}}</td>
-                <td>
+                <td>{{event.totalAppreciation}}</td>
+                <!-- <td>
                     <button type="button" *ngIf="userMapping.help_document_configuration && !isUploadForm"
                         class="btn btn-outline-primary btn-sm mx-1" (click)="viewAppreciationInfo(event)">more</button>
-                </td>
+                </td> -->
             </tr>
         </tbody>
     </table>
     <pagination-controls class="my-pagination" [hidden]="EmployeeAppreciationList.length == 0"
         (pageChange)="handlePageChange($event)"></pagination-controls>
+        
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5  mb-2 excel-button"
+                        [hidden]="EmployeeAppreciationList.length == 0" (click)="exportToExcelAppreciationEmployee()"><em
+                            class="fa fa-file-arrow-down fa-2x"></em></button>
+               
 </div>
 <!--AppreciationInfo table start-->
 <div class=row-md-6 *ngIf="isAppreciationInfo">

@@ -323,15 +323,29 @@ public class AppreciationService {
 				 
 				 objectArrayList.forEach((object) -> {
 					 AppreciationEventDTO appreciationEmployeeList = new AppreciationEventDTO();
-					 appreciationEmployeeList.setEmployeement_id(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+//					 appreciationEmployeeList.setEmployeement_id(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					 appreciationEmployeeList.setEmploymentIdAccToET(object[0] != null ? object[0].toString() : null);			 				 
 					 appreciationEmployeeList.setName(object[1] != null ? object[1].toString() : null);
 					 appreciationEmployeeList.setDepartment(object[2] != null ? object[2].toString() : null);
-					 appreciationEmployeeList.setTotalYouAreMyStarCount(object[3] != null ? Long.parseLong(object[3].toString()): null);
-					 appreciationEmployeeList.setTotalYouAreGemOfAPersonCount(object[4] != null ? Long.parseLong(object[4].toString()): null);
-					 appreciationEmployeeList.setTotalYouAreAproblemSolverCount(object[5] != null ? Long.parseLong(object[5].toString()): null);
-					 appreciationEmployeeList.setTotalYouAreSupportiveCount(object[6] != null ? Long.parseLong(object[6].toString()): null);
-					 appreciationEmployeeList.setTotalYouAreReliableCount(object[7] != null ? Long.parseLong(object[7].toString()): null);
-					 appreciationEmployeeList.setTotalYouAreAMotivatorCount(object[8] != null ? Long.parseLong(object[8].toString()): null);
+					 Long star = object[3] != null ? Long.parseLong(object[3].toString()) : 0L;
+					    Long gem = object[4] != null ? Long.parseLong(object[4].toString()) : 0L;
+					    Long problemSolver = object[5] != null ? Long.parseLong(object[5].toString()) : 0L;
+					    Long supportive = object[6] != null ? Long.parseLong(object[6].toString()) : 0L;
+					    Long reliable = object[7] != null ? Long.parseLong(object[7].toString()) : 0L;
+					    Long motivator = object[8] != null ? Long.parseLong(object[8].toString()) : 0L;
+
+					    appreciationEmployeeList.setTotalYouAreMyStarCount(star);
+					    appreciationEmployeeList.setTotalYouAreGemOfAPersonCount(gem);
+					    appreciationEmployeeList.setTotalYouAreAproblemSolverCount(problemSolver);
+					    appreciationEmployeeList.setTotalYouAreSupportiveCount(supportive);
+					    appreciationEmployeeList.setTotalYouAreReliableCount(reliable);
+					    appreciationEmployeeList.setTotalYouAreAMotivatorCount(motivator);
+
+					    // 👇 Set total appreciation
+					    appreciationEmployeeList.setTotalAppreciation(
+					        star + gem + problemSolver + supportive + reliable + motivator
+					    );
+
 					 
 					 
 					    appreciationEventDTO.add(appreciationEmployeeList);
@@ -386,6 +400,51 @@ public class AppreciationService {
 			}
 			return response;	
 	}
+	
+	
+	public ServiceResponse appreciationByCurrentUser(EmployeeDTO employeeDTO) {
+		 
+		 ServiceResponse response = new ServiceResponse();
+		 try {
+		 List<AppreciationDTO>objectArrayList = appreciationRepository.appreciationByCurrentUserToEmployees(employeeDTO.getAppreciationBy());
+		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(objectArrayList);
+	     
+
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Error: " + e.getMessage());
+	    }
+	    return response; 
+	}
+	
+	
+	public ServiceResponse appreciationToCurrentUser(EmployeeDTO employeeDTO) {
+		 
+		 ServiceResponse response = new ServiceResponse();
+		 try {
+		 List<AppreciationDTO>objectArrayList = appreciationRepository.appreciationToCurrentUserToEmployees(employeeDTO.getAppreciationTo());
+		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(objectArrayList);
+	     
+
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Error: " + e.getMessage());
+	    }
+	    return response; 
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 	public ServiceResponse getAllAppreciationEvent() {
 	   ServiceResponse response = new ServiceResponse();

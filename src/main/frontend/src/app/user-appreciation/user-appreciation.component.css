@@ -13,5 +13,46 @@ color: rgb(163, 154, 154);
   font-size: large;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
+.funky-badge {
+  background: linear-gradient(135deg, #ff6ec4, #7873f5);
+  color: white;
+  padding: 2px 8px;
+  font-size: 0.85rem;
+  border-radius: 12px;
+  font-weight: bold;
+  animation: pop 0.8s ease-in-out infinite alternate;
+  display: inline-block;
+}
 
+@keyframes pop {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.15);
+  }
+}
+@keyframes shakeInterval {
+  0%, 70% {
+    transform: translateX(0); /* pause for 5s */
+  }
+  71%, 73% {
+    transform: translateX(-3px);
+  }
+  74%, 76% {
+    transform: translateX(3px);
+  }
+  77%, 79% {
+    transform: translateX(-2px);
+  }
+  80%, 82% {
+    transform: translateX(2px);
+  }
+  83%, 85% {
+    transform: translateX(-1px);
+  }
+  86%, 100% {
+    transform: translateX(0);
+  }
+}
 

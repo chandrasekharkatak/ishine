@@ -116,6 +116,9 @@ export class AppreciationComponent implements OnInit {
   employeeColumns: any[] = ['employeementId', 'name', 'email', 'departmentName', 'employmentstatus', 'dateOfJoining'];
   appreciationTableColumns: any[] = ['appreciateType', 'appreciationToName', 'appreciationByName', 'appreciationDate', 'managerName', 'reason'];
   documentsColumns: any[] = ['blank', 'fileName', 'helpDocumentName', 'createdByName', 'createdOn'];
+  appreciationEmployeeColumns: any[] = ['blank', 'employmentIdAccToET', 'name', 'department', 'totalYouAreMyStarCount', 'totalYouAreGemOfAPersonCount', 'totalYouAreAproblemSolverCount', 'totalYouAreSupportiveCount', 'totalYouAreReliableCount', 'totalYouAreAMotivatorCount', 'totalAppreciation']
+  colorPalette: string[] = ['#f1cf38ff','#AB4E68', '#709775', '#91CB3E', '#6369D1', '#3CB371', '#4682B4'];
+  appreciationColorMap: Record<number, string> = {};
   constructor(private portalService: PortalService,
     private validationService: ValidationService,
     private exportExcelService: ExportExcelService,
@@ -301,6 +304,37 @@ export class AppreciationComponent implements OnInit {
 
     });
   }
+
+
+  appreciationEmployeename = 'appreciationEmployeeDetails.xlsx'
+  appreciationEmployeeForExcel: any;
+  exportToExcelAppreciationEmployee() {
+    this.portalService.getAllEmployeeAppreciationListByCategory(this.appreciationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.appreciationEmployeeForExcel = response.serviceResponse;
+      }
+      const onlySpecificDataArr = this.appreciationEmployeeForExcel.map(
+        x => ({
+          "Employement ID": x.employmentIdAccToET,
+          "Employee Name": x.name,
+          "Department": x.department,
+          "You Are My Star": x.totalYouAreMyStarCount,
+          "You Are Gem of a Person": x.totalYouAreGemOfAPersonCount,
+          "You Are A ProblemSolver": x.totalYouAreAproblemSolverCount,
+          "You Are Supportive": x.totalYouAreSupportiveCount,
+          "You Are Reliable": x.totalYouAreReliableCount,
+          "You Are A Motivator": x.totalYouAreAMotivatorCount,
+          "Total Appreciation": x.totalAppreciation
+
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.appreciationEmployeename)
+
+    });
+  }
+
+
+
 
   OnCheckEventName(template: TemplateRef<any>) {
     //console.log("here in checkPoint event name")
@@ -891,6 +925,7 @@ export class AppreciationComponent implements OnInit {
     });
 
   }
+  top7Appreciated: any
   getAppreciationEventSummaryInfo(appreciationEvent: any) {
     this.portalConfig = false;
     this.appreciationConfig = false;
@@ -917,406 +952,448 @@ export class AppreciationComponent implements OnInit {
     this.portalService.getAllEmployeeAppreciationListByCategory(this.appreciationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.EmployeeAppreciationList = response.serviceResponse;
-        //console.log("EmployeeAppreciationList :",this.EmployeeAppreciationList);
+        this.EmployeeAppreciationList.sort((a, b) => (b.totalAppreciation ?? 0) - (a.totalAppreciation ?? 0));
+
+        const sorted = [...this.EmployeeAppreciationList].sort(
+          (a: any, b: any) => (Number(b.totalAppreciation ?? 0) - Number(a.totalAppreciation ?? 0))
+        );
+
+        // Assign rank with draw logic
+        let ranked: any[] = [];
+        let actualIndex = 0;
+        let currentRank = 1;
+        let prevScore: number | null = null;
+
+        for (let i = 0; i < sorted.length; i++) {
+          const emp = sorted[i];
+          actualIndex++;
+
+          const empScore = Number(emp.totalAppreciation ?? 0);
+          if (empScore !== prevScore) {
+            currentRank = actualIndex;
+            prevScore = empScore;
+          }
+
+          ranked.push({ ...emp, rank: currentRank });
+        }
+
+        // Take top 7 ranks only
+        this.top7Appreciated = ranked.filter(e => e.rank <= 7);
+
+        // Map score to background color
+        const scores: number[] = Array.from(
+          new Set(this.top7Appreciated.map(e => Number(e.totalAppreciation ?? 0)))
+        );
+
+        scores.sort((a, b) => b - a);
+
+        this.appreciationColorMap = {} as { [key: number]: string };
+        scores.forEach((score: number, idx: number) => {
+          this.appreciationColorMap[score] = this.colorPalette[idx % this.colorPalette.length];
+        });
+      
 
 
-      }
+
+    }
       else {
         console.error(response.serviceResponse);
-
       }
     });
 
+
+}
+
+
+viewAppreciationInfo(EmployeeAppreciationList: any) {
+  this.portalConfig = false;
+  this.appreciationConfig = false;
+  this.viewAppreciationForm = false;
+  this.isAppreciationTable = false;
+  this.isTable = false;
+  this.viewEventConfig = false;
+  this.isCreation = false;
+  this.isUpdation = false;
+  this.isHelpConfiguration = false;
+  this.isAppreciationInfo = true;
+  this.EmployeeAppreciationList.forEach(element => {
+    this.appreciationObj[element.employeement_id] = element.employeement_id;
+  });
+  this.portalService.viewAppreciationInfo(this.appreciationObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.AppreciationInfo = response.serviceResponse;
+      //console.log("appreciationObj:" ,this.appreciationObj);
+      //console.log("AppreciationInfo :",this.AppreciationInfo);
+    }
+    else {
+      console.error(response.serviceResponse);
+
+    }
+  });
+}
+
+
+validateViewAppreciation(appreciationObj: enableAppreciation, template: TemplateRef<any>) {
+
+  if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventId)) {
+    this.alertMessage = "Please Select Appreciation EventName !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+
+  if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciateType)) {
+    this.alertMessage = "Please select appreciateType !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+  return true;
+}
+
+
+viewAppreciationEventOnClick() {
+  this.portalConfig = false;
+  this.appreciationConfig = false;
+  this.viewAppreciationForm = false;
+  this.isAppreciationTable = false;
+  this.isTable = false;
+  this.viewEventConfig = true;
+  this.isCreation = false;
+  this.isUpdation = false;
+  this.isAppreciationInfo = false;
+  this.getAllEvent();
+
+}
+validateEnableAppreciationObj(appreciationObj: enableAppreciation, template: TemplateRef<any>) {
+  if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.fromDate)) {
+    this.alertMessage = "Please enter From Date !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+  if (!this.validationService.validateAlphaWithSpace(appreciationObj.appreciationEventName)) {
+    this.alertMessage = "Please enter Valid Event Name!!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+  if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.toDate)) {
+    this.alertMessage = "Please select To Date !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+  if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventType)) {
+    this.alertMessage = "Please select Employees  !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+  return true;
+}
+onUpdateAppreciationEvent(template: TemplateRef<any>) {
+  const dateFormat = 'YYYY-MM-DD';
+  let inputValidated: boolean = this.validateEnableAppreciationObj(this.appreciationObj, template)
+  if (!inputValidated) return;
+
+
+  if (this.isEmployeeSelectionChanged) {
+    this.enableAppreciationList = this.allEmployeeList.map(employee => {
+      return {
+        empId: employee.empId,
+        isAppreciationEnable: true
+      }
+    });
   }
 
 
-  viewAppreciationInfo(EmployeeAppreciationList: any) {
-    this.portalConfig = false;
-    this.appreciationConfig = false;
-    this.viewAppreciationForm = false;
-    this.isAppreciationTable = false;
-    this.isTable = false;
-    this.viewEventConfig = false;
-    this.isCreation = false;
-    this.isUpdation = false;
-    this.isHelpConfiguration = false;
-    this.isAppreciationInfo = true;
-    this.EmployeeAppreciationList.forEach(element => {
-      this.appreciationObj[element.employeement_id] = element.employeement_id;
-    });
-    this.portalService.viewAppreciationInfo(this.appreciationObj).pipe(first()).subscribe((response: any) => {
+  this.appreciationObj.fromDate = moment(this.appreciationObj.fromDate).format(dateFormat)
+  this.appreciationObj.toDate = moment(this.appreciationObj.toDate).format(dateFormat)
+  this.appreciationObj.appreciationEventName = this.appreciationObj.appreciationEventName;
+  this.appreciationObj.enableAppreciationList = this.enableAppreciationList; //console.log("updateAppreciation : ", this.appreciationObj)
+
+
+  this.appreciationObj.updatedBy = this.currentUser.empId;;
+
+  //console.log("Update dept : ", this.appreciationObj);
+  this.allAppreciationEvent = this.allAppreciationEvent.filter(x => x.appreciationEventId != this.appreciationObj.appreciationEventId);
+  let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <= this.appreciationObj.toDate) && (this.appreciationObj.fromDate <= x.toDate)));
+  if (checkEventDate != undefined) {
+    this.openAlertMod(template, "Event is already exist on this date");
+  } else {
+
+    this.portalService.updateAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.AppreciationInfo = response.serviceResponse;
-        //console.log("appreciationObj:" ,this.appreciationObj);
-        //console.log("AppreciationInfo :",this.AppreciationInfo);
-      }
-      else {
-        console.error(response.serviceResponse);
-
-      }
-    });
-  }
-
-
-  validateViewAppreciation(appreciationObj: enableAppreciation, template: TemplateRef<any>) {
-
-    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventId)) {
-      this.alertMessage = "Please Select Appreciation EventName !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
-    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciateType)) {
-      this.alertMessage = "Please select appreciateType !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    return true;
-  }
-
-
-  viewAppreciationEventOnClick() {
-    this.portalConfig = false;
-    this.appreciationConfig = false;
-    this.viewAppreciationForm = false;
-    this.isAppreciationTable = false;
-    this.isTable = false;
-    this.viewEventConfig = true;
-    this.isCreation = false;
-    this.isUpdation = false;
-    this.isAppreciationInfo = false;
-    this.getAllEvent();
-
-  }
-  validateEnableAppreciationObj(appreciationObj: enableAppreciation, template: TemplateRef<any>) {
-    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.fromDate)) {
-      this.alertMessage = "Please enter From Date !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    if (!this.validationService.validateAlphaWithSpace(appreciationObj.appreciationEventName)) {
-      this.alertMessage = "Please enter Valid Event Name!!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.toDate)) {
-      this.alertMessage = "Please select To Date !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    if (!this.validationService.validateNullUndefinedEmptyString(appreciationObj.appreciationEventType)) {
-      this.alertMessage = "Please select Employees  !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-    return true;
-  }
-  onUpdateAppreciationEvent(template: TemplateRef<any>) {
-    const dateFormat = 'YYYY-MM-DD';
-    let inputValidated: boolean = this.validateEnableAppreciationObj(this.appreciationObj, template)
-    if (!inputValidated) return;
-
-
-    if (this.isEmployeeSelectionChanged) {
-      this.enableAppreciationList = this.allEmployeeList.map(employee => {
-        return {
-          empId: employee.empId,
-          isAppreciationEnable: true
-        }
-      });
-    }
-
-
-    this.appreciationObj.fromDate = moment(this.appreciationObj.fromDate).format(dateFormat)
-    this.appreciationObj.toDate = moment(this.appreciationObj.toDate).format(dateFormat)
-    this.appreciationObj.appreciationEventName = this.appreciationObj.appreciationEventName;
-    this.appreciationObj.enableAppreciationList = this.enableAppreciationList; //console.log("updateAppreciation : ", this.appreciationObj)
-
-
-    this.appreciationObj.updatedBy = this.currentUser.empId;;
-
-    //console.log("Update dept : ", this.appreciationObj);
-    this.allAppreciationEvent = this.allAppreciationEvent.filter(x => x.appreciationEventId != this.appreciationObj.appreciationEventId);
-    let checkEventDate = this.allAppreciationEvent.find(x => x.fromDate == this.appreciationObj.fromDate || x.toDate == this.appreciationObj.toDate || ((x.fromDate <= this.appreciationObj.toDate) && (this.appreciationObj.fromDate <= x.toDate)));
-    if (checkEventDate != undefined) {
-      this.openAlertMod(template, "Event is already exist on this date");
-    } else {
-
-      this.portalService.updateAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.openAlertMod(template, response.serviceResponse);
-          this.reset();
-          this.viewAppreciationEventOnClick()
-        } else {
-          this.openAlertMod(template, response.serviceResponse);
-          this.reset();
-        }
-      });
-    }
-  }
-  showUpdateForm(appreciationEvent: enableAppreciation) {
-    this.portalConfig = false;
-    this.appreciationConfig = true;
-    this.viewAppreciationForm = false;
-    this.isAppreciationTable = false;
-    this.isTable = false;
-    this.viewEventConfig = false;
-    this.isCreation = false;
-    this.isUpdation = true;
-    this.appreciationObj = JSON.parse(JSON.stringify(appreciationEvent));
-    this.appreciationObj.appreciationEventType = this.appreciationObj.appreciationEventType
-    // this.appreciationObj.fromDate = new Date(moment(this.appreciationObj.fromDate).format('DD-MM-YYYY'));
-    // this.appreciationObj.toDate = new Date(moment(this.appreciationObj.toDate).format('DD-MM-YYYY'));
-    //console.log("this.appreciationObj : ", this.appreciationObj)
-  }
-  openDeleteAppreciationEvent(template: TemplateRef<any>, appreciationEvent: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    this.appreciationObj = appreciationEvent;
-    //console.log(this.appreciationObj);
-  }
-  onDeleteAppreciationEvent(template: TemplateRef<any>) {
-    this.cancelRequest();
-    // this.appreciationObj.createdOn = (this.appreciationObj.createdOn)? moment(this.appreciationObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-    this.portalService.deleteAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.getAllEvent();
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-        this.getAllEvent();
-      }
-    });
-  }
-
-
-  getAllDepartmentList() {
-    this.allDeptList = [];
-
-    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allDeptList = response.serviceResponse;
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
-  }
-
-  getEmployeeList(employee?: Employee) {
-    this.employeeList = [];
-    let _employeeList = [];
-
-    //console.log("Skip employee : ", employee)
-
-    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        _employeeList = response.serviceResponse;
-
-        this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
-        //console.log("employeeList : ", this.employeeList)
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
-  }
-
-  // Help Config :: start
-
-  onFileSelect(event: any, template: TemplateRef<any>) {
-    this.files = [];
-    const allowedTypes = ['application/pdf'];
-    const maxSizeInBytes = 20 * 1024 * 1024; // 20MB
-    let totalSize: number = 0;
-    let isSizeInRange: boolean = false;
-    this.fileSize = 0;
-    const uploadedFiles = event.target.files;
-    //console.log("maxFileSize  ::  ",maxSizeInBytes)
-    if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
-      this.openAlertMod(template, 'Please select a valid file (pdf).');
-      event.target.value = ''; // Clear the input
-      return;
-    }
-    if (event.target.files[0].size > maxSizeInBytes) {
-      this.openAlertMod(template, "File size is more than 20MB");
-      event.target.value = null;
-      isSizeInRange = false;
-    } else {
-      isSizeInRange = true;
-    }
-
-    if (isSizeInRange) {
-      this.files = [];
-
-      //console.log("maxfilesize: " + this.maxFileSize);
-      if (uploadedFiles.length != 0) {
-        for (let i = 0; i < uploadedFiles.length; i++) {
-          let document = uploadedFiles[i];
-          let fileName = document.name;
-          this.fileSize = this.fileSize + uploadedFiles[i].size / 1024 / 1024;
-          //console.log(this.fileSize);
-          let fileObj1 = { document: document, fileName: fileName }
-          this.files.push(fileObj1);
-          //console.log("Files : ", this.files);
-        }
-      };
-    }
-  }
-
-  onUploadFiles(template: TemplateRef<any>) {
-
-    this.helpDocumentName = this.helpDocumentName?.trim();
-    if (!this.validationService.validateNullUndefinedEmptyString(this.helpDocumentName)) {
-      this.alertMessage = "Please enter Help Document Name !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    } else if (!this.validationService.validateAlphaNumericWithSpace(this.helpDocumentName)) {
-      this.alertMessage = "Please enter Valid Help Document Name, Alphabets, Numericals & space allowed !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
-    if (this.files.length == 0) {
-      this.alertMessage = "Kindly Select Document !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
-    let totalSize = parseFloat(this.fileSize.toFixed(2));
-    if (totalSize > this.maxFileSize && totalSize > this.maxRequestSize) {
-      this.alertMessage = "File exceeds the size limit";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
-    const formData = new FormData();
-    this.files.forEach((file) => {
-      formData.append(`file`, file.document, file.fileName);
-    });
-    formData.append("helpDocumentName", this.helpDocumentName);
-    formData.append("uploadedBy", this.currentUser.empId);
-
-    //console.log("Upload files : ", formData);
-    this.helpService.uploadHelpDocument(formData).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == 'Success') {
         this.openAlertMod(template, response.serviceResponse);
         this.reset();
-        this.viewHelpDocument();
+        this.viewAppreciationEventOnClick()
       } else {
         this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-
-  }
-
-  getAllHelpDocument() {
-    this.data = '';
-    this.document = [];
-    this.helpService.getAllHelpDocument().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.document = response.serviceResponse;
-        this.document.forEach(doc => {
-          doc.createdOn = (doc.createdOn) ? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        });
-        //console.log("DocumentList : ", this.document);
-      } else {
-        console.error(response.serviceResponse);
+        this.reset();
       }
     });
   }
-
-  onDeleteDocument(template: TemplateRef<any>) {
-    this.cancelRequest();
-
-    //console.log(this.helpObj, " : this.helpObj");
-
-
-    this.helpService.deleteHelpDocument(this.helpObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.viewHelpDocument();
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-  }
-
-  downloadFile(doc: any) {
-    this.helpService.downloadHelpDocument(doc.helpDocId).subscribe(blob => saveAs(blob, doc.fileName));
-  }
-
-  previewHelpDocument(template: TemplateRef<any>, doc: any) {
-    this.src = null;
-    this.fileName = doc.helpDocumentName;
-
-    this.helpService.downloadHelpDocument(doc.helpDocId).pipe(first()).subscribe((response: any) => {
-      const blob = new Blob([response], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-
-      this.src = a.href;
-
-      if (this.src != null) {
-        this.openPreviewDocument(template);
-      }
-    });
-  }
-
-  copyHelpDocumentLink(doc: any, template: TemplateRef<any>) {
-    let url = window.location.href.split("#")[0].concat("#/helpdesk/").concat(doc.helpDocId);
-    //console.log(url, " : url");
-
-    this.clipboardService.copy(url);
-    this.openAlertMod(template, "Link copied to clipboard !!");
-  }
-
-  //Help Config :: end
-
-  //modal
-
-  openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    this.alertMessage = message;
-  }
-
-  openDeleteDocument(template: TemplateRef<any>, helpDoc: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    this.helpObj = helpDoc;
-  }
-
-  openPreviewDocument(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-  }
-
-  cancelRequest() {
-    this.modalRef.hide();
-  }
-
-  page = 1;
-  handlePageChange(event) {
-    this.page = event;
-  }
-
-  sortData(sort: Sort) {
-    //console.log(sort);
-    if (sort.active) {
-      let sortParams: any[] = sort.active?.split("|");
-      this.sortColumn = sortParams[0];
-      this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;
+}
+showUpdateForm(appreciationEvent: enableAppreciation) {
+  this.portalConfig = false;
+  this.appreciationConfig = true;
+  this.viewAppreciationForm = false;
+  this.isAppreciationTable = false;
+  this.isTable = false;
+  this.viewEventConfig = false;
+  this.isCreation = false;
+  this.isUpdation = true;
+  this.appreciationObj = JSON.parse(JSON.stringify(appreciationEvent));
+  this.appreciationObj.appreciationEventType = this.appreciationObj.appreciationEventType
+  // this.appreciationObj.fromDate = new Date(moment(this.appreciationObj.fromDate).format('DD-MM-YYYY'));
+  // this.appreciationObj.toDate = new Date(moment(this.appreciationObj.toDate).format('DD-MM-YYYY'));
+  //console.log("this.appreciationObj : ", this.appreciationObj)
+}
+openDeleteAppreciationEvent(template: TemplateRef<any>, appreciationEvent: any) {
+  this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  this.appreciationObj = appreciationEvent;
+  //console.log(this.appreciationObj);
+}
+onDeleteAppreciationEvent(template: TemplateRef<any>) {
+  this.cancelRequest();
+  // this.appreciationObj.createdOn = (this.appreciationObj.createdOn)? moment(this.appreciationObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  this.portalService.deleteAppreciationEvent(this.appreciationObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.openAlertMod(template, response.serviceResponse);
+      this.getAllEvent();
+    } else {
+      this.openAlertMod(template, response.serviceResponse);
+      this.getAllEvent();
     }
-  }
+  });
+}
 
-  toggleSearch() {
-    this.isSearchEnabled = !this.isSearchEnabled;
-    if (!this.isSearchEnabled) {
-      this.filters = {};
+
+getAllDepartmentList() {
+  this.allDeptList = [];
+
+  this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.allDeptList = response.serviceResponse;
+    } else {
+      console.error(response.serviceResponse)
     }
+  });
+}
+
+getEmployeeList(employee ?: Employee) {
+  this.employeeList = [];
+  let _employeeList = [];
+
+  //console.log("Skip employee : ", employee)
+
+  this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      _employeeList = response.serviceResponse;
+
+      this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
+      //console.log("employeeList : ", this.employeeList)
+    } else {
+      console.error(response.serviceResponse)
+    }
+  });
+}
+
+// Help Config :: start
+
+onFileSelect(event: any, template: TemplateRef<any>) {
+  this.files = [];
+  const allowedTypes = ['application/pdf'];
+  const maxSizeInBytes = 20 * 1024 * 1024; // 20MB
+  let totalSize: number = 0;
+  let isSizeInRange: boolean = false;
+  this.fileSize = 0;
+  const uploadedFiles = event.target.files;
+  //console.log("maxFileSize  ::  ",maxSizeInBytes)
+  if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
+    this.openAlertMod(template, 'Please select a valid file (pdf).');
+    event.target.value = ''; // Clear the input
+    return;
+  }
+  if (event.target.files[0].size > maxSizeInBytes) {
+    this.openAlertMod(template, "File size is more than 20MB");
+    event.target.value = null;
+    isSizeInRange = false;
+  } else {
+    isSizeInRange = true;
   }
 
-  onSearch(searchData) {
-    this.filters = searchData;
-    //console.log("Updated Filter : ", this.filters);
+  if (isSizeInRange) {
+    this.files = [];
+
+    //console.log("maxfilesize: " + this.maxFileSize);
+    if (uploadedFiles.length != 0) {
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        let document = uploadedFiles[i];
+        let fileName = document.name;
+        this.fileSize = this.fileSize + uploadedFiles[i].size / 1024 / 1024;
+        //console.log(this.fileSize);
+        let fileObj1 = { document: document, fileName: fileName }
+        this.files.push(fileObj1);
+        //console.log("Files : ", this.files);
+      }
+    };
   }
+}
+
+onUploadFiles(template: TemplateRef<any>) {
+
+  this.helpDocumentName = this.helpDocumentName?.trim();
+  if (!this.validationService.validateNullUndefinedEmptyString(this.helpDocumentName)) {
+    this.alertMessage = "Please enter Help Document Name !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  } else if (!this.validationService.validateAlphaNumericWithSpace(this.helpDocumentName)) {
+    this.alertMessage = "Please enter Valid Help Document Name, Alphabets, Numericals & space allowed !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+
+  if (this.files.length == 0) {
+    this.alertMessage = "Kindly Select Document !!"
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+
+  let totalSize = parseFloat(this.fileSize.toFixed(2));
+  if (totalSize > this.maxFileSize && totalSize > this.maxRequestSize) {
+    this.alertMessage = "File exceeds the size limit";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+
+  const formData = new FormData();
+  this.files.forEach((file) => {
+    formData.append(`file`, file.document, file.fileName);
+  });
+  formData.append("helpDocumentName", this.helpDocumentName);
+  formData.append("uploadedBy", this.currentUser.empId);
+
+  //console.log("Upload files : ", formData);
+  this.helpService.uploadHelpDocument(formData).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == 'Success') {
+      this.openAlertMod(template, response.serviceResponse);
+      this.reset();
+      this.viewHelpDocument();
+    } else {
+      this.openAlertMod(template, response.serviceResponse);
+    }
+  });
+
+}
+
+getAllHelpDocument() {
+  this.data = '';
+  this.document = [];
+  this.helpService.getAllHelpDocument().pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.document = response.serviceResponse;
+      this.document.forEach(doc => {
+        doc.createdOn = (doc.createdOn) ? moment(doc.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+      });
+      //console.log("DocumentList : ", this.document);
+    } else {
+      console.error(response.serviceResponse);
+    }
+  });
+}
+
+onDeleteDocument(template: TemplateRef<any>) {
+  this.cancelRequest();
+
+  //console.log(this.helpObj, " : this.helpObj");
+
+
+  this.helpService.deleteHelpDocument(this.helpObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.openAlertMod(template, response.serviceResponse);
+      this.viewHelpDocument();
+    } else {
+      this.openAlertMod(template, response.serviceResponse);
+    }
+  });
+}
+
+downloadFile(doc: any) {
+  this.helpService.downloadHelpDocument(doc.helpDocId).subscribe(blob => saveAs(blob, doc.fileName));
+}
+
+previewHelpDocument(template: TemplateRef<any>, doc: any) {
+  this.src = null;
+  this.fileName = doc.helpDocumentName;
+
+  this.helpService.downloadHelpDocument(doc.helpDocId).pipe(first()).subscribe((response: any) => {
+    const blob = new Blob([response], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+
+    this.src = a.href;
+
+    if (this.src != null) {
+      this.openPreviewDocument(template);
+    }
+  });
+}
+
+copyHelpDocumentLink(doc: any, template: TemplateRef<any>) {
+  let url = window.location.href.split("#")[0].concat("#/helpdesk/").concat(doc.helpDocId);
+  //console.log(url, " : url");
+
+  this.clipboardService.copy(url);
+  this.openAlertMod(template, "Link copied to clipboard !!");
+}
+
+//Help Config :: end
+
+//modal
+
+openAlertMod(template: TemplateRef<any>, message: any) {
+  this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  this.alertMessage = message;
+}
+
+openDeleteDocument(template: TemplateRef<any>, helpDoc: any) {
+  this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  this.helpObj = helpDoc;
+}
+
+openPreviewDocument(template: TemplateRef<any>) {
+  this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+}
+
+cancelRequest() {
+  this.modalRef.hide();
+}
+
+page = 1;
+handlePageChange(event) {
+  this.page = event;
+}
+
+sortData(sort: Sort) {
+  //console.log(sort);
+  if (sort.active) {
+    let sortParams: any[] = sort.active?.split("|");
+    this.sortColumn = sortParams[0];
+    this.sortColumnType = sortParams[1];
+    this.sortDirection = sort.direction;
+  }
+}
+
+toggleSearch() {
+  this.isSearchEnabled = !this.isSearchEnabled;
+  if (!this.isSearchEnabled) {
+    this.filters = {};
+  }
+}
+
+onSearch(searchData) {
+  this.filters = searchData;
+  //console.log("Updated Filter : ", this.filters);
+}
+
+
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {
@@ -1327,4 +1404,6 @@ function compare(a: number | string, b: number | string, isAsc: boolean) {
 function saveAs(blob: Blob, fileName: any): void {
   throw new Error('Function not implemented.');
 }
+
+
 
