@@ -251,15 +251,11 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}`+`api/updateActiveByRejectIdId`,rejectReasonObj);
   }
 
-  getEmployeeTimesheetAsCalender(projectId: any, month: any, year: any): Observable<any> {
-  const params = new HttpParams()
-    .set('projectId', projectId)
-    .set('month', month)
-    .set('year', year);
 
-  return this.http.get(`${this.baseUrl}`+`api/getEmployeeTimesheetAsCalender`, { params });
-}
-
+  getEmployeeTimesheetAsCalender(projectId: any, month: any, year: any) {
+    return this.http.get(`${this.baseUrl}api/getEmployeeTimesheetAsCalender?projectId=${projectId}&month=${month}&year=${year}`);
+  }
+  
    
   getAllEmployeeDSROfRM(payload:any){
     return this.http.post(`${this.baseUrl}`+`api/getAllEmployeeDSROfRM`,payload);

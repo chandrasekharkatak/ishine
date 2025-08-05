@@ -18,14 +18,49 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 
 interface DayCell {
   date: Date;
-  day: number | '';        // For empty placeholder cells
+  day: number | '';        
   isToday: boolean;
   isWeekend: boolean;
   isHoliday: boolean;
-  attendance?: string;     // "P", "A", "PT", "RP", "H"
-  intime?: string;         // e.g. "09:04"
-  outtime?: string;        // e.g. "18:31"
+  attendance?: string;    
+  intime?: string;         
+  outtime?: string;        
 }
+
+export interface TimesheetDayData {
+  status: string;
+  inTime: string | null;
+  outTime: string | null;
+}
+
+export interface EmployeeTimesheet {
+  empId: number;
+  employeeName: string;
+  clientSideId: string;
+  startDate: string;
+  teamName: string;
+  teamId: number;
+  spoc: string | null;
+  billableType: string;
+  employeeRole: string;
+  department: string;
+  projectId: number;
+  projectName: string;
+  projectManagerName: string;
+  poNo: string;
+  clientName: string;
+  reportingManagerId: number;
+  monthName: string;
+  expectedTimesheetFillCount: number;
+  apmosysTimesheetFilledCount: number;
+  clientSideNotFilledCount: number;
+  clientSidePendingCount: number;
+  clientSideApprovedCount: number;
+  employmentId: string;
+  timesheetData: { [key: string]: TimesheetDayData };
+}
+
+
 @Component({
   selector: 'app-hr-dashboard',
   templateUrl: './hr-dashboard.component.html',
@@ -41,8 +76,8 @@ export class HrDashboardComponent implements AfterViewInit {
   alertTemplate: TemplateRef<any>;
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
-  selectedEmpId: any;
-  selectedProjectId:any;
+  // selectedEmpId: any;
+  // selectedProjectId:any;
   filteredEmployees: Employee[] = [];
   employeeCtrl = new FormControl();
    projectPoCtrl = new FormControl();
@@ -91,6 +126,10 @@ export class HrDashboardComponent implements AfterViewInit {
   totalDocumentPendingCount: any;
   totalDocumentRejectedCount: any;
   toggleValue: Boolean=false;
+  timesheetCalender: any;
+
+  selectedProjectId: number | null = null;
+selectedEmpId: number | null = null;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -102,11 +141,18 @@ export class HrDashboardComponent implements AfterViewInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
+
+    this.legendEntries = Object.entries(this.legend).map(([code, value]) => ({
+      code,
+      label: value.label,
+      color: value.color
+    }));
     this.toggleValue = true;
     if(this.toggleValue){
       this.getProjectViewForClientAttendanceStatus();
     }
-    this.generateMonthGrid();
+    // this.generateMonthGrid();
+    // this.fetchTimesheetData(this.selectedProjectId ,this.selectedEmpId);
     this.setLastUpdatedTime();
     this.getEmployeeByNameAndEmpld();
     this.getProjectByNameAndPoNo();
@@ -669,6 +715,7 @@ employeeListAccordingToProject:any[]=[];
     this.timesheetService.getEmployeeViewForClientAttendanceStatus().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.employeeView = response.serviceResponse;
+        console.log("employeeView ::::::",this.employeeView);
       } else {
         this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
@@ -828,32 +875,150 @@ modalTitle = 'Timesheet Details';
     }
 
 
-    userName = "Jyotiprakash Panigrahi";
-    selectedMonth = new Date(); // Defaults to current month
-    monthGrid: DayCell[][] = [];
-    weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  
-    // Customize your legend codes and display colors below
-    legend = {
-      P: { code: 'P', label: 'Present', color: '#28a745' },
-      A: { code: 'A', label: 'Absent', color: '#ff4444' },
-      PT: { code: 'PT', label: 'Pending Timesheet', color: '#ffc107' },
-      RP: { code: 'RP', label: 'Regularize Present', color: '#007bff' },
-      H: { code: 'H', label: 'Holiday', color: '#20c997' }
-    };
-    legendEntries = Object.values(this.legend);
-  
 
+    // monthGrid: DayCell[][] = [];
+    selectedMonth = new Date();
+    userName: string = '';
+    weekDays: string[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    monthGrid: any[][] = [];
+  
+    // legend: { [key: string]: { label: string; color: string } } = {
+    //   P:  { label: 'Present',         color: '#155724' },
+    //   A:  { label: 'Absent',          color: '#721c24' },
+    //   H:  { label: 'Holiday',         color: '#856404' },
+    //   RP: { label: 'Remote Present',  color: '#0c5460' },
+    //   O:  { label: 'Other Project',   color: '#383d41' },
+    //   DA: { label: 'Document Approved', color: '#004085' },
+    //   DP: { label: 'Document Pending',    color: '#7d6608' },
+    //   WO: { label: 'Week Off',    color: '#7d6608' }
+    // };
+    legend: { [key: string]: { label: string; color: string } } = {
+      O:   { label: 'Other Project',        color: '#1c1f23' },
+      A:   { label: 'Absent',               color: '#8b0000' },
+      NW:  { label: 'Non-Working Day',      color: '#343a40' },
+      AH:  { label: 'Public Holiday',       color: '#0b3c5d' },
+      WO:  { label: 'Week Off',             color: '#4b371c' },
+      H:   { label: 'Holiday',              color: '#5a4b00' },
+      CH:  { label: 'Client Holiday',       color: '#3e2f1c' },
+      DA:  { label: 'Document Approved',    color: '#003366' },
+      DP:  { label: 'Document Pending',     color: '#664400' },
+      P:   { label: 'Present',              color: '#014421' },
+      NA:  { label: 'Not Applicable',       color: '#2f4f4f' }
+    };
+    
+    
+    
+    legendEntries: { code: string; label: string; color: string }[] = [];
+  
+    // get legendEntries() {
+    //   return Object.entries(this.legend).map(([code, { label, color }]) => ({ code, label, color }));
+    // }
   
     monthSelected(event: Date, datepicker: any) {
       this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
-      this.generateMonthGrid();
+      if (this.selectedProjectId && this.selectedEmpId) {
+        this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
+      }
       datepicker.close();
     }
+    
     changeMonth(date: Date) {
       if (!date) return;
       this.selectedMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-      this.generateMonthGrid();
+      if (this.selectedProjectId && this.selectedEmpId) {
+        this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
+      }
+    }
+
+
+    fetchTimesheetData(projectId: number, empId: number): void {
+      this.selectedProjectId = projectId;
+      this.selectedEmpId = empId;
+    
+      const month = this.selectedMonth.getMonth() + 1;
+      const year = this.selectedMonth.getFullYear();
+    
+      this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year)
+        .pipe(first())
+        .subscribe({
+          next: (response: any) => {
+            if (response.serviceStatus === 'Success' && response.serviceResponse?.length) {
+              this.timesheetCalender = response.serviceResponse;
+    
+              const employeeData = response.serviceResponse.find((emp: any) => emp.empId === empId);
+    console.log("Filtered Employee Data",employeeData);
+              if (employeeData) {
+                this.userName = employeeData.employeeName;
+                this.buildCalendarGrid(employeeData.timesheetData);
+              } else {
+                this.openAlertMod(this.alertTemplate, `Employee ID ${empId} not found in the data.`);
+              }
+            } else {
+              this.openAlertMod(this.alertTemplate, response.serviceResponse || 'No data found.');
+            }
+          },
+          error: (err) => {
+            console.error('Error fetching timesheet data:', err);
+            this.openAlertMod(this.alertTemplate, 'Something went wrong. Please try again later.');
+          }
+        });
+    }
+    
+    
+    
+    
+
+    buildCalendarGrid(timesheetData: { [key: string]: any }): void {
+      const year = this.selectedMonth.getFullYear();
+      const month = this.selectedMonth.getMonth(); 
+  
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+  
+      let grid: any[][] = [];
+      let week: any[] = new Array(firstDay.getDay()).fill({}); 
+  
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const key = 'd' + day;
+        const data = timesheetData[key];
+  
+        const dateObj: any = {
+          day,
+          date,
+          isToday: this.isToday(date),
+          isWeekend: date.getDay() === 0 || date.getDay() === 6,
+          isHoliday: data?.status === 'H',
+          attendance: data?.status || null,
+          intime: data?.inTime || null,
+          outtime: data?.outTime || null
+        };
+  
+        week.push(dateObj);
+  
+        if (week.length === 7) {
+          grid.push(week);
+          week = [];
+        }
+      }
+  
+      // Push last week if not empty
+      if (week.length > 0) {
+        while (week.length < 7) week.push({});
+        grid.push(week);
+      }
+  
+      this.monthGrid = grid;
+    }
+  
+    isToday(date: Date): boolean {
+      const today = new Date();
+      return (
+        date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear()
+      );
     }
   
     generateMonthGrid() {
@@ -984,6 +1149,8 @@ viewDocuments(empId: string) {
   console.log('Employee Documents:', empId);
   // confirm and delete logic
 }
+
+
 
 
 }
