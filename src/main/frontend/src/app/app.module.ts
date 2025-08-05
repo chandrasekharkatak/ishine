@@ -164,6 +164,7 @@ import { AddDataModalComponent } from './user-team/project-insight-projconfig/Ad
 import { DomainTablesComponent } from './user-team/Domain/DomainTables/DomainTables.component';
 import { DomainModalComponent } from './user-team/Domain/DomainModal/DomainModal.component';
 import { ViewDomainComponent } from './user-team/Domain/ViewDomain/ViewDomain.component';
+import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -305,7 +306,8 @@ registerLocaleData(localeGb);
      ProjectInsightProjconfigComponent,
      FormBuilderComponent,
      FormRendererComponent,
-     QuestionRendererComponent
+     QuestionRendererComponent,
+     ProjectInsightComponent
 
     //TestComponent
   ],

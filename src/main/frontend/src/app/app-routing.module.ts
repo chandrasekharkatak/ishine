@@ -93,6 +93,7 @@ import { ProjectInsightsTabComponent } from './project-insights/project-insights
 import { ProjectInsightProjconfigComponent } from './user-team/project-insight-projconfig/project-insight-projconfig.component';
 import { FormBuilderComponent } from './user-team/form-builder/form-builder.component';
 import { DomainComponent } from './user-team/Domain/Domain.component';
+import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -172,7 +173,7 @@ const routes: Routes = [
       { path: 'team-member', component: TeamMemberComponent, },
       { path: 'team-config', component: TeamConfigComponent, },
       { path: 'form-builder', component: FormBuilderComponent, },
-      { path: 'project-insight-config', component: ProjectInsightProjconfigComponent, },
+      { path: 'project-insight-config', component: ProjectInsightComponent, },
       { path: 'resource-management', component: ResourceManagementComponent, },
       { path: 'resource-management/:id', component: ResourceManagementComponent, },
       { path: "domains", component: DomainComponent },

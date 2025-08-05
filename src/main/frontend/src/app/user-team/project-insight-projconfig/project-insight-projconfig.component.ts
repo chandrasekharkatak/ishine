@@ -25,7 +25,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { environment } from 'src/environments/environment';
 import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsightDomainService.service';
-import { Domain, SubDomain, SubService } from './Type';
+import { Domain, SubDomain, SubService } from '../Type';
 import { AddDataModalComponent } from './AddDataModal/AddDataModal.component';
 import { ProjectInsightProjectDetails } from 'src/app/models/projectInsightDetails';
 import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';

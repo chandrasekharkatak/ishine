@@ -294,6 +294,11 @@ public class ProjectInsightController {
 		return ResponseEntity.ok(projectInsightService.getProjectInsightQuestionDetailsByParentIdAndParentType(parentId,parentType));
 	}
 	
+	@GetMapping(value = "/getProjectInsightGroupDetailsByParentIdAndParentType")
+	public ResponseEntity<ServiceResponse> getProjectInsightGroupDetailsByParentIdAndParentType(@RequestParam String parentId, @RequestParam String parentType) {
+		return ResponseEntity.ok(projectInsightService.getProjectInsightGroupDetailsByParentIdAndParentType(parentId,parentType));
+	}
+
 	@PostMapping(value = "/saveProjectInsightDetails")
 	public ResponseEntity<ServiceResponse> saveProjectInsightDetails(@RequestBody ProjectInsightDetailsDTO projectInsightDetailsDTO) {
 		return ResponseEntity.ok(projectInsightService.saveProjectInsightDetails(projectInsightDetailsDTO));

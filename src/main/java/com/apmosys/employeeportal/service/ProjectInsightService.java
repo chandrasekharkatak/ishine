@@ -4517,7 +4517,6 @@ public class ProjectInsightService {
 			if(questionDetailsList == null || questionDetailsList.isEmpty()) {
 				throw new BadRequestException("Project Insight Question Details not found");
 			}
-			
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(questionDetailsList);
 			return serviceResponse;
@@ -4530,6 +4529,24 @@ public class ProjectInsightService {
 		}
 	}
 	
+	public ServiceResponse getProjectInsightGroupDetailsByParentIdAndParentType(String parentId, String parentType) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiUrl("/api/getProjectInsightGroupDetailsByParentIdAndParentType");
+		try {
+			List<ProjectInsightGroupDetails> groupDetailsList = projectInsightGroupDetailsRepository.findByParentIdAndParentType(parentId, parentType);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(groupDetailsList);
+			return serviceResponse;
+		} catch (BadRequestException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Something went wrong !!", e);
+		}
+	}
 	
 	// helper methods
 

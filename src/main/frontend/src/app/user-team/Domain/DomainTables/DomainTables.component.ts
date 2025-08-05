@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, SimpleChanges, TemplateRef, ViewChild } from '@angular/core';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsightDomainService.service';
-import { SubDomain, SubService } from '../../project-insight-projconfig/Type';
+import { SubDomain, SubService } from '../../Type';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { Sort } from '@angular/material/sort';

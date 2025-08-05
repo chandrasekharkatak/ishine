@@ -13,7 +13,6 @@ export class ProjectInsightService {
 
   constructor(private http: HttpClient) { }
 
-
   createProjectInsightQuestion(projObj: ProjectInsight){
     return this.http.post(`${this.baseUrl}` + `api/createProjectInsightQuestion`, projObj);
   }
@@ -156,6 +155,11 @@ export class ProjectInsightService {
     return this.http.get(`${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByParentIdAndParentType/`, { params });
   }
 
+  getProjectInsightGroupDetailsByParentIdAndParentType(parentId: any, parentType: any) {
+    const params = new HttpParams().set('parentId', parentId).set('parentType', parentType);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightGroupDetailsByParentIdAndParentType/`, { params });
+  }
+
   saveProjectInsightDetails(projectInsightDetailsDTO: any) {
     return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightDetails`, projectInsightDetailsDTO);
   }
@@ -166,6 +170,14 @@ export class ProjectInsightService {
 
   saveProjectInsightQuestionDetails(projectInsightQuestionDetails: any) {
     return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightQuestionDetails`, projectInsightQuestionDetails);
+  }
+
+  deleteProjectInsightQuestionDetails(projectInsightQuestionDetails: any) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightQuestionDetails`, projectInsightQuestionDetails);
+  }
+
+  getAllDomainData(){
+    return this.http.get(`${this.baseUrl}` + `api/createProjectInsightQuestion`);
   }
 
 }
