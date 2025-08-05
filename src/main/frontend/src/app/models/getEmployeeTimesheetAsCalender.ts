@@ -23,35 +23,7 @@ export interface getEmployeeTimesheetAsCalender {
   clientSideNotFilledCount: any;
   clientSidePendingCount: any;
   clientSideApprovedCount: any;
-  d1: TimesheetData;
-  d2: TimesheetData;
-  d3: TimesheetData;
-  d4: TimesheetData;
-  d5: TimesheetData;
-  d6: TimesheetData;
-  d7: TimesheetData;
-  d8: TimesheetData;
-  d9: TimesheetData;
-  d10: TimesheetData;
-  d11: TimesheetData;
-  d12: TimesheetData;
-  d13: TimesheetData;
-  d14: TimesheetData;
-  d15: TimesheetData;
-  d16: TimesheetData;
-  d17: TimesheetData;
-  d18: TimesheetData;
-  d19: TimesheetData;
-  d20: TimesheetData;
-  d21: TimesheetData;
-  d22: TimesheetData;
-  d23: TimesheetData;
-  d24: TimesheetData;
-  d25: TimesheetData;
-  d26: TimesheetData;
-  d27: TimesheetData;
-  d28: TimesheetData;
-  d29: TimesheetData;
-  d30: TimesheetData;
-  d31: TimesheetData;
+  timesheetData: {
+    [key: string]: TimesheetData; 
+  };
 }
