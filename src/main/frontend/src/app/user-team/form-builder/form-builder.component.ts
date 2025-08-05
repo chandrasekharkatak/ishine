@@ -407,6 +407,13 @@ export class FormBuilderComponent implements OnInit {
 
   saveFieldConfig() {
     if (!this.editingField) return;
+
+    if(!this.editingField.name || !this.editingField.label || !this.editingField.type){
+      this.alertMessage = "All fields must have a name, label, and type.";
+      this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      return;
+    }
+
     this.editingField.width = Number(this.editingField.width);
 
     if (this.editingField.type === 'table' && this.editingField.tableConfig) {
@@ -476,6 +483,15 @@ export class FormBuilderComponent implements OnInit {
       fields: this.fields,
       // layout: this.getLayoutConfig()
     };
+
+    // check if the fields are valid
+    const validFields = this.fields.every(field => field.name && field.label && field.type);
+    if (!validFields) {
+      this.alertMessage = "All fields must have a name, label, and type.";
+      this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      return;
+    }
+
     console.log('Form Configuration:', formConfig);
     this.formBuilderService.createDynamicForm(formConfig).pipe(first()).subscribe({
       next: (response: any) => {

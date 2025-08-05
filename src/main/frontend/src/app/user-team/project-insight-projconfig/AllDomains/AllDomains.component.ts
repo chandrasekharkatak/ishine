@@ -29,8 +29,8 @@ export class AllDomainsComponent implements OnInit, OnChanges {
     }
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.incoming && (this.domainName != this.selectedDomainName || this.childrenSelectedDomainId != this.selectedChildrenDomainId) ) {
+  ngOnChanges(changes: SimpleChanges): void {    
+    if (this.incoming && (this.domainName == this.selectedDomainName || this.childrenSelectedDomainId == this.selectedChildrenDomainId) ) {
       this.selectedDomainName = this.domainName;
       this.selectedChildrenDomainId = this.childrenSelectedDomainId;
       this.filteredDomains = this.allDomainService.getAllDomains().filter(domain => this.domainName?.includes(domain.name));
@@ -81,7 +81,6 @@ export class AllDomainsComponent implements OnInit, OnChanges {
       this.selectedDomainName = parent.name;
       this.childrenSelectedDomainId = domain.id;
       const unique_name = domain.parent.type.toUpperCase() + '_'+domain.parent.id;
-      console.log("unique_name: ", unique_name);
       this.selectChildrenOfDomain.emit({ childrenSubDomain: domain.id, domain: this.selectedDomainName, unique_name: unique_name });
     }
     else if (domain.type === 'domain') {
