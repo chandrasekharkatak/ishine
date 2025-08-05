@@ -60,7 +60,7 @@
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSidePendingCount">Pending</th>
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSideApprovedCount">Approved</th>
                                 <ng-container *ngFor="let day of [].constructor(31); let d = index">
-                                    <th class="info-label" style="min-width: 50px;" [mat-sort-header]="'d' + (d + 1)">D{{ d + 1 }}</th>
+                                    <th class="info-label" style="min-width: 50px;" [mat-sort-header]="'d' + (d + 1)">{{ d + 1 }}</th>
                                 </ng-container>
                             </tr>
                             <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetDataColumns"

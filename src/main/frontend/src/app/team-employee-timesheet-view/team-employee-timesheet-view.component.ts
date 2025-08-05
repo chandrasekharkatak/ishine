@@ -168,7 +168,7 @@ legendEntries: { code: string; label: string; color: string }[] = [];
       for (let i = 1; i <= 31; i++) {
         const dayKey = `d${i}`;
         const dayData = x.timesheetData?.[dayKey];
-        baseData[`D${i}`] = dayData ? `${dayData.status || '-'}` : '-';
+        baseData[`${i}`] = dayData ? `${dayData.status || '-'}` : '-';
       }
 
       return baseData;
