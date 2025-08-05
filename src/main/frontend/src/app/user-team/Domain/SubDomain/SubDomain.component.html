@@ -1,30 +1,38 @@
 <div class="tree-container">
   <ul class="domain-tree">
-    <li *ngFor="let subDomain of subDomainList; let i = index" class="domain-node">
+    <li *ngFor="let subDomain of subDomains; let i = index" class="domain-node">
       <div class="node-wrapper">
         <div class="node-header">
-          <button *ngIf="(subDomain.serviceList.length > 0 || subDomain.subDomainChildrenList.length > 0)"
-            class="toggle-btn" (click)="toggleSubDomain(i)" aria-label="Toggle subdomain">
+          <button *ngIf="(subDomain.services.length > 0 || subDomain.subDomains.length > 0)" class="toggle-btn"
+            (click)="toggleSubDomain(i)" aria-label="Toggle subdomain">
             <i class="fa-solid"
               [ngClass]="{'fa-chevron-down': subDomain.isOpen, 'fa-chevron-right': !subDomain.isOpen}"></i>
           </button>
 
           <div class="node-content subdomain">
-            <input type="text" [placeholder]="'Sub-Domain ' + (i + 1)" [(ngModel)]="subDomain.subdomain"
-              class="node-input" aria-label="Subdomain name">
+            <input type="text" [disabled]="isViewing" [placeholder]="'Sub-Domain ' + (i + 1)"
+              [(ngModel)]="subDomain.name" class="node-input" aria-label="Subdomain name">
 
             <div class="node-actions">
-              <button (click)="addServices(i)" class="btn btn-warning btn-sm" title="Add Service">
+              <button *ngIf="isEditing || !isViewing" (click)="addServices(i)" class="btn btn-warning btn-sm"
+                title="Add Service">
                 <i class="fa-solid fa-plus"></i>
                 <span class="btn-label">Service</span>
               </button>
-              <button (click)="addChildrenSubDomainList(i)" class="btn btn-primary btn-sm" title="Add Sub Domain">
+              <button *ngIf="isEditing || !isViewing" (click)="addChildrenSubDomainList(i)"
+                class="btn btn-primary btn-sm" title="Add Sub Domain">
                 <i class="fa-solid fa-plus"></i>
                 <span class="btn-label">Sub-Domain</span>
               </button>
-              <button (click)="removeSubDomain(i)" class="btn btn-danger btn-sm" title="Delete">
+              <button *ngIf="(!isEditing && !isViewing) || newData(subDomain)" (click)="removeSubDomain(i)"
+                class="btn btn-danger btn-sm" title="Delete">
                 <i class="fa-solid fa-trash"></i>
               </button>
+              <label *ngIf="isEditing" class="switch">
+                      <input type="checkbox" [checked]="subDomain.isActive"
+                        (change)="deleteDomainData( subDomain.id, 'subDomain', subDomain, subDomain.isActive)">
+                      <span class="slider round"></span>
+                    </label>
             </div>
           </div>
         </div>
@@ -32,44 +40,53 @@
         <!-- Nested Content -->
         <div class="nested-content" [class.is-open]="subDomain.isOpen">
           <!-- Services Level -->
-          <div *ngIf="subDomain.serviceList.length > 0 && subDomain.isOpen " class="service-list">
-            <div *ngFor="let service of subDomain.serviceList; let j = index" class="service-node">
+          <div *ngIf="subDomain.services.length > 0 && subDomain.isOpen " class="service-list">
+            <div *ngFor="let service of subDomain.services; let j = index" class="service-node">
               <div class="node-header">
-                <button *ngIf="service.subServiceList.length > 0" class="toggle-btn" (click)="toggleService(i, j)"
+                <button *ngIf="service.subServices.length > 0" class="toggle-btn" (click)="toggleService(i, j)"
                   aria-label="Toggle service">
                   <i class="fa-solid"
                     [ngClass]="{'fa-chevron-down': service.isOpen, 'fa-chevron-right': !service.isOpen}"></i>
                 </button>
 
                 <div class="node-content service">
-                  <input type="text" placeholder="Service Name" [(ngModel)]="service.service" class="node-input"
-                    aria-label="Service name">
+                  <input [disabled]="isViewing" type="text" placeholder="Service Name" [(ngModel)]="service.name"
+                    class="node-input" aria-label="Service name">
 
                   <div class="node-actions">
-                    <button (click)="addSubServices(i, j)" class="btn btn-success btn-sm"
-                      title="Add Sub-Service">
+                    <button *ngIf="isEditing || !isViewing" (click)="addSubServices(i, j)"
+                      class="btn btn-success btn-sm" title="Add Sub-Service">
                       <i class="fa-solid fa-plus"></i>
                       <span class="btn-label">Sub-Service</span>
                     </button>
-                    <button (click)="removeServices(i,j)" class="btn btn-danger btn-sm" title="Delete">
+                    <button *ngIf="(!isEditing && !isViewing) || newData(service)" (click)="removeServices(i,j)"
+                      class="btn btn-danger btn-sm" title="Delete">
                       <i class="fa-solid fa-trash"></i>
                     </button>
+
+                    <label *ngIf="isEditing" class="switch">
+                      <input type="checkbox" [checked]="service.isActive"
+                        (change)="deleteDomainData( service.id, 'service', service, service.isActive)">
+                      <span class="slider round"></span>
+                    </label>
                   </div>
                 </div>
               </div>
 
               <!-- Sub-Services Level -->
               <div class="nested-content" [class.is-open]="service.isOpen">
-                <ul *ngIf="service.subServiceList.length > 0 && service.isOpen" class="subservice-list">
-                  <app-SubService [subServiceList]="service.subServiceList"></app-SubService>
+                <ul *ngIf="service.subServices.length > 0 && service.isOpen" class="subservice-list">
+                  <app-SubService [isEditing]="isEditing" [isViewing]="isViewing"
+                    [subServiceList]="service.subServices"></app-SubService>
                 </ul>
               </div>
             </div>
           </div>
 
           <!-- Child Sub-Domains -->
-          <div *ngIf="subDomain.subDomainChildrenList.length > 0 && subDomain.isOpen " class="children-subdomains">
-            <app-SubDomain [subDomainList]="subDomain.subDomainChildrenList"></app-SubDomain>
+          <div *ngIf="subDomain.subDomains.length > 0 && subDomain.isOpen " class="children-subdomains">
+            <app-SubDomain [isEditing]="isEditing" [isViewing]="isViewing"
+              [subDomains]="subDomain.subDomains"></app-SubDomain>
           </div>
         </div>
       </div>

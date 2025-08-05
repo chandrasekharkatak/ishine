@@ -1,24 +1,37 @@
 export interface Domain{
-    domain:string;
-    subDomainList:SubDomain[]
-    serviceList:Service[]
+    id?:number;
+    name:string;
+    type:string;
+    isActive:boolean;
+    isOpen:boolean;
+    subDomains:SubDomain[]
+    services:Service[]
 }
 
 export interface SubDomain{
+    id?:number;
     isOpen:boolean;
-    subdomain:string;
-    subDomainChildrenList:SubDomain[] | null;
-    serviceList:Service[];
+    name:string;
+    type:string;
+    isActive:boolean;
+    subDomains:SubDomain[] | null;
+    services:Service[];
 }
 
 export interface Service{
+    id?:number;
     isOpen:boolean;
-    service:string;
-    subServiceList:SubService[] | null;
+    name:string;
+    type:string;
+    isActive:boolean;
+    subServices:SubService[] | null;
 }
 
 export interface SubService{
+    id?:number;
     isOpen:boolean;
-    subService:string;
-    subServiceChildren: SubService[] | null;
+    name:string;
+    isActive:boolean;
+    type:string;
+    subServices: SubService[] | null;
 }

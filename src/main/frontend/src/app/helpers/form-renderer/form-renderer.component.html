@@ -20,7 +20,7 @@
                 [formControlName]="field.name"
                 [multiple]="field.multiple"
                 (selectionChange)="onSelectChange($event, field)">
-                <mat-option *ngFor="let option of field.options" [value]="option.value">
+                <mat-option [title]="option.label" *ngFor="let option of field.options" [value]="option.value">
                   {{ option.label }}
                 </mat-option>
               </mat-select>
@@ -30,7 +30,7 @@
             <div class="w-100" *ngIf="field.type === 'select' && field.optionSource !== 'dependent' && field.label.toLowerCase() === 'Domain'.toLowerCase()">
               <mat-select class="form-control" [formControlName]="field.name" [multiple]="field.multiple"
                 (selectionChange)="onDomainSelectChange($event.value, field)">
-                <mat-option *ngFor="let option of field.options" [value]="option.value">
+                <mat-option [title]="option.label" *ngFor="let option of field.options" [value]="option.value">
                   {{ option.label }}
                 </mat-option>
               </mat-select>

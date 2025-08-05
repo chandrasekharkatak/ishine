@@ -26,6 +26,7 @@ export class DomainTablesComponent implements OnInit {
 
   isVisible = false;
   isEditing = false;
+  isViewing = false;
 
   @Input() refreshTable = false;
 
@@ -35,12 +36,12 @@ export class DomainTablesComponent implements OnInit {
     this.isEditing = false
   }
 
-  constructor(private user: AuthenticationService,private readonly projectInsightDomainService: ProjectInsightDomainServiceService, private modalService: BsModalService) { }
+  constructor(private user: AuthenticationService, private readonly projectInsightDomainService: ProjectInsightDomainServiceService, private modalService: BsModalService) { }
 
   ngOnInit() {
     // if(this.refreshTable){
     //   console.log("refreshTable: ", this.refreshTable);
-      
+
     //   this.getAllProjectInsightDomain();
     // }
     this.getAllProjectInsightDomain();
@@ -50,7 +51,7 @@ export class DomainTablesComponent implements OnInit {
     console.log("changes: ", changes["refreshTable"]);
     if (changes['refreshTable'] && changes['refreshTable'].currentValue) {
       this.getAllProjectInsightDomain();
-    } else{
+    } else {
       this.getAllProjectInsightDomain();
     }
   }
@@ -68,7 +69,7 @@ export class DomainTablesComponent implements OnInit {
   originalData: any[] = [];
 
   getAllProjectInsightDomain(params?: any) {
-    this.projectInsightDomainService.getAllDomain(this.page-1, this.limit, params).subscribe({
+    this.projectInsightDomainService.getAllDomain(this.page - 1, this.limit, params).subscribe({
       next: (res: any) => {
         console.log("allDomainData: ", this.allDomainData);
         this.totalItems = res.totalElements;
@@ -89,9 +90,10 @@ export class DomainTablesComponent implements OnInit {
   }
 
   viewDomain(domain: any) {
+    this.getDomain(domain);
     this.isVisible = true;
     this.isEditing = false;
-    this.getDomain(domain);
+    this.isViewing = true
     console.log(this.selectedDomain);
 
   }
@@ -99,57 +101,80 @@ export class DomainTablesComponent implements OnInit {
   getDomain(domain: any): any {
     this.projectInsightDomainService.getDomain(domain.domain).subscribe({
       next: (res: any) => {
+
         this.selectedDomain = {
           ...res,
           isOpen: false,
-          subDomains: this.addIsOpenToSubDomains(res.subDomains),
-          services: res.services.filter(service => this.isEditing ? true : service.isActive).map(service => ({
-            ...service,
-            isOpen: false,
-            subServices: this.addIsOpenToSubServices(service.subServices)
-          }))
-        }
-        console.log("selectedDomain: ", this.selectedDomain);
+          ...this.processChildren(res.children || [])
+        };
 
+        console.log("selectedDomain: ", this.selectedDomain);
       },
       error: (error: any) => {
         console.error("Error: ", error);
       }
-    })
+    });
   }
 
-  addIsOpenToSubDomains(subDomains: SubDomain[]): SubDomain[] {
-    return subDomains.filter(subDomain => this.isEditing ? true : subDomain.isActive).map(subDomain => ({
-      ...subDomain,
-      isOpen: false,
-      children: this.addIsOpenToSubDomains(subDomain.children),
-      services: subDomain.services.filter(service => this.isEditing ? true : service.isActive).map(service => ({
-        ...service,
-        isOpen: false,
-        subServices: this.addIsOpenToSubServices(service.subServices)
-      }))
-    }));
+  processChildren(children: any[]): { subDomains: any[]; services: any[] } {
+    const subDomains = [];
+    const services = [];
+
+    for (const child of children) {
+      if (!this.isEditing && !child.isActive) continue;
+
+      const base = {
+        ...child,
+        isOpen: false
+      };
+
+      if (child.type === 'subDomain') {
+        const { subDomains: subSubDomains, services: subServices } = this.processChildren(child.children || []);
+        subDomains.push({
+          ...base,
+          children: [], // Optional: keep if backend uses it
+          subDomains: subSubDomains,
+          services: subServices
+        });
+      } else if (child.type === 'service') {
+        const { subServices } = this.processSubServices(child.children || []);
+        services.push({
+          ...base,
+          subServices
+        });
+      }
+    }
+
+    return { subDomains, services };
   }
 
-  addIsOpenToSubServices(subServices: SubService[]): SubService[] {
-    return subServices.filter(subService => this.isEditing ? true : subService.isActive).map(subService => ({
-      ...subService,
-      isOpen: false,
-      children: this.addIsOpenToSubServices(subService.children)
-    }));
-  }
+  processSubServices(children: any[]): { subServices: any[] } {
+    const subServices = [];
 
+    for (const child of children) {
+      if (!this.isEditing && !child.isActive) continue;
+
+      if (child.type === 'subService') {
+        const { subServices: nestedSubServices } = this.processSubServices(child.children || []);
+        subServices.push({
+          ...child,
+          isOpen: false,
+          subServices: nestedSubServices
+        });
+      }
+    }
+
+    return { subServices };
+  }
 
   editDomain(domain: any) {
     this.isVisible = true;
     this.isEditing = true;
+    this.isViewing = false;
     this.getDomain(domain);
-    console.log("selectedDomain: ", this.selectedDomain);
-
   }
-  toggle(domain: any) {
-    console.log("Domain: ", domain);
 
+  toggle(domain: any) {
     domain.isOpen = !domain.isOpen
   }
 
@@ -157,9 +182,7 @@ export class DomainTablesComponent implements OnInit {
   selectedId: number = null;
 
   deleteDomain() {
-    console.log("selectedDomainToDelete: ", this.selectedDomainToDelete);
-
-    this.projectInsightDomainService.deleteDomainData(null, "domain", this.selectedDomainToDelete.domain)
+    this.projectInsightDomainService.deleteDomainData(this.selectedDomainToDelete.domainId, "domain", this.selectedDomainToDelete.domain)
       .subscribe({
         next: (res: any) => {
           console.log("Deleted Domain: ", res);
@@ -208,8 +231,8 @@ export class DomainTablesComponent implements OnInit {
 
   currUserId = this.user.currentUserValue.empId;
 
-  updateIsApprovedDomain(domainId:number, status:string){
-    this.projectInsightDomainService.approveDomain(domainId,status,this.currUserId).subscribe({
+  updateIsApprovedDomain(domainId: number, status: string) {
+    this.projectInsightDomainService.approveDomain(domainId, status, this.currUserId).subscribe({
       next: (res: any) => {
         console.log("Approved Domain: ", res);
         this.getAllProjectInsightDomain()
@@ -258,7 +281,7 @@ export class DomainTablesComponent implements OnInit {
     { field: 'isApproved', header: 'Approved Status', type: 'string' }
   ];
 
-  domainSearchFilterColumn = ['blank', "domain", "createdBy", "createdOn", "isActive",'isApproved', 'blank'];
+  domainSearchFilterColumn = ['blank', "domain", "createdBy", "createdOn", "isActive", 'isApproved', 'blank'];
 
   datePipe = new DatePipe('en-US');
 
@@ -287,17 +310,17 @@ export class DomainTablesComponent implements OnInit {
   onSearch(searchData: any) {
   }
 
-  getName(name:string){
-    if(!name){
+  getName(name: string) {
+    if (!name) {
       return '-';
     }
-    if(name.length > 15){
+    if (name.length > 15) {
       return name.substring(0, 14) + '...';
     }
     return name;
   }
 
-  handlePageChange(event:any) {
+  handlePageChange(event: any) {
     this.page = event;
     this.getAllProjectInsightDomain();
   }

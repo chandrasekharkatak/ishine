@@ -21,9 +21,12 @@ export class DomainComponent implements OnInit {
 
   isVisible = false
   domain: Domain = {
-    domain: '',
-    subDomainList: [],
-    serviceList: []
+    name: '',
+    isActive: true,
+    subDomains: [],
+    services: [],
+    type: '',
+    isOpen: true
   }
 
   ngOnInit() {
@@ -59,7 +62,7 @@ export class DomainComponent implements OnInit {
   }
 
   changeChildrenSubDomain(event: any, subDomainId: number, currChildrenSubDomainId: number) {
-    this.domain.subDomainList[subDomainId].subDomainChildrenList[currChildrenSubDomainId].subdomain = event.target.value;
+    this.domain.subDomains[subDomainId].subDomains[currChildrenSubDomainId].name = event.target.value;
   }
 
 }

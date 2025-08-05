@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.DataAccessException;
+// import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -94,6 +96,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectInsighProjectMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightAssigneesRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightDomainDataRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightFilterOptionsRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightFilterRepository;
@@ -114,6 +117,11 @@ import com.apmosys.employeeportal.utility.NLPUtils;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.TagSpecifications;
 import com.apmosys.employeeportal.utility.TagUtils;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.mongodb.DuplicateKeyException;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 
 @Service
 public class ProjectInsightService {
@@ -3733,11 +3741,15 @@ public class ProjectInsightService {
 		boolean isNew = (structure.getId() == null);
 
 		if (!isNew) {
-			Optional<ProjectInsightStructure> existingOpt = projectInsightStructureRepository
-					.findById(structure.getId());
+			Optional<ProjectInsightStructure> existingOpt = projectInsightStructureRepository.findById(structure.getId());
 
 			if (existingOpt.isPresent()) {
 				ProjectInsightStructure existing = existingOpt.get();
+
+				if (!"Y".equalsIgnoreCase(existing.getIsDraft())) {
+					throw new RuntimeException("The document is not a draft and cannot be saved as a draft.");
+				}
+
 				structure.setCreatedBy(existing.getCreatedBy());
 				structure.setCreatedOn(existing.getCreatedOn());
 			} else {
@@ -3750,7 +3762,9 @@ public class ProjectInsightService {
 		}
 
 		structure.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+
 		structure.setIsDraft("Y");
+
 		return saveStructure(structure, "Y");
 	}
 
@@ -3758,25 +3772,35 @@ public class ProjectInsightService {
 		boolean isNew = (structure.getId() == null);
 
 		if (!isNew) {
-			Optional<ProjectInsightStructure> existingOpt = projectInsightStructureRepository
-					.findById(structure.getId());
+			ProjectInsightStructure existing = projectInsightStructureRepository
+					.findById(structure.getId())
+					.orElse(null);
 
-			if (existingOpt.isPresent()) {
-				ProjectInsightStructure existing = existingOpt.get();
-				structure.setCreatedBy(existing.getCreatedBy());
-				structure.setCreatedOn(existing.getCreatedOn());
+			if (existing != null) {
+				existing.setData(structure.getData());
+				existing.setStructure(structure.getStructure());
+				existing.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				existing.setIsDraft("N");
+				return projectInsightStructureRepository.save(existing); 
 			} else {
-				structure.setCreatedBy(structure.getCreatedBy());
-				structure.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				throw new RuntimeException("ProjectInsightStructure not found for update.");
 			}
 		} else {
-			structure.setCreatedBy(structure.getCreatedBy());
 			structure.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
-		}
+			structure.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			structure.setIsDraft("N");
 
-		structure.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
-		structure.setIsDraft("N");
-		return saveStructure(structure, "N");
+			ProjectInsightStructure dbResponse = projectInsightStructureRepository.save(structure);
+
+			if (dbResponse != null) {
+				String response = saveMappingInfo(dbResponse);
+			} else {
+				throw new RuntimeException("Unable to save Project Insight.");
+			}
+
+			return dbResponse;
+
+		}
 	}
 
 	private ProjectInsightStructure saveStructure(ProjectInsightStructure structure, String isDraftFlag) {
@@ -3784,7 +3808,21 @@ public class ProjectInsightService {
 			structure.setCreatedBy(structure.getCreatedBy());
 			structure.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
 			structure.setIsDraft(isDraftFlag);
-			ProjectInsightStructure dbResponse = projectInsightStructureRepository.save(structure);
+			ProjectInsightStructure dbResponse = null;
+			boolean isExists = projectInsightStructureRepository.existsById(structure.getId());
+
+			if (structure.getId() != null && isExists) {
+				try {
+					dbResponse = projectInsightStructureRepository.save(structure);
+				} catch (DataAccessException e) {
+					structure.setId(null);
+					dbResponse = projectInsightStructureRepository.save(structure);
+				}
+			} else {
+				// New document
+				structure.setId(null);
+				dbResponse = projectInsightStructureRepository.save(structure);
+			}
 
 			if (dbResponse != null) {
 				String response = saveMappingInfo(dbResponse);
@@ -3822,14 +3860,14 @@ public class ProjectInsightService {
 		ProjectInsighProjectMapping mappingResponse = projectInsighProjectMappingRepository.findByProjectId(projectId);
 
 		if (mappingResponse != null) {
-			mappingResponse.setProjectInsightId(structure.getId());
+			mappingResponse.setProjectInsightId(structure.getId().toString());
 
 			projectInsighProjectMappingRepository.save(mappingResponse);
 			return "Mapping updated successfully for projectId: " + projectId;
 		} else {
 			ProjectInsighProjectMapping newObj = new ProjectInsighProjectMapping();
 			newObj.setProjectId(projectId);
-			newObj.setProjectInsightId(structure.getId());
+			newObj.setProjectInsightId(structure.getId().toString());
 			newObj.setIsDraft(structure.getIsDraft());
 			newObj.setCreatedBy(Long.parseLong(structure.getCreatedBy()));
 
@@ -3849,56 +3887,93 @@ public class ProjectInsightService {
 		}
 	}
 
-	// projectname
-	public List<ProjectInsighProjectMappingDTO> getAllProjectInsight(String domainName) {
+	@Autowired
+	private ProjectInsightDomainDataRepository projectInsightDomainDataRepository;
+
+	@Autowired
+	private MongoTemplate mongoTemplate;
+
+	public boolean isLong(String str) {
 		try {
-			List<ProjectInsighProjectMappingDTO> dbResponse = null;
-			if (domainName != null) {
-				List<ProjectInsightStructure> results = projectInsightStructureRepository.findAll();
-				Set<Integer> projectIds = new HashSet<>();
+			Long.parseLong(str);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
 
-				Long domainId = projectInsightDomainRepository.findByDomain(domainName).getDomainId();
 
-				for (ProjectInsightStructure structure : results) {
-					if (structure.getData() != null) {
-						List<Object> domainIds = (List<Object>) structure.getData().getFields().get("domain");
+	public List<ProjectInsighProjectMappingDTO> getAllProjectInsight(String domainName, String unique_name) {
+		try {
+			if (domainName == null) {
+				return Optional.ofNullable(projectInsighProjectMappingRepository.fetchAllProjectMappings())
+							.orElseThrow(() -> new RuntimeException("No Project Insight found !!."));
+			}
 
-						boolean match = domainIds != null && domainIds.stream()
-								.anyMatch(id -> domainId.equals(convertToLong(id)));
+			Long domainId = null;
 
-						if (match) {
-							for (String key : structure.getData().getFields().keySet()) {
-								if (key.contains("projectname")) {
-									Object value = structure.getData().getFields().get(key);
-									if (!(value instanceof Integer)) {
-										throw new IllegalArgumentException(
-												"Expected Integer but got: " + value.getClass());
-									}
-									Integer projectId = (Integer) value;
-									if (projectId != null) {
-										projectIds.add(projectId);
-									}
+			if(isLong(domainName)) {
+				domainId = Long.parseLong(domainName);
+				projectInsightDomainDataRepository.findById(Long.parseLong(domainName)).orElseThrow();
+			} else {
+				domainId =projectInsightDomainDataRepository.findByName(domainName).getId();
+			}
 
-								}
-							}
+			List<Long> domainIds = new ArrayList<>();
+			List<String> domainIdsString = new ArrayList<>();
+			domainIds.add(domainId);
+			domainIdsString.add(domainId.toString());
+
+			// Dynamic query using MongoTemplate
+			Query query = new Query(Criteria.where("data.fields.domain").in(domainIds));
+
+			if (unique_name == null) {
+				// Query only by domain if unique_name is null
+				query = new Query(Criteria.where("data.fields.domain").in(domainIds));
+			} else {
+				// Query by domain AND any of the possible unique_name variations
+				String lowerField = "data.fields." + unique_name.toLowerCase();
+				String upperField = "data.fields." + unique_name.toUpperCase();
+				String exactField = "data.fields." + unique_name;
+				
+				query = new Query(new Criteria().orOperator(
+						Criteria.where(lowerField).in(domainIds),
+						Criteria.where(upperField).in(domainIds),
+						Criteria.where(exactField).in(domainIds),
+						Criteria.where(lowerField).in(domainIdsString),
+						Criteria.where(upperField).in(domainIdsString),
+						Criteria.where(exactField).in(domainIdsString)
+					));
+			}
+
+			List<ProjectInsightStructure> results = mongoTemplate.find(query, ProjectInsightStructure.class);
+
+			Set<Integer> projectIds = new HashSet<>();
+
+			for (ProjectInsightStructure structure : results) {
+				if (structure.getData() != null) {
+					Map<String, Object> fields = structure.getData().getFields();
+					for (Map.Entry<String, Object> entry : fields.entrySet()) {
+						String key = entry.getKey();
+						Object value = entry.getValue();
+						if (key.toLowerCase().contains("projectname") && value instanceof Integer) {
+							projectIds.add((Integer) value);
 						}
-
 					}
 				}
 				List<Integer> projectIdsList = new ArrayList<>(projectIds);
 
-				dbResponse = projectInsighProjectMappingRepository.fetchAllProjectMappingsByInsightIds(projectIdsList);
-
-			} else {
-
-				dbResponse = projectInsighProjectMappingRepository.fetchAllProjectMappings();
 			}
 
-			if (dbResponse != null) {
-				return dbResponse;
-			} else {
-				throw new RuntimeException("No Project Insight found !!.");
+			if (projectIds.isEmpty()) {
+				return new ArrayList<>();
 			}
+
+			List<ProjectInsighProjectMappingDTO> response = projectInsighProjectMappingRepository
+					.fetchAllProjectMappingsByInsightIds(new ArrayList<>(projectIds));
+
+			return response;
+
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			throw new RuntimeException("Something went wrong !!.", ex);
@@ -3907,7 +3982,8 @@ public class ProjectInsightService {
 
 	public ProjectInsightStructure getProjectInsightByInsightId(String id) {
 		try {
-			return projectInsightStructureRepository.findById(id)
+			ObjectId objectId = new ObjectId(id);
+			return projectInsightStructureRepository.findById(objectId)
 					.orElseThrow(() -> new RuntimeException("Project Insight not found with id: " + id));
 		} catch (Exception e) {
 			throw new RuntimeException("Something went wrong !!", e);
@@ -3917,7 +3993,8 @@ public class ProjectInsightService {
 	public ResponseEntity<ServiceResponse> deleteProjectInsightById(String id) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			if (!projectInsightStructureRepository.existsById(id)) {
+			ObjectId objectId = new ObjectId(id);
+			if (!projectInsightStructureRepository.existsById(objectId)) {
 				throw new RuntimeException("Cannot delete. Project Insight Structure not found with ID: " + id);
 			}
 			ProjectInsighProjectMapping mappingDbResponse = projectInsighProjectMappingRepository
@@ -3926,7 +4003,7 @@ public class ProjectInsightService {
 			if (mappingDbResponse != null) {
 				projectInsighProjectMappingRepository.deleteById(mappingDbResponse.getProjectInsightProjectMappingId());
 			}
-			projectInsightStructureRepository.deleteById(id);
+			projectInsightStructureRepository.deleteById(objectId);
 			response.setServiceMessage("Deleted successfully");
 			return ResponseEntity.ok(response);
 		} catch (Exception e) {
@@ -3935,7 +4012,10 @@ public class ProjectInsightService {
 	}
 
 	public ProjectInsightStructure updateProjectInsightById(String id, ProjectInsightStructure updatedData) {
-		Optional<ProjectInsightStructure> existingOpt = projectInsightStructureRepository.findById(id);
+
+		ObjectId objectId = new ObjectId(id);
+
+		Optional<ProjectInsightStructure> existingOpt = projectInsightStructureRepository.findById(objectId);
 
 		if (existingOpt.isEmpty()) {
 			throw new RuntimeException("Cannot update. Project Insight Structure not found with ID: " + id);
@@ -3965,154 +4045,157 @@ public class ProjectInsightService {
 	}
 
 	public List<ProjectInsighProjectMappingDTO> searchProjectInsightStructures(String keyword) {
-	    String lowerKeyword = keyword.toLowerCase();
-	    List<ProjectInsightStructure> allStructures = projectInsightStructureRepository.findAll();
-	    List<ProjectInsighProjectMappingDTO> allMappings = projectInsighProjectMappingRepository.fetchAllProjectMappings();
+		String lowerKeyword = keyword.toLowerCase();
+		List<ProjectInsightStructure> allStructures = projectInsightStructureRepository.findAll();
+		List<ProjectInsighProjectMappingDTO> allMappings = projectInsighProjectMappingRepository
+				.fetchAllProjectMappings();
 
-	    // Map projectInsightId -> mapping DTO
-	    Map<String, ProjectInsighProjectMappingDTO> mappingByInsightId = allMappings.stream()
-	        .filter(m -> m.getProjectInsightId() != null)
-	        .collect(Collectors.toMap(ProjectInsighProjectMappingDTO::getProjectInsightId, m -> m, (a, b) -> a));
+		// Map projectInsightId -> mapping DTO
+		Map<String, ProjectInsighProjectMappingDTO> mappingByInsightId = allMappings.stream()
+				.filter(m -> m.getProjectInsightId() != null)
+				.collect(Collectors.toMap(ProjectInsighProjectMappingDTO::getProjectInsightId, m -> m, (a, b) -> a));
 
-	    Set<String> addedIds = new HashSet<>();
-	    List<ProjectInsighProjectMappingDTO> result = new ArrayList<>();
+		Set<String> addedIds = new HashSet<>();
+		List<ProjectInsighProjectMappingDTO> result = new ArrayList<>();
 
-	    // 1. Search in MongoDB structures (FormDataDTO)
-	    for (ProjectInsightStructure structure : allStructures) {
-	        if (structure.getData() != null && containsKeyword(structure.getData(), lowerKeyword)) {
-	            ProjectInsighProjectMappingDTO mapping = mappingByInsightId.get(structure.getId());
-	            if (mapping != null && addedIds.add(mapping.getProjectInsightId())) {
-	                result.add(mapping);
-	            }
-	        } else {
-	            // 2. If not matched in data, check mapped MySQL fields
-	            ProjectInsighProjectMappingDTO mapping = mappingByInsightId.get(structure.getId());
-	            if (mapping != null && mappingContainsKeyword(mapping, lowerKeyword)) {
-	                if (addedIds.add(mapping.getProjectInsightId())) {
-	                    result.add(mapping);
-	                }
-	            }
-	        }
-	    }
-	    return result;
+		// 1. Search in MongoDB structures (FormDataDTO)
+		for (ProjectInsightStructure structure : allStructures) {
+			if (structure.getData() != null && containsKeyword(structure.getData(), lowerKeyword)) {
+				ProjectInsighProjectMappingDTO mapping = mappingByInsightId.get(structure.getId());
+				if (mapping != null && addedIds.add(mapping.getProjectInsightId())) {
+					result.add(mapping);
+				}
+			} else {
+				// 2. If not matched in data, check mapped MySQL fields
+				ProjectInsighProjectMappingDTO mapping = mappingByInsightId.get(structure.getId());
+				if (mapping != null && mappingContainsKeyword(mapping, lowerKeyword)) {
+					if (addedIds.add(mapping.getProjectInsightId())) {
+						result.add(mapping);
+					}
+				}
+			}
+		}
+		return result;
 	}
 
-    private boolean containsKeyword(FormDataDTO data, String lowerKeyword) {
-        if (data == null) return false;
+	private boolean containsKeyword(FormDataDTO data, String lowerKeyword) {
+		if (data == null)
+			return false;
 
-        // 1. Search in fields
-        if (data.getFields() != null) {
-            for (Object value : data.getFields().values()) {
-                if (value instanceof String && ((String) value).toLowerCase().contains(lowerKeyword)) {
-                    return true;
-                }
-                if (value instanceof List) {
-                    for (Object item : (List<?>) value) {
-                        if (item instanceof String && ((String) item).toLowerCase().contains(lowerKeyword)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
+		// 1. Search in fields
+		if (data.getFields() != null) {
+			for (Object value : data.getFields().values()) {
+				if (value instanceof String && ((String) value).toLowerCase().contains(lowerKeyword)) {
+					return true;
+				}
+				if (value instanceof List) {
+					for (Object item : (List<?>) value) {
+						if (item instanceof String && ((String) item).toLowerCase().contains(lowerKeyword)) {
+							return true;
+						}
+					}
+				}
+			}
+		}
 
-        // 2. Search in questions
-        if (data.getQuestions() != null) {
-            for (ProjectInsightQuestionDTO question : data.getQuestions()) {
-                if (question.getText() != null && question.getText().toLowerCase().contains(lowerKeyword)) {
-                    return true;
-                }
-                if (question.getDescription() != null && question.getDescription().toLowerCase().contains(lowerKeyword)) {
-                    return true;
-                }
-            }
-        }
+		// 2. Search in questions
+		if (data.getQuestions() != null) {
+			for (ProjectInsightQuestionDTO question : data.getQuestions()) {
+				if (question.getText() != null && question.getText().toLowerCase().contains(lowerKeyword)) {
+					return true;
+				}
+				if (question.getDescription() != null
+						&& question.getDescription().toLowerCase().contains(lowerKeyword)) {
+					return true;
+				}
+			}
+		}
 
-        // 3. Recursively search in children
-        if (data.getChild() != null) {
-            for (FormDataDTO child : data.getChild()) {
-                if (containsKeyword(child, lowerKeyword)) {
-                    return true;
-                }
-            }
-        }
+		// 3. Recursively search in children
+		if (data.getChild() != null) {
+			for (FormDataDTO child : data.getChild()) {
+				if (containsKeyword(child, lowerKeyword)) {
+					return true;
+				}
+			}
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    private boolean mappingContainsKeyword(ProjectInsighProjectMappingDTO mapping, String lowerKeyword) {
-        return Stream.of(
-                mapping.getProjectName(),
-                mapping.getCreatedByName(),
-                mapping.getProjectManagerName(),
-                mapping.getClient(),
-                mapping.getProjectInsightId()
-            )
-            .filter(Objects::nonNull)
-            .map(String::toLowerCase)
-            .anyMatch(s -> s.contains(lowerKeyword));
-    }
-	
-    private boolean isEmpIdAssigned(FormDataDTO data, String empId) {
-        if (data == null) return false;
+	private boolean mappingContainsKeyword(ProjectInsighProjectMappingDTO mapping, String lowerKeyword) {
+		return Stream.of(
+				mapping.getProjectName(),
+				mapping.getCreatedByName(),
+				mapping.getProjectManagerName(),
+				mapping.getClient(),
+				mapping.getProjectInsightId())
+				.filter(Objects::nonNull)
+				.map(String::toLowerCase)
+				.anyMatch(s -> s.contains(lowerKeyword));
+	}
 
-        // Debug print
-        System.out.println("Checking FormDataDTO: " + data);
+	private boolean isEmpIdAssigned(FormDataDTO data, String empId) {
+		if (data == null)
+			return false;
 
-        // 1. Check all fields for keys containing "assignedto" or "assignto"
-        if (data.getFields() != null) {
-            for (Map.Entry<String, Object> entry : data.getFields().entrySet()) {
-                String key = entry.getKey().toLowerCase();
-                if (key.contains("assignedto") || key.contains("assignto")) {
-                    Object assignedTo = entry.getValue();
-                    if (assignedTo instanceof List) {
-                        List<?> assignedList = (List<?>) assignedTo;
-                        for (Object assigned : assignedList) {
-                            System.out.println("Comparing field assigned: " + assigned + " with empId: " + empId);
-                            if (empId.toString().equals(String.valueOf(assigned))) {
-                                return true;
-                            }
-                        }
-                    } else if (assignedTo instanceof String) {
-                        if (empId.toString().equals(assignedTo)) {
-                            return true;
-                        }
-                    } else if (assignedTo != null) {
-                        if (empId.toString().equals(String.valueOf(assignedTo))) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
+		// Debug print
+		System.out.println("Checking FormDataDTO: " + data);
 
-        // 2. Check all questions' toAssignEmployeeList
-        if (data.getQuestions() != null) {
-            for (ProjectInsightQuestionDTO question : data.getQuestions()) {
-                List<?> toAssignList = question.getToAssignEmployeeList();
-                if (toAssignList != null) {
-                    for (Object assigned : toAssignList) {
-                        System.out.println("Comparing question assigned: " + assigned + " with empId: " + empId);
-                        if (empId.toString().equals(String.valueOf(assigned))) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
+		// 1. Check all fields for keys containing "assignedto" or "assignto"
+		if (data.getFields() != null) {
+			for (Map.Entry<String, Object> entry : data.getFields().entrySet()) {
+				String key = entry.getKey().toLowerCase();
+				if (key.contains("assignedto") || key.contains("assignto")) {
+					Object assignedTo = entry.getValue();
+					if (assignedTo instanceof List) {
+						List<?> assignedList = (List<?>) assignedTo;
+						for (Object assigned : assignedList) {
+							System.out.println("Comparing field assigned: " + assigned + " with empId: " + empId);
+							if (empId.toString().equals(String.valueOf(assigned))) {
+								return true;
+							}
+						}
+					} else if (assignedTo instanceof String) {
+						if (empId.toString().equals(assignedTo)) {
+							return true;
+						}
+					} else if (assignedTo != null) {
+						if (empId.toString().equals(String.valueOf(assignedTo))) {
+							return true;
+						}
+					}
+				}
+			}
+		}
 
-        // 3. Recursively check all children
-        if (data.getChild() != null) {
-            for (FormDataDTO child : data.getChild()) {
-                System.out.println("Recursing into child: " + child);
-                if (isEmpIdAssigned(child, empId)) {
-                    return true;
-                }
-            }
-        }
+		// 2. Check all questions' toAssignEmployeeList
+		if (data.getQuestions() != null) {
+			for (ProjectInsightQuestionDTO question : data.getQuestions()) {
+				List<?> toAssignList = question.getToAssignEmployeeList();
+				if (toAssignList != null) {
+					for (Object assigned : toAssignList) {
+						System.out.println("Comparing question assigned: " + assigned + " with empId: " + empId);
+						if (empId.toString().equals(String.valueOf(assigned))) {
+							return true;
+						}
+					}
+				}
+			}
+		}
 
-        return false;
-    }
+		// 3. Recursively check all children
+		if (data.getChild() != null) {
+			for (FormDataDTO child : data.getChild()) {
+				System.out.println("Recursing into child: " + child);
+				if (isEmpIdAssigned(child, empId)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
 
 	public ServiceResponse getProjectInsightByAssignedToEmpId(ProjectInsightDTO projectInsightDTO) {
 		try {
@@ -4129,14 +4212,14 @@ public class ProjectInsightService {
 			}
 
 			List<String> insightIds = result.stream()
-					.map(ProjectInsightStructure::getId)
+					.map(pis -> pis.getId().toString())
 					.collect(Collectors.toList());
 
 			List<ProjectInsighProjectMappingDTO> dbResponse = projectInsighProjectMappingRepository
 					.fetchAllProjectMappingsByProjectInsightId(insightIds);
 
 			Map<String, ProjectInsightStructure> insightMap = result.stream()
-					.collect(Collectors.toMap(ProjectInsightStructure::getId, pis -> pis));
+					.collect(Collectors.toMap(pis -> pis.getId().toString(), pis -> pis));
 
 			for (ProjectInsighProjectMappingDTO dto : dbResponse) {
 				ProjectInsightStructure structure = insightMap.get(dto.getProjectInsightId());

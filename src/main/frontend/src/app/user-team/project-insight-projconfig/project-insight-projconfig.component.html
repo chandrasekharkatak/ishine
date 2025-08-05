@@ -12,81 +12,87 @@
       
     </div>
 
-  <!-- Table view and filters  -->
-  <div class="main-content">
-    <!-- Table Section -->
-    <div class="table-section" *ngIf="!isCreateForm && isTable">
-      <div class="row align-items-center mb-3">
-        <div class="col-md-8 input-group">
-          <input
-            type="text"
-            class="form-control table-search"
-            placeholder="Search"
-            [(ngModel)]="searchKeyword"
-            (keyup.enter)="onGlobalSearch()"
-          />
-          <button class="btn btn-primary" type="button" (click)="onGlobalSearch()">
-            Search
-          </button>
-        </div>
-        <div class="col-md-4">
-          <button class="btn btn-outline-primary btn-sm">
-            <i class="fa fa-filter"></i>
-          </button>
-          <button class="btn btn-outline-primary btn-sm ml-1" (click)="openCreateProject()">
-            <i class="fa fa-plus"></i> Create Project Insight
-          </button>
-        </div>
-      </div>
-
-      <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
-        [tableTHeadTrId]="'projectInfoTHeadTr'">
-        <table class="table" id="projectInfo" matSort (matSortChange)="sortData($event)">
-          <thead class="thead-light" id="projectInfoTHead">
-            <tr id="projectInfoTHeadTr">
-              <th scope="col" class="info-label">Sr No.</th>
-              <th scope="col" class="info-label" mat-sort-header="name|string">Project Name</th>
-              <th scope="col" class="info-label" mat-sort-header="hodName|string">Project Manager</th>
-              <th scope="col" class="info-label" mat-sort-header="createdByName|string">Client</th>
-              <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created By</th>
-              <!-- <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Created On</th> -->
-              <th scope="col" class="info-label">Action</th>
-            </tr>
-            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectColumns"
-              (onSearch)="onSearch($event);page=1"></tr>
-          </thead>
-          <tbody>
-            <tr
-              *ngIf="allProjectInsightProjectList.length == 0 || (allProjectInsightProjectList | colFilter:filters:false).length == 0">
-              <th colspan="6" class="text-center info-label">No details to display...</th>
-            </tr>
-            <tr
-              *ngFor="let proj of allProjectInsightProjectList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
-              <th class="info-label">{{10*(page-1)+i+1}}</th>
-              <td>{{proj.projectName}}</td>
-              <td>{{proj.projectManagerName}}</td>
-              <td>{{proj.client}}</td>
-              <td>{{proj.createdByName}}</td>
-              <!-- <td>{{proj.createdOn}}</td> -->
-              <td>
-                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openViewProjectInsight(proj.projectInsightId)">
-                  <em class="fa-solid fa-eye"></em>
-                </button>&nbsp;
-                <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openEditProjectInsight(proj.projectInsightDetailsId)">
-                  <em class="fa fa-edit"></em>
-                </button>&nbsp;
-                <button class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteProjectInsight(proj.projectInsightId)">
-                  <em class="fa fa-trash"></em>
-                </button>
-            </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <pagination-controls class="pagination" [hidden]="allProjectInsightProjectList.length == 0"
-        (pageChange)="handlePageChange($event)"></pagination-controls>
+  <div class="d-flex" *ngIf="!isCreateForm && isTable">
+    <div>
+      <app-AllDomains (selectChildrenOfDomain)="selectChildrenOfDomain($event.childrenSubDomain, $event.domain, $event.unique_name)" [incoming]="selectedDomain != null " [domainName]="selectedDomain" (selectedDomain)="selectDomain($event)" [childrenSelectedDomainId]="childrenSubDomain" ></app-AllDomains>
     </div>
-  </div>
+
+  <!-- Table view and filters  -->
+    <div class="main-content">
+      <!-- Table Section -->
+      <div class="table-section" >
+        <div class="row align-items-center mb-3">
+          <div class="col-md-8 input-group">
+            <input
+              type="text"
+              class="form-control table-search"
+              placeholder="Search"
+              [(ngModel)]="searchKeyword"
+              (keyup.enter)="onGlobalSearch()"
+            />
+            <button class="btn btn-primary" type="button" (click)="onGlobalSearch()">
+              Search
+            </button>
+          </div>
+          <div class="col-md-4">
+            <button class="btn btn-outline-primary btn-sm" (click)="openFilterModal()" >
+              <i class="fa fa-filter"></i>
+            </button>
+            <button class="btn btn-outline-primary btn-sm ml-1" (click)="openCreateProject()">
+              <i class="fa fa-plus"></i> Create Project Insight
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
+          [tableTHeadTrId]="'projectInfoTHeadTr'">
+          <table class="table" id="projectInfo" matSort (matSortChange)="sortData($event)">
+            <thead class="thead-light" id="projectInfoTHead">
+              <tr id="projectInfoTHeadTr">
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="name|string">Project Name</th>
+                <th scope="col" class="info-label" mat-sort-header="hodName|string">Project Manager</th>
+                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Client</th>
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created By</th>
+                <!-- <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Created On</th> -->
+                <th scope="col" class="info-label">Action</th>
+              </tr>
+              <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectColumns"
+                (onSearch)="onSearch($event);page=1"></tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngIf="allProjectInsightProjectList.length == 0 || (allProjectInsightProjectList | colFilter:filters:false).length == 0">
+                <th colspan="6" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr
+                *ngFor="let proj of allProjectInsightProjectList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+                <th class="info-label">{{10*(page-1)+i+1}}</th>
+                <td>{{proj.projectName}}</td>
+                <td>{{proj.projectManagerName}}</td>
+                <td>{{proj.client}}</td>
+                <td>{{proj.createdByName}}</td>
+                <!-- <td>{{proj.createdOn}}</td> -->
+                <td>
+                  <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openViewProjectInsight(proj.projectInsightId)">
+                    <em class="fa-solid fa-eye"></em>
+                  </button>&nbsp;
+                  <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openEditProjectInsight(proj.projectInsightId)">
+                    <em class="fa fa-edit"></em>
+                  </button>&nbsp;
+                  <button class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteProjectInsight(proj.projectInsightId)">
+                    <em class="fa fa-trash"></em>
+                  </button>
+              </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <pagination-controls class="pagination" [hidden]="allProjectInsightProjectList.length == 0"
+          (pageChange)="handlePageChange($event)"></pagination-controls>
+      </div>
+    </div>
+</div>
 
   <!-- Import / Back / create buttons -->
   <div class="px-0 d-flex justify-content-between align-items-center" *ngIf="isCreateForm && !isTable">
@@ -97,7 +103,10 @@
   
     <!-- Import / Export buttons -->
     <div class="d-flex gap-2">
-      <button class="btn btn-sm btn-outline-info mb-1" (click)="exportTemplate()">
+      <button class="btn btn-sm btn-outline-primary mb-1" (click)="opencloneProjectModal()">
+        Clone From Other Project
+      </button>
+      <button class="btn btn-sm btn-outline-info mb-1 ml-2" (click)="exportTemplate()">
         <i class="fa fa-download"></i> Export Template
       </button>
       <input type="file" accept=".xlsx, .xls" (change)="onFileChangeImport($event)" style="display:none" #fileInput>
@@ -129,11 +138,11 @@
           <!-- Root level - domains -->
           <div *ngFor="let data of allDomainDataList">
             <li>
-              <div class="tree-label" [title]="data.domain+' (Domain)'" (click)="addedDomainId = data.domainId" >
+              <div class="tree-label" [title]="data.name+' (Domain)'" (click)="addedDomainId = data.domainId" >
                 <span class="arrow" (click)="toggle(data)" *ngIf="data.subDomains?.length || data.services?.length">
                   {{ data.isOpen ? '▼' : '▶' }}
                 </span>
-                {{ getName(data.domain) }}
+                {{ getName(data.name) }}
                 <button class="add-btn" title="Add Sub-Domain" (click)="openModal(data, 'subDomain', 'domain' )">
                   <i class="fa fa-plus"></i>
                 </button>
@@ -148,11 +157,11 @@
               <ul *ngIf="data.isOpen && data.services?.length">
                 <ng-container *ngFor="let service of data.services">
                   <li>
-                    <div class="tree-label" [title]="service.service + ' (Service)' " >
+                    <div class="tree-label" [title]="service.name + ' (Service)' " >
                       <span class="arrow" (click)="toggle(service)" *ngIf="service.subServices?.length">
                         {{ service.isOpen ? '▼' : '▶' }}
                       </span>
-                      {{ getName(service.service) }}
+                      {{ getName(service.name) }}
                       <button class="add-btn" title="Add Sub-Service" (click)="openModal(service, 'subService','service')">
                         <i class="fa fa-plus"></i>
                       </button>
@@ -174,31 +183,31 @@
         <ng-template #subDomainTemplate let-subDomains>
           <ng-container *ngFor="let subDomain of subDomains">
             <li>
-              <div class="tree-label" [title]="subDomain.subDomain+'(Sub-Domain)'" >
-                <span class="arrow" (click)="toggle(subDomain)" *ngIf="subDomain.children?.length || subDomain.services?.length">
+              <div class="tree-label" [title]="subDomain.name +'(Sub-Domain)'" >
+                <span class="arrow" (click)="toggle(subDomain)" *ngIf="subDomain.subDomains?.length || subDomain.services?.length">
                   {{ subDomain.isOpen ? '▼' : '▶' }}
                 </span>
-                {{ getName(subDomain.subDomain) }}
+                {{ getName(subDomain.name) }}
                 <button class="add-btn" title="Add Sub-Domain" (click)="openModal(subDomain,'subDomain','subDomain')">
                   <i class="fa fa-plus"></i>
                 </button>
               </div>
 
               <!-- Children recursion -->
-              <ul *ngIf="subDomain.isOpen && subDomain.children?.length">
+              <ul *ngIf="subDomain.isOpen && subDomain.subDomains?.length">
                 <ng-container
-                  *ngTemplateOutlet="subDomainTemplate; context: { $implicit: subDomain.children }"></ng-container>
+                  *ngTemplateOutlet="subDomainTemplate; context: { $implicit: subDomain.subDomains }"></ng-container>
               </ul>
 
               <!-- Services if they exist -->
               <ul *ngIf="subDomain.isOpen && subDomain.services?.length">
                 <ng-container *ngFor="let service of subDomain.services">
                   <li>
-                    <div class="tree-label" [title]="service.service+' (Service)'" >
+                    <div class="tree-label" [title]="service.name+' (Service)'" >
                       <span class="arrow" (click)="toggle(service)" *ngIf="service.subServices?.length">
                         {{ service.isOpen ? '▼' : '▶' }}
                       </span>
-                      {{ getName(service.service) }}
+                      {{ getName(service.name) }}
                       <button class="add-btn" title="Add Sub-Service" (click)="openModal(service, 'subService','service')">
                         <i class="fa fa-plus"></i>
                       </button>
@@ -220,11 +229,11 @@
         <ng-template #subServiceTemplate let-subServices>
           <ng-container *ngFor="let subService of subServices">
             <li>
-              <div class="tree-label" [title]="subService.subService+' (Sub-Service)'" >
-                <span class="arrow" (click)="toggle(subService)" *ngIf="subService.children?.length">
+              <div class="tree-label" [title]="subService.name+' (Sub-Service)'" >
+                <span class="arrow" (click)="toggle(subService)" *ngIf="subService.subServices?.length">
                   {{ subService.isOpen ? '▼' : '▶' }}
                 </span>
-                {{ getName(subService.subService) }}
+                {{ getName(subService.name) }}
                 <button class="add-btn" title="Add Sub-Service" (click)="openModal( subService,'subService','subService' )">
                   <i class="fa fa-plus"></i>
                 </button>
@@ -233,7 +242,7 @@
               <!-- Subservice children recursion -->
               <ul *ngIf="subService.isOpen && subService.children?.length">
                 <ng-container
-                  *ngTemplateOutlet="subServiceTemplate; context: { $implicit: subService.children }"></ng-container>
+                  *ngTemplateOutlet="subServiceTemplate; context: { $implicit: subService.subServices }"></ng-container>
               </ul>
             </li>
           </ng-container>
@@ -316,7 +325,8 @@
           </div>
         </div>
         <app-form-renderer [fields]="currentNode.fields" [layoutConfig]="currentNode.layoutConfig"
-          [formData]="currentNode.formData" (formValueChange)="onFormValueChange(currentNode, $event)"  (fieldsUpdated)="onFieldsUpdated($event)" (selectedDomainIds)="loadAllProjectInsightDomain($event)">
+          [formData]="currentNode.formData" (formValueChange)="onFormValueChange(currentNode, $event)"  (fieldsUpdated)="onFieldsUpdated($event)" (selectedDomainIds)="loadAllProjectInsightDomain($event)"
+          >
         </app-form-renderer>
 
         <!-- Questions -->
@@ -458,6 +468,38 @@
       <p>Are you sure you want to delete the Project Insight?</p>
       <button type="button" class="btn btn-success" (click)="deleteProjectInsightById()">Yes, proceed</button>&nbsp;
       <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+  </div>
+</ng-template>
+
+<ng-template #clone_modal>
+  <div class="modal-body text-center p-4">
+    <h5 class="mb-3">Clone Project Insight</h5>
+    <p class="text-muted mb-4">Select a project to proceed with cloning.</p>
+
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="form-group text-left">
+          <label class="font-weight-bold">
+            <span class="text-danger">*</span> Select Project
+          </label>
+          <select class="form-control" [(ngModel)]="cloneProjectInsightId">
+            <option value="" disabled selected>Select</option>
+            <option *ngFor="let project of allProjectInsightProjectList" [value]="project.projectInsightId">
+              {{ project.projectName }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <button type="button" class="btn btn-success px-4 mr-2" (click)="getCloneProjectInsight()">
+        <i class="fa fa-check mr-1"></i> Yes, Proceed
+      </button>
+      <button type="button" class="btn btn-danger px-4" (click)="cancelRequest()">
+        <i class="fa fa-times mr-1"></i> No, Cancel
+      </button>
+    </div>
   </div>
 </ng-template>
 
@@ -846,3 +888,7 @@
 </ng-template>
 
 <app-add-data-modal [isVisible]="isVisible" [parentType]="parentItem" (onSave)="saveModal($event)" (changeChildType)="changeChildType($event)" (onClose)="closeModal()" [title]="title" ></app-add-data-modal>
+
+<div *ngIf="filterModal" >
+  <app-FilterProjectInsight [isVisible]="filterModal" (onClose)="closeFilterModal()" (onApplyFilter)="applyFilterModal($event)" [existingFilters]="existingFilter" ></app-FilterProjectInsight>
+</div>

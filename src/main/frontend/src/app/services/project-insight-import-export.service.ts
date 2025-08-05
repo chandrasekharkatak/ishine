@@ -113,7 +113,9 @@ export class ProjectInsightImportExportService {
     }
 
     // Save
-    XLSX.writeFile(workbook, `Project_Insight_${name}.xlsx`);
+    XLSX.writeFile(workbook, `Project_Insight_${name}.xlsx`,{
+      bookType: 'xlsx',
+    });
   }
 
   async exportEntityDetailOrQuestionsToExcel(entity: any, entityType: any, name: any, parentId: any, parentType: any): Promise<any> {

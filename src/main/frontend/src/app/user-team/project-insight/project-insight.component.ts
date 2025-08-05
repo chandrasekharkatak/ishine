@@ -1098,7 +1098,7 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   onGlobalSearch() {
-    this.projectInsightService.searchProjectInsight(this.searchKeyword).pipe(first()).subscribe({
+    this.projectInsightService.searchProjectInsight(this.searchKeyword, this.page - 1, this.page *10).pipe(first()).subscribe({
       next: (response: any) => {
         this.allProjectInsightProjectList = response;
       },

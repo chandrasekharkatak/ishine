@@ -13,7 +13,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   @Input() formData: any = {};
   @Output() formValueChange = new EventEmitter<any>();
   @Output() formSubmit = new EventEmitter<any>();
-  @Output() fieldsUpdated = new EventEmitter<{fields: any[], layoutConfig: any[][]}>();
+  @Output() fieldsUpdated = new EventEmitter<{ fields: any[], layoutConfig: any[][] }>();
   @Output() selectedDomainIds = new EventEmitter<any[]>();
 
   isLoading = true;
@@ -23,7 +23,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   apiCache :Map<string, any[]> = new Map<string, any[]>(); 
   dependentOptionsMap: { [fieldName: string]: any[] } = {};
 
-  constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService) {}
+  constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService) { }
 
   async ngOnInit() {
     console.log('Called ngOnInit ------------------------------------------');
@@ -32,8 +32,8 @@ export class FormRendererComponent implements OnInit, OnChanges {
     this.buildForm();
     this.isLoading = false;
 
-    console.log(this.fields, " : fields in form renderer");
-    console.log(this.layoutConfig, " : layoutconfig in form renderer");
+    // console.log(this.fields, " : fields in form renderer");
+    // console.log(this.layoutConfig, " : layoutconfig in form renderer");
   }
 
   async ngOnChanges(changes: SimpleChanges) {
@@ -46,23 +46,25 @@ export class FormRendererComponent implements OnInit, OnChanges {
       this.buildForm();
     }
 
-    this.apiSourceService.idToRemove$.subscribe(id => {
-      if(id){
-        if(this.formData["domain"] && this.formData["domain"].includes(id)){
-          this.formData["domain"].splice(this.formData["domain"].indexOf(id), 1);
+    // this.apiSourceService.idToRemove$.subscribe(id => {
+    //   if(id){
+    //     console.log("ID to remove", id);
 
-          this.layoutConfig.forEach(element => {
-            element.forEach(field => {
-              if(field.label.toLowerCase() === 'Domain'.toLowerCase()){
-                this.onDomainSelectChange(this.formData["domain"], field, false);
-              }
-            })
-          });
+    //     if(this.formData["domain"] && this.formData["domain"].includes(id)){
+    //       this.formData["domain"].splice(this.formData["domain"].indexOf(id), 1);
 
-          this.apiSourceService.setIdToRemove(null);
-        }
-      }
-    })
+    //       this.layoutConfig.forEach(element => {
+    //         element.forEach(field => {
+    //           if(field.label.toLowerCase() === 'Domain'.toLowerCase()){
+    //             this.onDomainSelectChange(this.formData["domain"], field, false);
+    //           }
+    //         })
+    //       });
+
+    //       this.apiSourceService.setIdToRemove(null);
+    //     }
+    //   }
+    // })
   }
 
   get formControlsCount(): number {
@@ -97,14 +99,13 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   buildForm() {
-    console.log('Building form with fields:', this.fields);
-    console.log('Form data:', this.formData);
-    
+    // console.log('Building form with fields:', this.fields);
+    // console.log('Form data:', this.formData);
     const controls: any = {};
     this.fields.forEach(field => {
       const validators = [];
       if (field.required) validators.push(Validators.required);
-  
+
       // --- Table Field Handling ---
       if (field.type === 'table') {
         if (!this.formData[field.name] || !Array.isArray(this.formData[field.name])) {
@@ -116,7 +117,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
               return rowObj;
             });
         }
-  
+
         // Create a FormArray of FormGroups for the table
         const rowsArray = new FormArray([]);
         for (let i = 0; i < field.tableConfig.rows; i++) {
@@ -127,55 +128,60 @@ export class FormRendererComponent implements OnInit, OnChanges {
           rowsArray.push(new FormGroup(rowGroup));
         }
         controls[field.name] = rowsArray;
-        
-        console.log(`Created FormArray for ${field.name}:`, controls[field.name]);
+
+        // console.log(`Created FormArray for ${field.name}:`, controls[field.name]);
         return;
       }
-  
+
       let defaultValue =
         this.formData[field.name] !== undefined ? this.formData[field.name] :
-        field.value !== undefined ? field.value :
-        field.defaultValue !== undefined ? field.defaultValue : '';
+          field.value !== undefined ? field.value :
+            field.defaultValue !== undefined ? field.defaultValue : '';
 
-        if (field.type === 'checkbox') {
-          controls[field.name] = [Array.isArray(defaultValue) ? defaultValue : [], validators];
+      if (field.type === 'checkbox') {
+        controls[field.name] = [Array.isArray(defaultValue) ? defaultValue : [], validators];
+      }
+
+      if (field.type === 'select' && field.multiple) {
+        if (Array.isArray(field.options) && field.options.length > 0) {
+          const optionType = typeof field.options[0].value;
+          defaultValue = Array.isArray(defaultValue) ? defaultValue.map(v =>
+            optionType === 'string' ? String(v) : Number(v)
+          ) : [];
+        } else {
+          defaultValue = Array.isArray(defaultValue) ? defaultValue : [];
         }
-  
-        if (field.type === 'select' && field.multiple) {
-          if (Array.isArray(field.options) && field.options.length > 0) {
-            const optionType = typeof field.options[0].value;
-            defaultValue = Array.isArray(defaultValue) ? defaultValue.map(v => 
-              optionType === 'string' ? String(v) : Number(v)
-            ) : [];
-          } else {
-            defaultValue = Array.isArray(defaultValue) ? defaultValue : [];
-          }
+
+        if ((field.name as string).toLowerCase() === "domain") {
+          
+          this.selectedDomainIds.emit(defaultValue);
         }
-  
+      }
+
       controls[field.name] = [defaultValue, validators];
-      
-      console.log(`Created control for ${field.name}:`, controls[field.name]);
+
+      // console.log(`Created control for ${field.name}:`, controls[field.name]);
     });
-    
+
     this.dynamicForm = this.fb.group(controls);
-    
+
     this.fields.forEach(field => {
       if (field.type === 'table') {
         const formArray = this.dynamicForm.get(field.name) as FormArray;
         formArray.valueChanges.subscribe((rows: any[]) => {
           this.formData[field.name] = rows;
-          console.log(`Table ${field.name} updated:`, rows);
+          // console.log(`Table ${field.name} updated:`, rows);
         });
       }
     });
-    
-    console.log('Form group created:', this.dynamicForm);
-    console.log('Form controls:', Object.keys(this.dynamicForm.controls));
-    
+
+    // console.log('Form group created:', this.dynamicForm);
+    // console.log('Form controls:', Object.keys(this.dynamicForm.controls));
+
     this.dynamicForm.valueChanges.subscribe(val => {
       this.formValueChange.emit(val);
     });
-  
+
     this.loadDependentOptionsForExistingData();
   }
   
@@ -208,8 +214,8 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   async loadDependentOptionsForExistingData() {
     for (const field of this.fields) {
-      console.log("field", field);
-      
+      // console.log("field", field);
+
       if (field.optionSource === 'dependent' && field.parentField) {
         const parentValue = this.formData[field.parentField];
         if (parentValue) {
@@ -233,7 +239,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
       }
     }
   }
-  
+
   createArray(n: number): any[] {
     return Array.from({ length: n });
   }
@@ -256,7 +262,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
     if (this.apiCache.has(apiUrl)) {
       return this.apiCache.get(apiUrl);
     }
-  
+
     try {
       const response = await this.apiSourceService.loadDynamicApi(apiUrl).toPromise();
        console.log('==== called loadAPIOptions');
@@ -305,38 +311,38 @@ export class FormRendererComponent implements OnInit, OnChanges {
     if (!field.parentField || !field.dependentApiUrl || !parentValue) {
       return [];
     }
-  
+
     if (this.dependentFieldOptions.has(field.name)) {
       const fieldOptions = this.dependentFieldOptions.get(field.name)!;
       if (fieldOptions.has(parentValue)) {
         return fieldOptions.get(parentValue) || [];
       }
     }
-  
+
     try {
       const url = field.dependentApiUrl.replace(`{${field.dependentParamName}}`, parentValue);
       const response = await this.apiSourceService.loadDynamicApi(url).toPromise();
-  
+
       if (response && Array.isArray(response)) {
         const options = response.map(item => ({
           label: item[field.dependentLabelKey || 'name'],
           value: String(item[field.dependentValueKey || 'id'])
         }));
         field.options = options;
-  
+
         if (!this.dependentFieldOptions.has(field.name)) {
           this.dependentFieldOptions.set(field.name, new Map());
         }
         this.dependentFieldOptions.get(field.name)!.set(parentValue, options);
         this.dependentOptionsMap[field.name] = options;
-  
+
         return options;
       }
     } catch (error) {
       console.error(`Error loading dependent options for ${field.name}:`, error);
       return [];
     }
-  
+
     return [];
   }
 
@@ -366,37 +372,59 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   async onDomainSelectChange(selectedDomainIds: any[], field: any, changed: boolean = true) {
     if (!Array.isArray(selectedDomainIds)) selectedDomainIds = [selectedDomainIds];
-  
-    this.fields = this.fields.filter(f =>
-      f.isDynamicallyCreated !== 'true' && f.isDynamicallyCreated !== true
-    );
-    this.layoutConfig = this.layoutConfig.map(row =>
-      row.filter(f =>
-        f.isDynamicallyCreated !== 'true' && f.isDynamicallyCreated !== true
-      )
-    );
+    // console.log("Field: ", field);
+    
+    // this.fields = this.fields.filter(f =>
+    //   f.isDynamicallyCreated !== 'true' && f.isDynamicallyCreated !== true
+    // );
+    // this.layoutConfig = this.layoutConfig.map(row =>
+    //   row.filter(f =>
+    //     f.isDynamicallyCreated !== 'true' && f.isDynamicallyCreated !== true
+    //   )
+    // );
 
-  
+    // console.log("Fields: ", this.fields);
+    
+    // console.log("LayoutConfig: ", this.layoutConfig);
+    
+
     const type = this.getTypeForField(field);
-  
+    console.log("Type inside domain select change: ", type);
+    
+
     if (changed) this.selectedDomainIds.emit(selectedDomainIds);
-  
+
+    // field.value = selectedDomainIds;
+
+    const existingchilds = new Set();
+
     for (const domainId of selectedDomainIds) {
       const children: any = await this.apiSourceService.getAllNextFieldAndOption(domainId, type).toPromise();
-  
+
+      console.log("Children in domain: ", children);
+      
+
       if (children && children.length > 0) {
         const domainFieldTemplate = { ...field };
-        const hierarchyType = children[0].hierarchyType;
+        const hierarchyType = children.find(child => child.id === domainId)?.hierarchyType;
 
         const parentOption = field.options.find(opt => opt.value === domainId);
         const parentLabel = parentOption ? parentOption.label : domainId;
-        const uniqueLabel = `${hierarchyType} (${parentLabel})`;
+        const uniqueLabel = `${type} (${parentLabel})`;
 
-        const uniqueId = this.generateUniqueId();
-        const uniqueName = `${hierarchyType}_${domainId}_${uniqueId}`;
-  
+        const uniqueName = `${type}_${domainId}`;
+        console.log("Unique name inside domain select change: ", uniqueName);
+        
+
+        
+        existingchilds.add(uniqueName);
+        
+        if (this.fields.some(f => f.name === uniqueName)) continue;
+
+        const uniqueId = this.fields.find(f => f.name === uniqueName)?.id || this.generateUniqueId();
+
         this.fields = this.fields.filter(f => f.name !== uniqueName);
-  
+
         const newField = {
           ...domainFieldTemplate,
           id: uniqueId,
@@ -416,19 +444,34 @@ export class FormRendererComponent implements OnInit, OnChanges {
           apiUrl: null,
           apiLabelKey: null,
           apiValueKey: null,
+          parentDynamicId: field.id,
           dependentApiUrl: "api/getAllNextFieldAndOption/{type}/{id}",
           dependentLabelKey: "name",
           dependentValueKey: "id",
           dependentParamName: "id",
           value: null
         };
-  
-        this.fields.push(newField);
-  
+
+        // console.log("newField: ", newField); 
+
+        // this.fields.push(newField);
+
+        const parentIndex = this.fields.findIndex(f => f.id === field.id);
+          // console.log("parentIndex: ", parentIndex);
+          
+          if (parentIndex >= 0) {
+            this.fields.splice(parentIndex + 1, 0, newField); // Insert after parent
+          } else {
+            this.fields.push(newField); // Fallback if parent not found
+          }
+
+          // console.log("this.fields after pushing: ", this.fields);
+          
+
         const domainFieldRowIndex = this.layoutConfig.findIndex(row =>
           row.some(f => f.name === field.name)
         );
-  
+
         if (domainFieldRowIndex >= 0) {
           this.layoutConfig[domainFieldRowIndex].push(newField);
         } else {
@@ -439,9 +482,30 @@ export class FormRendererComponent implements OnInit, OnChanges {
         }
       }
     }
+    
+    const nonExistingField = this.fields.find(f => f.parentDynamicId == field.id && !existingchilds.has(f.name));
+    
+    const descendantIds = this.getDescendantIds(nonExistingField?.id) || [];
+
+    descendantIds?.push(nonExistingField);
+
+    // const abcd:any[] = []
+
+    // for(const f of this.fields){
+    //   if(descendantIds?.some(d => d?.id == f.id)){
+    //     console.log("f: ", f);
+    //   }else{
+    //     abcd.push(f)
+    //   }
+    // }
+
+    this.fields = this.fields.filter(f => !descendantIds?.some(d => d?.id == f.id));
+    this.layoutConfig = this.layoutConfig.map(row => row.filter(f => !descendantIds?.some(d => d?.id == f.id)));
+
+
     this.fields = [...this.fields];
     this.layoutConfig = [...this.layoutConfig];
-    this.buildForm();
+    // this.buildForm();
     this.fieldsUpdated.emit({
       fields: [...this.fields],
       layoutConfig: [...this.layoutConfig]
@@ -449,82 +513,178 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   private getTypeForField(field: any): string {
-    return (field.hierarchyType || field.label || '').toUpperCase();
+    const parentField = this.fields.find(f => f.id === field.parentDynamicId);
+    if (parentField?.options) {
+      const selectedOption = parentField.options.find(opt => field.label.includes(opt.label));
+      return (selectedOption?.hierarchyType || '').toUpperCase();
+    }
+    
+    return (field.label || '').toUpperCase(); 
   }
+
+  private getDescendantIds(parentId) {
+    if(!parentId) return;
+      console.log("parentId: ", parentId);
+    
+      const directChildren = this.fields.filter(f => f.parentDynamicId === parentId);
+      console.log("directChildren: ", directChildren);
+    
+      let allDescendants = [...directChildren];
+
+      directChildren.forEach(child => {
+        allDescendants = allDescendants.concat(this.getDescendantIds(child.id));
+      });
+
+      return allDescendants;
+    };
 
   async onDomainChildSelectChange(selectedChildIds: any[], field: any) {
     const currentValues = this.dynamicForm?.value || {};
-  
+    console.log("the fields before is: ", this.fields);
+
+    if (selectedChildIds.length == 0) {
+
+      const allDescendants = this.getDescendantIds(field.id);
+
+      const descendantIds = allDescendants.map(d => d.id);
+
+      // Remove all descendants from fields and layoutConfig
+      this.fields = this.fields.filter(f =>
+        f.parentDynamicId != field.id && !descendantIds.includes(f.id)
+      );
+
+      this.layoutConfig = this.layoutConfig.map(row =>
+        row.filter(f =>
+          f.parentDynamicId != field.id && !descendantIds.includes(f.id)
+        )
+      );
+
+    }    
+
+    // 1. First rebuild the form without the fields we're going to remove
+    const existingchilds = new Set();
     // 2. Add new fields for newly selected children
     for (const childId of selectedChildIds || []) {
       if (!childId) continue;
       const selectedOption = field.options.find((opt: any) => opt.value === childId);
       if (selectedOption && selectedOption.isChildAvailable) {
-        const type = (selectedOption.hierarchyType || '').toUpperCase();
-        const uniqueId = this.generateUniqueId();
-        const fieldName = `${type.toLowerCase()}_${childId}_${uniqueId}`;
-        if (!this.fields.some(f => f.name === fieldName)) {
-          const children: any = await this.apiSourceService.getAllNextFieldAndOption(childId, type).toPromise();
-          if (children && children.length > 0) {
-            const domainFieldTemplate = { ...field };
-            const newLabel = children[0].hierarchyType;
-            const parentOption = field.options.find(opt => opt.value === childId);
-            const parentLabel = parentOption ? parentOption.label : childId;
+        let type = selectedOption.hierarchyType;
 
-            const newField = {
-              ...domainFieldTemplate,
-              id: uniqueId,
-              name: fieldName,
-              label: `${newLabel} (${parentLabel})`,
-              hierarchyType: newLabel,
-              options: children.map(child => ({
-                label: child.name,
-                value: child.id,
-                isChildAvailable: child.isChildAvailable,
-                hierarchyType: child.hierarchyType
-              })),
-              multiple: true,
-              dynamicDomainChild: true,
-              parentDomainId: childId,
-              isDynamicallyCreated: true, // <--- Mark as dynamic
-              apiUrl: null,
-              apiLabelKey: null,
-              apiValueKey: null,
-              dependentApiUrl: "api/getAllNextFieldAndOption/{type}/{id}",
-              dependentLabelKey: "name",
-              dependentValueKey: "id",
-              dependentParamName: "id"
-            };
-  
-            this.fields.push(newField);
-  
-            // Find the row where the parent field is located and add the new field there
-            const parentFieldRowIndex = this.layoutConfig.findIndex(row =>
-              row.some(f => f.name === field.name)
-            );
-  
-            if (parentFieldRowIndex >= 0) {
-              this.layoutConfig[parentFieldRowIndex].push(newField);
-            } else {
-              // If parent field not found, add to first row
-              if (!this.layoutConfig[0]) {
-                this.layoutConfig[0] = [];
-              }
-              this.layoutConfig[0].push(newField);
+        console.log("Type for domain select change: ", type);
+        
+
+        const fieldName = `${type}_${childId}`;
+        console.log("Unique name inside domain select change: ", fieldName);
+          existingchilds.add(fieldName);
+
+        const uniqueId = this.fields.find(f => f.name === fieldName)?.id || this.generateUniqueId();
+
+        if (this.fields.some(f => f.name === fieldName)) continue;
+
+
+        const children: any = await this.apiSourceService.getAllNextFieldAndOption(childId, type).toPromise();        
+
+        if (children && children.length > 0) {
+          const domainFieldTemplate = { ...field }; 
+          const newLabel = type;
+          const parentOption = field.options.find(opt => opt.value === childId);
+          const parentLabel = parentOption ? parentOption.label : childId;
+
+          const newField = {
+            ...domainFieldTemplate,
+            id: uniqueId,
+            name: fieldName,
+            label: `${newLabel} (${parentLabel})`,
+            hierarchyType: newLabel,
+            options: children.map(child => ({
+              label: child.name,
+              value: child.id,
+              isChildAvailable : child.isChildAvailable,
+              hierarchyType: child.hierarchyType
+            })),
+            multiple: true,
+            dynamicDomainChild: true,
+            parentDomainId: childId,
+            isDynamicallyCreated: true,
+            apiUrl: null,
+            apiLabelKey: null,
+            apiValueKey: null,
+            dependentApiUrl: "api/getAllNextFieldAndOption/{type}/{id}",
+            dependentLabelKey: "name",
+            parentDynamicId: field.id,
+            dependentValueKey: "id",
+            dependentParamName: "id"
+          };
+
+          const parentIndex = this.fields.findIndex(f => f.id === field.id);
+          console.log("New field: ", newField);
+          
+          
+          if (parentIndex >= 0) {
+            this.fields.splice(parentIndex + 1, 0, newField); // Insert after parent
+          } else {
+            this.fields.push(newField); // Fallback if parent not found
+          }
+
+          console.log("this.fields after pushing: ", this.fields);
+
+          // Find the row where the parent field is located and add the new field there
+          const parentFieldRowIndex = this.layoutConfig.findIndex(row =>
+            row.some(f => f.name === field.name)
+          );
+
+          if (parentFieldRowIndex >= 0) {
+            this.layoutConfig[parentFieldRowIndex].push(newField);
+          } else {
+            if (!this.layoutConfig[0]) {
+              this.layoutConfig[0] = [];
             }
+            this.layoutConfig[0].push(newField);
           }
         }
       }
     }
-  
-    this.fields = [...this.fields];
-    this.layoutConfig = [...this.layoutConfig];
+
+    console.log("existingchilds: ", existingchilds, );
+    console.log("The exisitng fields are: ", this.fields);
+    
+
+    const nonExistingField = this.fields.find(f => f.parentDynamicId == field.id && !existingchilds.has(f.name));
+
+    const descendantIds = this.getDescendantIds(nonExistingField?.id) || [];
+
+    descendantIds?.push(nonExistingField);
+
+    // const abcd:any[] = []
+
+    // for(const f of this.fields){
+    //   if(descendantIds?.some(d => d?.id == f.id)){
+    //     console.log("f: ", f);
+    //   }else{
+    //     abcd.push(f)
+    //   }
+    // }
+
+    this.fields = this.fields.filter(f => !descendantIds?.some(d => d?.id == f.id));
+    this.layoutConfig = this.layoutConfig.map(row => row.filter(f => !descendantIds?.some(d => d?.id == f.id)));
     this.buildForm();
-  
-    if (this.dynamicForm && currentValues) {
-      this.dynamicForm.patchValue(currentValues, { emitEvent: false });
+    // 4. Restore any previous values
+    // if (this.dynamicForm && currentValues) {
+    //     this.dynamicForm.patchValue(currentValues, { emitEvent: false });
+    // }
+
+    if (this.dynamicForm) {
+      const valuesToRestore = {};
+      Object.keys(currentValues).forEach(key => {
+        if (this.dynamicForm.contains(key)) {
+          valuesToRestore[key] = currentValues[key];
+        }
+      });
+      this.dynamicForm.patchValue(valuesToRestore, { emitEvent: false });
     }
-  
+
+    this.formValueChange.emit(this.dynamicForm.value);
+
     // Emit updated fields to parent
     this.fieldsUpdated.emit({
       fields: [...this.fields],
@@ -538,20 +698,20 @@ export class FormRendererComponent implements OnInit, OnChanges {
       .split(/[\s_-]+/)
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
-  }  
-  
+  }
+
 
   async onSelectChange(event: any, field: any) {
-    console.log("onSelectChange called");
+    // console.log("onSelectChange called");
     if (this.fields.some(f => f.parentField === field.name)) {
       for (const depField of this.fields.filter(f => f.parentField === field.name)) {
         if (depField.optionSource === 'dependent') {
           if (this.dependentFieldOptions.has(depField.name)) {
             this.dependentFieldOptions.get(depField.name)!.clear();
           }
-          
+
           this.dynamicForm.get(depField.name)?.setValue(depField.multiple ? [] : '');
-          
+
           if (this.isParentMultiSelect(depField)) {
             const parentValues = event.value || [];
             for (const parentValue of parentValues) {
@@ -591,7 +751,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
     });
   }
 
-  getFieldStyle(field: any): {[key: string]: string} {
+  getFieldStyle(field: any): { [key: string]: string } {
     const width = field.width || 33;
     return {
       flex: `0 0 ${width}%`,
@@ -602,7 +762,9 @@ export class FormRendererComponent implements OnInit, OnChanges {
   getOptionsFromApiResponse(field: any, response: any) {
     const options = response.map(item => ({
       label: item[field.apiLabelKey || 'name'] || item['label'],
-      value: item[field.apiValueKey || 'id'] || item['value']
+      value: item[field.apiValueKey || 'id'] || item['value'],
+       isChildAvailable: item['isChildAvailable'],
+          hierarchyType: item['hierarchyType']
     }));
     return options;
   }

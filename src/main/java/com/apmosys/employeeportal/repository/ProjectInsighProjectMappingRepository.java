@@ -48,7 +48,7 @@ public interface ProjectInsighProjectMappingRepository extends JpaRepository<Pro
        "JOIN Client c ON c.id = p.clientId " +
        "LEFT JOIN Employee manager ON manager.id = p.projectManagerId " +
        "WHERE pm.projectId IN :ids")
-List<ProjectInsighProjectMappingDTO> fetchAllProjectMappingsByInsightIds(@Param("ids") List<Integer> ids);
+	List<ProjectInsighProjectMappingDTO> fetchAllProjectMappingsByInsightIds(@Param("ids") List<Integer> ids);
 
 
 	ProjectInsighProjectMapping findByProjectInsightId(String id);
