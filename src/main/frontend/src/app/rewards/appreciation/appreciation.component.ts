@@ -117,7 +117,7 @@ export class AppreciationComponent implements OnInit {
   appreciationTableColumns: any[] = ['appreciateType', 'appreciationToName', 'appreciationByName', 'appreciationDate', 'managerName', 'reason'];
   documentsColumns: any[] = ['blank', 'fileName', 'helpDocumentName', 'createdByName', 'createdOn'];
   appreciationEmployeeColumns: any[] = ['blank', 'employmentIdAccToET', 'name', 'department', 'totalYouAreMyStarCount', 'totalYouAreGemOfAPersonCount', 'totalYouAreAproblemSolverCount', 'totalYouAreSupportiveCount', 'totalYouAreReliableCount', 'totalYouAreAMotivatorCount', 'totalAppreciation']
-  colorPalette: string[] = ['#f1cf38ff','#AB4E68', '#709775', '#91CB3E', '#6369D1', '#3CB371', '#4682B4'];
+  colorPalette: string[] = ['#f1cf38ff', '#EE6055', '#6369D1', '#BE5A38', '#8CD790', '#4682B4', '#3CB371'];
   appreciationColorMap: Record<number, string> = {};
   constructor(private portalService: PortalService,
     private validationService: ValidationService,
@@ -145,7 +145,7 @@ export class AppreciationComponent implements OnInit {
     this.getAllEvent();
     this.sectionViewInit();
     this.preventBackButton();
-    this.getAllHolidays();
+    // this.getAllHolidays();
     this.viewEventConfig = true;
   }
   preventBackButton() {
@@ -361,9 +361,9 @@ export class AppreciationComponent implements OnInit {
     this.isUpdation = false;
     this.isHelpConfiguration = false;
 
-    this.getAllPortalConfigData();
-    this.getAllDepartmentList();
-    this.getEmployeeList();
+    // this.getAllPortalConfigData();
+    // this.getAllDepartmentList();
+    // this.getEmployeeList();
   }
 
   holidayDateFilter = (d: Date) => {
@@ -952,57 +952,58 @@ export class AppreciationComponent implements OnInit {
     this.portalService.getAllEmployeeAppreciationListByCategory(this.appreciationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.EmployeeAppreciationList = response.serviceResponse;
-        this.EmployeeAppreciationList.sort((a, b) => (b.totalAppreciation ?? 0) - (a.totalAppreciation ?? 0));
-
         const sorted = [...this.EmployeeAppreciationList].sort(
-          (a: any, b: any) => (Number(b.totalAppreciation ?? 0) - Number(a.totalAppreciation ?? 0))
+          (a: any, b: any) => Number(b.totalAppreciation ?? 0) - Number(a.totalAppreciation ?? 0)
         );
 
-        // Assign rank with draw logic
+        // Assign dense ranks (no skipping)
         let ranked: any[] = [];
-        let actualIndex = 0;
         let currentRank = 1;
         let prevScore: number | null = null;
 
         for (let i = 0; i < sorted.length; i++) {
           const emp = sorted[i];
-          actualIndex++;
-
           const empScore = Number(emp.totalAppreciation ?? 0);
-          if (empScore !== prevScore) {
-            currentRank = actualIndex;
-            prevScore = empScore;
+
+          if (prevScore === null || empScore !== prevScore) {
+            currentRank = ranked.length === 0 ? 1 : ranked[ranked.length - 1].rank + 1;
           }
 
           ranked.push({ ...emp, rank: currentRank });
+          prevScore = empScore;
         }
 
-        // Take top 7 ranks only
+        // Take top 7 only
         this.top7Appreciated = ranked.filter(e => e.rank <= 7);
 
-        // Map score to background color
+        // Fix: Explicitly cast Set result to number[]
         const scores: number[] = Array.from(
           new Set(this.top7Appreciated.map(e => Number(e.totalAppreciation ?? 0)))
-        );
+        ) as number[];
 
+        // Sort scores descending
         scores.sort((a, b) => b - a);
 
+        // Map score to background color
         this.appreciationColorMap = {} as { [key: number]: string };
         scores.forEach((score: number, idx: number) => {
           this.appreciationColorMap[score] = this.colorPalette[idx % this.colorPalette.length];
         });
-      
-
-
-
-    }
-      else {
-        console.error(response.serviceResponse);
       }
+    
+
+
+
+
+
+  
+      else {
+  console.error(response.serviceResponse);
+}
     });
 
 
-}
+  }
 
 
 viewAppreciationInfo(EmployeeAppreciationList: any) {
