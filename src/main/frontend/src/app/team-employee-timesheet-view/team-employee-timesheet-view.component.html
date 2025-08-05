@@ -1,9 +1,9 @@
 <div class="container-fluid" style="margin-top: 60px;">
     <div class="row mb-3">
         <div class="card col-md-12 p-3">
-            <h5 class="card-name mx-1">Team Attendance View</h5>
+            <h5 class="card-name mx-1">Team Attendance View - {{monthName}} {{ year}}</h5>
             <div class="row">
-                <div class="col-md-12 mt-2">
+                <div class="col-md-4 mt-2">
                     <mat-form-field appearance="outline" class="month-picker-field">
                         <input matInput [matDatepicker]="monthPicker"
                                 [value]="selectedMonth"
@@ -11,6 +11,12 @@
                         <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
                         <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected($event, monthPicker)" panelClass="month-picker"></mat-datepicker>
                     </mat-form-field>
+                </div>
+                <div class="col-md-8 mt-2 calendar-legend d-flex flex-wrap gap-3 align-items-center">
+                    <div *ngFor="let code of legendEntries" class="d-flex align-items-center gap-1">
+                        <span class="legend-dot" [ngStyle]="{'background': code.color}"></span>
+                        <span class="legend-label">{{ code.code }} - {{ code.label }}&nbsp;&nbsp;</span>
+                    </div>
                 </div>
             </div>
             <div class="row">
@@ -88,7 +94,9 @@
                                         <td>{{ item.clientSideApprovedCount || 0 }}</td>
                                         <ng-container *ngFor="let day of [].constructor(31); let d = index">
                                             <td [title]="'In: ' + (item.timesheetData?.['d' + (d + 1)]?.inTime || '-') + ', Out: ' + (item.timesheetData?.['d' + (d + 1)]?.outTime || '-')">
+                                                <span class="status-pill-filled" [ngStyle]="{ 'background-color': legend[item.timesheetData?.['d' + (d + 1)]?.status]?.color || '#999', 'color': '#fff' }">
                                                 {{ item.timesheetData?.['d' + (d + 1)]?.status || '-' }}
+                                                </span>
                                             </td>
                                         </ng-container>
                                     </tr>

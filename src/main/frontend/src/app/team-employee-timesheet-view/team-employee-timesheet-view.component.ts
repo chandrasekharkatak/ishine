@@ -32,7 +32,24 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   excelName: any;
   tableName: any;
   selectedMonth = new Date();
-
+  month:any;
+  year:any;
+  monthName:any;
+  legend: { [key: string]: { label: string; color: string } } = {
+    O:   { label: 'Other Project',        color: '#1c1f23' },
+    A:   { label: 'Absent',               color: '#8b0000' },
+    NW:  { label: 'Non-Working Day',      color: '#343a40' },
+    AH:  { label: 'Public Holiday',       color: '#0b3c5d' },
+    WO:  { label: 'Week Off',             color: '#4b371c' },
+    H:   { label: 'Holiday',              color: '#5a4b00' },
+    CH:  { label: 'Client Holiday',       color: '#3e2f1c' },
+    DA:  { label: 'Document Approved',    color: '#003366' },
+    DP:  { label: 'Document Pending',     color: '#664400' },
+    P:   { label: 'Present',              color: '#014421' },
+    NA:  { label: 'Not Applicable',       color: '#2f4f4f' }
+  };
+legendEntries: { code: string; label: string; color: string }[] = [];
+  
   constructor(private route: ActivatedRoute,
     private modalService: BsModalService,
     private exportExcelService: ExportExcelService,
@@ -43,14 +60,20 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
       this.projectId = params['projectId'];
       if (this.projectId) {
         const today = new Date();
-        const currentMonth = today.getMonth() + 1;
-        const currentYear = today.getFullYear();
-        this.getEmployeeTimesheetAsCalender(this.projectId, currentMonth, currentYear);
+        this.month = today.getMonth() + 1;
+        this.year = today.getFullYear();
+        this.getEmployeeTimesheetAsCalender(this.projectId, this.month, this.year);
+        this.monthName = today.toLocaleString('default', { month: 'long' });
       } else {
         console.warn("projectId is missing in query params.");
       }
       console.log('Received projectId from query param:', this.projectId);
     });
+    this.legendEntries = Object.entries(this.legend).map(([code, value]) => ({
+      code,
+      label: value.label,
+      color: value.color
+    }));
   }
 
   getEmployeeTimesheetAsCalender(projectId:any,month:any,year:any): void {
@@ -161,9 +184,10 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
 
   monthSelected(event: Date, datepicker: any) {
     this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
-    const month = event.getMonth() + 1;
-    const year = event.getFullYear();
-    this.getEmployeeTimesheetAsCalender(this.projectId, month, year);
+    this.month = event.getMonth() + 1;
+    this.monthName = event.toLocaleString('default', { month: 'long' });
+    this.year = event.getFullYear();
+    this.getEmployeeTimesheetAsCalender(this.projectId, this.month, this.year);
     datepicker.close();
   }
 
