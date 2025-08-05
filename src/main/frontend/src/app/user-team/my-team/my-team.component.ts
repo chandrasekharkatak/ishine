@@ -1213,7 +1213,7 @@ export class MyTeamComponent implements OnInit {
     this.selectedDataIndex = 0;
     
     let employee = Object.assign({}, employeeObj);
-    employee.employeementId = employee.employeementId?.substring(2);
+    employee.employeementId = employee.employeementId;
 
     this.employeeService.getHierarchyByEmpId(employee).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
@@ -1259,7 +1259,7 @@ export class MyTeamComponent implements OnInit {
   myTeamHierarchyChart(employeeObj:Employee) {
     this.nodes = [];
     let employee = Object.assign({}, employeeObj);
-    employee.employeementId = employee.employeementId?.substring(2);
+    employee.employeementId = employee.employeementId;
 
     this.employeeService.getHierarchyChartByEmpId(employee).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {
@@ -1455,7 +1455,7 @@ export class MyTeamComponent implements OnInit {
     
     let leaveObj: Leave = new Leave();
     if(teamMember){
-      leaveObj.employeementId = teamMember.employeementId.substring(2);
+      leaveObj.employeementId = teamMember.employeementId;
       this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.leaveBalanceList = response.serviceResponse;

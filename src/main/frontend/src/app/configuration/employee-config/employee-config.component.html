@@ -1578,181 +1578,204 @@
                     [tableTHeadId]="'employeeInfoTHead'" [tableTHeadTrId]="'employeeInfoTHeadTr'">
                     <table class="table" id="employeeInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="employeeInfoTHead">
-                            <tr id="employeeInfoTHeadTr">
-                                <!-- <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
-                            <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>	 -->
-                                <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee
-                                    Id
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="employeeType|string">Type</th>
-                                <th scope="col" class="info-label" mat-sort-header="name|string">Full Name</th>
-                                <th scope="col" class="info-label" mat-sort-header="email|string">Email Id</th>
-                                <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Employment
-                                    Status</th>
-                                <th scope="col" class="info-label" *ngIf="!isActiveTable"
-                                    mat-sort-header="employmentReleaseStatus|string">Employee Release Status</th>
-                                <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department
-                                    Name</th>
-                                <th scope="col" class="info-label" mat-sort-header="dateOfJoining|date">Date of Joining
-                                </th>
-                                <th scope="col" class="info-label" *ngIf="dateOfReleivingshow && isTable"
-                                    mat-sort-header="dateOfRelieving|date"> Date of Releiving</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdOn|datetime">
-                                    Created On</th>
-                                <th scope="col" class="info-label" *ngIf="isTable"
-                                    mat-sort-header="createdByName|string"> Created By</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedOn|datetime">
-                                    Updated On</th>
-                                <th scope="col" class="info-label" *ngIf="isTable"
-                                    mat-sort-header="updatedByName|string"> Updated By</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="referedName|string">
-                                    Referred By</th>
-                                <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
-                                <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
-                                    scope="col" class="info-label">Actions</th>
-                            </tr>
-                            <tr app-column-filter-bar *ngIf="isTable && !dateOfReleivingshow && isSearchEnabled"
-                                [columnList]="employeeActiveColumns" (onSearch)="onSearch($event);page=1"></tr>
-                            <tr app-column-filter-bar *ngIf="isTable && dateOfReleivingshow && isSearchEnabled"
-                                [columnList]="employeeInActiveColumns" (onSearch)="onSearch($event);page=1"></tr>
-                            <tr app-column-filter-bar *ngIf="isDraftTable && isSearchEnabled"
-                                [columnList]="draftEmployeeColumns" (onSearch)="onSearch($event);page=1"></tr>
-                        </thead>
+    <tr id="employeeInfoTHeadTr">
+        
+        <!-- Primary columns - always visible -->
+        <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+        <th scope="col" class="info-label" mat-sort-header="name|string" style="min-width: 130px;">Full Name</th>
+        <th scope="col" class="info-label" mat-sort-header="email|string">Email Id</th>
+        <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
+        <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
+        <th scope="col" class="info-label" mat-sort-header="dateOfJoining|date" style="min-width: 130px;">Joining Date</th>
+        <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Status</th>
+   
+        <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
+            scope="col" class="info-label">Actions</th>
+        
+   
+        <th scope="col" class="info-label" style="width: 50px; text-align: center;">
+            <button type="button" 
+                    class="btn btn-sm btn-outline-secondary"
+                    (click)="toggleExpandedColumns()"
+                    [attr.aria-expanded]="showExpandedColumns"
+                    aria-label="Toggle additional columns"
+                    title="Show/Hide additional columns">
+                <i class="fas" [ngClass]="showExpandedColumns ? 'fa-chevron-left' : 'fa-chevron-right'"></i>
+            </button>
+        </th>
+        
+        <ng-container *ngIf="showExpandedColumns">
+            <th scope="col" class="info-label" mat-sort-header="employeeType|string">Type</th>
+            <th scope="col" class="info-label" *ngIf="!isActiveTable"
+                mat-sort-header="employmentReleaseStatus|string">Employee Release Status</th>
+            <th scope="col" class="info-label" *ngIf="dateOfReleivingshow && isTable"
+                mat-sort-header="dateOfRelieving|date">Date of Releiving</th>
+            <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdOn|datetime" style="min-width: 130px;">
+                Created On</th>
+            <th scope="col" class="info-label" *ngIf="isTable"
+                mat-sort-header="createdByName|string" style="min-width: 130px;">Created By</th>
+            <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedOn|datetime" style="min-width: 130px;">
+                Updated On</th>
+            <th scope="col" class="info-label" *ngIf="isTable"
+                mat-sort-header="updatedByName|string" style="min-width: 130px;">Updated By</th>
+            <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="referedName|string">
+                Referred By</th>
+            <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
+        </ng-container>
+    </tr>
+    
+
+    <tr app-column-filter-bar *ngIf="isSearchEnabled"
+        [columnList]="getCurrentVisibleColumns()" 
+        (onSearch)="onSearch($event);page=1">
+    </tr>
+</thead>
                         <tbody>
-                            <tr
-                                *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter:filters: false).length == 0">
-                                <th colspan="12" class="text-center info-label">No details to display...</th>
-                            </tr>
-                            <tr
-                                *ngFor="let employee of allEmployeeList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: items, currentPage: page }, let i = index">
-                                <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
-                            <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
-                                <td>{{employee.employmentIdAcToET}}</td>
-                                <td>{{employee.employeeType}}</td>
-                                <td id="clickablefor360" *ngIf="userMapping.employee_360"
-                                    [navigateToEmployee360]="employee.empId" style="cursor: pointer;"
-                                    title="Click to view Employee 360"> {{employee.name}}</td>
-                                <td *ngIf="!userMapping.employee_360">{{employee.name}}</td>
-                                <td>{{employee.email}}</td>
-                                <td>{{employee.employmentstatus}}</td>
-                                <!-- <td
-                                    *ngIf="isDraftTable && employee.employmentStatus == 'InActive' && !isActiveTable">
-                                    {{employee.employmentReleaseStatus}}</td> -->
-                                <!-- <td
-                                    *ngIf="isDraftTable == true && (employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' ) && !isActiveTable">
-                                    {{employee.employmentReleaseStatus}}
-                                </td> -->
-                                <ng-container *ngIf="!isActiveTable">
-                                    <td>
-                                        <ng-container *ngIf="employee.employmentStatus != 'InActive'">
-                                            {{ employee.employmentReleaseStatus }}
-                                        </ng-container>
-                                    </td>
-                                </ng-container>
-                                <td id="clickablefor360" *ngIf="userMapping.employee_360"
-                                    [navigateToEmployee360]="employee.managerId" style="cursor: pointer;"
-                                    title="Click to view Employee 360">{{employee.managerName}}</td>
-                                <td *ngIf="!userMapping.employee_360">{{employee.managerName}}</td>
-                                <td>{{employee.departmentName}}</td>
-                                <td>{{employee.dateOfJoining}}</td>
-                                <td *ngIf="dateOfReleivingshow && isTable">{{employee.dateOfRelieving}}</td>
-                                <td *ngIf="isTable">{{employee.createdOn}}</td>
-                                <td id="clickablefor360" [navigateToEmployee360]="employee.createdBy"
-                                    style="cursor: pointer;" title="Click to view Employee 360"
-                                    *ngIf="isTable && userMapping.employee_360 && employee.createdByName">
-                                    {{employee.createdByName}}</td>
-                                <td *ngIf="isTable && (!userMapping.employee_360 || !employee.createdByName)">
-                                    {{employee.createdByName}}</td>
-                                <td *ngIf="isTable">{{employee.updatedOn}}</td>
-                                <td id="clickablefor360" [navigateToEmployee360]="employee.updatedBy"
-                                    style="cursor: pointer;" title="Click to view Employee 360"
-                                    *ngIf="isTable && userMapping.employee_360 && employee.updatedByName">
-                                    {{employee.updatedByName}}</td>
-                                <td *ngIf="isTable && (!userMapping.employee_360 || !employee.updatedByName)">
-                                    {{employee.updatedByName}}</td>
-                                <td *ngIf="isTable">{{employee.referedName}}</td>
-                                <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
-                                <td
-                                    *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
-                                    <button
-                                        *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
-                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                                        (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
+    <tr *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter:filters: false).length == 0">
+        <th [attr.colspan]="getColspanCount()" class="text-center info-label">No details to display...</th>
+    </tr>
+    <tr *ngFor="let employee of allEmployeeList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: items, currentPage: page }, let i = index">
+        
+        <td>{{employee.employeementId}}</td>
+    
+        <td id="clickablefor360" *ngIf="userMapping.employee_360"
+            [navigateToEmployee360]="employee.empId" style="cursor: pointer;"
+            title="Click to view Employee 360">{{employee.name}}</td>
+        <td *ngIf="!userMapping.employee_360">{{employee.name}}</td>
+    
+        <td>{{employee.email}}</td>
+    
+        <td>{{employee.departmentName}}</td>
+        
+        <!-- Manager Name -->
+        <td id="clickablefor360" *ngIf="userMapping.employee_360"
+            [navigateToEmployee360]="employee.managerId" style="cursor: pointer;"
+            title="Click to view Employee 360">{{employee.managerName}}</td>
+        <td *ngIf="!userMapping.employee_360">{{employee.managerName}}</td>
+        
+        <!-- Date of Joining -->
+        <td>{{employee.dateOfJoining}}</td>
+        
+        <!-- Employment Status -->
+        <td><span class="status-badge" 
+                  [ngClass]="{
+                    'status-probation': employee.employmentstatus === 'Probation',
+                    'status-confirmed': employee.employmentstatus === 'Confirmed',
+                    'status-resigned': employee.employmentstatus === 'Resigned' || employee.employmentstatus === 'InActive'
+                  }">
+                {{employee.employmentstatus}}
+            </span></td>
+        
+        <!-- Actions Column -->
+        <td *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
+            <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
+                class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
 
-                                    <button
-                                        *ngIf="((currentUser.jobRoleName == 'SuperAdmin' || currentUser.jobRoleName == 'HR Manager') && employee.employmentstatus == 'InActive')"
-                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                                        (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
+            <button *ngIf="((currentUser.jobRoleName == 'SuperAdmin' || currentUser.jobRoleName == 'HR Manager') && employee.employmentstatus == 'InActive')"
+                class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
 
-                                    <button
-                                        *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
-                                        class="btn btn-sm btn-outline-danger mb-1" type="submit"
-                                        (click)="openDeleteEmployee(delete_template,employee)"><em
-                                            class="fa fa-trash"></em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                                        (click)="getEmployeeAuditInfo(employee,audit_template,alert_message)"><em><i
-                                                class="fa-solid fa-clock-rotate-left"></i></em></button>&nbsp;
+            <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
+                class="btn btn-sm btn-outline-danger mb-1" type="submit"
+                (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp;
+            
+            <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                (click)="getEmployeeAuditInfo(employee,audit_template,alert_message)"><em><i class="fa-solid fa-clock-rotate-left"></i></em></button>&nbsp;
 
-                                    <!-- <button type="submit"
-                                    (click)="findEmployeeWorkingHistory(history_template,employee);onFindHistoryWorking(employee)"
-                                    class="btn btn-sm btn-outline-primary mb-1"><i class="fa fa-info-circle"
-                                        aria-hidden="true"></i></button>&nbsp; -->
-                                    <button
-                                        *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) || currentUser.jobRoleName == 'HR Manager')"
-                                        class="btn btn-sm btn-outline-primary mb-1 enable" type="submit"
-                                        (click)="forEnableAccount(revoke_template,employee)"><em>Enable</em></button>
-                                    <button class="btn btn-sm btn-outline-primary view" type="submit" title="View"
-                                        (click)="openViewEmployeeInfoPreview(view_employee_info_preview, employee)"><em>view</em></button>
-                                    <button
-                                        *ngIf="employee.isTimesheetLockCheckEnable == 'false' && employee.employmentstatus != 'InActive'"
-                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'true')"><em><i
-                                                class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
-                                    <button
-                                        *ngIf="employee.isTimesheetLockCheckEnable == 'true' && employee.employmentstatus != 'InActive'"
-                                        class="btn btn-sm btn-primary mb-1" type="submit"
-                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em><i
-                                                class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
+            <button *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) || currentUser.jobRoleName == 'HR Manager')"
+                class="btn btn-sm btn-outline-primary mb-1 enable" type="submit"
+                (click)="forEnableAccount(revoke_template,employee)"><em>Enable</em></button>
+            
+            <button class="btn btn-sm btn-outline-primary view" type="submit" title="View"
+                (click)="openViewEmployeeInfoPreview(view_employee_info_preview, employee)"><em>view</em></button>
+            
+            <button *ngIf="employee.isTimesheetLockCheckEnable == 'false' && employee.employmentstatus != 'InActive'"
+                class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                (click)="onUpdateTimesheetLockCheck(alert_message,employee,'true')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
+            
+            <button *ngIf="employee.isTimesheetLockCheckEnable == 'true' && employee.employmentstatus != 'InActive'"
+                class="btn btn-sm btn-primary mb-1" type="submit"
+                (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
 
-                                    <!-- added by anurag PIP  -->
+            <button class="btn btn-sm btn-outline-primary ml-10"
+                *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'"
+                (click)="PIP_generate(pip_template,employee)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
 
-                                    <button class="btn btn-sm btn-outline-primary ml-10"
-                                        *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'"
-                                        (click)="PIP_generate(pip_template,employee)"><em><i
-                                                class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+            <button class="btn btn-sm btn-danger ml-10"
+                *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'"
+                (click)="PIP_reverse_modal(pip_rev_template,employee)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+            
+            <button class="btn btn-sm btn-outline-success mt5"
+                (click)="pipReasonModal(pipReason_template,employee)"
+                *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'">
+                <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
+            </button>
 
-                                    <button class="btn btn-sm btn-danger ml-10"
-                                        *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'"
-                                        (click)="PIP_reverse_modal(pip_rev_template,employee)"><em><i
-                                                class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
-                                    <button class="btn btn-sm btn-outline-success mt5"
-                                        (click)="pipReasonModal(pipReason_template,employee)"
-                                        *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'">
-                                        <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
-                                    </button>
+            <button class="btn btn-sm btn-outline-success mt5"
+                (click)="pipReasonModal(pipReason_template,employee)"
+                *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'">
+                <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
+            </button>
+        </td>
 
-                                    <button class="btn btn-sm btn-outline-success mt5"
-                                        (click)="pipReasonModal(pipReason_template,employee)"
-                                        *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'">
-                                        <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
-                                    </button>
-
-
-                                    <!-- added by anurag PIP module  -->
-                                </td>
-                                <td
-                                    *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
-                                    <!-- <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateDraftForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
-                            <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_draft_template,employee)"><em class="fa fa-trash"></em></button> -->
-                                    <button class="btn btn-sm btn-outline-primary" type="submit" title="View"
-                                        (click)="openEmployeeInfoPreview(employee_info_preview, employee)"><em>view</em></button>
-                                    <!-- <button  class="btn btn-sm btn-outline-success"  type="submit" title="Approve" (click)="openApplicationApprovalMod(approve_application, employee)"><em class="fa-solid fa-check"></em></button>&nbsp;
-                            <button  class="btn btn-sm btn-outline-danger" type="submit" title="Reject" (click)="openApplicationRejectionMod(reject_application,employee)"><em class="fa-solid fa-xmark"></em></button> -->
-                                </td>
-                            </tr>
-                        </tbody>
+        <!-- Draft table actions -->
+        <td *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
+            <button class="btn btn-sm btn-outline-primary" type="submit" title="View"
+                (click)="openEmployeeInfoPreview(employee_info_preview, employee)"><em>view</em></button>
+        </td>
+        
+        <!-- Expand/Collapse column (empty cell for data rows) -->
+        <td style="width: 50px;"></td>
+        
+        <!-- Secondary columns - conditionally visible -->
+        <ng-container *ngIf="showExpandedColumns">
+            <!-- Type -->
+            <td>{{employee.employeeType}}</td>
+            
+            <!-- Employee Release Status -->
+            <ng-container *ngIf="!isActiveTable">
+                <td>
+                    <ng-container *ngIf="employee.employmentStatus != 'InActive'">
+                        {{ employee.employmentReleaseStatus }}
+                    </ng-container>
+                </td>
+            </ng-container>
+            
+            <!-- Date of Releiving -->
+            <td *ngIf="dateOfReleivingshow && isTable">{{employee.dateOfRelieving}}</td>
+            
+            <!-- Created On -->
+            <td *ngIf="isTable">{{employee.createdOn}}</td>
+            
+            <!-- Created By -->
+            <td id="clickablefor360" [navigateToEmployee360]="employee.createdBy"
+                style="cursor: pointer;" title="Click to view Employee 360"
+                *ngIf="isTable && userMapping.employee_360 && employee.createdByName">
+                {{employee.createdByName}}</td>
+            <td *ngIf="isTable && (!userMapping.employee_360 || !employee.createdByName)">
+                {{employee.createdByName}}</td>
+            
+            <!-- Updated On -->
+            <td *ngIf="isTable">{{employee.updatedOn}}</td>
+            
+            <!-- Updated By -->
+            <td id="clickablefor360" [navigateToEmployee360]="employee.updatedBy"
+                style="cursor: pointer;" title="Click to view Employee 360"
+                *ngIf="isTable && userMapping.employee_360 && employee.updatedByName">
+                {{employee.updatedByName}}</td>
+            <td *ngIf="isTable && (!userMapping.employee_360 || !employee.updatedByName)">
+                {{employee.updatedByName}}</td>
+            
+            <!-- Referred By -->
+            <td *ngIf="isTable">{{employee.referedName}}</td>
+            
+            <!-- Profile Updation -->
+            <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
+            
+        </ng-container>
+    </tr>
+</tbody>
                     </table>
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0"

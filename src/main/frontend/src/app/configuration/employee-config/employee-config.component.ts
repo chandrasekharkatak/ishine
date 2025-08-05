@@ -180,9 +180,13 @@ export class EmployeeConfigComponent implements OnInit {
   filters: any = {};
   filterOnhistory = {};
   isSearchEnabled: boolean = false;
-  employeeActiveColumns: any[] = ['employmentIdAcToET', 'employeeType', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
-  employeeInActiveColumns: any[] = ['employmentIdAcToET', 'employeeType', 'name', 'email', 'employmentstatus', 'employmentReleaseStatus', 'managerName', 'departmentName', 'dateOfJoining', 'dateOfRelieving', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName'];
-  draftEmployeeColumns: any[] = ['employmentIdAcToET', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'updateApplicationStatus']
+  employeeActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
+
+
+  employeeInActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
+  
+  
+  draftEmployeeColumns: any[] = ['employeementId', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'updateApplicationStatus']
   domainColumns: any[] = ['blank', 'domainName', 'createdByName', 'createdOn']
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   workHistoryFilters: any = {};
@@ -230,6 +234,7 @@ export class EmployeeConfigComponent implements OnInit {
   employeesFor360: any[] = [];
   excelName: string;
   tableName: string;
+  showExpandedColumns: any;
 
   constructor(
 
@@ -282,6 +287,46 @@ export class EmployeeConfigComponent implements OnInit {
     //console.log('user -- ', this.userMapping);
   }
 
+
+   toggleExpandedColumns(): void {
+    this.showExpandedColumns = !this.showExpandedColumns;
+  }
+
+  getVisibleColumns(allColumns: any[]): any[] {
+    if (!this.showExpandedColumns) {
+      const primaryColumnKeys = [
+        'employeementId', 'empId', 'name', 'email', 'departmentName', 
+        'managerName', 'dateOfJoining', 'employmentstatus'
+      ];
+      return allColumns.filter(column => 
+        primaryColumnKeys.some(key => column.key === key || column.sortKey === key)
+      );
+    }
+    return allColumns; 
+  }
+
+ 
+  getColspanCount(): number {
+    let baseColumns = 9; 
+    
+    if (this.showExpandedColumns) {
+      let expandedColumns = 0;
+      if (this.isTable) {
+        expandedColumns += 1; 
+        if (!this.isActiveTable) expandedColumns += 1;
+        if (this.dateOfReleivingshow) expandedColumns += 1; 
+        expandedColumns += 6; 
+        expandedColumns += 2; 
+      }
+      if (this.isDraftTable) {
+        expandedColumns += 1; 
+      }
+      
+      baseColumns += expandedColumns;
+    }
+    
+    return baseColumns;
+  }
   preventBackButton() {
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(() => {
@@ -3593,6 +3638,8 @@ export class EmployeeConfigComponent implements OnInit {
     }
   }
 
+  
+
   onSearch(searchData) {
     if (this.isSearchEnabled == true) {
       this.filters = searchData;
@@ -3600,7 +3647,53 @@ export class EmployeeConfigComponent implements OnInit {
     }
   }
 
-  // Work History
+
+  getCurrentVisibleColumns(): string[] {
+    const primaryColumns = ['employeementId', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'employmentstatus'];
+
+    let columnsWithBlanks = [...primaryColumns];
+    if (this.userMapping.update_employee || this.userMapping.delete_employee || this.userMapping.update_draft) {
+        columnsWithBlanks.push('blank');
+    }
+
+    columnsWithBlanks.push('blank');
+    
+    if (!this.showExpandedColumns) {
+        return columnsWithBlanks;
+    }
+    
+    if (this.isDraftTable) {
+        const expandedCols = this.draftEmployeeColumns.slice(columnsWithBlanks.length);
+        return [...columnsWithBlanks, ...expandedCols];
+    } else if (this.isTable && this.dateOfReleivingshow) {
+        const expandedCols = this.employeeInActiveColumns.slice(columnsWithBlanks.length);
+        return [...columnsWithBlanks, ...expandedCols];
+    } else if (this.isTable) {
+        const expandedCols = this.employeeActiveColumns.slice(columnsWithBlanks.length);
+        return [...columnsWithBlanks, ...expandedCols];
+    }
+    
+    return columnsWithBlanks;
+}
+
+  getPrimaryColumnsForFilter(): string[] {
+    const primaryColumns = ['employeementId', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'employmentstatus'];
+    
+    const columnsWithBlanks = [...primaryColumns];
+    if (this.userMapping.update_employee || this.userMapping.delete_employee || this.userMapping.update_draft) {
+        columnsWithBlanks.push('blank');
+    }
+    
+    columnsWithBlanks.push('blank');
+    
+    return columnsWithBlanks;
+}
+
+getExpandedColumns(fullColumnList: string[]): string[] {
+    const primaryColumnsCount = this.getPrimaryColumnsForFilter().length;
+    return fullColumnList.slice(primaryColumnsCount);
+}
+
   toggleWorkHistorySearch() {
     this.isworkHistorySearchEnabled = !this.isworkHistorySearchEnabled;
   }
