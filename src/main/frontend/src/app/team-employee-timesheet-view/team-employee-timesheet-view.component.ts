@@ -1,22 +1,22 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Sort } from '@angular/material/sort';
-import { getEmployeeTimesheetAsCalender } from '../models/getEmployeeTimesheetAsCalender';
+import { GetEmployeeTimesheetAsCalender } from '../models/getEmployeeTimesheetAsCalender';
 import { TimesheetService } from '../services/timesheet.service';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { ExportExcelService } from '../services/export-excel.service';
-import { TimesheetData } from '../models/timesheetData';
 
 @Component({
   selector: 'app-team-employee-timesheet-view',
   templateUrl: './team-employee-timesheet-view.component.html',
   styleUrls: ['./team-employee-timesheet-view.component.css']
 })
+
 export class TeamEmployeeTimesheetViewComponent implements OnInit {
 
   projectId: any;
-  timesheetData: getEmployeeTimesheetAsCalender[] = [];
+  timesheetData: GetEmployeeTimesheetAsCalender[] = [];
   page = 1;
   sortDirection = 'asc';
   sortColumn: any;

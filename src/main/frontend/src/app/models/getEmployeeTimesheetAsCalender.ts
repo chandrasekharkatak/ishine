@@ -1,6 +1,6 @@
 import { TimesheetData } from "./timesheetData";
 
-export interface getEmployeeTimesheetAsCalender {
+export interface GetEmployeeTimesheetAsCalender {
   empId: any;
   clientSideId: any;
   startDate: any;
