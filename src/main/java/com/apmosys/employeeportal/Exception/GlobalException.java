@@ -34,4 +34,9 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    @ExceptionHandler(BadRequestException.class)
+	public ResponseEntity<String> handleBadRequestException(BadRequestException ex){
+		return ResponseEntity.badRequest().body("Exception : " + ex.getMessage());
+	}
+
 }

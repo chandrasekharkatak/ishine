@@ -174,6 +174,7 @@ const routes: Routes = [
       { path: 'team-config', component: TeamConfigComponent, },
       { path: 'form-builder', component: FormBuilderComponent, },
       { path: 'project-insight-config', component: ProjectInsightComponent, },
+      // { path: 'project-insight-config', component: ProjectInsightProjconfigComponent, },
       { path: 'resource-management', component: ResourceManagementComponent, },
       { path: 'resource-management/:id', component: ResourceManagementComponent, },
       { path: "domains", component: DomainComponent },

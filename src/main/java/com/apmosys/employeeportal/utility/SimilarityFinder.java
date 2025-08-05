@@ -112,6 +112,7 @@ public class SimilarityFinder {
         //     normB += vectorB[i] * vectorB[i];
         // }
         // return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+        return 0.0;
     }
 
     private static double sigmoid(double x) {

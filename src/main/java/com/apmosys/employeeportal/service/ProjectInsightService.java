@@ -4664,4 +4664,66 @@ public class ProjectInsightService {
 		return isParentExists;
 	}
 
+    public ServiceResponse saveProjectInsightStaticGroupDetails(ProjectInsightGroupDetails projectInsightGroupDetails) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiUrl("/api/saveProjectInsightStaticGroupDetails");
+		try {
+			if (projectInsightGroupDetails == null) {
+				throw new BadRequestException("Project Insight Group Details cannot be null.");
+			} else if (projectInsightGroupDetails.getParentId() == null
+					|| projectInsightGroupDetails.getParentType() == null) {
+				throw new BadRequestException("Project Insight Group Details ParentId or ParentType cannot be null.");
+			}
+
+			boolean parentExists = checkIfParentExists(projectInsightGroupDetails.getParentId(),
+					projectInsightGroupDetails.getParentType(), false);
+
+			if (!parentExists) {
+				throw new BadRequestException("Project Insight Group Details Parent Not Found.");
+			}
+
+			boolean isNew = (projectInsightGroupDetails.getId() == null);
+
+			if (isNew) {
+				if(projectInsightGroupDetailsRepository.existsByGroupTitleAndParentIdAndParentType(projectInsightGroupDetails.getGroupTitle(),projectInsightGroupDetails.getParentId(),projectInsightGroupDetails.getParentType())){
+				// if(projectInsightGroupDetailsRepository.existsByGroupTitleAndParentIdAndParentType(projectInsightGroupDetails.getGroupTitle().trim().toLowerCase())){
+					throw new BadRequestException("Group title must be unique within the parent group.");
+				}
+				projectInsightGroupDetails.setCreatedBy(projectInsightGroupDetails.getCreatedBy());
+				projectInsightGroupDetails.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			} else {
+				Optional<ProjectInsightGroupDetails> existingOpt = projectInsightGroupDetailsRepository.findById(projectInsightGroupDetails.getId());
+				if (existingOpt.isPresent()) {
+					ProjectInsightGroupDetails existing = existingOpt.get();
+					projectInsightGroupDetails.setCreatedBy(existing.getCreatedBy());
+					projectInsightGroupDetails.setCreatedOn(existing.getCreatedOn());
+				} else {
+					projectInsightGroupDetails.setCreatedBy(projectInsightGroupDetails.getCreatedBy());
+					projectInsightGroupDetails
+							.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				}
+				projectInsightGroupDetails.setUpdatedBy(projectInsightGroupDetails.getUpdatedBy());
+				projectInsightGroupDetails.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			}
+
+			ProjectInsightGroupDetails dbResponse = projectInsightGroupDetailsRepository.save(projectInsightGroupDetails);
+			if (dbResponse == null) {
+				throw new BadRequestException("Unable to save Project Insight Group Details.");
+			}
+
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(dbResponse);
+		} catch (BadRequestException e) {
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceMessage("Something went wrong.");
+			serviceResponse.setServiceResponse("Something went wrong.");
+		}
+		return serviceResponse;
+    }
+
 }

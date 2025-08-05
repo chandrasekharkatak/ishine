@@ -14,7 +14,7 @@ public class ProjectInsightGroupDetails {
 
 	@Id
 	private String id;
-	private String groupName;
+	private String groupTitle;
 	private String groupType;
 	private String parentId;
 	private String parentType;

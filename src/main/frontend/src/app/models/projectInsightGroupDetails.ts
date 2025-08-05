@@ -3,11 +3,12 @@ import { ProjectInsightQuestionDetails } from "./projectInsightQuestionDetails";
 export class ProjectInsightGroupDetails {
 
     id: any;
-    groupName: any;
+    groupTitle: any;
     groupType: any;
     parentId: any;
     parentType: any;
     formId: any;
+    isDraft: any
     questionList: ProjectInsightQuestionDetails[] = [];
     additionalInfo: Map<string, any>;
     createdBy: any;

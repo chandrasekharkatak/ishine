@@ -11,4 +11,7 @@ public interface ProjectInsightGroupDetailsRepository extends MongoRepository<Pr
 	boolean existsById(String id);
 
     List<ProjectInsightGroupDetails> findByParentIdAndParentType(String parentId, String parentType);
+
+    
+    boolean existsByGroupTitleAndParentIdAndParentType(String groupTitle,String parentId, String parentType);
 }

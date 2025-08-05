@@ -27,6 +27,7 @@ import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightDetailsDTO;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightGroupDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightQuestionDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.response.SearchResultResponse;
@@ -303,6 +304,11 @@ public class ProjectInsightController {
 	@PostMapping(value = "/saveProjectInsightDetails")
 	public ResponseEntity<ServiceResponse> saveProjectInsightDetails(@RequestBody ProjectInsightDetailsDTO projectInsightDetailsDTO) {
 		return ResponseEntity.ok(projectInsightService.saveProjectInsightDetails(projectInsightDetailsDTO));
+	}
+
+	@PostMapping(value = "/saveProjectInsightStaticGroupDetails")
+	public ResponseEntity<ServiceResponse> saveProjectInsightStaticGroupDetails(@RequestBody ProjectInsightGroupDetails projectInsightGroupDetails) {
+		return ResponseEntity.ok(projectInsightService.saveProjectInsightStaticGroupDetails(projectInsightGroupDetails));
 	}
 
 	@PostMapping(value = "/saveProjectInsightGroupDetails")

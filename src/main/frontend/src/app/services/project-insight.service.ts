@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { ProjectInsight } from '../models/projectInsight';
 import { Document } from '../models/document';
+import { ProjectInsightGroupDetails } from '../models/projectInsightGroupDetails';
 
 @Injectable({
   providedIn: 'root'
@@ -13,11 +14,11 @@ export class ProjectInsightService {
 
   constructor(private http: HttpClient) { }
 
-  createProjectInsightQuestion(projObj: ProjectInsight){
+  createProjectInsightQuestion(projObj: ProjectInsight) {
     return this.http.post(`${this.baseUrl}` + `api/createProjectInsightQuestion`, projObj);
   }
 
-  updateProjectInsightQuestion(projObj: ProjectInsight){
+  updateProjectInsightQuestion(projObj: ProjectInsight) {
     return this.http.post(`${this.baseUrl}` + `api/updateProjectInsightQuestion`, projObj);
   }
 
@@ -25,19 +26,19 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightList`, insightObj);
   }
 
-  getAllQuestionsByProjectId(projectObj: any){
+  getAllQuestionsByProjectId(projectObj: any) {
     return this.http.post(`${this.baseUrl}` + `api/getAllQuestionsByProjectId`, projectObj);
   }
 
-  getAllProjectInsightResponsesByProjectId(projectObj: any){
+  getAllProjectInsightResponsesByProjectId(projectObj: any) {
     return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightResponsesByProjectId`, projectObj);
   }
 
-  saveProjectInsightResponse(projectObj: any, files: File[]){
+  saveProjectInsightResponse(projectObj: any, files: File[]) {
     const formData = new FormData();
     formData.append("projectInsightDTO", new Blob([JSON.stringify(projectObj)], { type: "application/json" }));
     files.forEach((file, index) => {
-        formData.append("files", file);
+      formData.append("files", file);
     });
     return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightResponse`, formData);
   }
@@ -55,58 +56,58 @@ export class ProjectInsightService {
     return this.http.get(`${this.baseUrl}` + `api/onSearchTerm`, { params });
   }
 
-  suggestSearchOption(searchTerm: string){
+  suggestSearchOption(searchTerm: string) {
     const params = new HttpParams().set('search', searchTerm);
     return this.http.get(`${this.baseUrl}` + `api/suggestSearchOption`, { params });
   }
 
-  getFilterList(){
+  getFilterList() {
     return this.http.get(`${this.baseUrl}` + `api/getFilterList`);
   }
-  saveReviewPoints(projObj: ProjectInsight){
+  saveReviewPoints(projObj: ProjectInsight) {
     const formData = new FormData();
     const blob = new Blob([JSON.stringify(projObj)], { type: 'application/json' });
     formData.append('projectInsightDTO', blob);
     return this.http.post(`${this.baseUrl}` + `api/saveReviewPoints`, formData);
   }
-  
+
   /*
   User contribution apis
-  */ 
+  */
 
-  createUserContribution(contributionObject: any){
+  createUserContribution(contributionObject: any) {
     return this.http.post(`${this.baseUrl}` + `api/createUserContribution`, contributionObject);
   }
 
-  getContibutionByEmpId(contributionObject: any){
+  getContibutionByEmpId(contributionObject: any) {
     return this.http.post(`${this.baseUrl}` + `api/getContibutionByEmpId`, contributionObject);
   }
 
-  getUserContributionForReview(contributionObject: any){
+  getUserContributionForReview(contributionObject: any) {
     return this.http.post(`${this.baseUrl}` + `api/getUserContributionForReview`, contributionObject);
   }
 
-  processUserContribution(contributionObject: any){
+  processUserContribution(contributionObject: any) {
     return this.http.post(`${this.baseUrl}` + `api/processUserContribution`, contributionObject);
   }
-  
-  getAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj: any){
+
+  getAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj: any) {
     return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightQuestionsByProjectIdAndEmpId`, projectObj);
   }
 
-  onSaveAndAssign(payload: any){
+  onSaveAndAssign(payload: any) {
     return this.http.post(`${this.baseUrl}` + `api/onSaveAndAssign`, payload);
   }
 
-  onSaveAsDraft(payload: any){
+  onSaveAsDraft(payload: any) {
     return this.http.post(`${this.baseUrl}` + `api/onSaveAsDraft`, payload);
   }
 
   getAllProjectInsight(domainName?: number | string, unique_name?: string) {
-    if(!domainName && !unique_name){
+    if (!domainName && !unique_name) {
       return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`);
     }
-    if(!unique_name){
+    if (!unique_name) {
       return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`, {
         params: {
           domainName
@@ -121,27 +122,27 @@ export class ProjectInsightService {
     });
   }
 
-  getProjectInsightByInsightId(projectInsightId: any){
-    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightByInsightId/`+ `${projectInsightId}`);
+  getProjectInsightByInsightId(projectInsightId: any) {
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightByInsightId/` + `${projectInsightId}`);
   }
 
-  deleteProjectInsightById(projectInsightId: any){
-    return this.http.get(`${this.baseUrl}` + `api/deleteProjectInsightById/`+ `${projectInsightId}`);
+  deleteProjectInsightById(projectInsightId: any) {
+    return this.http.get(`${this.baseUrl}` + `api/deleteProjectInsightById/` + `${projectInsightId}`);
   }
 
-  getProjectInsightByAssignedToEmpId(empObject: any){
+  getProjectInsightByAssignedToEmpId(empObject: any) {
     return this.http.post(`${this.baseUrl}` + `api/getProjectInsightByAssignedToEmpId`, empObject);
   }
 
-  searchProjectInsight(keyword: string, page: number, limit: number){ 
-    return this.http.get(environment.baseUrl + 'api/search-project-insight', {params: {search: keyword, page: page, limit: limit}});
+  searchProjectInsight(keyword: string, page: number, limit: number) {
+    return this.http.get(environment.baseUrl + 'api/search-project-insight', { params: { search: keyword, page: page, limit: limit } });
   }
 
-  getReviewersForQuestion(object: any){
+  getReviewersForQuestion(object: any) {
     return this.http.post(`${this.baseUrl}` + `api/getReviewersForQuestion`, object);
   }
 
-  onSaveResponseAsDraft(object: any){
+  onSaveResponseAsDraft(object: any) {
     return this.http.post(`${this.baseUrl}` + `api/onSaveResponseAsDraft`, object);
   }
 
@@ -151,11 +152,11 @@ export class ProjectInsightService {
   }
 
   getProjectInsightGroupDetailsByObjectId(objectId: any) {
-    return this.http.post(`${this.baseUrl}` + `api/getProjectInsightGroupDetailsByObjectId/`,objectId);
+    return this.http.post(`${this.baseUrl}` + `api/getProjectInsightGroupDetailsByObjectId/`, objectId);
   }
 
   getProjectInsightQuestionDetailsByObjectId(objectId: any) {
-    return this.http.post(`${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByObjectId/`,objectId);
+    return this.http.post(`${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByObjectId/`, objectId);
   }
 
   getProjectInsightQuestionDetailsByParentIdAndParentType(parentId: any, parentType: any) {
@@ -176,6 +177,11 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightGroupDetails`, projectInsightDetailsDTO);
   }
 
+  saveProjectInsightStaticGroupDetails(projectInsightGroupDetails: ProjectInsightGroupDetails) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightStaticGroupDetails`, projectInsightGroupDetails);
+  }
+
+
   saveProjectInsightQuestionDetails(projectInsightQuestionDetails: any) {
     return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightQuestionDetails`, projectInsightQuestionDetails);
   }
@@ -184,8 +190,23 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightQuestionDetails`, projectInsightQuestionDetails);
   }
 
-  getAllDomainData(){
+  getAllDomainData() {
     return this.http.get(`${this.baseUrl}` + `api/createProjectInsightQuestion`);
+  }
+
+  filterProjectInsight(data: any, limit: number = 10, page: number = 0) {
+    if (data.createdAt) {
+      // If it's a Date object
+      if (data.createdAt instanceof Date) {
+        data.createdAt = data.createdAt.toISOString().slice(0, 19);
+      }
+      // If it's already a string like "2025-07-17T00:00:00"
+      else if (typeof data.createdAt === 'string') {
+        data.createdAt = data.createdAt.split('.')[0]; // Remove milliseconds if present
+      }
+    }
+    console.log(data);
+    return this.http.post(`${this.baseUrl}` + `api/filter-project-insight?page=${page}&limit=${limit}`, { ...data });
   }
 
 }

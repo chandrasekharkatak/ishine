@@ -25,6 +25,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { ProjectInsightFormDetails } from 'src/app/models/projectInsightFormDetails';
 import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
+import { ProjectInsightGroupDetails } from 'src/app/models/projectInsightGroupDetails';
 
 @Component({
   selector: 'app-project-insight',
@@ -69,11 +70,16 @@ export class ProjectInsightComponent implements OnInit {
   @ViewChild('add_field_modal') addFieldModal: TemplateRef<any>;
   @ViewChild('open_create_project_modal') openCreateProjectModal: TemplateRef<any>;
   @ViewChild('add_or_update_question_modal') addOrUpdateQuestionModal: TemplateRef<any>;
+  @ViewChild('add_new_group_modal') addNewGroupModal: TemplateRef<any>;
+  @ViewChild('clone_modal') cloneModal: TemplateRef<any>;
+
 
   modalRef: BsModalRef = new BsModalRef();
+  alertModalRef: BsModalRef = new BsModalRef();
   bsModalRef: BsModalRef = new BsModalRef();
   documentPreviewModalRef: BsModalRef = new BsModalRef();
-  addOrUpdateQuestionModalRef: BsModalRef;
+  addOrUpdateQuestionModalRef: BsModalRef = new BsModalRef();
+  addGroupDetailsModalRef: BsModalRef = new BsModalRef();
   deleteQuestionModalRef: BsModalRef = new BsModalRef();
 
   //Add new Field to Form
@@ -114,6 +120,7 @@ export class ProjectInsightComponent implements OnInit {
   isQuestionUpdate: boolean = false;
   isSearchEnabled: boolean = false;
   isVisible: boolean = false;
+  isCurrentNodeGroup: boolean = false;
   createDomainModal: boolean = false;
 
   //Utility
@@ -123,6 +130,7 @@ export class ProjectInsightComponent implements OnInit {
   sortColumnType: any;
   abbreviationError: string = '';
   filters: any = {};
+  limit = 10;
 
   questionRenderType: 'edit' | 'view' | 'answer' | 'approval' = 'edit';
 
@@ -131,6 +139,7 @@ export class ProjectInsightComponent implements OnInit {
   rootNode: FormNode;
   question: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
   deletedQuestion: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
+  projectInsightGroupDetails: ProjectInsightGroupDetails = new ProjectInsightGroupDetails();
 
   currentNodePath: FormNode[] = [];
   expandedPaths: { [key: string]: boolean } = {};
@@ -141,18 +150,27 @@ export class ProjectInsightComponent implements OnInit {
   selectedDepartment: any;
   selectedFormId: any;
   selectedFormType: any;
-  questionParentId: any
-  questionParentType: any;
+  parentId: any
+  parentType: any;
+  groupId: any;
+  groupName: any;
+  groupType: any;
+  hierarchyType?: string;
+  parentDynamicId?: string;
+  cloneProjectInsightId: any;
+  filterModal: boolean = false;
+  existingFilter = {}
 
   title = "";
   addedDomainId = -1;
   currentItem: any = null;
   parentItem: string = null;
-  allDomainWithProject: any = {}
-  domainColors: any = {}
+  allDomainWithProject: any = {};
+  domainColors: any = {};
   selectedDomain: string = null;
   alreadySelected: boolean = false;
   childType: string = '';
+  childrenSubDomain: number = null;
   modalTitleMap = {
     'domain': 'Add Sub-Domain',
     'subDomain': 'Add Sub-Domain',
@@ -185,6 +203,7 @@ export class ProjectInsightComponent implements OnInit {
   showTable() {
     this.isTable = true;
     this.isCreateForm = false;
+    this.currentQuestionList = [];
     this.getAllProjectInsightProjectList();
   }
 
@@ -195,15 +214,15 @@ export class ProjectInsightComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     });
   }
 
   // Project Insight APIs & Methods [Start]
 
-  getAllProjectInsightProjectList(domain?: string) {
-    this.projectInsightService.getAllProjectInsight(domain).pipe(first()).subscribe({
+  getAllProjectInsightProjectList(domain?: string | number, unique_name?: string) {
+    this.projectInsightService.getAllProjectInsight(domain, unique_name).pipe(first()).subscribe({
       next: (response: any) => {
         this.allProjectInsightProjectList = response;
       },
@@ -250,7 +269,7 @@ export class ProjectInsightComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     });
   }
@@ -290,12 +309,12 @@ export class ProjectInsightComponent implements OnInit {
     this.projectInsightService.saveProjectInsightDetails(projectInsightDetailsDTO).pipe(take(1)).subscribe(
       (response: any) => {
         this.alertMessage = response.serviceStatus;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       },
       (error) => {
         console.log(error, " : error");
         this.alertMessage = error?.error?.serviceResponse || 'An unexpected error occurred.';
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     );
   }
@@ -318,7 +337,7 @@ export class ProjectInsightComponent implements OnInit {
     const projectId = projectFieldKey ? data[projectFieldKey] : null;
     if (!projectId) {
       this.alertMessage = "Project Name/ Field is required to save as draft.";
-      this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       return;
     }
     return projectId;
@@ -353,24 +372,14 @@ export class ProjectInsightComponent implements OnInit {
     this.projectInsightService.deleteProjectInsightById(this.deleteProjectInsightId).pipe(first()).subscribe({
       next: (response: any) => {
         this.alertMessage = response.serviceMessage;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
         this.getAllProjectInsightProjectList();
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     });
-  }
-
-  addProjectInsightGroup() {
-    this.currentQuestionList = [];
-    let newGroup: FormNode;
-    newGroup = this.getDefaultGroupStructure();
-    newGroup.parentId = this.currentNode.parentId;
-    newGroup.parentType = this.currentNode.parentType;
-    this.currentNode = newGroup;
-    this.currentNodePath.push(newGroup);
   }
 
   getProjectInsightGroupDetailsByObjectId(projectInsightId: any) {
@@ -383,12 +392,12 @@ export class ProjectInsightComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     });
   }
 
-   getProjectInsightGroupDetailsByParentIdAndParentType(parentId: any, parentType: any) {
+  getProjectInsightGroupDetailsByParentIdAndParentType(parentId: any, parentType: any) {
     let temp = [];
     this.projectInsightService.getProjectInsightGroupDetailsByParentIdAndParentType(parentId, parentType).pipe(first()).subscribe({
       next: (response: any) => {
@@ -396,14 +405,43 @@ export class ProjectInsightComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     });
   }
 
+  saveProjectInsightStaticGroupDetails(isDraft: any) {
+    this.cancelRequest();
+    let inputValidated: boolean = this.validateGroupDetails();
+    if (!inputValidated) return;
+
+    this.projectInsightGroupDetails.isDraft = isDraft;
+    this.projectInsightGroupDetails.createdBy = this.currentUser.empId;
+    this.projectInsightGroupDetails.parentId = this.currentNode.parentId;
+    this.projectInsightGroupDetails.parentType = this.currentNode.parentType;
+
+    this.projectInsightService.saveProjectInsightStaticGroupDetails(this.projectInsightGroupDetails).pipe(first()).subscribe(
+      (response: any) => {
+        this.alertMessage = response.serviceStatus;
+        this.closeAddGroupDetailsModal();
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+
+
+      },
+      (error) => {
+        console.log(error, " : error");
+        this.alertMessage = error?.serviceStatus || 'An unexpected error occurred.';
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+      }
+    );
+  }
+
   saveProjectInsightGroupDetails(isDraft: any) {
     this.cancelRequest();
+    if (isDraft && isDraft === 'Y') {
+      // validations 
 
+    }
     let projectInsightDetailsDTO: ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO();
     projectInsightDetailsDTO.projectInsightFormDetails = this.transformFormNodeToFormDetails(this.currentNode);
     projectInsightDetailsDTO.projectInsightProjectDetails = null;
@@ -411,6 +449,7 @@ export class ProjectInsightComponent implements OnInit {
     projectInsightDetailsDTO.projectInsightGroupDetails.id = this.projectInsightId;
     projectInsightDetailsDTO.projectInsightGroupDetails.createdBy = this.currentUser.empId;
     projectInsightDetailsDTO.projectInsightGroupDetails.additionalInfo = this.currentNode.formData;
+    projectInsightDetailsDTO.projectInsightGroupDetails.isDraft = isDraft;
     projectInsightDetailsDTO.projectInsightGroupDetails.parentId = this.currentNode.parentId;
     projectInsightDetailsDTO.projectInsightGroupDetails.parentType = this.currentNode.parentType;
     let fields = JSON.parse(JSON.stringify(projectInsightDetailsDTO.projectInsightFormDetails.fields));
@@ -419,14 +458,40 @@ export class ProjectInsightComponent implements OnInit {
     this.projectInsightService.saveProjectInsightGroupDetails(projectInsightDetailsDTO).pipe(take(1)).subscribe(
       (response: any) => {
         this.alertMessage = response.serviceStatus;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       },
       (error) => {
         console.log(error, " : error");
         this.alertMessage = error?.error?.serviceResponse || 'An unexpected error occurred.';
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     );
+  }
+
+  getNodeDisplayName(group) {
+
+  }
+
+  openAddGroupDetailsModal() {
+    this.projectInsightGroupDetails = new ProjectInsightGroupDetails();
+    this.projectInsightGroupDetails.parentId = this.currentNode.parentId;
+    this.projectInsightGroupDetails.parentType = this.currentNode.parentType;
+    this.addGroupDetailsModalRef = this.modalService.show(this.addNewGroupModal, { class: 'modal-lg modal-dialog-centered' });
+  }
+
+  addProjectInsightGroup() {
+    this.currentQuestionList = [];
+    let newGroup: FormNode;
+    newGroup = this.getDefaultGroupStructure();
+    newGroup.parentId = this.currentNode.parentId;
+    newGroup.parentType = this.currentNode.parentType;
+    this.currentNode = newGroup;
+    this.currentNodePath.push(newGroup);
+  }
+  closeAddGroupDetailsModal() {
+    if (this.addGroupDetailsModalRef) {
+      this.addGroupDetailsModalRef.hide();
+    }
   }
   // Project Insight APIs & Methods [End]
 
@@ -783,7 +848,7 @@ export class ProjectInsightComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     });
   }
@@ -814,6 +879,7 @@ export class ProjectInsightComponent implements OnInit {
   // Department Fetch [Start]
 
   getAllDynamicFormByDepartmentAndType() {
+    this.selectedFormId = null;
     let formObject = { departmentId: this.selectedDepartment }
     this.formBuilderService.getAllDynamicFormByDepartmentAndType(formObject).pipe(first()).subscribe({
       next: (response: any) => {
@@ -821,7 +887,7 @@ export class ProjectInsightComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     });
   }
@@ -869,15 +935,7 @@ export class ProjectInsightComponent implements OnInit {
     this.childType = type;
     this.parentItem = parent;
     this.isVisible = true;
-    if (item.domain) {
-      this.title = "Add new Item in " + item.domain;
-    } else if (item.subDomain) {
-      this.title = "Add new Item in " + item.subDomain;
-    } else if (item.service) {
-      this.title = "Add new Item in " + item.service;
-    } else {
-      this.title = "Add new Item in " + item.subService;
-    }
+    this.title = "Add new Item in " + item.name;
   }
 
   closeModal() {
@@ -915,29 +973,93 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   loadAllProjectInsightDomain(ids: any[]) {
-    this.allDomainDataList = [];
+
     if (ids.length === 0) {
+      this.allDomainDataList = [];
       return;
     }
+
+    let changed = false;
+
+    for (const id of ids) {
+      if (!this.allDomainDataList.some(domain => domain.id === id)) {
+        changed = true;
+        break;
+      }
+    }
+
+    if (!changed) {
+      return;
+    }
+
+    this.allDomainDataList = [];
+
     this.projectInsightDomainService.getAllProjectInsightDomain(ids).subscribe({
-      next: (res: Domain[]) => {
+      next: (res: any[]) => {
+
         this.allDomainDataList = res.filter(domain => domain.isActive).map(domain => ({
           ...domain,
           isOpen: false,
-          subDomains: this.addIsOpenToSubDomains(domain.subDomains), // Handle subDomains and their children
-          services: domain.services.filter(service => service.isActive).map(service => ({
-            ...service,
-            isOpen: false,
-            subServices: this.addIsOpenToSubServices(service.subServices)
-          }))
+          ...this.processChildren(domain.children || [])
         }));
 
-        // this.allDomainDataList = res;
       }, error: (error: any) => {
         throw error;
       }
     });
   }
+
+  processChildren(children: any[]): { subDomains: any[]; services: any[] } {
+    const subDomains = [];
+    const services = [];
+
+    for (const child of children) {
+      if (!child.isActive) continue;
+
+      const base = {
+        ...child,
+        isOpen: false
+      };
+
+      if (child.type === 'subDomain') {
+        const { subDomains: subSubDomains, services: subServices } = this.processChildren(child.children || []);
+        subDomains.push({
+          ...base,
+          children: [], // Optional: keep if backend uses it
+          subDomains: subSubDomains,
+          services: subServices
+        });
+      } else if (child.type === 'service') {
+        const { subServices } = this.processSubServices(child.children || []);
+        services.push({
+          ...base,
+          subServices
+        });
+      }
+    }
+
+    return { subDomains, services };
+  }
+
+  processSubServices(children: any[]): { subServices: any[] } {
+    const subServices = [];
+
+    for (const child of children) {
+      if (!child.isActive) continue;
+
+      if (child.type === 'subService') {
+        const { subServices: nestedSubServices } = this.processSubServices(child.children || []);
+        subServices.push({
+          ...child,
+          isOpen: false,
+          subServices: nestedSubServices
+        });
+      }
+    }
+
+    return { subServices };
+  }
+
 
   getRandomColor(): string {
     const colors = [
@@ -966,27 +1088,30 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   addData(item: any, child: string, parent: string, value?: string) {
+
     if (!value || value.trim() === '') {
       this.alertMessage = "Please enter a valid value";
       return;
     }
 
     const regex = /^[a-zA-Z0-9 ]+$/
+
     if (!regex.test(value)) {
       this.alertMessage = "Please enter a valid value";
       return;
     }
 
     if (parent == "domain") {
+
       this.projectInsightDomainService.editDomain({
-        "parent_id": item.domainId,
+        "parent_id": item.id,
         "parent_id_name": "domain",
         "name": value,
-        "children_name": child
+        "type": child
       }).subscribe({
         next: (res: any) => {
           if (child == 'subDomain') {
-            item.subDomains.push({ subDomain: value, subDomainId: res, isOpen: false, children: [], services: [] });
+            item.subDomains.push({ name: value, id: res, isOpen: false, subDomains: [], services: [] });
           } if (child == 'service') {
             item.services.push({ service: value, serviceId: res, isOpen: false, subServices: [] });
           }
@@ -994,52 +1119,53 @@ export class ProjectInsightComponent implements OnInit {
           throw error;
         }
       })
+
     } else if (child === 'subDomain') {
       this.projectInsightDomainService.editDomain({
-        "parent_id": item.subDomainId,
+        "parent_id": item.id,
         "parent_id_name": "subDomain",
         "name": value,
-        "children_name": child
+        "type": child
       }).subscribe({
         next: (res: any) => {
-          item.children.push({ subDomain: value, subDomainId: res, isOpen: false, children: [], services: [] });
+          item.children.push({ name: value, id: res, isOpen: false, subDomains: [], services: [] });
         }, error: (error: any) => {
           throw error;
         }
       })
+
     } else if (child === 'service') {
       this.projectInsightDomainService.editDomain({
-        "parent_id": item.subDomainId,
+        "parent_id": item.id,
         "parent_id_name": parent,
         "name": value,
-        "children_name": child
+        "type": child
       }).subscribe({
         next: (res: any) => {
-          item.services.push({ service: value, serviceId: res, isOpen: false, subServices: [] });
+          item.services.push({ name: value, id: res, isOpen: false, subServices: [] });
         }, error: (error: any) => {
           throw error;
         }
       })
+
     } else if (child === 'subService') {
       this.projectInsightDomainService.editDomain({
-        "parent_id": item.serviceId || item.id,
+        "parent_id": item.id,
         "parent_id_name": parent,
         "name": value,
-        "children_name": child
+        "type": child
       }).subscribe({
         next: (res: any) => {
-          if (item.subServices) {
-            item.subServices.push({ subService: value, id: res, isOpen: false, children: [] });
-          } else {
-            item.children.push({ subService: value, id: res, isOpen: false, children: [] });
-          }
+          item.subServices.push({ name: value, id: res, isOpen: false, subServices: [] });
         }, error: (error: any) => {
           throw error;
         }
       })
     }
+
     this.apiSourceService.setIdToRemove(this.addedDomainId);
     this.title = ""
+
   }
 
   getName(name: string) {
@@ -1068,6 +1194,13 @@ export class ProjectInsightComponent implements OnInit {
       isOpen: false,
       children: this.addIsOpenToSubServices(subService.children) // Recursively handle children
     }));
+  }
+
+  selectChildrenOfDomain(childrenSubDomain: number, domain: string, unique_name: string) {
+    this.childrenSubDomain = childrenSubDomain
+    this.selectedDomain = domain
+    this.alreadySelected = true
+    this.getAllProjectInsightProjectList(childrenSubDomain, unique_name);
   }
   // Domain [End]
 
@@ -1098,9 +1231,9 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   onGlobalSearch() {
-    this.projectInsightService.searchProjectInsight(this.searchKeyword, this.page - 1, this.page *10).pipe(first()).subscribe({
+    this.projectInsightService.searchProjectInsight(this.searchKeyword, this.page - 1, this.limit).pipe(first()).subscribe({
       next: (response: any) => {
-        this.allProjectInsightProjectList = response;
+        this.allProjectInsightProjectList = response.content;
       },
       error: (error: any) => {
         this.alertMessage = error;
@@ -1131,12 +1264,14 @@ export class ProjectInsightComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     });
   }
 
   openCreateProject() {
+    this.selectedDepartment = null;
+    this.selectedFormId = null;
     this.getAllDepartmentList();
     this.modalRef = this.modalService.show(this.openCreateProjectModal);
   }
@@ -1156,6 +1291,11 @@ export class ProjectInsightComponent implements OnInit {
 
     const selectedOption = (projectNameField.options || []).find(opt => opt.value == selectedValue);
     return selectedOption ? selectedOption.label : this.rootNode.formName || 'Project';
+  }
+
+  getProjectInsightFormTitle(): string {
+    this.rootNode;
+    return null;
   }
   // Create Project [End]
 
@@ -1192,58 +1332,6 @@ export class ProjectInsightComponent implements OnInit {
       // newPath.push(node);
     }
     this.currentNodePath = newPath;
-  }
-
-  getNodeDisplayName(node: any): string {
-    if (node.formData) {
-      if (node.formData.grouptitle || node.formData.groupTitle) {
-        return node.formData.grouptitle || node.formData.groupTitle;
-      }
-      if (
-        node.formData.subgrouptitle ||
-        node.formData.subGroupTitle ||
-        node.formData.subgroupTitle
-      ) {
-        return (
-          node.formData.subgrouptitle ||
-          node.formData.subGroupTitle ||
-          node.formData.subgroupTitle
-        );
-      }
-      if (node.formData.projectname) {
-        const projectNameField = (node.fields || []).find(f => f.name === 'projectname');
-        if (projectNameField && projectNameField.options) {
-          if (Array.isArray(node.formData.projectname)) {
-            const selectedLabels = node.formData.projectname.map(val => {
-              const opt = projectNameField.options.find(opt => opt.value == val);
-              return opt ? opt.label : val;
-            });
-            if (selectedLabels.length > 0) return selectedLabels.join(', ');
-          } else {
-            const selected = projectNameField.options.find(opt => opt.value == node.formData.projectname);
-            if (selected) return selected.label;
-          }
-        }
-        return node.formData.projectname;
-      }
-      const tableField = (node.fields || []).find(f => f.type === 'table');
-      if (tableField && node.formData[tableField.name]) {
-        return `Table (${node.formData[tableField.name].length} rows)`;
-      }
-    }
-
-    if (node.fields) {
-      if (node.fields.grouptitle || node.fields.groupTitle) return node.fields.grouptitle || node.fields.groupTitle;
-      if (node.fields.subgrouptitle || node.fields.subGroupTitle) return node.fields.subgrouptitle || node.fields.subGroupTitle;
-    }
-
-    if (node.formName) {
-      if (node.formName.toLowerCase().includes('group')) return 'New Group';
-      if (node.formName.toLowerCase().includes('subgroup')) return 'New SubGroup';
-      if (node.formName.toLowerCase().includes('project')) return 'New Project';
-      return node.formName;
-    }
-    return 'New Node';
   }
 
   navigateToNode(index: number) {
@@ -1401,8 +1489,8 @@ export class ProjectInsightComponent implements OnInit {
   // Question Logic [Start]
   openAddOrUpdateQuestionModal(currentNode: any, isQuestionUpdate: any, question?: any) {
     this.questionRenderType = 'edit';
-    this.questionParentId = currentNode.parentId;
-    this.questionParentType = currentNode.parentType;
+    this.parentId = currentNode.parentId;
+    this.parentType = currentNode.parentType;
     this.isQuestionUpdate = isQuestionUpdate;
     this.question = question || new ProjectInsightQuestionDetails();
     this.addOrUpdateQuestionModalRef = this.modalService.show(this.addOrUpdateQuestionModal, { class: 'modal-lg modal-dialog-centered' });
@@ -1416,8 +1504,8 @@ export class ProjectInsightComponent implements OnInit {
 
   addOrUpdateQuestion() {
     let projectInsightQuestionDetails = this.question;
-    projectInsightQuestionDetails.parentId = this.questionParentId;
-    projectInsightQuestionDetails.parentType = this.questionParentType;
+    projectInsightQuestionDetails.parentId = this.parentId;
+    projectInsightQuestionDetails.parentType = this.parentType;
     if (this.isQuestionUpdate) {
       projectInsightQuestionDetails.updatedBy = this.currentUser.empId;
     } else {
@@ -1426,14 +1514,14 @@ export class ProjectInsightComponent implements OnInit {
     this.projectInsightService.saveProjectInsightQuestionDetails(projectInsightQuestionDetails).pipe(first()).subscribe(
       (response: any) => {
         this.alertMessage = response.serviceStatus;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
         this.closeAddOrUpdateQuestionModal();
-        this.getProjectInsightQuestionDetailsByParentIdAndParentType(this.questionParentId, this.questionParentType);
+        this.getProjectInsightQuestionDetailsByParentIdAndParentType(this.parentId, this.parentType);
       },
       (error) => {
         console.log(error, " : error");
         this.alertMessage = error?.error?.serviceResponse || 'An unexpected error occurred.';
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     );
   }
@@ -1459,7 +1547,7 @@ export class ProjectInsightComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     });
   }
@@ -1654,9 +1742,9 @@ export class ProjectInsightComponent implements OnInit {
       ];
       const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
-      ws['!cols'] = columns.map(col =>
-        (col.key.endsWith('Id') && !col.key.endsWith('Name')) ? { hidden: true } : {}
-      );
+      // ws['!cols'] = columns.map(col =>
+      //   (col.key.endsWith('Id') && !col.key.endsWith('Name')) ? { hidden: true } : {}
+      // );
       XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31)); // Excel sheet name limit
     });
 
@@ -1692,7 +1780,7 @@ export class ProjectInsightComponent implements OnInit {
       });
       this.applyImportedDataToNode(this.currentNode, null, sheetDataMap);
       this.alertMessage = 'Form data imported successfully!';
-      this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
     };
     reader.readAsArrayBuffer(file);
   }
@@ -1749,6 +1837,75 @@ export class ProjectInsightComponent implements OnInit {
     });
   }
   // Import/ Export Impl [End]
+
+  // Clone [Start]
+  opencloneProjectModal() {
+    this.modalRef = this.modalService.show(this.cloneModal);
+  }
+
+  getCloneProjectInsight() {
+    this.cancelRequest();
+    this.projectInsightService.getProjectInsightByInsightId(this.cloneProjectInsightId).pipe(first()).subscribe({
+      next: (response: any) => {
+        response.version = null;
+        response.id = null;
+        this.rootNode = this.buildFormNodeTree(response.structure);
+        this.mergeFormDataIntoFormStructure(this.rootNode, response.data);
+        this.currentNodePath = [this.rootNode];
+        this.startProjectForm();
+      },
+      error: (error: any) => {
+        this.alertMessage = error;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      }
+    });
+  }
+  // Clone [End]
+
+  //  Filter [Start]
+
+  openFilterModal() {
+    this.filterModal = true;
+  }
+
+  closeFilterModal() {
+    this.filterModal = false;
+  }
+
+  applyFilterModal(filter: any) {
+    this.projectInsightService.filterProjectInsight(filter).subscribe({
+      next: (res: any) => {
+        this.existingFilter = filter
+        this.allProjectInsightProjectList = [...res.content];
+        this.closeFilterModal();
+      }, error: (error: any) => {
+        throw error;
+      }
+    })
+  }
+  //  Filter [End]
+
+  // Validations [Start]
+  validateGroupDetails() {
+    let flag = true;
+    if (!this.validationService.validateNullUndefinedEmptyString(this.projectInsightGroupDetails.groupTitle)) {
+      this.alertMessage = "Please Provide Group Title !!"
+      this.openAlertMod(this.alertMessage);
+      return false;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(this.projectInsightGroupDetails.groupType)) {
+      this.alertMessage = "Please select Group Type !!"
+      this.openAlertMod(this.alertMessage);
+      return false;
+    }
+    return flag;
+  }
+  // Validations [End]
+
+  // Modals
+  openAlertMod(message: any) {
+    this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+  }
 
   // Close Modal
   cancelRequest() {

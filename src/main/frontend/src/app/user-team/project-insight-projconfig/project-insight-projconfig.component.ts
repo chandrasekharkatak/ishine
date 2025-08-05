@@ -822,12 +822,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   getAllProjectInsightProjectList(domain?: string | number, unique_name?: string) {
-    console.log("getAllProjectInsightProjectList: ", domain, unique_name);
-    
     this.projectInsightService.getAllProjectInsight(domain, unique_name).pipe(first()).subscribe({
       next: (response: any) => {
-        console.log("getAllProjectInsight response: ", response);
-        
         this.allProjectInsightProjectList = response;
       },
       error: (error: any) => {
