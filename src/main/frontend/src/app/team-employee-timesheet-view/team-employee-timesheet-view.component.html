@@ -1,7 +1,18 @@
 <div class="container-fluid" style="margin-top: 60px;">
     <div class="row mb-3">
-        <div class="card col-md-12 px-0">
+        <div class="card col-md-12 p-3">
             <h5 class="card-name mx-1">Team Attendance View</h5>
+            <div class="row">
+                <div class="col-md-12 mt-2">
+                    <mat-form-field appearance="outline" class="month-picker-field">
+                        <input matInput [matDatepicker]="monthPicker"
+                                [value]="selectedMonth"
+                                placeholder="Select month">
+                        <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+                        <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected($event, monthPicker)" panelClass="month-picker"></mat-datepicker>
+                    </mat-form-field>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-md-12 mt-2">
                     <div class="row mb-2 mt-2">

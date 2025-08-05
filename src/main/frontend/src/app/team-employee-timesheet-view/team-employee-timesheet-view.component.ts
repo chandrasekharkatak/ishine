@@ -31,6 +31,7 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   isSearchEnabled: boolean = false;
   excelName: any;
   tableName: any;
+  selectedMonth = new Date();
 
   constructor(private route: ActivatedRoute,
     private modalService: BsModalService,
@@ -41,7 +42,10 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.projectId = params['projectId'];
       if (this.projectId) {
-        this.getEmployeeTimesheetAsCalender(this.projectId,7,2025);
+        const today = new Date();
+        const currentMonth = today.getMonth() + 1;
+        const currentYear = today.getFullYear();
+        this.getEmployeeTimesheetAsCalender(this.projectId, currentMonth, currentYear);
       } else {
         console.warn("projectId is missing in query params.");
       }
@@ -153,6 +157,14 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   resetSearch() {
     this.isSearchEnabled = false;
     this.filters = {};
+  }
+
+  monthSelected(event: Date, datepicker: any) {
+    this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
+    const month = event.getMonth() + 1;
+    const year = event.getFullYear();
+    this.getEmployeeTimesheetAsCalender(this.projectId, month, year);
+    datepicker.close();
   }
 
 }

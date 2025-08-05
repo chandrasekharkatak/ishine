@@ -526,7 +526,7 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 				+ "                WHEN ts.day_type = 'Leave' THEN 'A'\n"
 				+ "                WHEN ts.day_type = 'Non-Working' THEN 'NW'\n"
 				+ "                WHEN ts.day_type = 'Public Holiday' THEN 'AH'\n"
-				+ "                WHEN ts.day_type = 'Week Off' THEN 'W'\n"
+				+ "                WHEN ts.day_type = 'Week Off' THEN 'WO'\n"
 				+ "                WHEN ts.day_type = 'Holiday' THEN 'H'\n"
 				+ "                WHEN ts.day_type = 'Client Holiday' THEN 'CH'\n"
 				+ "                WHEN tdd_approved.emp_id IS NOT NULL THEN 'DA'\n"
