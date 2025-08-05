@@ -48,6 +48,7 @@ interface FormField {
   name: string;
   required?: boolean;
   placeholder?: string;
+  hierarchyType?: string;
   defaultValue?: any;
   options?: any;
   optionSource?: 'static' | 'api' | 'dependent';
@@ -56,6 +57,7 @@ interface FormField {
   apiValueKey?: string;
   width: number;
   rowPosition: number;
+  parentDynamicId?: string;
   parentField?: string;
   dependentApiUrl?: string;
   dependentLabelKey?: string;
@@ -278,29 +280,91 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   loadAllProjectInsightDomain(ids:any[]) {
-
-    this.allDomainDataList = [];
+    
     if(ids.length === 0){
+      this.allDomainDataList = [];
       return;
     }
+    
+    let changed = false;
+
+    for (const id of ids) {
+      if (!this.allDomainDataList.some(domain => domain.id === id)) {
+        changed = true;
+        break;
+      }
+    }
+
+    if (!changed) {
+      return;
+    }
+    
+    this.allDomainDataList = [];
+
     this.projectInsightDomainService.getAllProjectInsightDomain(ids).subscribe({
-      next: (res: Domain[]) => {
+      next: (res: any[]) => {
+        
         this.allDomainDataList = res.filter(domain => domain.isActive).map(domain => ({
           ...domain,
           isOpen: false,
-          subDomains: this.addIsOpenToSubDomains(domain.subDomains), // Handle subDomains and their children
-          services: domain.services.filter(service => service.isActive).map(service => ({
-            ...service,
-            isOpen: false,
-            subServices: this.addIsOpenToSubServices(service.subServices)
-          }))
+          ...this.processChildren(domain.children || [])
         }));
 
-        // this.allDomainDataList = res;
       }, error: (error: any) => {
         throw error;
       }
     });
+  }
+
+  processChildren(children: any[]): { subDomains: any[]; services: any[] } {
+    const subDomains = [];
+    const services = [];
+
+    for (const child of children) {
+      if (!child.isActive) continue;
+
+      const base = {
+        ...child,
+        isOpen: false
+      };
+
+      if (child.type === 'subDomain') {
+        const { subDomains: subSubDomains, services: subServices } = this.processChildren(child.children || []);
+        subDomains.push({
+          ...base,
+          children: [], // Optional: keep if backend uses it
+          subDomains: subSubDomains,
+          services: subServices
+        });
+      } else if (child.type === 'service') {
+        const { subServices } = this.processSubServices(child.children || []);
+        services.push({
+          ...base,
+          subServices
+        });
+      }
+    }
+
+    return { subDomains, services };
+  }
+
+  processSubServices(children: any[]): { subServices: any[] } {
+    const subServices = [];
+
+    for (const child of children) {
+      if (!child.isActive) continue;
+
+      if (child.type === 'subService') {
+        const { subServices: nestedSubServices } = this.processSubServices(child.children || []);
+        subServices.push({
+          ...child,
+          isOpen: false,
+          subServices: nestedSubServices
+        });
+      }
+    }
+
+    return { subServices };
   }
 
   toggle(item: any) {
@@ -336,15 +400,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.childType = type;
     this.parentItem = parent;
     this.isVisible = true;
-    if(item.domain){
-      this.title = "Add new Item in "+item.domain;
-    } else if(item.subDomain){
-      this.title = "Add new Item in "+item.subDomain;
-    } else if(item.service){
-      this.title = "Add new Item in "+item.service;
-    } else{
-      this.title = "Add new Item in "+item.subService;
-    }
+    this.title = "Add new Item in "+item.name;
   }
 
   closeModal() {
@@ -375,7 +431,6 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   getAllProjectWithDomain() {
     this.apiSourceService.getAllPRojectWithDomain().subscribe({
       next: (res: any[]) => {
-        console.log("res", res);
         this.allDomainList = Object.keys(res);
         this.allDomainList.forEach((domain, index) => {
           this.domainColors[domain] = this.getRandomColor();
@@ -414,6 +469,16 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       this.alreadySelected = false
       this.getAllProjectInsightProjectList();
     }
+  }
+
+  childrenSubDomain:number = null
+
+  selectChildrenOfDomain(childrenSubDomain:number, domain:string, unique_name:string){
+    console.log("childrenSubDomain: ", domain, unique_name);
+    this.childrenSubDomain = childrenSubDomain
+    this.selectedDomain = domain
+    this.alreadySelected = true
+    this.getAllProjectInsightProjectList(childrenSubDomain, unique_name);
   }
 
   filterModal:boolean = false;
@@ -459,14 +524,14 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     if (parent == "domain") {
 
       this.projectInsightDomainService.editDomain({
-        "parent_id": item.domainId,
+        "parent_id": item.id,
         "parent_id_name": "domain",
         "name": value,
-        "children_name": child
+        "type": child
       }).subscribe({
         next: (res: any) => {
           if(child == 'subDomain'){
-            item.subDomains.push({ subDomain: value, subDomainId: res, isOpen: false, children: [], services: [] });
+            item.subDomains.push({ name: value, id: res, isOpen: false, subDomains: [], services: [] });
           } if(child == 'service') {
             item.services.push({ service: value, serviceId: res, isOpen: false, subServices: [] });
           }
@@ -477,13 +542,13 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
     } else if (child === 'subDomain') {
       this.projectInsightDomainService.editDomain({
-        "parent_id": item.subDomainId,
+        "parent_id": item.id,
         "parent_id_name": "subDomain",
         "name": value,
-        "children_name": child
+        "type": child
       }).subscribe({
         next: (res: any) => {
-          item.children.push({ subDomain: value, subDomainId: res, isOpen: false, children: [], services: [] });
+          item.children.push({ name: value, id: res, isOpen: false, subDomains: [], services: [] });
         }, error: (error: any) => {
           throw error;
         }
@@ -491,13 +556,13 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
     } else if (child === 'service') {
       this.projectInsightDomainService.editDomain({
-        "parent_id": item.subDomainId,
+        "parent_id": item.id,
         "parent_id_name": parent,
         "name": value,
-        "children_name": child
+        "type": child
       }).subscribe({
         next: (res: any) => {
-          item.services.push({ service: value, serviceId: res, isOpen: false, subServices: [] });
+          item.services.push({ name: value, id: res, isOpen: false, subServices: [] });
         }, error: (error: any) => {
           throw error;
         }
@@ -505,17 +570,13 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
     } else if (child === 'subService') {
       this.projectInsightDomainService.editDomain({
-        "parent_id": item.serviceId || item.id,
+        "parent_id": item.id,
         "parent_id_name": parent,
         "name": value,
-        "children_name": child
+        "type": child
       }).subscribe({
         next: (res: any) => {
-          if(item.subServices){
-          item.subServices.push({ subService: value, id: res,  isOpen: false, children: [] });
-        } else{
-          item.children.push({ subService: value, id: res, isOpen: false, children: [] });
-        }
+          item.subServices.push({ name: value, id: res,  isOpen: false, subServices: [] });
         }, error: (error: any) => {
           throw error;
         }
@@ -749,10 +810,12 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     });
   }
 
-  getAllProjectInsightProjectList(domain?: string) {
-    this.projectInsightService.getAllProjectInsight(domain).pipe(first()).subscribe({
+  getAllProjectInsightProjectList(domain?: string | number, unique_name?: string) {
+    console.log("getAllProjectInsightProjectList: ", domain, unique_name);
+    
+    this.projectInsightService.getAllProjectInsight(domain, unique_name).pipe(first()).subscribe({
       next: (response: any) => {
-        console.log("response", response);
+        console.log("getAllProjectInsight response: ", response);
         
         this.allProjectInsightProjectList = response;
       },
@@ -852,6 +915,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   getAllDomainData(): void {
     this.projectInsightProjconfigService.getAllDomainData().pipe(first()).subscribe({
         next: (response: any) => {
+          console.log("Get all domain data response: ", response);
+          
           if (response?.serviceStatus === "Success") {
             this.allDomainDataList = response.serviceResponse;
           } else {
@@ -1728,9 +1793,9 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.currentNode.layoutConfig = event.layoutConfig;
     this.currentNode.fields = [...this.currentNode.fields];
     this.currentNode.layoutConfig = [...this.currentNode.layoutConfig];
+
+    console.log("Updated fields:", this.currentNode.formData);
     
-    // console.log('Fields updated in parent:', this.currentNode.fields);
-    // console.log('Layout config updated in parent:', this.currentNode.layoutConfig);
   }
 
   onSaveAndAssign() {
@@ -1764,6 +1829,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
         this.alertMessage = response.serviceStatus;
         this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.getAllProjectWithDomain();
       },
       (error) => {
         this.alertMessage =
@@ -1777,6 +1843,8 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     this.cancelRequest();
     const structure = this.rootNode;
     const data = this.collectFormData(this.rootNode);
+
+    console.log("data: ", data);
 
     const projectFieldKey = Object.keys(data.fields || {}).find(
       key => key.toLowerCase().includes('projectname')
@@ -1802,6 +1870,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
       (response: any) => {
         this.alertMessage = response.serviceStatus;
         this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.getAllProjectWithDomain();
       },
       (error) => {
         this.alertMessage =
@@ -1811,11 +1880,14 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         this.modalRef = this.modalService.show(this.alertMessageTemplate);
       }
     );
+    
   }
 
   onFormValueChange(node: FormNode, value: any) {
     // console.log('Form value changed:', value);
     node.formData = value;
+    console.log("Node form data: ", node.formData);
+    
     Object.assign(node.fields, value);
   }
 
@@ -2380,7 +2452,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
         this.editingField.apiUrl = selectedApi.url;
         this.editingField.apiLabelKey = selectedApi.labelKey;
         this.editingField.apiValueKey = selectedApi.valueKey;
-
+        
         this.loadApiOptionsFormBuilder();
       }
     }

@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.jpa.repository.Query;
+// import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -94,6 +94,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectInsighProjectMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightAssigneesRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightDomainDataRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightFilterOptionsRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightFilterRepository;
@@ -116,6 +117,9 @@ import com.apmosys.employeeportal.utility.TagSpecifications;
 import com.apmosys.employeeportal.utility.TagUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mongodb.DuplicateKeyException;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 
 @Service
 public class ProjectInsightService {
@@ -3728,7 +3732,7 @@ public class ProjectInsightService {
 			if (existingOpt.isPresent()) {
 				ProjectInsightStructure existing = existingOpt.get();
 
-				if (!"Y".equals(existing.getIsDraft())) {
+				if (!"Y".equalsIgnoreCase(existing.getIsDraft())) {
 					throw new RuntimeException("The document is not a draft and cannot be saved as a draft.");
 				}
 
@@ -3869,59 +3873,93 @@ public class ProjectInsightService {
 		}
 	}
 
-	// projectname
-	public List<ProjectInsighProjectMappingDTO> getAllProjectInsight(String domainName) {
+	@Autowired
+	private ProjectInsightDomainDataRepository projectInsightDomainDataRepository;
+
+	@Autowired
+	private MongoTemplate mongoTemplate;
+
+	public boolean isLong(String str) {
 		try {
-			List<ProjectInsighProjectMappingDTO> dbResponse = null;
-			if (domainName != null) {
-				List<ProjectInsightStructure> results = projectInsightStructureRepository.findAll();
-				Set<Integer> projectIds = new HashSet<>();
+			Long.parseLong(str);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
 
-				Long domainId = projectInsightDomainRepository.findByDomain(domainName).getDomainId();
 
-				for (ProjectInsightStructure structure : results) {
-					if (structure.getData() != null) {
-						List<Object> domainIds = (List<Object>) structure.getData().getFields().get("domain");
+	public List<ProjectInsighProjectMappingDTO> getAllProjectInsight(String domainName, String unique_name) {
+		try {
+			if (domainName == null) {
+				return Optional.ofNullable(projectInsighProjectMappingRepository.fetchAllProjectMappings())
+							.orElseThrow(() -> new RuntimeException("No Project Insight found !!."));
+			}
 
-						boolean match = domainIds != null && domainIds.stream()
-								.anyMatch(id -> domainId.equals(convertToLong(id)));
+			Long domainId = null;
 
-						if (match) {
-							for (String key : structure.getData().getFields().keySet()) {
-								if (key.contains("projectname")) {
-									Object value = structure.getData().getFields().get(key);
-									if (!(value instanceof Integer)) {
-										throw new IllegalArgumentException(
-												"Expected Integer but got: " + value.getClass());
-									}
-									Integer projectId = (Integer) value;
-									if (projectId != null) {
-										projectIds.add(projectId);
-									}
+			if(isLong(domainName)) {
+				domainId = Long.parseLong(domainName);
+				projectInsightDomainDataRepository.findById(Long.parseLong(domainName)).orElseThrow();
+			} else {
+				domainId =projectInsightDomainDataRepository.findByName(domainName).getId();
+			}
 
-								}
-							}
+			List<Long> domainIds = new ArrayList<>();
+			List<String> domainIdsString = new ArrayList<>();
+			domainIds.add(domainId);
+			domainIdsString.add(domainId.toString());
+
+			// Dynamic query using MongoTemplate
+			Query query = new Query(Criteria.where("data.fields.domain").in(domainIds));
+
+			if (unique_name == null) {
+				// Query only by domain if unique_name is null
+				query = new Query(Criteria.where("data.fields.domain").in(domainIds));
+			} else {
+				// Query by domain AND any of the possible unique_name variations
+				String lowerField = "data.fields." + unique_name.toLowerCase();
+				String upperField = "data.fields." + unique_name.toUpperCase();
+				String exactField = "data.fields." + unique_name;
+				
+				query = new Query(new Criteria().orOperator(
+						Criteria.where(lowerField).in(domainIds),
+						Criteria.where(upperField).in(domainIds),
+						Criteria.where(exactField).in(domainIds),
+						Criteria.where(lowerField).in(domainIdsString),
+						Criteria.where(upperField).in(domainIdsString),
+						Criteria.where(exactField).in(domainIdsString)
+					));
+			}
+
+			List<ProjectInsightStructure> results = mongoTemplate.find(query, ProjectInsightStructure.class);
+
+			Set<Integer> projectIds = new HashSet<>();
+
+			for (ProjectInsightStructure structure : results) {
+				if (structure.getData() != null) {
+					Map<String, Object> fields = structure.getData().getFields();
+					for (Map.Entry<String, Object> entry : fields.entrySet()) {
+						String key = entry.getKey();
+						Object value = entry.getValue();
+						if (key.toLowerCase().contains("projectname") && value instanceof Integer) {
+							projectIds.add((Integer) value);
 						}
-
 					}
 				}
-				List<Integer> projectIdsList = new ArrayList<>(projectIds);
-
-				dbResponse = projectInsighProjectMappingRepository.fetchAllProjectMappingsByInsightIds(projectIdsList);
-
-			} else {
-
-				dbResponse = projectInsighProjectMappingRepository
-						.fetchAllProjectMappings();
 			}
 
-			if (dbResponse != null) {
-				return dbResponse;
-			} else {
-				throw new RuntimeException("No Project Insight found !!.");
+			if (projectIds.isEmpty()) {
+				return new ArrayList<>();
 			}
+
+			List<ProjectInsighProjectMappingDTO> response = projectInsighProjectMappingRepository
+					.fetchAllProjectMappingsByInsightIds(new ArrayList<>(projectIds));
+
+			return response;
+
 		} catch (Exception ex) {
-			throw new RuntimeException("Something went wrong !!.", ex);
+			throw new RuntimeException("Something went wrong !!", ex);
 		}
 	}
 

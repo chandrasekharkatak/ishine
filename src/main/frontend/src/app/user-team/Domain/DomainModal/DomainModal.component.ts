@@ -33,7 +33,8 @@ export class DomainModalComponent implements OnInit {
     subDomains: [],
     services: [],
     isActive: true,
-    type: 'domain'
+    type: 'domain',
+    isOpen: true
   }
 
   deleteDomainData(id: number, type: string, domain: Domain | Service | SubDomain | SubService, isActive: boolean) {
@@ -109,6 +110,7 @@ export class DomainModalComponent implements OnInit {
       type: 'subService'
     }
     this.domain.services[ind].subServices.push(subService);
+    this.domain.services[ind].isOpen = true
   }
 
   openDomainCreatedModal() {
@@ -134,6 +136,7 @@ export class DomainModalComponent implements OnInit {
       type: 'service'
     }
     this.domain.services.push(service);
+    this.domain.isOpen = true
   }
 
   addSubDomainList() {
@@ -146,6 +149,7 @@ export class DomainModalComponent implements OnInit {
       isOpen: true
     }
     this.domain.subDomains.push(subDomain);
+    this.domain.isOpen = true
 
   }
 
@@ -168,6 +172,7 @@ export class DomainModalComponent implements OnInit {
       type: 'subDomain'
     }
     this.domain.subDomains[i].subDomains.push(subDomain)
+    this.domain.subDomains[i].isOpen = true
   }
 
 

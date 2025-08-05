@@ -31,7 +31,7 @@
                 <span class="arrow" (click)="toggle(service)" *ngIf="service.subServices?.length">
                   {{ service.isOpen ? '▼' : '▶' }}
                 </span>
-                <div style="display: flex; justify-content: space-between; width: 100%;">
+                <div [title]="service.name + ' (' + service.type.toUpperCase() +')'" style="display: flex; justify-content: space-between; width: 100%;">
                   <span *ngIf="!isEditing">{{ service.name }}</span>
                   <input type="text" *ngIf="isEditing" (input)="changeInput($event, service.id, 'service')"
                     [(ngModel)]="service.name">
@@ -58,10 +58,10 @@
       <div>
         <div class="tree-label">
           <span class="arrow" (click)="toggle(subDomain)"
-            *ngIf="subDomain.children?.length || subDomain.services?.length">
+            *ngIf="subDomain.subDomains?.length || subDomain.services?.length">
             {{ subDomain.isOpen ? '▼' : '▶' }}
           </span>
-          <div style="display: flex; justify-content: space-between; width: 100%;">
+          <div [title]="subDomain.name + ' (' + subDomain.type.toUpperCase() +')'" style="display: flex; justify-content: space-between; width: 100%;">
             <span *ngIf="!isEditing">{{ subDomain.name }}</span>
             <input type="text" (input)="changeInput($event, subDomain.id, 'subDomain')" *ngIf="isEditing"
               [(ngModel)]="subDomain.name">
@@ -72,9 +72,9 @@
           </div>
         </div>
 
-        <ul *ngIf="subDomain.isOpen && subDomain.children?.length">
+        <ul *ngIf="subDomain.isOpen && subDomain.subDomains?.length">
           <ng-container
-            *ngTemplateOutlet="subDomainTemplate; context: { $implicit: subDomain.children }"></ng-container>
+            *ngTemplateOutlet="subDomainTemplate; context: { $implicit: subDomain.subDomains }"></ng-container>
         </ul>
 
         <ul *ngIf="subDomain.isOpen && subDomain.services?.length">
@@ -84,7 +84,7 @@
                 <span class="arrow" (click)="toggle(service)" *ngIf="service.subServices?.length">
                   {{ service.isOpen ? '▼' : '▶' }}
                 </span>
-                <div style="display: flex; justify-content: space-between; width: 100%;">
+                <div [title]="service.name + ' (' + service.type.toUpperCase() +')'" style="display: flex; justify-content: space-between; width: 100%;">
                   <span *ngIf="!isEditing">{{ service.name }}</span>
                   <input type="text" *ngIf="isEditing" (input)="changeInput($event, service.id, 'service')"
                     [(ngModel)]="service.name">
@@ -111,10 +111,10 @@
     <ng-container *ngFor="let subService of subServices">
       <div>
         <div class="tree-label">
-          <span (click)="toggle(subService)" class="arrow" *ngIf="subService.children?.length">
+          <span (click)="toggle(subService)" class="arrow" *ngIf="subService.subServices?.length">
             {{ subService.isOpen ? '▼' : '▶' }}
           </span>
-          <div style="display: flex; justify-content: space-between;width: 100%;">
+          <div [title]="subService.name + ' (' + subService.type.toUpperCase() +')'" style="display: flex; justify-content: space-between;width: 100%;">
             <span *ngIf="!isEditing">{{ subService.name }}</span>
             <input type="text" *ngIf="isEditing" (input)="changeInput($event, subService.id, 'subService')"
               [(ngModel)]="subService.name">
@@ -125,9 +125,9 @@
             </label>
           </div>
         </div>
-        <ul *ngIf="subService.isOpen && subService.children?.length">
+        <ul *ngIf="subService.isOpen && subService.subServices?.length">
           <ng-container
-            *ngTemplateOutlet="subServiceTemplate; context: { $implicit: subService.children }"></ng-container>
+            *ngTemplateOutlet="subServiceTemplate; context: { $implicit: subService.subServices }"></ng-container>
         </ul>
       </div>
     </ng-container>

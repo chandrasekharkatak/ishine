@@ -26,6 +26,8 @@ public class FormFieldDTO {
     private String dependentLabelKey;
     private String dependentValueKey;
     private String dependentParamName;
+    private String parentDynamicId;
+    private String hierarchyType;
     private String apiLabelKey;
     private TableConfigDTO tableConfig;
     private String isDynamicallyCreated;

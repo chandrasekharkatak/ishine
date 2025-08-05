@@ -15,6 +15,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.ProjectInsightDomainCreatedBy;
+import com.apmosys.employeeportal.dto.ProjectInsightDomainDataDto;
 import com.apmosys.employeeportal.enums.ProjectInsightDomainApprovedStatus;
 import com.apmosys.employeeportal.model.ProjectInsightDomainData;
 
@@ -22,6 +23,12 @@ import com.apmosys.employeeportal.model.ProjectInsightDomainData;
 public interface ProjectInsightDomainDataRepository extends  JpaRepository<ProjectInsightDomainData, Long> {
 
     Boolean existsByName(String name);
+
+    @Query("SELECT d FROM ProjectInsightDomainData d WHERE d.type = 'domain'")
+    List<ProjectInsightDomainData> findAllDomain();
+
+    @Query("SELECT d FROM ProjectInsightDomainData d WHERE d.type = 'domain' AND d.isActive = true AND d.isApproved != 'rejected'")
+    List<ProjectInsightDomainData> findAllActiveAndApprovedDomain();
 
     @Query("SELECT new com.apmosys.employeeportal.dto.ProjectInsightDomainCreatedBy(d.name,d.id, d.createdOn, e.name, d.isActive, d.isApproved, e1.name) FROM ProjectInsightDomainData d LEFT JOIN Employee e ON d.createdBy = e.empId LEFT JOIN Employee e1 ON d.approvedBy = e1.empId")
         Page<ProjectInsightDomainCreatedBy> findAllDomainAndCreatedBy(Pageable pageable);
@@ -45,8 +52,12 @@ Page<ProjectInsightDomainCreatedBy> findAllDomainSearched(
        Pageable pageable);
 
 
-    @Query("SELECT d FROM ProjectInsightDomainData d WHERE d.type = 'domain' AND d.name = :name")
+    @Query("SELECT d FROM ProjectInsightDomainData d WHERE d.type = 'domain' AND LOWER(d.name) = LOWER(:name)")
     ProjectInsightDomainData findByDomain(@Param("name") String name);
+
+    ProjectInsightDomainData findByName(String name);
+
+    
 
     @PersistenceContext
     EntityManager entityManager = null;
@@ -78,5 +89,18 @@ Page<ProjectInsightDomainCreatedBy> findAllDomainSearched(
         entityManager.createNativeQuery(sql.toString()).executeUpdate();
     }
     
-    
+    @Query("SELECT d FROM ProjectInsightDomainData d WHERE d.id = :id AND LOWER(d.type) = LOWER(:type)")
+    ProjectInsightDomainData findByIdAndType(@Param("id") Long id, @Param("type") String type);
+
+    // List<ProjectInsightDomainData> findByParentId(Long id);
+
+    @Query("SELECT new com.apmosys.employeeportal.dto.ProjectInsightDomainDataDto(" +
+       "d.id, d.name, d.type, " +
+       "CASE WHEN (SELECT COUNT(c) FROM com.apmosys.employeeportal.model.ProjectInsightDomainData c WHERE c.parent.id = d.id) > 0 THEN TRUE ELSE FALSE END) " +
+       "FROM com.apmosys.employeeportal.model.ProjectInsightDomainData d " +
+       "WHERE (:id IS NULL OR d.parent.id = :id) AND d.type IN :type")
+    List<ProjectInsightDomainDataDto> findDomainsByTypeAndParentId(
+        @Param("type") List<String> type,
+        @Param("id") Long parentId);
+
 }

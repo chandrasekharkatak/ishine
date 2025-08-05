@@ -3,6 +3,7 @@ export interface Domain{
     name:string;
     type:string;
     isActive:boolean;
+    isOpen:boolean;
     subDomains:SubDomain[]
     services:Service[]
 }

@@ -165,6 +165,7 @@ import { DomainTablesComponent } from './user-team/Domain/DomainTables/DomainTab
 import { DomainModalComponent } from './user-team/Domain/DomainModal/DomainModal.component';
 import { ViewDomainComponent } from './user-team/Domain/ViewDomain/ViewDomain.component';
 import { FilterProjectInsightComponent } from './user-team/project-insight-projconfig/FilterProjectInsight/FilterProjectInsight.component';
+import { AllDomainsComponent } from './user-team/project-insight-projconfig/AllDomains/AllDomains.component';
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
 
@@ -267,6 +268,7 @@ registerLocaleData(localeGb);
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
     DomainComponent,
+    AllDomainsComponent,
     BreadcrumbComponent,
     SubDomainComponent,
     FilterProjectInsightComponent,

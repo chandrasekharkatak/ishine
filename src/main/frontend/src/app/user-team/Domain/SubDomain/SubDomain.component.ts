@@ -31,6 +31,7 @@ export class SubDomainComponent implements OnInit {
   }
 
   addChildrenSubDomainList(ind: number) {
+    this.subDomains[ind].isOpen = true
     this.subDomains[ind].subDomains.push({ name: '',isActive: true, subDomains: [], services: [],isOpen: true,type: 'subDomain' })
   }
 
@@ -39,6 +40,7 @@ export class SubDomainComponent implements OnInit {
   }
 
   addServices(ind: number) {
+    this.subDomains[ind].isOpen = true
     this.subDomains[ind].services.push({isOpen: true,isActive: true, name: '', subServices: [], type: 'service'})
   }
 
@@ -47,6 +49,7 @@ export class SubDomainComponent implements OnInit {
   }
 
   addSubServices(ind: number, jnd: number) {
+    this.subDomains[ind].services[jnd].isOpen = true
     this.subDomains[ind].services[jnd].subServices.push({isOpen: true,isActive: true, name: '', subServices: [], type: 'subService'})
   }
 
@@ -56,7 +59,6 @@ export class SubDomainComponent implements OnInit {
 
   toggleService(ind: number, jnd: number) {
     this.subDomains[ind].services[jnd].isOpen = !this.subDomains[ind].services[jnd].isOpen
-    
   }
 
   deleteDomainData(id: number, type: string, domain: Domain | Service| SubDomain | SubService, isActive: boolean) {

@@ -25,7 +25,8 @@ export class DomainComponent implements OnInit {
     isActive: true,
     subDomains: [],
     services: [],
-    type: ''
+    type: '',
+    isOpen: true
   }
 
   ngOnInit() {

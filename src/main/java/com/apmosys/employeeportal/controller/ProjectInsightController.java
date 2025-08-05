@@ -215,8 +215,8 @@ public class ProjectInsightController {
 
 
 	@RequestMapping(value = "/getAllProjectInsight", method = RequestMethod.GET)
-	public ResponseEntity<List<ProjectInsighProjectMappingDTO>> getAllProjectInsight(@RequestParam(required=false) String domain) {
-		List<ProjectInsighProjectMappingDTO> list = projectInsightService.getAllProjectInsight(domain);
+	public ResponseEntity<List<ProjectInsighProjectMappingDTO>> getAllProjectInsight(@RequestParam(required=false) String domainName, @RequestParam(required=false) String unique_name) {
+		List<ProjectInsighProjectMappingDTO> list = projectInsightService.getAllProjectInsight(domainName, unique_name);
 		return ResponseEntity.ok(list);
 	}
 

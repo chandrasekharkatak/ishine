@@ -1,0 +1,59 @@
+<div class="all-domains-container">
+  <p class="page-title">All Domains</p>
+
+  <!-- Search Section -->
+  <div class="search-section">
+    <div class="search-input-group">
+      <input 
+        type="text" 
+        class="search-input"
+        placeholder="Search domains..." 
+        [(ngModel)]="searchQuery"
+        (input)="searchDomains()"
+      >
+    </div>
+  </div>
+
+  <!-- Domains List -->
+  <div class="domains-list">
+    <ng-container *ngIf="filteredDomains.length > 0; else noResults">
+      <ng-container *ngFor="let domain of filteredDomains">
+        <ng-container *ngTemplateOutlet="renderDomain; context: { $implicit: domain }"></ng-container>
+      </ng-container>
+    </ng-container>
+
+    <ng-template #noResults>
+      <div class="no-results">
+        <div class="search-icon">🔍</div>
+        <p>No domains found</p>
+        <p *ngIf="searchQuery" class="small">Try adjusting your search</p>
+      </div>
+    </ng-template>
+
+    <!-- Recursive Domain Template -->
+    <ng-template #renderDomain let-domain>
+      <div class="domain-item">
+        <div class="domain-row" [ngClass]="{ 'active': (domain.name === selectedDomainName || domain.id === childrenSelectedDomainId) }">
+          <div class="domain-left" [title]="domain.name + ' ('+domain.type+')'" >
+            <button 
+              *ngIf="domain.isChildAvailable"
+              class="toggle-btn"
+              (click)="onToggle(domain)"
+            >
+              {{ domain.isOpen ? '▼' : '▶' }}
+            </button>
+            <span (click)="filterProjectWithDomains(domain)" class="domain-name">{{ getName(domain.name) }}</span>
+          </div>
+          <span class="domain-type" [class]="'type-' + getColour(domain.type)">{{ domain.type }}</span>
+        </div>
+
+        <!-- Recursive Children -->
+        <div *ngIf="domain.isOpen && domain.children?.length" class="domain-children">
+          <ng-container *ngFor="let child of domain.children">
+            <ng-container *ngTemplateOutlet="renderDomain; context: { $implicit: child }"></ng-container>
+          </ng-container>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+</div>

@@ -14,5 +14,9 @@ public interface ProjectInsightStructureRepository extends MongoRepository<Proje
     @Query("{ 'data.questions.projectResponseList': { $elemMatch: { $or: [ { 'tags': { $in: [?#{#fieldValueMap['tags']}] } } ] } } } }")
     List<ProjectInsightStructure> findByFieldValuesAny(@Param("fieldValueMap") Map<String, List<String>> fieldValueMap);
 
+    @Query("{ 'data.fields.domain': { $in: [?0] } }")
+    List<ProjectInsightStructure> findByDomainIdFlexible(Object domainId);
+
+    
 
 }  

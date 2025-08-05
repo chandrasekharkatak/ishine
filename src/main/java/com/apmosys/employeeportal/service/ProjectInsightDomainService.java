@@ -27,6 +27,7 @@ import com.apmosys.employeeportal.dto.FilterProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainCreatedBy;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightDomainDataDto;
 import com.apmosys.employeeportal.dto.ProjectInsightEditDomainDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightServiceDTO;
 import com.apmosys.employeeportal.repository.ProjectInsightServiceRepository;
@@ -497,9 +498,13 @@ public class ProjectInsightDomainService {
         return list;
     }
 
-    public String editAndAddProjectInsightDomainData(ProjectInsightDomainDTO projectInsightDomainDTO,
-            Long createdBy){
-        
-    }
+    @Autowired
+    private ProjectInsightDomainDataRepository projectInsightDomainDataRepository;
 
+    public List<ProjectInsightDomainDataDto> getDomainsData(List<String> type, Long parentId) {
+        List<ProjectInsightDomainDataDto> list = projectInsightDomainDataRepository.findDomainsByTypeAndParentId(type,parentId);
+
+        return list;
+    }
+    
 }

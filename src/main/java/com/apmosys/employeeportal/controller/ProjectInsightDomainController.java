@@ -19,6 +19,7 @@ import com.apmosys.employeeportal.dto.FilterProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainCreatedBy;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightDomainDataDto;
 import com.apmosys.employeeportal.dto.ProjectInsightEditDomainDTO;
 import com.apmosys.employeeportal.enums.ProjectInsightDomainApprovedStatus;
 import com.apmosys.employeeportal.model.ProjectInsightDomain;
@@ -170,6 +171,17 @@ public class ProjectInsightDomainController {
     public ResponseEntity<?> search(@RequestParam String search, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             Page<ProjectInsighProjectMappingDTO> list = projectInsightDomainService.search(search, page, limit);
+            return ResponseEntity.ok(list);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @PostMapping("/get-domains")
+    public ResponseEntity<?> getDomains(@RequestBody List<String> type, @RequestParam(required = false) Long parentId) {
+        try {
+            List<ProjectInsightDomainDataDto> list = projectInsightDomainService.getDomainsData(type, parentId);
             return ResponseEntity.ok(list);
         } catch (Exception e) {
             e.printStackTrace();

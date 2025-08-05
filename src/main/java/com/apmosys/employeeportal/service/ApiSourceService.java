@@ -41,6 +41,9 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
+import com.apmosys.employeeportal.model.ProjectInsightDomainData;
+import com.apmosys.employeeportal.repository.ProjectInsightDomainDataRepository;
+
 @Service
 public class ApiSourceService {
 
@@ -136,22 +139,22 @@ public class ApiSourceService {
 		}
 	}
 
+	@Autowired
+	private ProjectInsightDomainDataRepository projectInsightDomainDataRepository;
+
 	public List<HierarchyOptionDTO> getAllDomain() {
 		try {
-			List<ProjectInsightDomain> domains = projectInsightDomainRepository.findAll();
-			domains = domains.stream()
-					.filter(d -> !ProjectInsightDomainApprovedStatus.rejected.equals(d.getIsApproved())
-							&& d.getIsActive() != false)
-					.collect(Collectors.toList());
+			List<ProjectInsightDomainData> domains = projectInsightDomainDataRepository.findAllActiveAndApprovedDomain();
+			// domains = domains.stream()
+			// 		.filter(d -> !"rejected".equalsIgnoreCase(d.getIsApproved())  && d.getIsActive() != false)
+			// 		.collect(Collectors.toList());
 			List<HierarchyOptionDTO> result = new ArrayList<>();
-			for (ProjectInsightDomain domain : domains) {
-				boolean hasSubDomains = domain.getSubDomains() != null && !domain.getSubDomains().isEmpty();
-				boolean hasServices = domain.getServices() != null && !domain.getServices().isEmpty();
-				boolean isChildAvailable = hasSubDomains || hasServices;
-				String hierarchyType = "DOMAIN";
+			for (ProjectInsightDomainData domain : domains) {
+				boolean isChildAvailable = domain.getChildren() != null && !domain.getChildren().isEmpty();
+				String hierarchyType = "domain";
 				HierarchyOptionDTO dto = new HierarchyOptionDTO();
-				dto.setId(domain.getDomainId());
-				dto.setName(domain.getDomain());
+				dto.setId(domain.getId());
+				dto.setName(domain.getName());
 				dto.setIsChildAvailable(isChildAvailable);
 				dto.setHierarchyType(hierarchyType);
 				result.add(dto);
@@ -164,167 +167,79 @@ public class ApiSourceService {
 
 	public List<HierarchyOptionDTO> getAllNextFieldAndOption(String id, String type) {
 		List<HierarchyOptionDTO> result = new ArrayList<>();
-		switch (type.toUpperCase()) {
-			case "DOMAIN":
-				Optional<ProjectInsightDomain> domainOpt = projectInsightDomainRepository.findById(Long.valueOf(id));
-				if (domainOpt.isPresent()) {
-					ProjectInsightDomain domain = domainOpt.get();
-					// Add subdomains if present
-					if (domain.getSubDomains() != null && !domain.getSubDomains().isEmpty()) {
-						for (ProjectInsightSubDomain subDomain : domain.getSubDomains()) {
-							boolean hasServices = subDomain.getServices() != null && !subDomain.getServices().isEmpty();
-							HierarchyOptionDTO dto = new HierarchyOptionDTO();
-							dto.setId(subDomain.getSubDomainId());
-							dto.setName(subDomain.getSubDomain());
-							dto.setIsChildAvailable(hasServices);
-							dto.setHierarchyType("SUBDOMAIN");
-							result.add(dto);
-						}
-					}
-					// Add services if present (even if subdomains exist)
-					if (domain.getServices() != null && !domain.getServices().isEmpty()) {
-						for (ProjectInsightServiceModel service : domain.getServices()) {
-							boolean hasSubServices = service.getSubServices() != null
-									&& !service.getSubServices().isEmpty();
-							HierarchyOptionDTO dto = new HierarchyOptionDTO();
-							dto.setId(service.getServiceId());
-							dto.setName(service.getService());
-							dto.setIsChildAvailable(hasSubServices);
-							dto.setHierarchyType("SERVICE");
-							result.add(dto);
-						}
-					}
+		ProjectInsightDomainData data = projectInsightDomainDataRepository.findByIdAndType(Long.valueOf(id), type);
+		if (data != null) {
+			if (data.getChildren() != null && !data.getChildren().isEmpty()) {
+				for (ProjectInsightDomainData d : data.getChildren()) {
+					boolean hasChildren = d.getChildren() != null && !d.getChildren().isEmpty();
+					HierarchyOptionDTO dto = new HierarchyOptionDTO();
+					dto.setId(d.getId());
+					dto.setName(d.getName());
+					dto.setIsChildAvailable(hasChildren);
+					dto.setHierarchyType(
+							d.getType().equalsIgnoreCase("domain") ? "DOMAIN" : d.getType().equalsIgnoreCase("subDomain") ? "SUBDOMAIN" : d.getType().equalsIgnoreCase("service") ? "SERVICE" : "SUBSERVICE"
+						);
+					result.add(dto);
 				}
-				break;
-
-			case "SUBDOMAIN":
-				Optional<ProjectInsightSubDomain> subDomainOpt = projectInsightSubDomainRepository
-						.findById(Long.valueOf(id));
-				if (subDomainOpt.isPresent()) {
-					ProjectInsightSubDomain subDomain = subDomainOpt.get();
-					if (subDomain.getServices() != null && !subDomain.getServices().isEmpty()) {
-						for (ProjectInsightServiceModel service : subDomain.getServices()) {
-							boolean hasSubServices = service.getSubServices() != null
-									&& !service.getSubServices().isEmpty();
-							HierarchyOptionDTO dto = new HierarchyOptionDTO();
-							dto.setId(service.getServiceId());
-							dto.setName(service.getService());
-							dto.setIsChildAvailable(hasSubServices);
-							dto.setHierarchyType("SERVICE");
-							result.add(dto);
-						}
-					}
-				}
-				break;
-
-			case "SERVICE":
-				Optional<ProjectInsightServiceModel> serviceOpt = projectInsightServiceModelRepository
-						.findById(Long.valueOf(id));
-				if (serviceOpt.isPresent()) {
-					ProjectInsightServiceModel service = serviceOpt.get();
-					if (service.getSubServices() != null && !service.getSubServices().isEmpty()) {
-						for (ProjectInsightSubService subService : service.getSubServices()) {
-							boolean hasChildren = subService.getChildren() != null
-									&& !subService.getChildren().isEmpty();
-							HierarchyOptionDTO dto = new HierarchyOptionDTO();
-							dto.setId(subService.getId());
-							dto.setName(subService.getSubService());
-							dto.setIsChildAvailable(hasChildren);
-							dto.setHierarchyType("SUBSERVICE");
-							result.add(dto);
-						}
-					}
-				}
-				break;
-
-			case "SUBSERVICE":
-				Optional<ProjectInsightSubService> subServiceOpt = projectInsightSubServiceRepository
-						.findById(Long.valueOf(id));
-				if (subServiceOpt.isPresent()) {
-					ProjectInsightSubService subService = subServiceOpt.get();
-					if (subService.getChildren() != null && !subService.getChildren().isEmpty()) {
-						for (ProjectInsightSubService child : subService.getChildren()) {
-							boolean hasChildren = child.getChildren() != null && !child.getChildren().isEmpty();
-							HierarchyOptionDTO dto = new HierarchyOptionDTO();
-							dto.setId(child.getId());
-							dto.setName(child.getSubService());
-							dto.setIsChildAvailable(hasChildren);
-							dto.setHierarchyType("SUBSERVICE");
-							result.add(dto);
-						}
-					}
-				}
-				break;
-			default:
-				break;
+			}
 		}
 		return result;
 	}
 
+	@Autowired
+	private MongoTemplate mongoTemplate;
+
 	public Map<String, Set<String>> findIdsWithDomainKey() {
-		// Query query = new Query(new Criteria().orOperator(
-		// Criteria.where("data.fields.domain").exists(true),
-		// Criteria.where("data.child.fields.domain").exists(true)));
+		Query query = new Query(Criteria.where("data.fields.domain").exists(true));
+		query.fields().include("id");
+		query.fields().include("data.fields.domain");
+		query.fields().include("data.fields.DomainLabel");
+		query.fields().include("structure.formName");
 
-		// query.fields().include("id"); // Project only the ID field
+		List<ProjectInsightStructure> results = mongoTemplate.find(query, ProjectInsightStructure.class);
 
-		List<ProjectInsightStructure> results = projectInsightStructureRepository.findAll();
-		Map<String, Set<String>> domainMap = new HashMap<>();
-
-		// Map<String, Set<String>> domainMap = results.stream()
-		// .filter(p -> p.getData() != null
-		// && p.getData().getFields() != null
-		// && p.getData().getFields().get("domain") != null
-		// && p.getStructure() != null
-		// && p.getStructure().getFormName() != null)
-		// .flatMap(DomainMapper::toDomainEntries)
-		// .collect(Collectors.groupingBy(
-		// Map.Entry::getKey,
-		// Collectors.mapping(Map.Entry::getValue, Collectors.toSet())
-		// ));
-
-		List<Object> objectIds = results.stream()
-				.filter(p -> p.getData() != null && p.getData().getFields() != null
-						&& p.getData().getFields().get("domain") != null && p.getStructure() != null
-						&& p.getStructure().getFormName() != null)
-				.map(p -> p.getData().getFields().get("domain"))
-				.collect(Collectors.toList());
-
-		List<Long> ids = new ArrayList<>();
-
-		for (Object id : objectIds) {
-			for(Object id1 : (List<Object>) id) {
-				ids.add(Long.valueOf(id1.toString()));
+		Set<Long> domainIds = new HashSet<>();
+		for (ProjectInsightStructure result : results) {
+			Object domainField = result.getData().getFields().get("domain");
+			if (domainField instanceof List<?>) {
+				for (Object idObj : (List<?>) domainField) {
+					try {
+						domainIds.add(Long.valueOf(idObj.toString()));
+					} catch (NumberFormatException ignored) {}
+				}
 			}
 		}
 
-		List<ProjectInsightDomain> allDomainsWithName = projectInsightDomainRepository.findAllById(ids);
+		List<ProjectInsightDomainData> domainEntities = projectInsightDomainDataRepository.findAllById(domainIds);
 
-		for (ProjectInsightStructure p : results) {
-			if (p.getData() != null && p.getData().getFields() != null
-					&& p.getData().getFields().get("domain") != null && p.getStructure() != null
-					&& p.getStructure().getFormName() != null) {
-				List<Object> domainList = (List<Object>) p.getData().getFields().get("domain");
+		Map<Long, String> domainIdToName = domainEntities.stream()
+		.collect(Collectors.toMap(
+			d -> d.getId(),
+			d -> d.getName()
+		));
 
-				for (Object domain : domainList) {
-					String domainKey = domain.toString();
-					String actualName = "";
-					for(ProjectInsightDomain projectInsightDomain : allDomainsWithName) {
-						if(projectInsightDomain.getDomainId().toString().equals(domainKey)) {
-							actualName = projectInsightDomain.getDomain();
-							break;
+		// Step 4: Build domainName -> formNames map
+		Map<String, Set<String>> domainMap = new HashMap<>();
+
+		for (ProjectInsightStructure result : results) {
+			Object domainField = result.getData().getFields().get("domain");
+			String formName = result.getStructure() != null ? result.getStructure().getFormName() : null;
+
+			if (formName != null && domainField instanceof List<?>) {
+				for (Object domainIdObj : (List<?>) domainField) {
+					try {
+						Long domainId = Long.valueOf(domainIdObj.toString());
+						String domainName = domainIdToName.get(domainId);
+						if (domainName != null) {
+							domainMap.computeIfAbsent(domainName, k -> new HashSet<>()).add(formName);
 						}
-					}
-
-					Set<String> formNames = domainMap.getOrDefault(actualName, new HashSet<>());
-					formNames.add(p.getStructure().getFormName());
-					domainMap.put(actualName, formNames);
+					} catch (NumberFormatException ignored) {}
 				}
-
 			}
 		}
 
 		return domainMap;
 	}
+
 
 }

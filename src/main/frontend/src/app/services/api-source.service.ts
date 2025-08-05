@@ -35,5 +35,16 @@ export class ApiSourceService {
     return this.http.get<any[]>(`${this.baseUrl}` + `api/get-all-domain-with-projects`);
   }
 
+  getAllDomainData(type: string[], parentId: number | null = null) {
+    const params: any = {};
+    if (parentId !== null && parentId !== undefined) {
+      params.parentId = parentId;  // must match @RequestParam name
+    }
+
+    return this.http.post<any[]>(`${this.baseUrl}api/get-domains`, type, { params });
+  }
+
+
+
 
 }

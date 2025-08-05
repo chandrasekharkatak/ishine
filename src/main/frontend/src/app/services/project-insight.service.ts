@@ -103,13 +103,21 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/onSaveAsDraft`, payload);
   }
 
-  getAllProjectInsight(domain?: string) {
-    if(!domain){
+  getAllProjectInsight(domainName?: number | string, unique_name?: string) {
+    if(!domainName && !unique_name){
       return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`);
+    }
+    if(!unique_name){
+      return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`, {
+        params: {
+          domainName
+        }
+      });
     }
     return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`, {
       params: {
-        domain
+        domainName,
+        unique_name
       }
     });
   }
@@ -126,9 +134,8 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/getProjectInsightByAssignedToEmpId`, empObject);
   }
 
-  searchProjectInsight(keyword: string, page: number, limit: number){ {
+  searchProjectInsight(keyword: string, page: number, limit: number){ 
     return this.http.get(environment.baseUrl + 'api/search-project-insight', {params: {search: keyword, page: page, limit: limit}});
-  }
   }
 
   getReviewersForQuestion(object: any){
