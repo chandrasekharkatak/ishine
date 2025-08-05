@@ -255,4 +255,12 @@ export class TimesheetService {
     return this.http.get(`${this.baseUrl}`+`api/getEmployeeTimesheetAsCalender?projectId=${projectId},month=${month},year=${year}`);
   }
    
+  getAllEmployeeDSROfRM(payload:any){
+    return this.http.post(`${this.baseUrl}`+`api/getAllEmployeeDSROfRM`,payload);
+  }
+  
+   approveTimesheetRequest(payload:any){
+    return this.http.post(`${this.baseUrl}`+`api/approveTimesheetRequest`,payload);
+  }
+  
 }

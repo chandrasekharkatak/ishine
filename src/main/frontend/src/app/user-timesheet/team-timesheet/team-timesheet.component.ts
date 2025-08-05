@@ -62,18 +62,20 @@ export class TeamTimesheetComponent implements OnInit {
   bulkReject: any = [];
 
   tableName: String;
-
+  searchText: string = '';
+  selectedRows: any[] = [];
 
   filters: any = {};
   isSearchEnabled: boolean = false;
   allTimesheetColumns: any[] = ['blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'status', 'isNightShift', 'leaveType', 'remarks'];
   allTimesheetReqColumns: any[] = ['blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
-
+  allTimesheetColumnsVMS:any[]=['blank', 'employeementId','clientSideId', 'name','teamName','departmentName','projectName','clientName','billableType','employeeRole','spoc','projectManagerName','poNo','startdate','totalExpectedFillCount','totalIshineFilledCount','totalClientSideNotFilledCount','totalClientSidePendingCount','totalClientSideApprovedCount']
   previewUrl: any;
   fileType: '' | 'pdf' | 'image' | null = null;
   docData: any;
   mimeType: any;
   selectedRejectReason: any;
+  today:any;
   rejectReasons: any[] = [];
 
   constructor(
@@ -92,13 +94,13 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-
+     const now = new Date();
+    this.today = now.toISOString().split('T')[0];
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-
     this.sectionViewInit();
     this.preventBackButton();
     this.getRejectionReason();
@@ -168,7 +170,7 @@ export class TeamTimesheetComponent implements OnInit {
     timesheetObj.status = "Approved";
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
-    //console.log("timesheet obj  : ", timesheetObj)
+    console.log("timesheet obj  : ", timesheetObj)
     this.timesheetService.getMyReporteesApprovedTimesheets(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheets = response.serviceResponse;
@@ -189,7 +191,7 @@ export class TeamTimesheetComponent implements OnInit {
       }
     });
   }
-
+  allTeamTimesheetRequestsProjectView: any[] = [];
   getMyReporteesTimesheetRequests() {
     this.allTeamTimesheetRequests = [];
     this.isSelectAll = false
@@ -199,28 +201,59 @@ export class TeamTimesheetComponent implements OnInit {
     let timesheetObj = new Timesheet();
     timesheetObj.managerId = this.currentUser.empId;
     timesheetObj.status = "Pending";
-    this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
+    timesheetObj.fromDate = "";
+    timesheetObj.toDate = "";
+  
+    // this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.allTeamTimesheetRequests = response.serviceResponse;
+    //     this.allTeamTimesheetRequests.forEach((timesheet, index) => {
+    //       timesheet.checkId = "timesheet" + index;
+    //       timesheet.employeementId = "A-".concat(timesheet.employeementId);
+    //       timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+    //       timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+    //       timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+    //       timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+    //     });
+
+    //     this.allTeamTimesheetRequests.forEach(timesheet => {
+    //       timesheet.emp360 = timesheet.empId;
+    //       timesheet.emp360CreatedBy = timesheet.createdBy;
+    //     });
+
+    //     //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
+    //   } else {
+    //     console.error(response.serviceResponse)
+    //   }
+    // });
+
+    timesheetObj.fromDate = this.startDate;
+    timesheetObj.toDate = this.endDate;
+    console.log("test",this.startDate)
+
+    this.timesheetService.getAllEmployeeDSROfRM(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allTeamTimesheetRequests = response.serviceResponse;
-        this.allTeamTimesheetRequests.forEach((timesheet, index) => {
-          timesheet.checkId = "timesheet" + index;
-          timesheet.employeementId = "A-".concat(timesheet.employeementId);
-          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        });
+        this.allTeamTimesheetRequestsProjectView = response.serviceResponse;
+        // this.allTeamTimesheetRequests.forEach((timesheet, index) => {
+        //   timesheet.checkId = "timesheet" + index;
+        //   timesheet.employeementId = "A-".concat(timesheet.employeementId);
+        //   timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+        //   timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+        //   timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+        //   timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        // });
 
-        this.allTeamTimesheetRequests.forEach(timesheet => {
-          timesheet.emp360 = timesheet.empId;
-          timesheet.emp360CreatedBy = timesheet.createdBy;
-        });
+        // this.allTeamTimesheetRequests.forEach(timesheet => {
+        //   timesheet.emp360 = timesheet.empId;
+        //   timesheet.emp360CreatedBy = timesheet.createdBy;
+        // });
 
-        //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
+        console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequestsProjectView);
       } else {
         console.error(response.serviceResponse)
       }
     });
+
   }
 
   /* Approve / Reject Timesheet requests */
@@ -235,7 +268,7 @@ export class TeamTimesheetComponent implements OnInit {
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.showAllTimesheetRequestsTable()
+        this.showAllTimesheetRequests(timesheet.empId);
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -377,6 +410,7 @@ export class TeamTimesheetComponent implements OnInit {
   //pagination 
 
   page = 1;
+  page1=1;
   handlePageChange(event) {
     this.page = event;
     this.isSelectAll = false;
@@ -387,7 +421,16 @@ export class TeamTimesheetComponent implements OnInit {
     });
 
   }
+  handlePageChange1(event) {
+    this.page1 = event;
+    this.isSelectAll = false;
+    this.bulkApprove = []
+    this.bulkReject = []
+    this.allTeamTimesheetRequests.forEach(x => {
+      x.isSelected = false;
+    });
 
+  }
   items = 10;
   handleItemsChange(event) {
     this.items = event;
@@ -589,16 +632,202 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   getRejectionReason() {
-   
+
     this.timesheetService.getRejectionReason().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-         this.rejectReasons=response.serviceResponse;
-         console.log("test",this.rejectReasons);
+        this.rejectReasons = response.serviceResponse;
+        console.log("test", this.rejectReasons);
       } else {
         console.error(response.serviceResponse)
       }
     });
 
+  }
+
+
+ filteredData() {
+  if (!this.searchText) return this.allTeamTimesheetRequestsProjectView;
+  const lowerSearchText = this.searchText.toLowerCase();
+
+  return this.allTeamTimesheetRequestsProjectView.filter(item =>
+    item.name?.toLowerCase().includes(lowerSearchText) ||
+    item.employeementId?.toString().toLowerCase().includes(lowerSearchText) ||
+    item.clientSideId?.toLowerCase().includes(lowerSearchText) ||
+    item.departmentName?.toLowerCase().includes(lowerSearchText) ||
+    item.projectName?.toLowerCase().includes(lowerSearchText) ||
+    item.poNo?.toLowerCase().includes(lowerSearchText) ||
+    item.teamName?.toLowerCase().includes(lowerSearchText)
+  );
+}
+
+
+
+  updateSelectedRows(row: any) {
+    this.selectedRows = this.filteredData().filter(r => r.selected);
+    console.log("test", this.selectedRows);
+  }
+
+  toggleAllRows(event: any) {
+    const checked = event.target.checked;
+    this.filteredData().forEach(r => (r.selected = checked));
+    this.updateSelectedRows(null);
+  }
+clearAllSelections() {
+  this.filteredData().forEach(r => r.selected = false);
+  this.selectedRows = [];
+}
+
+  bulkApprove1(template: TemplateRef<any>) {
+     let timesheetObj = new Timesheet();
+    timesheetObj.status = "Approved"
+    const rawData = this.selectedRows;
+    const empDetails = rawData.map(item => ({
+      empId: item.empId,
+      teamId: item.teamId,
+      status: "Approved",
+      timesheetStatusUpdatedBy:this.currentUser.empId
+    }));
+
+    const payload = {
+      pendingApprovalList: empDetails
+    };
+    this.timesheetService.approveTimesheetRequest(payload).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.clearAllSelections();
+        this.openAlertMod(template,response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+
+  }
+
+  bulkReject1(template: TemplateRef<any>) {
+    const rawData = this.selectedRows;
+    const empDetails = rawData.map(item => ({
+      empId: item.empId,
+      teamId: item.teamId,
+       status: "Rejected",
+      timesheetStatusUpdatedBy:this.currentUser.empId,
+      rejectionId:this.selectedRejectReason,
+      rejectReason:this.timesheetObj.rejectReason
+    }));
+const payload = {
+      pendingApprovalList: empDetails
+    };
+    this.timesheetService.approveTimesheetRequest(payload).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.clearAllSelections();
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+  openFilter() {
+    // Open modal/sidebar for advanced filtering
+  }
+
+
+showTimesheetRequests(template:TemplateRef<any>,details:any): void {
+  this.isAllTimesheetRequestTable = true;
+  let timesheetObj = new Timesheet();
+  timesheetObj.createdBy=details.empId;
+
+    this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allTeamTimesheetRequests = response.serviceResponse;
+        this.allTeamTimesheetRequests.forEach((timesheet, index) => {
+          timesheet.checkId = "timesheet" + index;
+          timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+
+        this.allTeamTimesheetRequests.forEach(timesheet => {
+          timesheet.emp360 = timesheet.empId;
+          timesheet.emp360CreatedBy = timesheet.createdBy;
+        });  
+        //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+ this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  // Load timesheets for this employee
+  // this.loadAllTeamTimesheetRequests(employeementId);
+}
+showAllTimesheetRequests(details:any){
+   let timesheetObj = new Timesheet();
+    timesheetObj.createdBy = details;
+this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allTeamTimesheetRequests = response.serviceResponse;
+        this.allTeamTimesheetRequests.forEach((timesheet, index) => {
+          timesheet.checkId = "timesheet" + index;
+          timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+
+        this.allTeamTimesheetRequests.forEach(timesheet => {
+          timesheet.emp360 = timesheet.empId;
+          timesheet.emp360CreatedBy = timesheet.createdBy;
+        });  
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });}
+
+
+
+    onBulkRejectTimesheet(template: TemplateRef<any>) {
+        this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
+        
+        if (!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)) {
+          this.alertMessage = "Please enter Valid Reason !!"
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+        let timesheetObj = new Timesheet();
+        timesheetObj.bulkRejectList = this.bulkReject;
+        timesheetObj.updatedBy = this.currentUser.empId;
+        timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
+        timesheetObj.status = "Rejected"
+        timesheetObj.rejectionId = this.selectedRejectReason;
+        timesheetObj.bulkRejectList.forEach((item) => {
+          item.employeementId = item.employeementId.substring(2);
+        })
+        this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.openAlertMod(template, "All Selected Timesheets Rejected Successfully ");
+            this.bulkApprove = [];
+            this.bulkReject = [];
+            // this.timesheetApplicationCount;
+            // this.countMyReporteesTimesheetRequests();
+            this.getMyReporteesTimesheetRequests();
+          } else {
+            console.error(response.serviceResponse)
+          }
+        });
+    
+      }
+
+
+       openReqMod(template: TemplateRef<any>) {
+        
+            this.filters = {};
+            this.isSearchEnabled = false;
+            this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+        }
+
+  opnenbulkRejectTimesheet(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 }
 
