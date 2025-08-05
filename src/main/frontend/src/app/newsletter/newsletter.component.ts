@@ -159,6 +159,23 @@ export class NewsletterComponent implements OnInit {
       }
     });
   }
+  marksasRead(message: TemplateRef<any>){
+
+    let doc = new Document();
+    doc.documentId = this.newsletterObj.documentId;
+    let newsletter = new Newsletter();
+    newsletter.documentId = doc.documentId;
+    newsletter.empId = this.currentUser.empId;
+    this.newsletterService.getAllReadNewslettersByEmpId(newsletter).pipe(first()).subscribe((response:any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(message, "Document marked as read successfully");
+        this.getAllNewsletters(this.type, message);
+      } else {
+        this.openAlertMod(message, "Error marking document as read");
+      }
+    }
+    );
+  }
 
 
   getAllReadNewsletter(){
