@@ -2,6 +2,7 @@ import { AfterViewInit, Component, ElementRef, TemplateRef, ViewChild } from '@a
 import { FormControl } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
+import { Route, Router } from '@angular/router';
 import * as Highcharts from 'highcharts';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
@@ -131,17 +132,21 @@ export class HrDashboardComponent implements AfterViewInit {
   selectedProjectId: number | null = null;
 selectedEmpId: number | null = null;
 
+showCalendar = false;
+
+
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: BsModalService,
     private projectService:ProjectService,
     private resourceManagementService: ResourceManagementService,
     private exportExcelService: ExportExcelService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,private router: Router
   ) {}
 
   async ngOnInit(): Promise<void> {
-
+    // this.selectedProjectId=322;
+    // this.selectedEmpId=1026;
     this.legendEntries = Object.entries(this.legend).map(([code, value]) => ({
       code,
       label: value.label,
@@ -882,16 +887,6 @@ modalTitle = 'Timesheet Details';
     weekDays: string[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     monthGrid: any[][] = [];
   
-    // legend: { [key: string]: { label: string; color: string } } = {
-    //   P:  { label: 'Present',         color: '#155724' },
-    //   A:  { label: 'Absent',          color: '#721c24' },
-    //   H:  { label: 'Holiday',         color: '#856404' },
-    //   RP: { label: 'Remote Present',  color: '#0c5460' },
-    //   O:  { label: 'Other Project',   color: '#383d41' },
-    //   DA: { label: 'Document Approved', color: '#004085' },
-    //   DP: { label: 'Document Pending',    color: '#7d6608' },
-    //   WO: { label: 'Week Off',    color: '#7d6608' }
-    // };
     legend: { [key: string]: { label: string; color: string } } = {
       O:   { label: 'Other Project',        color: '#1c1f23' },
       A:   { label: 'Absent',               color: '#8b0000' },
@@ -1149,8 +1144,35 @@ viewDocuments(empId: string) {
   console.log('Employee Documents:', empId);
   // confirm and delete logic
 }
+goToCalendar(projectId: number, empId: number): void {
+  this.router.navigate(['/calendar-view', projectId, empId]);
+}
 
+showCalendarView(projectId: number, empId: number): void {
+  this.selectedProjectId = projectId;
+  this.selectedEmpId = empId;
+  this.showCalendar = true;
+}
 
+openCalendarInNewTab(project: any) {
+  const urlTree = this.router.createUrlTree(
+    ['/user-timesheet/calendar-view'],
+    {
+      queryParams: {
+        projectId: project.projectId,
+        empId: project.empId
+      }
+    }
+  );
+
+  const serializedUrl = this.router.serializeUrl(urlTree);
+
+  const fullUrl = `${window.location.origin}/#${serializedUrl}`;
+
+  console.log('Opening calendar view URL:', fullUrl); 
+
+  window.open(fullUrl, '_blank');
+}
 
 
 }

@@ -90,11 +90,13 @@ import { UserUpdateInfoComponent } from './user-update-info/user-update-info.com
 import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
 import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
 import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
+import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
   {path:'login', component: LoginComponent, canActivate: [AuthGuard]},
   {path:'home', component: HomeComponent, canActivate: [AuthGuard]},
+  { path : 'calendar-view', component: CalendarViewComponent},
   {path:'update-info', component: UserUpdateInfoComponent, canActivate: [AuthGuard],
     children: [
       { path: 'employee-info', component: EmployeeInfoComponent, },
@@ -140,6 +142,7 @@ const routes: Routes = [
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
       { path: 'biomax-request', component: BiomaxApprovalComponent, },
       { path: 'hr-dashboard', component: HrDashboardComponent, },
+      { path : 'calendar-view', component: CalendarViewComponent,},
     
     ]
   },

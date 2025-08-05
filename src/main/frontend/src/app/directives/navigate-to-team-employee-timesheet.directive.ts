@@ -1,5 +1,4 @@
 import { Directive, HostListener, Input } from '@angular/core';
-import { TeamEmployeeTimesheetService } from '../team-employee-timesheet.service';
 import { Router } from '@angular/router';
 
 @Directive({
@@ -11,8 +10,7 @@ export class NavigateToTeamEmployeeTimesheetDirective {
   projectId: any;
 
   constructor(
-    private teamEmployeeTimesheetService: TeamEmployeeTimesheetService,
-    private router: Router) 
+    private router: Router)   
   { }
 
   @HostListener('click')
