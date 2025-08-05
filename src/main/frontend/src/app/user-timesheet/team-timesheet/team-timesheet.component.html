@@ -444,121 +444,173 @@
 
 
 
-<!-- Search and Action Buttons -->
-<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap" *ngIf="isAllTimesheetRequestTable">
-  <!-- Search Input -->
-  <input type="text" class="form-control mb-2 me-2" style="width: 250px;" placeholder="Search specific employee"
-    [(ngModel)]="searchText" />
-
-  <!-- Action Buttons -->
-  <div *ngIf="selectedRows.length > 0" class="my-2">
-    <button class="btn btn-success btn-sm" (click)="bulkApprove1(alert_message)">Bulk Approve</button>&nbsp;
-    <button class="btn btn-danger btn-sm" (click)="opnenbulkRejectTimesheet(reject_timesheet)">Bulk Reject</button>
-  </div>
-
-</div>
-<div class="row">
-  <div class="col-md-3">
-    <div class="info-wrapper">
-      <div class="form-group">
-        <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-        <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
-          [(ngModel)]="startDate" (keydown)="disableMannualDateInput()">
+<div class="row" *ngIf="isAllTimesheetRequestTable">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h1 class="table-header-title">Timesheets Request</h1>
       </div>
     </div>
-  </div>
-  <div class="col-md-3">
-    <div class="info-wrapper">
-      <div class="form-group">
-        <label class="info-label"><span class="text-danger">*</span>End Date</label>
-        <input id="timesheetEndDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none"
-          [max]="today" [(ngModel)]="endDate" (change)="getMyReporteesTimesheetRequests()"
-          (keydown)="disableMannualDateInput()">
+    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap" *ngIf="isAllTimesheetRequestTable">
+      <!-- Search Input -->
+      <!-- <input type="text" class="form-control mb-2 me-2" style="width: 250px;" placeholder="Search specific employee"
+    [(ngModel)]="searchText" /> -->
+      <div class="position-relative" style="width: 250px;">
+        <input type="text" class="form-control mb-2 me-2" placeholder="Search specific employee"
+          [(ngModel)]="searchText" (input)="filterSuggestions()" (focus)="showDropdown = true" (blur)="hideDropdown()"
+          autocomplete="off" />
+
+        <ul *ngIf="showDropdown && suggestionList.length > 0" class="list-group position-absolute w-100"
+          style="z-index: 1000; max-height: 200px; overflow-y: auto;">
+          <li class="list-group-item list-group-item-action" *ngFor="let suggestion of suggestionList"
+            (mousedown)="selectSuggestion(suggestion)">
+            {{ suggestion.display }}
+            <small class="text-muted" *ngIf="suggestion.type">[{{ suggestion.type }}]</small>
+          </li>
+
+
+        </ul>
       </div>
+      <!-- Action Buttons -->
+      <div *ngIf="selectedRows.length > 0" class="my-2">
+        <button class="btn btn-success btn-sm" (click)="bulkApprove1(alert_message)">Bulk Approve</button>&nbsp;
+        <button class="btn btn-danger btn-sm" (click)="opnenbulkRejectTimesheet(reject_timesheet)">Bulk Reject</button>
+      </div>
+
     </div>
-  </div>
-  <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
+    <div class="row">
+      <div class="col-md-3">
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+            <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control"
+              autocomplete="none" [(ngModel)]="startDate" (keydown)="disableMannualDateInput()">
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label class="info-label"><span class="text-danger">*</span>End Date</label>
+            <input id="timesheetEndDate" type="date" OnClick="this.showPicker()" class="form-control"
+              autocomplete="none" [max]="today" [(ngModel)]="endDate" (change)="getMyReporteesTimesheetRequests()"
+              (keydown)="disableMannualDateInput()">
+          </div>
+        </div>
+      </div>
+      <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
           <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
         </div> -->
-</div>
+    </div>
 
-<!-- Table -->
-<div style="overflow-x: auto; width: 100%;">
-  <div class="selector-toggle">
-    <a href="javascript:void(0)" (click)="toggleSearch()">
-      <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-      <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-    </a>
+    <!-- Table -->
+    <!-- <div class="row"> -->
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="selector-toggle">
+          <a href="javascript:void(0)" (click)="toggleSearch()">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+
+        <div>
+          <button type="button" class="btn btn-sm btn-outline-primary excel-button"
+            [hidden]="filteredData().length == 0" (click)="exportExcel1()">
+            <em class="fa fa-file-arrow-down fa-2x"></em>
+          </button>
+        </div>
+      </div>
+    <!-- </div> -->
+    <div style="overflow-x: auto; width: 100%;">
+      <table class="table">
+        <thead class="thead-light">
+          <tr>
+            <th>
+              <input type="checkbox" (change)="toggleAllRows($event)" />
+            </th>
+            <th style="max-width: fit-content;min-width: 80px;">Sr No.</th>
+            <th style="max-width: fit-content;min-width: 130px;">Employee ID</th>
+            <th style="max-width: fit-content;min-width: 150px;">Client Side ID</th>
+            <th style="max-width: fit-content;min-width: 200px;">Employee Name</th>
+            <th style="max-width: fit-content;min-width: 200px;">Team Name</th>
+            <th>Department</th>
+            <th style="max-width: fit-content;min-width: 200px;">Project</th>
+            <th style="max-width: fit-content;min-width: 200px;">Client</th>
+            <th style="max-width: fit-content;min-width: 160px;">Billable Type</th>
+            <th style="max-width: fit-content;min-width: 160px;">Employee Role</th>
+            <th>SPOC</th>
+            <th style="max-width: fit-content;min-width: 200px;">Project Manager</th>
+            <th>PO No</th>
+            <th style="max-width: fit-content;min-width: 150px;">Start Date</th>
+            <th style="max-width: fit-content;min-width: 150px;">Expected Timesheets</th>
+            <th style="max-width: fit-content;min-width: 150px;">Filled (Apmosys)</th>
+            <th style="max-width: fit-content;min-width: 150px;">Client Not Filled</th>
+            <th style="max-width: fit-content;min-width: 150px;">Client Pending</th>
+            <th style="max-width: fit-content;min-width: 150px;">Client Approved</th>
+          </tr>
+          <tr app-column-filter-bar *ngIf=" isSearchEnabled" [columnList]="allTimesheetColumnsVMS"
+            (onSearch)="onSearch($event);page1=1"></tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let row of filteredData() | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page1 }; let i = index">
+            <td>
+              <input type="checkbox" [(ngModel)]="row.selected" (change)="updateSelectedRows(row)" />
+            </td>
+            <td>{{items*(page1-1)+i+1}}</td>
+            <td (click)="showTimesheetRequests(timesheet_template_employee,row)" style="cursor: pointer;">
+              {{ row.employeementId }}
+            </td>
+
+            <td>{{ row.clientSideId || "NA" }}</td>
+            <td>{{ row.name }}</td>
+            <td>{{ row.teamName }}</td>
+            <td>{{ row.departmentName }}</td>
+            <td>
+              <span *ngIf="!row.showFullText">
+                {{ row.projectName.length > 18 ? (row.projectName | slice:0:18) + '...' : row.projectName }}
+                <a *ngIf="row.projectName.length > 18" href="javascript:void(0);" (click)="row.showFullText = true">Show
+                  more</a>
+              </span>
+              <span *ngIf="row.showFullText">
+                {{ row.projectName }}
+                <a href="javascript:void(0);" (click)="row.showFullText = false">Show less</a>
+              </span>
+            </td>
+
+            <td>
+              <span *ngIf="!row.showFullText">
+                {{ row.clientName.length > 18 ? (row.clientName | slice:0:18) + '...' : row.clientName }}
+                <a *ngIf="row.clientName.length > 18" href="javascript:void(0);" (click)="row.showFullText = true">Show
+                  more</a>
+              </span>
+              <span *ngIf="row.showFullText">
+                {{ row.clientName }}
+                <a href="javascript:void(0);" (click)="row.showFullText = false">Show less</a>
+              </span>
+            </td>
+            <td>{{ row.billableType }}</td>
+            <td>{{ row.employeeRole?.split(',')[0] }}</td>
+            <td>{{ row.spoc || "NA" }}</td>
+            <td>{{ row.projectManagerName }}</td>
+            <td>{{ row.poNo || "NA" }}</td>
+            <td>{{ row.startdate | date:'dd/MM/yyyy' }}</td>
+            <td>{{ row.totalExpectedFillCount }}</td>
+            <td>{{ row.totalIshineFilledCount }}</td>
+            <td>{{ row.totalClientSideNotFilledCount }}</td>
+            <td>{{ row.totalClientSidePendingCount }}</td>
+            <td>{{ row.totalClientSideApprovedCount }}</td>
+          </tr>
+          <tr *ngIf="filteredData().length === 0">
+            <td colspan="20" class="text-center">No records found.</td>
+          </tr>
+        </tbody>
+      </table>
+      <pagination-controls class="my-pagination" [hidden]="filteredData().length === 0"
+        (pageChange)="handlePageChange1($event)"></pagination-controls>
+    </div>
   </div>
-  <table class="table table-bordered table-hover">
-    <thead class="thead-light">
-      <tr>
-        <th>
-          <input type="checkbox" (change)="toggleAllRows($event)" />
-        </th>
-        <th>Sr No.</th>
-        <th>Employee ID</th>
-        <th>Client Side ID</th>
-        <th>Employee Name</th>
-        <th>Team Name</th>
-        <th>Department</th>
-        <th>Project</th>
-        <th>Client</th>
-        <th>Billable Type</th>
-        <th>Employee Role</th>
-        <th>SPOC</th>
-        <th>Project Manager</th>
-        <th>PO No</th>
-        <th>Start Date</th>
-        <th>Expected Timesheets</th>
-        <th>Filled (Apmosys)</th>
-        <th>Client Not Filled</th>
-        <th>Client Pending</th>
-        <th>Client Approved</th>
-      </tr>
-      <tr app-column-filter-bar *ngIf=" isSearchEnabled" [columnList]="allTimesheetColumnsVMS"
-        (onSearch)="onSearch($event);page1=1"></tr>
-    </thead>
-    <tbody>
-      <tr
-        *ngFor="let row of filteredData() | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page1 }; let i = index">
-        <td>
-          <input type="checkbox" [(ngModel)]="row.selected" (change)="updateSelectedRows(row)" />
-        </td>
-        <td>{{items*(page1-1)+i+1}}</td>
-        <td (click)="showTimesheetRequests(timesheet_template_employee,row)" style="cursor: pointer;">
-          {{ row.employeementId }}
-        </td>
-
-        <td>{{ row.clientSideId || "NA" }}</td>
-        <td>{{ row.name }}</td>
-        <td>{{ row.teamName }}</td>
-        <td>{{ row.departmentName }}</td>
-        <td>{{ row.projectName }}</td>
-        <td>{{ row.clientName }}</td>
-        <td>{{ row.billableType }}</td>
-        <td>{{ row.employeeRole?.split(',')[0] }}</td>
-        <td>{{ row.spoc || "NA" }}</td>
-        <td>{{ row.projectManagerName }}</td>
-        <td>{{ row.poNo || "NA" }}</td>
-        <td>{{ row.startdate }}</td>
-        <td>{{ row.totalExpectedFillCount }}</td>
-        <td>{{ row.totalIshineFilledCount }}</td>
-        <td>{{ row.totalClientSideNotFilledCount }}</td>
-        <td>{{ row.totalClientSidePendingCount }}</td>
-        <td>{{ row.totalClientSideApprovedCount }}</td>
-      </tr>
-      <tr *ngIf="filteredData().length === 0">
-        <td colspan="20" class="text-center">No records found.</td>
-      </tr>
-    </tbody>
-  </table>
-  <pagination-controls class="my-pagination" [hidden]="filteredData().length === 0"
-    (pageChange)="handlePageChange1($event)"></pagination-controls>
 </div>
-
-
-
 
 
 <ng-template #timesheet_template_employee>
@@ -618,7 +670,8 @@
                   <th scope="col" class="info-label" style="min-width:70px">Sr No.</th>
                   <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="employeementId|empId">
                     Employee Id</th>
-                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="employeeName|string">Name
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="employeeName|string">
+                    Name
                   </th>
                   <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="date|date">Date</th>
                   <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="dayType|string">Day Type
@@ -627,7 +680,8 @@
                     mat-sort-header="description|string">Activity</th>
                   <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="createdByName|string">
                     Applied By</th>
-                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="totalTime|number">Working
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="totalTime|number">
+                    Working
                     Hours</th>
                   <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="officeInTime|datetime">
                     Office In Time</th>
@@ -635,9 +689,11 @@
                     Office Out Time</th>
                   <th scope="col" class="info-label" style="min-width:150px"
                     mat-sort-header="totalWorkingOfficeHours|string">Total Office Working Hours</th>
-                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="isNightShift|string">Shift
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="isNightShift|string">
+                    Shift
                   </th>
-                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="status|string">Status</th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="status|string">Status
+                  </th>
                   <th scope="col" class="info-label" style="min-width:230px">Actions</th>
                 </tr>
                 <tr app-column-filter-bar *ngIf="isAllTimesheetRequestTable && isSearchEnabled"

@@ -69,13 +69,13 @@ export class TeamTimesheetComponent implements OnInit {
   isSearchEnabled: boolean = false;
   allTimesheetColumns: any[] = ['blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'status', 'isNightShift', 'leaveType', 'remarks'];
   allTimesheetReqColumns: any[] = ['blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
-  allTimesheetColumnsVMS:any[]=['blank', 'employeementId','clientSideId', 'name','teamName','departmentName','projectName','clientName','billableType','employeeRole','spoc','projectManagerName','poNo','startdate','totalExpectedFillCount','totalIshineFilledCount','totalClientSideNotFilledCount','totalClientSidePendingCount','totalClientSideApprovedCount']
+  allTimesheetColumnsVMS: any[] = ['blank', 'employeementId', 'clientSideId', 'name', 'teamName', 'departmentName', 'projectName', 'clientName', 'billableType', 'employeeRole', 'spoc', 'projectManagerName', 'poNo', 'startdate', 'totalExpectedFillCount', 'totalIshineFilledCount', 'totalClientSideNotFilledCount', 'totalClientSidePendingCount', 'totalClientSideApprovedCount']
   previewUrl: any;
   fileType: '' | 'pdf' | 'image' | null = null;
   docData: any;
   mimeType: any;
   selectedRejectReason: any;
-  today:any;
+  today: any;
   rejectReasons: any[] = [];
 
   constructor(
@@ -94,7 +94,7 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-     const now = new Date();
+    const now = new Date();
     this.today = now.toISOString().split('T')[0];
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -203,7 +203,7 @@ export class TeamTimesheetComponent implements OnInit {
     timesheetObj.status = "Pending";
     timesheetObj.fromDate = "";
     timesheetObj.toDate = "";
-  
+
     // this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
     //   if (response.serviceStatus == "Success") {
     //     this.allTeamTimesheetRequests = response.serviceResponse;
@@ -229,7 +229,7 @@ export class TeamTimesheetComponent implements OnInit {
 
     timesheetObj.fromDate = this.startDate;
     timesheetObj.toDate = this.endDate;
-    console.log("test",this.startDate)
+    console.log("test", this.startDate)
 
     this.timesheetService.getAllEmployeeDSROfRM(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -410,7 +410,7 @@ export class TeamTimesheetComponent implements OnInit {
   //pagination 
 
   page = 1;
-  page1=1;
+  page1 = 1;
   handlePageChange(event) {
     this.page = event;
     this.isSelectAll = false;
@@ -644,22 +644,82 @@ export class TeamTimesheetComponent implements OnInit {
 
   }
 
+  showDropdown: boolean = false;
+  suggestionList: any[] = [];
+  hideDropdown(): void {
 
- filteredData() {
-  if (!this.searchText) return this.allTeamTimesheetRequestsProjectView;
-  const lowerSearchText = this.searchText.toLowerCase();
+    setTimeout(() => (this.showDropdown = false), 150);
+  }
+  filteredData() {
+    if (!this.searchText) return this.allTeamTimesheetRequestsProjectView;
+    const lowerSearchText = this.searchText.toLowerCase();
 
-  return this.allTeamTimesheetRequestsProjectView.filter(item =>
-    item.name?.toLowerCase().includes(lowerSearchText) ||
-    item.employeementId?.toString().toLowerCase().includes(lowerSearchText) ||
-    item.clientSideId?.toLowerCase().includes(lowerSearchText) ||
-    item.departmentName?.toLowerCase().includes(lowerSearchText) ||
-    item.projectName?.toLowerCase().includes(lowerSearchText) ||
-    item.poNo?.toLowerCase().includes(lowerSearchText) ||
-    item.teamName?.toLowerCase().includes(lowerSearchText)
-  );
-}
+    return this.allTeamTimesheetRequestsProjectView.filter(item =>
+      item.name?.toLowerCase().includes(lowerSearchText) ||
+      item.employeementId?.toString().toLowerCase().includes(lowerSearchText) ||
+      item.clientSideId?.toLowerCase().includes(lowerSearchText) ||
+      item.departmentName?.toLowerCase().includes(lowerSearchText) ||
+      item.projectName?.toLowerCase().includes(lowerSearchText) ||
+      item.poNo?.toLowerCase().includes(lowerSearchText) ||
+      item.teamName?.toLowerCase().includes(lowerSearchText)
+    );
+  }
 
+  filterSuggestions(): void {
+    if (!this.searchText) {
+      this.suggestionList = [];
+      return;
+    }
+
+    const lowerSearchText = this.searchText.toLowerCase();
+
+    const employeeMatches = this.allTeamTimesheetRequestsProjectView
+      .filter(item =>
+        item.name?.toLowerCase().includes(lowerSearchText) ||
+        item.employeementId?.toString().toLowerCase().includes(lowerSearchText) ||
+        item.clientSideId?.toLowerCase().includes(lowerSearchText)
+      )
+      .map(item => ({
+        display: `${item.name} (${item.employeementId})`,
+        value: item.name,
+        type: 'employee'
+      }));
+
+    const projectMatches = this.allTeamTimesheetRequestsProjectView
+      .filter(item =>
+        item.teamName?.toLowerCase().includes(lowerSearchText) ||
+        item.projectName?.toLowerCase().includes(lowerSearchText) ||
+        item.poNo?.toLowerCase().includes(lowerSearchText)
+      )
+      .map(item => ({
+        display: item.projectName,
+        value: item.projectName,
+        type: 'project'
+      }));
+
+    const departmentMatches = this.allTeamTimesheetRequestsProjectView
+      .filter(item =>
+        item.departmentName?.toLowerCase().includes(lowerSearchText)
+      )
+      .map(item => ({
+        display: item.departmentName,
+        value: item.departmentName,
+        type: 'department'
+      }));
+
+    // Merge and deduplicate suggestions
+    const seen = new Set();
+    this.suggestionList = [...employeeMatches, ...projectMatches, ...departmentMatches].filter(item => {
+      if (seen.has(item.display)) return false;
+      seen.add(item.display);
+      return true;
+    });
+  }
+
+  selectSuggestion(item: any): void {
+    this.searchText = item.value;
+    this.showDropdown = false;
+  }
 
 
   updateSelectedRows(row: any) {
@@ -672,20 +732,20 @@ export class TeamTimesheetComponent implements OnInit {
     this.filteredData().forEach(r => (r.selected = checked));
     this.updateSelectedRows(null);
   }
-clearAllSelections() {
-  this.filteredData().forEach(r => r.selected = false);
-  this.selectedRows = [];
-}
+  clearAllSelections() {
+    this.filteredData().forEach(r => r.selected = false);
+    this.selectedRows = [];
+  }
 
   bulkApprove1(template: TemplateRef<any>) {
-     let timesheetObj = new Timesheet();
+    let timesheetObj = new Timesheet();
     timesheetObj.status = "Approved"
     const rawData = this.selectedRows;
     const empDetails = rawData.map(item => ({
       empId: item.empId,
       teamId: item.teamId,
       status: "Approved",
-      timesheetStatusUpdatedBy:this.currentUser.empId
+      timesheetStatusUpdatedBy: this.currentUser.empId
     }));
 
     const payload = {
@@ -694,7 +754,7 @@ clearAllSelections() {
     this.timesheetService.approveTimesheetRequest(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.clearAllSelections();
-        this.openAlertMod(template,response.serviceResponse);
+        this.openAlertMod(template, response.serviceResponse);
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -707,12 +767,12 @@ clearAllSelections() {
     const empDetails = rawData.map(item => ({
       empId: item.empId,
       teamId: item.teamId,
-       status: "Rejected",
-      timesheetStatusUpdatedBy:this.currentUser.empId,
-      rejectionId:this.selectedRejectReason,
-      rejectReason:this.timesheetObj.rejectReason
+      status: "Rejected",
+      timesheetStatusUpdatedBy: this.currentUser.empId,
+      rejectionId: this.selectedRejectReason,
+      rejectReason: this.timesheetObj.rejectReason
     }));
-const payload = {
+    const payload = {
       pendingApprovalList: empDetails
     };
     this.timesheetService.approveTimesheetRequest(payload).pipe(first()).subscribe((response: any) => {
@@ -730,10 +790,10 @@ const payload = {
   }
 
 
-showTimesheetRequests(template:TemplateRef<any>,details:any): void {
-  this.isAllTimesheetRequestTable = true;
-  let timesheetObj = new Timesheet();
-  timesheetObj.createdBy=details.empId;
+  showTimesheetRequests(template: TemplateRef<any>, details: any): void {
+    this.isAllTimesheetRequestTable = true;
+    let timesheetObj = new Timesheet();
+    timesheetObj.createdBy = details.empId;
 
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -750,20 +810,20 @@ showTimesheetRequests(template:TemplateRef<any>,details:any): void {
         this.allTeamTimesheetRequests.forEach(timesheet => {
           timesheet.emp360 = timesheet.empId;
           timesheet.emp360CreatedBy = timesheet.createdBy;
-        });  
+        });
         //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
       } else {
         console.error(response.serviceResponse)
       }
     });
- this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-  // Load timesheets for this employee
-  // this.loadAllTeamTimesheetRequests(employeementId);
-}
-showAllTimesheetRequests(details:any){
-   let timesheetObj = new Timesheet();
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    // Load timesheets for this employee
+    // this.loadAllTeamTimesheetRequests(employeementId);
+  }
+  showAllTimesheetRequests(details: any) {
+    let timesheetObj = new Timesheet();
     timesheetObj.createdBy = details;
-this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
         this.allTeamTimesheetRequests.forEach((timesheet, index) => {
@@ -778,56 +838,89 @@ this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()
         this.allTeamTimesheetRequests.forEach(timesheet => {
           timesheet.emp360 = timesheet.empId;
           timesheet.emp360CreatedBy = timesheet.createdBy;
-        });  
+        });
       } else {
         console.error(response.serviceResponse)
       }
-    });}
+    });
+  }
 
 
 
-    onBulkRejectTimesheet(template: TemplateRef<any>) {
-        this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
-        
-        if (!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)) {
-          this.alertMessage = "Please enter Valid Reason !!"
-          this.openAlertMod(template, this.alertMessage);
-          return false;
-        }
-        let timesheetObj = new Timesheet();
-        timesheetObj.bulkRejectList = this.bulkReject;
-        timesheetObj.updatedBy = this.currentUser.empId;
-        timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
-        timesheetObj.status = "Rejected"
-        timesheetObj.rejectionId = this.selectedRejectReason;
-        timesheetObj.bulkRejectList.forEach((item) => {
-          item.employeementId = item.employeementId.substring(2);
-        })
-        this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.openAlertMod(template, "All Selected Timesheets Rejected Successfully ");
-            this.bulkApprove = [];
-            this.bulkReject = [];
-            // this.timesheetApplicationCount;
-            // this.countMyReporteesTimesheetRequests();
-            this.getMyReporteesTimesheetRequests();
-          } else {
-            console.error(response.serviceResponse)
-          }
-        });
-    
+  onBulkRejectTimesheet(template: TemplateRef<any>) {
+    this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
+
+    if (!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)) {
+      this.alertMessage = "Please enter Valid Reason !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    let timesheetObj = new Timesheet();
+    timesheetObj.bulkRejectList = this.bulkReject;
+    timesheetObj.updatedBy = this.currentUser.empId;
+    timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
+    timesheetObj.status = "Rejected"
+    timesheetObj.rejectionId = this.selectedRejectReason;
+    timesheetObj.bulkRejectList.forEach((item) => {
+      item.employeementId = item.employeementId.substring(2);
+    })
+    this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, "All Selected Timesheets Rejected Successfully ");
+        this.bulkApprove = [];
+        this.bulkReject = [];
+        // this.timesheetApplicationCount;
+        // this.countMyReporteesTimesheetRequests();
+        this.getMyReporteesTimesheetRequests();
+      } else {
+        console.error(response.serviceResponse)
       }
+    });
+
+  }
 
 
-       openReqMod(template: TemplateRef<any>) {
-        
-            this.filters = {};
-            this.isSearchEnabled = false;
-            this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-        }
+  openReqMod(template: TemplateRef<any>) {
+
+    this.filters = {};
+    this.isSearchEnabled = false;
+    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  }
 
   opnenbulkRejectTimesheet(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  exportExcel1() {
+   
+    if (this.isAllTimesheetRequestTable == true) {
+      this.excelName = 'AllTeamTimesheetDetails.xlsx';
+
+      this.allTeamTimesheetDataForExcel = this.allTeamTimesheetRequestsProjectView;
+      const onlySpecificDataArr = this.allTeamTimesheetDataForExcel.map(
+        x => ({
+          "Employee Id": x.employeementId,
+          "Client Side Id": x.clientSideId,
+          "Employee Name": x.name,
+          "Team Name": x.teamName,
+          "Department Name": x.departmentName,
+          "Project Name": x.projectName,
+          "PONO": x.poNo,
+          "Client Name": x.clientName,
+          "Billable Type": x.billableType,
+          "Employee Role": x.employeeRole,
+          "SPOC": x.spoc,
+          "Project Manager Name": x.projectManagerName,
+          "Start Date": x.startdate,
+          "Total Expected Fill Count": x.totalExpectedFillCount,
+          "Total Ishine Filled Count": x.totalIshineFilledCount,
+          "TotalClient Side Not Filled Count": x.totalClientSideNotFilledCount,
+          "Total Client Side Pending Count": x.totalClientSidePendingCount,
+          "Total Client Side Approved Count": x.totalClientSideApprovedCount
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    }
   }
 }
 
