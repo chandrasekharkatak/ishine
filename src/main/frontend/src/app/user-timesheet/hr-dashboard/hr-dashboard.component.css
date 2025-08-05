@@ -456,11 +456,28 @@ input:checked + .slider:before {
     border-collapse: collapse;
     background: #fff;
   }
-  .calendar-table th, .calendar-table td {
+  .calendar-table td {
+    border: 1px solid #ccc; 
+    position: relative;
+    transition: box-shadow 0.2s, background-color 0.2s;
     width: 40px;
     height: 54px;
     text-align: center;
-    border: 1px solid #f1f1f1;
+    border: 1px solid #250101e3;
+    vertical-align: top;
+    padding: 0;
+  }
+  
+  .calendar-table td:hover {
+    background-color: #79aad4;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1); 
+    cursor: pointer;
+  }
+  .calendar-table th {
+    width: 40px;
+    height: 54px;
+    text-align: center;
+    border: 1px solid #0a0000e3;
     vertical-align: top;
     padding: 0;
   }
@@ -650,5 +667,16 @@ h5 {
   background: #e7eaec;
   color: #0056b3;
   box-shadow: 0 4px 12px rgba(4, 94, 179, 0.918);
+}
+.title-icon {
+  font-size: 1.5rem;
+  color: #0d6efd; /* Bootstrap primary */
+}
+.hover-popup {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 700;
+  min-width: 160px;
 }
 

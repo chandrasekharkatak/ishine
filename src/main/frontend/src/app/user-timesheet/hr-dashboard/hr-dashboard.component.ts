@@ -952,5 +952,39 @@ modalTitle = 'Timesheet Details';
     this.exportExcelService.exportTableDataToExcel(exportData, excelName);
   }
 
+
+  hoveredEmpId: string | null = null;
+hideTimeout: any;
+
+showPopup(empId: string) {
+  clearTimeout(this.hideTimeout);
+  this.hoveredEmpId = empId;
+}
+
+scheduleHidePopup() {
+  this.hideTimeout = setTimeout(() => {
+    this.hoveredEmpId = null;
+  }, 200); // Delay to allow mouseenter on popup
+}
+
+cancelHidePopup() {
+  clearTimeout(this.hideTimeout);
+}
+
+viewProfile(empId: string) {
+  console.log('View profile:', empId);
+  // navigation logic
+}
+
+viewCalender(email: string) {
+  window.location.href = `mailto:${email}`;
+}
+
+viewDocuments(empId: string) {
+  console.log('Employee Documents:', empId);
+  // confirm and delete logic
+}
+
+
 }
 

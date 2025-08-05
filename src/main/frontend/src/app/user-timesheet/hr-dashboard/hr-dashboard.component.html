@@ -3,11 +3,11 @@
         <div class="dashboard">
             <div class="header d-flex justify-content-between align-items-center">
                 <div class="title d-flex align-items-center">
-                    <span class="title-icon">📊</span>
-                    <!-- <span class="ml-2">Employee Compliance Dashboard</span> -->
+                    <img src="/assets/immigration.png"   
+                         alt="Dashboard Icon" 
+                         style="width: 32px; height: 32px;"/>
                     <span class="ml-2">Client-Side Attendance Dashboard</span>
-
-                </div>
+                  </div>
 
                 <div class="last-updated d-flex align-items-center">
                     <span>Updated: {{ lastUpdated }}</span>
@@ -17,7 +17,7 @@
                 </div>
             </div>
 
-            <!-- <div class="calendar-header mb-2 d-flex align-items-center">
+            <div class="calendar-header mb-2 d-flex align-items-center">
                 <mat-form-field appearance="outline" class="month-picker-field">
                   <input matInput [matDatepicker]="monthPicker"
                          [value]="selectedMonth"
@@ -62,7 +62,7 @@
                   <span class="legend-dot" [ngStyle]="{'background': code.color}"></span>
                   <span class="legend-label">{{ code.code }} - {{ code.label }}</span>
                 </div>
-              </div> -->
+              </div>
               
 
             <!-- Key Metrics -->
@@ -471,12 +471,58 @@
                                         *ngFor="let project of employeeView | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                         <tr>
                                             <td>{{project.employmentId || 'NA'}}</td>
-                                            <td title="Click to navigate to employee 360">
-                                                <span style="cursor: pointer; color: blue;" id="clickablefor360"
-                                                    (click)="cancelRequest()" [navigateToEmployee360]="project.empId">
-                                                    {{project.name ? project.name : 'NA' }}
+                                            <!-- <td class="position-relative">
+                                                <span 
+                                                  (mouseenter)="showPopup(project.employmentId)" 
+                                                  (mouseleave)="scheduleHidePopup()"
+                                                  style="cursor: pointer; color: #007bff; text-decoration: underline;">
+                                                  {{ project.employmentId || 'NA' }}
                                                 </span>
-                                            </td>
+                                              
+                                                <div 
+                                                  *ngIf="hoveredEmpId === project.employmentId" 
+                                                  class="hover-popup bg-white border shadow rounded p-2"
+                                                  (mouseenter)="cancelHidePopup()" 
+                                                  (mouseleave)="scheduleHidePopup()">
+                                                  
+                                                  <button class="btn btn-sm btn-secondary mb-1" (click)="viewCalender(project.email)">
+                                                    <i class="fa fa-calendar mr-1"></i> View In Calendar
+                                                  </button><br>
+                                                  
+                                                  <button class="btn btn-sm btn-danger" (click)="removeEmployee(project.empId)">
+                                                    <i class="fa fa-file-alt mr-1"></i> View Documents
+                                                  </button>                                                
+                                                </div>
+                                            </td> -->
+                                              
+                                            <td class="position-relative">
+                                                <span
+                                                  (mouseenter)="showPopup(project.empId)"
+                                                  (mouseleave)="scheduleHidePopup()"
+                                                  style="cursor: pointer; color: blue; text-decoration: underline;"
+                                                  [navigateToEmployee360]="project.empId"
+                                                  (click)="cancelRequest()"
+                                                  title="Click to navigate to employee 360"
+                                                >
+                                                  {{ project.name ? project.name : 'NA' }}
+                                                </span>
+                                              
+                                                <div
+                                                  *ngIf="hoveredEmpId === project.empId"
+                                                  class="hover-popup bg-white border shadow rounded p-2"
+                                                  (mouseenter)="cancelHidePopup()"
+                                                  (mouseleave)="scheduleHidePopup()"
+                                                >
+                                                  <button class="btn btn-sm btn-secondary mb-1" (click)="viewCalender(project.email)">
+                                                    <i class="fa fa-calendar mr-1"></i> View In Calendar
+                                                  </button><br>
+                                              
+                                                  <button class="btn btn-sm btn-danger" >
+                                                    <i class="fa fa-file-alt mr-1"></i> View Documents
+                                                  </button>
+                                                </div>
+                                              </td>
+                                              
                                             <td>{{project.billable || 'NA'}}</td>
                                             <td>{{project.billableType || 'NA'}}</td>
                                             <td>{{project.mobileNo || 'NA'}}</td>
