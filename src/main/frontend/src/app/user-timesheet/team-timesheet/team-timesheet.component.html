@@ -456,9 +456,8 @@
       <!-- <input type="text" class="form-control mb-2 me-2" style="width: 250px;" placeholder="Search specific employee"
     [(ngModel)]="searchText" /> -->
       <div class="position-relative" style="width: 250px;">
-        <input type="text" class="form-control mb-2 me-2" placeholder="Search specific employee"
-          [(ngModel)]="searchText" (input)="filterSuggestions()" (focus)="showDropdown = true" (blur)="hideDropdown()"
-          autocomplete="off" />
+        <input type="text" class="form-control mb-2 me-2" placeholder="Search..." [(ngModel)]="searchText"
+          (input)="filterSuggestions()" (focus)="showDropdown = true" (blur)="hideDropdown()" autocomplete="off" />
 
         <ul *ngIf="showDropdown && suggestionList.length > 0" class="list-group position-absolute w-100"
           style="z-index: 1000; max-height: 200px; overflow-y: auto;">
@@ -484,7 +483,7 @@
           <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Start Date</label>
             <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control"
-              autocomplete="none" [(ngModel)]="startDate" (keydown)="disableMannualDateInput()">
+              autocomplete="none" [(ngModel)]="fromDate" (keydown)="disableMannualDateInput()">
           </div>
         </div>
       </div>
@@ -493,7 +492,7 @@
           <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>End Date</label>
             <input id="timesheetEndDate" type="date" OnClick="this.showPicker()" class="form-control"
-              autocomplete="none" [max]="today" [(ngModel)]="endDate" (change)="getMyReporteesTimesheetRequests()"
+              autocomplete="none" [max]="today" [(ngModel)]="toDate" (change)="getMyReporteesTimesheetRequests()"
               (keydown)="disableMannualDateInput()">
           </div>
         </div>
@@ -505,21 +504,21 @@
 
     <!-- Table -->
     <!-- <div class="row"> -->
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="selector-toggle">
-          <a href="javascript:void(0)" (click)="toggleSearch()">
-            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-          </a>
-        </div>
-
-        <div>
-          <button type="button" class="btn btn-sm btn-outline-primary excel-button"
-            [hidden]="filteredData().length == 0" (click)="exportExcel1()">
-            <em class="fa fa-file-arrow-down fa-2x"></em>
-          </button>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="selector-toggle">
+        <a href="javascript:void(0)" (click)="toggleSearch()">
+          <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+          <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+        </a>
       </div>
+
+      <div>
+        <button type="button" class="btn btn-sm btn-outline-primary excel-button" [hidden]="filteredData().length == 0"
+          (click)="exportExcel1()">
+          <em class="fa fa-file-arrow-down fa-2x"></em>
+        </button>
+      </div>
+    </div>
     <!-- </div> -->
     <div style="overflow-x: auto; width: 100%;">
       <table class="table">
@@ -606,8 +605,9 @@
           </tr>
         </tbody>
       </table>
-      <pagination-controls class="my-pagination" [hidden]="filteredData().length === 0"
-        (pageChange)="handlePageChange1($event)"></pagination-controls>
+      <pagination-controls *ngIf="isAllTimesheetRequestTable" class="my-pagination"
+        [hidden]="filteredData().length === 0" (pageChange)="handlePageChange1($event)">
+      </pagination-controls>
     </div>
   </div>
 </div>
@@ -705,7 +705,7 @@
                   <th colspan="14" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr
-                  *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index"
+                  *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: {id: 'mainPagination',itemsPerPage: items, currentPage: page }; let i = index"
                   [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                   <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox"
                       [(ngModel)]="timesheet.isSelected" filters (change)="select(timesheet,$event)"></td>
@@ -746,8 +746,9 @@
             </table>
 
           </div>
-          <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0"
-            (pageChange)="handlePageChange($event)"></pagination-controls>
+          <pagination-controls id="mainPagination" [hidden]="allTeamTimesheetRequests.length == 0"
+            (pageChange)="handlePageChange($event)">
+          </pagination-controls>
 
         </div>
       </div>

@@ -64,12 +64,14 @@ export class TeamTimesheetComponent implements OnInit {
   tableName: String;
   searchText: string = '';
   selectedRows: any[] = [];
-
+  allTeamTimesheetRequestsProjectView: any[] = [];
+  fromDate: any;
+  toDate: any;
   filters: any = {};
   isSearchEnabled: boolean = false;
   allTimesheetColumns: any[] = ['blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'status', 'isNightShift', 'leaveType', 'remarks'];
-  allTimesheetReqColumns: any[] = ['blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
-  allTimesheetColumnsVMS: any[] = ['blank', 'employeementId', 'clientSideId', 'name', 'teamName', 'departmentName', 'projectName', 'clientName', 'billableType', 'employeeRole', 'spoc', 'projectManagerName', 'poNo', 'startdate', 'totalExpectedFillCount', 'totalIshineFilledCount', 'totalClientSideNotFilledCount', 'totalClientSidePendingCount', 'totalClientSideApprovedCount']
+  allTimesheetReqColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
+  allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employeementId', 'clientSideId', 'name', 'teamName', 'departmentName', 'projectName', 'clientName', 'billableType', 'employeeRole', 'spoc', 'projectManagerName', 'poNo', 'startdate', 'totalExpectedFillCount', 'totalIshineFilledCount', 'totalClientSideNotFilledCount', 'totalClientSidePendingCount', 'totalClientSideApprovedCount']
   previewUrl: any;
   fileType: '' | 'pdf' | 'image' | null = null;
   docData: any;
@@ -191,7 +193,7 @@ export class TeamTimesheetComponent implements OnInit {
       }
     });
   }
-  allTeamTimesheetRequestsProjectView: any[] = [];
+
   getMyReporteesTimesheetRequests() {
     this.allTeamTimesheetRequests = [];
     this.isSelectAll = false
@@ -227,9 +229,8 @@ export class TeamTimesheetComponent implements OnInit {
     //   }
     // });
 
-    timesheetObj.fromDate = this.startDate;
-    timesheetObj.toDate = this.endDate;
-    console.log("test", this.startDate)
+    timesheetObj.fromDate = this.fromDate;
+    timesheetObj.toDate = this.toDate;
 
     this.timesheetService.getAllEmployeeDSROfRM(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -426,7 +427,7 @@ export class TeamTimesheetComponent implements OnInit {
     this.isSelectAll = false;
     this.bulkApprove = []
     this.bulkReject = []
-    this.allTeamTimesheetRequests.forEach(x => {
+    this.allTeamTimesheetRequestsProjectView.forEach(x => {
       x.isSelected = false;
     });
 
@@ -628,7 +629,7 @@ export class TeamTimesheetComponent implements OnInit {
 
   onSearch(searchData) {
     this.filters = searchData;
-    //console.log("Updated Filter : ", this.filters);
+    console.log("Updated Filter : ", this.filters);
   }
 
   getRejectionReason() {
@@ -880,19 +881,19 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
 
-  openReqMod(template: TemplateRef<any>) {
+  // openReqMod(template: TemplateRef<any>) {
 
-    this.filters = {};
-    this.isSearchEnabled = false;
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-  }
+  //   this.filters = {};
+  //   this.isSearchEnabled = false;
+  //   this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  // }
 
   opnenbulkRejectTimesheet(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   exportExcel1() {
-   
+
     if (this.isAllTimesheetRequestTable == true) {
       this.excelName = 'AllTeamTimesheetDetails.xlsx';
 
