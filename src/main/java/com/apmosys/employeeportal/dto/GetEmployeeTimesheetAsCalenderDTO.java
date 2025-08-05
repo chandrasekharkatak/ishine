@@ -36,5 +36,6 @@ public class GetEmployeeTimesheetAsCalenderDTO {
 	private Integer clientSidePendingCount;
 	private Integer clientSideApprovedCount;
 	private Map<String, TimesheetDataDTO> timesheetData;
+	private String employmentId;
 
 }
