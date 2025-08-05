@@ -250,5 +250,9 @@ export class TimesheetService {
   updateActiveByRejectIdId(rejectReasonObj: TimesheetRejectReason){
     return this.http.post(`${this.baseUrl}`+`api/updateActiveByRejectIdId`,rejectReasonObj);
   }
+
+  getEmployeeTimesheetAsCalender(projectId:any,month:any,year:any){
+    return this.http.get(`${this.baseUrl}`+`api/getEmployeeTimesheetAsCalender?projectId=${projectId},month=${month},year=${year}`);
+  }
    
 }

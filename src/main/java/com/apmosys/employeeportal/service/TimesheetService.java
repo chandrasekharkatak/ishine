@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,6 +54,7 @@ import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetActivityMap;
 import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
+import com.apmosys.employeeportal.model.TimesheetDataDTO;
 import com.apmosys.employeeportal.model.TimesheetDocumentApproval;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
@@ -4163,54 +4166,51 @@ public class TimesheetService {
 	    	    dto.setProjectManagerName(obj[12] != null ? obj[12].toString() : null);
 	    	    dto.setPoNo(obj[13] != null ? obj[13].toString() : null);
 	    	    dto.setClientName(obj[14] != null ? obj[14].toString() : null);
-
-	    	    // Newly added fields
 	    	    dto.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
 	    	    dto.setMonthName(obj[16] != null ? obj[16].toString() : null);
-
 	    	    dto.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
 	    	    dto.setApmosysTimesheetFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
 	    	    dto.setClientSideNotFilledCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
 	    	    dto.setClientSidePendingCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
 	    	    dto.setClientSideApprovedCount(obj[21] != null ? Integer.parseInt(obj[21].toString()) : null);
+	    	    
+	    	    Map<String, TimesheetDataDTO> timesheetData = new HashMap<>();
+	    	    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
+	    	    DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("hh:mm a");
 
 	    	    for (int i = 0; i < 31; i++) {
-	    	        int index = 22 + i;
-	    	        String value = obj.length > index && obj[index] != null ? obj[index].toString() : null;
-	    	        switch (i + 1) {
-	    	            case 1: dto.setD1(value); break;
-	    	            case 2: dto.setD2(value); break;
-	    	            case 3: dto.setD3(value); break;
-	    	            case 4: dto.setD4(value); break;
-	    	            case 5: dto.setD5(value); break;
-	    	            case 6: dto.setD6(value); break;
-	    	            case 7: dto.setD7(value); break;
-	    	            case 8: dto.setD8(value); break;
-	    	            case 9: dto.setD9(value); break;
-	    	            case 10: dto.setD10(value); break;
-	    	            case 11: dto.setD11(value); break;
-	    	            case 12: dto.setD12(value); break;
-	    	            case 13: dto.setD13(value); break;
-	    	            case 14: dto.setD14(value); break;
-	    	            case 15: dto.setD15(value); break;
-	    	            case 16: dto.setD16(value); break;
-	    	            case 17: dto.setD17(value); break;
-	    	            case 18: dto.setD18(value); break;
-	    	            case 19: dto.setD19(value); break;
-	    	            case 20: dto.setD20(value); break;
-	    	            case 21: dto.setD21(value); break;
-	    	            case 22: dto.setD22(value); break;
-	    	            case 23: dto.setD23(value); break;
-	    	            case 24: dto.setD24(value); break;
-	    	            case 25: dto.setD25(value); break;
-	    	            case 26: dto.setD26(value); break;
-	    	            case 27: dto.setD27(value); break;
-	    	            case 28: dto.setD28(value); break;
-	    	            case 29: dto.setD29(value); break;
-	    	            case 30: dto.setD30(value); break;
-	    	            case 31: dto.setD31(value); break;
+	    	        int baseIndex = 22 + (i * 3);
+	    	        String status = obj.length > baseIndex && obj[baseIndex] != null ? obj[baseIndex].toString() : null;
+	    	        
+	    	        String inTimeRaw = obj.length > (baseIndex + 1) && obj[baseIndex + 1] != null ? obj[baseIndex + 1].toString() : null;
+	    	        String outTimeRaw = obj.length > (baseIndex + 2) && obj[baseIndex + 2] != null ? obj[baseIndex + 2].toString() : null;
+
+	    	        String inTime = null;
+	    	        String outTime = null;
+
+	    	        try {
+	    	            if (inTimeRaw != null && !inTimeRaw.isEmpty()) {
+	    	                LocalDateTime inDateTime = LocalDateTime.parse(inTimeRaw, inputFormatter);
+	    	                inTime = inDateTime.format(outputFormatter);
+	    	            }
+	    	            if (outTimeRaw != null && !outTimeRaw.isEmpty()) {
+	    	                LocalDateTime outDateTime = LocalDateTime.parse(outTimeRaw, inputFormatter);
+	    	                outTime = outDateTime.format(outputFormatter);
+	    	            }
+	    	        } catch (Exception e) {
+	    	            // Handle invalid format if needed
+	    	            e.printStackTrace();
 	    	        }
+
+	    	        TimesheetDataDTO dayData = new TimesheetDataDTO();
+	    	        dayData.setStatus(status);
+	    	        dayData.setInTime(inTime);
+	    	        dayData.setOutTime(outTime);
+
+	    	        timesheetData.put("d" + (i + 1), dayData);
 	    	    }
+
+	    	    dto.setTimesheetData(timesheetData);
 
 	    	    dtoList.add(dto);
 	    	}
