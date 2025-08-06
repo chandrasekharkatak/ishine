@@ -18,9 +18,12 @@
                     (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
             </div>
             <!-- Top Right Toggle Button -->
-            <div>
-                <button type="button" class="btn btn-primary btn-sm" (click)="goToReportList()">Toggle to Employee
-                    View</button>
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" (change)="goToReportList()" />
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label">Toggle to Employee View</span>
             </div>
         </div>
     </div>
@@ -301,8 +304,7 @@
                         <!-- TNM Expired Projects Card -->
                         <div class="col-md-5" (click)="selectStatusTab('expiredTNM')"
                             [ngClass]="{'selected-card': selectedStatusTab === 'expiredTNM'}">
-                            <div class="mini-card-tnm"
-                                style="border-left: 4px solid #8B0000; padding: 5px 8px;">
+                            <div class="mini-card-tnm" style="border-left: 4px solid #8B0000; padding: 5px 8px;">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="value fw-semibold" style="color: #8B0000; font-size: 16px;">
                                         <ng-container
@@ -369,7 +371,7 @@
                                 </div>
 
                                 <div class="d-flex justify-content-between align-items-center mt-0">
-                              
+
                                     <div class="range-buttons-container">
                                         <div class="filter-item" *ngFor="let range of ranges1">
                                             <button class="pill-button" [class.active]="selectedRange1 === range"
