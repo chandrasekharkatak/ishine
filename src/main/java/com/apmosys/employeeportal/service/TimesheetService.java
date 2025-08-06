@@ -2919,8 +2919,19 @@ public class TimesheetService {
 	            dto.setDescription((String) record[8]);  
 	            dto.setManagerName((String) record[9]); 
 	            Long timesheetId = record[10] != null ? Long.valueOf(record[10].toString()) : null;
-	            Long docId = timesheetDocumentDetailsRepository.findDocIdByTimesheetId(timesheetId);
-	            dto.setDocId(docId != null ? docId : null);
+	            if(timesheetId != null) {
+					 List<TimesheetDocumentDetails> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+					 for (TimesheetDocumentDetails doc : details) {
+					     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+					         dto.setApprovedDocument(doc.getDocId());
+					     }
+					     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
+					    	 dto.setFilledDocument(doc.getDocId());  	 
+					     }
+					 }
+ 
+				}
+				
 	            return dto;
 	        }).collect(Collectors.toList());
 

@@ -1,5 +1,16 @@
 <div class="container-fluid p-4">
 
+    <!-- Toggle Switch -->
+    <div class="row mb-4">
+        <div class="col-auto d-flex align-items-center">
+            <label class="switch mb-0">
+                <input type="checkbox" checked (change)="onToggleChange($event)">
+                <span class="slider round"></span>
+            </label>
+            <h5 class="ms-3 mb-0 text-primary">{{ toggleValue ? 'Project View' : 'Employee View' }}</h5>
+        </div>
+    </div>
+
     <div class="dashboard">
         <div class="header d-flex justify-content-between align-items-center">
             <div class="title d-flex align-items-center">
@@ -234,16 +245,7 @@
 
     </div>
     <br>
-    <!-- Toggle Switch -->
-    <div class="row mb-4">
-        <div class="col-auto d-flex align-items-center">
-            <label class="switch mb-0">
-                <input type="checkbox" checked (change)="onToggleChange($event)">
-                <span class="slider round"></span>
-            </label>
-            <h5 class="ms-3 mb-0 text-primary">{{ toggleValue ? 'Project View' : 'Employee View' }}</h5>
-        </div>
-    </div>
+
 
     <div class="insight-container p-2 rounded shadow-effect">
         <!-- Subtitle -->
@@ -567,33 +569,41 @@
                                         <td class="position-relative">
                                             <span (mouseenter)="showPopup(project.empId)"
                                                 (mouseleave)="scheduleHidePopup()"
-                                                style="cursor: pointer; color: blue; text-decoration: underline;"
-                                                [navigateToEmployee360]="project.empId" (click)="cancelRequest()"
-                                                title="Click to navigate to employee 360">
+                                                style="cursor: pointer; color: blue; text-decoration: underline;">
                                                 {{ project.name ? project.name : 'NA' }}
                                             </span>
 
                                             <div *ngIf="hoveredEmpId === project.empId"
                                                 class="hover-popup bg-white border shadow rounded p-2"
                                                 (mouseenter)="cancelHidePopup()" (mouseleave)="scheduleHidePopup()">
-                                              
-                                                  <div class="button-group-custom">
-                                                    <!-- Calendar Button -->
-                                                    <button 
-                                                      class="custom-btn calendar-btn"
-                                                      [appNavigateToCalenderView]="project.projectId"
-                                                      [empId]="project.empId">
-                                                      <i class="fa fa-calendar"></i>
-                                                      <span>View in Calendar</span>
+
+                                                <div class="button-group-custom">
+
+                                                    <!-- Navigate to Emp360 Button -->
+                                                    <button class="custom-btn emp360-btn"
+                                                        [navigateToEmployee360]="project.empId"
+                                                        (click)="cancelRequest()"
+                                                        title="Click to navigate to Employee 360">
+                                                        <i class="fa fa-user-circle"></i>
+                                                        <span>360 View</span>
                                                     </button>
-                                                  
+                                                    <!-- Calendar Button -->
+                                                    <button class="custom-btn calendar-btn"
+                                                        [appNavigateToCalenderView]="project.projectId"
+                                                        [empId]="project.empId">
+                                                        <i class="fa fa-calendar"></i>
+                                                        <span>View in Calendar</span>
+                                                    </button>
+
                                                     <!-- Documents Button -->
                                                     <button class="custom-btn documents-btn">
-                                                      <i class="fa fa-file-alt"></i>
-                                                      <span>View Documents</span>
+                                                        <i class="fa fa-file-alt"></i>
+                                                        <span>View Documents</span>
                                                     </button>
-                                                  </div>
-                                                  
+
+
+                                                </div>
+
                                             </div>
                                         </td>
 
@@ -722,14 +732,38 @@
                                     *ngFor="let project of projectView | sort: [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                     <tr>
                                         <td class="position-relative">
-                                            <span (mouseenter)="showProjectPopup(project.projectId)" (mouseleave)="scheduleHideProjectPopup()" style="color: #043870;">
-                                            {{ project.projectName ? project.projectName : 'NA' }}
+                                            <span (mouseenter)="showProjectPopup(project.projectId)"
+                                                (mouseleave)="scheduleHideProjectPopup()" style="color: #043870;">
+                                                {{ project.projectName ? project.projectName : 'NA' }}
                                             </span>
-                                            <div *ngIf="hoveredProjectId === project.projectId" class="hover-popup bg-white border shadow rounded p-2 position-absolute" (mouseenter)="cancelHideProjectPopup()"
+                                            <!-- <div *ngIf="hoveredProjectId === project.projectId" class="hover-popup bg-white border shadow rounded p-2 position-absolute" (mouseenter)="cancelHideProjectPopup()"
                                                 (mouseleave)="scheduleHideProjectPopup()" style="top: 100%; left: 0; z-index: 10;" >
                                                 <button class="btn btn-sm btn-outline-primary mr-1" [navigateToProjectView]="project.projectId" title="Project Details"><i class="fa fa-users"></i></button>
                                                 <button class="btn btn-sm btn-outline-primary" [navigateToTeamEmployeeTimesheet]="project.projectId" title="Team Attendance"><i class="fa fa-calendar-days"></i></button>
+                                            </div> -->
+
+                                            <div *ngIf="hoveredProjectId === project.projectId"
+                                                class="button-group-custom bg-white border shadow rounded p-2 position-absolute"
+                                                (mouseenter)="cancelHideProjectPopup()"
+                                                (mouseleave)="scheduleHideProjectPopup()"
+                                                style="top: 100%; left: 0; z-index: 10;">
+
+                                                <!-- Project Details Button -->
+                                                <button class="custom-btn1 project-btn"
+                                                    [navigateToProjectView]="project.projectId" title="Project Details">
+                                                    <i class="fa fa-users"></i>
+                                                    <span>Project View</span>
+                                                </button>
+
+                                                <!-- Team Attendance Button -->
+                                                <button class="custom-btn1 team-btn"
+                                                    [navigateToTeamEmployeeTimesheet]="project.projectId"
+                                                    title="Team Attendance">
+                                                    <i class="fa fa-calendar-days"></i>
+                                                    <span>Team Attendance</span>
+                                                </button>
                                             </div>
+
                                         </td>
                                         <td>{{project.poNo ? project.poNo : 'NA'}}</td>
                                         <td>{{ project.projectManagerName || 'NA' }}</td>
@@ -928,8 +962,9 @@
                             <th style="min-width: 200px">Description</th>
                             <th style="min-width: 150px">Total Time (hrs)</th>
                             <th style="min-width: 200px">Manager</th>
-                            <th style="min-width: 100px">Document</th>
-                            <th style="min-width: 100px">Action</th>
+                            <th style="min-width: 200px">Filled VMS Preview </th>
+                            <th style="min-width: 200px">Approved VMS Preview </th>
+                            <!-- <th style="min-width: 100px">Action</th> -->
                         </tr>
                     </thead>
                     <tbody>
@@ -945,18 +980,30 @@
                             <td>{{ entry.description }}</td>
                             <td>{{ entry.totalTime }}</td>
                             <td>{{ entry.managerName }}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary" *ngIf="entry.docId"
-                                    (click)="getDoscForPreview(entry.docId)">
-                                    Preview
-                                </button>
+                            <td *ngIf="entry.filledDocument">
+                                <button *ngIf="entry.filledDocument" class="btn btn-sm btn-outline-primary mb3"
+                                    type="submit" title="copy timesheet"
+                                    (click)="getDoscForPreview(entry.filledDocument)"><em>View
+                                        Doc</em></button>&nbsp;
                             </td>
-                            <td>
+                            <td *ngIf="!entry.filledDocument">
+                                {{entry.filledDocument || "NA"}}
+                            </td>
+                            <td *ngIf="entry.approvedDocument">
+                                <button *ngIf="entry.approvedDocument" class="btn btn-sm btn-outline-primary mb3"
+                                    type="submit" title="copy timesheet"
+                                    (click)="getDoscForPreview(entry.approvedDocument)"><em>View
+                                        Doc</em></button>&nbsp;
+                            </td>
+                            <td *ngIf="!entry.approvedDocument">
+                                {{entry.approvedDocument || "NA"}}
+                            </td>
+                            <!-- <td>
                                 <button class="btn btn-sm btn-success mr-1" (click)="approveTimesheet(entry)"><i
                                         class="fa-solid fa-check"></i></button>
                                 <button class="btn btn-sm btn-danger" (click)="rejectTimesheet(entry)"><i
                                         class="fa-solid fa-circle-xmark"></i></button>
-                            </td>
+                            </td> -->
                         </tr>
                     </tbody>
                 </table>
