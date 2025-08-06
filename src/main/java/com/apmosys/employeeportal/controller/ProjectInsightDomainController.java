@@ -25,6 +25,7 @@ import com.apmosys.employeeportal.enums.ProjectInsightDomainApprovedStatus;
 import com.apmosys.employeeportal.model.ProjectInsightDomain;
 import com.apmosys.employeeportal.model.ProjectInsightDomainData;
 import com.apmosys.employeeportal.model.ProjectInsightSubDomain;
+import com.apmosys.employeeportal.repository.ProjectInsightDomainRepository;
 import com.apmosys.employeeportal.service.ProjectInsightDomainService;
 
 @RestController
@@ -33,6 +34,9 @@ public class ProjectInsightDomainController {
 
     @Autowired
     private ProjectInsightDomainService projectInsightDomainService;
+    
+    @Autowired
+    private ProjectInsightDomainRepository projectInsightDomainRepository;
 
     @PostMapping("/create-project-insight-domain")
     public ResponseEntity<?> createProjectInsightDomain(@RequestBody DomainDataDTO projectInsightDomainDTO,
@@ -55,6 +59,12 @@ public class ProjectInsightDomainController {
             e.printStackTrace();
             throw e;
         }
+    }
+    
+    @GetMapping("/getAllDomains")
+    public ResponseEntity<List<ProjectInsightDomain>> getAllDomainsList(){
+    	List<ProjectInsightDomain> response = projectInsightDomainRepository.findAll();
+    	return ResponseEntity.ok(response);
     }
 
     @PutMapping("/add-new-sub-domain")

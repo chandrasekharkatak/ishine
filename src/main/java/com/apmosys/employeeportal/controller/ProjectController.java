@@ -19,6 +19,8 @@ import com.apmosys.employeeportal.dto.PoProjectIdRequestDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
+import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.service.ProjectService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -28,7 +30,10 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 public class ProjectController {
 
 	@Autowired
-	ProjectService projectService;
+	ProjectService projectService; 
+	
+	@Autowired
+	private ProjectRepository projectRepository;
 	
 	@Autowired
 	EmployeeService employeeService;
@@ -45,6 +50,12 @@ public class ProjectController {
 		
 		ServiceResponse response = projectService.getAllProjects();
 		return response;
+	}
+	
+	@RequestMapping(value = "/getAllProjectsList", method = RequestMethod.GET)
+	public ResponseEntity<List<Project>> getAllProjectsList() {
+		List<Project> response = projectRepository.findAll();
+		return ResponseEntity.ok(response);
 	}
 	
 	@RequestMapping(value = "/createProject", method = RequestMethod.POST)

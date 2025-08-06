@@ -43,6 +43,10 @@ export class ProjectInsightDomainServiceService {
     });
   }
 
+  getAllDomainList(){
+    return this.http.get(this.baseUrl+"api/getAllDomains");
+  }
+
   deleteDomainData(id: number, type: string, name?: string) {
     if (id == null) {
       id = 0

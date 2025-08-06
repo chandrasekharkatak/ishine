@@ -26,6 +26,7 @@ import { saveAs } from 'file-saver';
 import { ProjectInsightFormDetails } from 'src/app/models/projectInsightFormDetails';
 import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
 import { ProjectInsightGroupDetails } from 'src/app/models/projectInsightGroupDetails';
+import { ProjectService } from 'src/app/services/project.service';
 
 @Component({
   selector: 'app-project-insight',
@@ -95,6 +96,7 @@ export class ProjectInsightComponent implements OnInit {
   showExistingFieldsList: boolean = false;
   searchKeyword: any;
   currentVersion: any;
+  selectedDomainId: number | null = null;
 
   //List
   apiList: any[] = [];
@@ -106,6 +108,11 @@ export class ProjectInsightComponent implements OnInit {
   allEmployeeList: any[] = [];
   currentQuestionList: ProjectInsightQuestionDetails[] | [];
   rolesGreaterThanManager: any[] = ['HOD', 'SuperAdmin', 'HR', 'RMG'];
+  allProjectList: any[] = [];
+  selectedDeptList: any[] = [];
+  allDomains : any[] = [];
+  selectedProject: any;
+  selectedDepartments: number[] = [];
 
   //columnList
   projectColumns: any[] = ['blank', '', '', '', '', ''];
@@ -187,6 +194,7 @@ export class ProjectInsightComponent implements OnInit {
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
     private projectInsightService: ProjectInsightService,
+    private projectService: ProjectService,
     private apiSourceService: ApiSourceService,
     private projectInsightDomainService: ProjectInsightDomainServiceService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
@@ -880,7 +888,7 @@ export class ProjectInsightComponent implements OnInit {
 
   getAllDynamicFormByDepartmentAndType() {
     this.selectedFormId = null;
-    let formObject = { departmentId: this.selectedDepartment }
+    let formObject = { allDepartmentIds: this.selectedDepartments }
     this.formBuilderService.getAllDynamicFormByDepartmentAndType(formObject).pipe(first()).subscribe({
       next: (response: any) => {
         this.allDepartmentWiseFormList = response;
@@ -892,8 +900,23 @@ export class ProjectInsightComponent implements OnInit {
     });
   }
 
+  getAllProjects(): void {
+    this.allProjectList = [];
+    this.projectService.getAllProjectsList().pipe(first()).subscribe(
+      (response: any) => {
+        console.log("All Projects List API success.");
+        this.allProjectList  = response;
+      },
+      (error) => {
+        console.error('Error in fetching all projects: ', error);
+      }
+    );
+  }
+  
   getAllDepartmentList() {
     this.allDeptList = [];
+    this.selectedDepartments = [];
+    this.selectedDeptList = [];
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
@@ -902,6 +925,49 @@ export class ProjectInsightComponent implements OnInit {
       }
     });
   }
+
+  getProjectName(projectId: number): string { 
+    const project = this.allProjectList.find(p => p.projectId == projectId);
+    return project ? project.projectName : '';
+  }
+  
+  getDepartmentName(deptId: number): string {
+    const dept = this.allDeptList.find(d => d.deptId == deptId);
+    return dept ? dept.name : '';
+  }  
+
+  getAllDynamicDepartmentsByProject() {
+    let departmentObject = {
+      projectId: this.selectedProject
+    }
+    this.selectedDeptList = [];
+    this.departmentService.getAllDepartmentsByProjectId(departmentObject).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.selectedDeptList = response.serviceResponse;
+        // this.selectedDeptList.forEach(dept => {
+        //   this.selectedDepartments.push(dept.deptId);
+        // });
+        this.selectedDepartments = this.selectedDeptList.map(dept => dept.deptId);
+        this.getAllDynamicFormByDepartmentAndType();
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getAllDomainsList(){
+    this.projectInsightDomainService.getAllDomainList().subscribe({
+      next: (res: any[]) => {
+        this.allDomains = res;
+        console.log("All Domains : ",res);
+      }, error: (error: any) => {
+        console.error("Error Getting All Domains List : ",error);
+        throw error;
+      }
+    });
+  }
+
+
   // Department Fetch [End]
 
   // Domain [Start]
@@ -1270,9 +1336,11 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   openCreateProject() {
-    this.selectedDepartment = null;
-    this.selectedFormId = null;
+    this.getAllProjects();
     this.getAllDepartmentList();
+    this.selectedProject = null;
+    this.selectedDepartments = [];
+    this.selectedFormId = null;
     this.modalRef = this.modalService.show(this.openCreateProjectModal);
   }
 

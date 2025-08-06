@@ -25,6 +25,10 @@ export class ProjectService {
     return this.http.get(`${this.baseUrl}` + `api/getAllProjects`);
   }
 
+  getAllProjectsList() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllProjectsList`);
+  }
+
   createProject(projectObj: Project) {
     return this.http.post(`${this.baseUrl}` + `api/createProject`, projectObj);
   }

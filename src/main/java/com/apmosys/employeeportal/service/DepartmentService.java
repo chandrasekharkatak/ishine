@@ -5,10 +5,12 @@ import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import javax.mail.event.StoreListener;
 import javax.servlet.http.HttpServletRequest;
@@ -33,6 +35,7 @@ import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.DesignationDepartmentMap;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DesignationDepartmentMapRepository;
@@ -40,6 +43,7 @@ import com.apmosys.employeeportal.repository.EmployeeOnBoardingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -49,6 +53,9 @@ public class DepartmentService {
 
 	@Autowired
 	DepartmentRepository departmentRepository;
+	
+	@Autowired
+	private ProjectRepository projectRepository;
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
@@ -211,6 +218,48 @@ public class DepartmentService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		
+		return response;
+	}
+	
+	public ServiceResponse getAllDepartmentsByProjectId(Integer projectId) {
+		ServiceResponse response = new ServiceResponse();
+
+		try {
+			Optional<Project> projOpt = projectRepository.findById(projectId);
+			Project proj = new Project();
+			if(projOpt.isPresent())proj = projOpt.get();
+			String departmentIds = proj.getDeptId() != null ? proj.getDeptId():"";
+			System.out.println("dept Ids String"+departmentIds);
+			List<Long> departmentIdList = Arrays.stream(departmentIds.split(",")).map(String::trim)
+                    .filter(s -> !s.isEmpty()).map(Long::parseLong).collect(Collectors.toList());
+			List<Object[]> allDepartmentList = departmentRepository.getAllDepartmentsByIdList(departmentIdList);
+			if (allDepartmentList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Department List is Empty.");
+			} else {
+				List<DepartmentDTO> dtoList = new ArrayList<DepartmentDTO>();
+				for (Object[] object : allDepartmentList) {
+					DepartmentDTO departmentDTO = new DepartmentDTO();
+					departmentDTO.setDeptId(Long.parseLong(object[0].toString()));
+					departmentDTO.setCreatedBy(Integer.parseInt(object[1].toString()));
+					departmentDTO.setCreatedOn(object[2].toString());
+					departmentDTO.setName(object[4].toString());
+					departmentDTO.setHodId(Long.parseLong(object[3].toString()));
+					departmentDTO.setUpdatedOn(object[6] != null ? object[6].toString(): null);
+					departmentDTO.setDeptAbbreviation(object[7] != null ? object[7].toString() : null);
+					departmentDTO.setUpdatedBy(object[5] != null ? Integer.parseInt(object[5].toString()) : null);
+					dtoList.add(departmentDTO);      
+				}
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
 		return response;
 	}
 

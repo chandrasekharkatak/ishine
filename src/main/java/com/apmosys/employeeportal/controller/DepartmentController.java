@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.service.DepartmentService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -41,6 +42,12 @@ public class DepartmentController {
 	@RequestMapping(value = "/getAllDepartments", method = RequestMethod.GET)
 	public ServiceResponse getAllDepartments() {
 		ServiceResponse response = departmentService.getAllDepartments();
+		return response;
+	}
+	
+	@RequestMapping(value = "/getAllDepartmentsByProjectId", method = RequestMethod.POST)
+	public ServiceResponse getAllDepartmentsByProjectId(@RequestBody ProjectDTO projectDto) {
+		ServiceResponse response = departmentService.getAllDepartmentsByProjectId(projectDto.getProjectId());
 		return response;
 	}
 	

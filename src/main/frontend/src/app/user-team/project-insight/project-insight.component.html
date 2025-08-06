@@ -327,6 +327,36 @@
                 </nav>
 
                 <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+                    <div class="mt-3 mb-3">
+                        <!-- Project Name - ReadOnly -->
+                        <div class="form-group mb-3">
+                          <label>Project Name <span class="text-danger">*</span></label>
+                          <input type="text" class="form-control" [value]="getProjectName(selectedProject)" readonly>
+                        </div>
+                        <!-- Department - ReadOnly -->
+                        <div class="form-group mb-3">
+                          <label>Department <span class="text-danger">*</span></label>
+                          <div class="form-control" style="background-color: #e9ecef;">
+                            <ng-container *ngIf="selectedDepartments && selectedDepartments.length > 0; else noDeptSelected">
+                              <span *ngFor="let deptId of selectedDepartments; let i = index">
+                                {{ getDepartmentName(deptId) }}<span *ngIf="i < selectedDepartments.length - 1">, </span>
+                              </span>
+                            </ng-container>
+                            <ng-template #noDeptSelected>
+                              <span class="text-muted">No Departments Selected</span>
+                            </ng-template>
+                          </div>
+                        </div>
+                        <div class="form-group mb-3">
+                          <label for="domainSelect">Domain <span class="text-danger">*</span></label>
+                          <select id="domainSelect" class="form-control ellipsis-select" [(ngModel)]="selectedDomainId">
+                            <option [value]="null" disabled selected>Select a Domain</option>
+                            <option *ngFor="let domain of allDomains" [value]="domain.domainId">
+                              {{ domain.domain }}
+                            </option>
+                          </select>
+                        </div>
+                      </div>
                     <h5 class="section-title mb-0 ml-3">{{ currentNode?.formName }} Details</h5>
                     <div>
                         <button class="btn btn-primary btn-sm mr-2" title="Add New field in Form"
@@ -445,36 +475,57 @@
 <!-- Create Project Modal -->
 <ng-template #open_create_project_modal>
     <div class="modal-body text-center">
-        <p>Choose Department and Form type to proceed futher</p>
-        <div class="col-md-12 mb-0">
-            <div class="info-wrapper">
-                <div class="form-group d-flex">
-                    <label><span class="text-danger">*</span>Select Department</label>
-                    <select class="form-control ml-4" (change)="getAllDynamicFormByDepartmentAndType()"
-                        aria-hidden="true" [(ngModel)]="selectedDepartment">
-                        <option selected="selected" value="" disabled>Select</option>
-                        <option *ngFor="let department of allDeptList" value="{{department.deptId}}">{{department.name}}
-                        </option>
-                    </select>
-                </div>
-            </div>
+      <p>Choose Project, Department and Form type to proceed futher</p>
+      <div class="col-md-12 mb-0">
+        <div class="info-wrapper">
+          <div class="form-group d-flex">
+            <label><span class="text-danger">*</span>Select Project</label>
+            <select class="form-control truncate-option ml-4" (change)="getAllDynamicDepartmentsByProject()" aria-hidden="true"
+              [(ngModel)]="selectedProject">
+              <option selected="selected" value="" disabled>Select Project</option>
+              <option *ngFor="let project of allProjectList" value="{{project.projectId}}">{{project.projectName}}
+              </option>
+            </select>
+          </div>
         </div>
-        <div class="col-md-12 mb-0">
-            <div class="info-wrapper">
-                <div class="form-group d-flex">
-                    <label><span class="text-danger">*</span>Select Form</label>
-                    <select class="form-control ml-4" aria-hidden="true" [(ngModel)]="selectedFormId">
-                        <option selected="selected" value="" disabled>Select</option>
-                        <option *ngFor="let form of allDepartmentWiseFormList" value="{{form.id}}">{{form.formName}}
-                        </option>
-                    </select>
-                </div>
-            </div>
+      </div>
+      <div class="col-md-12 mb-0">
+        <div class="info-wrapper">
+          <div class="form-group d-flex">
+            <label><span class="text-danger">*</span>Select Department</label>
+            <!-- <select class="form-control ml-4" (change)="getAllDynamicFormByDepartmentAndType()" aria-hidden="true"
+              [(ngModel)]="selectedDepartment">
+              <option selected="selected" value="" disabled>Select</option>
+              <option *ngFor="let department of allDeptList" value="{{department.deptId}}">{{department.name}}
+              </option>
+            </select> -->
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Select Departments</mat-label>
+              <mat-select [(ngModel)]="selectedDepartments" multiple (selectionChange)="getAllDynamicFormByDepartmentAndType()">
+                <mat-option *ngFor="let dept of allDeptList" [value]="dept.deptId">
+                  {{ dept.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
         </div>
-        <button type="button" class="btn btn-success" (click)="showCreateProject()">Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+      </div>
+      <div class="col-md-12 mb-0">
+        <div class="info-wrapper">
+          <div class="form-group d-flex">
+            <label><span class="text-danger">*</span>Select Form</label>
+            <select class="form-control ml-4" aria-hidden="true" [(ngModel)]="selectedFormId">
+              <option selected="selected" value="" disabled>Select</option>
+              <option *ngFor="let form of allDepartmentWiseFormList" value="{{form.id}}">{{form.formName}}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-success" (click)="showCreateProject()">Yes, proceed</button>&nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
-</ng-template>
+  </ng-template>
 
 <!-- Alert Modal -->
 <ng-template #alert_message>

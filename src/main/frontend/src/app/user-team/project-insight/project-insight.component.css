@@ -456,6 +456,97 @@ mat-select {
   cursor: pointer;
 }
 
+
+.project-name-container {
+  border: 1px solid black;
+  background-color: white;
+  padding: 8px 12px;
+  display: flex;
+  width: 100%;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.project-name-container:hover {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  cursor: pointer;
+}
+
+.field-input {
+  width: 100%;
+  padding: 5px 10px;
+  border: 1px solid #999;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 14px;
+
+  backdrop-filter: blur(4px);
+}
+
+/* Pending: light reddish background */
+.status-badge.pending {
+  background: rgba(255, 0, 0, 0.05);
+  color: #a94442;
+}
+
+.status-badge.approved {
+  background: rgba(0, 128, 0, 0.05);
+  color: #3c763d;
+}
+
+.status-badge.rejected {
+  background: rgba(139, 0, 0, 0.05);
+  color: #a94442;
+}
+
+.status-badge.created {
+  background: rgba(0, 123, 255, 0.05); /* light blue background */
+  color: #0275d8; /* Bootstrap primary blue */
+}
+
+.status-badge.assigned {
+  background: rgba(111, 66, 193, 0.05); /* light purple background */
+  color: #6f42c1; /* purple */
+}
+
+
+.status-badge i {
+  font-size: 16px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 4px;
+  font-size: 14px;
+}
+
+.truncate-option {
+  width: 100%;
+}
+
+.truncate-option option {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* .form-node {
   border: 1px solid #eee;
   border-radius: 8px;

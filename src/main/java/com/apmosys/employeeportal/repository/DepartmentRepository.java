@@ -20,6 +20,9 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
 	public Department findByName(String department);
 	
+	@Query(value = "SELECT * FROM department WHERE dept_id IN (:departmentIdList)", nativeQuery = true)
+	List<Object[]> getAllDepartmentsByIdList(@Param("departmentIdList") List<Long> departmentIdList);
+	
 	@Query(nativeQuery = true)
 	public List<Object[]> getMappedDepartment(Integer projectId);
 
