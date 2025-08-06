@@ -713,8 +713,17 @@ public class TimesheetService {
 						dto.setEmploymentId(object[22] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
 						dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
 						dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
-						if(timesheetId != null)
-						dto.setDocId(timesheetDocumentDetailsRepository.findDocIdByTimesheetId(timesheetId));
+						if(timesheetId != null) {
+							 List<TimesheetDocumentDetails> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+							 for (TimesheetDocumentDetails doc : details) {
+							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+							         dto.setApprovedDocument(doc.getDocId());
+							     }
+							     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
+							    	 dto.setFilledDocument(doc.getDocId());  	 
+							     }
+							 } 
+						};
 						// Get InActive Activities In Timesheet
 						if(dto.getStatus().equals("Pending")) {
 							List<Object[]> inactiveActivityList = timesheetsRepository
@@ -816,8 +825,29 @@ public class TimesheetService {
 						dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
 						dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
 						dto.setLeaveType(object[15] != null ? object[15].toString() : null);
-						if(timesheetId != null)
-						dto.setDocumentEntityData(timesheetDocumentDetailsRepository.findByTimesheetId(timesheetId));
+						dto.setClientInTime(object[16] != null ? ((Timestamp) object[16]).toLocalDateTime() : null);
+						dto.setClientOutTime(object[17] != null ? ((Timestamp) object[17]).toLocalDateTime() : null);
+						dto.setClientSideId(object[18] != null ? object[18].toString() : null);
+						dto.setTotalClientWorkingHours(object[19] != null ? object[19].toString() : null);
+						dto.setProjectId(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
+						dto.setClientApprovalStatus(object[21] != null ? object[21].toString() : null);
+						dto.setHasClientSideId(object[22] != null ? (Boolean) object[22] : null);
+						dto.setEmploymentId(object[22] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
+						dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
+						dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
+						 if(timesheetId != null) {
+							 List<TimesheetDocumentDetails> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+							 for (TimesheetDocumentDetails doc : details) {
+							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+							         dto.setApprovedDocument(doc.getDocId());
+							     }
+							     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
+							    	 dto.setFilledDocument(doc.getDocId());  	 
+							     }
+							 }
+
+							 
+						}
 						// Get InActive Activities In Timesheet
 						if(dto.getDayType().equals("Working") && (dto.getStatus().equals("Pending") || dto.getStatus().equals("Rejected"))) {
 							List<Object[]> inactiveActivityList = timesheetsRepository
@@ -1096,7 +1126,19 @@ public class TimesheetService {
 						dto.setEmploymentId(object[19] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[19].toString())) : null);
 						dto.setIsShadowTimesheet(object[27] != null ? (Boolean) object[27] : null);
 						dto.setShadowEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
-						if(timesheetId != null)dto.setDocId(timesheetDocumentDetailsRepository.findDocIdByTimesheetId(timesheetId));
+						if(timesheetId != null) {
+							 List<TimesheetDocumentDetails> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+							 for (TimesheetDocumentDetails doc : details) {
+							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+							         dto.setApprovedDocument(doc.getDocId());
+							     }
+							     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
+							    	 dto.setFilledDocument(doc.getDocId());  	 
+							     }
+							 }
+
+							 
+						}
 						dtoList.add(dto);
 					});
 

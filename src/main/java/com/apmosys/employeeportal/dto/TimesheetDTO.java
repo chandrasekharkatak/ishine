@@ -149,5 +149,7 @@ public class TimesheetDTO {
 	private Integer rejectedhierarchyOrder;
 	private String isSearch;
 	private List<TimesheetDTO> pendingApprovalList;
+	private Long filledDocument;
+	private Long approvedDocument;
 
 }
