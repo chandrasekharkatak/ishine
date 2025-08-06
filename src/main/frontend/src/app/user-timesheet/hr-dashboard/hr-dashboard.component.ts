@@ -10,6 +10,7 @@ import { Employee } from 'src/app/models/employee';
 import { GetEmployeeViewForClientAttendanceStatus } from 'src/app/models/getEmployeeViewForClientAttendanceStatus';
 import { ProjectViewForTimesheet } from 'src/app/models/projectViewForTimesheet';
 import { Timesheet } from 'src/app/models/timesheet';
+import { TimesheetDashboardCount } from 'src/app/models/timesheetDasboardCount';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectService } from 'src/app/services/project.service';
@@ -128,14 +129,15 @@ export class HrDashboardComponent implements AfterViewInit {
   totalDocumentRejectedCount: any;
   toggleValue: Boolean=false;
   timesheetCalender: any;
-
+  dashboardObj: TimesheetDashboardCount = new TimesheetDashboardCount();
   selectedProjectId: number | null = null;
-selectedEmpId: number | null = null;
-
-showCalendar = false;
-hoveredProjectId: any;
-hidePopupTimeout: any;
-
+  selectedEmpId: number | null = null;
+  status: String = 'All';
+  showCalendar = false;
+  hoveredProjectId: any;
+  hidePopupTimeout: any;
+  month:any = 7;
+  year:any = 2025;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -156,8 +158,9 @@ hidePopupTimeout: any;
     }));
     this.toggleValue = true;
     if(this.toggleValue){
-      this.getProjectViewForClientAttendanceStatus();
+      this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
     }
+    this.getTimesheetDashboardCount(this.month,this.year);
     // this.generateMonthGrid();
     // this.fetchTimesheetData(this.selectedProjectId ,this.selectedEmpId);
     this.setLastUpdatedTime();
@@ -670,11 +673,12 @@ onToggleChange(event: Event) {
   // Call your desired logic here
   // Example: update a property used for toggling rows
   this.toggleValue = !this.toggleValue;
+  this.getTimesheetDashboardCount(this.month,this.year);
 
   if(!this.toggleValue){
-    this.getEmployeeViewForClientAttendanceStatus();
+    this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
   } else {
-    this.getProjectViewForClientAttendanceStatus();
+    this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
   }
 
   // Add any other side effects or function calls you want here
@@ -718,8 +722,8 @@ employeeListAccordingToProject:any[]=[];
   }
 
 
-  getEmployeeViewForClientAttendanceStatus() {
-    this.timesheetService.getEmployeeViewForClientAttendanceStatus().pipe(first()).subscribe((response: any) => {
+  getEmployeeViewForClientAttendanceStatus(status:any,month:any,year:any) {
+    this.timesheetService.getEmployeeViewForClientAttendanceStatus(status,month,year).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.employeeView = response.serviceResponse;
         console.log("employeeView ::::::",this.employeeView);
@@ -1075,15 +1079,15 @@ modalTitle = 'Timesheet Details';
     }
 
     
-    getProjectViewForClientAttendanceStatus() {
-    this.timesheetService.getProjectViewForClientAttendanceStatus().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        this.projectView = response.serviceResponse;
-      } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
+    getProjectViewForClientAttendanceStatus(status:any,month:any,year:any) {
+      this.timesheetService.getProjectViewForClientAttendanceStatus(status,month,year).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.projectView = response.serviceResponse;
+        } else {
+          this.openAlertMod(this.alertTemplate, response.serviceResponse);
+        }
+      });
+    }
 
   onSearch2(searchData2: any) {
     this.filters = searchData2;
@@ -1191,7 +1195,41 @@ cancelHideProjectPopup(): void {
   clearTimeout(this.hidePopupTimeout);
 }
 
+  getTimesheetDashboardCount(month:any,year:any) {
+    if(this.toggleValue){
+      this.timesheetService.getTimesheetDashboardCountForProject(month,year).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.dashboardObj = response.serviceResponse;
+        } else {
+          this.openAlertMod(this.alertTemplate, response.serviceResponse);
+        }
+      });
+    } else {
+      this.timesheetService.getTimesheetDashboardCountForEmployee(month,year).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.dashboardObj = response.serviceResponse;
+        } else {
+          this.openAlertMod(this.alertTemplate, response.serviceResponse);
+        }
+      });
+    }
+  }
 
+  scrollToTable(status: string | null): void {
+    this.status = status;
+    this.getTableData(status,7,2025);
+    const element = document.getElementById('table-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
 
+  getTableData(status:string | null,month:any,year:any){
+    if(!this.toggleValue){
+      this.getEmployeeViewForClientAttendanceStatus(status,month,year);
+    } else {
+      this.getProjectViewForClientAttendanceStatus(status,month,year);
+    }
+  }
+  
 }
-

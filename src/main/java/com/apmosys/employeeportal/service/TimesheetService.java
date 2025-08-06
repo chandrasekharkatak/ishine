@@ -43,6 +43,7 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
@@ -3747,7 +3748,7 @@ public class TimesheetService {
 	//     return response;
 	// }
 	
-	public ServiceResponse getEmployeeViewForClientAttendanceStatus() {
+	public ServiceResponse getEmployeeViewForClientAttendanceStatus(String status,Integer month,Integer year) {
 		ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getEmployeeViewForClientAttendanceStatus");
@@ -3756,7 +3757,7 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getEmployeeViewForClientAttendanceStatus: \n");
 		 try {
-			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus();
+			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(status,month,year);
 			 
 			 if(resultList.isEmpty()) {
 			        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4159,7 +4160,7 @@ public class TimesheetService {
 		return response;
 	}
 
-	public ServiceResponse getProjectViewForClientAttendanceStatus() {
+	public ServiceResponse getProjectViewForClientAttendanceStatus(String status,Integer month,Integer year) {
 		ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getProjectViewForClientAttendanceStatus");
@@ -4168,9 +4169,11 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getProjectViewForClientAttendanceStatus: \n");
 		 try {
-			 Optional<List<Object[]>> resultList = projectRepository.getProjectViewForClientAttendanceStatus();
+			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus(month,year,status);
+//			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus();
+
 			 
-			 if(!resultList.isPresent()) {
+			 if(resultList.isEmpty()) {
 			        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			        response.setServiceResponse("No data found from database");
 
@@ -4184,7 +4187,7 @@ public class TimesheetService {
 
 	        List<GetProjectViewForClientAttendanceStatusDTO> dtoList = new ArrayList<>();
 	        
-	        for (Object[] obj : resultList.get()) {
+	        for (Object[] obj : resultList){
 	            GetProjectViewForClientAttendanceStatusDTO dto = new GetProjectViewForClientAttendanceStatusDTO();
 	            dto.setProjectId(obj[0] != null ? Integer.parseInt(obj[0].toString()) : null);
 	            dto.setProjectName(obj[1] != null ? obj[1].toString() : null);
@@ -4200,9 +4203,9 @@ public class TimesheetService {
 	            dto.setTotalClientSideNotFilledCount(obj[11] != null ? Integer.parseInt(obj[11].toString()) : 0);
 	            dto.setTotalClientSidePendingCount(obj[12] != null ? Integer.parseInt(obj[12].toString()) : 0);
 	            dto.setTotalClientSideApprovedCount(obj[13] != null ? Integer.parseInt(obj[13].toString()) : 0);
-	            dto.setClientSideApprovedPercent(obj[14] != null ? Double.parseDouble(obj[14].toString()) : 0.0);
-	            dto.setClientSidePendingPercent(obj[15] != null ? Double.parseDouble(obj[15].toString()) : 0.0);
-	            dto.setClientSideNotFilledPercent(obj[16] != null ? Double.parseDouble(obj[16].toString()) : 0.0);
+	            dto.setClientSideApprovedPercent(obj[15] != null ? Double.parseDouble(obj[15].toString()) : 0.0);
+	            dto.setClientSidePendingPercent(obj[16] != null ? Double.parseDouble(obj[16].toString()) : 0.0);
+	            dto.setClientSideNotFilledPercent(obj[17] != null ? Double.parseDouble(obj[17].toString()) : 0.0);
 	            
 	            dtoList.add(dto);
 	        }
@@ -4432,7 +4435,7 @@ public class TimesheetService {
 		 try {
 			 Optional<List<Object[]>> resultList = null;
 			 if(timesheetDTO.getIsSearch()!= null){
-				 resultList = projectRepository.getProjectViewForClientAttendanceStatus();  
+//				 resultList = projectRepository.getProjectViewForClientAttendanceStatus();  
 			 }else {
 			    resultList = projectRepository.getAllEmployeeDSROfRM(timesheetDTO.getManagerId(),timesheetDTO.getFromDate()!= null ? timesheetDTO.getFromDate() : "",timesheetDTO.getToDate()!= null ? timesheetDTO.getToDate() : ""); 
 			 }
@@ -4735,5 +4738,103 @@ public class TimesheetService {
 			    
 		    return response;
 		}
+	
+	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year) {
+		
+		ServiceResponse response = new ServiceResponse();
+
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getTimesheetDashboardCountForEmployee");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("getTimesheetDashboardCountForEmployee");
+	    try {
+	    	List<Object[]> countForEmployee = timesheetsRepository.getTimesheetDashboardCountForEmployee(month,year);
+	    	
+	    	if(countForEmployee.isEmpty()){
+	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Unable to fetch the dashboard count for employee!");
+                apiLogInfo.setApiResponse("Failed to fetch the dashboard count for employee \n");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                
+            } else {
+            	Object[] row = countForEmployee.get(0);
+                TimesheetDashboardCountDTO dto = new TimesheetDashboardCountDTO();
+                dto.setTotalApplicableCount(row[0] != null ? ((Number) row[0]).intValue() : 0);
+                dto.setApprovedCount(row[1] != null ? ((Number) row[1]).intValue() : 0);
+                dto.setDefaulterCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
+                dto.setClientSidePendingCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
+                    		
+            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(dto);
+                apiLogInfo.setApiResponse("Dashboard count fetched successfully ");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            }
+            
+            apiLogInfo.setApiRequest(logBuilder.toString());
+    		logService.logMyInfo(httpRequest, apiLogInfo);
+    		return response;
+    		
+	    } catch(Exception e) {
+		    	    e.printStackTrace();
+			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			        response.setServiceResponse("Something went wrong.");
+			        response.setServiceError(e.getMessage());
+			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			        apiLogInfo.setApiResponse(e.getMessage()); 
+			        apiLogInfo.setLogLevel("ERROR");
+		    }
+		    
+	    return response;
+	}
+	
+public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year) {
+		
+		ServiceResponse response = new ServiceResponse();
+
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getTimesheetDashboardCountForProject");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("getTimesheetDashboardCountForProject");
+	    try {
+	    	List<Object[]> countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year);
+	    	
+	    	if(countForProject.isEmpty()){
+	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Unable to fetch the dashboard count for project!");
+                apiLogInfo.setApiResponse("Failed to fetch the dashboard count for project \n");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                
+            } else {
+            	Object[] row = countForProject.get(0);
+                TimesheetDashboardCountDTO dto = new TimesheetDashboardCountDTO();
+                dto.setTotalApplicableCount(row[0] != null ? ((Number) row[0]).intValue() : 0);
+                dto.setApprovedCount(row[1] != null ? ((Number) row[1]).intValue() : 0);
+                dto.setDefaulterCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
+                dto.setClientSidePendingCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
+                    		
+            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(dto);
+                apiLogInfo.setApiResponse("Dashboard count fetched successfully ");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            }
+            
+            apiLogInfo.setApiRequest(logBuilder.toString());
+    		logService.logMyInfo(httpRequest, apiLogInfo);
+    		return response;
+    		
+	    } catch(Exception e) {
+		    	    e.printStackTrace();
+			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			        response.setServiceResponse("Something went wrong.");
+			        response.setServiceError(e.getMessage());
+			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			        apiLogInfo.setApiResponse(e.getMessage()); 
+			        apiLogInfo.setLogLevel("ERROR");
+		    }
+		    
+	    return response;
+	}
 	
 }

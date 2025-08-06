@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -310,8 +311,8 @@ public class TimesheetController {
 	 }
 	 
 	 @GetMapping("/getEmployeeViewForClientAttendanceStatus")
-	 public ServiceResponse getEmployeeViewForClientAttendanceStatus() {
-		 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus();
+	 public ServiceResponse getEmployeeViewForClientAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year) {
+		 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus(status,month,year);
 		 return reponse;
 	 }
 	 @RequestMapping(value = "/getEmployeeTimesheetsByProject", method =RequestMethod.POST)
@@ -355,9 +356,9 @@ public class TimesheetController {
 	 }
 	 
 	 @GetMapping(value = "/getProjectViewForClientAttendanceStatus")
-	 public ServiceResponse getProjectViewForClientAttendanceStatus() {
+	 public ServiceResponse getProjectViewForClientAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year) {
 
-		 ServiceResponse reponse= timesheetService.getProjectViewForClientAttendanceStatus();
+		 ServiceResponse reponse= timesheetService.getProjectViewForClientAttendanceStatus(status,month,year);
 	     return reponse;
 	     
 	 }
@@ -391,6 +392,18 @@ public class TimesheetController {
 	 @GetMapping(value = "/getEmployeeTimesheetAsCalenderByEmpId")
 	 public ServiceResponse getEmployeeTimesheetAsCalenderByEmpId(@RequestParam Long empId, @RequestParam Integer month, @RequestParam Integer year) {  
 		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalenderByEmpId(empId,month,year);
+		  return reponse;
+	 }
+	 
+	 @GetMapping(value = "/getTimesheetDashboardCountForEmployee")
+	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestParam Integer month, @RequestParam Integer year) {  
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year);
+		  return reponse;
+	 }
+	 
+	 @GetMapping(value = "/getTimesheetDashboardCountForProject")
+	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year) {  
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year);
 		  return reponse;
 	 }
 }
