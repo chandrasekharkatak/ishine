@@ -432,10 +432,10 @@ searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>,openMo
 
   if (!this.selectedEmpId || !this.fromDate || !this.toDate) {
     // alert('Please select an employee and valid datessss.');
-        this.alertMessage = "Please enter Employee Name !!";
+        this.alertMessage = "Kindly provide all necessary details to search the timesheet  !!";
     this.openAlertMod1(template1, this.alertMessage);
     return;
-    return;
+    
   }
 
   // if (!this.selectedEmpId || this.selectedEmpId === null || this.selectedEmpId === '') {
