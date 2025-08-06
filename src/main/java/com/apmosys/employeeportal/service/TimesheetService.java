@@ -1030,7 +1030,7 @@ public class TimesheetService {
 					.getMyReporteesTimesheetRequests(timesheetDTO.getManagerId(), timesheetDTO.getStatus(),employeeData.getDateOfJoining());
 			}else {
 				objectList = timesheetsRepository
-						.getMyTimesheetRequests(timesheetDTO.getCreatedBy());
+						.getMyTimesheetRequests(timesheetDTO.getEmpId(),timesheetDTO.getTeamId(),timesheetDTO.getFromDate()!= null ? timesheetDTO.getFromDate() : "",timesheetDTO.getToDate()!= null ? timesheetDTO.getToDate() : "");
 			}
 
 			
@@ -4421,7 +4421,7 @@ public class TimesheetService {
 			 if(timesheetDTO.getIsSearch()!= null){
 				 resultList = projectRepository.getProjectViewForClientAttendanceStatus();  
 			 }else {
-			    resultList = projectRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getManagerId(),timesheetDTO.getFromDate()!= null ? timesheetDTO.getFromDate() : "",timesheetDTO.getToDate()!= null ? timesheetDTO.getToDate() : ""); 
+			    resultList = projectRepository.getAllEmployeeDSROfRM(timesheetDTO.getManagerId(),timesheetDTO.getFromDate()!= null ? timesheetDTO.getFromDate() : "",timesheetDTO.getToDate()!= null ? timesheetDTO.getToDate() : ""); 
 			 }
 			 
 			 

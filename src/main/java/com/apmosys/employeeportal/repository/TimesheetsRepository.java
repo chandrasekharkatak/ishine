@@ -704,15 +704,26 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 				+ "         and et.emp_id = :empId and t.team_id = :teamId")
 		public List<Object[]> getPendingTimesheetsByEmpAndTeam(Long empId, Long teamId);
 
-		@Query(nativeQuery=true,value=" SELECT et.timesheet_id,et.date,et.day_type,e.name employeeName,et.description ,et.status, \n"
-				+ "em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,et.total_time , e.email,et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, et.current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id, \n"
-				+ "et.client_in_time, et.client_out_time, et.client_side_id, et.total_client_working_hours, \n"
-				+ "et.project_id, et.client_approval_status, et.has_client_side_id, et.is_shadow_timesheet , et.shadow_emp_id \n"
-				+ "FROM employee_timesheets et \n"
-				+ "INNER JOIN employee e ON e.emp_id = et.emp_id \n"
-				+ "INNER JOIN employee em ON  et.created_by = em.emp_id \n"
-				+ "WHERE  et.status = 'Pending' AND et.created_by = :createdBy Order by et.date desc")
-		public List<Object[]> getMyTimesheetRequests(Long createdBy);
+		@Query(nativeQuery=true,value="SELECT DISTINCT et.timesheet_id,et.date,et.day_type,e.name employeeName,et.description ,et.status,\n"
+				+ "				 				em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,et.total_time , e.email,et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, et.current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id,\n"
+				+ "				 			et.client_in_time, et.client_out_time, et.client_side_id, et.total_client_working_hours, \n"
+				+ "				 				et.project_id, et.client_approval_status, et.has_client_side_id, et.is_shadow_timesheet , et.shadow_emp_id \n"
+				+ "				 			       FROM employee_timesheets et\n"
+				+ "				 				        INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
+				+ "				 				       INNER JOIN teams t ON t.team_id = etm.team_id\n"
+				+ "				 				        INNER JOIN projects p ON p.project_id = t.project_id\n"
+				+ "				 				        INNER join employee_timesheet_activities_mapping etam on et.timesheet_id = etam.timesheet_id\n"
+				+ "				 				        INNER join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id\n"
+				+ "				 				        INNER JOIN employee e ON e.emp_id = et.emp_id\n"
+				+ "				 				       INNER JOIN employee em ON  et.created_by = em.emp_id\n"
+				+ "				 				        WHERE day_type LIKE '%Working%'\n"
+				+ "				 				        and et.status = 'Pending'\n"
+				+ "				 				        and et.emp_id = :empId  and t.team_id = :teamId \n"
+				+ "                                        and et.date between \n"
+				+ "                                        COALESCE(NULLIF(:fromDate, ''), DATE_FORMAT(CURDATE(), '%Y-%m-01')) and\n"
+				+ "										COALESCE(NULLIF(:toDate, ''), CURDATE())\n"
+				+ "                                        Order by et.date desc")
+		public List<Object[]> getMyTimesheetRequests(Long empId,Long teamId,String fromDate, String toDate);
 
 		@Query(value="WITH RECURSIVE\n"
 				+ "    Date_Parameters AS (\n"
