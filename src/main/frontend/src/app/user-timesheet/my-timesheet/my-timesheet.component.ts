@@ -2335,14 +2335,14 @@ setTotalWorkingClientHours() {
   }
   showPreview(base64Data: string, mimeType: string) {
   const dataUrl = `data:${mimeType};base64,${base64Data}`;
-    this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+    this.activePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
 
     if (mimeType === 'application/pdf') {
-      this.fileType2 = 'pdf';
+      this.activeFileType = 'pdf';
     } else if (mimeType.startsWith('image/')) {
-      this.fileType2 = 'image';
+      this.activeFileType = 'image';
     } else {
-      this.fileType2 = '';
+      this.activeFileType = '';
     }
 
 
@@ -2528,16 +2528,16 @@ setTotalWorkingClientHours() {
   }
 
   payloadForFileUpload() {
-   if (!this.timesheetObj.documentData) {
+   
   this.timesheetObj.documentData = [];
-  }
+  
 if(this.selectedFile !== null && this.selectedFile != undefined){
 let newDoc1: TimesheetDoc = {
   docId: this.timesheetObj.docId ?? null,
   docName: this.fileName1,
   empId: this.timesheetObj.empId,
   clientApprovalStatus: "Pending",
-  finalFlag: this.timesheetObj.clientApprovalStatus === 'approved'
+  finalFlag: false
 };
 this.timesheetObj.documentData.push(newDoc1);
 }

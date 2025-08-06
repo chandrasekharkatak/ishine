@@ -92,7 +92,9 @@
                             <mat-form-field style="display: contents;">
                                 <input matInput [matDatepicker]="picker"
                                     [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
-                                    [(ngModel)]="toDate" [min]="minDate" [max]="maxDate" [disabled]="!fromDate"
+                                    [(ngModel)]="toDate" [min]="fromDate" [max]="maxDate"
+                                    (dateChange)="makeApmosysInTime();makeApmosysOutTime();makeClientInTime();makeClientOutTime()"
+                                    [disabled]="!fromDate"
                                     required />
                                 <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                                 <mat-datepicker #picker></mat-datepicker>
@@ -184,9 +186,23 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && timesheetFillable && !timesheetObj.hasClientSideId && !clientSideIdNotMandatory">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label">Client DSR Approval Status</label>
+                                <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.clientApprovalStatus" (change)="onClientApprovalStatusChange($event,noNotAppliedYet)" aria-placeholder="Select">
+                                    <option selected="selected" value="" disabled>Select</option>
+                                    <option selected="selected" value="no">Not Filled</option>
+                                    <option selected="selected" value="pending">Filled</option>
+                                    <option selected="selected" value="approved">Yes, Approved</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="card col-md-12 px-3"
+            <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
+            <!-- <div class="card col-md-12 px-3"
                 *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">
                 <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'"
                     class="row">
@@ -194,7 +210,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span>Date</label>
-                                <!-- <input id="timesheetDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" [disabled]="isUpdation"> -->
+                                
                                 <div class="d-flex">
                                     <input class="form-control" #input (focus)="timesheetDate.open()" matInput
                                         id="timesheetDate" [matDatepicker]="timesheetDate"
@@ -229,7 +245,7 @@
                     </div>
                 </div>
 
-            </div>
+            </div> -->
 
             <div class="card col-md-12 px-3"
                 *ngIf="timesheetObj.projectId && timesheetFillable && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">

@@ -55,8 +55,8 @@ public class TimesheetController {
 	
 	@RequestMapping(value = "/addTimesheetWithClient", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") TimesheetDTO dto,
-			@RequestPart(value = "doc",required = false) MultipartFile doc1,
-			@RequestPart(value = "doc",required = false) MultipartFile doc2) 
+			@RequestPart(value = "doc1",required = false) MultipartFile doc1,
+			@RequestPart(value = "doc2",required = false) MultipartFile doc2) 
 //	,@RequestBody TimesheetDTO timesheetDTO, @RequestBody MultipartFile doc
 	{
 		System.out.println("timesheetDTO list : "+dto);
@@ -108,8 +108,8 @@ public class TimesheetController {
 	
 	@RequestMapping(value = "/updateTimesheet", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ServiceResponse updateTimesheet(@RequestPart("dto") TimesheetDTO timesheetDTO,
-			@RequestPart("doc") MultipartFile doc1,
-			@RequestPart("doc") MultipartFile doc2) {
+			@RequestPart("doc1") MultipartFile doc1,
+			@RequestPart("doc2") MultipartFile doc2) {
 
 		ServiceResponse response = timesheetService.updateTimesheet(timesheetDTO,doc1,doc2);
 		return response;

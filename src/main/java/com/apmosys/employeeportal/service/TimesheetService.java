@@ -471,102 +471,26 @@ public class TimesheetService {
 			System.err.println("Time sheet checked "+newTimesheet);
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
-			
-			if(doc1 != null && "pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) { 
-				TimesheetDocumentDetailsDTO document = new TimesheetDocumentDetailsDTO();
-				List<TimesheetDocumentDetailsDTO> nonFinalDocuments = timesheetDTO.getDocumentData()
-					    .stream()
-					    .filter(doc -> !Boolean.TRUE.equals(doc.getFinalFlag()))
-					    .collect(Collectors.toList());
-				if(nonFinalDocuments.size() == 1) {
-					document = nonFinalDocuments.get(0);
-					}
-				else {
-					throw new IllegalArgumentException("Sending multiple Unapproved file data");
-				}
-				TimesheetDocumentDetails docData = addTimesheetDocument(document,"Create",doc1);
-				docData.setTimesheetId(newTimesheetCreated.getTimesheetId());
-				docData.setEmpId(timesheetDTO.getEmpId());
-				docData.setCreatedBy(timesheetDTO.getEmpId());
-//				docData.setDocData(doc.getBytes());
-				
-				if (docData != null) {
-				    try {
-				    	System.out.println(docData);
-				        TimesheetDocumentDetails docu = timesheetDocumentDetailsRepository.save(docData);
+			if(timesheetDTO.getClientApprovalStatus() == null ) {
+		    	throw new IllegalArgumentException("Client approval status is null");
+	    	}
+		    if (doc1 != null && "pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
+		        handleDocumentUpload(timesheetDTO, newTimesheetCreated, doc1, false); // may throw exception
+		    }else {
+		    	if("pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
+		    	throw new IllegalArgumentException("In case of pending the document is missing");
+		    	}
+		    }
+		    
 
-				        if (docu == null) {
-				            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				            response.setServiceResponse("Timesheet added, but document not saved.");
-
-				            apiLogInfo.setApiResponse("Timesheet added, but document not saved.");
-				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				        } else {
-				            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				            response.setServiceResponse("Timesheet added successfully");
-
-				            apiLogInfo.setApiResponse("Timesheet added successfully");
-				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				        }
-				    } catch (Exception e) {
-				        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				        response.setServiceResponse("Timesheet added, but document save failed due to an error.");
-
-				        apiLogInfo.setApiResponse("Exception while saving document: " + e.getMessage());
-				        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-
-				        e.printStackTrace(); 
-				    }
-				}
-			}	
-			
-				if(doc2 != null && "Approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) { 
-					TimesheetDocumentDetailsDTO document = new TimesheetDocumentDetailsDTO();
-					List<TimesheetDocumentDetailsDTO> finalDocuments = timesheetDTO.getDocumentData()
-						    .stream()
-						    .filter(doc -> Boolean.TRUE.equals(doc.getFinalFlag()))
-						    .collect(Collectors.toList());
-					if(finalDocuments.size() == 1) {
-						document = finalDocuments.get(0);
-						}
-					else {
-						throw new IllegalArgumentException("Sending multiple Unapproved file data");
-					}
-				TimesheetDocumentDetails docData = addTimesheetDocument(document,"Create",doc2);
-				docData.setTimesheetId(newTimesheetCreated.getTimesheetId());
-				docData.setEmpId(timesheetDTO.getEmpId());
-				docData.setCreatedBy(timesheetDTO.getEmpId());
-//				docData.setDocData(doc.getBytes());
-				
-				if (docData != null) {
-				    try {
-				    	System.out.println(docData);
-				        TimesheetDocumentDetails docu = timesheetDocumentDetailsRepository.save(docData);
-
-				        if (docu == null) {
-				            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				            response.setServiceResponse("Timesheet added, but document not saved.");
-
-				            apiLogInfo.setApiResponse("Timesheet added, but document not saved.");
-				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				        } else {
-				            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				            response.setServiceResponse("Timesheet added successfully");
-
-				            apiLogInfo.setApiResponse("Timesheet added successfully");
-				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				        }
-				    } catch (Exception e) {
-				        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				        response.setServiceResponse("Timesheet added, but document save failed due to an error.");
-
-				        apiLogInfo.setApiResponse("Exception while saving document: " + e.getMessage());
-				        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-
-				        e.printStackTrace(); 
-				    }
-				}
-			}
+		    if (doc2 != null && doc1 != null && "approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
+		        handleDocumentUpload(timesheetDTO, newTimesheetCreated, doc1, false); // unapproved
+		        handleDocumentUpload(timesheetDTO, newTimesheetCreated, doc2, true);  // approved
+		    }
+		    else {
+		    	if("approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus()))
+		    	throw new IllegalArgumentException("In case of approved one of the document is missing");
+		    }
 
 			if (!timesheetDTO.getDayType().equals("Public Holiday") && !timesheetDTO.getDayType().equals("Week Off") && !timesheetDTO.getDayType().equals("Leave")) {				
 				Optional.ofNullable(newTimesheetCreated.getEmpId()).ifPresentOrElse((timesheet) -> {
@@ -652,6 +576,35 @@ public class TimesheetService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+	
+	private void handleDocumentUpload(TimesheetDTO timesheetDTO, Timesheet newTimesheetCreated, MultipartFile file,
+			boolean isFinal) throws IOException {
+
+		List<TimesheetDocumentDetailsDTO> documentList = timesheetDTO.getDocumentData().stream()
+				.filter(doc -> Boolean.TRUE.equals(doc.getFinalFlag()) == isFinal).collect(Collectors.toList());
+
+		List<TimesheetDocumentDetailsDTO> documentnotFinalList = timesheetDTO.getDocumentData().stream()
+				.filter(doc -> Boolean.FALSE.equals(doc.getFinalFlag()) == isFinal).collect(Collectors.toList());
+
+		if (documentList.size() != 1 && documentnotFinalList.size() !=  1){
+			throw new IllegalArgumentException("Expected exactly one " + (isFinal ? "approved" : "unapproved") + " document.");
+		}
+		TimesheetDocumentDetailsDTO documentDTO = new TimesheetDocumentDetailsDTO();
+		if(documentList.size()!= 1)  documentDTO = documentnotFinalList.get(0);
+		else  documentDTO = documentList.get(0);
+		
+		TimesheetDocumentDetails docData = addTimesheetDocument(documentDTO, "Create", file);
+
+		docData.setTimesheetId(newTimesheetCreated.getTimesheetId());
+		docData.setEmpId(timesheetDTO.getEmpId());
+		docData.setCreatedBy(timesheetDTO.getEmpId());
+
+		TimesheetDocumentDetails savedDoc = timesheetDocumentDetailsRepository.save(docData);
+
+		if (savedDoc == null) {
+			throw new RuntimeException("Document was not saved.");
+		}
 	}
 
 	public ServiceResponse getAllMyTimesheetsByEmpId(TimesheetDTO timesheetDTO) {
