@@ -1034,7 +1034,11 @@ export class MyTeamComponent implements OnInit {
     if (teamView.employeementId.startsWith('A-')) {
       let employmentId = teamView.employeementId?.substring(2);
       this.router.navigate(['/user-exit/my-resignation', employmentId]);
-    } else {
+    }else if(teamView.employeementId.startsWith('AP-')){
+      let employmentId = teamView.employeementId?.substring(3);
+      this.router.navigate(['/user-exit/my-resignation', employmentId]);
+    }
+     else {
       let employmentId = teamView.employeementId;
      this.router.navigate(['/user-exit/my-resignation', employmentId]);
     }
@@ -1215,8 +1219,12 @@ export class MyTeamComponent implements OnInit {
     let employee = Object.assign({}, employeeObj);
    if (employee.employeementId && 
     typeof employee.employeementId === 'string' && 
-    employee.employeementId.startsWith("A-")) {
+    employee.employeementId.startsWith("A-") ) {
     employee.employeementId = employee.employeementId.substring(2);
+}
+else if(employee.employeementId && 
+    typeof employee.employeementId === 'string' && employee.employeementId.startsWith('AP-')){
+    employee.employeementId = employee.employeementId.substring(3);
 }
 
     this.employeeService.getHierarchyByEmpId(employee).pipe(first()).subscribe((response: any) => {	
@@ -1412,7 +1420,11 @@ export class MyTeamComponent implements OnInit {
 
     if(employee.employeementId.startsWith('A-')){
       employee.employeementId  = employee.employeementId.substring(2);
-    }else {
+    }else if(employee.employeementId.startsWith('AP-'))
+    {
+      employee.employeementId  = employee.employeementId.substring(3);
+    }
+    else {
       employee.employeementId  = employee.employeementId
     }
 
@@ -1466,9 +1478,13 @@ canShowFilterBar(): boolean {
 
       if (leaveObj.employeementId) {
     const empIdStr = String(leaveObj.employeementId);
-    if (empIdStr.startsWith('A-')) {
-        leaveObj.employeementId = empIdStr.substring(2);
+    if (empIdStr.startsWith('A-') ) {
+        leaveObj.employeementId = empIdStr.substring(2);}
+    else if(empIdStr.startsWith('AP-'))
+    {
+      leaveObj.employeementId = empIdStr.substring(3);
     }
+    
 }
       this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -1657,7 +1673,16 @@ canShowFilterBar(): boolean {
 
   onRevokeAccount(template :TemplateRef<any>) {
     this.cancelRequest();
-    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2)
+    
+   if (this.employeeObj.employeementId && 
+    typeof this.employeeObj.employeementId === 'string' && 
+    this.employeeObj.employeementId.startsWith("A-") ) {
+    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+}
+else if(this.employeeObj.employeementId && 
+    typeof this.employeeObj.employeementId === 'string' && this.employeeObj.employeementId.startsWith('AP-')){
+    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(3);
+}
     this.employeeService.revokeAccount(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
        this.openAlertMod(template, response.serviceResponse);
