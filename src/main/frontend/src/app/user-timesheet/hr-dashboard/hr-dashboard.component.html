@@ -587,7 +587,7 @@
                                                 <!-- <button (click)="openCalendarInNewTab(project)" class="btn btn-sm btn-secondary mb-1">
                                                     <i class="fa fa-calendar mr-1"></i> View In Calendar
                                                   </button> -->
-                                                <button [appNavigateToCalenderView]="project.projectId"
+                                                <button class="btn btn-sm btn-secondary mb-1" [appNavigateToCalenderView]="project.projectId"
                                                     [empId]="project.empId">
                                                     <i class="fa fa-calendar mr-1"></i> View In Calendar
                                                 </button>
@@ -730,17 +730,17 @@
                                 <ng-container
                                     *ngFor="let project of projectView | sort: [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                     <tr>
-                                        <td title="Click to view Team Details">
-                                            <span id="clickablefor360" [navigateToProjectView]="project.projectId">
-                                                {{project.projectName ? project.projectName : 'NA'}}
+                                        <td class="position-relative">
+                                            <span (mouseenter)="showProjectPopup(project.projectId)" (mouseleave)="scheduleHideProjectPopup()" style="color: #043870;">
+                                            {{ project.projectName ? project.projectName : 'NA' }}
                                             </span>
+                                            <div *ngIf="hoveredProjectId === project.projectId" class="hover-popup bg-white border shadow rounded p-2 position-absolute" (mouseenter)="cancelHideProjectPopup()"
+                                                (mouseleave)="scheduleHideProjectPopup()" style="top: 100%; left: 0; z-index: 10;" >
+                                                <button class="btn btn-sm btn-outline-primary mr-1" [navigateToProjectView]="project.projectId" title="Project Details"><i class="fa fa-users"></i></button>
+                                                <button class="btn btn-sm btn-outline-primary" [navigateToTeamEmployeeTimesheet]="project.projectId" title="Team Attendance"><i class="fa fa-calendar-days"></i></button>
+                                            </div>
                                         </td>
-                                        <td title="Click to view Team Details">
-                                            <span id="clickablefor360"
-                                                [navigateToTeamEmployeeTimesheet]="project.projectId">
-                                                {{project.poNo ? project.poNo : 'NA'}}
-                                            </span>
-                                        </td>
+                                        <td>{{project.poNo ? project.poNo : 'NA'}}</td>
                                         <td>{{ project.projectManagerName || 'NA' }}</td>
                                         <td>{{ project.projectType || 'NA' }}</td>
                                         <td>{{ project.clientName || 'NA' }}</td>

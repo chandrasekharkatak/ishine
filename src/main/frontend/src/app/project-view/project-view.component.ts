@@ -99,28 +99,15 @@ export class ProjectViewComponent implements OnInit {
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
-    const storedData = localStorage.getItem('projectId');
-    const parsedData = storedData || null;
-
-    console.log("storedData ", storedData);
-    console.log("parsedData ", parsedData);
-
-    if (parsedData !== null && parsedData !== undefined) {
-      this.selectedProjectId = parsedData;
-    } else {
-      this.selectedProjectId = history.state.data;
-    }
-
-    // this.route.queryParams.subscribe(params => {
-    //   this.selectedProjectId = params['projectId'];
-    //   console.log('Received projectId from query param:', this.selectedProjectId);
-    // if (this.selectedProjectId) {
-    //     this.getTeamInfo(this.selectedProjectId);
-    //   } else {
-    //     console.warn("projectId is missing in query params.");
-    //   }
-    // });
-    this.getProjectInfo();
+    this.route.queryParams.subscribe(params => {
+      const projectId = params['projectId'];
+      if (projectId) {
+        this.selectedProjectId = projectId;
+        this.getProjectInfo();
+      } else {
+        console.warn("projectId is missing in query params.");
+      }
+    });
   }
 
   handlePageChange(event) {

@@ -133,6 +133,8 @@ export class HrDashboardComponent implements AfterViewInit {
 selectedEmpId: number | null = null;
 
 showCalendar = false;
+hoveredProjectId: any;
+hidePopupTimeout: any;
 
 
   constructor(private employeeService: EmployeeService,
@@ -1173,6 +1175,22 @@ openCalendarInNewTab(project: any) {
 
   window.open(fullUrl, '_blank');
 }
+
+showProjectPopup(projectId: number): void {
+  this.hoveredProjectId = projectId;
+  clearTimeout(this.hidePopupTimeout);
+}
+
+scheduleHideProjectPopup(): void {
+  this.hidePopupTimeout = setTimeout(() => {
+    this.hoveredProjectId = null;
+  }, 300); // Adjust delay as needed
+}
+
+cancelHideProjectPopup(): void {
+  clearTimeout(this.hidePopupTimeout);
+}
+
 
 
 }
