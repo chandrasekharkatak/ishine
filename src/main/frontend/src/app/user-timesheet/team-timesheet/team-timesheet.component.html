@@ -483,7 +483,7 @@
           <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Start Date</label>
             <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control"
-              autocomplete="none" [(ngModel)]="fromDate" (keydown)="disableMannualDateInput()">
+              autocomplete="none" [max]="today" [(ngModel)]="fromDate" (keydown)="disableMannualDateInput()">
           </div>
         </div>
       </div>
@@ -496,6 +496,12 @@
               (keydown)="disableMannualDateInput()">
           </div>
         </div>
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <button type="button" class="btn btn-secondary mb-3" (click)="resetDateFilter()">
+          <i class="fa fa-refresh" aria-hidden="true"></i>
+        </button>
+
       </div>
       <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
           <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
@@ -557,9 +563,11 @@
               <input type="checkbox" [(ngModel)]="row.selected" (change)="updateSelectedRows(row)" />
             </td>
             <td>{{items*(page1-1)+i+1}}</td>
-            <td (click)="showTimesheetRequests(timesheet_template_employee,row)" style="cursor: pointer;">
+            <td (click)="showTimesheetRequests(timesheet_template_employee, row)"
+              style="cursor: pointer; color: rgba(15, 65, 230, 0.603);" title="View Timesheet">
               {{ row.employeementId }}
             </td>
+
 
             <td>{{ row.clientSideId || "NA" }}</td>
             <td>{{ row.name }}</td>
@@ -618,7 +626,7 @@
     <div class="col-md-12">
       <div class="row ml-2">
         <div class="col-md-12table-header">
-          <h1 class="table-header-title">All Timesheets Requests</h1>
+          <h1 class="table-header-title">Pending Employees Timesheets</h1>
         </div>
       </div>
       <div class="row">
@@ -694,17 +702,23 @@
                   </th>
                   <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="status|string">Status
                   </th>
-                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientInTime|datetime">Client Office In Time
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientInTime|datetime">
+                    Client Office In Time
                   </th>
-                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientOutTime|datetime">Client Office Out Time
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientOutTime|datetime">
+                    Client Office Out Time
                   </th>
-                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="totalClientWorkingHours|string"> Total Client Office Working Hours
+                  <th scope="col" class="info-label" style="min-width:150px"
+                    mat-sort-header="totalClientWorkingHours|string"> Total Client Office Working Hours
                   </th>
-                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientApprovalStatus|string">Client Approval Status
+                  <th scope="col" class="info-label" style="min-width:150px"
+                    mat-sort-header="clientApprovalStatus|string">Client Approval Status
                   </th>
-                   <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientApprovalStatus|string">Filled VMS Preview
+                  <th scope="col" class="info-label" style="min-width:150px"
+                    mat-sort-header="clientApprovalStatus|string">Filled VMS Preview
                   </th>
-                    <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientApprovalStatus|string">Approved VMS Preview
+                  <th scope="col" class="info-label" style="min-width:150px"
+                    mat-sort-header="clientApprovalStatus|string">Approved VMS Preview
                   </th>
                   <th scope="col" class="info-label" style="min-width:230px">Actions</th>
                 </tr>
@@ -744,20 +758,20 @@
                   <td>{{timesheet.totalClientWorkingHours || "NA"}}</td>
                   <td class="text-capitalize">{{timesheet.clientApprovalStatus ||"NA"}}</td>
                   <td *ngIf="timesheet.filledDocument">
-                     <button *ngIf="timesheet.filledDocument" class="btn btn-sm btn-outline-primary mb3" type="submit"
+                    <button *ngIf="timesheet.filledDocument" class="btn btn-sm btn-outline-primary mb3" type="submit"
                       title="copy timesheet" (click)="getDoscForPreview(timesheet.filledDocument)"><em>View
                         Doc</em></button>&nbsp;
                   </td>
                   <td *ngIf="!timesheet.filledDocument">
-                      {{timesheet.filledDocument || "NA"}}
+                    {{timesheet.filledDocument || "NA"}}
                   </td>
-                  <td *ngIf="timesheet.approvedDocument" >
+                  <td *ngIf="timesheet.approvedDocument">
                     <button *ngIf="timesheet.approvedDocument" class="btn btn-sm btn-outline-primary mb3" type="submit"
                       title="copy timesheet" (click)="getDoscForPreview(timesheet.approvedDocument)"><em>View
                         Doc</em></button>&nbsp;
                   </td>
                   <td *ngIf="!timesheet.approvedDocument">
-                      {{timesheet.approvedDocument || "NA"}}
+                    {{timesheet.approvedDocument || "NA"}}
                   </td>
                   <td>
                     <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"

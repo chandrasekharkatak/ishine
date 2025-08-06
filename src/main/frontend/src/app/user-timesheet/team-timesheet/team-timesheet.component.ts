@@ -70,7 +70,7 @@ export class TeamTimesheetComponent implements OnInit {
   filters: any = {};
   isSearchEnabled: boolean = false;
   allTimesheetColumns: any[] = ['blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'status', 'isNightShift', 'leaveType', 'remarks'];
-  allTimesheetReqColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status','clientInTime','clientOutTime','totalClientWorkingHours','clientApprovalStatus'];
+  allTimesheetReqColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus'];
   allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employeementId', 'clientSideId', 'name', 'teamName', 'departmentName', 'projectName', 'clientName', 'billableType', 'employeeRole', 'spoc', 'projectManagerName', 'poNo', 'startdate', 'totalExpectedFillCount', 'totalIshineFilledCount', 'totalClientSideNotFilledCount', 'totalClientSidePendingCount', 'totalClientSideApprovedCount']
   previewUrl: any;
   fileType: '' | 'pdf' | 'image' | null = null;
@@ -793,9 +793,17 @@ export class TeamTimesheetComponent implements OnInit {
 
   showTimesheetRequests(template: TemplateRef<any>, details: any): void {
     this.isAllTimesheetRequestTable = true;
+    this.allTeamTimesheetRequests = [];
     let timesheetObj = new Timesheet();
-    timesheetObj.createdBy = details.empId;
-
+    timesheetObj.empId = details.empId;
+    timesheetObj.teamId = details.teamId;
+    timesheetObj.fromDate = "";
+    timesheetObj.toDate = "";
+    if (this.toDate != null && this.fromDate != null) {
+      timesheetObj.fromDate = this.fromDate;
+      timesheetObj.toDate = this.toDate;
+    }
+  
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
@@ -922,6 +930,12 @@ export class TeamTimesheetComponent implements OnInit {
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     }
+  }
+
+  resetDateFilter(){
+    this.toDate ='';
+    this.fromDate = '';
+    this.getMyReporteesTimesheetRequests();
   }
 }
 
