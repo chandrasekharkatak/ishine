@@ -4658,8 +4658,116 @@ public class TimesheetService {
 	    return response;
 	}
 
+	public ServiceResponse getEmployeeTimesheetAsCalenderByEmpId(Long empId, Integer month, Integer year) {
+		
+		   ServiceResponse response = new ServiceResponse();
 
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("getEmployeeTimesheetAsCalenderByEmpId");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    logBuilder.append("getEmployeeTimesheetAsCalenderByEmpId");
+		    try {
+		    	List<Object[]> empTimesheet = timesheetsRepository.getEmployeeTimesheetAsCalenderByEmpId(empId,month,year);
+		    	
+		    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
+
+		    	for (Object[] obj : empTimesheet) {
+		    	    GetEmployeeTimesheetAsCalenderDTO dto = new GetEmployeeTimesheetAsCalenderDTO();
+
+		    	    dto.setEmpId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+		    	    dto.setClientSideId(obj[1] != null ? obj[1].toString() : null);
+		    	    dto.setStartDate(obj[2] != null ? obj[2].toString() : null);
+		    	    dto.setTeamName(obj[3] != null ? obj[3].toString() : null);
+		    	    dto.setTeamId(obj[4] != null ? Long.parseLong(obj[4].toString()) : null);
+		    	    dto.setEmployeeName(obj[5] != null ? obj[5].toString() : null);
+		    	    dto.setSpoc(obj[6] != null ? obj[6].toString() : null);
+		    	    dto.setBillableType(obj[7] != null ? obj[7].toString() : null);
+		    	    dto.setEmployeeRole(obj[8] != null ? obj[8].toString() : null);
+		    	    dto.setDepartment(obj[9] != null ? obj[9].toString() : null);
+		    	    dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
+		    	    dto.setProjectName(obj[11] != null ? obj[11].toString() : null);
+		    	    dto.setProjectManagerName(obj[12] != null ? obj[12].toString() : null);
+		    	    dto.setPoNo(obj[13] != null ? obj[13].toString() : null);
+		    	    dto.setClientName(obj[14] != null ? obj[14].toString() : null);
+		    	    dto.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
+		    	    dto.setMonthName(obj[16] != null ? obj[16].toString() : null);
+		    	    dto.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
+		    	    dto.setApmosysTimesheetFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
+		    	    dto.setClientSideNotFilledCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
+		    	    dto.setClientSidePendingCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
+		    	    dto.setClientSideApprovedCount(obj[21] != null ? Integer.parseInt(obj[21].toString()) : null);
+		    	    
+		    	    Map<String, TimesheetDataDTO> timesheetData = new HashMap<>();
+		    	    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
+		    	    DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("hh:mm a");
+
+		    	    for (int i = 0; i < 31; i++) {
+		    	        int baseIndex = 22 + (i * 3);
+		    	        String status = obj.length > baseIndex && obj[baseIndex] != null ? obj[baseIndex].toString() : null;
+		    	        
+		    	        String inTimeRaw = obj.length > (baseIndex + 1) && obj[baseIndex + 1] != null ? obj[baseIndex + 1].toString() : null;
+		    	        String outTimeRaw = obj.length > (baseIndex + 2) && obj[baseIndex + 2] != null ? obj[baseIndex + 2].toString() : null;
+
+		    	        String inTime = null;
+		    	        String outTime = null;
+
+		    	        try {
+		    	            if (inTimeRaw != null && !inTimeRaw.isEmpty()) {
+		    	                LocalDateTime inDateTime = LocalDateTime.parse(inTimeRaw, inputFormatter);
+		    	                inTime = inDateTime.format(outputFormatter);
+		    	            }
+		    	            if (outTimeRaw != null && !outTimeRaw.isEmpty()) {
+		    	                LocalDateTime outDateTime = LocalDateTime.parse(outTimeRaw, inputFormatter);
+		    	                outTime = outDateTime.format(outputFormatter);
+		    	            }
+		    	        } catch (Exception e) {
+		    	            // Handle invalid format if needed
+		    	            e.printStackTrace();
+		    	        }
+
+		    	        TimesheetDataDTO dayData = new TimesheetDataDTO();
+		    	        dayData.setStatus(status);
+		    	        dayData.setInTime(inTime);
+		    	        dayData.setOutTime(outTime);
+
+		    	        timesheetData.put("d" + (i + 1), dayData);
+		    	    }
+
+		    	    dto.setTimesheetData(timesheetData);
+		    	    dto.setEmploymentId(obj[115] != null ? obj[115].toString() : null);
+
+		    	    dtoList.add(dto);
+		    	}
+
+		    	if(dtoList.isEmpty()){
+		    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Unable to fetch the timesheet Data!");
+	                apiLogInfo.setApiResponse("Failed to set the data in dto \n");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                
+	            } else {
+	            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                response.setServiceResponse(dtoList);
+	                apiLogInfo.setApiResponse("Timesheet Data fetched successfully ");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            }
+	            
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	    		logService.logMyInfo(httpRequest, apiLogInfo);
+	    		return response;
+	    		
+		    } catch(Exception e) {
+			    	    e.printStackTrace();
+				        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				        response.setServiceResponse("Something went wrong.");
+				        response.setServiceError(e.getMessage());
+				        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				        apiLogInfo.setApiResponse(e.getMessage()); 
+				        apiLogInfo.setLogLevel("ERROR");
+			    }
+			    
+		    return response;
+		}
 	
-
-
 }

@@ -387,4 +387,10 @@ public class TimesheetController {
 	     return reponse;
 	     
 	 }
+	 
+	 @GetMapping(value = "/getEmployeeTimesheetAsCalenderByEmpId")
+	 public ServiceResponse getEmployeeTimesheetAsCalenderByEmpId(@RequestParam Long empId, @RequestParam Integer month, @RequestParam Integer year) {  
+		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalenderByEmpId(empId,month,year);
+		  return reponse;
+	 }
 }
