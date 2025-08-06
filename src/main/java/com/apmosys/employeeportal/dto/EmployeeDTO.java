@@ -344,6 +344,16 @@ this.name = name;
     private Integer days;
     private Float noOfDays;
     
+    private String employeeType;
+    
+    //added
+    private String isApmosysProduct;
+    private String employmentIdAcToET;
+    
+    private String dateRange;
+    
+    
+    
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
     public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
             Long mobileNo, Long managerId, String managerName, String jobRoleName,

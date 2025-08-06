@@ -987,6 +987,104 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
            nativeQuery = true)
     List<Object[]> fetchInactivePOCounts(@Param("po_project_typee") String po_project_typee,  @Param("deptId") List<Long> deptId);
     
+    @Query(value = "WITH AllPoProjectTypes AS (\n"
+    	    + "    SELECT 'Internal' AS po_project_type UNION ALL SELECT 'TNM' UNION ALL SELECT 'Fixed Cost' UNION ALL SELECT 'Monitoring'\n"
+    	    + "    		 ),\n"
+    	    + "    		 AllBillableTypes AS (\n"
+    	    + "    		     SELECT 'Bench' AS billable_type UNION ALL SELECT 'Shadow' UNION ALL SELECT 'TNM' UNION ALL SELECT 'Fixed Cost' UNION ALL SELECT 'InternalRNDProducts'\n"
+    	    + "    		 ),\n"
+    	    + "    		 AllCombinations AS (\n"
+    	    + "    		     SELECT apt.po_project_type, abt.billable_type\n"
+    	    + "    		     FROM AllPoProjectTypes apt\n"
+    	    + "    		     CROSS JOIN AllBillableTypes abt\n"
+    	    + "    		 ),\n"
+    	    + "    		 MainAgg AS (\n"
+    	    + "    		     SELECT\n"
+    	    + "    		         CASE WHEN p.po_project_type IS NULL THEN 'Internal' ELSE p.po_project_type END AS po_project_type,\n"
+    	    + "    		         e.billable_type,\n"
+    	    + "                  count(distinct e.emp_id) total_emp\n"
+    	    + "    		     FROM projects p\n"
+    	    + "    		     INNER JOIN teams t ON t.project_id = p.project_id\n"
+    	    + "    		     INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+    	    + "    		     INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+    	    + "    		     INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
+    	    + "    		     INNER JOIN department d ON d.dept_id = j.dept_id\n"
+    	    + "    		     LEFT JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+    	    + "    		     WHERE etm.active != 0\n"
+    	    + "    		       AND t.is_active != 'N'\n"
+    	    + "    		       AND p.active != 'false'\n"
+    	    + "    		       AND e.emp_id NOT BETWEEN 1 AND 6\n"
+    	    + "    		       AND p.po_project_type = :po_project_typee\n"
+    	    + "    		       AND p.po_end_date < CURRENT_DATE\n"
+    	    + "					 and DATE(p.po_end_date) between :fromDate and :toDate\n"
+    	    + "    		       AND d.dept_id IN (:deptIds)\n"
+    	    + "            GROUP BY CASE WHEN p.po_project_type IS NULL THEN 'Internal' ELSE p.po_project_type END, e.billable_type\n"
+    	    + "    		 ),\n"
+    	    + "    		 OverallAgg AS (\n"
+    	    + "    		     SELECT\n"
+    	    + "    		         CASE WHEN p.po_project_type IS NULL THEN 'Internal' ELSE p.po_project_type END AS po_project_type,\n"
+    	    + "    		         COUNT(DISTINCT e.emp_id) AS overall_employee\n"
+    	    + "    		     FROM projects p\n"
+    	    + "    		     INNER JOIN teams t ON t.project_id = p.project_id\n"
+    	    + "    		     INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+    	    + "    		     INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+    	    + "    		     INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
+    	    + "    		     INNER JOIN department d ON d.dept_id = j.dept_id\n"
+    	    + "    		     WHERE etm.active != 0\n"
+    	    + "    		       AND t.is_active != 'N'\n"
+    	    + "    		       AND p.active != 'false'\n"
+    	    + "    		       AND e.emp_id NOT BETWEEN 1 AND 6\n"
+    	    + "    		       AND p.po_project_type = :po_project_typee\n"
+    	    + "    		       AND p.po_end_date < CURRENT_DATE \n"
+    	    + "				   and DATE(p.po_end_date) between :fromDate and :toDate\n"
+    	    + "   		       AND d.dept_id IN (:deptIds)\n"
+    	    + "    		     GROUP BY\n"
+    	    + "    		         CASE WHEN p.po_project_type IS NULL THEN 'Internal' ELSE p.po_project_type END\n"
+    	    + "    		 ),\n"
+    	    + "    		 OverallPerBillableAgg AS (\n"
+    	    + "    		     SELECT\n"
+    	    + "    		         CASE WHEN p.po_project_type IS NULL THEN 'Internal' ELSE p.po_project_type END AS po_project_type,\n"
+    	    + "    		         e.billable_type,\n"
+    	    + "    		         COUNT(DISTINCT e.emp_id) AS overall_emp_per_billable_type\n"
+    	    + "    		     FROM projects p\n"
+    	    + "    		     INNER JOIN teams t ON t.project_id = p.project_id\n"
+    	    + "    		     INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+    	    + "    		     INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+    	    + "    		     INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
+    	    + "    		     INNER JOIN department d ON d.dept_id = j.dept_id\n"
+    	    + "    		     WHERE etm.active != 0\n"
+    	    + "    		       AND t.is_active != 'N'\n"
+    	    + "    		       AND p.active != 'false'\n"
+    	    + "    		       AND e.emp_id NOT BETWEEN 1 AND 6\n"
+    	    + "    		       AND p.po_project_type = :po_project_typee\n"
+    	    + "				   and DATE(p.po_end_date) between :fromDate and :toDate\n"
+    	    + "    		       AND p.po_end_date < CURRENT_DATE \n"
+    	    + "    		       AND d.dept_id IN (:deptIds) \n"
+    	    + "    		     GROUP BY\n"
+    	    + "    		         CASE WHEN p.po_project_type IS NULL THEN 'Internal' ELSE p.po_project_type END,\n"
+    	    + "    		         e.billable_type\n"
+    	    + "    		 )\n"
+    	    + "    		 SELECT\n"
+    	    + "    		     ac.po_project_type,\n"
+    	    + "    		     ac.billable_type,\n"
+    	    + "    		     COALESCE(oa.overall_employee, 0) AS overall_total_emp, \n" // --- ALIAS RENAMED ---
+    	    + "    		     COALESCE(opba.overall_emp_per_billable_type, 0) AS overall_emp_per_billable_type,\n"
+    	    + "    		     COALESCE(ma.total_emp, 0) AS specific_billable_emp \n" // --- ALIAS RENAMED ---
+    	    + "    		 FROM AllCombinations ac\n"
+    	    + "    		 LEFT JOIN MainAgg ma ON ac.po_project_type = ma.po_project_type AND ac.billable_type = ma.billable_type\n"
+    	    + "    		 LEFT JOIN OverallAgg oa ON ac.po_project_type = oa.po_project_type\n"
+    	    + "    		 LEFT JOIN OverallPerBillableAgg opba ON ac.po_project_type = opba.po_project_type AND ac.billable_type = opba.billable_type\n"
+    	    + "    		 WHERE 1=1\n"
+    	    + "              and ac.po_project_type = :po_project_typee \n"
+    	    + "             AND ac.billable_type = 'TNM'\n"
+    	    + "    		 ORDER BY\n"
+    	    + "    		     ac.po_project_type, ac.billable_type", nativeQuery = true)
+    	List<Object[]> fetchInactivePOCountsNew(@Param("po_project_typee") String po_project_typee,
+    	                                        @Param("deptIds") List<Long> deptIds,
+    	                                        @Param("fromDate") String fromDate,
+    	                                        @Param("toDate") String toDate);
+
+    
     
     @Query(value = "WITH AllPoProjectTypes AS (\n"
     		+ "    SELECT 'Internal' AS po_project_type UNION ALL SELECT 'TNM' UNION ALL SELECT 'Fixed Cost' UNION ALL SELECT 'Monitoring'\n"
@@ -1082,6 +1180,98 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "", 
            nativeQuery = true)
     List<Object[]> fetchInactivePOCountsForProject(@Param("po_project_typee") String po_project_typee, @Param("deptId") List<Long> deptId);
+    
+    @Query(value = "WITH AllPoProjectTypes AS (\n"
+    		+ "    		     SELECT 'Internal' AS po_project_type UNION ALL SELECT 'TNM' UNION ALL SELECT 'Fixed Cost' UNION ALL SELECT 'Monitoring'\n"
+    		+ "    		 ),\n"
+    		+ "    		 AllBillableTypes AS (\n"
+    		+ "    		     SELECT 'Bench' AS billable_type UNION ALL SELECT 'Shadow' UNION ALL SELECT 'TNM' UNION ALL SELECT 'Fixed Cost' UNION ALL SELECT 'InternalRNDProducts'\n"
+    		+ "    		 ),\n"
+    		+ "    		 AllCombinations AS (\n"
+    		+ "    		     SELECT apt.po_project_type, abt.billable_type\n"
+    		+ "    		     FROM AllPoProjectTypes apt\n"
+    		+ "    		     CROSS JOIN AllBillableTypes abt\n"
+    		+ "    		 ),\n"
+    		+ "    		 MainAgg AS (\n"
+    		+ "    		     SELECT\n"
+    		+ "    		         COALESCE(p.po_project_type, 'Internal') AS po_project_type,\n"
+    		+ "    		         e.billable_type,\n"
+    		+ "    		         COUNT(DISTINCT p.po_project_id) as total_projects\n"
+    		+ "    		     FROM projects p\n"
+    		+ "    		     JOIN teams t ON t.project_id = p.project_id\n"
+    		+ "    		     JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+    		+ "    		     JOIN employee e ON etm.emp_id = e.emp_id\n"
+    		+ "    		     JOIN job_role j ON e.job_role_id = j.job_role_id\n"
+    		+ "    		     JOIN department d ON d.dept_id = j.dept_id\n"
+    		+ "    		     WHERE etm.active != 0\n"
+    		+ "    		       AND t.is_active != 'N'\n"
+    		+ "    		       AND p.active != 'false'\n"
+    		+ "    		       AND e.emp_id NOT BETWEEN 1 AND 6\n"
+    		+ "    		        AND p.po_project_type = :po_project_typee\n"
+    		+ "                     AND p.po_end_date < CURRENT_DATE\n"
+    		+ "				 	 and DATE(p.po_end_date) between :fromDate and :toDate\n"
+    		+ "    		       AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptIds))\n"
+    		+ "    		     GROUP BY COALESCE(p.po_project_type, 'Internal'), e.billable_type\n"
+    		+ "    		 ),\n"
+    		+ "    		 OverallAgg AS (\n"
+    		+ "    		     SELECT\n"
+    		+ "    		         COALESCE(p.po_project_type, 'Internal') AS po_project_type,\n"
+    		+ "    		         COUNT(DISTINCT p.po_project_id) AS overall_pos\n"
+    		+ "    		     FROM projects p\n"
+    		+ "    		     JOIN teams t ON t.project_id = p.project_id\n"
+    		+ "    		     JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+    		+ "    		     JOIN employee e ON etm.emp_id = e.emp_id\n"
+    		+ "    		     JOIN job_role j ON e.job_role_id = j.job_role_id\n"
+    		+ "    		     JOIN department d ON d.dept_id = j.dept_id\n"
+    		+ "    		     WHERE etm.active != 0\n"
+    		+ "    		       AND t.is_active != 'N'\n"
+    		+ "    		       AND p.active != 'false'\n"
+    		+ "    		       AND e.emp_id NOT BETWEEN 1 AND 6\n"
+    		+ "    		        AND p.po_project_type = :po_project_typee\n"
+    		+ "                     AND p.po_end_date < CURRENT_DATE\n"
+    		+ "				 	 and DATE(p.po_end_date) between :fromDate and :toDate\n"
+    		+ " 		       AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptIds))\n"
+    		+ "    		     GROUP BY COALESCE(p.po_project_type, 'Internal')\n"
+    		+ "    		 ),\n"
+    		+ "    		 OverallPerBillableAgg AS (\n"
+    		+ "    		     SELECT\n"
+    		+ "    		         COALESCE(p.po_project_type, 'Internal') AS po_project_type,\n"
+    		+ "    		         e.billable_type,\n"
+    		+ "    		         COUNT(DISTINCT p.po_project_id) AS overall_projects_per_billable_type\n"
+    		+ "    		     FROM projects p\n"
+    		+ "    		     JOIN teams t ON t.project_id = p.project_id\n"
+    		+ "    		     JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+    		+ "    		     JOIN employee e ON etm.emp_id = e.emp_id\n"
+    		+ "    		     JOIN job_role j ON e.job_role_id = j.job_role_id\n"
+    		+ "    		     JOIN department d ON d.dept_id = j.dept_id\n"
+    		+ "    		     WHERE etm.active != 0\n"
+    		+ "    		       AND t.is_active != 'N'\n"
+    		+ "    		       AND p.active != 'false'\n"
+    		+ "    		       AND e.emp_id NOT BETWEEN 1 AND 6\n"
+    		+ "    		        AND p.po_project_type = :po_project_typee\n"
+    		+ "    		         AND p.po_end_date < CURRENT_DATE\n"
+    		+ "					  and DATE(p.po_end_date) between :fromDate and :toDate\n"
+    		+ "    		        AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptIds))\n"
+    		+ "    		     GROUP BY COALESCE(p.po_project_type, 'Internal'), e.billable_type\n"
+    		+ "    		 )\n"
+    		+ "    		 SELECT DISTINCT \n"
+    		+ "    		     ac.po_project_type,\n"
+    		+ "    		     ac.billable_type,\n"
+    		+ "    		     COALESCE(oa.overall_pos, 0) AS total_expired_pos,\n"
+    		+ "    		     COALESCE(opba.overall_projects_per_billable_type, 0) AS overall_projects_per_billable_type,\n"
+    		+ "    		     COALESCE(ma.total_projects, 0) AS total_projects\n"
+    		+ "    		 FROM AllCombinations ac\n"
+    		+ "    		 LEFT JOIN MainAgg ma ON ac.po_project_type = ma.po_project_type AND ac.billable_type = ma.billable_type\n"
+    		+ "    		 LEFT JOIN OverallAgg oa ON ac.po_project_type = oa.po_project_type\n"
+    		+ "    		 LEFT JOIN OverallPerBillableAgg opba ON ac.po_project_type = opba.po_project_type AND ac.billable_type = opba.billable_type\n"
+    		+ "    		 WHERE 1=1\n"
+    		+ "              and ac.po_project_type = :po_project_typee \n"
+    		+ "             AND ac.billable_type = 'TNM'\n"
+    		+ "    		 ORDER BY ac.po_project_type, ac.billable_type;" , nativeQuery = true)
+    List<Object[]> fetchInactivePOCountsForProjectNew(@Param("po_project_typee") String po_project_typee,@Param("deptIds") List<Long> deptIds,
+            @Param("fromDate") String fromDate,
+            @Param("toDate") String toDate);
+
 
     @Query(value="SELECT e.employeement_id, e.name, \n"
     		+ " e.billable, e.billable_type, \n"
@@ -1128,7 +1318,79 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		        @Param("poProjectType") String poProjectType,
 		        @Param("days") Integer days,
 		        @Param("deptId") List<Long> deptId);
+	
+	@Query(value = "SELECT e.employeement_id, e.name, \n"
+			+ "    		 e.billable, e.billable_type, \n"
+			+ "    		 emp_proj_client.project_name, emp_proj_client.po_start_date, emp_proj_client.po_end_date,\n"
+			+ "    		 emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location, \n"
+			+ "    		 d.name as departmentName, emp_proj_client.po_project_type, \n"
+			+ "    		 j.name as jobrole, emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id,\n"
+			+ "    		 emp_proj_client.clientrm, emp_proj_client.apmosysrm, emp_proj_client.effective_start_date, \n"
+			+ "    		 emp_proj_client.effective_end_date FROM employee e\n"
+			+ "    		 INNER JOIN job_role j ON j.job_role_id = e.job_role_id\n"
+			+ "    		 INNER JOIN department d ON d.dept_id = j.dept_id\n"
+			+ "    		 INNER JOIN employee m ON e.manager_id = m.emp_id\n"
+			+ "    		 LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id\n"
+			+ "    		 LEFT JOIN (     \n"
+			+ "    		 SELECT etm.emp_id, GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name,  \n"
+			+ "    		 GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, \n"
+			+ "    		 GROUP_CONCAT(DISTINCT p.po_start_date ORDER BY p.project_id) AS po_start_date, \n"
+			+ "    		 GROUP_CONCAT(DISTINCT p.po_end_date ORDER BY p.project_id) AS po_end_date,  \n"
+			+ "    		 GROUP_CONCAT(DISTINCT p.po_no ORDER BY p.project_id) AS po_no,  \n"
+			+ "    		 GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type,\n"
+			+ "    		 GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name,\n"
+			+ "    		 GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location,\n"
+			+ "    		 GROUP_CONCAT(DISTINCT t.team_name ORDER BY p.project_id) AS team_name,  \n"
+			+ "    		 GROUP_CONCAT(DISTINCT t.team_id ORDER BY p.project_id) AS team_id, \n"
+			+ "    		 GROUP_CONCAT(DISTINCT p.po_project_id ORDER BY p.project_id) AS po_project_id, \n"
+			+ "    		 GROUP_CONCAT(DISTINCT p.clientrm ORDER BY p.project_id) AS clientrm, \n"
+			+ "    		 GROUP_CONCAT(DISTINCT p.apmosysrm ORDER BY p.project_id) AS apmosysrm,\n"
+			+ "    		 GROUP_CONCAT(DISTINCT etm.start_date ORDER BY p.project_id) AS effective_start_date, \n"
+			+ "    		 GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date \n"
+			+ "    		 FROM employee_team_mapping etm     \n"
+			+ "    		 LEFT JOIN teams t ON t.team_id = etm.team_id \n"
+			+ "    		 LEFT JOIN projects p ON p.project_id = t.project_id \n"
+			+ "    		 LEFT JOIN clients c ON c.client_id = p.client_id\n"
+			+ "    		 LEFT JOIN client_locations cl ON cl.client_id = p.client_id\n"
+			+ "    		 WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'  \n"
+			+ "    		 GROUP BY etm.emp_id ) emp_proj_client ON emp_proj_client.emp_id = e.emp_id\n"
+			+ "    		 WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL \n"
+			+ "    		 and emp_proj_client.po_project_type = :poProjectType\n"
+			+ "    		 AND emp_proj_client.po_end_date < CURRENT_DATE\n"
+			+ "    		 AND date(emp_proj_client.po_end_date) between :fromDate and :toDate\n"
+			+ "    		 and e.emp_id not between 1 and 6  AND e.billable_type IN ('TNM')\n"
+			+ "    		 AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptIds))", nativeQuery = true)
+	public List<Object[]> fetchInactivePOListOfEmployeeNew(@Param("poProjectType") String poProjectType,
+			@Param("deptIds") List<Long> deptIds,
+			@Param("fromDate") String fromDate,
+			@Param("toDate") String toDate);
 
+	@Query(value = "SELECT DISTINCT p.project_name, \n"
+			+ "    p.po_no, p.po_project_type, p.po_start_date, p.po_end_date,\n"
+			+ "    p.clientrm, p.apmosysrm, c.client_name, p.client_location \n"
+			+ "FROM projects p \n"
+			+ "INNER JOIN teams t ON t.project_id = p.project_id \n"
+			+ "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+			+ "INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+			+ "INNER JOIN job_role j ON e.job_role_id = j.job_role_id \n"
+			+ "INNER JOIN department d ON d.dept_id = j.dept_id\n"
+			+ "INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+			+ "LEFT JOIN clients c ON p.client_id = c.client_id \n"
+			+ "WHERE etm.active != 0 \n"
+			+ "    AND t.is_active != 'N' \n"
+			+ "    AND p.active != 'false' \n"
+			+ "    AND e.emp_id NOT BETWEEN 1 AND 6 \n"
+			+ "    AND d.dept_id IN (:deptIds)\n"
+			+ "    AND p.po_project_type = :poProjectType \n"
+			+ "    AND p.po_end_date < CURRENT_DATE\n"
+			+ "    AND DATE(p.po_end_date) BETWEEN :fromDate AND :toDate", nativeQuery = true)
+	public List<Object[]> fetchInActivePOListOfProjectNew(
+			@Param("poProjectType") String poProjectType,
+			@Param("deptIds") List<Long> deptIds,
+			@Param("fromDate") String fromDate,
+			@Param("toDate") String toDate);
+	
+	
 	@Query(value="SELECT distinct p.project_name, \n"
 			+ " p.po_no, p.po_project_type, p.po_start_date, p.po_end_date,\n"
 			+ " p.clientrm, p.apmosysrm, c.client_name, p.client_location FROM projects p INNER JOIN teams t ON t.project_id = p.project_id \n"
@@ -1150,5 +1412,16 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	@Query(nativeQuery = true,value = "select sum(no_of_days) from employee_leave where emp_id = :empId")
 	public Float getNOOfDays(@Param("empId") Long empId);
+	
+	
+	
+	
+//	
+//	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApmosysProduct = 'true'")
+//	Employee findByEmployeementIdForApmosysProduct(@Param("empId") Long empId);
+//	
+//	
+//	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') ")
+//	Employee findByEmployeementIdForOthers(@Param("empId") Long empId);
 
 }

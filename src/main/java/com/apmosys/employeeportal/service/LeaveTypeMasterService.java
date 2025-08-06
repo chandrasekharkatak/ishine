@@ -75,11 +75,11 @@ public class LeaveTypeMasterService {
         apiLogInfo.setApiUrl("api/getAllLeaveTypes");
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("LeaveTypeList :" + leaveTypeMasterRepository.findByLeaveTypeMasterId(leaveDto.getLeaveTypeMasterId()).size());
+        logBuilder.append("LeaveTypeList :" + leaveTypeMasterRepository.findByLeaveTypeMasterId().size());
 		try {
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 
-			List<Object[]> list = leaveTypeMasterRepository.findByLeaveTypeMasterId(leaveDto.getLeaveTypeMasterId());
+			List<Object[]> list = leaveTypeMasterRepository.findByLeaveTypeMasterId();
 
 			if (list != null) {
 				for (Object[] object : list) {

@@ -500,26 +500,27 @@
           </div>
 
           <!-- Billable Type -->
-          <div class="count-boxes">
-            <div class="count-box" *ngFor="let type of ['Bench', 'Fixed Cost', 'Shadow', 'TNM', 'InternalRNDProducts']"
-              [ngClass]="{'active-btn': selectedBillable[box] === type,'full-width': type === 'InternalRNDProducts'}" (click)="selectBillable(box, type, alert_message)">
-              <span>
-                {{ type }}
-                <span class="info-wrapper" *ngIf="type === 'TNM' && box !== 'Internal' && selectedFlag[box] === 'Inactive'" >
-                  <button class="info-button" (click)="toggleInfo1(box)" title="InActive PO By Days">
-                   <i class="fa-solid fa-circle-info"></i>
-                  </button>
-                  <div class="info-tooltip1" *ngIf="visibleInfo && box === inActiveBoxinfo">
-                    <div *ngFor="let item of InActivePoCounts" class="tooltip-label-mapped" 
-                         (click)="onInfoClickModel(box, inactivePoModal, item.noOfDays, projectTemplate)">
-                      {{ item.type }}: {{ item.count }}
-                    </div>
-                  </div>
-                </span>
-              </span>
-              <div class="count">{{ getCount(box, type) }}</div>
-            </div>
+         <div class="count-boxes">
+  <div class="count-box" *ngFor="let type of ['Bench', 'Fixed Cost', 'Shadow', 'TNM', 'InternalRNDProducts']"
+    [ngClass]="{'active-btn': selectedBillable[box] === type,'full-width': type === 'InternalRNDProducts'}" 
+    (click)="selectBillable(box, type, alert_message)">
+    <span>
+      {{ type }}
+      <span class="info-wrapper" *ngIf="type === 'TNM' && box !== 'Internal' && selectedFlag[box] === 'Inactive'">
+        <button class="info-button" (click)="toggleInfo1(box)" title="InActive PO By Date Range">
+         <i class="fa-solid fa-circle-info"></i>
+        </button>
+        <div class="info-tooltip1" *ngIf="visibleInfo && box === inActiveBoxinfo">
+          <div *ngFor="let item of InActivePoCounts" class="tooltip-label-mapped" 
+               (click)="onInfoClickModel(box, inactivePoModal, item.dateRange, projectTemplate)">
+            {{ item.type }}: {{ item.count }}
           </div>
+        </div>
+      </span>
+    </span>
+    <div class="count">{{ getCount(box, type) }}</div>
+  </div>
+</div>
 
         </div>
         <!-- Employee Summary Column -->
@@ -604,7 +605,7 @@
           [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
           <table class="table " matSort (matSortChange)="sortData($event)">
             <thead class="thead-light">
-              <tr>
+              <tr> 
                 <!-- <th *ngIf="changeTable && !isAccounts">
                   <input type="checkbox" [(ngModel)]="masterSelected" (change)="selectAllEmployees()" />
                 </th> -->

@@ -400,7 +400,7 @@ public class ResourceManagementController {
 		return resourceManagementService.poCrudOperationsInIshine(poPortalProjects);
 	}
 	@GetMapping("/deleteTempProjects")
-	@Scheduled(cron = "${project.temp.logs}")
+//	@Scheduled(cron = "${project.temp.logs}")
 	public ServiceResponse deleteProjectTemp() {
 	    return resourceManagementService.deleteProjectTemp();
 	}

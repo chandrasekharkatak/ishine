@@ -58,7 +58,18 @@ public class ProjectFetchDTO {
     private String clientLocation;
     
     private String departmentNames;
+    private String draftProjectStatus;
+    private String displayProjectId;
     private String projectManager;
+    private String poProjectStatus;
+    
+    
+    
+    
+
+
+    
+    
 	public ProjectFetchDTO(Integer projectId, Timestamp createdOn, String projectName, String state, Integer clientId,
 			Long poProjectId, String syncProject, Long createdBy, Long updatedBy,
 			LocalDateTime updatedOn, String isDraftProject, String poEndDate, String poNo, String poProjectType,

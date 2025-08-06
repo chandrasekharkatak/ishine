@@ -230,9 +230,86 @@
             <i class="fa-solid fa-calendar-check fa-beat-fade ms-1" style="color: #0e6dcd"></i>
         </div>
     </div>
-</div>
+        </div>
 
     </div>
+
+
+
+                        <!-- added for TNM active projects -->
+                        <div class="col-md-2" style="display: flex;
+                        justify-content: flex-start; max-width: fit-content;
+                         margin-left: -15px;" (click)="selectStatusTab('activeTNMProjects')"
+                            [ngClass]="{'selected-card': selectedStatusTab === 'activeTNMProjects'}">
+                            <div class="mini-card1" style="border-left: 4px solid #107503;">
+                                <div class="value fw-bold" style="color: #107503;">
+                                    {{tabCounts.allActiveTNMProjectsCount}}
+                                </div>
+                                <div class="label text-muted">TNM Active<br>Projects<i
+                                        class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #107503;"></i></div>
+                            </div>
+                        </div>
+
+
+                        <!-- added for TNM expired projects -->
+                        <div class="col-md-6" (click)="selectStatusTab('expiredTNM')"
+                            [ngClass]="{'selected-card': selectedStatusTab === 'expiredTNM'}">
+                            <div class="mini-card-tnm" style="border-left: 4px solid #8B0000; padding: 5px 8px;">
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="value fw-semibold" style="color: #8B0000; font-size: 16px;">
+                                        <ng-container
+                                            *ngIf="tabCounts?.allExpiredTNMProjectsCount !== null && tabCounts?.allExpiredTNMProjectsCount !== undefined; else mainLoadingSpinner">
+                                            {{getCurrentExpiredCount()}}
+                                        </ng-container>
+                                        <ng-template #mainLoadingSpinner>
+                                            <i class="fa fa-spinner fa-spin text-secondary"></i>
+                                        </ng-template>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                </div>
+
+                                <div class="range-buttons mb-2" (click)="$event.stopPropagation()"
+                                    style="display: flex; flex-wrap: nowrap; gap: 2px; justify-content: space-between;">
+
+                                    <div *ngFor="let filter of expiredProjectFilters; let i = index"
+                                        class="filter-container"
+                                        style="display: flex; flex-direction: column; align-items: center;">
+
+                                        <button [class.active]="selectedExpiredProjectFilter === filter"
+                                            class="pill-button" (click)="selectExpiredProjectFilter(filter)"
+                                            [title]="filter.title"
+                                            style="white-space: nowrap; font-size: 10px; padding: 4px 5px; border-radius: 12px; border: 1px solid #ddd; background: #f8f9fa;"
+                                            [ngStyle]="{
+                        'background-color': selectedExpiredProjectFilter === filter ? '#8B0000' : '#f8f9fa',
+                        'color': selectedExpiredProjectFilter === filter ? '#fff' : '#333',
+                        'border-color': selectedExpiredProjectFilter === filter ? '#8B0000' : '#ddd'
+                    }">
+                                            {{ filter.label }}
+                                        </button>
+                                        <div class="filter-count"
+                                            style="text-align: center; font-size: 10px; color: #666; margin-top: 2px; font-weight: 600;">
+                                            <ng-container
+                                                *ngIf="tabCounts && tabCounts[filter.key] !== null && tabCounts[filter.key] !== undefined">
+                                                {{tabCounts[filter.key]}}
+                                            </ng-container>
+                                            <ng-container
+                                                *ngIf="!tabCounts || tabCounts[filter.key] === null || tabCounts[filter.key] === undefined">
+                                                <i class="fa fa-spinner fa-spin" style="font-size: 8px;"></i>
+                                            </ng-container>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="label text-muted">
+                                    {{ selectedExpiredProjectFilter?.title || 'All Expired TNM Projects' }}
+                                    <i class="fa-solid fa-briefcase fa-beat-fade"
+                                        style="color: #8B0000; margin-left: 5px; margin-top: 10px;"></i>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
 
@@ -275,12 +352,14 @@
 
 
                                 <!-- Select All/Deselect All -->
-                                <mat-option (click)="skipSelectionChange = true;toggleSelectAllDept()" [disabled]="departments.length === 0">
+                                <mat-option (click)="skipSelectionChange = true;toggleSelectAllDept()"
+                                    [disabled]="departments.length === 0">
                                     {{ isAllSelected ? 'Deselect All' : 'Select All' }}
                                 </mat-option>
 
                                 <!-- Department options -->
-                                <mat-option  (click)="skipSelectionChange = false" *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
+                                <mat-option (click)="skipSelectionChange = false"
+                                    *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
                                     {{ dept.name }}
                                 </mat-option>
                             </mat-select>
@@ -329,7 +408,8 @@
                                     </mat-option>
 
                                     <!-- Department options -->
-                                    <mat-option (click)="skipSelectionChange = false"  *ngFor="let dept of filteredDepartmentsByUser" [value]="dept.deptId">
+                                    <mat-option (click)="skipSelectionChange = false"
+                                        *ngFor="let dept of filteredDepartmentsByUser" [value]="dept.deptId">
                                         {{ dept.name }}
                                     </mat-option>
                                 </mat-select>
@@ -344,9 +424,8 @@
                     <div class="row mb-3">
                         <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
                             <input id="employeeSearch" type="text" class="form-control" style="min-width: 200px;"
-                            placeholder="Search by Name or Emp ID" aria-label="Search employee"
-                            [formControl]="employeeCtrl" [matAutocomplete]="auto"
-                            (input)="onEmployeeInputChange()">
+                                placeholder="Search by Name or Emp ID" aria-label="Search employee"
+                                [formControl]="employeeCtrl" [matAutocomplete]="auto" (input)="onEmployeeInputChange()">
 
                             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
                                 [displayWith]="displayEmployee">
@@ -707,11 +786,12 @@
                                         <td>{{project.poNo ? project.poNo : 'NA' }}</td>
 
                                         <td>
-                                          {{ project.poProjectType ? project.poProjectType : (project.internalProjectType ? project.internalProjectType : 'NA') }}
+                                            {{ project.poProjectType ? project.poProjectType :
+                                            (project.internalProjectType ? project.internalProjectType : 'NA') }}
                                         </td>
 
                                         <td class="text-capitalize">
-                                            <ng-container 
+                                            <ng-container
                                                 *ngIf="userMapping.rmg_employee_360 && project.projectManagerName && !isAccounts">
                                                 <span id="clickablefor360"
                                                     *ngFor="let managerData of project.projectManagers; let last = last"
@@ -721,13 +801,19 @@
                                                     ? managerData.projectManagerName : 'NA' }} {{!last ? ',' :
                                                     ''}}</span>
                                             </ng-container>
-                                            <ng-container 
+                                            <ng-container
                                                 *ngIf="!userMapping.rmg_employee_360 || !project.projectManagerName">
                                                 <span
                                                     *ngFor="let managerData of project.projectManagers; let last = last"
                                                     style="cursor: pointer;" class="info-label">
                                                     {{managerData.projectManagerName ? managerData.projectManagerName :
                                                     'NA'}}{{!last ? ',' : ''}}
+                                                </span>
+                                            </ng-container>
+                                            <ng-container
+                                                *ngIf="(!project.projectManagers || project.projectManagers.length === 0) && project.projectManager">
+                                                <span class="info-label">
+                                                    {{project.projectManager ? project.projectManager : 'NA'}}
                                                 </span>
                                             </ng-container>
                                             {{project.projectManager}}
@@ -1102,6 +1188,9 @@
 
     <!-- Modals -->
 
+
+
+
     <ng-template #alert_message>
         <div class="modal-body text-center">
             <p>{{alertMessage}}</p>
@@ -1274,65 +1363,65 @@
         </div>
     </ng-template>
 
- <ng-template #projectTemplate>
-    <div class="modal-header">
-        <h1 class="table-header-title">Employee's Projects Details</h1>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest2()">
-            <span aria-hidden="true">×</span>
-        </button>
-    </div>
-    <div class="table-container" bassHorizontalScroll [tableId]="'projectDetailsTable'" [tableTHeadId]="'projectDetailsTHead'"
-        [tableTHeadTrId]="'projectDetailsTHeadTr'">
-    
-        <table class="table" id="projectDetailsTable">
-        
-            <thead class="thead-light" id="projectDetailsTHead">
-                <tr id="projectDetailsTHeadTr">
-                    <th scope="col" class="info-label" style="min-width: 80px;">Sr.No</th>
-                    <th scope="col" class="info-label" style="min-width: 250px;">Project Name</th>
-                    <th scope="col" class="info-label" style="min-width: 200px;">Team Name</th>
-                    <th scope="col" class="info-label" style="min-width: 200px;">Client Name</th>
-                    <th scope="col" class="info-label" style="min-width: 150px;">Billable Type</th>
-                    <th scope="col" class="info-label" style="min-width: 150px;">Start Date</th>
-                    <th scope="col" class="info-label" style="min-width: 150px;">End Date</th>
-                    <th scope="col" class="info-label" style="min-width: 120px;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <ng-container *ngIf="projectDetails.length === 0">
-                    <tr>
-                        <th colspan="8" class="text-center info-label">No details to display...</th>
-                    </tr>
-                </ng-container>
-            
-                <tr *ngFor="let userInfo of projectDetails | paginate: { id: 'projectEmployeeDetailsId', itemsPerPage: 10, currentPage: page }; let i = index">
-                    <td class="text-center">{{ (page - 1) * 10 + i + 1 }}</td>
-                    <td class="text-center">{{ userInfo.projectName || '-' }}</td>
-                    <td class="text-center">{{ userInfo.teamName || '-' }}</td>
-                    <td class="text-center">{{ userInfo.clientName || '-' }}</td>
-                    <td class="text-center">{{ userInfo.billableType || '-' }}</td>
-                    <td class="text-center">{{ userInfo.startDate ? (userInfo.startDate | date: 'dd-MM-yyyy') : '-' }}</td>
-                    <td class="text-center">{{ userInfo.updatedOn ? (userInfo.updatedOn | date: 'dd-MM-yyyy') : '-' }}</td>
-                    <td class="text-center">
-                        <button class="btn btn-danger btn-sm"
-                                (click)="deleteResourceModal(delete_modal_template, userInfo)"
-                                title="Delete Project">
-                            <em class="fa fa-trash"></em>
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    
-        <div class="row col-md-12">
-            <pagination-controls id="projectEmployeeDetailsId" 
-                               class="my-pagination"
-                               [hidden]="projectDetails.length === 0"
-                               (pageChange)="handlePageChanges($event)">
-            </pagination-controls>
+    <ng-template #projectTemplate>
+        <div class="modal-header">
+            <h1 class="table-header-title">Employee's Projects Details</h1>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest2()">
+                <span aria-hidden="true">×</span>
+            </button>
         </div>
-    </div>
-</ng-template>
+        <div class="table-container" bassHorizontalScroll [tableId]="'projectDetailsTable'"
+            [tableTHeadId]="'projectDetailsTHead'" [tableTHeadTrId]="'projectDetailsTHeadTr'">
+
+            <table class="table" id="projectDetailsTable">
+
+                <thead class="thead-light" id="projectDetailsTHead">
+                    <tr id="projectDetailsTHeadTr">
+                        <th scope="col" class="info-label" style="min-width: 80px;">Sr.No</th>
+                        <th scope="col" class="info-label" style="min-width: 250px;">Project Name</th>
+                        <th scope="col" class="info-label" style="min-width: 200px;">Team Name</th>
+                        <th scope="col" class="info-label" style="min-width: 200px;">Client Name</th>
+                        <th scope="col" class="info-label" style="min-width: 150px;">Billable Type</th>
+                        <th scope="col" class="info-label" style="min-width: 150px;">Start Date</th>
+                        <th scope="col" class="info-label" style="min-width: 150px;">End Date</th>
+                        <th scope="col" class="info-label" style="min-width: 120px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngIf="projectDetails.length === 0">
+                        <tr>
+                            <th colspan="8" class="text-center info-label">No details to display...</th>
+                        </tr>
+                    </ng-container>
+
+                    <tr
+                        *ngFor="let userInfo of projectDetails | paginate: { id: 'projectEmployeeDetailsId', itemsPerPage: 10, currentPage: page }; let i = index">
+                        <td class="text-center">{{ (page - 1) * 10 + i + 1 }}</td>
+                        <td class="text-center">{{ userInfo.projectName || '-' }}</td>
+                        <td class="text-center">{{ userInfo.teamName || '-' }}</td>
+                        <td class="text-center">{{ userInfo.clientName || '-' }}</td>
+                        <td class="text-center">{{ userInfo.billableType || '-' }}</td>
+                        <td class="text-center">{{ userInfo.startDate ? (userInfo.startDate | date: 'dd-MM-yyyy') : '-'
+                            }}</td>
+                        <td class="text-center">{{ userInfo.updatedOn ? (userInfo.updatedOn | date: 'dd-MM-yyyy') : '-'
+                            }}</td>
+                        <td class="text-center">
+                            <button class="btn btn-danger btn-sm"
+                                (click)="deleteResourceModal(delete_modal_template, userInfo)" title="Delete Project">
+                                <em class="fa fa-trash"></em>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="row col-md-12">
+                <pagination-controls id="projectEmployeeDetailsId" class="my-pagination"
+                    [hidden]="projectDetails.length === 0" (pageChange)="handlePageChanges($event)">
+                </pagination-controls>
+            </div>
+        </div>
+    </ng-template>
 
 
     <ng-template #delete_modal_template>
@@ -1750,77 +1839,17 @@
                         </div>
                     </div>
 
-                    <button class="set-team-btn" (click)="createDraftProjectInfo(alert_message,alert_message_without_reload)">Set Team</button>
-                </div>
-            </div>
 
-            <!-- ===== CONTENT PANE 2: Milestones ===== -->
-            <div *ngIf="activeModalTab === 'milestone'">
-                <div class="modal-body">
-                    <h4 class="modal-title pull-left">Project Milestone List</h4>
-                    
-                    <ng-container *ngIf="!fcProjectMilestoneList || fcProjectMilestoneList.length === 0">
-                        <div class="text-center p-4">
-                            <i class="fa fa-spinner fa-spin fa-2x text-muted" *ngIf="isLoadingMilestones"></i>
-                            <span *ngIf="!isLoadingMilestones" class="info-label">No details to display...</span>
-                        </div>
-                    </ng-container>
-
-                    <div *ngIf="fcProjectMilestoneList && fcProjectMilestoneList.length > 0" 
-                         class="table-container" 
-                         bassHorizontalScroll 
-                         [tableId]="'projectMilestone'"
-                         [tableTHeadId]="'projectMilestoneTHead'" 
-                         [tableTHeadTrId]="'projectMilestoneTHeadTr'">
-                        
-                        <table class="table" id="project-milestone" matSort (matSortChange)="sortProjectMilestoneData($event)">
-                            <thead class="thead-light">
-                                <tr id="projectMilestoneTHeadTr">
-                                    <th scope="col" class="info-label">Sr.No</th>
-                                    <th scope="col" class="info-label" mat-sort-header="lineItemName|string">Line Item</th>
-                                    <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>
-                                    <th scope="col" class="info-label">Description</th>
-                                    <th scope="col" class="info-label" mat-sort-header="startDate|string">Start Date</th>
-                                    <th scope="col" class="info-label" mat-sort-header="endDate|string">End Date</th>
-                                    <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
-                                    <th scope="col" class="info-label">Remarks</th>
-                                    <th scope="col" class="info-label">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr *ngFor="let milestone of fcProjectMilestoneList | sort : [projectMilestoneSortColumn, projectMilestoneSortColumnType, projectMilestoneSortDirection]| paginate: { itemsPerPage: 10, currentPage: projectMilestonepage }; let j = index">
-                                    <td>{{j+1}}</td>
-                                    <td>{{milestone.lineItemName}}</td>
-                                    <td>{{milestone.name}}</td>
-                                    <td>{{milestone.description}}</td>
-                                    <td>{{milestone.startDate | date:'dd/MM/yyyy'}}</td>
-                                    <td>{{milestone.endDate | date:'dd/MM/yyyy'}}</td>
-                                    <td>{{milestone.status}}</td>
-                                    <td>{{milestone.remarks}}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary" [disabled]="milestone.status === 'Completed'"
-                                            [title]="milestone.status === 'Completed' ? 'Cannot edit completed milestone' : ''"
-                                            (click)="openUpdateProjectMilestoneModal(milestone)">
-                                            <i class="fas fa-edit"></i>
-                                        </button>  
-                                        <button *ngIf="milestone.status === 'Completed'" class="btn btn-sm btn-info" title="View Document"
-                                            (click)="viewFiles(milestone.id)">
-                                            <i class="fas fa-file-alt"></i> 
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div class="row col-md-12">
-                            <pagination-controls class="my-pagination" (pageChange)="handleProjectMilestonePageChange($event)"></pagination-controls>
-                        </div>
                     </div>
-                </div>
+
+                    <button class="set-team-btn"
+                        (click)="createDraftProjectInfo(alert_message,alert_message_without_reload)">Set Team</button>
+                    </div>
+
             </div>
-            
         </div>
-    </div>
-</ng-template>
+    </ng-template>
+
     <ng-template #teamMemberTemplate>
         <div class="modal-body p-0">
             <div class="team-modal-container">
@@ -1894,7 +1923,8 @@
                             (optionSelected)="onTeamMemberSelected($event)" [displayWith]="displayEmployee">
                             <mat-option
                                 *ngFor="let newteamMember of employeeListByDept | filterEmployee: teamMemberCtrl.value"
-                                [value]="newteamMember" [disabled]="newteamMember.isSelected || isEmployeeInTeam(newteamMember)"
+                                [value]="newteamMember"
+                                [disabled]="newteamMember.isSelected || isEmployeeInTeam(newteamMember)"
                                 (onSelectionChange)="openProjectTemplateModal(projectTemplate, newteamMember)">
                                 {{ newteamMember.name }}
                             </mat-option>
@@ -1935,8 +1965,7 @@
                         </button>
                   </div> -->
                     <div>
-                        <button type="button" class="btn btn-outline-primary"
-                            (click)="handleAddButtonClick()"
+                        <button type="button" class="btn btn-outline-primary" (click)="handleAddButtonClick()"
                             [class.disabled]="isAddButtonDisabled()">
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>
@@ -1951,7 +1980,7 @@
                     <div class="accordion-card">
                         <div class="accordion-content">
                             <div class="team-members-wrapper">
-                                
+
                                 <!-- New Team Members -->
                                 <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class="team-member-section">
                                     <label>New Team Members</label>
@@ -1987,8 +2016,9 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <button *ngIf="!hasNewTeamMembers" class="set-team-btn mt-3" (click)="addTeamMemberMapping()">
-                                                    Update Member(s)
+                                        <button *ngIf="!hasNewTeamMembers" class="set-team-btn mt-3"
+                                            (click)="addTeamMemberMapping()">
+                                            Update Member(s)
                                         </button>
                                     </div>
                                 </div>
@@ -2027,30 +2057,30 @@
                                                     (click)="togglePopover(member.empId)">
                                                     <i class="fa-solid fa-circle-exclamation"></i>
                                                 </button>
-                                              
+
                                             </div>
 
                                             <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3"
-                                            style="position: initial;">
-                                            <div class="info-line"><span class="label">Emp Id:</span> {{
-                                                employeeInformation.employmentId }}</div>
-                                            <div class="info-line"><span class="label">Role:</span> {{
-                                                employeeInformation.jobRole }}</div>
-                                            <div class="info-line"><span class="label">Billability Type:</span>
-                                                {{ employeeInformation.billableType }}</div>
-                                            <div class="info-line"><span class="label"> Start Date:</span>
-                                                {{ employeeInformation.startDate}}</div>
-                                            <div class="info-line"><span class="label">Department:</span> {{
-                                                employeeInformation.deptName }}</div>
-                                            <div class="info-line"><span class="label">Previous
-                                                    Experience:</span> {{ employeeInformation.previousExperience
-                                                }} years</div>
-                                            <div class="info-line"><span class="label">Current
-                                                    Experience:</span> {{ employeeInformation.currentExperience
-                                                }} years</div>
-                                            <div class="info-line"><span class="label">Total Experience:</span>
-                                                {{ employeeInformation.totalExperience }} years</div>
-                                        </div>
+                                                style="position: initial;">
+                                                <div class="info-line"><span class="label">Emp Id:</span> {{
+                                                    employeeInformation.employmentId }}</div>
+                                                <div class="info-line"><span class="label">Role:</span> {{
+                                                    employeeInformation.jobRole }}</div>
+                                                <div class="info-line"><span class="label">Billability Type:</span>
+                                                    {{ employeeInformation.billableType }}</div>
+                                                <div class="info-line"><span class="label"> Start Date:</span>
+                                                    {{ employeeInformation.startDate}}</div>
+                                                <div class="info-line"><span class="label">Department:</span> {{
+                                                    employeeInformation.deptName }}</div>
+                                                <div class="info-line"><span class="label">Previous
+                                                        Experience:</span> {{ employeeInformation.previousExperience
+                                                    }} years</div>
+                                                <div class="info-line"><span class="label">Current
+                                                        Experience:</span> {{ employeeInformation.currentExperience
+                                                    }} years</div>
+                                                <div class="info-line"><span class="label">Total Experience:</span>
+                                                    {{ employeeInformation.totalExperience }} years</div>
+                                            </div>
 
                                             <div class="team-member-field">
                                                 <input type="text" placeholder="Name" [value]="member.name"
@@ -2164,36 +2194,36 @@
                                                 <i class="fa-solid fa-circle-exclamation"></i>
                                             </button>
 
-                                        </div> 
-                                        
+                                        </div>
+
                                         <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3"
-                                        style="width: 260px; position: revert;">
-                                        <div class="info-line"><span class="label">Emp Id</span>: <span
-                                                class="label">{{ employeeInformation.employmentId }}</span>
+                                            style="width: 260px; position: revert;">
+                                            <div class="info-line"><span class="label">Emp Id</span>: <span
+                                                    class="label">{{ employeeInformation.employmentId }}</span>
+                                            </div>
+                                            <div class="info-line"><span class="label">Role</span>: <span
+                                                    class="label">{{ employeeInformation.jobRole }}</span></div>
+                                            <div class="info-line"><span class="label">Billability type</span>:
+                                                <span class="label">{{ employeeInformation.billableType }}</span>
+                                            </div>
+                                            <div class="info-line"><span class="label">Start Date</span>:
+                                                <span class="label">{{ employeeInformation.startDate }}</span>
+                                            </div>
+                                            <div class="info-line"><span class="label">Department</span>: <span
+                                                    class="label">{{ employeeInformation.deptName }}</span></div>
+                                            <div class="info-line"><span class="label">Previous Experience</span>:
+                                                <span class="label">{{ employeeInformation.previousExperience }}
+                                                    years</span>
+                                            </div>
+                                            <div class="info-line"><span class="label">Current Experience</span>:
+                                                <span class="label">{{ employeeInformation.currentExperience }}
+                                                    years</span>
+                                            </div>
+                                            <div class="info-line"><span class="label">Total Experience</span>:
+                                                <span class="label">{{ employeeInformation.totalExperience }}
+                                                    years</span>
+                                            </div>
                                         </div>
-                                        <div class="info-line"><span class="label">Role</span>: <span
-                                                class="label">{{ employeeInformation.jobRole }}</span></div>
-                                        <div class="info-line"><span class="label">Billability type</span>:
-                                            <span class="label">{{ employeeInformation.billableType }}</span>
-                                        </div>
-                                        <div class="info-line"><span class="label">Start Date</span>:
-                                            <span class="label">{{ employeeInformation.startDate }}</span>
-                                        </div>
-                                        <div class="info-line"><span class="label">Department</span>: <span
-                                                class="label">{{ employeeInformation.deptName }}</span></div>
-                                        <div class="info-line"><span class="label">Previous Experience</span>:
-                                            <span class="label">{{ employeeInformation.previousExperience }}
-                                                years</span>
-                                        </div>
-                                        <div class="info-line"><span class="label">Current Experience</span>:
-                                            <span class="label">{{ employeeInformation.currentExperience }}
-                                                years</span>
-                                        </div>
-                                        <div class="info-line"><span class="label">Total Experience</span>:
-                                            <span class="label">{{ employeeInformation.totalExperience }}
-                                                years</span>
-                                        </div>
-                                    </div>                                        
 
                                         <input type="text" [value]="member.name" class="form-control name-field"
                                             readonly style="width: 200px; margin-right: 10px;" />
@@ -2275,9 +2305,10 @@
                 <button *ngIf="hasNewTeamMembers" class="set-team-btn mt-3" (click)="addTeamMemberMapping()">Add Team
                     Member(s)</button>
                 <div>
-                                        <button *ngIf="!hasNewTeamMembers && projectObj.resourceRequirements?.length > 0" class="set-team-btn mt-3" (click)="addTeamMemberMapping()">
-                                                        Update Member(s)
-                                        </button>
+                    <button *ngIf="!hasNewTeamMembers && projectObj.resourceRequirements?.length > 0"
+                        class="set-team-btn mt-3" (click)="addTeamMemberMapping()">
+                        Update Member(s)
+                    </button>
                 </div>
             </div>
         </div>
@@ -2865,11 +2896,13 @@
                                         <mat-select [(ngModel)]="emp.projectId" disableOptionCentering
                                             (selectionChange)="getTeamListForSelectedProject1(emp)">
                                             <mat-option disabled>
-                                                <input class="form-control" style="display: flex; width: 100%; padding: 5px;"
-                                                    placeholder="Search project..." type="text" [(ngModel)]="searchTextProject"
+                                                <input class="form-control"
+                                                    style="display: flex; width: 100%; padding: 5px;"
+                                                    placeholder="Search project..." type="text"
+                                                    [(ngModel)]="searchTextProject"
                                                     (ngModelChange)="filterProjects(emp)" />
                                             </mat-option>
-                                
+
                                             <mat-option
                                                 *ngFor="let proj of (emp.projectType === 'bench' ? filteredProjectsForDefaultBulkBench : filteredProjectsForDefaultBulkOther)"
                                                 [value]="proj.projectId">
@@ -2882,11 +2915,14 @@
                                     <div class="form-group" style="display: flex; align-items: center;">
                                         <mat-select [(ngModel)]="emp.teamId" disableOptionCentering>
                                             <mat-option disabled>
-                                                <input class="form-control" style="display: flex; width: 100%; padding: 5px;"
-                                                    placeholder="Search Team..." type="text" [(ngModel)]="searchTermTeam"
+                                                <input class="form-control"
+                                                    style="display: flex; width: 100%; padding: 5px;"
+                                                    placeholder="Search Team..." type="text"
+                                                    [(ngModel)]="searchTermTeam"
                                                     (ngModelChange)="filterTeamsForDefaultBulk()" />
                                             </mat-option>
-                                            <mat-option *ngFor="let team of filteredTeamsForDefaultBulk" [value]="team.teamId">
+                                            <mat-option *ngFor="let team of filteredTeamsForDefaultBulk"
+                                                [value]="team.teamId">
                                                 {{ team.teamName }}
                                             </mat-option>
                                         </mat-select>
@@ -2919,12 +2955,16 @@
                                     <div class="form-group" style="display: flex; align-items: center;">
                                         <mat-select [(ngModel)]="emp.resourceOverViewId" disableOptionCentering>
                                             <mat-option disabled>
-                                                <input class="form-control" style="display: flex; width: 100%; padding: 5px;"
-                                                    placeholder="Search Requirement..." type="text" [(ngModel)]="searchTermRequirement"
+                                                <input class="form-control"
+                                                    style="display: flex; width: 100%; padding: 5px;"
+                                                    placeholder="Search Requirement..." type="text"
+                                                    [(ngModel)]="searchTermRequirement"
                                                     (ngModelChange)="filterResourceRequirementForDefaultBulk()" />
                                             </mat-option>
-                                            <mat-option *ngFor="let req of filteredResourceRequirementListBulk" [value]="req.resourceOverviewId">
-                                                Role - {{ req.role }} || Dept - {{ req.department }} || Exp - {{ req.experience }} y
+                                            <mat-option *ngFor="let req of filteredResourceRequirementListBulk"
+                                                [value]="req.resourceOverviewId">
+                                                Role - {{ req.role }} || Dept - {{ req.department }} || Exp - {{
+                                                req.experience }} y
                                             </mat-option>
                                         </mat-select>
                                     </div>

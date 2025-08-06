@@ -20,5 +20,7 @@ public class ProjectFilterDTO {
 	private Boolean isOther;
 	private List<Long> departmentsids;
 	private List<GetDeptIdByRoleDTO> departments;
+	
+	private Integer days;
 
 }
