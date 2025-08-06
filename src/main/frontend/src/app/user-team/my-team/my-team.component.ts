@@ -1213,7 +1213,11 @@ export class MyTeamComponent implements OnInit {
     this.selectedDataIndex = 0;
     
     let employee = Object.assign({}, employeeObj);
-    employee.employeementId = employee.employeementId;
+   if (employee.employeementId && 
+    typeof employee.employeementId === 'string' && 
+    employee.employeementId.startsWith("A-")) {
+    employee.employeementId = employee.employeementId.substring(2);
+}
 
     this.employeeService.getHierarchyByEmpId(employee).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
@@ -1447,6 +1451,9 @@ export class MyTeamComponent implements OnInit {
     });
   }
 
+canShowFilterBar(): boolean {
+    return this.isViewTeam && this.isSearchEnabled && this.teamViewColumns && this.teamViewColumns.length > 0;
+}
 
   onGetEmpLeaveBalance(template: TemplateRef<any>, teamMember, recordIndex) {
     this.leaveBalanceList = [];
@@ -1456,6 +1463,13 @@ export class MyTeamComponent implements OnInit {
     let leaveObj: Leave = new Leave();
     if(teamMember){
       leaveObj.employeementId = teamMember.employeementId;
+
+      if (leaveObj.employeementId) {
+    const empIdStr = String(leaveObj.employeementId);
+    if (empIdStr.startsWith('A-')) {
+        leaveObj.employeementId = empIdStr.substring(2);
+    }
+}
       this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.leaveBalanceList = response.serviceResponse;
