@@ -681,3 +681,12 @@ h5 {
   min-width: 160px;
 }
 
+.styled-month-employee-label {
+    font-weight: 700;                        
+    font-size: 16px;                         
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2c3e50;                          
+    letter-spacing: 0.5px;
+    margin-left: 1rem;
+  }
+

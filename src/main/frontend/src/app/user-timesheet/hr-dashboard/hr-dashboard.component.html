@@ -576,33 +576,24 @@
                                             <div *ngIf="hoveredEmpId === project.empId"
                                                 class="hover-popup bg-white border shadow rounded p-2"
                                                 (mouseenter)="cancelHidePopup()" (mouseleave)="scheduleHidePopup()">
-                                                <!-- <button class="btn btn-sm btn-secondary mb-1" (click)="fetchTimesheetData(project.projectId , project.empId)">
-                                                    <i class="fa fa-calendar mr-1"></i> View In Calendar
-                                                  </button><br> -->
-                                                <!-- Button to show calendar view -->
-                                                <!-- <button class="btn btn-sm btn-secondary mb-1"
-                                                    (click)="showCalendarView(project.projectId, project.empId)">
-                                                    <i class="fa fa-calendar mr-1"></i> View In Calendar
-                                                </button> -->
-                                                <!-- <button (click)="openCalendarInNewTab(project)" class="btn btn-sm btn-secondary mb-1">
-                                                    <i class="fa fa-calendar mr-1"></i> View In Calendar
-                                                  </button> -->
-                                                <button class="btn btn-sm btn-secondary mb-1" [appNavigateToCalenderView]="project.projectId"
-                                                    [empId]="project.empId">
-                                                    <i class="fa fa-calendar mr-1"></i> View In Calendar
-                                                </button>
-
-
-                                                <!-- Conditionally show the calendar component -->
-                                                <!-- <div *ngIf="showCalendar">
-                                                    <app-calendar-view [projectId]="selectedProjectId"
-                                                        [empId]="selectedEmpId">
-                                                    </app-calendar-view>
-                                                </div> -->
-
-                                                <button class="btn btn-sm btn-danger">
-                                                    <i class="fa fa-file-alt mr-1"></i> View Documents
-                                                </button>
+                                              
+                                                  <div class="button-group-custom">
+                                                    <!-- Calendar Button -->
+                                                    <button 
+                                                      class="custom-btn calendar-btn"
+                                                      [appNavigateToCalenderView]="project.projectId"
+                                                      [empId]="project.empId">
+                                                      <i class="fa fa-calendar"></i>
+                                                      <span>View in Calendar</span>
+                                                    </button>
+                                                  
+                                                    <!-- Documents Button -->
+                                                    <button class="custom-btn documents-btn">
+                                                      <i class="fa fa-file-alt"></i>
+                                                      <span>View Documents</span>
+                                                    </button>
+                                                  </div>
+                                                  
                                             </div>
                                         </td>
 

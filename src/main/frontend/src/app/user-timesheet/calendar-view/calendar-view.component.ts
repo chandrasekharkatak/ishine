@@ -56,6 +56,7 @@ export class CalendarViewComponent implements OnInit {
     NA:  { label: 'Not Applicable',       color: '#2f4f4f' }
   };
   legendEntries: { code: string; label: string; color: string }[] = [];
+  formattedMonthLabel: string;
 
 
   constructor(private employeeService: EmployeeService,
@@ -68,6 +69,8 @@ export class CalendarViewComponent implements OnInit {
     private route: ActivatedRoute,) { }
 
   ngOnInit(): void {
+    this.selectedMonth = new Date(this.selectedMonth.getFullYear(), this.selectedMonth.getMonth(), 1);
+    this.updateFormattedMonthLabel();
     this.route.queryParams.subscribe(params => {
       const projectId = +params['projectId'];
       const empId = +params['empId'];
@@ -105,20 +108,48 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
   this.alertMessage = message;
 }
 
+  // monthSelected(event: Date, datepicker: any) {
+  //   this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
+  //   if (this.selectedProjectId && this.selectedEmpId) {
+  //     this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
+  //   }
+  //   datepicker.close();
+  // }
+  
+  // changeMonth(date: Date) {
+  //   if (!date) return;
+  //   this.selectedMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+  //   if (this.selectedProjectId && this.selectedEmpId) {
+  //     this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
+  //   }
+  // }
+
   monthSelected(event: Date, datepicker: any) {
     this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
+    this.updateFormattedMonthLabel();
+  
     if (this.selectedProjectId && this.selectedEmpId) {
       this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
     }
+  
     datepicker.close();
   }
   
   changeMonth(date: Date) {
     if (!date) return;
     this.selectedMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    this.updateFormattedMonthLabel();
+  
     if (this.selectedProjectId && this.selectedEmpId) {
       this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
     }
+  }
+  
+  updateFormattedMonthLabel() {
+    this.formattedMonthLabel = this.selectedMonth.toLocaleString('default', {
+      month: 'short',
+      year: 'numeric'
+    }); // E.g. "Aug 2025"
   }
 
 

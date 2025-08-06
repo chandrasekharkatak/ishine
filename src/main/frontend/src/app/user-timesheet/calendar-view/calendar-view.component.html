@@ -1,4 +1,4 @@
-<div class="calendar-header mb-2 d-flex align-items-center">
+<!-- <div class="calendar-header mb-2 d-flex align-items-center">
     <mat-form-field appearance="outline" class="month-picker-field">
       <input matInput [matDatepicker]="monthPicker"
              [value]="selectedMonth"
@@ -11,39 +11,56 @@
       </mat-datepicker>
     </mat-form-field>
     <span class="ms-3 fw-bold">Employee: {{ userName }}</span>
-  </div>
-  
-  <table class="calendar-table mb-3">
+  </div> -->
+<div class="calendar-header mb-2 d-flex align-items-center">
+    <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
+        <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
+            (dateChange)="changeMonth($event.value)" placeholder="Select month" readonly>
+        <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+        <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected($event, monthPicker)"
+            panelClass="month-picker">
+        </mat-datepicker>
+    </mat-form-field>
+
+
+    <span class="styled-month-employee-label">
+        {{ formattedMonthLabel }} - Employee: {{ userName }}
+      </span>
+</div>
+<br>
+
+
+
+<table class="calendar-table mb-3">
     <thead>
-      <tr>
-        <th *ngFor="let day of weekDays">{{ day }}</th>
-      </tr>
+        <tr>
+            <th *ngFor="let day of weekDays">{{ day }}</th>
+        </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let week of monthGrid">
-        <td *ngFor="let dateObj of week"
-            [ngClass]="{
+        <tr *ngFor="let week of monthGrid">
+            <td *ngFor="let dateObj of week" [ngClass]="{
               'calendar-today': dateObj.isToday,
               'calendar-weekend': dateObj.isWeekend,
               'calendar-holiday': dateObj.isHoliday
             }">
-          <div class="day-number">{{dateObj.day}}</div>
-          <div *ngIf="dateObj.attendance" class="attendance-code"
-               [ngStyle]="{'background': legend[dateObj.attendance]?.color}">
-            {{ dateObj.attendance }}
-          </div>
-          <div *ngIf="dateObj.intime || dateObj.outtime" class="io-box">
-            <span *ngIf="dateObj.intime">In: {{ dateObj.intime }}</span><br>
-            <span *ngIf="dateObj.outtime">Out: {{ dateObj.outtime }}</span>
-          </div>
-        </td>
-      </tr>
+                <div class="day-number">{{dateObj.day}}</div>
+                <div *ngIf="dateObj.attendance" class="attendance-code"
+                    [ngStyle]="{'background': legend[dateObj.attendance]?.color}">
+                    {{ dateObj.attendance }}
+                </div>
+                <div *ngIf="dateObj.intime || dateObj.outtime" class="io-box">
+                    <span *ngIf="dateObj.intime">In: {{ dateObj.intime }}</span><br>
+                    <span *ngIf="dateObj.outtime">Out: {{ dateObj.outtime }}</span>
+                </div>
+            </td>
+        </tr>
     </tbody>
-  </table>
-  
-  <div class="calendar-legend d-flex flex-wrap gap-3 align-items-center">
+</table>
+
+<div class="calendar-legend d-flex flex-wrap gap-3 align-items-center">
     <div *ngFor="let code of legendEntries" class="d-flex align-items-center gap-1">
-      <span class="legend-dot" [ngStyle]="{'background': code.color}"></span>
-      <span class="legend-label">{{ code.code }} - {{ code.label }}&nbsp;&nbsp;</span>
+        <span class="legend-dot" [ngStyle]="{'background': code.color}"></span>
+        <span class="legend-label">{{ code.code }} - {{ code.label }}&nbsp;&nbsp;</span>
     </div>
-  </div>
+</div>
