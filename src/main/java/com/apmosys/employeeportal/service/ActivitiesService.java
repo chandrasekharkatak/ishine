@@ -50,6 +50,7 @@ public class ActivitiesService {
 		try {
 			
 			List<Activity> dtoList = new ArrayList<Activity>();
+			List<String> uniqueEmployeeRoles = activitiesRepository.findUniqueEmployeeRolesByTeamId(activityDTO.getTeamId());
 			
 			// Multiple department
 			StringBuilder department = new StringBuilder("");
@@ -59,16 +60,16 @@ public class ActivitiesService {
 		
 			logBuilder.append(", Departments : " + department + ", Activity : "+ activityDTO.getActivity());
 			
-				Activity newActivity = new Activity();
-				
-				newActivity.setActivity(activityDTO.getActivity());
-				newActivity.setEta(activityDTO.getEta());
-				newActivity.setTeamId(activityDTO.getTeamId());
-				newActivity.setEmployeeRole(activityDTO.getEmployeeRole());
-				newActivity.setDeptIds(department.toString());
-				newActivity.getCommonProperty().setCreatedBy(activityDTO.getCreatedBy());
-				
-				dtoList.add(newActivity);
+			 for (String employeeRole : uniqueEmployeeRoles) {
+		            Activity newActivity = new Activity();
+		            newActivity.setActivity(activityDTO.getActivity());
+		            newActivity.setEta(activityDTO.getEta());
+		            newActivity.setTeamId(activityDTO.getTeamId());
+		            newActivity.setEmployeeRole(employeeRole);  
+		            newActivity.setDeptIds(department.toString());
+		            newActivity.getCommonProperty().setCreatedBy(activityDTO.getCreatedBy());
+		            dtoList.add(newActivity);
+		        }
 
 			List<Activity> newActivityCreated = activitiesRepository.saveAll(dtoList);
 

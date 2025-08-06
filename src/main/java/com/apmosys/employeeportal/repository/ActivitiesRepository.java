@@ -6,6 +6,7 @@ import javax.persistence.Tuple;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.model.Activity;
@@ -24,5 +25,11 @@ public interface ActivitiesRepository extends JpaRepository<Activity, Long> {
 	public List<Activity> getActivityByTeamIdAndDepts(String departmentId, Long teamId);
 	
 	List<Activity> findByDeptIdsAndEmployeeRoleAndTeamId(String deptIds, String employeeRole, Long teamId);
+	
+	
+	 @Query("SELECT DISTINCT a.employeeRole FROM Activity a WHERE a.teamId = :teamId")
+	 List<String> findUniqueEmployeeRolesByTeamId(@Param("teamId") Long teamId);
+
+
 
 }

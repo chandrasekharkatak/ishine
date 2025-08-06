@@ -900,7 +900,8 @@ export class TeamConfigComponent implements OnInit {
         if(this.userMapping.allow_all_projects){
           isAllProjectAllowed = this.userMapping.allow_all_projects;
         }
-
+        
+        allProjectList = allProjectList.filter(project => project != null && project.projectName != null);
         allProjectList = allProjectList.sort((a, b) => a.projectName.localeCompare(b.projectName));
         if(this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin' || this.currentUser.employeeRole == 'HR' || this.currentUser.employeeRole == 'Manager' || isAllProjectAllowed){
           this.allProjectListByManagerId = allProjectList;
@@ -1124,11 +1125,7 @@ export class TeamConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(activityObj.employeeRole)) {
-      this.alertMessage = "Please select Employee Role !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+   
 
     if (activityObj.departmentList == null || activityObj.departmentList.length == 0) {
       this.alertMessage = "Please select atleast one department !!"
