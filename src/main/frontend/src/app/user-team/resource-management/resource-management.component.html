@@ -7,11 +7,8 @@
     </div>
 </div> -->
 <ng-container *ngIf="!showReportList">
-
-
     <div class="row mb-3 position-relative">
         <div class="col-md-12 px-0 d-flex justify-content-between align-items-start">
-
             <!-- Existing Buttons -->
             <div>
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isProjectTable}"
@@ -20,242 +17,292 @@
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isCreation}"
                     (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
             </div>
-
             <!-- Top Right Toggle Button -->
             <div>
                 <button type="button" class="btn btn-primary btn-sm" (click)="goToReportList()">Toggle to Employee
                     View</button>
             </div>
-
         </div>
     </div>
 
     <!-- New content -->
     <div class="container bg-white" *ngIf="allProjectTable">
-        <div class="row">
-            <!-- <div class="col-md-4 mb-2">
-                <h5>Project Status Report</h5>
-            </div> -->
+        <!-- Employee Search and Actions Section - Under Toggle Button -->
+        <div class="row mb-4">
+            <div class="col-md-12 d-flex justify-content-end">
+                <div class="d-flex align-items-center gap-2" style="max-width: 900px;">
+                    <!-- Departments Section - Keep original functionality -->
+                    <div *ngIf="!myDept || currentUser.employeeRole == 'SuperAdmin'" class="department-section">
+                        <div class="flex-column d-flex justify-content-end">
+                            <label style="font-size: 12px; margin-bottom: 4px; font-weight: 500;"
+                                title="As Per Resource - Project Mapping">
+                                <span class="text-danger" *ngIf="currentUser.employeeRole != 'SuperAdmin'">
+                                    <i class="fa-solid fa-toggle-off" (click)="toggleDept();clearSelection($event)"
+                                        style="cursor: pointer; color: #193D8A;"></i>
+                                </span>
+                                <span class="text-danger">*</span>
+                                Departments
+                            </label>
+                            <mat-select class="form-control department-select" multiple [(ngModel)]="deptIdList"
+                                (selectionChange)="onDepartmentSelectionChange()"
+                                style="min-width: 220px; max-width: 250px; font-size: 13px; height: 30px;">
+                                <mat-option class="non-selectable" disabled>
+                                    <div style="display: flex; align-items: center;">
+                                        <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDept"
+                                            (ngModelChange)="filterDepartments()" class="form-control"
+                                            style="width: 100%; padding: 5px;" />
+                                        <button *ngIf="deptIdList?.length > 0" (click)="clearSelection($event)"
+                                            style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                                            title="Clear Selection">Clear</button>
+                                    </div>
+                                </mat-option>
+                                <mat-option (click)="skipSelectionChange = true;toggleSelectAllDept()"
+                                    [disabled]="departments.length === 0">
+                                    {{ isAllSelected ? 'Deselect All' : 'Select All' }}
+                                </mat-option>
+                                <mat-option (click)="skipSelectionChange = false"
+                                    *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
+                                    {{ dept.name }}
+                                </mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
 
-            <div class="col-md-4 mb-2 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Project Status Report</h5>
+                    <!-- My Departments Section - Keep original functionality -->
+                    <div *ngIf="myDept && currentUser.employeeRole != 'SuperAdmin'" class="my-department-section">
+                        <div class="justify-content-end flex-column">
+                            <label class="info-label" style="font-size: 12px; margin-bottom: 4px; font-weight: 500;">
+                                <span class="text-danger">
+                                    <i class="fa-solid fa-toggle-on" (click)="toggleDept();clearSelectionByUser($event)"
+                                        style="cursor: pointer; color: #193D8A;"
+                                        title="Toggle off to view all departments associated with resources mapped to projects under your bucket."></i>
+                                </span>
+                                <span class="text-danger">*</span>
+                                My Departments
+                            </label>
+                            <mat-select class="form-control my-department-select" multiple
+                                [(ngModel)]="deptIdListByUser" (selectionChange)="onDepartmentSelectionChangeByUser()"
+                                style="min-width: 220px; max-width: 250px; font-size: 13px; height: 30px;">
+                                <mat-option class="non-selectable" disabled>
+                                    <div style="display: flex; align-items: center;">
+                                        <input type="text" placeholder="Search Department"
+                                            [(ngModel)]="searchTextDeptByUser"
+                                            (ngModelChange)="filterDepartmentsByUser()" class="form-control"
+                                            style="width: 100%; padding: 6px;" />
+                                        <button *ngIf="deptIdListByUser?.length > 0"
+                                            (click)="clearSelectionByUser($event)"
+                                            style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                                            title="Clear Selection">Clear</button>
+                                    </div>
+                                </mat-option>
+                                <mat-option (click)="skipSelectionChange = true;toggleSelectAllDeptByUser()"
+                                    [disabled]="departmentListByUser.length === 0">
+                                    {{ isAllSelectedByUser ? 'Deselect All' : 'Select All' }}
+                                </mat-option>
+                                <mat-option (click)="skipSelectionChange = false"
+                                    *ngFor="let dept of filteredDepartmentsByUser" [value]="dept.deptId">
+                                    {{ dept.name }}
+                                </mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+
+                    <!-- Global Employee Search - Keep original functionality with added margin -->
+                    <div class="d-flex flex-column employee-search-section"
+                        style="margin-left: 6px; margin-right: 6px;">
+                        <label style="font-size: 12px; margin-bottom: 4px; font-weight: 500;">Global Employee
+                            Search:</label>
+                        <input id="employeeSearch" type="text" class="form-control employee-search-input"
+                            style=" max-width: 200px; font-size: 13px; height: 30px;"
+                            placeholder="Search by Name or Emp ID" aria-label="Search employee"
+                            [formControl]="employeeCtrl" [matAutocomplete]="auto" (input)="onEmployeeInputChange()">
+                        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
+                            [displayWith]="displayEmployee">
+                            <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
+                                {{ emp.name }}
+                            </mat-option>
+                        </mat-autocomplete>
+                    </div>
+
+                    <!-- Employee Action Buttons - Keep original functionality - Same Line -->
+                    <div class="d-flex flex-column employee-actions-section">
+                        <label
+                            style="font-size: 12px; margin-bottom: 4px; opacity: 0; font-weight: 500;">Actions</label>
+                        <div class="d-flex justify-content-end " style="gap: 6px;">
+                            <button class="btn btn-sm btn-outline-primary employee-action-btn"
+                                style="font-size: 12px; padding: 6px 16px; height: 30px; white-space: nowrap;"
+                                [disabled]="!selectedEmpId"
+                                (click)="openSummaryModal(projectSummaryModal, selectedEmpId)">
+                                Employee Summary
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary employee-action-btn"
+                                style="font-size: 12px; padding: 6px 16px; height: 30px; white-space: nowrap;"
+                                [disabled]="!selectedEmpId" [navigateToEmployee360]="this.selectedEmpId">
+                                Employee 360
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Status Report Section -->
+        <div class="row">
+            <div class="col-md-4 mb-2  d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 ">Project Status Report</h5>
                 <i class="fa" [ngClass]="isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"
                     style="cursor: pointer; padding-right: 120px;" (click)="isCollapsed = !isCollapsed"
                     title="{{ isCollapsed ? 'Expand Section' : 'Collapse Project Status Report' }}">
                 </i>
             </div>
 
+            <!-- Div Cards -->
             <div class="row" *ngIf="!isCollapsed">
-                <div class="col-md-8">
-                    <div class="row mb-3" style="display: flex;
-            justify-content: left;
-            max-width: fit-content;">
+                <div class="col-md-12">
 
-                        <div class="col-md-2" style="display: flex;
-                  justify-content: left;
-                  max-width: fit-content;" (click)="selectStatusTab('Not Started')"
-                            [ngClass]="{'selected-card': selectedStatusTab === 'Not Started'}">
-                            <div class="mini-card1" style="border-left: 4px solid #9E9E9E;">
-                                <div class="value fw-bold" style="color: #9E9E9E;">{{tabCounts.notStartedCount}}</div>
-                                <div class="label text-muted">Not Started <i
-                                        class="fa-solid fa-minus-circle fa-beat-fade" style="color: #9E9E9E;"></i></div>
-                            </div>
-                        </div>
+                    <!-- First Section: Project Status Cards with Toggle More -->
+                    <div class="col-md-3 mb-4" style="display: flex; flex-direction: column;">
 
-                        <div class="col-md-2" style="display: flex;
-                justify-content: left;
-                max-width: fit-content;" (click)="selectStatusTab('Pending for approval')"
-                            [ngClass]="{'selected-card': selectedStatusTab === 'Pending for approval'}">
-                            <div class="mini-card1" style="border-left: 4px solid #FFB300;">
-                                <div class="value fw-bold" style="color: #FFB300;">{{tabCounts.pendingForApprovalCount}}
-                                </div>
-                                <div class="label text-muted">Pending For Approval<i
-                                        class="fa-solid fa-clock fa-beat-fade" style="color: #FFB300;"></i></div>
-                            </div>
-                        </div>
+                        <!-- Cards Row (Toggle between two sets) -->
+                        <div style="display: flex; justify-content: left; max-width: fit-content; margin-bottom: 10px;">
 
-                        <div class="col-md-2" style="display: flex;
-                  justify-content: left;
-                  max-width: fit-content;" (click)="selectStatusTab('Approved')"
-                            [ngClass]="{'selected-card': selectedStatusTab === 'Approved'}">
-                            <div class="mini-card1" style="border-left: 4px solid #4CAF50;">
-                                <div class="value fw-bold" style="color: #4CAF50;">{{tabCounts.approvedCount}}</div>
-                                <div class="label text-muted">Approved <i class="fa-solid fa-check-circle fa-beat-fade"
-                                        style="color: #4CAF50;"></i></div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-2" style="display: flex;
-              justify-content: left;
-              max-width: fit-content;" (click)="selectStatusTab('Rejected')"
-                            [ngClass]="{'selected-card': selectedStatusTab === 'Rejected'}">
-                            <div class="mini-card1" style="border-left: 4px solid #F44336;">
-                                <div class="value fw-bold" style="color: #F44336;">{{tabCounts.rejectedCount}}</div>
-                                <div class="label text-muted">Rejected <i class="fa-solid fa-circle-xmark fa-beat-fade"
-                                        style="color: #F44336;"></i></div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-2" style="display: flex;
-              justify-content: left;
-              max-width: fit-content;" (click)="selectStatusTab('All')"
-                            [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
-                            <div class="mini-card1" style="border-left: 4px solid #03A9F4;">
-                                <div class="value fw-bold" style="color: #03A9F4;">{{tabCounts.totalCount}}</div>
-                                <div class="label text-muted">Total <i class="fa-solid fa-plus-circle fa-beat-fade"
-                                        style="color: #03A9F4;"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-2" style="display: flex;
-                  justify-content: left;
-                  max-width: fit-content;" (click)="selectStatusTab('completedInIshine')"
-                            [ngClass]="{'selected-card': selectedStatusTab === 'completedInIshine'}">
-                            <div class="mini-card1" style="border-left: 4px solid #17ceee;">
-                                <div class="value fw-bold" style="color: #17ceee;">{{tabCounts.completedInIshineCount}}
-                                </div>
-                                <div class="label text-muted">Completed In Ishine<i
-                                        class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #17ceee;"></i></div>
-                            </div>
-                        </div>
-
-
-                        <div class="col-md-2" style="display: flex;
-                             justify-content: left;
-                             max-width: fit-content;" (click)="selectStatusTab('Completed')"
-                            [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
-                            <div class="mini-card1" style="border-left: 4px solid #00ec33;">
-                                <div class="value fw-bold" style="color: #00ec33;">{{tabCounts.completedCount}}</div>
-                                <div class="label text-muted">Completed In Shankh<i
-                                        class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #00ec33;"></i></div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-2" style="display: flex;
-                  justify-content: left;
-                  max-width: fit-content;" (click)="selectStatusTab('CompletedWithTeam')"
-                            [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithTeam'}">
-                            <div class="mini-card1" style="border-left: 4px solid #7836c4;">
-                                <div class="value fw-bold" style="color: #7836c4;">
-                                    {{tabCounts.completedWithEmployeeCount}}
-                                </div>
-                                <div class="label text-muted">Completed In Shankh Have Active Team<i
-                                        class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #7836c4;"></i></div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-3 py-1">
-                            <div class="mini-card1 timesheet-card"
-                                style="border-left: 4px solid #e91e63; padding: 12px;"
-                                (click)="EmployeeViewDataModel(employee_data,'Unfilled Timesheet Projects')">
-
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="value fw-bold" style="color: #e91e63;">
-                                        <ng-container
-                                            *ngIf="unfilledTimesheetProjectListCount !== null && unfilledTimesheetProjectListCount !== undefined; else loadingSpinner">
-                                            {{ unfilledTimesheetProjectListCount }}
-                                        </ng-container>
-                                        <ng-template #loadingSpinner>
-                                            <i class="fa fa-spinner fa-spin text-secondary"></i>
-                                        </ng-template>
-                                    </div>
-                                    <div class="label fw-semibold text-muted text-end">
-                                        Unfilled Timesheet
+                            <!-- Default Cards (shown when showMoreCards = false) -->
+                            <ng-container *ngIf="!showMoreCards">
+                                <!-- Not Started -->
+                                <div class="col-md-2"
+                                    style="display: flex; justify-content: left; max-width: fit-content;"
+                                    (click)="selectStatusTab('Not Started')"
+                                    [ngClass]="{'selected-card': selectedStatusTab === 'Not Started'}">
+                                    <div class="mini-card1" style="border-left: 4px solid #9E9E9E;">
+                                        <div class="value fw-bold" style="color: #9E9E9E;">{{tabCounts.notStartedCount}}
+                                        </div>
+                                        <div class="label text-muted">Not Started <i
+                                                class="fa-solid fa-minus-circle fa-beat-fade"
+                                                style="color: #9E9E9E;"></i></div>
                                     </div>
                                 </div>
 
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="label fw-semibold " style="color: #e91e63;">Last</div>
-                                    <div class="range-buttons" (click)="$event.stopPropagation()">
-                                        <button *ngFor="let range of ranges" [class.active]="selectedRange === range"
-                                            class="pill-button" (click)="selectRange(range)" [title]="range.unit === 'M' 
-                                            ? range.value + ' months' 
-                                            : range.value + ' year'">
-                                            {{ range.label }}
-                                        </button>
+                                <!-- Pending for approval -->
+                                <div class="col-md-2"
+                                    style="display: flex; justify-content: left; max-width: fit-content;"
+                                    (click)="selectStatusTab('Pending for approval')"
+                                    [ngClass]="{'selected-card': selectedStatusTab === 'Pending for approval'}">
+                                    <div class="mini-card1" style="border-left: 4px solid #FFB300;">
+                                        <div class="value fw-bold" style="color: #FFB300;">
+                                            {{tabCounts.pendingForApprovalCount}}</div>
+                                        <div class="label text-muted">Pending For Approval<i
+                                                class="fa-solid fa-clock fa-beat-fade" style="color: #FFB300;"></i>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="label text-muted"> Non-Compliance Projects
-                                    <i class="fa-solid fa-calendar-xmark fa-beat-fade" style="color: #e91e63"></i>
+                                <!-- Approved -->
+                                <div class="col-md-2"
+                                    style="display: flex; justify-content: left; max-width: fit-content;"
+                                    (click)="selectStatusTab('Approved')"
+                                    [ngClass]="{'selected-card': selectedStatusTab === 'Approved'}">
+                                    <div class="mini-card1" style="border-left: 4px solid #4CAF50;">
+                                        <div class="value fw-bold" style="color: #4CAF50;">{{tabCounts.approvedCount}}
+                                        </div>
+                                        <div class="label text-muted">Approved <i
+                                                class="fa-solid fa-check-circle fa-beat-fade"
+                                                style="color: #4CAF50;"></i></div>
+                                    </div>
+                                </div>
+                            </ng-container>
+
+                            <!-- More Cards (shown when showMoreCards = true) -->
+                            <ng-container *ngIf="showMoreCards">
+                                <!-- Completed in Ishine -->
+                                <div class="col-md-2"
+                                    style="display: flex; justify-content: left; max-width: fit-content;"
+                                    (click)="selectStatusTab('completedInIshine')"
+                                    [ngClass]="{'selected-card': selectedStatusTab === 'completedInIshine'}">
+                                    <div class="mini-card1" style="border-left: 4px solid #17ceee;">
+                                        <div class="value fw-bold" style="color: #17ceee;">
+                                            {{tabCounts.completedInIshineCount}}</div>
+                                        <div class="label text-muted">Completed In Ishine<i
+                                                class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #17ceee;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Completed in Shankh -->
+                                <div class="col-md-2"
+                                    style="display: flex; justify-content: left; max-width: fit-content;"
+                                    (click)="selectStatusTab('Completed')"
+                                    [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
+                                    <div class="mini-card1" style="border-left: 4px solid #00ec33;">
+                                        <div class="value fw-bold" style="color: #00ec33;">{{tabCounts.completedCount}}
+                                        </div>
+                                        <div class="label text-muted">Completed In Shankh<i
+                                                class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #00ec33;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Completed with Team -->
+                                <div class="col-md-2"
+                                    style="display: flex; justify-content: left; max-width: fit-content;"
+                                    (click)="selectStatusTab('CompletedWithTeam')"
+                                    [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithTeam'}">
+                                    <div class="mini-card1" style="border-left: 4px solid #7836c4;">
+                                        <div class="value fw-bold" style="color: #7836c4;">
+                                            {{tabCounts.completedWithEmployeeCount}}</div>
+                                        <div class="label text-muted">Completed In Shankh Have Active Team<i
+                                                class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #7836c4;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </ng-container>
+
+                            <!-- More/Less Button -->
+                            <div class="col-md-1"
+                                style="display: flex; align-items: center; justify-content: center; max-width: fit-content; margin-left:1px;">
+                                <button
+                                    style="background: none; border: none; color: #cd320f; font-weight: 500; cursor: pointer; font-size: 14px;"
+                                    (click)="toggleMoreCards()">
+                                    {{ showMoreCards ? 'Back' : 'More' }}
+                                </button>
+                            </div>
+
+                            <!-- All (Total) -->
+                            <div class="col-md-2" style="display: flex; justify-content: left; max-width: fit-content;"
+                                (click)="selectStatusTab('All')"
+                                [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
+                                <div class="mini-card1" style="border-left: 4px solid #03A9F4;">
+                                    <div class="value fw-bold" style="color: #03A9F4;">{{tabCounts.totalCount}}</div>
+                                    <div class="label text-muted">Total <i class="fa-solid fa-plus-circle fa-beat-fade"
+                                            style="color: #03A9F4;"></i></div>
                                 </div>
                             </div>
+
                         </div>
 
-                        <div class="row" *ngIf="!isCollapsed1">
-        <div class="col-md-13 mx-3">
-    <div class="mini-card1 fixed-cost-card" 
-         style="border-left: 4px solid #0e6dcd; padding: 10px;">
-
-     
-        <div class="d-flex justify-content-between align-items-center mt-0">
-            <div class="value fw-bold" style="color: #0e6dcd;" >
-                <ng-container *ngIf="!isCountLoading; else countSpinner"  >
-                    {{ totalProjectCount }}
-                </ng-container>
-                <ng-template #countSpinner>
-                    <div class="spinner-border spinner-border-sm" role="status"></div>
-                </ng-template>
-            </div>
-            <div class="label fw-semibold text-muted text-end">
-                Total Projects
-            </div>
-        </div>
-
-<div class="d-flex justify-content-between align-items-center mt-0">
-
-    <div class="label fw-semibold" style="color: #0e6dcd;">Projects</div>
-    <div class="range-buttons-container">
-        <div class="filter-item" *ngFor="let range of ranges1">
-            <button 
-                class="pill-button"
-                [class.active]="selectedRange1 === range"
-                (click)="selectRange1(range)">
-                {{ range.label }}
-            </button>
-            <div class="filter-count">
-                <ng-container *ngIf="!isCountLoading; else countSpinner">
-                    {{ range.count }}
-                </ng-container>
-                <ng-template #countSpinner>
-                    <i class="fa fa-spinner fa-spin fa-xs text-secondary"></i>
-                </ng-template>
-            </div>
-        </div>
-    </div>
-</div>
-        <div class="label text-muted mt-0"> 
-            All Fixed Cost Projects
-            <i class="fa-solid fa-calendar-check fa-beat-fade ms-1" style="color: #0e6dcd"></i>
-        </div>
-    </div>
-        </div>
-
-    </div>
+                    </div>
 
 
 
-                        <!-- added for TNM active projects -->
-                        <div class="col-md-2" style="display: flex;
-                        justify-content: flex-start; max-width: fit-content;
-                         margin-left: -15px;" (click)="selectStatusTab('activeTNMProjects')"
+                    <!-- Second Section: Completion Status Cards -->
+                    <div class="col-md-12" style="display: flex; justify-content: left; max-width: fit-content;">
+                        <!-- TNM Active Projects -->
+                        <div class="col-md-2"
+                            style="display: flex; justify-content: flex-start; max-width: fit-content;"
+                            (click)="selectStatusTab('activeTNMProjects')"
                             [ngClass]="{'selected-card': selectedStatusTab === 'activeTNMProjects'}">
                             <div class="mini-card1" style="border-left: 4px solid #107503;">
                                 <div class="value fw-bold" style="color: #107503;">
-                                    {{tabCounts.allActiveTNMProjectsCount}}
-                                </div>
-                                <div class="label text-muted">TNM Active<br>Projects<i
+                                    {{tabCounts.allActiveTNMProjectsCount}}</div>
+                                <div class="label text-muted">TNM Active Projects<i
                                         class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #107503;"></i></div>
                             </div>
                         </div>
 
-
-                        <!-- added for TNM expired projects -->
-                        <div class="col-md-6" (click)="selectStatusTab('expiredTNM')"
+                        <!-- TNM Expired Projects Card -->
+                        <div class="col-md-5" (click)="selectStatusTab('expiredTNM')"
                             [ngClass]="{'selected-card': selectedStatusTab === 'expiredTNM'}">
-                            <div class="mini-card-tnm" style="border-left: 4px solid #8B0000; padding: 5px 8px;">
-
+                            <div class="mini-card-tnm"
+                                style="border-left: 4px solid #8B0000; padding: 5px 8px;">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="value fw-semibold" style="color: #8B0000; font-size: 16px;">
                                         <ng-container
@@ -268,25 +315,20 @@
                                     </div>
                                 </div>
 
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                </div>
-
                                 <div class="range-buttons mb-2" (click)="$event.stopPropagation()"
                                     style="display: flex; flex-wrap: nowrap; gap: 2px; justify-content: space-between;">
-
                                     <div *ngFor="let filter of expiredProjectFilters; let i = index"
                                         class="filter-container"
                                         style="display: flex; flex-direction: column; align-items: center;">
-
                                         <button [class.active]="selectedExpiredProjectFilter === filter"
                                             class="pill-button" (click)="selectExpiredProjectFilter(filter)"
                                             [title]="filter.title"
                                             style="white-space: nowrap; font-size: 10px; padding: 4px 5px; border-radius: 12px; border: 1px solid #ddd; background: #f8f9fa;"
                                             [ngStyle]="{
-                        'background-color': selectedExpiredProjectFilter === filter ? '#8B0000' : '#f8f9fa',
-                        'color': selectedExpiredProjectFilter === filter ? '#fff' : '#333',
-                        'border-color': selectedExpiredProjectFilter === filter ? '#8B0000' : '#ddd'
-                    }">
+                                    'background-color': selectedExpiredProjectFilter === filter ? '#8B0000' : '#f8f9fa',
+                                    'color': selectedExpiredProjectFilter === filter ? '#fff' : '#333',
+                                    'border-color': selectedExpiredProjectFilter === filter ? '#8B0000' : '#ddd'
+                                }">
                                             {{ filter.label }}
                                         </button>
                                         <div class="filter-count"
@@ -311,140 +353,88 @@
                             </div>
                         </div>
 
-                    </div>
+                        <!-- Fixed Cost Projects Card -->
+                        <div class="col-md-3" *ngIf="!isCollapsed1">
+                            <div class="mini-card1 fixed-cost-card"
+                                style="border-left: 4px solid #0e6dcd; padding: 10px;">
+                                <div class="d-flex justify-content-between align-items-center mt-0">
+                                    <div class="value fw-bold" style="color: #0e6dcd;">
+                                        <ng-container *ngIf="!isCountLoading; else countSpinner">
+                                            {{ totalProjectCount }}
+                                        </ng-container>
+                                        <ng-template #countSpinner>
+                                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                                        </ng-template>
+                                    </div>
+                                </div>
 
-                </div>
-                <!-- Employee Card Section -->
-                <div class="col-md-4">
-                    <div *ngIf="!myDept || currentUser.employeeRole == 'SuperAdmin' ">
-                        <div class="row">
-                            <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                                <label class="info-label" style="justify-self: left;"
-                                    title="As Per Resource - Project Mapping">
-                                    <span class="text-danger" *ngIf="currentUser.employeeRole != 'SuperAdmin'"><i
-                                            class="fa-solid fa-toggle-off" (click)="toggleDept();clearSelection($event)"
-                                            style="cursor: pointer; color: #193D8A;"></i></span>
-                                    <span class="text-danger">*</span>
-                                    Departments
-                                </label>
+                                <div class="d-flex justify-content-between align-items-center mt-0">
+                              
+                                    <div class="range-buttons-container">
+                                        <div class="filter-item" *ngFor="let range of ranges1">
+                                            <button class="pill-button" [class.active]="selectedRange1 === range"
+                                                (click)="selectRange1(range)">
+                                                {{ range.label }}
+                                            </button>
+                                            <div class="filter-count">
+                                                <ng-container *ngIf="!isCountLoading; else countSpinner">
+                                                    {{ range.count }}
+                                                </ng-container>
+                                                <ng-template #countSpinner>
+                                                    <i class="fa fa-spinner fa-spin fa-xs text-secondary"></i>
+                                                </ng-template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="label text-muted mt-0">
+                                    All Fixed Cost Projects
+                                    <i class="fa-solid fa-calendar-check fa-beat-fade ms-1" style="color: #0e6dcd"></i>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="row mb-3" *ngIf="!myDept || currentUser.employeeRole == 'SuperAdmin' ">
-                        <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                            <mat-select class="form-control" multiple [(ngModel)]="deptIdList"
-                                (selectionChange)="onDepartmentSelectionChange()">
-                                <!-- Search Input (non-selectable) -->
-                                <mat-option class="non-selectable" disabled>
-                                    <div style="display: flex; align-items: center;">
-                                        <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDept"
-                                            (ngModelChange)="filterDepartments()" class="form-control"
-                                            style="width: 100%; padding: 5px;" />
+                        <!-- Unfilled Timesheet Card -->
+                        <div class="col-md-3">
+                            <div class="mini-card1 timesheet-card"
+                                style="border-left: 4px solid #e91e63; padding: 12px; height: 96%;"
+                                (click)="EmployeeViewDataModel(employee_data,'Unfilled Timesheet Projects')">
 
-                                        <button *ngIf="deptIdList?.length > 0" (click)="clearSelection($event)"
-                                            style="margin-left: 5px; background: none; border: none; cursor: pointer;"
-                                            title="Clear Selection">
-                                            Clear
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="value fw-bold" style="color: #e91e63;">
+                                        <ng-container
+                                            *ngIf="unfilledTimesheetProjectListCount !== null && unfilledTimesheetProjectListCount !== undefined; else loadingSpinner">
+                                            {{ unfilledTimesheetProjectListCount }}
+                                        </ng-container>
+                                        <ng-template #loadingSpinner>
+                                            <i class="fa fa-spinner fa-spin text-secondary"></i>
+                                        </ng-template>
+                                    </div>
+                                    <div class="label fw-semibold text-muted text-end">Unfilled Timesheet</div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="label fw-semibold " style="color: #e91e63;">Last</div>
+                                    <div class="range-buttons" (click)="$event.stopPropagation()">
+                                        <button *ngFor="let range of ranges" [class.active]="selectedRange === range"
+                                            class="pill-button" (click)="selectRange(range)"
+                                            [title]="range.unit === 'M' ? range.value + ' months' : range.value + ' year'">
+                                            {{ range.label }}
                                         </button>
                                     </div>
-                                </mat-option>
+                                </div>
 
-
-                                <!-- Select All/Deselect All -->
-                                <mat-option (click)="skipSelectionChange = true;toggleSelectAllDept()"
-                                    [disabled]="departments.length === 0">
-                                    {{ isAllSelected ? 'Deselect All' : 'Select All' }}
-                                </mat-option>
-
-                                <!-- Department options -->
-                                <mat-option (click)="skipSelectionChange = false"
-                                    *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
-                                    {{ dept.name }}
-                                </mat-option>
-                            </mat-select>
-
-                        </div>
-                    </div>
-
-                    <div *ngIf="myDept && currentUser.employeeRole != 'SuperAdmin' ">
-                        <div class="row">
-                            <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                                <label class="info-label" style="justify-self: left;">
-                                    <span class="text-danger"><i class="fa-solid fa-toggle-on"
-                                            (click)="toggleDept();clearSelectionByUser($event)"
-                                            style="cursor: pointer; color: #193D8A;"
-                                            title="Toggle off to view all departments associated with resources mapped to projects under your bucket."></i></span>
-                                    <span class="text-danger">*</span>
-                                    My Departments
-                                </label>
+                                <div class="label text-muted"> Non-Compliance Projects
+                                    <i class="fa-solid fa-calendar-xmark fa-beat-fade" style="color: #e91e63"></i>
+                                </div>
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                                <mat-select class="form-control" multiple [(ngModel)]="deptIdListByUser"
-                                    (selectionChange)="onDepartmentSelectionChangeByUser()">
-                                    <!-- Search Input (non-selectable) -->
-                                    <mat-option class="non-selectable" disabled>
-                                        <div style="display: flex; align-items: center;">
-                                            <input type="text" placeholder="Search Department"
-                                                [(ngModel)]="searchTextDeptByUser"
-                                                (ngModelChange)="filterDepartmentsByUser()" class="form-control"
-                                                style="width: 100%; padding: 5px;" />
 
-                                            <button *ngIf="deptIdListByUser?.length > 0"
-                                                (click)="clearSelectionByUser($event)"
-                                                style="margin-left: 5px; background: none; border: none; cursor: pointer;"
-                                                title="Clear Selection">
-                                                Clear
-                                            </button>
-                                        </div>
-                                    </mat-option>
+                    </div>
 
-                                    <!-- Select All/Deselect All -->
-                                    <mat-option (click)="skipSelectionChange = true;toggleSelectAllDeptByUser()"
-                                        [disabled]="departmentListByUser.length === 0">
-                                        {{ isAllSelectedByUser ? 'Deselect All' : 'Select All' }}
-                                    </mat-option>
-
-                                    <!-- Department options -->
-                                    <mat-option (click)="skipSelectionChange = false"
-                                        *ngFor="let dept of filteredDepartmentsByUser" [value]="dept.deptId">
-                                        {{ dept.name }}
-                                    </mat-option>
-                                </mat-select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                            <label class="info-label" style="justify-self: left;">Global Employee Search:</label>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-2" style="justify-content: left;max-width: fit-content;min-width:100%">
-                            <input id="employeeSearch" type="text" class="form-control" style="min-width: 200px;"
-                                placeholder="Search by Name or Emp ID" aria-label="Search employee"
-                                [formControl]="employeeCtrl" [matAutocomplete]="auto" (input)="onEmployeeInputChange()">
-
-                            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
-                                [displayWith]="displayEmployee">
-                                <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
-                                    {{ emp.name }}
-                                </mat-option>
-                            </mat-autocomplete>
-                        </div>
-                    </div>
-                    <div class="button-container">
-                        <button class="rounded-button summary-button" [disabled]="!selectedEmpId"
-                            (click)="openSummaryModal(projectSummaryModal, selectedEmpId)">Employee Summary</button>
-                        <button class="rounded-button details-button" [disabled]="!selectedEmpId"
-                            [navigateToEmployee360]="this.selectedEmpId">Employee
-                            360</button>
-                    </div>
                 </div>
-
             </div>
+            <!-- Div Cards end here -->
         </div>
 
 
@@ -622,9 +612,9 @@
             </div>
         </div>
 
-      
-<div class="row mb-4">
-    <!-- <div class="col-md-4 mb-2 d-flex justify-content-between align-items-center">
+
+        <div class="row mb-4">
+            <!-- <div class="col-md-4 mb-2 d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Fixed Cost Project</h5>
 
         <i class="fa" [ngClass]="isCollapsed1 ? 'fa-chevron-right' : 'fa-chevron-left'"
@@ -633,9 +623,9 @@
         </i>
     </div> -->
 
-    
+
+        </div>
     </div>
-</div>
 
 
     <!-- start :: View Projects -->
@@ -731,7 +721,7 @@
                                     <tr>
                                         <th colspan="9" class="text-center info-label">No details to display...</th>
                                     </tr>
-                                </ng-container> 
+                                </ng-container>
                                 <ng-container
                                     *ngFor="let project of allProject_Po_Internal | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                     <tr>
@@ -780,7 +770,7 @@
                                             <span style="cursor: pointer; color: blue;" id="clickablefor360"
                                                 (click)="cancelRequest()"
                                                 [navigateToProjectView]="project.projectViewId">
-                                               {{ project.name || project.projectName || 'NA' }}
+                                                {{ project.name || project.projectName || 'NA' }}
                                             </span>
                                         </td>
                                         <td>{{project.poNo ? project.poNo : 'NA' }}</td>
@@ -1581,270 +1571,278 @@
         </div>
     </ng-template>
 
- <ng-template #team_configuration_form>
-    <!-- 1. MODAL HEADER WITH CONTROLS -->
-    <!-- <div class="modal-header">
+    <ng-template #team_configuration_form>
+        <!-- 1. MODAL HEADER WITH CONTROLS -->
+        <!-- <div class="modal-header">
         <h4 class="modal-title pull-left">Project Configuration</h4>
         <div class="modal-header-buttons"> -->
-            <!-- Fullscreen Toggle Button -->
-            <!-- <button type="button" class="btn btn-light btn-sm me-2" (click)="toggleModalFullscreen()" [title]="isModalFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'">
+        <!-- Fullscreen Toggle Button -->
+        <!-- <button type="button" class="btn btn-light btn-sm me-2" (click)="toggleModalFullscreen()" [title]="isModalFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'">
                 <i class="fas" [ngClass]="isModalFullscreen ? 'fa-compress-alt' : 'fa-expand-alt'"></i>
             </button> -->
-            <!-- Close Button -->
-            <!-- <button type="button" class="btn-close close pull-right" aria-label="Close" (click)="modalRef?.hide()">
+        <!-- Close Button -->
+        <!-- <button type="button" class="btn-close close pull-right" aria-label="Close" (click)="modalRef?.hide()">
                 <span aria-hidden="true" class="visually-hidden">×</span>
             </button> -->
         <!-- </div>
     </div> -->
 
-    <!-- 2. MODAL BODY (Contains the rest of the content) -->
-    <div class="modal-body p-0">
-        <div class="form-container">
+        <!-- 2. MODAL BODY (Contains the rest of the content) -->
+        <div class="modal-body p-0">
+            <div class="form-container">
 
-            <!-- TAB NAVIGATION (State-driven) -->
-            <ul class="nav nav-tabs" id="projectDetailsTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" 
-                            [ngClass]="{'active': activeModalTab === 'info'}"
-                            (click)="switchModalTab('info')"
-                            type="button">
-                        Project & Team Info
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation" *ngIf="projectObj?.poProjectType?.toLowerCase() == 'fixed cost'">
-                    <button class="nav-link" 
-                            [ngClass]="{'active': activeModalTab === 'milestone'}"
-                            (click)="switchModalTab('milestone')"
-                            type="button">
-                        Milestones
-                    </button>
-                </li>
-            </ul>
+                <!-- TAB NAVIGATION (State-driven) -->
+                <ul class="nav nav-tabs" id="projectDetailsTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" [ngClass]="{'active': activeModalTab === 'info'}"
+                            (click)="switchModalTab('info')" type="button">
+                            Project & Team Info
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation"
+                        *ngIf="projectObj?.poProjectType?.toLowerCase() == 'fixed cost'">
+                        <button class="nav-link" [ngClass]="{'active': activeModalTab === 'milestone'}"
+                            (click)="switchModalTab('milestone')" type="button">
+                            Milestones
+                        </button>
+                    </li>
+                </ul>
 
-            <!-- TAB CONTENT (Uses *ngIf to show only one pane at a time) -->
-            
-            <!-- ===== CONTENT PANE 1: Project & Team Info ===== -->
-            <div *ngIf="activeModalTab === 'info'">
-                <div class="p-3">
-                    <h3>Project Information</h3>
-                    <div class="form-group">
-                        <div class="form-field">
-                            <label>Project Name</label>
-                            <input type="text" disabled [(ngModel)]="projectObj.name" />
-                        </div>
-                        <div class="form-field">
-                            <label>Po No</label>
-                            <input type="text" disabled [(ngModel)]="projectObj.poNo" />
-                        </div>
-                        <div class="form-field">
-                            <label>Project Type</label>
-                            <input type="text" disabled [ngModel]="getProjectType(projectObj)" />
-                        </div>
-                        <div class="form-field">
-                            <label>Client Name</label>
-                            <input type="text" disabled [(ngModel)]="projectObj.clientName" />
-                        </div>
-                        <div class="form-field">
-                            <label>Status</label>
-                            <input type="text" disabled [ngModel]="projectObj.draftStatus || 'NA'" />
-                        </div>
-                        <div class="form-field">
-                            <label>Department</label>
-                            <mat-select class="form-control" multiple [(ngModel)]="projectObj.department">
-                                <mat-option *ngFor="let dept of projectObj.department" disabled
-                                    [value]="dept">{{dept}}</mat-option>
-                            </mat-select>
-                        </div>
-                        <div class="form-field">
-                            <label><span class="text-danger">*</span> Project Manager</label>
-                            <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectManagerId"
-                                panelClass="custom-select-panel">
-                                <mat-option disabled class="search-option">
-                                    <div class="search-header" (click)="$event.stopPropagation()">
-                                        <input type="text" [(ngModel)]="searchManagerText"
-                                            (ngModelChange)="filterManagers()" placeholder="Search Project Manager"
-                                            class="form-control" />
-                                        <button *ngIf="projectObj.projectManagerId?.length"
-                                            (click)="clearManagerSelection($event)" class="clear-btn" type="button">
-                                            ✕ Clear
-                                        </button>
-                                    </div>
-                                </mat-option>
-                                <mat-option (click)="toggleSelectAllManagers()"
-                                    [disabled]="filteredManagerList.length === 0">
-                                    {{ isAllManagersSelected ? 'Deselect All' : 'Select All' }}
-                                </mat-option>
-                                <mat-option *ngFor="let employee of filteredManagerList" [value]="employee.empId">
-                                    {{ employee.name }}
-                                </mat-option>
-                            </mat-select>
-                        </div>
-                        <div class="form-field">
-                            <label>Project Overhead</label>
-                            <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectOverheadId"
-                                panelClass="custom-select-panel">
-                                <mat-option disabled class="search-option">
-                                    <div class="search-header" (click)="$event.stopPropagation()">
-                                        <input type="text" [(ngModel)]="searchOverheadText"
-                                            (ngModelChange)="filterOverhead()" placeholder="Search Project Overhead"
-                                            class="form-control" />
-                                        <button *ngIf="projectObj.projectOverheadId?.length"
-                                            (click)="clearOverheadSelection($event)" class="clear-btn" type="button">
-                                            ✕ Clear
-                                        </button>
-                                    </div>
-                                </mat-option>
-                                <mat-option (click)="toggleSelectAllOverhead()"
-                                    [disabled]="filteredOverheadList.length === 0">
-                                    {{ isAllOverheadsSelected ? 'Deselect All' : 'Select All' }}
-                                </mat-option>
-                                <mat-option *ngFor="let employee of filteredOverheadList" [value]="employee.empId">
-                                    {{ employee.name }}
-                                </mat-option>
-                            </mat-select>
-                        </div>
-                        <div class="form-field">
-                            <label>Project Status</label>
-                            <input type="text" disabled [(ngModel)]="projectObj.status" />
-                        </div>
-                        <div class="form-field">
-                            <label>State</label>
-                            <input type="text" disabled [(ngModel)]="projectObj.state" />
-                        </div>
-                    </div>
+                <!-- TAB CONTENT (Uses *ngIf to show only one pane at a time) -->
 
-                    <div class="teams-section">
-                        <h3>Teams
-                            <span *ngIf="fallBackMsg !== '' && isApproved"
-                                style="color: red; font-size: 14px; margin-left: 10px;">
-                                {{ fallBackMsg }}
-                            </span>
-                        </h3>
-                        <div class="col-md-12 mb-3 px-0 ml-0" *ngIf="allTeamList.length > 1">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <label class="mb-0">
-                                    <input type="checkbox" [(ngModel)]="selectAll" (change)="toggleSelectAll()"
-                                        class="form-check-input mr-2" />
-                                    Select All
-                                </label>
-                                <div *ngIf="selectedTeamsDetails.length > 0">
-                                    <button type="button" class="btn btn-primary btn-sm"
-                                        (click)="openDeleteModalForTeamBulk(delete_team_modal, alert_message, teamObj, projectObj,MarkAsCompleteDefaultProject,OtherProjectDefaultMapping)">
-                                        Bulk Delete
-                                    </button>
-                                </div>
+                <!-- ===== CONTENT PANE 1: Project & Team Info ===== -->
+                <div *ngIf="activeModalTab === 'info'">
+                    <div class="p-3">
+                        <h3>Project Information</h3>
+                        <div class="form-group">
+                            <div class="form-field">
+                                <label>Project Name</label>
+                                <input type="text" disabled [(ngModel)]="projectObj.name" />
+                            </div>
+                            <div class="form-field">
+                                <label>Po No</label>
+                                <input type="text" disabled [(ngModel)]="projectObj.poNo" />
+                            </div>
+                            <div class="form-field">
+                                <label>Project Type</label>
+                                <input type="text" disabled [ngModel]="getProjectType(projectObj)" />
+                            </div>
+                            <div class="form-field">
+                                <label>Client Name</label>
+                                <input type="text" disabled [(ngModel)]="projectObj.clientName" />
+                            </div>
+                            <div class="form-field">
+                                <label>Status</label>
+                                <input type="text" disabled [ngModel]="projectObj.draftStatus || 'NA'" />
+                            </div>
+                            <div class="form-field">
+                                <label>Department</label>
+                                <mat-select class="form-control" multiple [(ngModel)]="projectObj.department">
+                                    <mat-option *ngFor="let dept of projectObj.department" disabled
+                                        [value]="dept">{{dept}}</mat-option>
+                                </mat-select>
+                            </div>
+                            <div class="form-field">
+                                <label><span class="text-danger">*</span> Project Manager</label>
+                                <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectManagerId"
+                                    panelClass="custom-select-panel">
+                                    <mat-option disabled class="search-option">
+                                        <div class="search-header" (click)="$event.stopPropagation()">
+                                            <input type="text" [(ngModel)]="searchManagerText"
+                                                (ngModelChange)="filterManagers()" placeholder="Search Project Manager"
+                                                class="form-control" />
+                                            <button *ngIf="projectObj.projectManagerId?.length"
+                                                (click)="clearManagerSelection($event)" class="clear-btn" type="button">
+                                                ✕ Clear
+                                            </button>
+                                        </div>
+                                    </mat-option>
+                                    <mat-option (click)="toggleSelectAllManagers()"
+                                        [disabled]="filteredManagerList.length === 0">
+                                        {{ isAllManagersSelected ? 'Deselect All' : 'Select All' }}
+                                    </mat-option>
+                                    <mat-option *ngFor="let employee of filteredManagerList" [value]="employee.empId">
+                                        {{ employee.name }}
+                                    </mat-option>
+                                </mat-select>
+                            </div>
+                            <div class="form-field">
+                                <label>Project Overhead</label>
+                                <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectOverheadId"
+                                    panelClass="custom-select-panel">
+                                    <mat-option disabled class="search-option">
+                                        <div class="search-header" (click)="$event.stopPropagation()">
+                                            <input type="text" [(ngModel)]="searchOverheadText"
+                                                (ngModelChange)="filterOverhead()" placeholder="Search Project Overhead"
+                                                class="form-control" />
+                                            <button *ngIf="projectObj.projectOverheadId?.length"
+                                                (click)="clearOverheadSelection($event)" class="clear-btn"
+                                                type="button">
+                                                ✕ Clear
+                                            </button>
+                                        </div>
+                                    </mat-option>
+                                    <mat-option (click)="toggleSelectAllOverhead()"
+                                        [disabled]="filteredOverheadList.length === 0">
+                                        {{ isAllOverheadsSelected ? 'Deselect All' : 'Select All' }}
+                                    </mat-option>
+                                    <mat-option *ngFor="let employee of filteredOverheadList" [value]="employee.empId">
+                                        {{ employee.name }}
+                                    </mat-option>
+                                </mat-select>
+                            </div>
+                            <div class="form-field">
+                                <label>Project Status</label>
+                                <input type="text" disabled [(ngModel)]="projectObj.status" />
+                            </div>
+                            <div class="form-field">
+                                <label>State</label>
+                                <input type="text" disabled [(ngModel)]="projectObj.state" />
                             </div>
                         </div>
-                        <div *ngFor="let teamObj of allTeamList; let i = index" class="team-container" style="border-bottom: 1px solid #eee; margin-bottom: 1rem; padding-bottom: 1rem;">
-                            <div class="team-row">
-                                <div class="flex-grow-1">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <input type="checkbox" *ngIf="allTeamList.length > 1" [(ngModel)]="teamObj.selected"
-                                            (change)="updateSelection()" class="form-check-input me-2"
-                                            style="width: 16px; height: 16px; margin-top:40px; " />
+
+                        <div class="teams-section">
+                            <h3>Teams
+                                <span *ngIf="fallBackMsg !== '' && isApproved"
+                                    style="color: red; font-size: 14px; margin-left: 10px;">
+                                    {{ fallBackMsg }}
+                                </span>
+                            </h3>
+                            <div class="col-md-12 mb-3 px-0 ml-0" *ngIf="allTeamList.length > 1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <label class="mb-0">
+                                        <input type="checkbox" [(ngModel)]="selectAll" (change)="toggleSelectAll()"
+                                            class="form-check-input mr-2" />
+                                        Select All
+                                    </label>
+                                    <div *ngIf="selectedTeamsDetails.length > 0">
+                                        <button type="button" class="btn btn-primary btn-sm"
+                                            (click)="openDeleteModalForTeamBulk(delete_team_modal, alert_message, teamObj, projectObj,MarkAsCompleteDefaultProject,OtherProjectDefaultMapping)">
+                                            Bulk Delete
+                                        </button>
                                     </div>
-                                    <label class="mb-0"><span class="text-danger">*</span>Team Name</label>
-                                    <input style="min-width:200px" type="text" class="form-select name-field" [(ngModel)]="teamObj.teamName"
-                                        (blur)="checkTeamName(alert_message_without_reload, teamObj, i)" />
-                                </div>
-                                <div class="form-field">
-                                    <label><span class="text-danger">*</span>Department</label>
-                                    <mat-select class="form-control name-field" placeholder="Select Departments" 
-                                        (selectionChange)="onDeptSelectionChange1()" 
-                                        [(ngModel)]="deptIdList" 
-                                        multiple>
-                                        <mat-option class="non-selectable" disabled>
-                                            <div style="display: flex; align-items: center;">
-                                                <input type="text" [(ngModel)]="searchTextDeptTeam"
-                                                    (ngModelChange)="filterDepartmentsTeamForm()" class="form-control"
-                                                    style="padding: 5px;" />
-                                                <button *ngIf="teamObj.departmentList?.length > 0"
-                                                    (click)="clearSelectionDept($event)"
-                                                    style="margin-left: 5px; background: none; border: none; cursor: pointer;"
-                                                    title="Clear Selection">
-                                                    Clear
-                                                </button>
-                                            </div>
-                                        </mat-option>
-                                        <mat-option [value]="'all'" [disabled]="filteredDepartments.length === 0">
-                                            {{ isAllSelected ? 'Deselect All' : 'Select All' }}
-                                        </mat-option>
-                                        <mat-option *ngFor="let dept of filteredDepartmentsTeam" [value]="dept.deptId">
-                                            {{ dept.name }}
-                                        </mat-option>
-                                    </mat-select>
-                                </div>
-                                <div class="form-field">
-                                    <label>SPOC</label>
-                                    <input type="text" class="form-select name-field" style="min-width:240px" placeholder="Search by Emp ID or Name"
-                                        aria-label="Search employee" [formControl]="spocCtrl" [matAutocomplete]="spocAuto"
-                                        [(ngModel)]="teamObj.spoc">
-                                    <mat-autocomplete #spocAuto="matAutocomplete" [displayWith]="displaySPOC"
-                                        (optionSelected)="onSpocSelected($event)">
-                                        <mat-option *ngFor="let employee of filteredEmployees | filterEmployee: spocCtrl.value"
-                                            [value]="employee">
-                                            {{ employee.name }}
-                                        </mat-option>
-                                    </mat-autocomplete>
-                                </div>
-                                <div class="button-group">
-                                    <button class="icon-button"
-                                        (click)="openTeamMembersModal(teamMemberTemplate,projectObj,teamObj)">
-                                        <i class="fa-solid fa-user-plus"></i>
-                                    </button>
-                                    <button class="icon-button"
-                                        (click)="previewTeamModal(preview_team_new_teams_only, teamObj, projectObj)">
-                                        <i class="fa-solid fa-users-viewfinder"></i>
-                                    </button>
-                                    <button class="icon-button" (click)="addInputTeamField()">
-                                        <i class="fa-solid fa-square-plus" aria-hidden="true"></i>
-                                    </button>
-                                    <button *ngIf="!this.teamObj.teamId" class="icon-button m-1"
-                                        (click)="openDeleteModalForTeam(delete_team_modal,alert_message, teamObj, projectObj)">
-                                        <i class="fa-solid fa fa-trash" aria-hidden="true"></i>
-                                    </button>
                                 </div>
                             </div>
-                            <div *ngIf="allTeamMembers.length > 0" class="team-member-section" style="margin-top: 15px; padding-left: 30px;">
-                                <ng-container *ngFor="let teamMember of allTeamMembers">
-                                    <div *ngIf="teamMember.teamName === teamObj.teamName" class="team-member-row">
-                                        <div class="team-member-fields">
-                                            <div class="team-member-field">
-                                                <input type="text" class="form-control" disabled
-                                                    [(ngModel)]="teamMember.name" />
-                                            </div>
-                                            <div class="team-member-field">
-                                                <mat-select class="form-control" multiple
-                                                    [(ngModel)]="teamMember.employeeRole">
-                                                    <mat-option value="" disabled selected>Select</mat-option>
-                                                    <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role }}</mat-option>
-                                                </mat-select>
-                                            </div>
-                                            <div class="checkbox-group">
-                                                <label><input type="checkbox" [(ngModel)]="teamMember.isShadow"
-                                                        (ngModelChange)="teamMember.isShadow = $event ? 1 : 0" /> Shadow</label>
-                                                <label><input type="checkbox" [(ngModel)]="teamMember.isDefaultProject"
-                                                        (ngModelChange)="teamMember.isDefaultProject = $event ? 1 : 0" /> Default Project</label>
-                                            </div>
-                                            <div class="action-buttons">
-                                                <button type="button" class="btn btn-outline-primary"
-                                                    (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
+                            <div *ngFor="let teamObj of allTeamList; let i = index" class="team-container"
+                                style="border-bottom: 1px solid #eee; margin-bottom: 1rem; padding-bottom: 1rem;">
+                                <div class="team-row">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <input type="checkbox" *ngIf="allTeamList.length > 1"
+                                                [(ngModel)]="teamObj.selected" (change)="updateSelection()"
+                                                class="form-check-input me-2"
+                                                style="width: 16px; height: 16px; margin-top:40px; " />
+                                        </div>
+                                        <label class="mb-0"><span class="text-danger">*</span>Team Name</label>
+                                        <input style="min-width:200px" type="text" class="form-select name-field"
+                                            [(ngModel)]="teamObj.teamName"
+                                            (blur)="checkTeamName(alert_message_without_reload, teamObj, i)" />
+                                    </div>
+                                    <div class="form-field">
+                                        <label><span class="text-danger">*</span>Department</label>
+                                        <mat-select class="form-control name-field" placeholder="Select Departments"
+                                            (selectionChange)="onDeptSelectionChange1()" [(ngModel)]="deptIdList"
+                                            multiple>
+                                            <mat-option class="non-selectable" disabled>
+                                                <div style="display: flex; align-items: center;">
+                                                    <input type="text" [(ngModel)]="searchTextDeptTeam"
+                                                        (ngModelChange)="filterDepartmentsTeamForm()"
+                                                        class="form-control" style="padding: 5px;" />
+                                                    <button *ngIf="teamObj.departmentList?.length > 0"
+                                                        (click)="clearSelectionDept($event)"
+                                                        style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                                                        title="Clear Selection">
+                                                        Clear
+                                                    </button>
+                                                </div>
+                                            </mat-option>
+                                            <mat-option [value]="'all'" [disabled]="filteredDepartments.length === 0">
+                                                {{ isAllSelected ? 'Deselect All' : 'Select All' }}
+                                            </mat-option>
+                                            <mat-option *ngFor="let dept of filteredDepartmentsTeam"
+                                                [value]="dept.deptId">
+                                                {{ dept.name }}
+                                            </mat-option>
+                                        </mat-select>
+                                    </div>
+                                    <div class="form-field">
+                                        <label>SPOC</label>
+                                        <input type="text" class="form-select name-field" style="min-width:240px"
+                                            placeholder="Search by Emp ID or Name" aria-label="Search employee"
+                                            [formControl]="spocCtrl" [matAutocomplete]="spocAuto"
+                                            [(ngModel)]="teamObj.spoc">
+                                        <mat-autocomplete #spocAuto="matAutocomplete" [displayWith]="displaySPOC"
+                                            (optionSelected)="onSpocSelected($event)">
+                                            <mat-option
+                                                *ngFor="let employee of filteredEmployees | filterEmployee: spocCtrl.value"
+                                                [value]="employee">
+                                                {{ employee.name }}
+                                            </mat-option>
+                                        </mat-autocomplete>
+                                    </div>
+                                    <div class="button-group">
+                                        <button class="icon-button"
+                                            (click)="openTeamMembersModal(teamMemberTemplate,projectObj,teamObj)">
+                                            <i class="fa-solid fa-user-plus"></i>
+                                        </button>
+                                        <button class="icon-button"
+                                            (click)="previewTeamModal(preview_team_new_teams_only, teamObj, projectObj)">
+                                            <i class="fa-solid fa-users-viewfinder"></i>
+                                        </button>
+                                        <button class="icon-button" (click)="addInputTeamField()">
+                                            <i class="fa-solid fa-square-plus" aria-hidden="true"></i>
+                                        </button>
+                                        <button *ngIf="!this.teamObj.teamId" class="icon-button m-1"
+                                            (click)="openDeleteModalForTeam(delete_team_modal,alert_message, teamObj, projectObj)">
+                                            <i class="fa-solid fa fa-trash" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div *ngIf="allTeamMembers.length > 0" class="team-member-section"
+                                    style="margin-top: 15px; padding-left: 30px;">
+                                    <ng-container *ngFor="let teamMember of allTeamMembers">
+                                        <div *ngIf="teamMember.teamName === teamObj.teamName" class="team-member-row">
+                                            <div class="team-member-fields">
+                                                <div class="team-member-field">
+                                                    <input type="text" class="form-control" disabled
+                                                        [(ngModel)]="teamMember.name" />
+                                                </div>
+                                                <div class="team-member-field">
+                                                    <mat-select class="form-control" multiple
+                                                        [(ngModel)]="teamMember.employeeRole">
+                                                        <mat-option value="" disabled selected>Select</mat-option>
+                                                        <mat-option *ngFor="let role of employeeRole" [value]="role">{{
+                                                            role }}</mat-option>
+                                                    </mat-select>
+                                                </div>
+                                                <div class="checkbox-group">
+                                                    <label><input type="checkbox" [(ngModel)]="teamMember.isShadow"
+                                                            (ngModelChange)="teamMember.isShadow = $event ? 1 : 0" />
+                                                        Shadow</label>
+                                                    <label><input type="checkbox"
+                                                            [(ngModel)]="teamMember.isDefaultProject"
+                                                            (ngModelChange)="teamMember.isDefaultProject = $event ? 1 : 0" />
+                                                        Default Project</label>
+                                                </div>
+                                                <div class="action-buttons">
+                                                    <button type="button" class="btn btn-outline-primary"
+                                                        (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </ng-container>
+                                    </ng-container>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
 
                     </div>
 
                     <button class="set-team-btn"
                         (click)="createDraftProjectInfo(alert_message,alert_message_without_reload)">Set Team</button>
-                    </div>
+                </div>
 
             </div>
         </div>
@@ -3075,12 +3073,12 @@
                                 </button>&nbsp;&nbsp;
 
 
-                                
-                                <button *ngIf="milestone.status === 'Completed'" class="btn btn-sm btn-info" title="View Document"
-                                    (click)="viewFiles(milestone.id)">
-                                    <i class="fas fa-file-alt"></i> 
+
+                                <button *ngIf="milestone.status === 'Completed'" class="btn btn-sm btn-info"
+                                    title="View Document" (click)="viewFiles(milestone.id)">
+                                    <i class="fas fa-file-alt"></i>
                                 </button>
-                                
+
 
 
 
@@ -3127,7 +3125,7 @@
                     [(ngModel)]="projectMilestone.startDate" [owlDateTimeTrigger]="startDatePicker"
                     [owlDateTime]="startDatePicker" placeholder="Select Start Date" [disabled]="true">
                 <owl-date-time #startDatePicker></owl-date-time>
-               
+
             </div>
 
 
@@ -3137,7 +3135,7 @@
                     [(ngModel)]="projectMilestone.endDate" [owlDateTimeTrigger]="endDatePicker"
                     [owlDateTime]="endDatePicker" placeholder="Select End Date" [disabled]="true">
                 <owl-date-time #endDatePicker></owl-date-time>
-               
+
             </div>
 
 
@@ -3167,33 +3165,27 @@
 
 
             <div class="form-field full-width">
-    <label>Upload Document</label>
+                <label>Upload Document</label>
 
-    <!-- Group the input and button together for better layout -->
-    <div class="file-input-group">
-        
-        <!-- Your existing file input -->
-        <input 
-            type="file" 
-            class="plain-file-input" 
-            (change)="onFileSelected($event)" 
-            accept=".jpg,.jpeg,.png,.pdf" /> <!-- Added .pdf to accept -->
-        
-        <!-- The new Preview Button -->
-        <button 
-            type="button" 
-            class="btn btn-sm btn-outline-secondary ml-2" 
-            (click)="previewSelectedFile()"
-            [disabled]="!selectedFile"> <!-- Button is disabled until a file is chosen -->
-            <i class="fa fa-eye"></i> Preview
-        </button>
+                <!-- Group the input and button together for better layout -->
+                <div class="file-input-group">
 
-    </div>
-    <!-- Optional: Display the selected file name -->
-    <div *ngIf="selectedFile" class="file-name-display">
-        Selected: {{ selectedFile.name }}
-    </div>
-</div>
+                    <!-- Your existing file input -->
+                    <input type="file" class="plain-file-input" (change)="onFileSelected($event)"
+                        accept=".jpg,.jpeg,.png,.pdf" /> <!-- Added .pdf to accept -->
+
+                    <!-- The new Preview Button -->
+                    <button type="button" class="btn btn-sm btn-outline-secondary ml-2" (click)="previewSelectedFile()"
+                        [disabled]="!selectedFile"> <!-- Button is disabled until a file is chosen -->
+                        <i class="fa fa-eye"></i> Preview
+                    </button>
+
+                </div>
+                <!-- Optional: Display the selected file name -->
+                <div *ngIf="selectedFile" class="file-name-display">
+                    Selected: {{ selectedFile.name }}
+                </div>
+            </div>
 
         </div>
     </div>
@@ -3244,8 +3236,8 @@
 
 
 <ng-template #alertTemplate>
-  <div class="modal-body text-center">
-    <p>{{ alertMessage }}</p>
-    <button type="button" class="btn btn-primary" (click)="modalRef.hide()">OK</button>
-  </div>
+    <div class="modal-body text-center">
+        <p>{{ alertMessage }}</p>
+        <button type="button" class="btn btn-primary" (click)="modalRef.hide()">OK</button>
+    </div>
 </ng-template>

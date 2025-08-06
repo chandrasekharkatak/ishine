@@ -6,7 +6,7 @@ import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import * as Highcharts from 'highcharts';
-import * as moment from 'moment';
+import * as moment from 'moment'; 
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
@@ -111,6 +111,8 @@ export class ResourceManagementComponent implements OnInit {
   milestoneDocumentUrl: SafeResourceUrl | null = null;
   modalRef: BsModalRef = new BsModalRef();
   isModalFullscreen = false;
+
+  isTNMCollapsed = false;
 
 
   // new cards changes.....................................................................
@@ -5758,6 +5760,11 @@ selectExpiredProjectFilter(filter: any) {
     
     this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
 }
+showMoreCards: boolean = false;
+ 
+toggleMoreCards() {
+        this.showMoreCards = !this.showMoreCards;
+    }
 }
  
 
