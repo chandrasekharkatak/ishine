@@ -129,10 +129,10 @@ public class TypeDocumentService {
 	
 	
 	public ServiceResponse uploadDocument(MultipartFile file, String displayName, Long uploadedBy, Long typeId,
-			String readEnabled) throws IOException {
+		String readEnabled) throws IOException {
 		
 		ServiceResponse response = new ServiceResponse();
-		
+		try {
 		Optional<Employee> employeeObject = employeeRepository.findById(uploadedBy);
 		if(employeeObject.isPresent()) {
 			if(file != null) {
@@ -180,9 +180,11 @@ public class TypeDocumentService {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("User not found !!");
 		}
-		
-		
-		
+		}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Something went wrong !");
+		}
 		return response;
 	}
 
