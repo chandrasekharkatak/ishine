@@ -1,7 +1,10 @@
 package com.apmosys.employeeportal.serviceInterface;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -129,14 +132,19 @@ public class FormBuilderServiceImpl implements FormBuilderService {
 	}
 
 	public ResponseEntity<List<DynamicFormStructure>> getAllDynamicFormByDepartmentAndType(
-	        DynamicFormStructureDTO dynamicFormStructureDTO) {
-
-	    Long departmentId = dynamicFormStructureDTO.getDepartmentId();
-
-	    List<DynamicFormStructure> topLevelForms = dynamicFormStructureRepository
-	            .findByDepartmentIdAndParentFormIdIsNull(departmentId);
-	    
-	    return ResponseEntity.ok(topLevelForms);
+	        List<Long> allDeptIds) {
+		Set<DynamicFormStructure> response = new HashSet<>();
+		for(int i=0;i<allDeptIds.size();i++) {
+			Long departmentId = allDeptIds.get(i);
+			List<DynamicFormStructure> topLevelForms = dynamicFormStructureRepository
+		            .findByDepartmentIdAndParentFormIdIsNull(departmentId);
+			response.addAll(topLevelForms);
+		}
+//	    Long departmentId = dynamicFormStructureDTO.getDepartmentId();
+//
+//	    List<DynamicFormStructure> topLevelForms = dynamicFormStructureRepository
+//	            .findByDepartmentIdAndParentFormIdIsNull(departmentId);
+	    return ResponseEntity.ok(new ArrayList<>(response));
 	}
 
 

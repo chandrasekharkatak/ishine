@@ -54,8 +54,8 @@ public class FormBuilderController {
 	}
 	
 	@PostMapping("/getAllDynamicFormByDepartmentAndType")
-	public ResponseEntity<List<DynamicFormStructure>> getAllDynamicFormByDepartmentAndType(@RequestBody DynamicFormStructureDTO dynamicFormStructureDTO) {
-		return formBuilderService.getAllDynamicFormByDepartmentAndType(dynamicFormStructureDTO);
+	public ResponseEntity<List<DynamicFormStructure>> getAllDynamicFormByDepartmentAndType(@RequestBody List<Long> allDeptIds) {
+		return formBuilderService.getAllDynamicFormByDepartmentAndType(allDeptIds);
 	}
 	
 
