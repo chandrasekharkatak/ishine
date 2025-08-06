@@ -471,7 +471,8 @@ public class TimesheetService {
 			System.err.println("Time sheet checked "+newTimesheet);
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
-			if(timesheetDTO.getClientApprovalStatus() == null ) {
+			if(!Boolean.TRUE.equals(timesheetDTO.getIsShadowTimesheet())) {
+			if(timesheetDTO.getClientApprovalStatus() == null) {
 		    	throw new IllegalArgumentException("Client approval status is null");
 	    	}
 		    if (doc1 != null && "pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
@@ -491,6 +492,7 @@ public class TimesheetService {
 		    	if("approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus()))
 		    	throw new IllegalArgumentException("In case of approved one of the document is missing");
 		    }
+			}
 
 			if (!timesheetDTO.getDayType().equals("Public Holiday") && !timesheetDTO.getDayType().equals("Week Off") && !timesheetDTO.getDayType().equals("Leave")) {				
 				Optional.ofNullable(newTimesheetCreated.getEmpId()).ifPresentOrElse((timesheet) -> {

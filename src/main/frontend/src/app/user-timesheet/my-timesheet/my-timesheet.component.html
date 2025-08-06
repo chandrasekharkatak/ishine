@@ -68,6 +68,24 @@
                     </div>
                 </div>
                 <div class="row" *ngIf="timesheetObj.timesheetAppliedFor">
+                    <div class="col-md-3 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label"><span class="text-danger">*</span>Day Type</label>
+                                <select class="form-control" id="dayTypeCursor" aria-hidden="true"
+                                    [(ngModel)]="timesheetObj.dayType"
+                                    (change)="onTimesheetDescriptionChange();resetTimeonDayTypeChange()">
+                                    <option selected="selected" value="" disabled>Select</option>
+                                    <option value="Working">Working</option>
+                                    <option value="Public Holiday">Public Holiday</option>
+                                    <option value="Client Holiday">Client Holiday</option>
+                                    <option value="Week Off">Week Off</option>
+                                    <!-- <option value="Leave">Leave</option> -->
+                                    <option value="Non-working">Working on non-working day</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-md-3 mb-0" *ngIf="!shadowForSelf">
                         <div class="form-group">
                             <label class="info-label" style="margin-bottom: 0rem;"
@@ -165,24 +183,6 @@
                                 <label class="info-label">Employment ID</label>
                                 <input class="form-control" autocomplete="none" disabled
                                     [(ngModel)]="timesheetObj.employmentId">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-0">
-                        <div class="info-wrapper">
-                            <div class="form-group">
-                                <label class="info-label"><span class="text-danger">*</span>Day Type</label>
-                                <select class="form-control" id="dayTypeCursor" aria-hidden="true"
-                                    [(ngModel)]="timesheetObj.dayType"
-                                    (change)="onTimesheetDescriptionChange();resetTimeonDayTypeChange()">
-                                    <option selected="selected" value="" disabled>Select</option>
-                                    <option value="Working">Working</option>
-                                    <option value="Public Holiday">Public Holiday</option>
-                                    <option value="Client Holiday">Client Holiday</option>
-                                    <option value="Week Off">Week Off</option>
-                                    <!-- <option value="Leave">Leave</option> -->
-                                    <option value="Non-working">Working on non-working day</option>
-                                </select>
                             </div>
                         </div>
                     </div>
@@ -527,10 +527,10 @@
             </div> -->
 
             <div class="card col-md-12 px-3"
-                *ngIf="timesheetObj.projectId  && ((timesheetObj.clientApprovalStatus !== 'no' || (!timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null)) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">
+                *ngIf="timesheetObj.projectId  && ((timesheetObj.clientApprovalStatus !== 'no' || (!timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null)) || clientSideIdNotMandatory || timesheetObj.hasClientSideId ||timesheetObj.isShadowTimesheet)">
                 <!-- Add & Update Activities -->
                 <div class="container-fluid px-0"
-                    *ngIf="timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null">
+                    *ngIf="(timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || timesheetObj.isShadowTimesheet">
                     <div class="row ml-1 mt-5">
                         <h6>Activities</h6>
                     </div>
