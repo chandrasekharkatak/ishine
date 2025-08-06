@@ -3117,34 +3117,29 @@ public class ProjectService {
 	                logBuilder.append("Fetched ").append(expiredProjects.size()).append(" expired projects successfully.");
 	                return response;
 	            }
-
-	            LocalDate startDate;
-	            switch (timeFrame.toLowerCase()) {
-	                case "lastmonth":
-	                    startDate = LocalDate.now().minusMonths(1).withDayOfMonth(1);
-	                    break;
-	                case "last6months":
-	                    startDate = LocalDate.now().minusMonths(6).withDayOfMonth(1);
-	                    break;
-	                case "lastyear":
-	                    startDate = LocalDate.now().minusYears(1).withDayOfYear(1);
-	                    break;
-	                default:
-	                    throw new IllegalArgumentException("Invalid time frame specified: " + timeFrame);
+	            if ("delays".equalsIgnoreCase(timeFrame)) {
+	            	
+	            	List<Object[]> delayedProjects = new ArrayList<>();
+	            	delayedProjects = projectRepository.findDelayedFCProject(deptIds);
+	                List<ProjectFetchDTO> delayedFCProjects = delayedProjects.stream().map(ProjectFetchDTO::new).collect(Collectors.toList());
+	                response.setServiceResponse(delayedFCProjects);
+	                response.setServiceMessage("All delayed fixed cost projects fetched successfully.");
+	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                logBuilder.append("Fetched ").append(delayedProjects.size()).append(" delayed projects successfully.");
+	                return response;
 	            }
-
-	            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-	            
-	            String startDateString = startDate.format(formatter);
-	            
-	            List<Project> fcProjects = projectRepository.findCompletedFixedCostProjectsAfterDate(startDateString);
-	            
-	            response.setServiceResponse(fcProjects);
-	            response.setServiceMessage("Completed fixed cost projects fetched successfully.");
-	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            logBuilder.append("Fetched ").append(fcProjects.size()).append(" completed projects for timeFrame '")
-	                     .append(timeFrame).append("' starting from ").append(startDateString).append(".");
-
+	            if ("ontime".equalsIgnoreCase(timeFrame)) {
+	            	
+	            	List<Object[]> ontimeProjects = new ArrayList<>();
+	            	ontimeProjects = projectRepository.findOntimeFCList(deptIds);
+	                List<ProjectFetchDTO> ontimeFcProjects = ontimeProjects.stream().map(ProjectFetchDTO::new).collect(Collectors.toList());
+	                response.setServiceResponse(ontimeFcProjects);
+	                response.setServiceMessage("All ontime fixed cost projects fetched successfully.");
+	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                logBuilder.append("Fetched ").append(ontimeProjects.size()).append(" ontime projects successfully.");
+	                return response;
+	            }
+	          
 	        } catch (Exception e) {
 	        	e.printStackTrace();
 	            logBuilder.append("Failed. Exception: ").append(e.getMessage());
@@ -3168,20 +3163,27 @@ public class ProjectService {
 	        apiLogInfo.setLogLevel("INFO");
 	        
 	        try {
-	        	Long totalCountFC,totalExpiredCount;
+	        	Long totalCountFC,totalExpiredCount,delayedCount,ontimeCount;
 	        	if(!projectFilter.getDepartmentsids().isEmpty()) {
 	        	totalCountFC = projectRepository.totalFcCount(projectFilter.getDepartmentsids());
-	        	totalExpiredCount = projectRepository.expiredFCcount(projectFilter.getDepartmentsids());}
+	        	totalExpiredCount = projectRepository.expiredFCcount(projectFilter.getDepartmentsids());
+	        	delayedCount = projectRepository.getAllDelayedProjectCount(projectFilter.getDepartmentsids());
+	        	ontimeCount = projectRepository.getAllOntimeCount(projectFilter.getDepartmentsids());
+	        	}
 	        	else
 	        	{
 	        		totalCountFC = projectRepository.totalFcCount(projectRepository.deptIds());
 		        	totalExpiredCount = projectRepository.expiredFCcount(projectRepository.deptIds());
+		        	delayedCount = projectRepository.getAllDelayedProjectCount(projectRepository.deptIds());
+		        	ontimeCount = projectRepository.getAllOntimeCount(projectRepository.deptIds());
 	        	}
 	        	
 	        	FixedCostProjectCount fixedCountDTO = new FixedCostProjectCount();
 	        	
 	        	fixedCountDTO.setTotalFixedCostcount(totalCountFC);
 	        	fixedCountDTO.setExpiredCount(totalExpiredCount);
+	        	fixedCountDTO.setDelayedCount(delayedCount);
+	        	fixedCountDTO.setOntimeCount(ontimeCount);
 	        	response.setServiceResponse(fixedCountDTO);
                 response.setServiceMessage("All defaulter fixed cost projects fetched successfully.");
                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -3189,6 +3191,7 @@ public class ProjectService {
                 return response;
 	        	
 	        }catch(Exception e) {
+	        	e.printStackTrace();
 	        	logBuilder.append("Failed. Exception: ").append(e.getMessage());
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceMessage("Failed to fetch completed fixed cost projects count.");

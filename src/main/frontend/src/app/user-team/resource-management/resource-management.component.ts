@@ -409,6 +409,8 @@ export class ResourceManagementComponent implements OnInit {
   changeTable: boolean = true;
   totalProjectCount: number = 0;
   defaulterCount: number = 0;
+  delayedCount: number = 0;
+  ontTimeCount: number = 0;
 
   // filters: any = {};
   // isSearchEnabled: boolean = false;
@@ -1286,6 +1288,8 @@ getFixedCostCount(projectFilterDTO: any) {
         
         this.totalProjectCount = response.serviceResponse.totalFixedCostcount;
         this.defaulterCount = response.serviceResponse.expiredCount;
+        this.delayedCount = response.serviceResponse.delayedCount;
+        this.ontTimeCount = response.serviceResponse.ontimeCount;
         
         
         const allRange = this.ranges1.find(range => range.value === 'all');
@@ -1296,6 +1300,14 @@ getFixedCostCount(projectFilterDTO: any) {
         const defaulterRange = this.ranges1.find(range => range.value === 'defaulter');
         if (defaulterRange) {
           defaulterRange.count = this.defaulterCount; 
+        }
+        const delayedRange = this.ranges1.find(range => range.value === 'delays');
+        if (delayedRange) {
+          delayedRange.count = this.delayedCount; 
+        }
+        const ontimeRange = this.ranges1.find(range => range.value === 'ontime');
+        if (ontimeRange) {
+          ontimeRange.count = this.ontTimeCount; 
         }
 
         console.log("Total Fixed Cost Project Count:", this.totalProjectCount);
@@ -1330,6 +1342,14 @@ getFixedCostCount(projectFilterDTO: any) {
           this.allProject_Po_Internal = receivedProjects;
           console.log("All Projects Updated:", this.allProject_Po_Internal);
         }
+        else if (tabName === 'delays') {
+          this.allProject_Po_Internal = receivedProjects;
+          console.log("All Projects Updated:", this.allProject_Po_Internal);
+        }
+         else if (tabName === 'ontime') {
+          this.allProject_Po_Internal = receivedProjects;
+          console.log("All Projects Updated:", this.allProject_Po_Internal);
+        }
         if (tabName === this.selectedStatusTab) {
           this.fcProjectList = receivedProjects.sort((a, b) => a.projectName.localeCompare(b.projectName));
           console.log("Displayed List Updated:", this.fcProjectList);
@@ -1348,11 +1368,12 @@ getFixedCostCount(projectFilterDTO: any) {
   }
 
    ranges1 = [
-    {label: 'All', value: "all",count:this.totalProjectCount},
+    {label: 'Active', value: "all",count:this.totalProjectCount},
     {label:'Default', value: "defaulter",count:this.defaulterCount},
-    { label: 'Ongoing', value: "ongoing",count:0},
-    { label: 'Delays', value: "delays",count:0},
-    { label: 'Ontime', value: "ontime",count:0}
+    { label: 'Ontime', value: "ontime",count:this.ontTimeCount},
+    { label: 'Delays', value: "delays",count:this.delayedCount},
+    
+    
   ];
 
 

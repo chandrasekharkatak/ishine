@@ -9,8 +9,7 @@ public class FixedCostProjectCount {
 
 	private Long totalFixedCostcount;
 	private Long expiredCount;
-	private Long fc1monthCount;
-	private Long fc6monthCount;
-	private Long fc1yearCount;
+	private Long delayedCount;
+	private Long ontimeCount;
 	
 }
