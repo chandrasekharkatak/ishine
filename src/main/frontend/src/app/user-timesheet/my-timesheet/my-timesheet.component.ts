@@ -128,19 +128,30 @@ AllWeekOfList:any[]=[];
   clientSideIdNotMandatory: Boolean = false;
   employeeList:any[];
   selectedFile: File | null = null;
+  selectedFile2: File | null = null;
   empClientSideObj: EmployeeClientSideIdMapping = new EmployeeClientSideIdMapping();
   projectClientIdList: ProjectClientSideId[] = [];
   shadowForSelf:Boolean = false;
-  previewUrl: SafeResourceUrl | null = null;
-  rawObjectUrl: string | null = null;
-  fileType: '' | 'pdf' | 'image' | null = null;
-  fileError: string = '';
-  fileName:any = null;
-  docData: any;
+  previewUrl1: SafeResourceUrl | null = null;
+  previewUrl2: SafeResourceUrl | null = null;
+  rawObjectUrl1: string | null = null;
+  rawObjectUrl2: string | null = null;
+  fileType1: '' | 'pdf' | 'image' | null = null;
+  fileType2: '' | 'pdf' | 'image' | null = null;
+  fileError1: string = '';
+  fileError2: string = '';
+  fileName1:any = null;
+  fileName2:any = null;
+  docData1: any;
+  docData2: any;
+  activePreviewUrl: SafeResourceUrl | null = null;
+  activeFileType: string | null = null;
   mimeType: any;
   projectRequiresClientId : Boolean = false;
-  fromDate : any;
-  toDate : any;
+  fromDate : any = null;
+  toDate : any = null;
+  finalFromDate : any = null;
+  finalToDate : any = null;
   clientSideIdForm: BsModalRef = new BsModalRef();
   noClientSideIdProvided: BsModalRef = new BsModalRef();
   @ViewChild("update_clientId")
@@ -155,6 +166,22 @@ AllWeekOfList:any[]=[];
   maxDate: string;
   disableList: any;
   disableListFormatted: Date[] = [];
+hours: string[] = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+  minutes: string[] = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+  periods: string[] = ['AM', 'PM'];
+selectedInHour: any = null;
+selectedInMinute: any = null;
+selectedInPeriod: any = null;
+selectedOutHour: any = null;
+selectedOutMinute: any = null;
+selectedOutPeriod: any = null;
+selectedClientInHour: any = null;
+selectedClientInMinute: any = null;
+selectedClientInPeriod: any = null;
+selectedClientOutHour: any = null;
+selectedClientOutMinute: any = null;
+selectedClientOutPeriod: any = null;
+timesheetFillable = true;
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -199,6 +226,24 @@ AllWeekOfList:any[]=[];
     this.getActiveProjectsByEmpId();
     this.thisMonthValidation();
     // this.setStartDateMinMax();
+    this.selectedInHour = '09';
+    this.selectedInMinute = '30';
+    this.selectedInPeriod = 'AM';
+    this.selectedOutHour = '06';
+    this.selectedOutMinute = '30';
+    this.selectedOutPeriod = 'PM';
+    this.selectedClientInHour = '09';
+    this.selectedClientInMinute = '30';
+    this.selectedClientInPeriod = 'AM';
+    this.selectedClientOutHour = '06';
+    this.selectedClientOutMinute = '30';
+    this.selectedClientOutPeriod = 'PM';
+    this.timesheetFillable = true;
+    // this.makeApmosysInTime();
+    // this.makeApmosysOutTime();
+    // this.setTotalWorkingOfficeHours();
+    // this.setTotalWorkingClientHours()
+    console.log("timesheetObj:", this.timesheetObj);
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -207,6 +252,142 @@ AllWeekOfList:any[]=[];
     })
   }
 //method
+
+
+
+getFormattedTime(selectedHour:any,selectedMinute:any,selectedPeriod:any): string {
+    return `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
+  }
+
+  get24HourTime(hour: string, minute: string, period: string): string {
+  let hr = parseInt(hour, 10);
+  if (period === 'PM' && hr < 12) hr += 12;
+  if (period === 'AM' && hr === 12) hr = 0;
+  return `${String(hr).padStart(2, '0')}:${minute}:00`;
+}
+
+ getFullDateTime(date: Date, hour: string, minute: string, period: string): Date {
+  let h = parseInt(hour, 10);
+  const m = parseInt(minute, 10);
+
+  if (period === 'PM' && h < 12) h += 12;
+  if (period === 'AM' && h === 12) h = 0;
+
+  const newDate = new Date(date);
+  newDate.setHours(h, m, 0, 0); // Sets time to hh:mm:00.000
+
+  return newDate;
+}
+
+
+  makeApmosysInTime() {
+  if (this.fromDate && this.selectedInHour && this.selectedInMinute && this.selectedInPeriod) {
+    const officeInTime = this.getFullDateTime(
+      this.fromDate,
+      this.selectedInHour,
+      this.selectedInMinute,
+      this.selectedInPeriod
+    );
+    this.timesheetObj.officeInTime = new Date(officeInTime);
+    this.setTotalWorkingOfficeHours()
+  } else {
+    this.timesheetObj.officeInTime = null;
+  }
+  console.log("Office In Time: ", this.timesheetObj.officeInTime);
+}
+
+makeApmosysOutTime() {
+  if ((this.fromDate || this.toDate) && this.selectedOutHour && this.selectedOutMinute && this.selectedOutPeriod) {
+    const outDate = this.toDate || this.fromDate;
+    const officeOutTime = this.getFullDateTime(
+      outDate,
+      this.selectedOutHour,
+      this.selectedOutMinute,
+      this.selectedOutPeriod
+    );
+    this.timesheetObj.officeOutTime = new Date(officeOutTime) ;
+    this.setTotalWorkingOfficeHours()
+  } else {
+    this.timesheetObj.officeOutTime = null;
+  }
+  console.log("Office Out Time: ", this.timesheetObj.officeOutTime);
+}
+
+  makeClientInTime(){
+    if (this.fromDate && this.selectedClientInHour && this.selectedClientInMinute
+      && this.selectedClientInPeriod) {
+        let officeClientInTime = null;
+      officeClientInTime = this.getFullDateTime(
+        this.fromDate,
+        this.selectedClientInHour,
+        this.selectedClientInMinute,
+        this.selectedClientInPeriod
+      );
+      this.timesheetObj.clientInTime = new Date(officeClientInTime);
+      this.setTotalWorkingClientHours();
+    } else {
+      this.timesheetObj.clientInTime = null;
+    }
+    console.log("Client In Time: ", this.timesheetObj.clientInTime);
+  }
+  makeClientOutTime(){
+    let officeClientOutTime = null;
+    if (this.fromDate && this.selectedClientOutHour && this.selectedClientOutMinute
+      && this.selectedClientOutPeriod) {
+      if (this.toDate) {
+        officeClientOutTime = this.getFullDateTime(
+          this.toDate,
+          this.selectedClientOutHour,
+          this.selectedClientOutMinute,
+          this.selectedClientOutPeriod
+        );
+      } else {
+        officeClientOutTime = this.getFullDateTime(
+          this.fromDate,
+          this.selectedClientOutHour,
+          this.selectedClientOutMinute,
+          this.selectedClientOutPeriod
+        );
+      }
+      this.timesheetObj.clientOutTime = new Date(officeClientOutTime);
+      this.setTotalWorkingClientHours();
+    } else {
+      this.timesheetObj.clientOutTime = null;
+    }
+    console.log("Client Out Time: ", this.timesheetObj.clientOutTime);
+  }
+  // AndOutTime(){
+  //   let officeClientInTime = null;
+  //   let officeClientOutTime = null;
+  //   if (this.fromDate && this.selectedClientInHour && this.selectedClientInMinute
+  //     && this.selectedClientInPeriod && this.selectedClientOutHour && this.selectedClientOutMinute
+  //     && this.selectedClientOutPeriod) {
+  //     officeClientInTime = this.getFullDateTime(
+  //       this.fromDate,
+  //       this.selectedClientInHour,
+  //       this.selectedClientInMinute,
+  //       this.selectedClientInPeriod
+  //     );
+
+  //     if (this.toDate) {
+  //       officeClientOutTime = this.getFullDateTime(
+  //         this.toDate,
+  //         this.selectedClientOutHour,
+  //         this.selectedClientOutMinute,
+  //         this.selectedClientOutPeriod
+  //       );
+  //     } else {
+  //       officeClientOutTime = this.getFullDateTime(
+  //         this.fromDate,
+  //         this.selectedClientOutHour,
+  //         this.selectedClientOutMinute,
+  //         this.selectedClientOutPeriod
+  //       );
+  //     }
+  //     this.timesheetObj.clientInTime = officeClientInTime;
+  //     this.timesheetObj.clientOutTime = officeClientOutTime;
+  //   }
+  // }
 
 thisMonthValidation(){
   const now = new Date();
@@ -256,11 +437,16 @@ this.maxDate = maxDate.toISOString().split('T')[0];
     this.isUpdation = false;
     this.isTimesheetBulkForm = false;
 
-    this.rawObjectUrl = null;
-    this.previewUrl = null;
-    this.fileType = null;
+    this.rawObjectUrl1 = null;
+    this.previewUrl1 = null;
+    this.fileType1 = null;
     this.selectedFile = null;
-    this.fileName = null;
+    this.fileName1 = null;
+    this.rawObjectUrl2 = null;
+    this.previewUrl2 = null;
+    this.fileType2 = null;
+    this.selectedFile2 = null;
+    this.fileName2 = null;
 
     this.reset();
     this.getEmployeeBasicInfo();
@@ -791,6 +977,7 @@ getFilteredDates(dayType: string): Date[] {
 
     if (this.isTimesheetForm && this.isUpdation) {
       this.availableTimesheets = this.availableTimesheets.filter(timesheet => this.datePipe.transform(timesheet.date, "yyyy-MM-dd") != this.datePipe.transform(this.timesheetObj.date, "yyyy-MM-dd"));
+      console.log(this.availableTimesheets,"availableTimesheets");
     }
 
     //console.log("isTimesheetLockCheckEnable : ", this.isTimesheetLockCheckEnable);
@@ -900,13 +1087,21 @@ getFilteredDates(dayType: string): Date[] {
   
 
   resetTimeonDayTypeChange(){
-    if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave"){
+    if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday"){
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
       this.timesheetObj.clientInTime = '';
       this.timesheetObj.clientOutTime = '';
       this.timesheetObj.totalClientWorkingHours = '';
+      this.timesheetFillable = false
+    }
+    else{
+      this.timesheetFillable = true;
+      this.makeApmosysInTime();
+      this.makeApmosysOutTime();
+      this.makeClientInTime();
+      this.makeClientOutTime();
     }
   }
 
@@ -949,6 +1144,7 @@ getFilteredDates(dayType: string): Date[] {
   }
 
 setTotalWorkingClientHours() {
+  console.log(this.timesheetObj.clientSideId);
   if(this.timesheetObj.clientSideId){
     const dateFormat = 'YYYY-MM-DD';
     const systemCurrentTime = moment();
@@ -1178,7 +1374,7 @@ setTotalWorkingClientHours() {
     }
 
     console.log("Add timesheetObj : ", this.timesheetObj);
-    this.timesheetService.addTimesheetWithClient(this.timesheetObj,this.selectedFile).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.addTimesheetWithClient(this.timesheetObj,this.selectedFile,this.selectedFile2).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();
@@ -2091,46 +2287,46 @@ setTotalWorkingClientHours() {
     this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         console.log(response.serviceResponse);
-        this.docData = response.serviceResponse.docData;
-        console.log(typeof(this.docData),":docDataType")
+        this.docData2 = response.serviceResponse.docData;
+        console.log(typeof(this.docData2),":docDataType")
         this.mimeType = response.serviceResponse.docMimeType
-        this.showPreview(this.docData,this.mimeType)
+        this.showPreview(this.docData2,this.mimeType)
       }
     });
   }
 
   bulkFinalDocumentUpload(template?: TemplateRef<any>){
-    this.toDate = this.toDate instanceof Date
-    ? this.toDate.toISOString().split('T')[0]
-    : this.toDate;
-    this.fromDate = this.fromDate instanceof Date
-    ? this.fromDate.toISOString().split('T')[0]
-    : this.fromDate;
+    this.finalToDate = this.finalToDate instanceof Date
+    ? this.finalToDate.toISOString().split('T')[0]
+    : this.finalToDate;
+    this.finalFromDate = this.fromDate instanceof Date
+    ? this.finalFromDate.toISOString().split('T')[0]
+    : this.finalFromDate;
     console.log(this.currentUser.empId)
-    console.log(this.fromDate);
-    console.log(this.toDate);
+    console.log(this.finalFromDate);
+    console.log(this.finalToDate);
     console.log(this.timesheetObj.projectId);
-    if(this.selectedFile != null &&this.fromDate != null &&this.toDate != null &&this.currentUser.empId != null ){
-      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile,this.fromDate,this.toDate,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+    if(this.selectedFile2 != null &&this.finalFromDate != null &&this.finalToDate != null &&this.currentUser.empId != null ){
+      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2,this.finalFromDate,this.finalToDate,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus === "Success"){
-        this.selectedFile=null;
-        this.fromDate= '';
-        this.toDate='';
+        this.selectedFile2=null;
+        this.finalFromDate= '';
+        this.finalToDate='';
         this.currentUser.empId ='';
-        this.fileName ='';
-        this.fileType ='';
+        this.fileName2 ='';
+        this.fileType2 ='';
         this.openAlertMod(template, response.serviceResponse);
       }
     });
     }else{
       
-      if(this.fromDate == null){
+      if(this.finalFromDate == null){
         this.openAlertMod(template, "Select from date..!!");
       }
-      else if(this.toDate == null){
+      else if(this.finalToDate == null){
         this.openAlertMod(template, "Select to date..!!");
       }
-      else if(this.selectedFile == null){
+      else if(this.selectedFile2 == null){
         this.openAlertMod(template, "File not provided..!!");
       }else{
         this.openAlertMod(template, "Employee Id is null. Please contact HR...!!");
@@ -2139,14 +2335,14 @@ setTotalWorkingClientHours() {
   }
   showPreview(base64Data: string, mimeType: string) {
   const dataUrl = `data:${mimeType};base64,${base64Data}`;
-    this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+    this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
 
     if (mimeType === 'application/pdf') {
-      this.fileType = 'pdf';
+      this.fileType2 = 'pdf';
     } else if (mimeType.startsWith('image/')) {
-      this.fileType = 'image';
+      this.fileType2 = 'image';
     } else {
-      this.fileType = '';
+      this.fileType2 = '';
     }
 
 
@@ -2157,72 +2353,101 @@ setTotalWorkingClientHours() {
   openPreviewModal(){
     this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
   }
- onFileSelected(event: any): void {
-    const file: File = event.target.files[0];
-    this.fileError = '';
-    this.previewUrl = null;
-    this.fileType = null;
 
+  openPreviewModalForTwo(docType: 'doc1' | 'doc2'): void {
+    this.activePreviewUrl = docType === 'doc1' ? this.previewUrl1 : this.previewUrl2;
+    this.activeFileType = docType === 'doc1'
+      ? (this.selectedFile?.type === 'application/pdf' ? 'pdf' : 'image')
+      : (this.selectedFile2?.type === 'application/pdf' ? 'pdf' : 'image');
+
+    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+  }
+ onFileSelected(event: any, docType: 'doc1' | 'doc2'): void {
+    const file: File = event.target.files[0];
     if (!file) return;
 
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    const maxSize = 1 * 1024 * 1024; // 1MB
+    const maxSize = 500 * 1024; // 1MB
 
     if (!allowedTypes.includes(file.type)) {
-      this.fileError = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
+      if (docType === 'doc1') this.fileError1 = 'Only PDF, JPG, JPEG, PNG files allowed.';
+      else this.fileError2 = 'Only PDF, JPG, JPEG, PNG files allowed.';
       return;
     }
+    if (file.size > maxSize) {
+      if (docType === 'doc1') this.fileError1 = 'File size must be 1MB or less.';
+      else this.fileError2 = 'File size must be 1MB or less.';
+      return;
+    }
+    if (docType === 'doc1' && this.rawObjectUrl1) URL.revokeObjectURL(this.rawObjectUrl1);
+    if (docType === 'doc2' && this.rawObjectUrl2) URL.revokeObjectURL(this.rawObjectUrl2);
+
+    // if (!allowedTypes.includes(file.type)) {
+    //   this.fileError = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
+    //   return;
+    // }
+
+    // if (file.size > maxSize) {
+    //   this.fileError = 'File size must be 1MB or less.';
+    //   return;
+    // }
 
     if (file.size > maxSize) {
-      this.fileError = 'File size must be 1MB or less.';
+      if (docType === 'doc1') this.fileError1 = 'File size must be 1MB or less.';
+      else this.fileError2 = 'File size must be 1MB or less.';
       return;
     }
-
-    if (this.rawObjectUrl) {
-      URL.revokeObjectURL(this.rawObjectUrl);
-    }
-
     const objectUrl = URL.createObjectURL(file);
-    this.rawObjectUrl = objectUrl;
-    this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
-    this.fileType = file.type === 'application/pdf' ? 'pdf' : 'image';
-    this.selectedFile = file;
-    this.fileName = file.name;
-    console.log(this.selectedFile,"::this.selectedFile",this.fileName,"::this.fileName")
+    const previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    const fileType = file.type === 'application/pdf' ? 'pdf' : 'image';
+
+    if (docType === 'doc1') {
+      this.selectedFile = file;
+      this.fileName1 = file.name;
+      this.previewUrl1 = previewUrl;
+      this.rawObjectUrl1 = objectUrl;
+      this.fileError1 = '';
+    } else {
+      this.selectedFile2 = file;
+      this.fileName2 = file.name;
+      this.previewUrl2 = previewUrl;
+      this.rawObjectUrl2 = objectUrl;
+      this.fileError2 = '';
+    }
   }
 
   onFinalFileSelected(event: any): void {
     const file: File = event.target.files[0];
-    this.fileError = '';
-    this.previewUrl = null;
-    this.fileType = null;
+    this.fileError2 = '';
+    this.previewUrl2 = null;
+    this.fileType2 = null;
 
     if (!file) return;
 
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    const maxSize = 3 * 1024 * 1024; 
+    const maxSize = 500 * 1024; 
 
     if (!allowedTypes.includes(file.type)) {
-      this.fileError = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
+      this.fileError2 = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
       return;
     }
 
     if (file.size > maxSize) {
-      this.fileError = 'File size must be 3MB or less.';
+      this.fileError2 = 'File size must be 3MB or less.';
       return;
     }
 
-    if (this.rawObjectUrl) {
-      URL.revokeObjectURL(this.rawObjectUrl);
+    if (this.rawObjectUrl2) {
+      URL.revokeObjectURL(this.rawObjectUrl2);
     }
 
     const objectUrl = URL.createObjectURL(file);
-    this.rawObjectUrl = objectUrl;
-    this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
-    this.fileType = file.type === 'application/pdf' ? 'pdf' : 'image';
-    this.selectedFile = file;
-    this.fileName = file.name;
-    console.log(this.selectedFile,"::this.selectedFile",this.fileName,"::this.fileName")
+    this.rawObjectUrl2 = objectUrl;
+    this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
+    this.selectedFile2 = file;
+    this.fileName2 = file.name;
+    console.log(this.selectedFile2,"::this.selectedFile",this.fileName2,"::this.fileName")
   }
 
   
@@ -2303,25 +2528,30 @@ setTotalWorkingClientHours() {
   }
 
   payloadForFileUpload() {
-    if (!this.timesheetObj.documentData) {
-      this.timesheetObj.documentData = new TimesheetDoc();
-    }
-    if(this.timesheetObj.docId != null && this.timesheetObj.docId != undefined){
-      this.timesheetObj.documentData.docId = this.timesheetObj.docId
-    }
-    else{
-      this.timesheetObj.documentData.docId = null;
-    }
-    this.timesheetObj.documentData.docName = this.fileName;
-    this.timesheetObj.documentData.empId = this.timesheetObj.empId;
-    this.timesheetObj.documentData.clientApprovalStatus = this.timesheetObj.clientApprovalStatus;
-    if(this.timesheetObj.documentData.clientApprovalStatus == 'pending'){
-      this.timesheetObj.documentData.finalFlag = false;
-    } else if(this.timesheetObj.documentData.clientApprovalStatus == 'approved'){
-      this.timesheetObj.documentData.finalFlag = true;
-    } else {
-      console.log("No approval status stored");
-    }
+   if (!this.timesheetObj.documentData) {
+  this.timesheetObj.documentData = [];
+  }
+if(this.selectedFile !== null && this.selectedFile != undefined){
+let newDoc1: TimesheetDoc = {
+  docId: this.timesheetObj.docId ?? null,
+  docName: this.fileName1,
+  empId: this.timesheetObj.empId,
+  clientApprovalStatus: "Pending",
+  finalFlag: this.timesheetObj.clientApprovalStatus === 'approved'
+};
+this.timesheetObj.documentData.push(newDoc1);
+}
+if(this.selectedFile2 !== null && this.selectedFile2 != undefined){
+let newDoc2: TimesheetDoc = {
+  docId: this.timesheetObj.docId ?? null,
+  docName: this.fileName2,
+  empId: this.timesheetObj.empId,
+  clientApprovalStatus: this.timesheetObj.clientApprovalStatus,
+  finalFlag: this.timesheetObj.clientApprovalStatus === 'approved'
+};
+this.timesheetObj.documentData.push(newDoc2);
+}
+
   }
 
   // getClientSideIdByProjectId(projectId:any){
@@ -2356,6 +2586,7 @@ setTotalWorkingClientHours() {
     if (selectedValue === 'no') {
       this.openNoNotAppliedYet(template);
     }
+
   }
 
   checkClientSideIdPresentOrNot(timesheetObj: Timesheet){
@@ -2462,6 +2693,7 @@ disableDates = (date: Date | null): boolean => {
         this.timesheetObj.clientSideId = response.serviceResponse;
         if(this.timesheetObj.clientSideId){
           this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+          this.setTotalWorkingClientHours();
         }
       } else {
         console.error(response.serviceResponse);

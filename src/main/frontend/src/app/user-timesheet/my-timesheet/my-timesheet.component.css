@@ -134,3 +134,26 @@ textarea.form-control-sm {
   color: #0056b3;
 }
 
+.mat-form-field {
+  height: 50px; /* Adjust based on your need */
+  font-size: 13px;
+  padding-bottom: 4px;
+  /* margin-bottom: 0; */
+}
+
+/* .mat-form-field-appearance-outline .mat-form-field-outline {
+  top: 0 !important;
+} */
+
+/* .mat-form-field-infix {
+  padding: 0 8px !important;
+  height: 32px;
+  display: flex;
+  align-items: center;
+} */
+
+
+/* .mat-select-trigger {
+  height: 32px;
+  line-height: 32px;
+} */

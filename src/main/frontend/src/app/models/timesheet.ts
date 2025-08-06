@@ -102,7 +102,7 @@ export class Timesheet{
     hasClientSideId:Boolean=false;
     shadowEmpId:any;
     selectedFile:any;
-    documentData:TimesheetDoc;
+    documentData:TimesheetDoc[];
     docId:any;
     rejectionId: any;
     hodId:any;

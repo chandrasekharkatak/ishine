@@ -128,7 +128,7 @@ public class TimesheetDTO {
 	
 	private Long shadowEmpId;
 	 
-	private TimesheetDocumentDetailsDTO documentData;
+	private List<TimesheetDocumentDetailsDTO> documentData;
 	private TimesheetDocumentDetails documentEntityData;
 	
 	private Long docId;
