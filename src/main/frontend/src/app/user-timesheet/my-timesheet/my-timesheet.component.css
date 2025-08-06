@@ -157,3 +157,6 @@ textarea.form-control-sm {
   height: 32px;
   line-height: 32px;
 } */
+.timesheet__tab-container{
+  padding: 2rem;
+}

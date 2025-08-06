@@ -243,5 +243,27 @@ export class TimesheetService {
   getRejectionReasonById(rejectionId:any){
     return this.http.get(`${this.baseUrl}`+`api/getRejectionReasonById?rejectionId=${rejectionId}`);
   }
+
+  getProjectViewForClientAttendanceStatus(){
+    return this.http.get(`${this.baseUrl}`+`api/getProjectViewForClientAttendanceStatus`);
+  }
+
+  updateActiveByRejectIdId(rejectReasonObj: TimesheetRejectReason){
+    return this.http.post(`${this.baseUrl}`+`api/updateActiveByRejectIdId`,rejectReasonObj);
+  }
+
+
+  getEmployeeTimesheetAsCalender(projectId: any, month: any, year: any) {
+    return this.http.get(`${this.baseUrl}api/getEmployeeTimesheetAsCalender?projectId=${projectId}&month=${month}&year=${year}`);
+  }
+  
    
+  getAllEmployeeDSROfRM(payload:any){
+    return this.http.post(`${this.baseUrl}`+`api/getAllEmployeeDSROfRM`,payload);
+  }
+  
+   approveTimesheetRequest(payload:any){
+    return this.http.post(`${this.baseUrl}`+`api/approveTimesheetRequest`,payload);
+  }
+  
 }

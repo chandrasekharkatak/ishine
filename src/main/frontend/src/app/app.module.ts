@@ -158,6 +158,8 @@ import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard
 import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
 import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
 import { NavigateToTeamEmployeeTimesheetDirective } from './directives/navigate-to-team-employee-timesheet.directive';
+import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
+import { NavigateToCalenderViewDirective } from './directives/navigate-to-calender-view.directive';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -287,7 +289,10 @@ import { NavigateToTeamEmployeeTimesheetDirective } from './directives/navigate-
      HrDashboardComponent,
      TimesheetConfigComponent,
      TeamEmployeeTimesheetViewComponent,
-     NavigateToTeamEmployeeTimesheetDirective
+     NavigateToTeamEmployeeTimesheetDirective,
+     CalendarViewComponent,
+     NavigateToCalenderViewDirective,
+     
   
 
     //TestComponent

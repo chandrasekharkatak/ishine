@@ -448,6 +448,7 @@ input:checked + .slider:before {
   }
   
   .calendar-header {
+    margin-top: 50px;
     margin-bottom: 18px;
   }
   .month-picker-field { width: 170px; }
@@ -680,52 +681,12 @@ h5 {
   min-width: 160px;
 }
 
-.button-group-custom {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.custom-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-  font-weight: 500;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.custom-btn i {
-  font-size: 14px;
-}
-
-/* Calendar Button Styling */
-.calendar-btn {
-  background-color: #e7f1ff;
-  color: #0056b3;
-  border: 1px solid #b3d4fc;
-}
-
-.calendar-btn:hover {
-  background-color: #d0e7ff;
-  transform: scale(1.03);
-}
-
-/* Documents Button Styling */
-.documents-btn {
-  background-color: #ffe5e5;
-  color: #b30000;
-  border: 1px solid #f5bdbd;
-}
-
-.documents-btn:hover {
-  background-color: #ffcfcf;
-  transform: scale(1.03);
-}
-
+.styled-month-employee-label {
+    font-weight: 700;                        
+    font-size: 16px;                         
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2c3e50;                          
+    letter-spacing: 0.5px;
+    margin-left: 1rem;
+  }
 

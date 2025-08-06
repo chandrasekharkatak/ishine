@@ -354,4 +354,37 @@ public class TimesheetController {
 	     
 	 }
 	 
+	 @GetMapping(value = "/getProjectViewForClientAttendanceStatus")
+	 public ServiceResponse getProjectViewForClientAttendanceStatus() {
+
+		 ServiceResponse reponse= timesheetService.getProjectViewForClientAttendanceStatus();
+	     return reponse;
+	     
+	 }
+	 
+	 @PostMapping(value = "/updateActiveByRejectIdId")
+	 public ServiceResponse updateActiveByRejectIdId(@RequestBody TimesheetRejectionReasonsMasterDTO rejectReasonObj) {
+		 ServiceResponse reponse= timesheetService.updateActiveByRejectIdId(rejectReasonObj);
+		 return reponse;
+	}
+	
+	 @RequestMapping(value= "/getAllEmployeeDSROfRM",method=RequestMethod.POST)
+	 public ServiceResponse getAllEmployeeDSROfRM(@RequestBody TimesheetDTO timesheetDTO) {
+		 ServiceResponse reponse= timesheetService.getAllEmployeeDSROfRM(timesheetDTO);
+	     return reponse;
+	     
+	 }
+	 
+	 @GetMapping(value = "/getEmployeeTimesheetAsCalender")
+	 public ServiceResponse getEmployeeTimesheetAsCalender(@RequestParam Integer projectId, @RequestParam Integer month, @RequestParam Integer year) {  
+		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalender(projectId,month,year);
+		  return reponse;
+	 }
+
+	 @RequestMapping(value= "/approveTimesheetRequest",method=RequestMethod.POST)
+	 public ServiceResponse approveTimesheetRequest(@RequestBody TimesheetDTO timesheetDTO) {
+		 ServiceResponse reponse= timesheetService.approveTimesheetRequest(timesheetDTO);
+	     return reponse;
+	     
+	 }
 }

@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -146,5 +147,7 @@ public class TimesheetDTO {
 	private Long hodId;
 	private Long rmId;
 	private Integer rejectedhierarchyOrder;
+	private String isSearch;
+	private List<TimesheetDTO> pendingApprovalList;
 
 }

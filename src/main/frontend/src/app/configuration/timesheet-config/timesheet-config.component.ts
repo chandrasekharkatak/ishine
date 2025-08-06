@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -42,6 +42,12 @@ export class TimesheetConfigComponent implements OnInit {
   userMapping: any = {};
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  @ViewChild("alert_message_show_table")
+  alertShowTable: TemplateRef<any>
+  alertShowTableRef: BsModalRef = new BsModalRef();
+  @ViewChild("alert_message")
+  alertMsg: TemplateRef<any>
+  alertMsgRef: BsModalRef = new BsModalRef();
 
   constructor(private timesheetService: TimesheetService,
     private exportExcelService: ExportExcelService,
@@ -144,7 +150,7 @@ export class TimesheetConfigComponent implements OnInit {
     this.timesheetService.setTimesheetRejectReason(rejectReasonObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         rejectReasonObj = response.serviceResponse;
-        this.showTable();
+        this.openAlertModShowTable(response.serviceResponse);
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -236,6 +242,39 @@ export class TimesheetConfigComponent implements OnInit {
     this.isCreation = false;
 
     this.getRejectionReasonById(rejectionId);
+  }
+
+  updateActiveByRejectIdId(rejectReasonObj:TimesheetRejectReason){
+    rejectReasonObj.updatedBy=this.currentUser.empId;
+    rejectReasonObj.active = !rejectReasonObj.active;
+    rejectReasonObj.createdOn = '';
+    rejectReasonObj.updatedOn = '';
+    this.timesheetService.updateActiveByRejectIdId(rejectReasonObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertModShowTable(response.serviceResponse);
+      } else {
+        this.openAlertModWithoutTable(response.serviceResponse);
+      }
+    });
+  }
+
+  openAlertModShowTable( message: any) {
+    this.alertShowTableRef = this.modalService.show(this.alertShowTable, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  closeAlertShowTable(){
+    this.alertShowTableRef.hide();
+    this.showTable;
+  }
+
+  openAlertModWithoutTable( message: any) {
+    this.alertMsgRef = this.modalService.show(this.alertMsg, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  closeAlertWithoutTable(){
+    this.alertMsgRef.hide();
   }
 
 }

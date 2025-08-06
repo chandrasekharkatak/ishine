@@ -1,5 +1,4 @@
 import { Directive, HostListener, Input } from '@angular/core';
-import { TeamEmployeeTimesheetService } from '../team-employee-timesheet.service';
 import { Router } from '@angular/router';
 
 @Directive({
@@ -10,17 +9,21 @@ export class NavigateToTeamEmployeeTimesheetDirective {
   @Input('navigateToTeamEmployeeTimesheet') 
   projectId: any;
 
-  constructor(private teamEmployeeTimesheetService: TeamEmployeeTimesheetService,
-    private router: Router) { }
+  constructor(
+    private router: Router)   
+  { }
 
-  @HostListener('click') onClick() {
-      // console.log("data",this.data);
-      if (this.projectId) {
-        localStorage.setItem('projectId', this.projectId);
-        this.router.navigate(['/team-employee-timesheet'], {
-          queryParams: { projectId: this.projectId }
-        });
-        // this.teamEmployeeTimesheetService.navigateToTeamEmployeeTimesheet(this.projectId);
-      }
+  @HostListener('click')
+  onClick() {
+    if (this.projectId) {
+      const urlTree = this.router.createUrlTree(['/team-employee-timesheet'], {
+        queryParams: { projectId: this.projectId }
+      });
+
+      const relativeUrl = this.router.serializeUrl(urlTree);
+      const fullUrl = `${window.location.origin}/#${relativeUrl}`;
+
+      window.open(fullUrl, '_blank'); 
     }
+  }
 }

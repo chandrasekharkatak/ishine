@@ -1196,6 +1196,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "        FROM timesheet_document_details\n"
 			+ "        WHERE MONTH(created_on) = MONTH(CURRENT_DATE())\n"
 			+ "          AND YEAR(created_on) = YEAR(CURRENT_DATE())\n"
+			+ "			AND active = true \n"
+			
 			+ "        GROUP BY emp_id\n"
 			+ "    )\n"
 			+ "\n"

@@ -1,5 +1,5 @@
 import { Directive, Input, HostListener } from '@angular/core';
-import { ProjectViewService } from './services/project-view.service';
+import { Router } from '@angular/router';
 
 @Directive({
   selector: '[navigateToProjectView]'
@@ -9,14 +9,16 @@ export class NavigateToProjectViewDirective {
   @Input('navigateToProjectView') 
   data: any; 
 
-  constructor(private projectViewService: ProjectViewService) { }
+  constructor(private router: Router) { }
 
   @HostListener('click') onClick() {
-    // console.log("data",this.data);
     if (this.data) {
-     
-      localStorage.setItem('projectId', this.data);
-      this.projectViewService.navigateToProjectView(this.data);
+      const urlTree = this.router.createUrlTree(['/project-view'], {
+        queryParams: { projectId: this.data }
+      });
+      const serializedUrl = this.router.serializeUrl(urlTree);
+      const fullUrl = `${window.location.origin}/#${serializedUrl}`;
+      window.open(fullUrl, '_blank');
     }
   }
 }

@@ -2,11 +2,13 @@ import { AfterViewInit, Component, ElementRef, TemplateRef, ViewChild } from '@a
 import { FormControl } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
+import { Route, Router } from '@angular/router';
 import * as Highcharts from 'highcharts';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { GetEmployeeViewForClientAttendanceStatus } from 'src/app/models/getEmployeeViewForClientAttendanceStatus';
+import { ProjectViewForTimesheet } from 'src/app/models/projectViewForTimesheet';
 import { Timesheet } from 'src/app/models/timesheet';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
@@ -14,6 +16,50 @@ import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 
+
+interface DayCell {
+  date: Date;
+  day: number | '';        
+  isToday: boolean;
+  isWeekend: boolean;
+  isHoliday: boolean;
+  attendance?: string;    
+  intime?: string;         
+  outtime?: string;        
+}
+
+export interface TimesheetDayData {
+  status: string;
+  inTime: string | null;
+  outTime: string | null;
+}
+
+export interface EmployeeTimesheet {
+  empId: number;
+  employeeName: string;
+  clientSideId: string;
+  startDate: string;
+  teamName: string;
+  teamId: number;
+  spoc: string | null;
+  billableType: string;
+  employeeRole: string;
+  department: string;
+  projectId: number;
+  projectName: string;
+  projectManagerName: string;
+  poNo: string;
+  clientName: string;
+  reportingManagerId: number;
+  monthName: string;
+  expectedTimesheetFillCount: number;
+  apmosysTimesheetFilledCount: number;
+  clientSideNotFilledCount: number;
+  clientSidePendingCount: number;
+  clientSideApprovedCount: number;
+  employmentId: string;
+  timesheetData: { [key: string]: TimesheetDayData };
+}
 
 
 @Component({
@@ -31,8 +77,8 @@ export class HrDashboardComponent implements AfterViewInit {
   alertTemplate: TemplateRef<any>;
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
-  selectedEmpId: any;
-  selectedProjectId:any;
+  // selectedEmpId: any;
+  // selectedProjectId:any;
   filteredEmployees: Employee[] = [];
   employeeCtrl = new FormControl();
    projectPoCtrl = new FormControl();
@@ -70,8 +116,9 @@ export class HrDashboardComponent implements AfterViewInit {
   fileType: '' | 'pdf' | 'image' | null = null;
   docData: any;
   mimeType: any;
-
-timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','expectedEODCount','submittedCount','clientApprovedCount','clientPendingCount'];
+  projectView:ProjectViewForTimesheet[] = [];
+  projectViewColumns: any[] = ['projectName','projectManagerName','poNo','projectType','clientName','apmosysRM','apmosysRMEmail','clientRM','totalExpectedFillCount','totalIshineFilledCount','totalClientSideApprovedCount','clientSideApprovedPercent','totalClientSidePendingCount','clientSidePendingPercent','totalClientSideNotFilledCount','clientSideNotFilledPercent'];
+  timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','expectedEODCount','submittedCount','clientApprovedCount','clientPendingCount'];
   totalClientSideApprovedCount: any;
   eodNotFilledCount: any;
   totalClientSidePendingCount: any;
@@ -79,26 +126,48 @@ timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectN
   totalDocumentPendingCOunt: any;
   totalDocumentPendingCount: any;
   totalDocumentRejectedCount: any;
+  toggleValue: Boolean=false;
+  timesheetCalender: any;
+
+  selectedProjectId: number | null = null;
+selectedEmpId: number | null = null;
+
+showCalendar = false;
+hoveredProjectId: any;
+hidePopupTimeout: any;
+
+
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: BsModalService,
     private projectService:ProjectService,
     private resourceManagementService: ResourceManagementService,
     private exportExcelService: ExportExcelService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,private router: Router
   ) {}
 
   async ngOnInit(): Promise<void> {
-
+    // this.selectedProjectId=322;
+    // this.selectedEmpId=1026;
+    this.legendEntries = Object.entries(this.legend).map(([code, value]) => ({
+      code,
+      label: value.label,
+      color: value.color
+    }));
+    this.toggleValue = true;
+    if(this.toggleValue){
+      this.getProjectViewForClientAttendanceStatus();
+    }
+    // this.generateMonthGrid();
+    // this.fetchTimesheetData(this.selectedProjectId ,this.selectedEmpId);
     this.setLastUpdatedTime();
     this.getEmployeeByNameAndEmpld();
-   this.getProjectByNameAndPoNo();
+    this.getProjectByNameAndPoNo();
     // this.TotalEmployeeCount();
     this.vmsCompletion();
     // this.ishineCompletion();
     this.vmsNotFilled();
     this.ishineNotFilled();
-    this.getEmployeeViewForClientAttendanceStatus();
 
     this.employeeCtrl.valueChanges
     .pipe(
@@ -593,8 +662,6 @@ ishineNotFilled() {
   });
 }
 
-toggleValue = false;
-
 onToggleChange(event: Event) {
   // Cast event target as HTMLInputElement to read checked property
   const isChecked = (event.target as HTMLInputElement).checked;
@@ -603,6 +670,12 @@ onToggleChange(event: Event) {
   // Call your desired logic here
   // Example: update a property used for toggling rows
   this.toggleValue = !this.toggleValue;
+
+  if(!this.toggleValue){
+    this.getEmployeeViewForClientAttendanceStatus();
+  } else {
+    this.getProjectViewForClientAttendanceStatus();
+  }
 
   // Add any other side effects or function calls you want here
 }
@@ -649,6 +722,7 @@ employeeListAccordingToProject:any[]=[];
     this.timesheetService.getEmployeeViewForClientAttendanceStatus().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.employeeView = response.serviceResponse;
+        console.log("employeeView ::::::",this.employeeView);
       } else {
         this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
@@ -711,28 +785,28 @@ employeeListAccordingToProject:any[]=[];
     this.tableName = "Employee Info";
 
     const exportData = this.employeeView.map((x: any) => ({
-      'Employment ID': x.employmentId || 'NA',
-      'Employee Name': x.name || 'NA',
+      'Emp ID': x.employmentId || 'NA',
+      'Employee': x.name || 'NA',
       'Billable': x.billable || 'NA',
       'Billable Type': x.billableType || 'NA',
       'Mobile No': x.mobileNo || 'NA',
       'Email': x.email || 'NA',
       'Department': x.departmentName || 'NA',
-      'Expected Attendance Fill Count': x.expectedFillCount ?? 0,
-      'Timesheet Filled Count': x.timesheetFilledCount ?? 0,
-      'Client Side Attendance Pending%': x.clientSideAttendancePendingCount ?? 0,
-      'Client Side Attendance Approved%': x.clientSideAttendanceApprovedCount ?? 0,
-      'Client Side Attendance Not Filled%': x.clientSideAttendanceNotFilledCount ?? 0,
-      'Project Name': x.projectName || 'NA',
-      'PO Number': x.poNo || 'NA',
+      'Expected DSR': x.expectedFillCount ?? 0,
+      'Ishine DSR': x.timesheetFilledCount ?? 0,
+      'Client Filled': x.clientSideAttendancePendingCount ?? 0,
+      'Client Approved': x.clientSideAttendanceApprovedCount ?? 0,
+      'Client Not Filled': x.clientSideAttendanceNotFilledCount ?? 0,
+      'Project': x.projectName || 'NA',
+      'PO No': x.poNo || 'NA',
       'Project Type': x.projectType || 'NA',
-      'Project Manager': x.projectManagers || 'NA',
+      'Manager': x.projectManagers || 'NA',
       'Client': x.clientName || 'NA',
       'Apmosys RM': x.apmosysRM || 'NA',
-      'Apmosys RM Email': x.apmosysRmEmail || 'NA',
+      'RM Email': x.apmosysRmEmail || 'NA',
       'Client RM': x.clientRM || 'NA',
-      'Team Name': x.team || 'NA',
-      'Team Lead Name': x.teamLeadName || 'NA'
+      'Team': x.team || 'NA',
+      'Team Lead': x.teamLeadName || 'NA'
   }));
   this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
 }
@@ -807,6 +881,317 @@ modalTitle = 'Timesheet Details';
     );
     }
 
+
+
+    // monthGrid: DayCell[][] = [];
+    selectedMonth = new Date();
+    userName: string = '';
+    weekDays: string[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    monthGrid: any[][] = [];
+  
+    legend: { [key: string]: { label: string; color: string } } = {
+      O:   { label: 'Other Project',        color: '#1c1f23' },
+      A:   { label: 'Absent',               color: '#8b0000' },
+      NW:  { label: 'Non-Working Day',      color: '#343a40' },
+      AH:  { label: 'Public Holiday',       color: '#0b3c5d' },
+      WO:  { label: 'Week Off',             color: '#4b371c' },
+      H:   { label: 'Holiday',              color: '#5a4b00' },
+      CH:  { label: 'Client Holiday',       color: '#3e2f1c' },
+      DA:  { label: 'Document Approved',    color: '#003366' },
+      DP:  { label: 'Document Pending',     color: '#664400' },
+      P:   { label: 'Present',              color: '#014421' },
+      NA:  { label: 'Not Applicable',       color: '#2f4f4f' }
+    };
     
+    
+    
+    legendEntries: { code: string; label: string; color: string }[] = [];
+  
+    // get legendEntries() {
+    //   return Object.entries(this.legend).map(([code, { label, color }]) => ({ code, label, color }));
+    // }
+  
+    monthSelected(event: Date, datepicker: any) {
+      this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
+      if (this.selectedProjectId && this.selectedEmpId) {
+        this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
+      }
+      datepicker.close();
+    }
+    
+    changeMonth(date: Date) {
+      if (!date) return;
+      this.selectedMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+      if (this.selectedProjectId && this.selectedEmpId) {
+        this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
+      }
+    }
+
+
+    fetchTimesheetData(projectId: number, empId: number): void {
+      this.selectedProjectId = projectId;
+      this.selectedEmpId = empId;
+    
+      const month = this.selectedMonth.getMonth() + 1;
+      const year = this.selectedMonth.getFullYear();
+    
+      this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year)
+        .pipe(first())
+        .subscribe({
+          next: (response: any) => {
+            if (response.serviceStatus === 'Success' && response.serviceResponse?.length) {
+              this.timesheetCalender = response.serviceResponse;
+    
+              const employeeData = response.serviceResponse.find((emp: any) => emp.empId === empId);
+    console.log("Filtered Employee Data",employeeData);
+              if (employeeData) {
+                this.userName = employeeData.employeeName;
+                this.buildCalendarGrid(employeeData.timesheetData);
+              } else {
+                this.openAlertMod(this.alertTemplate, `Employee ID ${empId} not found in the data.`);
+              }
+            } else {
+              this.openAlertMod(this.alertTemplate, response.serviceResponse || 'No data found.');
+            }
+          },
+          error: (err) => {
+            console.error('Error fetching timesheet data:', err);
+            this.openAlertMod(this.alertTemplate, 'Something went wrong. Please try again later.');
+          }
+        });
+    }
+    
+    
+    
+    
+
+    buildCalendarGrid(timesheetData: { [key: string]: any }): void {
+      const year = this.selectedMonth.getFullYear();
+      const month = this.selectedMonth.getMonth(); 
+  
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+  
+      let grid: any[][] = [];
+      let week: any[] = new Array(firstDay.getDay()).fill({}); 
+  
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const key = 'd' + day;
+        const data = timesheetData[key];
+  
+        const dateObj: any = {
+          day,
+          date,
+          isToday: this.isToday(date),
+          isWeekend: date.getDay() === 0 || date.getDay() === 6,
+          isHoliday: data?.status === 'H',
+          attendance: data?.status || null,
+          intime: data?.inTime || null,
+          outtime: data?.outTime || null
+        };
+  
+        week.push(dateObj);
+  
+        if (week.length === 7) {
+          grid.push(week);
+          week = [];
+        }
+      }
+  
+      // Push last week if not empty
+      if (week.length > 0) {
+        while (week.length < 7) week.push({});
+        grid.push(week);
+      }
+  
+      this.monthGrid = grid;
+    }
+  
+    isToday(date: Date): boolean {
+      const today = new Date();
+      return (
+        date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear()
+      );
+    }
+  
+    generateMonthGrid() {
+      // Replace this with your real backend data. For demo: random codes and times.
+      const month = this.selectedMonth.getMonth();
+      const year = this.selectedMonth.getFullYear();
+  
+      const firstDayOfMonth = new Date(year, month, 1);
+      const lastDayOfMonth = new Date(year, month + 1, 0);
+      const firstDayWeekIdx = (firstDayOfMonth.getDay() + 6) % 7; // Monday=0
+  
+      const daysInMonth = lastDayOfMonth.getDate();
+      const today = new Date();
+      let grid: DayCell[][] = [];
+      let week: DayCell[] = [];
+  
+      const attendanceCodes = ['P', 'A', 'PT', 'RP', 'P', 'P', 'A'];
+      const holidays = [13]; // Example: 13th is a holiday
+  
+      for (let i = 0; i < firstDayWeekIdx; ++i) {
+        week.push({ date: new Date(0), day: '', isToday: false, isWeekend: false, isHoliday: false });
+      }
+      for (let day = 1; day <= daysInMonth; ++day) {
+        const date = new Date(year, month, day);
+        const weekday = (date.getDay() + 6) % 7;
+        const isWeekend = weekday >= 5;
+        const isHoliday = holidays.includes(day);
+        const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+  
+        // Demo data - replace with API lookup!
+        let attendance = '';
+        let intime = '', outtime = '';
+        if (isHoliday) {
+          attendance = 'H';
+        } else {
+          attendance = attendanceCodes[(day + 1) % attendanceCodes.length];
+          intime = attendance === 'A' ? '' : '09:' + (10 + day % 50).toString().padStart(2, '0');
+          outtime = attendance === 'A' ? '' : '18:' + (20 + day % 40).toString().padStart(2, '0');
+        }
+  
+        week.push({
+          date, day, isToday, isWeekend, isHoliday,
+          attendance, intime, outtime
+        });
+        if (week.length === 7) {
+          grid.push(week);
+          week = [];
+        }
+      }
+      if (week.length) {
+        while (week.length < 7) {
+          week.push({ date: new Date(0), day: '', isToday: false, isWeekend: false, isHoliday: false });
+        }
+        grid.push(week);
+      }
+      this.monthGrid = grid;
+    }
+
+    
+    getProjectViewForClientAttendanceStatus() {
+    this.timesheetService.getProjectViewForClientAttendanceStatus().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.projectView = response.serviceResponse;
+      } else {
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    });
+  }
+
+  onSearch2(searchData2: any) {
+    this.filters = searchData2;
+  }
+
+  exportProjectOverviewToExcel(): void {
+    const excelName = "Project Overview.xlsx";
+
+    const exportData = this.projectView.map((project: any) => ({
+      'Project Name': project.projectName || 'NA',
+      'PO Number': project.poNo || 'NA',
+      'Project Type': project.projectType || 'NA',
+      'Project Manager': project.projectManagerName || 'NA',
+      'Client': project.clientName || 'NA',
+      'Apmosys RM': project.apmosysRM || 'NA',
+      'Apmosys RM Email': project.apmosysRMEmail || 'NA',
+      'Client RM': project.clientRM || 'NA',
+      'Expected Fill Count': project.totalExpectedFillCount ?? 0,
+      'iShine Filled Count': project.totalIshineFilledCount ?? 0,
+      'Client Pending %': (project.clientSidePendingPercent ?? 0) + '%',
+      'Client Side Pending': project.totalClientSidePendingCount ?? 0,
+      'Client Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
+      'Client Side Approved': project.totalClientSideApprovedCount ?? 0,
+      'Client Not Filled %': (project.clientSideNotFilledPercent ?? 0) + '%',
+      'Client Side Not Filled': project.totalClientSideNotFilledCount ?? 0
+    }));
+
+    this.exportExcelService.exportTableDataToExcel(exportData, excelName);
+  }
+
+
+  hoveredEmpId: string | null = null;
+hideTimeout: any;
+
+showPopup(empId: string) {
+  clearTimeout(this.hideTimeout);
+  this.hoveredEmpId = empId;
+}
+
+scheduleHidePopup() {
+  this.hideTimeout = setTimeout(() => {
+    this.hoveredEmpId = null;
+  }, 200); // Delay to allow mouseenter on popup
+}
+
+cancelHidePopup() {
+  clearTimeout(this.hideTimeout);
+}
+
+viewProfile(empId: string) {
+  console.log('View profile:', empId);
+  // navigation logic
+}
+
+viewCalender(email: string) {
+  window.location.href = `mailto:${email}`;
+}
+
+viewDocuments(empId: string) {
+  console.log('Employee Documents:', empId);
+  // confirm and delete logic
+}
+goToCalendar(projectId: number, empId: number): void {
+  this.router.navigate(['/calendar-view', projectId, empId]);
+}
+
+showCalendarView(projectId: number, empId: number): void {
+  this.selectedProjectId = projectId;
+  this.selectedEmpId = empId;
+  this.showCalendar = true;
+}
+
+openCalendarInNewTab(project: any) {
+  const urlTree = this.router.createUrlTree(
+    ['/user-timesheet/calendar-view'],
+    {
+      queryParams: {
+        projectId: project.projectId,
+        empId: project.empId
+      }
+    }
+  );
+
+  const serializedUrl = this.router.serializeUrl(urlTree);
+
+  const fullUrl = `${window.location.origin}/#${serializedUrl}`;
+
+  console.log('Opening calendar view URL:', fullUrl); 
+
+  window.open(fullUrl, '_blank');
+}
+
+showProjectPopup(projectId: number): void {
+  this.hoveredProjectId = projectId;
+  clearTimeout(this.hidePopupTimeout);
+}
+
+scheduleHideProjectPopup(): void {
+  this.hidePopupTimeout = setTimeout(() => {
+    this.hoveredProjectId = null;
+  }, 300); // Adjust delay as needed
+}
+
+cancelHideProjectPopup(): void {
+  clearTimeout(this.hidePopupTimeout);
+}
+
+
+
 }
 
