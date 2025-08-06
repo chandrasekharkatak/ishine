@@ -264,5 +264,9 @@ export class TimesheetService {
    approveTimesheetRequest(payload:any){
     return this.http.post(`${this.baseUrl}`+`api/approveTimesheetRequest`,payload);
   }
+
+  getEmployeeTimesheetAsCalenderByEmpId(empId: any, month: any, year: any) {
+    return this.http.get(`${this.baseUrl}api/getEmployeeTimesheetAsCalenderByEmpId?empId=${empId}&month=${month}&year=${year}`);
+  }
   
 }
