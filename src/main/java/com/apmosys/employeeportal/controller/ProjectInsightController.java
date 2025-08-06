@@ -281,6 +281,11 @@ public class ProjectInsightController {
 		return ResponseEntity.ok(projectInsightService.getProjectInsightDetailsByObjectId(id));
 	}
 
+	@GetMapping(value = "/getAllProjectInsightGroupsByParentId")
+	public ResponseEntity<ServiceResponse> getAllProjectInsightGroupsByParentId(@RequestParam String parentId, @RequestParam String parentType) {
+		return ResponseEntity.ok(projectInsightService.getAllProjectInsightGroupsByParentId(parentId,parentType));
+	}
+
 	@PostMapping(value = "/getProjectInsightGroupDetailsByObjectId")
 	public ResponseEntity<ProjectInsightDetailsDTO> getProjectInsightGroupDetailsByObjectId(@RequestBody String id) {
 		return ResponseEntity.ok(projectInsightService.getProjectInsightGroupDetailsByObjectId(id));

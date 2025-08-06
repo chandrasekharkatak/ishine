@@ -20,8 +20,10 @@ public class ProjectInsightProjectDetails {
 
 	@Id
 	private String id;
-	private String projectName;
 	private Integer projectId;
+	private String projectName;
+	private Long projectManagerId;
+    private String projectManagerName;
 	private String isDraft;
 	private ClientDTO client;
 	private String formId;

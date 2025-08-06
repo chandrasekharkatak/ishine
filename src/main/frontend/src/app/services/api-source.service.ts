@@ -15,15 +15,19 @@ export class ApiSourceService {
     this.idToRemoveSubject.next(id);
   }
 
-  private baseUrl:any = environment.baseUrl;
-  
+  private baseUrl: any = environment.baseUrl;
+
   constructor(private http: HttpClient) { }
 
   getAllApiSourceList() {
     return this.http.get(`${this.baseUrl}` + `api/getAllApiList`);
   }
 
-  loadDynamicApi(apiurl: any){
+  getAllProject() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllProject`);
+  }
+
+  loadDynamicApi(apiurl: any) {
     return this.http.get(`${this.baseUrl}` + apiurl);
   }
 
@@ -31,7 +35,7 @@ export class ApiSourceService {
     return this.http.get<any[]>(`${this.baseUrl}` + `api/getAllNextFieldAndOption/${type}/${id}`);
   }
 
-  getAllPRojectWithDomain(){
+  getAllPRojectWithDomain() {
     return this.http.get<any[]>(`${this.baseUrl}` + `api/get-all-domain-with-projects`);
   }
 
@@ -43,8 +47,5 @@ export class ApiSourceService {
 
     return this.http.post<any[]>(`${this.baseUrl}api/get-domains`, type, { params });
   }
-
-
-
 
 }

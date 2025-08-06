@@ -4726,4 +4726,23 @@ public class ProjectInsightService {
 		return serviceResponse;
     }
 
+	public ServiceResponse getAllProjectInsightGroupsByParentId(String parentId, String parentType) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiUrl("/api/getAllProjectInsightGroupsByParentId");
+		try {
+			List<ProjectInsightGroupDetails> groupDetailsList = projectInsightGroupDetailsRepository.getAllProjectInsightGroupsByParentId(parentId, parentType);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(groupDetailsList);
+			return serviceResponse;
+		} catch (BadRequestException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Something went wrong !!", e);
+		}
+	}
+
 }

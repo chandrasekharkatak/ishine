@@ -8,6 +8,7 @@ export class FormNode {
     layoutConfig?: any[];
     parentId?: any;
     parentType?: any;
+    groupList?: any[];
     questionList?: ProjectInsightQuestionDetails[];
     fieldDependencies?: { [key: string]: string };
     dependentFieldsMap?: { [key: string]: string[] };

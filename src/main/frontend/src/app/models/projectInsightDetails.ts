@@ -8,9 +8,10 @@ export class ProjectInsightProjectDetails {
     id: any;
     projectName: any;
     projectId: any;
+    projectManagerId: any
+    projectManagerName: any;
     isDraft: any;
     formId: any;
-    questionList: ProjectInsightQuestionDetails[] = [];
     client: ProjectInsightClient = new ProjectInsightClient();
     domains: ProjectInsightDomain[] = [];
     departments: ProjectInsightDepartment[] = [];
