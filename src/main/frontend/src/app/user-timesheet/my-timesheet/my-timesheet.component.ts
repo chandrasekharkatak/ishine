@@ -115,8 +115,8 @@ AllWeekOfList:any[]=[];
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  selfTimesheetColumns:any[] = ['blank','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdByName','createdOn','isNightShiftDisplay','leaveType','remarks'];
-  teamTimesheetColumns:any[] = ['blank','employeeName','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdOn','isNightShiftDisplay','leaveType','remarks'];
+  selfTimesheetColumns:any[] = ['blank','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','clientInTime','clientOutTime','totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument','approvedDocument','status','createdByName','createdOn','isNightShiftDisplay','leaveType','remarks'];
+  teamTimesheetColumns:any[] = ['blank','employeeName','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','clientInTime','clientOutTime','totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument','approvedDocument','status','createdOn','isNightShiftDisplay','leaveType','remarks'];
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId:any;

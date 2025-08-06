@@ -31,4 +31,6 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 		    @Param("toDate") LocalDate toDate
 		);
 
+	@Query("SELECT t FROM TimesheetDocumentDetails t WHERE t.timesheetId = :timesheetId and t.active = true")
+	List<TimesheetDocumentDetails>findAllDocIdByTimesheetId(@Param("timesheetId") Long timesheetId);
 }

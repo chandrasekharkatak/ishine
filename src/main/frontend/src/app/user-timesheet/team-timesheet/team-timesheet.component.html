@@ -694,6 +694,18 @@
                   </th>
                   <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="status|string">Status
                   </th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientInTime|datetime">Client Office In Time
+                  </th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientOutTime|datetime">Client Office Out Time
+                  </th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="totalClientWorkingHours|string"> Total Client Office Working Hours
+                  </th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientApprovalStatus|string">Client Approval Status
+                  </th>
+                   <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientApprovalStatus|string">Filled VMS Preview
+                  </th>
+                    <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientApprovalStatus|string">Approved VMS Preview
+                  </th>
                   <th scope="col" class="info-label" style="min-width:230px">Actions</th>
                 </tr>
                 <tr app-column-filter-bar *ngIf="isAllTimesheetRequestTable && isSearchEnabled"
@@ -727,12 +739,29 @@
                   <td>{{timesheet.totalWorkingOfficeHours}}</td>
                   <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
                   <td>{{timesheet.status}}</td>
+                  <td>{{timesheet.clientInTime || "NA"}}</td>
+                  <td>{{timesheet.clientOutTime || "NA"}}</td>
+                  <td>{{timesheet.totalClientWorkingHours || "NA"}}</td>
+                  <td class="text-capitalize">{{timesheet.clientApprovalStatus ||"NA"}}</td>
+                  <td *ngIf="timesheet.filledDocument">
+                     <button *ngIf="timesheet.filledDocument" class="btn btn-sm btn-outline-primary mb3" type="submit"
+                      title="copy timesheet" (click)="getDoscForPreview(timesheet.filledDocument)"><em>View
+                        Doc</em></button>&nbsp;
+                  </td>
+                  <td *ngIf="!timesheet.filledDocument">
+                      {{timesheet.filledDocument || "NA"}}
+                  </td>
+                  <td *ngIf="timesheet.approvedDocument" >
+                    <button *ngIf="timesheet.approvedDocument" class="btn btn-sm btn-outline-primary mb3" type="submit"
+                      title="copy timesheet" (click)="getDoscForPreview(timesheet.approvedDocument)"><em>View
+                        Doc</em></button>&nbsp;
+                  </td>
+                  <td *ngIf="!timesheet.approvedDocument">
+                      {{timesheet.approvedDocument || "NA"}}
+                  </td>
                   <td>
                     <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
                       (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                    <button *ngIf="timesheet.docId" class="btn btn-sm btn-outline-primary mb3" type="submit"
-                      title="copy timesheet" (click)="getDoscForPreview(timesheet.docId)"><em>View
-                        Doc</em></button>&nbsp;
                     <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-success"
                       type="submit" title="Approve"
                       (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
