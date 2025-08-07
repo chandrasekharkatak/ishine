@@ -48,7 +48,9 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
     P:   { label: 'Present',              color: '#014421' },
     NA:  { label: 'Not Applicable',       color: '#2f4f4f' }
   };
-legendEntries: { code: string; label: string; color: string }[] = [];
+  legendEntries: { code: string; label: string; color: string }[] = [];
+  hideTimeout: any;
+  hoveredEmpId: string | null = null;
   
   constructor(private route: ActivatedRoute,
     private modalService: BsModalService,
@@ -189,6 +191,21 @@ legendEntries: { code: string; label: string; color: string }[] = [];
     this.year = event.getFullYear();
     this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
     datepicker.close();
+  }
+
+  showPopup(empId: string) {
+    clearTimeout(this.hideTimeout);
+    this.hoveredEmpId = empId;
+  }
+
+  scheduleHidePopup() {
+    this.hideTimeout = setTimeout(() => {
+      this.hoveredEmpId = null;
+    }, 200); // Delay to allow mouseenter on popup
+  }
+
+  cancelHidePopup() {
+    clearTimeout(this.hideTimeout);
   }
 
 }

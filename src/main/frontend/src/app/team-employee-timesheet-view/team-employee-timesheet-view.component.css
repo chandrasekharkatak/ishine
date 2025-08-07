@@ -27,3 +27,215 @@ font-size: 14px;
   min-width: 200px;
   margin-right: 16px;
 }
+
+.custom-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.custom-btn i {
+  font-size: 14px;
+}
+
+/* Calendar Button Styling */
+.calendar-btn {
+  background-color: #e7f1ff;
+  color: #0056b3;
+  border: 1px solid #b3d4fc;
+}
+
+.calendar-btn:hover {
+  background-color: #d0e7ff;
+  transform: scale(1.03);
+}
+
+/* Documents Button Styling */
+.documents-btn {
+  background-color: #ffe5e5;
+  color: #b30000;
+  border: 1px solid #f5bdbd;
+}
+
+.documents-btn:hover {
+  background-color: #ffcfcf;
+  transform: scale(1.03);
+}
+
+.custom-popup-btn {
+  background-color: #f0f8ff;
+  border: 1px solid #cfe2ff;
+  color: #0d6efd;
+  font-size: 14px;
+  padding: 6px 10px;
+  margin-right: 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+.custom-popup-btn i {
+  font-size: 14px;
+}
+
+.custom-popup-btn:hover {
+  background-color: #e0efff;
+  transform: scale(1.05);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+.custom-btn1 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-right: 6px;
+}
+
+.custom-btn1 i {
+  font-size: 14px;
+}
+
+/* Project Button Styling */
+.project-btn {
+  background-color: #e7f1ff;
+  color: #0056b3;
+  border: 1px solid #b3d4fc;
+}
+
+.project-btn:hover {
+  background-color: #d6eaff;
+  transform: scale(1.03);
+}
+
+/* Team Attendance Button Styling */
+.team-btn {
+  background-color: #ffe5e5;
+  color: #b30000;
+  border: 1px solid #f5bdbd;
+}
+
+.team-btn:hover {
+  background-color: #d0e7ff;
+  transform: scale(1.03);
+}
+.emp360-btn {
+  background-color: #fef6e4;
+  color: #b76e00;
+  border: 1px solid #ffd580;
+}
+
+.emp360-btn:hover {
+  background-color: #ffecb3;
+  transform: scale(1.03);
+}
+
+.timesheet-btn {
+  background-color: #fef6e4;
+  color: #c9ad0d;
+  border: 1px solid #ffd580;
+}
+
+.timesheet-btn:hover {
+  background-color: #ffecb3;
+  transform: scale(1.03);
+}
+
+.metric-tile {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 5px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  position: relative;
+}
+
+.metric-tile:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border-left-width: 8px;
+}
+
+.tile-header {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.tile-header i {
+  font-size: 22px;
+  margin-right: 10px;
+  color: inherit;
+}
+
+.tile-value {
+  font-size: 30px;
+  font-weight: bold;
+  color: #111;
+}
+
+/* Border color classes */
+.border-start-primary {
+  border-left-color: #007bff !important;
+}
+.border-start-success {
+  border-left-color: #28a745 !important;
+}
+.border-start-warning {
+  border-left-color: #ffc107 !important;
+}
+.border-start-danger {
+  border-left-color: #dc3545 !important;
+}
+
+/* Background shade classes */
+.bg-light-blue {
+  background: #e7f1ff;
+}
+.bg-light-green {
+  background: #e8f5e9;
+}
+.bg-light-yellow {
+  background: #fff8e1;
+}
+.bg-light-red {
+  background: #fdecea;
+}
+.hover-popup {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 700;
+  min-width: 160px;
+}
+
+.button-group-custom {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
