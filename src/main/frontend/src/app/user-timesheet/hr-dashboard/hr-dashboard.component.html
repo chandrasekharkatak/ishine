@@ -17,6 +17,26 @@
                 <img src="/assets/immigration.png" alt="Dashboard Icon" style="width: 32px; height: 32px;" />
                 <span class="ml-2">Client-Side Attendance Dashboard</span>
             </div>
+            <div class="calendar-header mb-2 d-flex align-items-end">
+                <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
+                    <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
+                        (dateChange)="changeMonth1($event.value)" placeholder="Select month" readonly>
+                    <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected1($event, monthPicker)"
+                        panelClass="month-picker">
+                    </mat-datepicker>
+                </mat-form-field>
+            
+            
+                <span class="styled-month-employee-label">
+                    {{ formattedMonthLabel }} 
+                  </span>
+
+                  <!-- <button class="btn btn-link p-0 ml-2" (click)="refreshDashboard()" title="Refresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button> -->
+
+            </div>
 
             <div class="last-updated d-flex align-items-center">
                 <span>Updated: {{ lastUpdated }}</span>

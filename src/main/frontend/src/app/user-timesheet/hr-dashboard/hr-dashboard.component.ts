@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { MatDatepicker } from '@angular/material/datepicker';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Route, Router } from '@angular/router';
@@ -136,8 +137,12 @@ export class HrDashboardComponent implements AfterViewInit {
   showCalendar = false;
   hoveredProjectId: any;
   hidePopupTimeout: any;
-  month:any = 7;
-  year:any = 2025;
+  // month:any = 7;
+  // year:any = 2025;
+  month :any;
+  year :any;
+  formattedMonthLabel: string;
+  selectedMonth1: Date;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -149,8 +154,13 @@ export class HrDashboardComponent implements AfterViewInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    // this.selectedProjectId=322;
-    // this.selectedEmpId=1026;
+
+    const today = new Date();
+    this.month = today.getMonth() + 1; // Months are 0-indexed in JS
+    this.year = today.getFullYear();
+  
+    this.selectedMonth1 = new Date(this.year, this.month - 1, 1); 
+    this.updateFormattedMonthLabel();
     this.legendEntries = Object.entries(this.legend).map(([code, value]) => ({
       code,
       label: value.label,
@@ -517,7 +527,7 @@ rejectTimesheet(entry: any): void {
 }
 
 refreshDashboard(): void {
- 
+  this.getTimesheetDashboardCount(this.month,this.year);
  // this.loadDashboardData(); 
   this.setLastUpdatedTime();
   this.TotalEmployeeCount();
@@ -1208,6 +1218,7 @@ cancelHideProjectPopup(): void {
       this.timesheetService.getTimesheetDashboardCountForEmployee(month,year).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
+          console.log("dashboardObj :::::::::",this.dashboardObj);
         } else {
           this.openAlertMod(this.alertTemplate, response.serviceResponse);
         }
@@ -1217,7 +1228,7 @@ cancelHideProjectPopup(): void {
 
   scrollToTable(status: string | null): void {
     this.status = status;
-    this.getTableData(status,7,2025);
+    this.getTableData(status,this.month,this.year);
     const element = document.getElementById('table-section');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -1230,6 +1241,69 @@ cancelHideProjectPopup(): void {
     } else {
       this.getProjectViewForClientAttendanceStatus(status,month,year);
     }
+  }
+
+  monthSelected1(event: Date, datepicker: any) {
+    // Set selected month as the first day of the selected month
+    this.selectedMonth1 = new Date(event.getFullYear(), event.getMonth(), 1);
+  
+  
+    this.month = this.selectedMonth1.getMonth() + 1; // Month is 0-indexed
+    this.year = this.selectedMonth1.getFullYear();
+  
+    
+    console.log("Selected Month:", this.month);
+    console.log("Selected Year:", this.year);
+    console.log("selectedMonth1 ::::::::", this.selectedMonth1);
+  
+    
+    this.updateFormattedMonthLabel();
+  
+   
+    this.getTimesheetDashboardCount(this.month, this.year);
+  
+    // Close picker
+    datepicker.close();
+  }
+  
+  
+  changeMonth1(date: Date) {
+    
+    if (!date) return;
+    this.selectedMonth1 = new Date(date.getFullYear(), date.getMonth(), 1);
+    this.updateFormattedMonthLabel();
+  
+    if (this.selectedProjectId && this.selectedEmpId) {
+      this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
+    }
+  }
+
+  // monthSelected1(date: Date, datepicker: MatDatepicker<Date>) {
+  //   this.month = date.getMonth() + 1; // JS months are 0-indexed
+  //   this.year = date.getFullYear();
+  
+  //   // this.getTimesheetDashboardCount(this.month,this.year);
+  //   this.formattedMonthLabel = this.getFormattedMonthLabel(this.month, this.year);
+  
+  //   datepicker.close();
+  
+  //   // Call any logic needed after selecting a month
+  //   this.refreshDashboard(); // optional
+  // }
+  
+  // getFormattedMonthLabel(month: number, year: number): string {
+  //   const monthNames = [
+  //     'January', 'February', 'March', 'April', 'May', 'June',
+  //     'July', 'August', 'September', 'October', 'November', 'December'
+  //   ];
+  //   return `${monthNames[month - 1]} ${year}`;
+  // }
+  
+  updateFormattedMonthLabel() {
+    this.formattedMonthLabel = this.selectedMonth1.toLocaleString('default', {
+      month: 'short',
+      year: 'numeric'
+    }); 
   }
   
 }
