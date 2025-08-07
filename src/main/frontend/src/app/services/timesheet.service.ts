@@ -253,8 +253,8 @@ export class TimesheetService {
   }
 
 
-  getEmployeeTimesheetAsCalender(projectId: any, month: any, year: any) {
-    return this.http.get(`${this.baseUrl}api/getEmployeeTimesheetAsCalender?projectId=${projectId}&month=${month}&year=${year}`);
+  getEmployeeTimesheetAsCalender(empId: any, month: any, year: any) {
+    return this.http.get(`${this.baseUrl}api/getEmployeeTimesheetAsCalender?empId=${empId}&month=${month}&year=${year}`);
   }
   
    

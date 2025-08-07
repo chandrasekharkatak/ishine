@@ -4310,7 +4310,7 @@ public class TimesheetService {
 		return response;
 	}
 	
-	public ServiceResponse getEmployeeTimesheetAsCalender(Integer projectId, Integer month, Integer year) {
+	public ServiceResponse getEmployeeTimesheetAsCalender(Integer empId, Integer month, Integer year) {
 		
 	   ServiceResponse response = new ServiceResponse();
 
@@ -4320,7 +4320,7 @@ public class TimesheetService {
 	    StringBuilder logBuilder = new StringBuilder();
 	    logBuilder.append("getEmployeeTimesheetAsCalender");
 	    try {
-	    	List<Object[]> empTimesheet = timesheetsRepository.getEmployeeTimesheetAsCalender(projectId,month,year);
+	    	List<Object[]> empTimesheet = timesheetsRepository.getEmployeeTimesheetAsCalender(empId,month,year);
 	    	
 	    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
 

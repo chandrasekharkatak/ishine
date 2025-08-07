@@ -377,8 +377,8 @@ public class TimesheetController {
 	 }
 	 
 	 @GetMapping(value = "/getEmployeeTimesheetAsCalender")
-	 public ServiceResponse getEmployeeTimesheetAsCalender(@RequestParam Integer projectId, @RequestParam Integer month, @RequestParam Integer year) {  
-		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalender(projectId,month,year);
+	 public ServiceResponse getEmployeeTimesheetAsCalender(@RequestParam Integer empId, @RequestParam Integer month, @RequestParam Integer year) {  
+		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalender(empId,month,year);
 		  return reponse;
 	 }
 
