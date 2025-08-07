@@ -809,5 +809,16 @@ h5 {
   transform: scale(1.03);
 }
 
+.timesheet-btn {
+  background-color: #fef6e4;
+  color: #c9ad0d;
+  border: 1px solid #ffd580;
+}
+
+.timesheet-btn:hover {
+  background-color: #ffecb3;
+  transform: scale(1.03);
+}
+
 
 
