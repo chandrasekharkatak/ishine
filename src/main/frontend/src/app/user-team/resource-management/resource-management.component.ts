@@ -1259,6 +1259,14 @@ onDeptSelectionChange1() {
         this.projectFilterDTO.completionStatus = null; 
         this.projectFilterDTO.approvalStatus = "activeTNM";
     }
+    else if (this.selectedStatusTab == "allMonitoringProject") {
+        this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.approvalStatus = "monitoring";
+    }
+    else if (this.selectedStatusTab == "allInternalProject") {
+        this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.approvalStatus = "internal";
+    }
      else if (this.selectedStatusTab == "expiredTNM") {
         // Set default filter if none selected
         if (!this.selectedExpiredProjectFilter) {
@@ -3211,6 +3219,24 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     console.log(`Loaded ${expiredProjects.length} expired TNM projects for filter: ${this.selectedExpiredProjectFilter?.title}`);
                 }
             } 
+            else if (this.selectedStatusTab === 'allMonitoringProject' && response.serviceResponse.monitoringProjects && response.serviceResponse.monitoringProjects.length > 0) {
+            this.allProject_Po_Internal = response.serviceResponse.monitoringProjects.map((project: any) => {
+                project.combinedProjectType = this.getProjectType(project);
+
+                if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
+                    const managerNamesString = project.projectManagers
+                        .map(manager => manager.projectManagerName)
+                        .join(', ');
+                    project.projectManagerName = managerNamesString;
+                } else if (project.projectManager && project.projectManager.trim() !== '') {
+                    project.projectManagerName = project.projectManager;
+                } else {
+                    project.projectManagerName = ''; 
+                }
+                return project;
+            });
+            console.log(`Loaded ${this.allProject_Po_Internal.length} monitoring projects`);
+        }
             else if (response.serviceResponse.activeTNMProjects && response.serviceResponse.activeTNMProjects.length > 0) {
                 this.allProject_Po_Internal = response.serviceResponse.activeTNMProjects.map((project: any) => {
                     project.combinedProjectType = this.getProjectType(project);
@@ -3251,7 +3277,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
         // this.tabCounts = response.serviceResponse.counts;
         // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
       } else {
-        this.openAlertMod(template, response.serviceResponse);
+        this.openAlertMod(template, "Error Fetching List");
       }
     }
     });

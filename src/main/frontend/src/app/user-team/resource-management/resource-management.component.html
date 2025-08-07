@@ -326,10 +326,10 @@
                             <!-- Total Monitoring -->
                             <div class="col-md-1"
                                 style="display: flex; justify-content: left; max-width: fit-content; margin-right: -25px;"
-                                (click)="selectStatusTab('All')"
-                                [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
+                                (click)="selectStatusTab('allMonitoringProject')"
+                                [ngClass]="{'selected-card': selectedStatusTab === 'allMonitoringProject'}">
                                 <div class="mini-card1" style="border-left: 4px solid #FE9A37;">
-                                    <div class="value fw-bold" style="color: #FE9A37;">{{tabCounts.totalCount}}</div>
+                                    <div class="value fw-bold" style="color: #FE9A37;">{{tabCounts.allMonitoringProjectCount}}</div>
                                     <div class="label text-muted">Total Monitoring <i
                                             class="fa-solid fa-plus-circle fa-beat-fade" style="color: #FE9A37;"></i>
                                     </div>
@@ -339,10 +339,10 @@
                             <!-- Total Internal -->
                             <div class="col-md-1"
                                 style="display: flex; justify-content: left; max-width: fit-content; margin-right: -25px;"
-                                (click)="selectStatusTab('All')"
-                                [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
+                                (click)="selectStatusTab('allInternalProject')"
+                                [ngClass]="{'selected-card': selectedStatusTab === 'allInternalProject'}">
                                 <div class="mini-card1" style="border-left: 4px solid #2D9966;">
-                                    <div class="value fw-bold" style="color: #2D9966;">{{tabCounts.totalCount}}</div>
+                                    <div class="value fw-bold" style="color: #2D9966;">{{tabCounts.allInternalProjectCount}}</div>
                                     <div class="label text-muted">Total<br>Internal<i
                                             class="fa-solid fa-plus-circle fa-beat-fade" style="color: #2D9966;"></i>
                                     </div>
