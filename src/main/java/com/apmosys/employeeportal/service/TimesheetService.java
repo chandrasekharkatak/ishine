@@ -598,7 +598,7 @@ public class TimesheetService {
 		else  documentDTO = documentList.get(0);
 		
 		TimesheetDocumentDetails docData = addTimesheetDocument(documentDTO, "Create", file);
-
+		System.out.println();
 		docData.setTimesheetId(newTimesheetCreated.getTimesheetId());
 		docData.setEmpId(timesheetDTO.getEmpId());
 		docData.setCreatedBy(timesheetDTO.getEmpId());
@@ -2644,7 +2644,7 @@ public class TimesheetService {
 			data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
 		data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
 	    data.setRmApprovalStatus("Pending");
-//	    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
+	    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
 	    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
 	    data.setActive(true);
 	    return data;
