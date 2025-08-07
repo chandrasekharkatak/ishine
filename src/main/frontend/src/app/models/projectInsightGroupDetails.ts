@@ -9,7 +9,7 @@ export class ProjectInsightGroupDetails {
     parentType: any;
     formId: any;
     isDraft: any
-    questionList: ProjectInsightQuestionDetails[] = [];
+    parentPathIds: any[] = [];
     additionalInfo: Map<string, any>;
     createdBy: any;
     createdOn: any;

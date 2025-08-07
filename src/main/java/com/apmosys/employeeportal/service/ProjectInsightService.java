@@ -4418,6 +4418,16 @@ public class ProjectInsightService {
 				throw new BadRequestException("Project Insight Group Details Parent Not Found.");
 			}
 
+			if (projectInsightGroupDetails.getParentType().equals("Project")) {
+				projectInsightGroupDetails.setParentPathIds(Arrays.asList(projectInsightGroupDetails.getParentId()));
+			} else {
+				Optional<ProjectInsightGroupDetails>  groupOpt = projectInsightGroupDetailsRepository.findById(projectInsightGroupDetails.getParentId());
+				ProjectInsightGroupDetails group = groupOpt.get();
+				List<String> parentPathIds = new ArrayList<>(group.getParentPathIds());
+				parentPathIds.add(group.getId());
+				projectInsightGroupDetails.setParentPathIds(parentPathIds);
+			}
+
 			boolean isNew = (projectInsightGroupDetails.getId() == null);
 
 			if (isNew) {
@@ -4639,6 +4649,28 @@ public class ProjectInsightService {
 		}
 	}
 	
+
+	public ServiceResponse deleteProjectInsightQuestionDetails(ProjectInsightQuestionDetails projectInsightQuestionDetails) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiUrl("/api/deleteProjectInsightQuestionDetails");
+		try {
+			if(projectInsightQuestionDetails == null || projectInsightQuestionDetails.getId() == null){
+				throw new BadRequestException("Project Insight Question Details Id cannot be null.");
+			}
+			projectInsightQuestionDetailsRepository.deleteById(projectInsightQuestionDetails.getId());
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			return serviceResponse;
+		} catch (BadRequestException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Something went wrong, unable to delete Project Insight Question Details !!", e);
+		}
+	}
+
 	// helper methods
 
 	private void saveProjectInsightDetailsMappingInfo(ProjectInsightProjectDetails projectInsightProjectDetails) {
@@ -4693,7 +4725,15 @@ public class ProjectInsightService {
 			}
 
 			boolean isNew = (projectInsightGroupDetails.getId() == null);
-
+			if (projectInsightGroupDetails.getParentType().equals("Project")) {
+				projectInsightGroupDetails.setParentPathIds(Arrays.asList(projectInsightGroupDetails.getParentId()));
+			} else {
+				Optional<ProjectInsightGroupDetails>  groupOpt = projectInsightGroupDetailsRepository.findById(projectInsightGroupDetails.getParentId());
+				ProjectInsightGroupDetails group = groupOpt.get();
+				List<String> parentPathIds = new ArrayList<>(group.getParentPathIds());
+				parentPathIds.add(group.getId());
+				projectInsightGroupDetails.setParentPathIds(parentPathIds);
+			}
 			if (isNew) {
 				if(projectInsightGroupDetailsRepository.existsByGroupTitleAndParentIdAndParentType(projectInsightGroupDetails.getGroupTitle(),projectInsightGroupDetails.getParentId(),projectInsightGroupDetails.getParentType())){
 				// if(projectInsightGroupDetailsRepository.existsByGroupTitleAndParentIdAndParentType(projectInsightGroupDetails.getGroupTitle().trim().toLowerCase())){

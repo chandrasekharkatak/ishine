@@ -324,7 +324,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
       const response = await this.apiSourceService.loadDynamicApi(url).toPromise();
 
       if (response && Array.isArray(response)) {
-        const options = response.map(item => ({
+        const options = response?.map(item => ({
           label: item[field.dependentLabelKey || 'name'],
           value: String(item[field.dependentValueKey || 'id'])
         }));
@@ -760,7 +760,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   getOptionsFromApiResponse(field: any, response: any) {
-    const options = response.map(item => ({
+    const options = response?.map(item => ({
       label: item[field.apiLabelKey || 'name'] || item['label'],
       value: item[field.apiValueKey || 'id'] || item['value'],
        isChildAvailable: item['isChildAvailable'],

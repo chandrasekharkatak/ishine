@@ -416,9 +416,12 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label">Apmosys RM</label>
-                                        <input type="text" class="form-control" id="groupTitle" name="groupTitle"
-                                            placeholder="Enter Group Title"
-                                            [(ngModel)]="projectInsightProjectDetails.apmosysRM" required />
+                                        <select class="form-control" [(ngModel)]="projectInsightProjectDetails.apmosysRM" required>
+                                            <option value="" disabled selected>Select Apmosys RM</option>
+                                            <option *ngFor="let employee of allEmployeeList" [value]="employee.name">
+                                                {{ employee.name }}
+                                            </option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -427,7 +430,7 @@
                                     <div class="form-group">
                                         <label class="info-label">Client RM</label>
                                         <input type="text" class="form-control" id="groupTitle" name="groupTitle"
-                                            placeholder="Enter Group Title"
+                                            placeholder="Enter Client RM Name"
                                             [(ngModel)]="projectInsightProjectDetails.clientRM" required />
                                     </div>
                                 </div>
@@ -1028,7 +1031,7 @@
 <!-- Add New Group Modal -->
 <ng-template #add_new_group_modal>
     <div class="modal-header">
-        <h5>{{ isCurrentNodeGroup ? 'Add Sub-Group' : 'Add Group' }}</h5>
+        <h5>{{ isCurrentNodeGroup ? 'Add Group' : 'Add Sub-Group' }}</h5>
         <button type="button" class="close" (click)="closeAddGroupDetailsModal()">&times;</button>
     </div>
     <div class="modal-body">
@@ -1063,7 +1066,7 @@
         <div class="modal-actions">
             <button class="btn btn-outline-primary btn-sm" type="button"
                 (click)="saveProjectInsightStaticGroupDetails('Y')">
-                {{ isCurrentNodeGroup ? 'Save Sub-Group' : 'Save Group' }}
+                {{ isCurrentNodeGroup ? 'Save Group' : 'Save Sub-Group' }}
             </button>&nbsp;&nbsp;
             <button class="btn btn-outline-secondary btn-sm ml-2" type="button"
                 (click)="closeAddGroupDetailsModal()">Cancel</button>
@@ -1100,6 +1103,15 @@
                 <i class="fa fa-times mr-1"></i> No, Cancel
             </button>
         </div>
+    </div>
+</ng-template>
+
+<!-- Delete Question Template -->
+<ng-template #delete_question_modal>
+    <div class="modal-body text-center">
+        <p>Deleting this question will permanently remove all associated responses. Are you sure you want to proceed?</p>
+        <button type="button" class="btn btn-success" (click)="deleteProjectInsightQuestionDetails()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="closeDeleteQuestionModal()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
 

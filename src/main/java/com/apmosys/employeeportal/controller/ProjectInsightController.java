@@ -326,7 +326,10 @@ public class ProjectInsightController {
 		return ResponseEntity.ok(projectInsightService.saveProjectInsightQuestionDetails(projectInsightQuestionDetails));
 	}
 
-
+	@PostMapping(value = "/deleteProjectInsightQuestionDetails")
+	public ResponseEntity<ServiceResponse> saveProjectInsightGroupDetails(@RequestBody ProjectInsightQuestionDetails projectInsightQuestionDetails) {
+		return ResponseEntity.ok(projectInsightService.deleteProjectInsightQuestionDetails(projectInsightQuestionDetails));
+	}
 	
 
 	

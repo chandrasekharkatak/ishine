@@ -194,7 +194,7 @@ export class ProjectInsightService {
   }
 
   deleteProjectInsightQuestionDetails(projectInsightQuestionDetails: any) {
-    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightQuestionDetails`, projectInsightQuestionDetails);
+    return this.http.post(`${this.baseUrl}` + `api/deleteProjectInsightQuestionDetails`, projectInsightQuestionDetails);
   }
 
   getAllDomainData() {

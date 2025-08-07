@@ -92,6 +92,7 @@ export class ProjectInsightComponent implements OnInit {
   @ViewChild('add_field_modal') addFieldModal: TemplateRef<any>;
   @ViewChild('open_create_project_modal') openCreateProjectModal: TemplateRef<any>;
   @ViewChild('add_or_update_question_modal') addOrUpdateQuestionModal: TemplateRef<any>;
+  @ViewChild('delete_question_modal') deleteQuestionModal: TemplateRef<any>;
   @ViewChild('add_new_group_modal') addNewGroupModal: TemplateRef<any>;
   @ViewChild('clone_modal') cloneModal: TemplateRef<any>;
 
@@ -228,7 +229,7 @@ export class ProjectInsightComponent implements OnInit {
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
-    this.isCurrentNodeGroup = false;
+    this.isCurrentNodeGroup = true;
     this.isCurrentEmployeeRoleGreaterThanManager = this.rolesGreaterThanManager.includes(this.currentUser?.employeeRole);
     this.showTable();
     this.getAllApiSourceList();
@@ -365,11 +366,7 @@ export class ProjectInsightComponent implements OnInit {
         this.currentNode = this.rootNode;
         this.projectInsightProjectDetails = response?.projectInsightProjectDetails;
         this.selectedDeptIds = this.getDeptIds(this.projectInsightProjectDetails?.departments);
-        this.loadProjectInsightTrees(this.projectInsightProjectDetails);
-        const project = this.projectInsightTrees[projectIndex];
-        this.getAllProjectInsightGroupsByParentId(project?.id, 'Project').then(groups => {
-          project.groupList = groups;
-        });
+        this.loadProjectInsightGroupTrees(projectIndex);
         this.mergeFormDataIntoFormStructure(this.currentNode, response?.projectInsightProjectDetails);
         this.getProjectInsightQuestionDetailsByParentIdAndParentType(this.currentNode?.parentId, this.currentNode?.parentType);
       },
@@ -423,10 +420,11 @@ export class ProjectInsightComponent implements OnInit {
     let inputValidated: boolean = this.validateProjectInsightDetails(projectInsightDetailsDTO.projectInsightProjectDetails);
     if (!inputValidated) return;
 
-    this.projectInsightService.saveProjectInsightDetails(projectInsightDetailsDTO).pipe(take(1)).subscribe(
+    this.projectInsightService.saveProjectInsightDetails(projectInsightDetailsDTO).pipe(first()).subscribe(
       (response: any) => {
         this.alertMessage = response.serviceStatus;
         this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+        this.getProjectInsightDetailsByObjectId(response?.serviceResponse?.id);
       },
       (error) => {
         console.log(error, " : error");
@@ -497,6 +495,7 @@ export class ProjectInsightComponent implements OnInit {
         this.projectInsightGroupDetails = response?.projectInsightGroupDetails;
         this.currentNode = this.transformFormDetailsToFormNode(response?.projectInsightFormDetails);
         this.mergeFormDataIntoFormStructure(this.currentNode, response?.projectInsightGroupDetails);
+        this.loadProjectInsightGroupTrees(0);
         this.getProjectInsightQuestionDetailsByParentIdAndParentType(this.validationService.validateNullUndefinedEmptyString(this.currentNode?.parentId) ? this.currentNode?.parentId : this.projectInsightGroupDetails.id, 'Group');
       },
       error: (error: any) => {
@@ -531,6 +530,7 @@ export class ProjectInsightComponent implements OnInit {
     this.projectInsightService.saveProjectInsightStaticGroupDetails(this.projectInsightGroupDetails).pipe(first()).subscribe(
       (response: any) => {
         this.closeAddGroupDetailsModal();
+        this.getProjectInsightGroupDetailsByObjectId(response?.serviceResponse?.id);
         this.alertMessage = response.serviceStatus;
         this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       },
@@ -642,6 +642,12 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   openAddGroupDetailsModal(addGroupFlag: any) {
+    console.log(this.rootNode);
+    if (this.projectInsightProjectDetails && !this.validationService.validateNullUndefinedEmptyString(this.projectInsightProjectDetails?.id)) {
+      this.alertMessage = 'Kindly Save Project Insight Details before adding a Group.'
+      this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+      return;
+    }
     let projectInsightGroupDetails: ProjectInsightGroupDetails = this.projectInsightGroupDetails;
     this.projectInsightGroupDetails = new ProjectInsightGroupDetails();
     this.projectInsightGroupDetails.parentId = addGroupFlag ? projectInsightGroupDetails?.parentId : projectInsightGroupDetails?.id;
@@ -1474,6 +1480,7 @@ export class ProjectInsightComponent implements OnInit {
     this.formBuilderService.getByDynamicFormById(formId).pipe(first()).subscribe({
       next: (response: any) => {
         this.rootNode = this.buildFormNodeTree(response);
+        this.rootNode.id = null; // null the id in order to save it as a different form.
         this.currentNode = this.rootNode;
       },
       error: (error: any) => {
@@ -1537,6 +1544,14 @@ export class ProjectInsightComponent implements OnInit {
       projectName: projectInsightProjectDetails?.projectName,
       groupList: []
     }];
+  }
+
+  loadProjectInsightGroupTrees(projectIndex:any) {
+    this.loadProjectInsightTrees(this.projectInsightProjectDetails);
+    const project = this.projectInsightTrees[projectIndex];
+    this.getAllProjectInsightGroupsByParentId(project?.id, 'Project').then(groups => {
+      project.groupList = groups;
+    });
   }
 
   toggleGroup(projectIndex: number, path: number[], group: GroupNode) {
@@ -1723,6 +1738,19 @@ export class ProjectInsightComponent implements OnInit {
 
   // Question Logic [Start]
   openAddOrUpdateQuestionModal(currentNode: any, isQuestionUpdate: any, question?: any) {
+    if (this.currentNodeType == 'Project') {
+      if (this.projectInsightProjectDetails && !this.validationService.validateNullUndefinedEmptyString(this.projectInsightProjectDetails?.id)) {
+        this.alertMessage = 'Kindly Save Project Insight Details before adding a Question.'
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+        return;
+      }
+    } else {
+      if (this.projectInsightGroupDetails && !this.validationService.validateNullUndefinedEmptyString(this.projectInsightGroupDetails?.id)) {
+        this.alertMessage = 'Kindly Save Group Details before adding a Question.'
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+        return;
+      }
+    }
     if (!currentNode || !this.validationService.validateNullUndefinedEmptyString(currentNode?.parentId) || !this.validationService.validateNullUndefinedEmptyString(currentNode?.parentType)) {
       if (this.currentNodeType == 'Project') {
         this.parentId = this.validationService.validateNullUndefinedEmptyString(this.rootNode.parentId) ? this.rootNode.parentId : this.projectInsightProjectDetails.id;
@@ -1775,7 +1803,22 @@ export class ProjectInsightComponent implements OnInit {
     this.deletedQuestion = question;
     this.deletedQuestion.parentId = this.currentNode.parentId;
     this.deletedQuestion.parentType = this.currentNode.parentType;
-    this.addOrUpdateQuestionModalRef = this.modalService.show(this.addOrUpdateQuestionModal, { class: 'modal-md' });
+    this.deleteQuestionModalRef = this.modalService.show(this.deleteQuestionModal, { class: 'modal-md' });
+  }
+
+  deleteProjectInsightQuestionDetails() {
+    this.projectInsightService.deleteProjectInsightQuestionDetails(this.deletedQuestion).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.alertMessage = response.serviceStatus;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+        this.closeDeleteQuestionModal();
+        this.getProjectInsightQuestionDetailsByParentIdAndParentType(this.deletedQuestion.parentId,this.deletedQuestion.parentType);
+      },
+      error: (error: any) => {
+        this.alertMessage = error;
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+      }
+    });
   }
 
   closeDeleteQuestionModal() {

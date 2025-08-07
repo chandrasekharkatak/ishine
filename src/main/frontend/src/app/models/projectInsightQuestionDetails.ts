@@ -17,6 +17,7 @@ export class ProjectInsightQuestionDetails {
     badgePathList: ProjectInsightBadgePath[] = [];
     toTaggedEmployeeIdList: any[] = [];
     toAssignedEmployeeIdList: any[] = [];
+    parentPathIds: any[] = [];
 
     createdBy: any;
     createdOn: any;

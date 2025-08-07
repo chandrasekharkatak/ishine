@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.mongodb.modal;
 
 import java.util.Map;
+import java.util.List;
 
 import javax.persistence.Id;
 
@@ -22,6 +23,7 @@ public class ProjectInsightGroupDetails {
 	private String parentType;
 	private String formId;
 	private Map<String, Object> additionalInfo;
+	private List<String> parentPathIds; 
 
 	private String createdBy;
 	private String createdOn;

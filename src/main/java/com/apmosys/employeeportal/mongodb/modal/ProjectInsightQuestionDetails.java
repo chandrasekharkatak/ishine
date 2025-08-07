@@ -25,6 +25,7 @@ public class ProjectInsightQuestionDetails {
 	private String optionType;
 	private String parentId;
 	private String parentType;
+	private List<String> parentPathIds; 
 
 	private List<OptionValueDTO> optionsList;
 	private List<BadgePathDTO> badgePathList;
