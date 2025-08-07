@@ -127,51 +127,50 @@
 
 
         <!-- Key Metrics -->
-        <div class="row">
-            <div class="col-md-2">
-                <div class="metric-card" (click)="scrollToTable('All')">
-                    <div class="metric-title">Total Applicaple Emp</div>
-                    <h2>{{dashboardObj.totalApplicableCount}}</h2>
+
+        <div class="row g-4">
+            <div class="col-md-3">
+              <div class="metric-tile hover-tile border-start-primary bg-light-blue" (click)="scrollToTable('All')">
+                <div class="tile-header">
+                  <i class="bi bi-people-fill"></i>
+                  <span>{{ toggleValue ? 'Total Applicable Project' : 'Total Applicable Emp' }}</span>
                 </div>
+                <div class="tile-value">{{ dashboardObj.totalApplicableCount }}</div>
+              </div>
             </div>
-
-            <div class="col-md-2">
-                <div class="metric-card success" (click)="scrollToTable('Approved')">
-                    <div class="metric-title">Ready For Invoicing</div>
-                    <div class="metric-value">{{dashboardObj.approvedCount}}</div>
+          
+            <div class="col-md-3">
+              <div class="metric-tile hover-tile border-start-success bg-light-green" (click)="scrollToTable('Approved')">
+                <div class="tile-header">
+                  <i class="bi bi-patch-check"></i>
+                  <span>Ready For Invoicing</span>
                 </div>
+                <div class="tile-value">{{ dashboardObj.approvedCount }}</div>
+              </div>
             </div>
-
-            <div class="col-md-2">
-                <div class="metric-card warning" (click)="scrollToTable('Pending')">
-                    <div class="metric-title">CS Approval Pending</div>
-                    <div class="metric-value">{{dashboardObj.clientSidePendingCount}}</div>
+          
+            <div class="col-md-3">
+              <div class="metric-tile hover-tile border-start-warning bg-light-yellow" (click)="scrollToTable('Pending')">
+                <div class="tile-header">
+                  <i class="bi bi-hourglass-split"></i>
+                  <span>CS Approval Pending</span>
                 </div>
+                <div class="tile-value">{{ dashboardObj.clientSidePendingCount }}</div>
+              </div>
             </div>
-
-            <div class="col-md-2">
-                <div class="metric-card danger" (click)="scrollToTable('Defaulter')">
-                    <div class="metric-title">Defaulters</div>
-                    <div class="metric-value">{{ dashboardObj.defaulterCount}}</div>
+          
+            <div class="col-md-3">
+              <div class="metric-tile hover-tile border-start-danger bg-light-red" (click)="scrollToTable('Defaulter')">
+                <div class="tile-header">
+                  <i class="bi bi-exclamation-circle"></i>
+                  <span>Defaulters</span>
                 </div>
+                <div class="tile-value">{{ dashboardObj.defaulterCount }}</div>
+              </div>
             </div>
-
-            <!-- <div class="col-md-2">
-                <div class="metric-card success">
-                    <div class="metric-title">Doc Approved</div>
-                    <div class="metric-value">{{totalDocumentApprovedCount}}%</div>
-                </div>
-            </div>
-
-            <div class="col-md-2">
-                <div class="metric-card danger">
-                    <div class="metric-title">Doc Rejected</div>
-                    <div class="metric-value">{{totalDocumentRejectedCount}}%</div>
-                </div>
-            </div> -->
-        </div>
-
-
+          </div>
+          
+          
 
         <!-- Status Overview -->
         <!-- <div class="status-grid">

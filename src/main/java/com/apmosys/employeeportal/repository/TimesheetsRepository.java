@@ -796,7 +796,7 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 		+ "        LEFT JOIN employee s on s.emp_id = t.spoc_id\n"
 		+ "        LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id\n"
 		+ "        LEFT JOIN department d on d.dept_id = jr.dept_id\n"
-		+ "        LEFT JOIN employee_client_side_id_mapping ecsm on e.emp_id = ecsm.emp_id\n"
+		+ "        LEFT JOIN employee_client_side_id_mapping ecsm on e.emp_id = ecsm.emp_id and ecsm.project_id = t.project_id\n"
 		+ "        LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id\n"
 		+ "		LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id\n"
 		+ "        WHERE etm.active != 0 AND t.is_active != 'N'\n"

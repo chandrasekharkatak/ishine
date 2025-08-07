@@ -543,7 +543,7 @@ TotalEmployeeCount() {
       console.log(response.serviceResponse);
       this.totalEmployees = response.serviceResponse;
     } else {
-      this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      this.openAlertMod1(this.alertTemplate, response.serviceResponse);
     }
   });
 }
