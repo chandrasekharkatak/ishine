@@ -228,8 +228,8 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}`+`api/totalIshineNotFilledCount`,timesheetObj);
   }
 
-  getEmployeeViewForClientAttendanceStatus(status:any,month:any,year:any){
-    return this.http.get(`${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus?status=${status}&month=${month}&year=${year}`);
+  getEmployeeViewForClientAttendanceStatus(details:any){
+    return this.http.post(`${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`,details);
   }
 
   getRejectionReason(){
@@ -244,8 +244,8 @@ export class TimesheetService {
     return this.http.get(`${this.baseUrl}`+`api/getRejectionReasonById?rejectionId=${rejectionId}`);
   }
 
-  getProjectViewForClientAttendanceStatus(status:any,month:any,year:any){
-    return this.http.get(`${this.baseUrl}`+`api/getProjectViewForClientAttendanceStatus?status=${status}&month=${month}&year=${year}`);
+  getProjectViewForClientAttendanceStatus(details:any){
+    return this.http.post(`${this.baseUrl}`+`api/getProjectViewForClientAttendanceStatus`,details);
   }
 
   updateActiveByRejectIdId(rejectReasonObj: TimesheetRejectReason){

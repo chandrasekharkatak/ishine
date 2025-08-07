@@ -151,5 +151,6 @@ public class TimesheetDTO {
 	private List<TimesheetDTO> pendingApprovalList;
 	private Long filledDocument;
 	private Long approvedDocument;
+	private Integer month1;
 
 }

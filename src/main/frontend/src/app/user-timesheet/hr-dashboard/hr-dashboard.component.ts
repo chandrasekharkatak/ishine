@@ -732,8 +732,16 @@ employeeListAccordingToProject:any[]=[];
   }
 
 
+ timesheetRequestDTO :any ={
+  status:'',
+  month1:null,
+  year: null
+}
   getEmployeeViewForClientAttendanceStatus(status:any,month:any,year:any) {
-    this.timesheetService.getEmployeeViewForClientAttendanceStatus(status,month,year).pipe(first()).subscribe((response: any) => {
+    this.timesheetRequestDTO.status=status;
+    this.timesheetRequestDTO.month1=month;
+    this.timesheetRequestDTO.year=year;
+    this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetRequestDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.employeeView = response.serviceResponse;
         console.log("employeeView ::::::",this.employeeView);
@@ -1088,9 +1096,17 @@ modalTitle = 'Timesheet Details';
       this.monthGrid = grid;
     }
 
+    projectViewClient:any={
+      status:'',
+      month1:null,
+      year:null
+    }
     
     getProjectViewForClientAttendanceStatus(status:any,month:any,year:any) {
-      this.timesheetService.getProjectViewForClientAttendanceStatus(status,month,year).pipe(first()).subscribe((response: any) => {
+      this.projectViewClient.status =status;
+      this.projectViewClient.month1 =month;
+      this.projectViewClient.year =year;
+      this.timesheetService.getProjectViewForClientAttendanceStatus(this.projectViewClient).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.projectView = response.serviceResponse;
         } else {

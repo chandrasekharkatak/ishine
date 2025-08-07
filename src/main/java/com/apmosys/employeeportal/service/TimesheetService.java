@@ -28,6 +28,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
@@ -3748,7 +3749,7 @@ public class TimesheetService {
 	//     return response;
 	// }
 	
-	public ServiceResponse getEmployeeViewForClientAttendanceStatus(String status,Integer month,Integer year) {
+	public ServiceResponse getEmployeeViewForClientAttendanceStatus(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getEmployeeViewForClientAttendanceStatus");
@@ -3757,8 +3758,7 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getEmployeeViewForClientAttendanceStatus: \n");
 		 try {
-			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(status,month,year);
-			 
+			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear());		 
 			 if(resultList.isEmpty()) {
 			        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			        response.setServiceResponse("No data found from database");
@@ -4160,7 +4160,7 @@ public class TimesheetService {
 		return response;
 	}
 
-	public ServiceResponse getProjectViewForClientAttendanceStatus(String status,Integer month,Integer year) {
+	public ServiceResponse getProjectViewForClientAttendanceStatus(@RequestBody TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getProjectViewForClientAttendanceStatus");
@@ -4169,7 +4169,7 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getProjectViewForClientAttendanceStatus: \n");
 		 try {
-			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus(month,year,status);
+			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus());
 //			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus();
 
 			 
